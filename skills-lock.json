@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "skills": {
+    "connect-recommend": {
+      "source": "git@github.com:stripe/ai.git",
+      "sourceUrl": "git@github.com:stripe/ai.git",
+      "sourceType": "git",
+      "skillPath": "skills/connect-recommend/SKILL.md",
+      "computedHash": "ddf136d2fdc3fb24d5b4b932ec60cb714e941ca8b624b5f3fe8888728e5b5563"
+    },
+    "connect-required-verification-information": {
+      "source": "git@github.com:stripe/ai.git",
+      "sourceUrl": "git@github.com:stripe/ai.git",
+      "sourceType": "git",
+      "skillPath": "skills/connect-required-verification-information/SKILL.md",
+      "computedHash": "2aab50320b9ebde437ef8ae3d963a70c189b8f400855fe4e3fab2eadbca7db60"
+    },
+    "stripe-apps": {
+      "source": "git@github.com:stripe/ai.git",
+      "sourceUrl": "git@github.com:stripe/ai.git",
+      "sourceType": "git",
+      "skillPath": "skills/stripe-apps/SKILL.md",
+      "computedHash": "86786e79b73c6757596a60c93315c3b74a06055ea136c058ba7380fb89bd7116"
+    },
+    "stripe-best-practices": {
+      "source": "git@github.com:stripe/ai.git",
+      "sourceUrl": "git@github.com:stripe/ai.git",
+      "sourceType": "git",
+      "skillPath": "skills/stripe-best-practices/SKILL.md",
+      "computedHash": "b2c528dcfd7eeccb4c7a073878c735451f5585357e88a8f00bd62ab2ac0fd7a4"
+    },
+    "stripe-directory": {
+      "source": "git@github.com:stripe/ai.git",
+      "sourceUrl": "git@github.com:stripe/ai.git",
+      "sourceType": "git",
+      "skillPath": "skills/stripe-directory/SKILL.md",
+      "computedHash": "07ad90a28d62dcaab561413f97603bb9abb31c762c14b303ad7878eb6e2eab6a"
+    },
+    "stripe-docs": {
+      "source": "git@github.com:stripe/ai.git",
+      "sourceUrl": "git@github.com:stripe/ai.git",
+      "sourceType": "git",
+      "skillPath": "skills/stripe-docs/SKILL.md",
+      "computedHash": "ee4a51d34f11386fe6c9f991d5b2d32da69c851124a78a01403412bcf87e73d7"
+    },
+    "stripe-projects": {
+      "source": "git@github.com:stripe/ai.git",
+      "sourceUrl": "git@github.com:stripe/ai.git",
+      "sourceType": "git",
+      "skillPath": "skills/stripe-projects/SKILL.md",
+      "computedHash": "d5b674901c9eb8b1c21e9d3a22728f9a4e0a8a6e22737ce7c284ff8daa51a765"
+    },
+    "upgrade-stripe": {
+      "source": "git@github.com:stripe/ai.git",
+      "sourceUrl": "git@github.com:stripe/ai.git",
+      "sourceType": "git",
+      "skillPath": "skills/upgrade-stripe/SKILL.md",
+      "computedHash": "0062f01cb53d564f4be707c318c09c92b642e35431101a9cd1fccbb7f5722546"
+    }
+  }
+}

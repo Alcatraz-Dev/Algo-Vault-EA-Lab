@@ -1,0 +1,11 @@
+; Gold Scalper V3 - Conservative Settings
+; Designed for smaller accounts with low risk
+[UseRiskPercent]=true
+[RiskPercent]=0.5
+[StopLoss]=300
+[TakeProfit]=450
+[UseTrailingStop]=true
+[TrailingStop]=200
+[MinimumBullVotes]=6
+[MinimumBearVotes]=6
+[RequiredHigherTFVotes]=3

@@ -1,0 +1,10 @@
+; Gold Scalper V3 - Aggressive Settings
+; Higher frequency, higher growth potential
+[UseRiskPercent]=true
+[RiskPercent]=2.0
+[StopLoss]=150
+[TakeProfit]=200
+[UseTrailingStop]=false
+[MinimumBullVotes]=4
+[MinimumBearVotes]=4
+[RequiredHigherTFVotes]=2

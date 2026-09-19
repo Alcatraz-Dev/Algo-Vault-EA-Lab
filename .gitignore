@@ -39,3 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# kilo
+/.kilo/
+
+# agents
+/.agents/
+AGENTS.md/
+
+# graphify-out
+graphify-out/
+
