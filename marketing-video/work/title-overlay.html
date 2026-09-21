@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root { color-scheme: dark; }
+  html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+  .stage { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; padding: 7vh 8vw; box-sizing: border-box; color: #f7f8fa; font-family: Arial, Helvetica, sans-serif; }
+  .glow { position: absolute; inset: 0; background: radial-gradient(ellipse at 18% 18%, rgba(59,130,246,.16), transparent 34%), radial-gradient(ellipse at 82% 78%, rgba(139,92,246,.12), transparent 38%), linear-gradient(135deg, rgba(5,7,10,.12), rgba(5,7,10,.72)); pointer-events: none; }
+  .grid { position: absolute; inset: 0; opacity: .16; background-image: linear-gradient(rgba(148,163,184,.22) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,.16) 1px, transparent 1px); background-size: 72px 72px; mask-image: linear-gradient(to bottom, transparent, black 22%, black 78%, transparent); pointer-events: none; }
+  .content { position: relative; z-index: 1; max-width: 1240px; }
+  .eyebrow { font-size: 15px; line-height: 1; letter-spacing: 6px; text-transform: uppercase; color: #79a9ff; font-weight: 700; margin-bottom: 25px; }
+  .title { font-size: 72px; line-height: .98; letter-spacing: -3px; font-weight: 700; max-width: 1260px; text-shadow: 0 8px 32px rgba(0,0,0,.5); }
+  .sub { font-size: 25px; line-height: 1.35; color: #b8c0cc; margin-top: 27px; letter-spacing: .2px; text-shadow: 0 5px 20px rgba(0,0,0,.6); }
+  .rule { width: 116px; height: 2px; background: #6ea8fe; margin-top: 40px; box-shadow: 0 0 20px rgba(110,168,254,.7); }
+  .brand { position: absolute; right: 8vw; bottom: 8vh; display: flex; align-items: center; gap: 15px; color: #e8edf4; font-size: 22px; letter-spacing: 1.5px; font-weight: 700; }
+  .brand img { width: 42px; height: 42px; object-fit: contain; image-rendering: auto; }
+  .center { align-items: center; justify-content: center; text-align: center; padding-bottom: 4vh; }
+  .center .content { margin: 0 auto; }
+  .center .rule { margin-left: auto; margin-right: auto; }
+  .center .brand { right: auto; left: 50%; bottom: 7vh; transform: translateX(-50%); }
+  .small { font-size: 17px; letter-spacing: 4px; }
+  .tiny { font-size: 13px; letter-spacing: 2.5px; color: #8994a3; margin-top: 20px; }
+  .final-logo { display: none; width: 96px; height: 96px; object-fit: contain; margin: 0 auto 30px; filter: drop-shadow(0 0 24px rgba(110,168,254,.42)); }
+  .final .content { text-align: center; margin: 0 auto; }
+  .final .title { font-size: 88px; letter-spacing: -3px; }
+  .final .sub { font-size: 23px; margin-top: 24px; }
+  .final .tiny { font-size: 15px; margin-top: 24px; color: #b8c0cc; }
+  .final .eyebrow, .final .rule, .final .brand { display: none; }
+  .vertical .stage { padding: 10vh 10vw; }
+  .vertical .title { font-size: 54px; letter-spacing: -1.8px; max-width: 850px; }
+  .vertical .sub { font-size: 20px; margin-top: 22px; }
+  .vertical .eyebrow { font-size: 13px; letter-spacing: 4px; margin-bottom: 20px; }
+  .vertical .rule { width: 86px; margin-top: 30px; }
+  .vertical .brand { font-size: 17px; right: 10vw; bottom: 7vh; }
+  .vertical .brand img { width: 34px; height: 34px; }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="grid"></div><div class="glow"></div>
+  <div class="content">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="title" id="title"></div>
+    <div class="sub" id="sub"></div>
+    <div class="rule"></div>
+    <div class="tiny" id="tiny"></div>
+  </div>
+  <div class="brand"><img id="logo" src="" alt=""><span>ALGO VAULT</span></div>
+</div>
+<script>
+  const q = new URLSearchParams(location.search);
+  const stage = document.getElementById('stage');
+  document.getElementById('eyebrow').textContent = q.get('eyebrow') || '';
+  document.getElementById('title').textContent = q.get('title') || '';
+  document.getElementById('sub').textContent = q.get('sub') || '';
+  document.getElementById('tiny').textContent = q.get('tiny') || '';
+  document.getElementById('logo').src = q.get('logo') || '';
+  if (q.get('align') === 'center') stage.classList.add('center');
+  if (q.get('vertical') === '1') stage.classList.add('vertical');
+  if (q.get('final') === '1') stage.classList.add('final');
+  if (q.get('compact') === '1') { document.documentElement.style.setProperty('--compact', '1'); document.querySelector('.title').style.fontSize = '58px'; document.querySelector('.sub').style.fontSize = '21px'; }
+  if (q.get('final') === '1') { document.querySelector('.eyebrow').style.display = 'none'; document.querySelector('.rule').style.display = 'none'; document.querySelector('.brand').style.display = 'none'; }
+</script>
+</body>
+</html>

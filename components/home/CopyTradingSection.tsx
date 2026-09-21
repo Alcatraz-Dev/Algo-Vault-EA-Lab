@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Copy, ArrowRight, Shield, CheckCircle2, Users } from "lucide-react";
+import { Copy, ArrowRight, Shield } from "lucide-react";
 
 export default function CopyTradingSection() {
     return (
@@ -35,7 +35,7 @@ export default function CopyTradingSection() {
                         <div className="lg:col-span-6 space-y-4 font-mono text-xs">
                             <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4 space-y-2">
                                 <div className="flex justify-between items-center text-emerald-400 font-bold">
-                                    <span>Master Account #49201 (XAUUSD Scalper)</span>
+                                    <span>Master Strategy · Gold SMC Scalper</span>
                                     <span className="text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded">VERIFIED MASTER</span>
                                 </div>
                                 <div className="flex justify-between text-muted-foreground">
@@ -53,14 +53,14 @@ export default function CopyTradingSection() {
                             <div className="space-y-2">
                                 <div className="rounded-xl border border-border/60 bg-background/80 p-3 flex justify-between items-center">
                                     <div>
-                                        <div className="font-bold text-foreground">Follower #1 (Risk: 0.5x)</div>
+                                        <div className="font-bold text-foreground">Follower A (Risk: 0.5×)</div>
                                         <div className="text-[10px] text-muted-foreground">Lot Sizing: 0.50 Lots</div>
                                     </div>
                                     <span className="text-emerald-400 font-bold">MIRRORED</span>
                                 </div>
                                 <div className="rounded-xl border border-border/60 bg-background/80 p-3 flex justify-between items-center">
                                     <div>
-                                        <div className="font-bold text-foreground">Follower #2 (Risk: 1.0x)</div>
+                                        <div className="font-bold text-foreground">Follower B (Risk: 1.0×)</div>
                                         <div className="text-[10px] text-muted-foreground">Lot Sizing: 1.00 Lot</div>
                                     </div>
                                     <span className="text-emerald-400 font-bold">MIRRORED</span>

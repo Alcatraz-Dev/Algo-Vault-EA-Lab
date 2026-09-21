@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 import {
     adminAuth,
     adminDatabase,
 } from "@/lib/firebase-admin";
-
-const stripe = new Stripe(
-    process.env.STRIPE_SECRET_KEY || ""
-);
+import { stripeClient } from "@/lib/stripe";
 
 const SUBSCRIPTION_PLANS: Record<string, {
     name: string;
@@ -134,7 +130,7 @@ export async function POST(
         const buyerProfile = buyerProfileSnap.val();
         const referredBy = buyerProfile?.referredBy || null;
 
-        const session = await stripe.checkout.sessions.create({
+        const session = await stripeClient.checkout.sessions.create({
                 mode: "subscription",
                 payment_method_types: ["card"],
                 customer_email: email || undefined,
@@ -166,6 +162,8 @@ export async function POST(
                 cancel_url: plan.tier === "dev"
                     ? `${appUrl}/developer/subscription`
                     : `${appUrl}/account/subscribe`,
+            }, {
+                idempotencyKey: `checkout-${orderId}`,
             });
 
             await orderRef.set({
@@ -241,6 +239,109 @@ export async function POST(
                 },
                 { status: 403 }
             );
+        }
+
+        /*
+         * --------------------------------------------------
+         * 5.5 PLUGIN / EXTENSION FLOW
+         *
+         * Plugin orders carry orderType/productType === "plugin". The
+         * product lives under plugins/{productId} and pricing/licensing use
+         * the plugin's own manifest instead of the bots/ catalog.
+         * --------------------------------------------------
+         */
+
+        if (
+            order.productType === "plugin" ||
+            order.orderType === "plugin" ||
+            (typeof order.productId === "string" && order.productId.startsWith("plugin:"))
+        ) {
+            const pluginIdRaw = String(order.productId || "").replace(/^plugin:/, "");
+            const pluginId = pluginIdRaw || String(order.pluginId || "");
+            if (!pluginId) {
+                return NextResponse.json({ error: "Plugin order has no product." }, { status: 400 });
+            }
+
+            const pluginSnap = await adminDatabase.ref(`plugins/${pluginId}`).get();
+            if (!pluginSnap.exists()) {
+                return NextResponse.json({ error: "Plugin not found." }, { status: 404 });
+            }
+            const plugin = pluginSnap.val();
+
+            if (plugin.status !== "published") {
+                return NextResponse.json({ error: "Plugin is not available." }, { status: 400 });
+            }
+
+            const pluginPricing = plugin.pricing || { type: "free", price: 0, currency: "usd" };
+            const pluginPrice = Number(pluginPricing.price || 0);
+            const pluginCurrency = String(pluginPricing.currency || "usd").toLowerCase();
+            const isSubscription = pluginPricing.type === "subscription";
+
+            if (pluginPrice <= 0) {
+                return NextResponse.json({ error: "This plugin is free and does not require payment." }, { status: 400 });
+            }
+
+            const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+            const buyerProfileSnap = await adminDatabase.ref(`users/${authenticatedUserId}`).get();
+            const buyerProfile = buyerProfileSnap.val();
+            const referredBy = buyerProfile?.referredBy || null;
+
+            const session = await stripeClient.checkout.sessions.create({
+                mode: isSubscription ? "subscription" : "payment",
+                payment_method_types: ["card"],
+                customer_email: email || undefined,
+                line_items: [
+                    {
+                        price_data: {
+                            currency: pluginCurrency,
+                            product_data: {
+                                name: (plugin.displayName || plugin.name || "AlgoVault Plugin").slice(0, 120),
+                                description: (plugin.description || "Trading intelligence plugin license").slice(0, 255),
+                            },
+                            unit_amount: Math.round(pluginPrice * 100),
+                            ...(isSubscription ? { recurring: { interval: "month" as const } } : {}),
+                        },
+                        quantity: 1,
+                    },
+                ],
+                metadata: {
+                    orderId,
+                    userId: authenticatedUserId,
+                    orderType: "plugin",
+                    pluginId,
+                    productId: pluginId,
+                    price: String(pluginPrice),
+                    currency: pluginCurrency,
+                    referredBy: referredBy || "",
+                },
+                success_url: `${appUrl}/account/plugins?payment=success&order=${encodeURIComponent(orderId)}`,
+                cancel_url: `${appUrl}/marketplace/plugins/${encodeURIComponent(plugin.slug || pluginId)}?payment=cancelled`,
+            });
+
+            await orderRef.update({
+                userId: authenticatedUserId,
+                email,
+                productId: pluginId,
+                productName: plugin.displayName || plugin.name || "",
+                productSlug: plugin.slug || pluginId,
+                productType: "plugin",
+                pluginId,
+                price: pluginPrice,
+                amount: pluginPrice,
+                currency: pluginCurrency.toUpperCase(),
+                pricingType: pluginPricing.type || "one_time",
+                orderType: "plugin",
+                stripeSessionId: session.id,
+                paymentProvider: "stripe",
+                checkoutCreatedAt: order.checkoutCreatedAt || Date.now(),
+                updatedAt: Date.now(),
+            });
+
+            return NextResponse.json({
+                success: true,
+                checkoutUrl: session.url,
+                sessionId: session.id,
+            });
         }
 
         /*
@@ -393,7 +494,7 @@ export async function POST(
         ) {
             try {
                 const existingSession =
-                    await stripe.checkout.sessions.retrieve(
+                    await stripeClient.checkout.sessions.retrieve(
                         order.stripeSessionId
                     );
 
@@ -487,7 +588,7 @@ export async function POST(
          */
 
         const session =
-            await stripe.checkout.sessions.create(
+            await stripeClient.checkout.sessions.create(
                 {
                     mode:
                         isSubscription
@@ -560,6 +661,9 @@ export async function POST(
                         `${appUrl}/marketplace/${encodeURIComponent(
                             order.productSlug || ""
                         )}?payment=cancelled`,
+                },
+                {
+                    idempotencyKey: `checkout-${orderId}`,
                 }
             );
 

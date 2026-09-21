@@ -9,6 +9,8 @@ import {
     Bot,
     CheckCircle2,
     Filter,
+    Plug,
+    Puzzle,
     Search,
     Shield,
     Sparkles,
@@ -357,6 +359,29 @@ export default function MarketplacePage() {
 
                 </div>
 
+            </section>
+
+            {/* Plugins & Extensions hub banner */}
+            <section className="border-b border-border/30 bg-muted/30">
+                <div className="mx-auto max-w-7xl px-6 py-8">
+                    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="max-w-xl">
+                            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-violet-400">
+                                <Sparkles size={14} />
+                                Plugins &amp; Extensions 
+                            </div>
+                            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                                Background intelligence agents that analyze your strategies, markets and risk on a schedule you control —
+                                plus extensions that connect outside tools.
+                            </p>
+                        </div>
+                        <div className="flex flex-col gap-3 sm:flex-row">
+                            <HubLink href="/marketplace" title="Trading Tools" subtitle="EAs, indicators & strategies" icon={<Bot size={18} />} active />
+                            <HubLink href="/marketplace/plugins" title="Plugins" subtitle="Background intelligence agents" icon={<Plug size={18} />} />
+                            <HubLink href="/marketplace/extensions" title="Extensions" subtitle="Connect outside tools" icon={<Puzzle size={18} />} />
+                        </div>
+                    </div>
+                </div>
             </section>
 
             {/* Marketplace */}
@@ -818,5 +843,34 @@ function MiniStat({
             </p>
 
         </div>
+    );
+}
+
+function HubLink({
+    href,
+    title,
+    subtitle,
+    icon,
+    active = false,
+}: {
+    href: string;
+    title: string;
+    subtitle: string;
+    icon: React.ReactNode;
+    active?: boolean;
+}) {
+    return (
+        <Link
+            href={href}
+            className={`w-full rounded-2xl border p-4 transition sm:w-56 ${
+                active ? "border-violet-500/40 bg-violet-500/10" : "border-border/30 bg-muted/50 hover:border-border/50"
+            }`}
+        >
+            <div className="flex items-center gap-2 text-sm font-medium">
+                {icon}
+                {title}
+            </div>
+            <p className="mt-1 text-[11px] leading-5 text-muted-foreground">{subtitle}</p>
+        </Link>
     );
 }

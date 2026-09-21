@@ -1,15 +1,8 @@
-import { MarketCandle, MarketQuote, Timeframe, TIMEFRAME_INTERVALS, SupportedSymbol, SUPPORTED_SYMBOLS } from "./types";
-import { fetchCandlesWithProvider, TWELVE_DATA_SYMBOLS } from "./normalizer";
-import { getCurrentSession } from "@/lib/analytics/sessions";
-import { detectStructure, getOverallStructureBias } from "@/lib/analytics/market-structure";
-import { detectLiquidity } from "@/lib/analytics/liquidity";
-import { calculateVWAP, getVWAPPosition } from "@/lib/analytics/vwap";
-import { analyzeVolume } from "@/lib/analytics/volume";
-import { analyzeVolatility, calculateATR } from "@/lib/analytics/volatility";
-import { detectRegime } from "@/lib/analytics/market-regime";
-import { detectOrderBlocks, detectFairValueGaps } from "@/lib/analytics/zones";
+import { MarketCandle, MarketQuote, Timeframe, SupportedSymbol } from "./types";
+import { fetchCandles } from "./normalizer";
+import { fetchBiquoteLivePrice, tradingViewLivePriceCache } from "@/lib/market-data/tradingview-live";
 
-export type DataProvider = "biquote" | "twelvedata";
+export type DataProvider = "biquote" | "tradingview";
 
 export interface MarketSnapshot {
     symbol: SupportedSymbol;
@@ -108,54 +101,48 @@ function getTimeframeCategory(tf: Timeframe): FreshnessResult["category"] {
     }
 }
 
-async function fetchLiveQuote(symbol: SupportedSymbol): Promise<MarketQuote | null> {
-    const apiKey = process.env.TWELVE_DATA_API_KEY;
+type LiveQuoteResult = {
+    quote: MarketQuote;
+    provider: DataProvider;
+};
 
-    if (apiKey) {
-        try {
-            const tdSymbol = TWELVE_DATA_SYMBOLS[symbol];
-            if (tdSymbol) {
-                const url = `https://api.twelvedata.com/quote?symbol=${tdSymbol}&apikey=${apiKey}`;
-                const res = await fetch(url, { cache: "no-store" });
-                if (res.ok) {
-                    const data = await res.json() as { bid?: string; ask?: string; close?: string; timestamp?: number; datetime?: string };
-                    if (data.close) {
-                        const price = Number(data.close);
-                        const bid = data.bid ? Number(data.bid) : price;
-                        const ask = data.ask ? Number(data.ask) : price;
-                        return {
-                            symbol,
-                            bid,
-                            ask,
-                            spread: ask - bid,
-                            timestamp: (data.timestamp || Date.now()) * 1000,
-                            change: undefined,
-                            changePercent: undefined,
-                        };
-                    }
-                }
-            }
-        } catch { /* fall through to biquote */ }
-    }
-
-    try {
-        const url = `https://biquote.io/api/${symbol}/ticker`;
-        const res = await fetch(url, { cache: "no-store" });
-        if (res.ok) {
-            const data = await res.json() as { price?: number; bid?: number; ask?: number; timestamp?: number };
-            if (data.price) {
-                const bid = data.bid ?? data.price;
-                const ask = data.ask ?? data.price;
-                return {
+async function fetchLiveQuote(
+    symbol: SupportedSymbol,
+    preferredProvider?: DataProvider
+): Promise<LiveQuoteResult | null> {
+    if (preferredProvider !== "biquote") {
+        const livePrice = await tradingViewLivePriceCache.get(symbol);
+        if (livePrice) {
+            const bid = livePrice.bid ?? livePrice.price;
+            const ask = livePrice.ask ?? livePrice.price;
+            return {
+                provider: livePrice.provider,
+                quote: {
                     symbol,
                     bid,
                     ask,
-                    spread: ask - bid,
-                    timestamp: data.timestamp ? Number(data.timestamp) : Date.now(),
-                };
-            }
+                    spread: Math.max(0, ask - bid),
+                    timestamp: livePrice.timestamp,
+                    change: livePrice.change,
+                    changePercent: livePrice.changePercent,
+                },
+            };
         }
-    } catch { /* return null */ }
+    }
+
+    const biquotePrice = await fetchBiquoteLivePrice(symbol);
+    if (biquotePrice) {
+        return {
+            provider: "biquote",
+            quote: {
+                symbol,
+                bid: biquotePrice.price,
+                ask: biquotePrice.price,
+                spread: 0,
+                timestamp: biquotePrice.timestamp,
+            },
+        };
+    }
 
     return null;
 }
@@ -170,9 +157,6 @@ export async function fetchMarketSnapshot(
     if (!SUPPORTED_SYMBOL_LIST.includes(sym)) {
         return null;
     }
-
-    const candleLimit = options?.lookbackCandles ?? 100;
-
     const [recentCandles, htfCandles] = await Promise.all([
         fetchCandles(sym, timeframe, { to: Date.now() }),
         fetchCandles(sym, getHigherTimeframe(timeframe)),
@@ -182,7 +166,8 @@ export async function fetchMarketSnapshot(
         return null;
     }
 
-    const quote = await fetchLiveQuote(sym);
+    const liveQuote = await fetchLiveQuote(sym, options?.provider ?? "tradingview");
+    const quote = liveQuote?.quote ?? null;
     const now = Date.now();
 
     let currentPrice: number;
@@ -190,7 +175,7 @@ export async function fetchMarketSnapshot(
     let ask: number;
     let spread: number;
     let quoteTimestamp: number;
-    let provider: DataProvider = "biquote";
+    let provider: DataProvider = liveQuote?.provider ?? "biquote";
 
     if (quote && (now - quote.timestamp) < DEFAULT_FRESHNESS_THRESHOLDS.m1Ms) {
         currentPrice = (quote.bid + quote.ask) / 2;
@@ -198,14 +183,12 @@ export async function fetchMarketSnapshot(
         ask = quote.ask;
         spread = quote.spread;
         quoteTimestamp = quote.timestamp;
-        provider = "twelvedata";
     } else if (quote) {
         currentPrice = (quote.bid + quote.ask) / 2;
         bid = quote.bid;
         ask = quote.ask;
         spread = quote.spread;
         quoteTimestamp = quote.timestamp;
-        provider = "biquote";
     } else {
         const last = recentCandles[recentCandles.length - 1];
         const candleAgeMs = now - last.timestamp;
@@ -234,7 +217,7 @@ export async function fetchMarketSnapshot(
         freshnessStatus = "fresh";
     }
 
-    const exchange = provider === "twelvedata" ? "TwelveData" : "Biquote";
+    const exchange = provider === "tradingview" ? "TradingView" : "Biquote";
 
     const multiTimeframeCandles: Record<Timeframe, MarketCandle[]> = { M1: [], M3: [], M5: [], M15: [], M30: [], H1: [], H4: [], D1: [] };
     const mtfTimeframes: Timeframe[] = ["M1", "M5", "M15", "H1", "H4"];
@@ -358,5 +341,72 @@ export async function getMarketTruth(
     const freshness = await validateMarketFreshness(snapshot, timeframe);
     return { snapshot, freshness };
 }
+
+export type MarketDataListener = (snapshot: MarketSnapshot | null) => void;
+
+type MarketStreamEntry = {
+    listeners: Set<MarketDataListener>;
+    timer: ReturnType<typeof setInterval>;
+    inFlight: boolean;
+};
+
+/** Shared polling stream for client consumers of canonical market truth. */
+class MarketDataStream {
+    private readonly entries = new Map<string, MarketStreamEntry>();
+
+    subscribe(
+        symbol: string,
+        timeframe: Timeframe,
+        listener: MarketDataListener,
+        options: { intervalMs?: number } = {}
+    ): () => void {
+        const normalizedSymbol = symbol.toUpperCase();
+        const key = `${normalizedSymbol}:${timeframe}`;
+        let entry = this.entries.get(key);
+
+        if (!entry) {
+            const listeners = new Set<MarketDataListener>();
+            entry = {
+                listeners,
+                inFlight: false,
+                timer: setInterval(() => {
+                    void this.refresh(normalizedSymbol, timeframe, key);
+                }, options.intervalMs ?? 30_000),
+            };
+            this.entries.set(key, entry);
+            void this.refresh(normalizedSymbol, timeframe, key);
+        }
+
+        entry.listeners.add(listener);
+
+        return () => {
+            const current = this.entries.get(key);
+            if (!current) return;
+            current.listeners.delete(listener);
+            if (current.listeners.size === 0) {
+                clearInterval(current.timer);
+                this.entries.delete(key);
+            }
+        };
+    }
+
+    private async refresh(symbol: string, timeframe: Timeframe, key: string): Promise<void> {
+        const entry = this.entries.get(key);
+        if (!entry || entry.inFlight) return;
+        entry.inFlight = true;
+
+        try {
+            const result = await getMarketTruth(symbol, timeframe);
+            const current = this.entries.get(key);
+            if (!current) return;
+            current.listeners.forEach((listener) => listener(result?.snapshot ?? null));
+        } finally {
+            const current = this.entries.get(key);
+            if (current) current.inFlight = false;
+        }
+    }
+}
+
+export const marketDataStream = new MarketDataStream();
 
 export { SUPPORTED_SYMBOL_LIST };

@@ -5,9 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Activity,
-  ArrowLeft,
   BarChart3,
-  Bot,
   Brain,
   Calculator,
   Clock,
@@ -28,7 +26,6 @@ import {
   X,
   Zap,
   Crown,
-  Star,
   Target,
 } from "lucide-react";
 import { signOut, onAuthStateChanged, User } from "firebase/auth";
@@ -74,7 +71,6 @@ export default function SiteNavbar() {
   const [user, setUser] = useState<User | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hasPro, setHasPro] = useState(false);
-  const [subscriptionLoading, setSubscriptionLoading] = useState(true);
   const [siteName, setSiteName] = useState("AlgoVault");
 
   useEffect(() => {
@@ -95,8 +91,6 @@ export default function SiteNavbar() {
 
   useEffect(() => {
     if (!user) {
-      setHasPro(false);
-      setSubscriptionLoading(false);
       return;
     }
     const check = async () => {
@@ -106,7 +100,6 @@ export default function SiteNavbar() {
       } catch {
         setHasPro(false);
       } finally {
-        setSubscriptionLoading(false);
       }
     };
     check();
@@ -123,14 +116,14 @@ export default function SiteNavbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+    <nav className="sticky top-0 z-50 border-b border-border bg-background">
+      <div className="page-container flex items-center justify-between py-3">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <SiteLogo size={18} />
           <span className="text-lg font-bold tracking-tight">{siteName}</span>
           {hasPro && (
-            <span className="ml-2 rounded-full bg-violet-500 px-2 py-0.5 text-[10px] font-bold text-foreground">
+            <span className="ml-2 rounded-full border border-primary/40 bg-accent-muted px-2 py-0.5 text-xs font-bold text-primary">
               PRO
             </span>
           )}
@@ -144,7 +137,7 @@ export default function SiteNavbar() {
               href={href}
               className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition ${
                 isActive(href)
-                  ? "bg-foreground text-background"
+                  ? "bg-accent-muted text-primary"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
@@ -158,7 +151,7 @@ export default function SiteNavbar() {
               href={href}
               className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition ${
                 isActive(href)
-                  ? "bg-violet-500/20 text-violet-400"
+                  ? "bg-accent-muted text-primary"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
@@ -184,7 +177,7 @@ export default function SiteNavbar() {
           <button
             type="button"
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground md:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground md:hidden"
             aria-label="Toggle menu"
           >
             {mobileOpen ? <X size={18} /> : <Menu size={18} />}
@@ -216,7 +209,7 @@ export default function SiteNavbar() {
                   onClick={() => setMobileOpen(false)}
                   className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
                     isActive(href)
-                      ? "bg-foreground font-semibold text-background"
+                      ? "bg-accent-muted font-semibold text-primary"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
@@ -229,7 +222,7 @@ export default function SiteNavbar() {
                   key={href}
                   href={href}
                   onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-violet-400 transition hover:bg-muted"
+                  className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-primary transition-colors hover:bg-muted"
                 >
                   <Icon size={16} />
                   {label}

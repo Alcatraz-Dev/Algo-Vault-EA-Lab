@@ -12,14 +12,19 @@ import {
 import { AIConfig } from "../config";
 import { isModelConfirmedFree, assertFreeModelAllowed, KNOWN_FREE_MODELS } from "../models";
 import { normalizeNarrative, normalizeSummary } from "../validate";
-import { extractFinishReason, isTruncated } from "../finish";
+import { extractFinishReason, isTruncated, isAbortError } from "../finish";
 
 export class BAIProvider implements AIProvider {
     readonly id = "bai";
     readonly name = "B.AI (Free Cloud)";
 
     isAvailable(): boolean {
-        return Boolean(AIConfig.baiApiKey && AIConfig.baiApiKey.trim());
+        if (!(AIConfig.baiApiKey && AIConfig.baiApiKey.trim())) return false;
+        // B.AI exposes NO confirmed-free models in its catalog. Under the
+        // free-only policy it can never serve a request, so exclude it from the
+        // fallback chain instead of wasting an attempt on a guaranteed failure.
+        if (AIConfig.freeOnly) return false;
+        return true;
     }
 
     async getModels(): Promise<AIModel[]> {
@@ -39,29 +44,30 @@ export class BAIProvider implements AIProvider {
             }).finally(() => clearTimeout(timer));
 
             if (!res.ok) {
-                return KNOWN_FREE_MODELS.filter((m) => m.provider === "bai");
+                return [];
             }
 
-            const body = (await res.json()) as { data?: Array<{ id: string; name?: string; pricing?: { prompt?: string; completion?: string } }> };
+            const body = (await res.json()) as { data?: Array<{ id?: unknown; name?: unknown; pricing?: { prompt?: string | number; completion?: string | number } }> };
             if (!Array.isArray(body.data)) {
-                return KNOWN_FREE_MODELS.filter((m) => m.provider === "bai");
+                return [];
             }
 
-            const freeModels: AIModel[] = body.data
-                .filter((item) => isModelConfirmedFree(item.id, item.pricing))
-                .map((item) => ({
-                    id: item.id,
-                    name: item.name || item.id,
-                    provider: "bai",
-                    free: true,
-                    confirmedFree: true,
-                    enabled: true,
-                    capabilities: { text: true, structuredOutput: true },
-                }));
-
-            return freeModels.length > 0 ? freeModels : KNOWN_FREE_MODELS.filter((m) => m.provider === "bai");
+            return body.data
+                .filter((item): item is { id: string; name?: unknown; pricing?: { prompt?: string | number; completion?: string | number } } => typeof item.id === "string" && item.id.trim().length > 0)
+                .map((item) => {
+                    const confirmedFree = isModelConfirmedFree(item.id, item.pricing);
+                    return {
+                        id: item.id,
+                        name: typeof item.name === "string" && item.name.trim() ? item.name : item.id,
+                        provider: "bai" as const,
+                        free: confirmedFree,
+                        confirmedFree,
+                        enabled: true,
+                        capabilities: { text: true, structuredOutput: true },
+                    };
+                });
         } catch {
-            return KNOWN_FREE_MODELS.filter((m) => m.provider === "bai");
+            return [];
         }
     }
 
@@ -74,7 +80,21 @@ export class BAIProvider implements AIProvider {
             };
         }
 
-        const model = request.model || "bai-free-v1";
+        const models = await this.getModels();
+        const requestedModel = request.model?.trim();
+        const configuredModel = AIConfig.baiModel.trim();
+        const model =
+            [requestedModel, configuredModel].find((candidate) =>
+                candidate && models.some((item) => item.id === candidate)
+            ) || models.find((item) => item.enabled)?.id;
+
+        if (!model) {
+            throw {
+                code: "MODEL_UNAVAILABLE",
+                provider: this.id,
+                message: "B.AI model catalog returned no usable model.",
+            };
+        }
 
         // Enforce Free-Only Safety Guard
         assertFreeModelAllowed(model);
@@ -142,10 +162,10 @@ export class BAIProvider implements AIProvider {
                 raw: data,
             };
         } catch (err: unknown) {
-            if (err && typeof err === "object" && "code" in err) {
+            const isAbort = isAbortError(err);
+            if (!isAbort && err && typeof err === "object" && "code" in err) {
                 throw err;
             }
-            const isAbort = err instanceof Error && err.name === "AbortError";
             throw {
                 code: isAbort ? "TIMEOUT" : "UNKNOWN_ERROR",
                 provider: this.id,

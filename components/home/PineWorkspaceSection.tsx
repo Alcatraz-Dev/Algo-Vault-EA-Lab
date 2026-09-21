@@ -34,10 +34,10 @@ export default function PineWorkspaceSection() {
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Visual Code Studio</p>
                         <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl text-foreground">
-                            TradingView Pine Script v5 Studio
+                            TradingView Pine Script v6 Studio
                         </h2>
                         <p className="mt-3 text-base text-muted-foreground max-w-2xl">
-                            Write, edit, and execute Pine Script v5 indicators, strategy backtests, and custom alert conditions natively in your browser.
+                            Write, edit, and execute Pine Script v6 indicators, strategy backtests, and custom alert conditions natively in your browser.
                         </p>
                     </div>
                     <Link

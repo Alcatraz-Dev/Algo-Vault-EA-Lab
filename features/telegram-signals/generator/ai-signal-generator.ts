@@ -6,12 +6,18 @@
  * Signal generation follows the same pipeline as existing Telegram signals:
  * 1. MarketTruth fresh data check → generate from live market context
  * 2. Gemini AI fallback → LLM-based signal extraction
- * 3. Technical calculation fallback → deterministic price-level model (DEMO ONLY)
+ * 3. Technical calculation fallback - deterministic price-level model anchored to the live TradingView price
+ *
+ * The live real-time price is fetched from TradingView's public scanner
+ * with a Biquote fallback and injected as the authoritative currentPrice
+ * for entry/stop-loss/take-profit calculation throughout the pipeline.
  */
 
 import type { SignalDirection, SignalStyle, SignalTimeframe } from "../types";
 import { generateAISignalWithMarketTruth } from "@/lib/ai-signals/engine";
 import { SignalConfig } from "@/lib/ai-signals/types";
+import { tradingViewLivePriceCache } from "@/lib/market-data/tradingview-live";
+import type { TradingViewLivePrice } from "@/lib/market-data/tradingview-live";
 
 export interface GenerateAiSignalOptions {
     symbol: string;
@@ -35,6 +41,8 @@ export interface GeneratedAiSignalResult {
     rawText: string;
     aiUsed: boolean;
     confidence: number;
+    marketPrice?: number;
+    priceProvider?: string;
 }
 
 const BASE_SYMBOL_PRICES: Record<string, number> = {
@@ -71,6 +79,8 @@ export async function generateAiMarketSignal(
     const symbol = options.symbol.toUpperCase().trim();
     const timeframe = options.timeframe || "H1";
     const style = options.style || "INTRADAY";
+
+    const livePrice: TradingViewLivePrice | null = await tradingViewLivePriceCache.get(symbol);
 
     // Phase 1: Generate from fresh MarketTruth data (same pipeline as existing Telegram signals)
     const config: SignalConfig = {
@@ -136,9 +146,11 @@ export async function generateAiMarketSignal(
                 rawText,
                 aiUsed: true,
                 confidence,
+                marketPrice: sig.currentPrice,
+                priceProvider: sig.marketDataProvider,
             };
         }
-        if (aiResult.errorType === "MARKET_DATA_UNAVAILABLE" || aiResult.errorType === "MARKET_DATA_STALE" || aiResult.errorType === "PRICE_MISMATCH" || aiResult.errorType === "INVALID_ENTRY") {
+        if (aiResult.errorType === "MARKET_DATA_UNAVAILABLE" || aiResult.errorType === "MARKET_DATA_STALE" || aiResult.errorType === "PRICE_MISMATCH") {
             return {
                 symbol,
                 direction: "BUY",
@@ -154,8 +166,13 @@ export async function generateAiMarketSignal(
                 rawText: `SIGNAL BLOCKED: ${aiResult.error || "Invalid symbol or market data"}`,
                 aiUsed: false,
                 confidence: 0,
+                marketPrice: aiResult.marketSnapshot?.currentPrice,
+                priceProvider: aiResult.marketSnapshot?.provider,
             };
         }
+
+        // INVALID_ENTRY (e.g. "No clear direction determined from market context")
+        // is a soft failure — fall through to Gemini / technical fallbacks.
     } catch (err) {
         console.warn("[generateAiMarketSignal] MarketTruth generation failed, trying Gemini:", err);
     }
@@ -169,8 +186,10 @@ Generate a technical trading signal for:
 - Symbol: ${symbol}
 - Timeframe: ${timeframe}
 - Trading Style: ${style}
+- Current live price (TradingView real-time): ${livePrice ? `${livePrice.price} (provider: ${livePrice.provider})` : "unavailable"}
 ${options.notes ? `- Market context: ${options.notes}` : ""}
 
+The entry price MUST be within 0.5% of the current live price. Take-profits must extend in the direction of the trade with a risk-reward of at least 2:1.
 Return ONLY a single valid JSON object (no markdown, no code fencing) with the exact structure:
 {
   "direction": "BUY" or "SELL",
@@ -210,24 +229,33 @@ Return ONLY a single valid JSON object (no markdown, no code fencing) with the e
                     const tp3 = Number(parsed.tp3 || tp2);
                     const reasoning = parsed.reasoning || `AI technical scan identified high-conviction ${direction} setup on ${symbol} ${timeframe}.`;
 
-                    const rawText = formatRawText(direction, symbol, entryMin, entryMax, stopLoss, tp1, tp2, tp3, timeframe, reasoning);
+                    const nearMarket =
+                        livePrice && livePrice.price > 0 &&
+                        (Math.abs(entryMin - livePrice.price) / livePrice.price) * 100 < 0.5;
+                    if (!nearMarket) {
+                        console.warn("[generateAiMarketSignal] Gemini result rejected — entry too far from live TradingView price, falling back to market model.");
+                    } else {
+                        const rawText = formatRawText(direction, symbol, entryMin, entryMax, stopLoss, tp1, tp2, tp3, timeframe, reasoning);
 
-                    return {
-                        symbol,
-                        direction,
-                        entryMin,
-                        entryMax,
-                        stopLoss,
-                        tp1,
-                        tp2,
-                        tp3,
-                        style,
-                        timeframe,
-                        reasoning,
-                        rawText,
-                        aiUsed: true,
-                        confidence: 95,
-                    };
+                        return {
+                            symbol,
+                            direction,
+                            entryMin,
+                            entryMax,
+                            stopLoss,
+                            tp1,
+                            tp2,
+                            tp3,
+                            style,
+                            timeframe,
+                            reasoning,
+                            rawText,
+                            aiUsed: true,
+                            confidence: 95,
+                            marketPrice: livePrice?.price,
+                            priceProvider: livePrice?.provider,
+                        };
+                    }
                 }
             }
         } catch (err) {
@@ -235,8 +263,9 @@ Return ONLY a single valid JSON object (no markdown, no code fencing) with the e
         }
     }
 
-    // Phase 3: Technical calculation fallback (DEMO ONLY — NEVER uses these for current price)
-    const basePrice = BASE_SYMBOL_PRICES[symbol] || 100.0;
+    // Phase 3: Technical calculation fallback — uses the live TradingView price
+    // (falling back to static reference prices only when the live feed is unavailable).
+    const basePrice = livePrice?.price || BASE_SYMBOL_PRICES[symbol] || 100.0;
     const decimals = getDecimalPlaces(basePrice);
     const direction: SignalDirection = Math.random() > 0.4 ? "BUY" : "SELL";
 
@@ -289,6 +318,8 @@ Return ONLY a single valid JSON object (no markdown, no code fencing) with the e
         rawText,
         aiUsed: false,
         confidence: 88,
+        marketPrice: livePrice?.price,
+        priceProvider: livePrice?.provider,
     };
 }
 

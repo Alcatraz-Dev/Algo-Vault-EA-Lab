@@ -15,6 +15,12 @@
       "skillPath": "skills/connect-required-verification-information/SKILL.md",
       "computedHash": "2aab50320b9ebde437ef8ae3d963a70c189b8f400855fe4e3fab2eadbca7db60"
     },
+    "improve": {
+      "source": "shadcn/improve",
+      "sourceType": "github",
+      "skillPath": "skills/improve/SKILL.md",
+      "computedHash": "39a9358732dcff385e9e4d3e60b4547856f834e54a58b35e455aa9bd49928c13"
+    },
     "stripe-apps": {
       "source": "git@github.com:stripe/ai.git",
       "sourceUrl": "git@github.com:stripe/ai.git",

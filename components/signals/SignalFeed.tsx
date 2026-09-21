@@ -19,12 +19,14 @@ import SignalCard from "./SignalCard";
 type Props = {
     signals: AISignal[];
     loading?: boolean;
-    onSignalClick?: (id: string) => void;
     onView?: (signal: AISignal) => void;
-    onFollow?: (signalId: string) => void;
-    onTrade?: (signal: AISignal) => void;
-    onComplete?: (signal: AISignal) => void;
+    onFollow?: (signalId: string) => Promise<void> | void;
+    onTrade?: (signal: AISignal) => Promise<void> | void;
+    onComplete?: (signal: AISignal) => Promise<void> | void;
     followedIds?: Set<string>;
+    followLoadingIds?: Set<string>;
+    tradeLoadingIds?: Set<string>;
+    completeLoadingIds?: Set<string>;
 };
 
 type SortKey = "confidence" | "riskReward" | "time";
@@ -90,7 +92,7 @@ function SkeletonCard() {
     );
 }
 
-export default function SignalFeed({ signals, loading = false, onSignalClick, onView, onFollow, onTrade, onComplete, followedIds }: Props) {
+export default function SignalFeed({ signals, loading = false, onView, onFollow, onTrade, onComplete, followedIds, followLoadingIds, tradeLoadingIds, completeLoadingIds }: Props) {
     const [activeCategory, setActiveCategory] = useState<SignalCategory | "all">("all");
     const [statusFilter, setStatusFilter] = useState<SignalStatus | "all">("all");
     const [search, setSearch] = useState("");
@@ -257,22 +259,21 @@ export default function SignalFeed({ signals, loading = false, onSignalClick, on
                     </p>
                 </div>
             ) : (
-                    <div className="grid gap-3 md:grid-cols-2">
+                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                         {filtered.map((signal) => (
-                            <div
+                            <SignalCard
                                 key={signal.id}
-                                onClick={() => onSignalClick?.(signal.id)}
-                                className="cursor-pointer"
-                            >
-                                <SignalCard
-                                    signal={signal}
-                                    onView={onView ? () => onView(signal) : undefined}
-                                    onFollow={onFollow}
-                                    onTrade={onTrade}
-                                    onComplete={onComplete}
-                                    isFollowed={followedIds?.has(signal.id) ?? false}
-                                />
-                            </div>
+                                signal={signal}
+                                viewHref={`/signals/${signal.id}`}
+                                onView={onView ? () => onView(signal) : undefined}
+                                onFollow={onFollow}
+                                onTrade={onTrade}
+                                onComplete={onComplete}
+                                isFollowed={followedIds?.has(signal.id) ?? false}
+                                followLoading={followLoadingIds?.has(signal.id) ?? false}
+                                tradeLoading={tradeLoadingIds?.has(signal.id) ?? false}
+                                completeLoading={completeLoadingIds?.has(signal.id) ?? false}
+                            />
                         ))}
                     </div>
             )}

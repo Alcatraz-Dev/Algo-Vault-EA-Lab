@@ -338,17 +338,27 @@ export default function AccountSettingsPage() {
                 displayName: displayName.trim(),
             });
 
-            // Update Realtime DB node
-            const userRef = ref(database, `users/${user.uid}`);
-            await update(userRef, {
-                displayName: displayName.trim(),
-                phone: phone.trim(),
-                country,
-                timeZone,
-                experience,
-                bio: bio.trim(),
-                updatedAt: Date.now(),
+            const token = await user.getIdToken();
+            const response = await fetch("/api/user-profile", {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    displayName: displayName.trim(),
+                    phone: phone.trim(),
+                    country,
+                    timeZone,
+                    experience,
+                    bio: bio.trim(),
+                }),
             });
+
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result?.error || "Failed to update profile.");
+            }
 
             showToast("success", "Profile settings saved successfully!");
         } catch (err: unknown) {

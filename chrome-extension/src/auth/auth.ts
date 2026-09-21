@@ -31,7 +31,7 @@ export async function signInWithEmail(email: string, password: string): Promise<
   try {
     const settings = await getSettings();
     try {
-      await fetch(`${settings.algovaultUrl}/api/account-health`);
+      await fetch(`${settings.algovaultUrl}/`, { method: "GET" });
     } catch {
       throw new Error("Cannot reach AlgoVault server");
     }

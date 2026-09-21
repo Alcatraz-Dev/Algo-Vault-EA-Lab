@@ -12,6 +12,7 @@ import {
 } from "./types";
 import { AIConfig } from "./config";
 import { assertFreeModelAllowed, KNOWN_FREE_MODELS } from "./models";
+import { isAbortError } from "./finish";
 import { OpenRouterProvider } from "./providers/openrouter";
 import { OpenCodeProvider } from "./providers/opencode";
 import { BAIProvider } from "./providers/bai";
@@ -42,9 +43,20 @@ export class AIRouter {
     }
 
     async getAvailableProviders(): Promise<AIProvider[]> {
+        return this.getAvailableCloudProviders();
+    }
+
+    private async getAvailableCloudProviders(): Promise<AIProvider[]> {
         const result: AIProvider[] = [];
-        for (const provider of this.providers.values()) {
-            if (await provider.isAvailable()) {
+        const providers = [
+            this.providers.get("gemini"),
+            this.providers.get("openrouter"),
+            this.providers.get("opencode"),
+            this.providers.get("bai"),
+        ];
+
+        for (const provider of providers) {
+            if (provider && await provider.isAvailable()) {
                 result.push(provider);
             }
         }
@@ -65,7 +77,11 @@ export class AIRouter {
     }
 
     /**
-     * Executes chat request with automatic FREE provider fallback (Gemini -> OpenRouter -> OpenCode -> B.AI -> Local Heuristic)
+     * Executes chat request with automatic FREE provider fallback
+     * (Gemini -> OpenRouter -> OpenCode -> B.AI [only when a paid budget is
+     * allowed] -> Local Heuristic). Each provider resolves the effective model
+     * against its own free catalog, so a quota failure on one provider no longer
+     * cascades into the next provider being handed an unsupported model.
      */
     async chat(request: AIChatRequest): Promise<AIResponse> {
         // Enforce hard free-only check if model specified
@@ -73,12 +89,7 @@ export class AIRouter {
             assertFreeModelAllowed(request.model);
         }
 
-        const candidateOrder = [
-            this.providers.get("gemini"),
-            this.providers.get("openrouter"),
-            this.providers.get("opencode"),
-            this.providers.get("bai"),
-        ].filter((p): p is AIProvider => p !== undefined && Boolean(p.isAvailable()));
+        const candidateOrder = await this.getAvailableCloudProviders();
 
         let attempts = 0;
         const maxAttempts = Math.min(AIConfig.maxAttempts, candidateOrder.length);
@@ -93,9 +104,12 @@ export class AIRouter {
                 const res = await provider.chat(request);
                 return res;
             } catch (err: unknown) {
-                const provErr = (err && typeof err === "object" && "code" in err)
-                    ? (err as AIProviderError)
-                    : { code: "UNKNOWN_ERROR" as const, provider: provider.id, message: String(err) };
+                const isAbort = isAbortError(err);
+                const provErr = isAbort
+                    ? { code: "TIMEOUT" as const, provider: provider.id, message: `${provider.id} request timed out after ${AIConfig.timeoutMs}ms.` }
+                    : (err && typeof err === "object" && "code" in err)
+                        ? (err as AIProviderError)
+                        : { code: "UNKNOWN_ERROR" as const, provider: provider.id, message: String(err) };
 
                 console.warn(`[AI] Fallback triggered: provider=${provider.id} error=${provErr.code} message=${provErr.message}`);
                 lastErrors.push(provErr);
@@ -104,16 +118,12 @@ export class AIRouter {
 
         // If no cloud free providers succeeded or were available, check local fallback strategy provider
         console.log("[AI] Utilizing local heuristic free AI provider fallback.");
-        return this.localProvider.chat(request);
+        const fallback = await this.localProvider.chat(request);
+        return lastErrors.length > 0 ? { ...fallback, fallbackErrors: lastErrors } : fallback;
     }
 
     async describeStrategy(input: StrategyNarrativeInput): Promise<StrategyNarrative> {
-        const candidateOrder = [
-            this.providers.get("gemini"),
-            this.providers.get("openrouter"),
-            this.providers.get("opencode"),
-            this.providers.get("bai"),
-        ].filter((p): p is AIProvider => p !== undefined && Boolean(p.isAvailable()));
+        const candidateOrder = await this.getAvailableCloudProviders();
 
         for (const provider of candidateOrder) {
             try {
@@ -127,12 +137,7 @@ export class AIRouter {
     }
 
     async summarizeAnalysis(input: AnalysisSummaryInput): Promise<AnalysisSummary> {
-        const candidateOrder = [
-            this.providers.get("gemini"),
-            this.providers.get("openrouter"),
-            this.providers.get("opencode"),
-            this.providers.get("bai"),
-        ].filter((p): p is AIProvider => p !== undefined && Boolean(p.isAvailable()));
+        const candidateOrder = await this.getAvailableCloudProviders();
 
         for (const provider of candidateOrder) {
             try {

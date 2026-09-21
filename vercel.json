@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/signals/auto-update",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/pro-signals/auto-update",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/plugins/runtime/tick",
+      "schedule": "* * * * *"
+    }
+  ]
+}

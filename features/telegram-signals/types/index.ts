@@ -106,6 +106,7 @@ export interface ProSignal {
     lastUpdateAt: number;
     sourceGroupId?: string;
     strategyId?: string;
+    followCount?: number;
 }
 
 export interface TelegramSource {

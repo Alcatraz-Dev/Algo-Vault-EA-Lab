@@ -9,13 +9,32 @@ import { Loader2, Radio } from "lucide-react";
 import type { ProSignal, SignalTimeframe, SignalStatus as ProSignalStatus } from "../types";
 import type { AISignal, SignalStrength, MarketRegime, SignalAnalysis, ConfidenceBreakdown, SignalStatus } from "@/lib/ai-signals/types";
 
+export type FollowActionResult = {
+    signalId: string;
+    followed: boolean;
+    followCount?: number;
+};
+
+export type TradeActionResult = {
+    signalId: string;
+    tradeCount?: number;
+};
+
+export type CompleteActionResult = {
+    signalId: string;
+    status?: SignalStatus;
+};
+
 interface RealtimeFeedProps {
     uid: string;
-    onTrade?: (signal: AISignal) => void;
-    onComplete?: (signal: AISignal) => void;
+    onTrade?: (signal: AISignal) => Promise<TradeActionResult | void> | void;
+    onComplete?: (signal: AISignal) => Promise<CompleteActionResult | void> | void;
     onView?: (signal: AISignal) => void;
-    onFollow?: (signalId: string) => void;
+    onFollow?: (signalId: string) => Promise<FollowActionResult | void> | void;
     followedIds?: Set<string>;
+    followLoadingIds?: Set<string>;
+    tradeLoadingIds?: Set<string>;
+    completeLoadingIds?: Set<string>;
 }
 
 function deriveStrengthFromConfidence(confidence: number): SignalStrength {
@@ -74,7 +93,7 @@ function normalizeProSignal(signal: ProSignal): AISignal {
         tp3,
         confidence: signal.parserMetadata?.confidence ?? 0,
         suggestedRiskPercent: 1,
-        followCount: signal.events?.length ?? 0,
+        followCount: signal.followCount ?? signal.events?.length ?? 0,
         category: "forex",
         tier: "PRO",
         strength: deriveStrengthFromConfidence(signal.parserMetadata?.confidence ?? 0),
@@ -101,12 +120,15 @@ function normalizeProSignal(signal: ProSignal): AISignal {
         analysisVersion: "",
         generatedBy: "Telegram Signal Engine",
         lastCheckedAt: Date.now(),
-        tradeCount: 0,
+        tradeCount: signal.events?.some((event) => event.type === "ORDER_QUEUED") ? 1 : 0,
         pipValue: 0.01,
         contractSize: 100000,
         typicalSpread: 1,
         digits: 5,
         timeline: [],
+        sourceMetadata: signal.sourceMetadata,
+        rawMessageId: signal.rawMessageId,
+        style: signal.style,
     };
 }
 
@@ -131,7 +153,17 @@ function mapProStatusToAISignalStatus(status: ProSignalStatus): SignalStatus {
     return mapping[status] ?? "WATCH";
 }
 
-export function RealtimeFeed({ uid, onTrade, onComplete, onView, onFollow, followedIds }: RealtimeFeedProps) {
+export function RealtimeFeed({
+    uid,
+    onTrade,
+    onComplete,
+    onView,
+    onFollow,
+    followedIds,
+    followLoadingIds,
+    tradeLoadingIds,
+    completeLoadingIds,
+}: RealtimeFeedProps) {
     const router = useRouter();
     const [signals, setSignals] = useState<AISignal[]>([]);
     const [loading, setLoading] = useState(true);
@@ -139,9 +171,9 @@ export function RealtimeFeed({ uid, onTrade, onComplete, onView, onFollow, follo
 
     const fetchViaApi = async () => {
         try {
-            const user = auth.currentUser;
-            if (!user) return;
-            const token = await user.getIdToken();
+            const currentUser = auth.currentUser;
+            if (!currentUser) return;
+            const token = await currentUser.getIdToken();
             const res = await fetch("/api/pro-signals", {
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -180,8 +212,8 @@ export function RealtimeFeed({ uid, onTrade, onComplete, onView, onFollow, follo
             },
             (err) => {
                 useApiFallback.current = true;
-                fetchViaApi();
-                pollInterval = setInterval(fetchViaApi, 5000);
+                void fetchViaApi();
+                pollInterval = setInterval(() => void fetchViaApi(), 5000);
             }
         );
 
@@ -194,14 +226,14 @@ export function RealtimeFeed({ uid, onTrade, onComplete, onView, onFollow, follo
 
     const handleDeleteSignal = async (signalId: string) => {
         try {
-            const user = auth.currentUser;
-            if (!user) return;
-            const token = await user.getIdToken();
-            await fetch(`/api/pro-signals?signalId=${signalId}`, {
+            const currentUser = auth.currentUser;
+            if (!currentUser) return;
+            const token = await currentUser.getIdToken();
+            await fetch(`/api/pro-signals?signalId=${encodeURIComponent(signalId)}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` },
             });
-            setSignals((prev) => prev.filter((s) => s.id !== signalId));
+            setSignals((prev) => prev.filter((signal) => signal.id !== signalId));
         } catch (err) {
             console.error("Delete signal error:", err);
         }
@@ -210,9 +242,9 @@ export function RealtimeFeed({ uid, onTrade, onComplete, onView, onFollow, follo
     const handleClearAllSignals = async () => {
         if (!confirm("Are you sure you want to clear all signals from your feed?")) return;
         try {
-            const user = auth.currentUser;
-            if (!user) return;
-            const token = await user.getIdToken();
+            const currentUser = auth.currentUser;
+            if (!currentUser) return;
+            const token = await currentUser.getIdToken();
             await fetch("/api/pro-signals?clearAll=true", {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` },
@@ -223,42 +255,61 @@ export function RealtimeFeed({ uid, onTrade, onComplete, onView, onFollow, follo
         }
     };
 
-    const handleTrade = (signal: AISignal) => {
-        if (onTrade) onTrade(signal);
+    const handleTrade = async (signal: AISignal) => {
+        const result = onTrade ? await onTrade(signal) : undefined;
+        if (!result) return;
+        setSignals((prev) => prev.map((item) =>
+            item.id === result.signalId
+                ? { ...item, tradeCount: result.tradeCount ?? item.tradeCount ?? 0 }
+                : item
+        ));
     };
 
-    const handleComplete = (signal: AISignal) => {
-        if (onComplete) onComplete(signal);
+    const handleComplete = async (signal: AISignal) => {
+        const result = onComplete ? await onComplete(signal) : undefined;
+        if (!result) return;
+        setSignals((prev) => prev.map((item) =>
+            item.id === result.signalId
+                ? { ...item, status: result.status ?? item.status }
+                : item
+        ));
     };
 
     const handleView = (signal: AISignal) => {
         if (onView) {
             onView(signal);
         } else {
-            router.push(`/signals/pro?id=${signal.id}`);
+            router.push(`/signals/pro/${signal.id}`);
         }
     };
 
-    const handleFollow = (signalId: string) => {
-        if (onFollow) onFollow(signalId);
+    const handleFollow = async (signalId: string) => {
+        const result = onFollow ? await onFollow(signalId) : undefined;
+        if (!result) return;
+        setSignals((prev) => prev.map((signal) =>
+            signal.id === result.signalId
+                ? { ...signal, followCount: result.followCount ?? signal.followCount }
+                : signal
+        ));
     };
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-border/30 bg-card/60 p-12 text-center backdrop-blur-xl">
-                <Loader2 className="h-8 w-8 animate-spin text-amber-400 mb-3" />
-                <p className="text-sm text-muted-foreground">Listening for live Pro Signals...</p>
+            <div className="flex min-h-72 flex-col items-center justify-center rounded-card border border-border bg-card p-8 text-center">
+                <Loader2 className="h-7 w-7 animate-spin text-primary" />
+                <p className="mt-3 text-sm font-medium text-foreground">Listening for live Pro Signals...</p>
+                <p className="mt-1 text-xs text-muted-foreground">Connecting to your signal stream.</p>
             </div>
         );
     }
 
     if (signals.length === 0) {
         return (
-            <div className="rounded-2xl border border-border/30 bg-card/60 p-12 text-center backdrop-blur-xl">
-                <Radio className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
-                <h3 className="text-base font-bold text-foreground">No Pro Signals Received Yet</h3>
-                <p className="mt-1 text-xs text-muted-foreground max-w-sm mx-auto">
-                    Live signals from configured sources will automatically appear here in real time.
+            <div className="flex min-h-72 flex-col items-center justify-center rounded-card border border-border bg-card p-8 text-center">
+                <Radio className="h-9 w-9 text-muted-foreground" />
+                <h3 className="mt-3 text-base font-semibold text-foreground">No Pro Signals Received Yet</h3>
+                <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+                    Live signals from configured sources will appear here when they are published.
                 </p>
             </div>
         );
@@ -266,26 +317,33 @@ export function RealtimeFeed({ uid, onTrade, onComplete, onView, onFollow, follo
 
     return (
         <div className="space-y-4">
-            <div className="flex items-center justify-between px-1">
-                <span className="text-xs text-muted-foreground">Showing {signals.length} Pro Signals</span>
+            <div className="flex items-center justify-between gap-3 px-1">
+                <span className="text-sm text-muted-foreground">
+                    Showing <span className="font-semibold text-foreground">{signals.length}</span> Pro Signals
+                </span>
                 <button
-                    onClick={handleClearAllSignals}
-                    className="text-xs text-muted-foreground hover:text-red-400 font-semibold transition"
+                    type="button"
+                    onClick={() => void handleClearAllSignals()}
+                    className="min-h-9 rounded-button px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-negative"
                 >
                     Clear All Signals
                 </button>
             </div>
 
-            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {signals.map((signal) => (
                     <SignalCard
                         key={signal.id}
                         signal={signal}
+                        viewHref={`/signals/pro/${signal.id}`}
                         onView={handleView}
                         onFollow={handleFollow}
                         onTrade={handleTrade}
                         onComplete={handleComplete}
                         isFollowed={followedIds?.has(signal.id) ?? false}
+                        followLoading={followLoadingIds?.has(signal.id) ?? false}
+                        tradeLoading={tradeLoadingIds?.has(signal.id) ?? false}
+                        completeLoading={completeLoadingIds?.has(signal.id) ?? false}
                     />
                 ))}
             </div>

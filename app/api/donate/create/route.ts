@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+import { stripeClient, formatStripeError } from "@/lib/stripe";
 
 // Reward tiers: donate >= amount → unlock these free product IDs
 const DONATION_TIERS = [
@@ -91,7 +89,7 @@ export async function POST(request: NextRequest) {
         });
 
         // Create Stripe Checkout Session
-        const session = await stripe.checkout.sessions.create({
+        const session = await stripeClient.checkout.sessions.create({
             mode: "payment",
             payment_method_types: ["card"],
             customer_email: userEmail || undefined,
@@ -122,6 +120,8 @@ export async function POST(request: NextRequest) {
             },
             success_url: `${appUrl}/donate/success?donation=${encodeURIComponent(donationId)}&uid=${encodeURIComponent(userId || "guest")}`,
             cancel_url: `${appUrl}/donate?cancelled=1`,
+        }, {
+            idempotencyKey: `donate-${donationId}`,
         });
 
         await donationRef.update({
@@ -136,10 +136,10 @@ export async function POST(request: NextRequest) {
             donationId,
             tier: tier || null,
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("DONATION CREATE ERROR:", error);
         return NextResponse.json(
-            { error: error?.message || "Failed to create donation checkout." },
+            { error: formatStripeError(error) || "Failed to create donation checkout." },
             { status: 500 }
         );
     }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Sliders, Activity, Database, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Database } from "lucide-react";
 
 type ScannerRow = {
     symbol: string;
@@ -28,7 +28,6 @@ const SAMPLE_SCANNER_DATA: ScannerRow[] = [
 
 export default function MarketScannerSection() {
     const [selectedCategory, setSelectedCategory] = useState<string>("All");
-
     const categories = ["All", "Metals", "Crypto", "Forex", "Indices"];
     const filteredRows = selectedCategory === "All"
         ? SAMPLE_SCANNER_DATA
@@ -79,7 +78,7 @@ export default function MarketScannerSection() {
                 <div className="mt-6 overflow-x-auto rounded-2xl border border-border/80 bg-card/80 shadow-2xl backdrop-blur-xl">
                     <table className="w-full text-left font-mono text-xs">
                         <thead>
-                            <tr className="border-b border-border/60 bg-muted/40 text-muted-foreground uppercase tracking-wider text-[11px]">
+                            <tr className="border-b border-border bg-surface-muted text-text-muted uppercase tracking-wider text-xs">
                                 <th className="p-4">Symbol</th>
                                 <th className="p-4">Regime</th>
                                 <th className="p-4">Volatility</th>
@@ -124,8 +123,8 @@ export default function MarketScannerSection() {
                 </div>
 
                 <div className="mt-4 flex items-center justify-between text-xs font-mono text-muted-foreground">
-                    <span className="flex items-center gap-1.5"><Database size={13} className="text-sky-400" /> Powered by Twelve Data & Biquote OHLC Engine</span>
-                    <span>Live Candle Normalizer Active</span>
+                    <span className="flex items-center gap-1.5"><Database size={13} className="text-info" /> Provider OHLC engine · Twelve Data & Biquote</span>
+                    <span>Live candle normalizer active</span>
                 </div>
 
             </div>

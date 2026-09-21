@@ -247,7 +247,7 @@ export default function ProductMediaUpload({
 
             {/* 3. Screenshot Gallery Upload */}
             <div className="rounded-2xl border border-border/40 bg-card/60 p-4 backdrop-blur-xl">
-                <div className="mb-3 flex items-center justify-between">
+                <div className="mb-3">
                     <div>
                         <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                             <Plus size={16} className="text-violet-400" />
@@ -257,15 +257,6 @@ export default function ProductMediaUpload({
                             Upload product screenshots to showcase platform indicators, backtest results, or settings.
                         </p>
                     </div>
-
-                    <button
-                        type="button"
-                        onClick={() => screenshotsInputRef.current?.click()}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-violet-600 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-violet-500"
-                    >
-                        <Upload size={13} />
-                        Upload Screenshots
-                    </button>
                 </div>
 
                 {images.length > 0 ? (

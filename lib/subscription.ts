@@ -1,28 +1,58 @@
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { ref, get } from "firebase/database";
-import { database } from "@/lib/firebase";
 
+/**
+ * Client-side subscription check that delegates to a server endpoint.
+ * Direct client-side Realtime DB reads of `users/${uid}/subscription` are
+ * blocked by Firebase security rules, so the server (using the Admin SDK)
+ * performs the lookup instead.
+ */
 export async function onSubscriptionChange(uid: string): Promise<{ hasSubscription: boolean; plan: string; status: string }> {
-  const snap = await get(ref(database, `users/${uid}/subscription`));
-  const sub = snap.val();
-  if (sub?.status === "active" && (sub?.plan === "pro" || sub?.plan === "enterprise")) {
-    return { hasSubscription: true, plan: sub.plan, status: sub.status };
-  }
-  return { hasSubscription: false, plan: "free", status: "none" };
+    try {
+        const idToken = await auth.currentUser?.getIdToken();
+        const headers: Record<string, string> = {};
+        if (idToken) {
+            headers.Authorization = `Bearer ${idToken}`;
+        }
+        const res = await fetch("/api/subscription-status", { headers });
+        if (!res.ok) {
+            return { hasSubscription: false, plan: "free", status: "none" };
+        }
+        const data = await res.json();
+        return {
+            hasSubscription: Boolean(data.hasSubscription),
+            plan: data.plan || "free",
+            status: data.status || "none",
+        };
+    } catch {
+        return { hasSubscription: false, plan: "free", status: "none" };
+    }
 }
 
 export async function getSubscriptionStatus(uid: string): Promise<{ plan: string; status: string; stripeSubscriptionId?: string }> {
-  const snap = await get(ref(database, `users/${uid}/subscription`));
-  const sub = snap.val();
-  if (sub) {
-    return { plan: sub.plan, status: sub.status, stripeSubscriptionId: sub.stripeSubscriptionId };
-  }
-  return { plan: "free", status: "none" };
+    try {
+        const idToken = await auth.currentUser?.getIdToken();
+        const headers: Record<string, string> = {};
+        if (idToken) {
+            headers.Authorization = `Bearer ${idToken}`;
+        }
+        const res = await fetch("/api/subscription-status", { headers });
+        if (!res.ok) {
+            return { plan: "free", status: "none" };
+        }
+        const data = await res.json();
+        return {
+            plan: data.plan || "free",
+            status: data.status || "none",
+            stripeSubscriptionId: data.stripeSubscriptionId,
+        };
+    } catch {
+        return { plan: "free", status: "none" };
+    }
 }
 
 export function onAuthSubscription(callback: (user: User | null) => void) {
-  return onAuthStateChanged(auth, callback);
+    return onAuthStateChanged(auth, callback);
 }
 
 export const DEVELOPER_PLANS = {
@@ -40,18 +70,28 @@ export async function onDeveloperSubscriptionChange(uid: string): Promise<{
     stripeSubscriptionId?: string;
     stripeCustomerId?: string;
 }> {
-    const snap = await get(ref(database, `users/${uid}/developerSubscription`));
-    const sub = snap.val();
-    if (sub?.status === "active" && sub?.plan) {
+    try {
+        const idToken = await auth.currentUser?.getIdToken();
+        const headers: Record<string, string> = {};
+        if (idToken) {
+            headers.Authorization = `Bearer ${idToken}`;
+        }
+        const url = `/api/subscription-status?subscriber=dev`;
+        const res = await fetch(url, { headers });
+        if (!res.ok) {
+            return { hasSubscription: false, plan: "dev_starter", status: "none" };
+        }
+        const data = await res.json();
         return {
-            hasSubscription: true,
-            plan: sub.plan,
-            status: sub.status,
-            stripeSubscriptionId: sub.stripeSubscriptionId,
-            stripeCustomerId: sub.stripeCustomerId,
+            hasSubscription: Boolean(data.hasSubscription),
+            plan: data.plan || "dev_starter",
+            status: data.status || "none",
+            stripeSubscriptionId: data.stripeSubscriptionId,
+            stripeCustomerId: data.stripeCustomerId,
         };
+    } catch {
+        return { hasSubscription: false, plan: "dev_starter", status: "none" };
     }
-    return { hasSubscription: false, plan: "dev_starter", status: "none" };
 }
 
 export function checkDeveloperEligibility(userData: any, devSub: any): {

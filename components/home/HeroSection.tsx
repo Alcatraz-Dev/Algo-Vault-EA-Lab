@@ -14,7 +14,7 @@ import {
 
 export type HeroStats = {
     strategies: number;
-    liveAccounts: number;
+    backtests: number;
     averageRating: number;
     reviewCount: number;
 };
@@ -74,8 +74,6 @@ export default function HeroSection({
         <section className="relative overflow-hidden pt-10 pb-16 md:pt-16 md:pb-24 border-b border-border/40">
             {/* Background Radial Glow */}
             <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[650px] w-[1100px] -translate-x-1/2 rounded-full bg-gradient-to-tr from-violet-600/20 via-sky-500/10 to-emerald-500/10 blur-3xl opacity-70" />
-            
-            {/* Grid Pattern Overlay */}
             <div className="pointer-events-none absolute inset-0 -z-10 bg-grid-pattern opacity-40" />
 
             <div className="mx-auto max-w-7xl px-6 md:px-8">
@@ -129,14 +127,14 @@ export default function HeroSection({
                                 </div>
                                 <span className="mt-1 text-[11px] text-muted-foreground">Verified Strategies</span>
                             </div>
-                            <div className="flex flex-col border-l border-border/40 pl-4">
+                                <div className="flex flex-col border-l border-border/40 pl-4">
                                 <div className="flex items-center gap-1.5 text-sky-400 font-semibold">
                                     <Activity size={14} />
-                                    <span>{stats.liveAccounts} MT5</span>
+                                    <span>{stats.backtests} runs</span>
                                 </div>
-                                <span className="mt-1 text-[11px] text-muted-foreground">Gateway Connections</span>
+                                <span className="mt-1 text-[11px] text-muted-foreground">Recorded Backtests</span>
                             </div>
-                            <div className="flex flex-col border-l border-border/40 pl-4">
+                                <div className="flex flex-col border-l border-border/40 pl-4">
                                 <div className="flex items-center gap-1.5 text-amber-400 font-semibold">
                                     <Star size={14} className="fill-amber-400" />
                                     <span>{stats.averageRating} / 5</span>
@@ -298,7 +296,7 @@ export default function HeroSection({
                                             <div>
                                                 <p className="font-bold text-foreground">AI Intelligence Model (Gemini 3.6)</p>
                                                 <p className="text-muted-foreground mt-0.5">
-                                                    "XAUUSD setup exhibits a 92% structural confluence. Liquidity sweep on London open followed by bullish CHOCH on M15."
+                                                    &quot;XAUUSD setup exhibits a 92% structural confluence. Liquidity sweep on London open followed by bullish CHOCH on M15.&quot;
                                                 </p>
                                             </div>
                                         </div>
@@ -312,7 +310,7 @@ export default function HeroSection({
                                 {activeTab === "ticket" && (
                                     <div className="space-y-3 animate-in fade-in-0 duration-200 text-xs">
                                         <div className="p-3 rounded-xl bg-background/80 border border-border/40 space-y-2 font-mono">
-                                            <div className="flex justify-between"><span>Account ID</span><span className="text-foreground">MT5-Live-49201</span></div>
+                                            <div className="flex justify-between"><span>Setup ID</span><span className="text-foreground">Gold SMC · M15</span></div>
                                             <div className="flex justify-between"><span>Order Type</span><span className="text-emerald-400">BUY MARKET</span></div>
                                             <div className="flex justify-between"><span>Volume</span><span>0.50 Lots</span></div>
                                             <div className="flex justify-between"><span>Stop Loss</span><span className="text-rose-400">2,642.00</span></div>

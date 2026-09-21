@@ -18,7 +18,7 @@ import {
 const STAGES = [
     { id: "discover", name: "1. Discover", icon: Search, desc: "Scan 10,000+ market bars for recurring structural edges and liquidity patterns." },
     { id: "analyze", name: "2. Analyze", icon: BarChart2, desc: "Evaluate Market Structure (BOS/CHOCH), Fair Value Gaps, and Order Blocks." },
-    { id: "build", name: "3. Build", icon: Code2, desc: "Assemble visual rule sets or generate Pine Script v5 / MQL5 code automatically." },
+    { id: "build", name: "3. Build", icon: Code2, desc: "Assemble visual rule sets or generate Pine Script v6 / MQL5 code automatically." },
     { id: "backtest", name: "4. Backtest", icon: History, desc: "Simulate strategy performance with realistic spread, slippage, and swap costs." },
     { id: "optimize", name: "5. Optimize", icon: Sliders, desc: "Run parameter grid searches with out-of-sample and Monte Carlo validation." },
     { id: "replay", name: "6. Replay", icon: Play, desc: "Replay market price action bar by bar to verify setup execution in real time." },

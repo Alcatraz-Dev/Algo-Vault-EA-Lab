@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { Lock, Zap } from "lucide-react";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { get, ref } from "firebase/database";
-import { database } from "@/lib/firebase";
+import { onSubscriptionChange } from "@/lib/subscription";
 
 export default function ProGate({
     children,
@@ -19,26 +18,22 @@ export default function ProGate({
     useEffect(() => {
         const unsub = onAuthStateChanged(auth, (u) => {
             setUser(u);
+            if (!u) {
+                setLoading(false);
+            }
         });
         return () => unsub();
     }, []);
 
     useEffect(() => {
         if (!user) {
-            setLoading(false);
             return;
         }
 
         const checkSubscription = async () => {
             try {
-                const snap = await get(
-                    ref(database, `users/${user.uid}/subscription`)
-                );
-                const sub = snap.val();
-                setHasPro(
-                    sub?.status === "active" &&
-                    (sub?.plan === "pro" || sub?.plan === "enterprise")
-                );
+                const { hasSubscription } = await onSubscriptionChange(user.uid);
+                setHasPro(hasSubscription);
             } catch {
                 setHasPro(false);
             } finally {

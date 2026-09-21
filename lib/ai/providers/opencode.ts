@@ -12,7 +12,7 @@ import {
 import { AIConfig } from "../config";
 import { isModelConfirmedFree, assertFreeModelAllowed, KNOWN_FREE_MODELS } from "../models";
 import { normalizeNarrative, normalizeSummary } from "../validate";
-import { extractFinishReason, isTruncated } from "../finish";
+import { extractFinishReason, isTruncated, isAbortError } from "../finish";
 
 export class OpenCodeProvider implements AIProvider {
     readonly id = "opencode";
@@ -74,7 +74,8 @@ export class OpenCodeProvider implements AIProvider {
             };
         }
 
-        const model = request.model || "mimo-v2.5-free";
+        const model =
+            request.model && isModelConfirmedFree(request.model) ? request.model : "mimo-v2.5-free";
 
         // Enforce Free-Only Safety Guard
         assertFreeModelAllowed(model);
@@ -142,10 +143,10 @@ export class OpenCodeProvider implements AIProvider {
                 raw: data,
             };
         } catch (err: unknown) {
-            if (err && typeof err === "object" && "code" in err) {
+            const isAbort = isAbortError(err);
+            if (!isAbort && err && typeof err === "object" && "code" in err) {
                 throw err;
             }
-            const isAbort = err instanceof Error && err.name === "AbortError";
             throw {
                 code: isAbort ? "TIMEOUT" : "UNKNOWN_ERROR",
                 provider: this.id,

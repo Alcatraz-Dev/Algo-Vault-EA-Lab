@@ -30,27 +30,27 @@ const REWARD_CATALOG: Record<
         type: "Indicator",
         description: "Advanced XAUUSD trend detection with dynamic support/resistance levels",
         icon: TrendingUp,
-        color: "text-amber-400",
-        bg: "bg-amber-500/10",
-        border: "border-amber-500/20",
+        color: "text-warning",
+        bg: "bg-warning/10",
+        border: "border-warning/20",
     },
     free_ea_basic: {
         name: "Scalper EA Lite",
         type: "Expert Advisor",
         description: "Entry-level scalping EA with built-in risk management",
         icon: Zap,
-        color: "text-violet-400",
-        bg: "bg-violet-500/10",
-        border: "border-violet-500/20",
+        color: "text-primary",
+        bg: "bg-primary/10",
+        border: "border-primary/20",
     },
     free_ea_premium: {
         name: "Session Filter EA",
         type: "Expert Advisor",
         description: "Automatically pause trading during low-liquidity sessions",
         icon: Bot,
-        color: "text-blue-400",
-        bg: "bg-blue-500/10",
-        border: "border-blue-500/20",
+        color: "text-info",
+        bg: "bg-info/10",
+        border: "border-info/20",
     },
 };
 
@@ -190,11 +190,6 @@ function SuccessContent() {
 
     return (
         <main className="min-h-screen bg-background text-foreground">
-            <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute left-1/2 top-[-300px] h-[700px] w-[700px] -translate-x-1/2 rounded-full bg-emerald-600/[0.08] blur-[140px]" />
-                <div className="absolute bottom-[-200px] right-[-150px] h-[500px] w-[500px] rounded-full bg-pink-600/[0.06] blur-[140px]" />
-            </div>
-
             <div className="relative mx-auto max-w-2xl px-5 py-20 text-center" data-guide="page-header">
                 {loading ? (
                     <div>
@@ -203,46 +198,46 @@ function SuccessContent() {
                         <p className="mt-2 text-xs text-muted-foreground">Verifying payment with Stripe. This takes a few seconds.</p>
                     </div>
                 ) : error ? (
-                    <div className="mx-auto max-w-md rounded-2xl border border-amber-500/20 bg-amber-500/[0.07] p-8">
-                        <AlertTriangle className="mx-auto h-9 w-9 text-amber-400" />
+                    <div className="mx-auto max-w-md rounded-xl border border-warning/20 bg-warning/[0.07] p-8">
+                        <AlertTriangle className="mx-auto h-9 w-9 text-warning" />
                         <h1 className="mt-4 text-xl font-bold">Still Confirming</h1>
                         <p className="mt-2 text-sm text-muted-foreground leading-6">{error}</p>
                         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setError("");
-                                    setLoading(true);
-                                    setTries((t) => t + 1);
-                                }}
-                                className="inline-flex items-center justify-center gap-2 rounded-xl border border-border/30 bg-muted/5 px-5 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-muted/10 hover:text-foreground"
-                            >
-                                <RefreshCw size={14} />
-                                Check Again
-                            </button>
-                            <Link
-                                href="/donate"
-                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-background px-5 py-2.5 text-sm font-bold text-foreground transition hover:bg-muted"
-                            >
-                                Back to Donate
-                                <ArrowRight size={14} />
-                            </Link>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setError("");
+                                        setLoading(true);
+                                        setTries((t) => t + 1);
+                                    }}
+                                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-border/30 bg-muted/5 px-5 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-muted/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+                                >
+                                    <RefreshCw size={14} />
+                                    Check Again
+                                </button>
+                                <Link
+                                    href="/donate"
+                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-background px-5 py-2.5 text-sm font-bold text-foreground transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+                                >
+                                    Back to Donate
+                                    <ArrowRight size={14} />
+                                </Link>
                         </div>
                     </div>
                 ) : (
                     <>
                         {/* Success Icon */}
-                        <div className="relative mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500/30 to-pink-500/20 border border-emerald-500/30">
+                        <div className="relative mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-positive/10 border border-positive/30">
                             <Heart
                                 size={40}
-                                className="fill-pink-400 text-pink-400"
+                                className="fill-primary text-primary"
                             />
-                            <div className="absolute -top-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/30">
+                            <div className="absolute -top-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-positive">
                                 <CheckCircle2 size={16} className="text-foreground" />
                             </div>
                         </div>
 
-                        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-1.5 text-xs font-medium text-emerald-300 mb-5">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-positive/20 bg-positive/10 px-4 py-1.5 text-xs font-medium text-positive mb-5">
                             <Sparkles size={13} />
                             Donation Confirmed
                         </div>
@@ -250,7 +245,7 @@ function SuccessContent() {
                         <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
                             Thank You{" "}
                             {donation?.donorName ? (
-                                <span className="bg-gradient-to-r from-pink-400 to-violet-400 bg-clip-text text-transparent">
+                                <span className="text-primary">
                                     {donation.donorName}!
                                 </span>
                             ) : (
@@ -267,7 +262,7 @@ function SuccessContent() {
                             {donation?.tierLabel && (
                                 <>
                                     {" "}You&apos;ve joined as a{" "}
-                                    <span className="font-bold text-violet-300">
+                                    <span className="font-bold text-primary">
                                         {donation.tierLabel}
                                     </span>.
                                 </>
@@ -276,9 +271,9 @@ function SuccessContent() {
 
                         {/* Rewards */}
                         {rewardIds.length > 0 && user ? (
-                            <div className="mt-10 rounded-2xl border border-border/30 bg-muted p-6 text-left">
+                            <div className="mt-10 rounded-xl border border-border/30 bg-muted p-6 text-left">
                                 <div className="flex items-center gap-2 mb-5">
-                                    <Gift size={16} className="text-pink-400" />
+                                    <Gift size={16} className="text-primary" />
                                     <h2 className="font-bold text-foreground">Your Free Rewards</h2>
                                     <span className="ml-auto text-xs text-muted-foreground">
                                         Available for download
@@ -313,7 +308,7 @@ function SuccessContent() {
                                                     type="button"
                                                     onClick={() => handleDownloadReward(rewardId)}
                                                     disabled={downloadingId === rewardId}
-                                                    className={`flex shrink-0 items-center gap-2 rounded-xl border ${resource.border} ${resource.bg} px-4 py-2 text-xs font-semibold ${resource.color} transition hover:opacity-80 disabled:opacity-50`}
+                                                    className={`flex shrink-0 items-center gap-2 rounded-xl border ${resource.border} ${resource.bg} px-4 py-2 text-xs font-semibold ${resource.color} transition hover:opacity-80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none`}
                                                 >
                                                     {downloadingId === rewardId ? (
                                                         <Loader2 size={13} className="animate-spin" />
@@ -327,27 +322,27 @@ function SuccessContent() {
                                     })}
                                 </div>
 
-                                <p className="mt-4 text-[11px] text-muted-foreground text-center">
+                                <p className="mt-4 text-xs text-muted-foreground text-center">
                                     Your rewards are permanently linked to your account and can be re-downloaded at any time.
                                 </p>
                             </div>
                         ) : rewardIds.length > 0 && !user ? (
-                            <div className="mt-10 rounded-2xl border border-amber-500/20 bg-amber-500/[0.07] p-6 text-center">
-                                <Gift size={24} className="mx-auto mb-3 text-amber-400" />
+                            <div className="mt-10 rounded-xl border border-warning/20 bg-warning/[0.07] p-6 text-center">
+                                <Gift size={24} className="mx-auto mb-3 text-warning" />
                                 <h3 className="font-bold text-foreground">Rewards Waiting!</h3>
                                 <p className="mt-2 text-sm text-muted-foreground">
                                     Sign in to claim your free resources.
                                 </p>
                                 <Link
                                     href="/login"
-                                    className="mt-4 inline-flex items-center gap-2 rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-bold text-foreground transition hover:bg-amber-400"
+                                    className="mt-4 inline-flex items-center gap-2 rounded-xl bg-warning px-5 py-2.5 text-sm font-bold text-foreground transition hover:bg-warning/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
                                 >
                                     Sign In to Claim
                                     <ArrowRight size={14} />
                                 </Link>
                             </div>
                         ) : (
-                            <div className="mt-10 rounded-2xl border border-border/30 bg-muted p-6 text-center">
+                            <div className="mt-10 rounded-xl border border-border/30 bg-muted p-6 text-center">
                                 <p className="text-muted-foreground text-sm">
                                     Thank you for your kind donation! Every contribution helps.
                                 </p>
@@ -356,17 +351,17 @@ function SuccessContent() {
 
                         {/* CTA Links */}
                         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-                            <Link
-                                href="/marketplace"
-                                className="inline-flex items-center gap-2 rounded-xl border border-border/30 bg-muted/5 px-5 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-muted/10 hover:text-foreground"
-                            >
-                                <Bot size={16} />
-                                Browse All EAs
-                            </Link>
-                            <Link
-                                href="/account"
-                                className="inline-flex items-center gap-2 rounded-xl bg-background px-5 py-2.5 text-sm font-bold text-foreground transition hover:bg-muted"
-                            >
+                                <Link
+                                    href="/marketplace"
+                                    className="inline-flex items-center gap-2 rounded-xl border border-border/30 bg-muted/5 px-5 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-muted/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+                                >
+                                    <Bot size={16} />
+                                    Browse All EAs
+                                </Link>
+                                <Link
+                                    href="/account"
+                                    className="inline-flex items-center gap-2 rounded-xl bg-background px-5 py-2.5 text-sm font-bold text-foreground transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+                                >
                                 Go to Dashboard
                                 <ArrowRight size={14} />
                             </Link>

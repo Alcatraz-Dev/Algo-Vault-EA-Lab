@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+import { stripeClient } from "@/lib/stripe";
 
 function getSubPath(uid: string, subscriber: string) {
     return subscriber === "dev"
@@ -36,10 +34,18 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "No Stripe subscription found" }, { status: 404 });
     }
 
-    const session = await stripe.billingPortal.sessions.create({
-        customer: sub.stripeCustomerId,
-        return_url: getReturnUrl(subscriber),
-    });
+    const session = await stripeClient.billingPortal.sessions.create(
+        sub.stripeAccountId
+            ? {
+                  // Connected (customer_account) subscription — Android flow.
+                  customer_account: sub.stripeAccountId,
+                  return_url: getReturnUrl(subscriber),
+              }
+            : {
+                  customer: sub.stripeCustomerId,
+                  return_url: getReturnUrl(subscriber),
+              }
+    );
 
     return NextResponse.json({ url: session.url });
 }

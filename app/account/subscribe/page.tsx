@@ -5,9 +5,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { onSubscriptionChange } from "@/lib/subscription";
-import { get, ref } from "firebase/database";
-import { database } from "@/lib/firebase";
 import ProGate from "@/components/subscription/ProGate";
 import { ProWidget } from "@/components/subscription/ProWidget";
 import {
@@ -62,18 +59,20 @@ export default function SubscribePage() {
     if (!user) return;
     const check = async () => {
       try {
-        const { hasSubscription, plan, status } = await onSubscriptionChange(user.uid);
-        const snap = await get(ref(database, `users/${user.uid}/subscription`));
-        const sub = snap.val();
+        const token = await user.getIdToken();
+        const res = await fetch("/api/subscription-status", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
         setSubscription({
-          plan: sub?.plan || plan,
-          status: sub?.status || status,
-          stripeSubscriptionId: sub?.stripeSubscriptionId,
-          stripeCustomerId: sub?.stripeCustomerId,
-          currentPeriodEnd: sub?.currentPeriodEnd,
-          cancelAtPeriodEnd: sub?.cancelAtPeriodEnd,
-          createdAt: sub?.createdAt,
-          updatedAt: sub?.updatedAt,
+          plan: data.plan || "free",
+          status: data.status || "none",
+          stripeSubscriptionId: data.stripeSubscriptionId,
+          stripeCustomerId: data.stripeCustomerId,
+          currentPeriodEnd: data.currentPeriodEnd,
+          cancelAtPeriodEnd: data.cancelAtPeriodEnd,
+          createdAt: data.createdAt,
+          updatedAt: data.updatedAt,
         });
       } catch (err) {
         console.error("Failed to load subscription:", err);

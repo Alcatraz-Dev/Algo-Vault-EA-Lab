@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
                 tp1,
                 tp2,
                 tp3,
+                followCount: signal.followCount ?? 0,
             };
         });
 

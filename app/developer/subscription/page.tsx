@@ -171,7 +171,7 @@ export default function DeveloperSubscription() {
         setSubscribing(planId);
         try {
             const token = await user.getIdToken(true);
-            const orderId = `sub_dev_${planId}_${getTimestamp()}`;
+            const orderId = `sub_${planId}_${getTimestamp()}`;
             const res = await fetch("/api/checkout/create", {
                 method: "POST",
                 headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },

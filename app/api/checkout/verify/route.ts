@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 import {
     adminAuth,
     adminDatabase,
 } from "@/lib/firebase-admin";
-
-const stripe = new Stripe(
-    process.env.STRIPE_SECRET_KEY || ""
-);
+import { stripeClient } from "@/lib/stripe";
 
 function createLicenseId(orderId: string) {
     return `lic_${orderId.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
@@ -186,8 +182,12 @@ export async function POST(
          */
 
         const session =
-            await stripe.checkout.sessions.retrieve(
-                order.stripeSessionId
+            await stripeClient.checkout.sessions.retrieve(
+                order.stripeSessionId,
+                {},
+                order.stripeAccountId || order.storeAccountId
+                    ? { stripeAccount: order.stripeAccountId || order.storeAccountId }
+                    : undefined
             );
 
         /*

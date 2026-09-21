@@ -1,7 +1,6 @@
 "use client";
 
-import { Activity, ShieldCheck, LineChart, TrendingUp } from "lucide-react";
-import Link from "next/link";
+import { ShieldCheck } from "lucide-react";
 
 export default function LiveMonitoringSection() {
     return (
@@ -56,7 +55,6 @@ export default function LiveMonitoringSection() {
                             <table className="w-full text-left mt-3">
                                 <thead>
                                     <tr className="border-b border-border/40 text-[10px] text-muted-foreground uppercase">
-                                        <th className="py-2">Ticket</th>
                                         <th className="py-2">Symbol</th>
                                         <th className="py-2">Type</th>
                                         <th className="py-2">Volume</th>
@@ -68,7 +66,6 @@ export default function LiveMonitoringSection() {
                                 </thead>
                                 <tbody className="divide-y divide-border/30">
                                     <tr className="hover:bg-muted/30">
-                                        <td className="py-2 text-muted-foreground">#108421</td>
                                         <td className="py-2 font-bold text-foreground">XAUUSD</td>
                                         <td className="py-2 text-emerald-400 font-bold">BUY</td>
                                         <td className="py-2">0.50</td>
@@ -78,7 +75,6 @@ export default function LiveMonitoringSection() {
                                         <td className="py-2 text-right text-emerald-400 font-bold">+$215.00</td>
                                     </tr>
                                     <tr className="hover:bg-muted/30">
-                                        <td className="py-2 text-muted-foreground">#108422</td>
                                         <td className="py-2 font-bold text-foreground">BTCUSD</td>
                                         <td className="py-2 text-emerald-400 font-bold">BUY</td>
                                         <td className="py-2">0.10</td>

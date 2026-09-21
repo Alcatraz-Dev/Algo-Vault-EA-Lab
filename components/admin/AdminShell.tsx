@@ -18,18 +18,24 @@ import {
     LayoutDashboard,
     Menu,
     MessageSquare,
+    MonitorPlay,
+    Plug,
+    Puzzle,
     Radio,
     RotateCcw,
     Settings,
     ShoppingCart,
+    Sparkles,
     Target,
     Users,
     X,
 } from "lucide-react";
-import { database } from "@/lib/firebase";
+import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
+import { auth, database } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
 import SiteLogo from "@/components/ui/site-logo";
 import ThemeToggle from "@/components/theme/theme-toggle";
+import { NotificationsMenu } from "@/components/layout/NotificationsMenu";
 
 const NAV_ITEMS = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
@@ -37,6 +43,9 @@ const NAV_ITEMS = [
     { icon: Bot, label: "Bots / Products", href: "/admin/bots" },
     { icon: Activity, label: "Live Accounts", href: "/admin/live" },
     { icon: Download, label: "Backtests", href: "/admin/backtests" },
+    { icon: Plug, label: "Plugins", href: "/admin/plugins" },
+    { icon: Sparkles, label: "AI Plugin Studio", href: "/admin/plugins/ai-studio" },
+    { icon: Puzzle, label: "Extensions", href: "/admin/extensions" },
     { icon: ShoppingCart, label: "Orders", href: "/admin/orders" },
     { icon: FileKey2, label: "Licenses", href: "/admin/licenses" },
     { icon: Radio, label: "Trading Accounts", href: "/admin/trading-accounts" },
@@ -63,8 +72,14 @@ export default function AdminShell({
     subtitle?: string;
 }) {
     const pathname = usePathname();
+    const [user, setUser] = useState<FirebaseUser | null>(null);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [siteName, setSiteName] = useState("AlgoVault");
+
+    useEffect(() => {
+        const unsub = onAuthStateChanged(auth, (currentUser) => setUser(currentUser));
+        return () => unsub();
+    }, []);
 
     useEffect(() => {
         const settingsRef = ref(database, "settings/siteName");
@@ -80,7 +95,7 @@ export default function AdminShell({
             <SiteLogo size={18} />
             <div>
                 <p className="text-sm font-bold leading-none">{siteName}</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">Admin Panel</p>
+                <p className="mt-0.5 text-micro text-muted-foreground">Admin Panel</p>
             </div>
         </Link>
     );
@@ -96,9 +111,9 @@ export default function AdminShell({
                         key={href}
                         href={href}
                         onClick={() => setMobileOpen(false)}
-                        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
+                        className={`flex items-center gap-3 rounded-md px-3 py-2 text-xs transition-colors ${
                             isActive
-                                ? "bg-foreground font-semibold text-background"
+                                ? "bg-accent-muted font-semibold text-primary"
                                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
                         }`}
                     >
@@ -117,14 +132,14 @@ export default function AdminShell({
         <div className="space-y-1 border-t border-border px-3 py-4">
             <Link
                 href="/"
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
                 <ArrowLeft size={15} />
                 Back to Site
             </Link>
             <Link
                 href="/live"
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
                 <ExternalLink size={15} />
                 View Live Page
@@ -143,7 +158,7 @@ export default function AdminShell({
     return (
         <div className="flex min-h-screen bg-background text-foreground">
             {/* ── Sidebar (desktop) ── */}
-            <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-card md:flex">
+            <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-sidebar md:flex">
                 {sidebarInner}
             </aside>
 
@@ -182,10 +197,10 @@ export default function AdminShell({
                             <Menu size={17} />
                         </button>
                         <div data-guide="page-header">
-                            <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                                 Administration
                             </p>
-                            <h1 className="mt-0.5 text-xl font-bold">{title}</h1>
+                            <h1 className="mt-0.5 text-lg font-semibold">{title}</h1>
                             {subtitle && (
                                 <p className="mt-0.5 text-sm text-muted-foreground">
                                     {subtitle}
@@ -193,11 +208,14 @@ export default function AdminShell({
                             )}
                         </div>
                     </div>
-                    <ThemeToggle />
+                    <div className="flex items-center gap-1.5">
+                        <NotificationsMenu key={user?.uid ?? "signed-out"} user={user} />
+                        <ThemeToggle />
+                    </div>
                 </header>
 
                 {/* Page content */}
-                <main className="flex-1 p-6 md:p-8">{children}</main>
+                <main className="flex-1 animate-page-enter p-5 md:p-8">{children}</main>
             </div>
         </div>
     );

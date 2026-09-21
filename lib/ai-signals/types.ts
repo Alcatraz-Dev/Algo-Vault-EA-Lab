@@ -413,6 +413,7 @@ export interface SignalAnalytics {
     byTimeframe: Record<string, { count: number; winRate: number; avgRR: number }>;
     bySession: Record<string, { count: number; winRate: number; avgRR: number }>;
     byRegime: Record<string, { count: number; winRate: number; avgRR: number }>;
+    sentiments: MarketSentiment[];
     generatedAt: number;
 }
 

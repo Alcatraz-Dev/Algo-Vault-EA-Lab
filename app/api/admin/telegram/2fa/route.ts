@@ -30,9 +30,11 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        await telegramUserClientManager.startMonitoring();
+
         return NextResponse.json({
             success: true,
-            message: "2FA complete. Telegram USER ACCOUNT successfully connected.",
+            message: "2FA complete. Telegram USER ACCOUNT successfully connected. Monitoring started.",
         });
     } catch (err: any) {
         console.error("[POST /api/admin/telegram/2fa]", err);

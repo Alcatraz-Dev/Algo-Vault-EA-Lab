@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+import { stripeClient } from "@/lib/stripe";
 
 function getSubPath(uid: string, subscriber: string) {
     return subscriber === "dev"
@@ -40,10 +38,18 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "No Stripe subscription found" }, { status: 404 });
     }
 
-    const session = await stripe.billingPortal.sessions.create({
-        customer: sub.stripeCustomerId,
-        return_url: getReturnUrl(subscriber),
-    });
+    const session = await stripeClient.billingPortal.sessions.create(
+        sub.stripeAccountId
+            ? {
+                  // Connected (customer_account) subscription — Android flow.
+                  customer_account: sub.stripeAccountId,
+                  return_url: getReturnUrl(subscriber),
+              }
+            : {
+                  customer: sub.stripeCustomerId,
+                  return_url: getReturnUrl(subscriber),
+              }
+    );
 
     return NextResponse.json({ url: session.url });
 }
@@ -66,7 +72,13 @@ export async function POST(request: NextRequest) {
     if (action === "cancel") {
         const sub = await getSubSnapshot(uid, subscriber);
         if (sub?.stripeSubscriptionId) {
-            await stripe.subscriptions.cancel(sub.stripeSubscriptionId);
+            await stripeClient.subscriptions.cancel(
+                sub.stripeSubscriptionId,
+                {},
+                sub.stripeAccountId
+                    ? { stripeAccount: sub.stripeAccountId }
+                    : undefined
+            );
             await adminDatabase.ref(subPath).update({ status: "canceled", updatedAt: Date.now() });
         }
         return NextResponse.json({ success: true, cancelled: true });
@@ -77,12 +89,21 @@ export async function POST(request: NextRequest) {
         if (!sub?.stripeSubscriptionId) {
             return NextResponse.json({ error: "No subscription found" }, { status: 404 });
         }
-        const stripeSub = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId) as any;
+        const stripeSub = await stripeClient.subscriptions.retrieve(
+            sub.stripeSubscriptionId,
+            {},
+            sub.stripeAccountId
+                ? { stripeAccount: sub.stripeAccountId }
+                : undefined
+        );
+        // API v2442 no longer exposes top-level current_period_* on the
+        // Subscription object; the billing period lives on its first item.
+        const billingItem = stripeSub.items?.data?.[0];
         return NextResponse.json({
             plan: sub.plan,
             status: stripeSub.status,
-            currentPeriodStart: stripeSub.current_period_start,
-            currentPeriodEnd: stripeSub.current_period_end,
+            currentPeriodStart: billingItem?.current_period_start ?? null,
+            currentPeriodEnd: billingItem?.current_period_end ?? null,
             cancelAtPeriodEnd: stripeSub.cancel_at_period_end,
         });
     }

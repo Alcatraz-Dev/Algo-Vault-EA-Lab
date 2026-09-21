@@ -18,6 +18,8 @@ export interface ExecutionRequest {
 export interface ExecutionResponse {
     success: boolean;
     ticket?: string;
+    commandId?: string;
+    status?: "queued";
     message?: string;
     error?: string;
 }
@@ -73,6 +75,8 @@ export async function dispatchProSignalToGateway(
         return {
             success: true,
             ticket,
+            commandId: ticket,
+            status: "queued",
             message: `Pro Signal #${ticket} (${signal.symbol} ${signal.direction}) dispatched to MT5 Account ${mt5Account}`,
         };
     } catch (err) {

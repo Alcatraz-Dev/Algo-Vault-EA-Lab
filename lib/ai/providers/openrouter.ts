@@ -11,8 +11,8 @@ import {
 } from "../types";
 import { AIConfig } from "../config";
 import { isModelConfirmedFree, assertFreeModelAllowed, KNOWN_FREE_MODELS } from "../models";
-import { normalizeNarrative, normalizeSummary, hasOwn } from "../validate";
-import { extractFinishReason, isTruncated } from "../finish";
+import { normalizeNarrative, normalizeSummary } from "../validate";
+import { extractFinishReason, isTruncated, isAbortError } from "../finish";
 
 export class OpenRouterProvider implements AIProvider {
     readonly id = "openrouter";
@@ -74,7 +74,13 @@ export class OpenRouterProvider implements AIProvider {
             };
         }
 
-        const model = request.model || AIConfig.defaultModel;
+        // The global default model (e.g. "gemini-2.5-flash") is the default for
+        // the *Gemini* provider and is paid on OpenRouter. Only honor an
+        // explicitly requested model when it is confirmed free here, otherwise
+        // route through OpenRouter's own free router so this provider can serve
+        // as a working fallback instead of always failing the free-only guard.
+        const model =
+            request.model && isModelConfirmedFree(request.model) ? request.model : "openrouter/free";
 
         // Enforce Free-Only Safety Guard
         assertFreeModelAllowed(model);
@@ -144,10 +150,10 @@ export class OpenRouterProvider implements AIProvider {
                 raw: data,
             };
         } catch (err: unknown) {
-            if (err && typeof err === "object" && "code" in err) {
+            const isAbort = isAbortError(err);
+            if (!isAbort && err && typeof err === "object" && "code" in err) {
                 throw err;
             }
-            const isAbort = err instanceof Error && err.name === "AbortError";
             throw {
                 code: isAbort ? "TIMEOUT" : "UNKNOWN_ERROR",
                 provider: this.id,

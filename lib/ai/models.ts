@@ -57,10 +57,10 @@ export const KNOWN_FREE_MODELS: AIModel[] = [
         enabled: true,
         capabilities: { text: true, structuredOutput: true },
     },
-    // OpenCode Free Models
+    // OpenCode Zen Free Models (https://opencode.ai/docs/zen/)
     {
         id: "mimo-v2.5-free",
-        name: "OpenCode Mimo v2.5 (Free)",
+        name: "OpenCode Zen MiMo-V2.5 Free",
         provider: "opencode",
         free: true,
         confirmedFree: true,
@@ -68,24 +68,36 @@ export const KNOWN_FREE_MODELS: AIModel[] = [
         capabilities: { text: true, structuredOutput: true },
     },
     {
-        id: "deepseek-v4-flash-free",
-        name: "OpenCode DeepSeek v4 Flash (Free)",
+        id: "big-pickle",
+        name: "OpenCode Zen Big Pickle (Free)",
         provider: "opencode",
         free: true,
         confirmedFree: true,
         enabled: true,
         capabilities: { text: true, structuredOutput: true },
     },
-    // B.AI Free Models
     {
-        id: "bai-free-v1",
-        name: "B.AI Free LLM v1",
-        provider: "bai",
+        id: "nemotron-3-ultra-free",
+        name: "OpenCode Zen Nemotron 3 Ultra (Free)",
+        provider: "opencode",
         free: true,
         confirmedFree: true,
         enabled: true,
         capabilities: { text: true, structuredOutput: true },
     },
+    {
+        id: "ling-3.0-flash-fin-free",
+        name: "OpenCode Zen Ling 3.0 Flash Fin (Free)",
+        provider: "opencode",
+        free: true,
+        confirmedFree: true,
+        enabled: true,
+        capabilities: { text: true, structuredOutput: true },
+    },
+    // B.AI models
+    // NOTE: B.AI's catalog currently contains NO free models, so no B.AI entries
+    // are registered here. Under AI_FREE_ONLY=true the B.AI provider is skipped
+    // entirely (see BAIProvider.isAvailable).
 ];
 
 export function isModelConfirmedFree(

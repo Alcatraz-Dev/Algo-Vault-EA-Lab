@@ -10,12 +10,12 @@ export const AIConfig = {
     },
 
     get defaultModel(): string {
-        return process.env.AI_DEFAULT_MODEL || "gemini-1.5-flash";
+        return process.env.AI_DEFAULT_MODEL || "gemini-2.5-flash";
     },
 
     get maxAttempts(): number {
-        const parsed = parseInt(process.env.AI_MAX_PROVIDER_ATTEMPTS || "3", 10);
-        return isNaN(parsed) || parsed < 1 ? 3 : parsed;
+        const parsed = parseInt(process.env.AI_MAX_PROVIDER_ATTEMPTS || "4", 10);
+        return isNaN(parsed) || parsed < 1 ? 4 : parsed;
     },
 
     get timeoutMs(): number {
@@ -41,17 +41,20 @@ export const AIConfig = {
         return (process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1").replace(/\/$/, "");
     },
 
-    // OpenCode
+    // OpenCode Zen (https://opencode.ai/zen — OpenAI-compatible free models)
     get opencodeApiKey(): string {
         return process.env.OPENCODE_API_KEY || "";
     },
     get opencodeBaseUrl(): string {
-        return (process.env.OPENCODE_BASE_URL || "https://opencode.ai/api/v1").replace(/\/$/, "");
+        return (process.env.OPENCODE_BASE_URL || "https://opencode.ai/zen/v1").replace(/\/$/, "");
     },
 
     // B.AI
     get baiApiKey(): string {
         return process.env.BAI_API_KEY || "";
+    },
+    get baiModel(): string {
+        return process.env.BAI_MODEL || "";
     },
     get baiBaseUrl(): string {
         return (process.env.BAI_BASE_URL || "https://api.b.ai/v1").replace(/\/$/, "");

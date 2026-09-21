@@ -123,6 +123,7 @@ function AdminTelegramDashboard() {
     const [logs, setLogs] = useState<TelegramLogEntry[]>([]);
     const [diagnosticResult, setDiagnosticResult] = useState<TelegramConnectionTestResult | null>(null);
     const [runningDiagnostic, setRunningDiagnostic] = useState(false);
+    const [startingMonitoring, setStartingMonitoring] = useState(false);
 
     // Toast
     const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
@@ -706,6 +707,28 @@ function AdminTelegramDashboard() {
         }
     };
 
+    const handleStartMonitoring = async () => {
+        setStartingMonitoring(true);
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch("/api/admin/telegram/test", {
+                method: "POST",
+                headers,
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast("success", "Monitoring started successfully");
+                fetchStatus();
+            } else {
+                showToast("error", data.error || "Failed to start monitoring");
+            }
+        } catch (err: any) {
+            showToast("error", err.message || "Failed to start monitoring");
+        } finally {
+            setStartingMonitoring(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
             {/* Toast */}
@@ -748,38 +771,56 @@ function AdminTelegramDashboard() {
                             {status.connected && status.userAccount
                                 ? `Connected User: ${status.userAccount.username || status.userAccount.firstName || "Account"} (${status.userAccount.phone || "No phone"})`
                                 : "Connect a Telegram USER ACCOUNT to read private signal channels & VIP groups server-side."}
+                            {status.connected && (
+                                <>
+                                    <span className="mx-2 text-muted-foreground">|</span>
+                                    <span className={`font-semibold ${status.monitoringActive ? "text-emerald-400" : "text-amber-400"}`}>
+                                        {status.monitoringActive ? "● Monitoring Active" : "○ Monitoring Stopped"}
+                                    </span>
+                                </>
+                            )}
                         </p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    {status.connected ? (
-                        <>
+<div className="flex items-center gap-2">
+                        {status.connected ? (
+                            <>
+                                {!status.monitoringActive && (
+                                    <button
+                                        onClick={handleStartMonitoring}
+                                        disabled={startingMonitoring}
+                                        className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-xs font-semibold text-black transition hover:bg-emerald-400 disabled:opacity-50"
+                                    >
+                                        {startingMonitoring ? <RefreshCw size={14} className="animate-spin" /> : <Play size={14} />}
+                                        Start Monitoring
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => { setActiveTab("channels"); fetchChannels(); }}
+                                    className="inline-flex items-center gap-2 rounded-xl border border-border bg-muted/20 px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-muted"
+                                >
+                                    <Radio size={14} />
+                                    Discovery Channels
+                                </button>
+                                <button
+                                    onClick={handleDisconnect}
+                                    disabled={authLoading}
+                                    className="inline-flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2 text-xs font-semibold text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
+                                >
+                                    Disconnect Account
+                                </button>
+                            </>
+                        ) : (
                             <button
-                                onClick={() => { setActiveTab("channels"); fetchChannels(); }}
-                                className="inline-flex items-center gap-2 rounded-xl border border-border bg-muted/20 px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-muted"
+                                onClick={() => setActiveTab("connect")}
+                                className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-xs font-semibold text-black transition hover:bg-amber-400"
                             >
-                                <Radio size={14} />
-                                Discovery Channels
+                                <Phone size={14} />
+                                Connect Account
                             </button>
-                            <button
-                                onClick={handleDisconnect}
-                                disabled={authLoading}
-                                className="inline-flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2 text-xs font-semibold text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
-                            >
-                                Disconnect Account
-                            </button>
-                        </>
-                    ) : (
-                        <button
-                            onClick={() => setActiveTab("connect")}
-                            className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-xs font-semibold text-black transition hover:bg-amber-400"
-                        >
-                            <Phone size={14} />
-                            Connect Account
-                        </button>
-                    )}
-                </div>
+                        )}
+                    </div>
             </div>
 
             {/* TAB NAVIGATION */}

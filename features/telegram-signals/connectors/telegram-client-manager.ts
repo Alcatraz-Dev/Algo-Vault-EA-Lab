@@ -546,6 +546,7 @@ class TelegramUserClientManager {
                     this.qrLoginRunning = false;
                     await this.fetchAndStoreAccountDetails();
                     await this.addLog("success", `Telegram USER ACCOUNT connected via QR login`);
+                    await this.startMonitoring();
                 } catch (err: any) {
                     const msg = err?.message || "QR login failed";
                     this.qrLoginRunning = false;

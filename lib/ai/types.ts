@@ -29,6 +29,8 @@ export interface AIResponse {
     finishReason?: string;
     /** True when the provider hit its output token limit mid-response. */
     truncated?: boolean;
+    /** Provider failures observed before a fallback response was returned. */
+    fallbackErrors?: AIProviderError[];
     raw?: unknown;
 }
 

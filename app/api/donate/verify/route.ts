@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 import {
     adminAuth,
     adminDatabase,
 } from "@/lib/firebase-admin";
+import { stripeClient } from "@/lib/stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
-
-type DonationRecord = Record<string, any>;
+type DonationRecord = Record<string, unknown>;
 
 function isValidId(value: string) {
     return (
@@ -159,7 +157,7 @@ export async function GET(request: NextRequest) {
         }
 
         const session =
-            await stripe.checkout.sessions.retrieve(
+            await stripeClient.checkout.sessions.retrieve(
                 sessionId
             );
         const metadata =

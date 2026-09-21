@@ -26,8 +26,6 @@ import {
 
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { get, ref } from "firebase/database";
-import { database } from "@/lib/firebase";
 
 import SignalFeed from "@/components/signals/SignalFeed";
 import MarketOverview from "@/components/signals/MarketOverview";
@@ -67,9 +65,12 @@ export default function AiSignalsPage() {
         if (!user) return;
         const checkSubscription = async () => {
             try {
-                const snap = await get(ref(database, `users/${user.uid}/subscription`));
-                const sub = snap.val();
-                setHasPro(sub?.status === "active" && (sub?.plan === "pro" || sub?.plan === "enterprise"));
+                const token = await user.getIdToken();
+                const res = await fetch("/api/subscription-status", {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                const data = await res.json();
+                setHasPro(Boolean(data.hasSubscription));
             } catch {
                 setHasPro(false);
             }
@@ -551,7 +552,7 @@ export default function AiSignalsPage() {
                                     <span className="text-xs text-muted-foreground">M5 · M15 signals</span>
                                     <span className="rounded-full bg-muted/10 px-2 py-0.5 text-[10px] text-muted-foreground">{freeSignals.length}</span>
                                 </div>
-                                <SignalFeed signals={freeSignals} loading={scanning} onSignalClick={(id) => router.push(`/signals/${id}`)} onView={(signal) => router.push(`/signals/${signal.id}`)} onFollow={handleFollow} onTrade={handleTrade} onComplete={handleComplete} followedIds={followedIds} />
+                                <SignalFeed signals={freeSignals} loading={scanning} onView={(signal) => router.push(`/signals/${signal.id}`)} onFollow={handleFollow} onTrade={handleTrade} onComplete={handleComplete} followedIds={followedIds} />
                             </div>
 
                             {/* PRO SECTION — M1 */}
@@ -563,7 +564,7 @@ export default function AiSignalsPage() {
                                 </div>
 
                                 {hasPro ? (
-                                    <SignalFeed signals={proSignals} loading={scanning} onSignalClick={(id) => router.push(`/signals/${id}`)} onView={(signal) => router.push(`/signals/${signal.id}`)} onFollow={handleFollow} onTrade={handleTrade} onComplete={handleComplete} followedIds={followedIds} />
+                                    <SignalFeed signals={proSignals} loading={scanning} onView={(signal) => router.push(`/signals/${signal.id}`)} onFollow={handleFollow} onTrade={handleTrade} onComplete={handleComplete} followedIds={followedIds} />
                                 ) : (
                                     <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-10 text-center backdrop-blur-xl">
                                         <Lock className="mx-auto mb-3 h-8 w-8 text-amber-400" />

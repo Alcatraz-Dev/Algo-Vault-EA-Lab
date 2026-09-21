@@ -30,12 +30,16 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        if (!result.requires2FA) {
+            await telegramUserClientManager.startMonitoring();
+        }
+
         return NextResponse.json({
             success: true,
             requires2FA: result.requires2FA || false,
             message: result.requires2FA
                 ? "Two-factor authentication required. Please submit 2FA password."
-                : "Telegram USER ACCOUNT successfully connected.",
+                : "Telegram USER ACCOUNT successfully connected. Monitoring started.",
         });
     } catch (err: any) {
         console.error("[POST /api/admin/telegram/verify]", err);

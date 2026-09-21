@@ -3,11 +3,27 @@
  */
 
 import type { ProSignal, RiskConfig } from "../types";
+import type { RiskLimits } from "@/lib/risk/risk-engine";
 
 export interface RiskValidationResult {
     valid: boolean;
     reason?: string;
     calculatedLot?: number;
+}
+
+/** Map legacy Telegram auto-execution settings into the canonical risk contract. */
+export function riskLimitsFromConfig(config: RiskConfig): RiskLimits {
+    return {
+        emergencyStop: config.enabled === false,
+        riskPercent: config.riskPercent,
+        defaultLot: config.fixedLot,
+        maxDailyLossPercent: config.maxDailyLossPercent,
+        maxOpenPositions: config.maxOpenPositions,
+        maxSymbolExposureLots: config.maxSymbolExposureLots,
+        cooldownSeconds: config.cooldownSeconds,
+        allowMarketEntries: config.allowMarketEntries,
+        requireStopLoss: config.requireStopLoss,
+    };
 }
 
 export function validateSignalRisk(

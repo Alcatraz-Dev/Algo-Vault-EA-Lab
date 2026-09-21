@@ -14,6 +14,9 @@ export async function POST(request: NextRequest) {
 
         const result = await telegramUserClientManager.runConnectionTest();
 
+        // Also ensure monitoring is started
+        await telegramUserClientManager.startMonitoring();
+
         return NextResponse.json({
             success: true,
             testResult: result,

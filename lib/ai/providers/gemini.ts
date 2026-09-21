@@ -10,6 +10,7 @@ import {
     ChatMessageInput,
 } from "../types";
 import { AIConfig } from "../config";
+import { isAbortError } from "../finish";
 
 export class GeminiProvider implements AIProvider {
     readonly id = "gemini";
@@ -22,11 +23,20 @@ export class GeminiProvider implements AIProvider {
     async getModels(): Promise<AIModel[]> {
         return [
             {
-                id: "gemini-1.5-flash",
-                name: "Gemini 1.5 Flash",
+                id: "gemini-2.5-flash",
+                name: "Gemini 2.5 Flash",
                 provider: "gemini",
                 free: true,
                 confirmedFree: true,
+                enabled: true,
+                capabilities: { text: true, structuredOutput: true },
+            },
+            {
+                id: "gemini-2.5-pro",
+                name: "Gemini 2.5 Pro",
+                provider: "gemini",
+                free: false,
+                confirmedFree: false,
                 enabled: true,
                 capabilities: { text: true, structuredOutput: true },
             },
@@ -42,7 +52,7 @@ export class GeminiProvider implements AIProvider {
             };
         }
 
-        const model = request.model || "gemini-1.5-flash";
+        const model = request.model || AIConfig.defaultModel || "gemini-2.5-flash";
         const promptParts: string[] = [];
 
         if (request.systemPrompt) {
@@ -58,6 +68,11 @@ export class GeminiProvider implements AIProvider {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), AIConfig.timeoutMs);
 
+        const generationConfig: Record<string, unknown> =
+            request.responseFormat === "json_object"
+                ? { responseMimeType: "application/json", temperature: 0.4 }
+                : { temperature: 0.7 };
+
         try {
             const res = await fetch(
                 `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${AIConfig.geminiApiKey}`,
@@ -66,6 +81,7 @@ export class GeminiProvider implements AIProvider {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         contents: [{ parts: [{ text: fullPrompt }] }],
+                        generationConfig,
                     }),
                     signal: controller.signal,
                 }
@@ -92,12 +108,12 @@ export class GeminiProvider implements AIProvider {
                 raw: data,
             };
         } catch (err: unknown) {
-            if (err && typeof err === "object" && "code" in err) throw err;
-            const isAbort = err instanceof Error && err.name === "AbortError";
+            const isAbort = isAbortError(err);
+            if (!isAbort && err && typeof err === "object" && "code" in err) throw err;
             throw {
                 code: isAbort ? "TIMEOUT" : "UNKNOWN_ERROR",
                 provider: this.id,
-                message: isAbort ? `Gemini request timed out` : String(err),
+                message: isAbort ? `Gemini request timed out after ${AIConfig.timeoutMs}ms.` : String(err),
             };
         }
     }

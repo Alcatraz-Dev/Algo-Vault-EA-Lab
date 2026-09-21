@@ -1,19 +1,56 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import AccountShell from "@/components/account/AccountShell";
 import {
     Shield, Activity, Wallet, TrendingDown, AlertTriangle,
-    Loader2, RefreshCw, BarChart3, ArrowUpRight, ArrowDownRight,
+    Loader2, RefreshCw, BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+type RiskLevel = "LOW" | "MODERATE" | "HIGH";
+type HealthStatus = "SAFE" | "WARNING" | "DANGER";
+type ExposureStatus = "LOW" | "MODERATE" | "HIGH";
+
+interface AccountHealth {
+    score: number;
+    riskLevel: RiskLevel;
+    drawdownStatus: HealthStatus;
+    marginStatus: HealthStatus;
+    exposureStatus: ExposureStatus;
+    metrics: {
+        balance: number;
+        equity: number;
+        floatingPnl: number;
+        floatingPnlPct: number;
+        drawdown: number;
+        maxDrawdown: number;
+        marginLevel: number;
+        marginUtilization: number;
+        totalPositions: number;
+        positionsAtRisk: number;
+        openRisk: number;
+    };
+    trading: {
+        totalSignals: number;
+        winRate: string;
+        averageR: string;
+    };
+    breakdown: {
+        drawdown: number;
+        margin: number;
+        exposure: number;
+        pnl: number;
+        signalQuality: number;
+    };
+}
 
 export default function AccountHealthPage() {
     const [user, setUser] = useState<User | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
-    const [health, setHealth] = useState<any>(null);
+    const [health, setHealth] = useState<AccountHealth | null>(null);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -21,19 +58,22 @@ export default function AccountHealthPage() {
         return () => unsub();
     }, []);
 
-    const fetchHealth = async () => {
+    const fetchHealth = useCallback(async () => {
         if (!user) return;
         setLoading(true);
         try {
             const token = await user.getIdToken();
             const res = await fetch("/api/account-health", { headers: { Authorization: `Bearer ${token}` } });
-            const data = await res.json();
+            const data = (await res.json()) as { success: boolean; health: AccountHealth };
             if (data.success) setHealth(data.health);
         } catch {}
         finally { setLoading(false); }
-    };
+    }, [user]);
 
-    useEffect(() => { if (!authLoading && user) fetchHealth(); }, [authLoading, user]);
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (!authLoading && user) fetchHealth();
+    }, [authLoading, user, fetchHealth]);
 
     if (authLoading) {
         return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Account Health"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div></AccountShell></div>);
@@ -105,7 +145,7 @@ export default function AccountHealthPage() {
                         {[
                             { label: "Balance", value: `$${(health?.metrics?.balance || 0).toLocaleString()}`, icon: Wallet },
                             { label: "Equity", value: `$${(health?.metrics?.equity || 0).toLocaleString()}`, icon: Activity },
-                            { label: "P/L", value: `${health?.metrics?.floatingPnl >= 0 ? "+" : ""}${(health?.metrics?.floatingPnl || 0).toFixed(2)}`, icon: TrendingDown },
+                            { label: "P/L", value: `${(health?.metrics?.floatingPnl || 0) >= 0 ? "+" : ""}${(health?.metrics?.floatingPnl || 0).toFixed(2)}`, icon: TrendingDown },
                             { label: "Positions", value: String(health?.metrics?.totalPositions || 0), icon: Activity },
                             { label: "Risk", value: `$${(health?.metrics?.openRisk || 0).toFixed(0)}`, icon: AlertTriangle },
                             { label: "Margin Level", value: `${health?.metrics?.marginLevel?.toFixed(0) || 0}%`, icon: Shield },

@@ -1,6 +1,6 @@
 "use client";
 
-import { Send, Cpu, Brain, ShieldAlert, ArrowRight, CheckCircle2, Lock } from "lucide-react";
+import { Send, Brain, Lock } from "lucide-react";
 
 export default function TelegramPipelineSection() {
     return (
@@ -46,10 +46,10 @@ export default function TelegramPipelineSection() {
                         <div className="lg:col-span-6 rounded-2xl border border-border/60 bg-background/90 p-5 font-mono text-xs space-y-3">
                             <div className="flex items-center justify-between text-muted-foreground border-b border-border/40 pb-2">
                                 <span className="flex items-center gap-1.5 font-bold text-foreground"><Send size={14} className="text-sky-400" /> Incoming Telegram Text Message</span>
-                                <span className="text-[10px] text-sky-400 font-bold">CHANNEL #492</span>
+                                <span className="text-[10px] text-sky-400 font-bold">PRIVATE CHANNEL</span>
                             </div>
                             <div className="p-3 rounded-lg bg-muted/40 text-muted-foreground leading-relaxed text-[11px]">
-                                "🔥 GOLD BUY NOW @ 2650-2652 !! SL 2642 TP1 2660 TP2 2665 TP3 2675. Manage risk carefully guys!"
+                                &quot;🔥 GOLD BUY NOW @ 2650-2652 !! SL 2642 TP1 2660 TP2 2665 TP3 2675. Manage risk carefully guys!&quot;
                             </div>
                         </div>
 

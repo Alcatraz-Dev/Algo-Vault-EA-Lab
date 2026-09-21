@@ -54,8 +54,14 @@ async function apiPost<T>(path: string, body: Record<string, unknown>): Promise<
 export async function checkHealth(): Promise<boolean> {
   try {
     const base = await getBaseUrl();
-    console.log(`${EXT_PREFIX} checkHealth -> ${base}/api/account-health`);
-    const res = await fetch(`${base}/api/account-health`, { method: "GET" });
+    const token = await getAuthToken();
+    // `/api/account-health` is a protected endpoint: probing it without a
+    // token returns 401. Only probe it when signed in; otherwise probe the
+    // app root for reachability.
+    const target = token ? "/api/account-health" : "/";
+    const headers = await authHeaders();
+    console.log(`${EXT_PREFIX} checkHealth -> ${base}${target}`);
+    const res = await fetch(`${base}${target}`, { method: "GET", headers });
     return res.ok || res.status === 401;
   } catch {
     return false;

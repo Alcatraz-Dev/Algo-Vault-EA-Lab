@@ -18,6 +18,12 @@ export function extractFinishReason(raw: unknown): string | undefined {
     return typeof reason === "string" && reason.length > 0 ? reason : undefined;
 }
 
+export function isAbortError(err: unknown): boolean {
+    if (!err || typeof err !== "object") return false;
+    const record = err as { name?: unknown; code?: unknown };
+    return record.name === "AbortError" || record.code === 20;
+}
+
 export function isTruncated(raw: unknown): boolean {
     return extractFinishReason(raw) === "length";
 }

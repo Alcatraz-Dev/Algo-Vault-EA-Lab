@@ -26,9 +26,8 @@ const MTF_TIMEFRAMES: Timeframe[] = ["M1", "M3", "M5", "M15", "M30", "H1", "H4"]
 
 /**
  * Fetch candles local-first, falling back to the AlgoVault server proxy
- * (`GET /api/analytics/ohlc`) which carries the server-side TwelveData key.
- * Stock/index symbols often cannot be served by the client-side Biquote
- * fallback, so the proxy is the reliable path for those markets.
+ * (`GET /api/analytics/ohlc`). The server resolves the configured provider
+ * without exposing provider credentials to the extension.
  */
 export async function fetchCandlesWithFallback(
   symbol: SupportedSymbol,

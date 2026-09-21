@@ -113,6 +113,7 @@ export async function calculateSignalAnalytics(): Promise<SignalAnalytics> {
         byTimeframe,
         bySession,
         byRegime,
+        sentiments,
         generatedAt: Date.now(),
     };
 }

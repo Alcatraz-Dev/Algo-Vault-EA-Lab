@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
         const analytics = await calculateSignalAnalytics();
 
-        return NextResponse.json({ success: true, analytics });
+        return NextResponse.json({ success: true, analytics, sentiments: analytics.sentiments });
     } catch (err) {
         console.error("AI Signals Analytics GET error:", err);
         return NextResponse.json({ error: "Failed to load analytics" }, { status: 500 });

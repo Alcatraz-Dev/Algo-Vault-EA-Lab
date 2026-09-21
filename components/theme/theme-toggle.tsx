@@ -13,7 +13,7 @@ function subscribe(callback: () => void) {
 }
 
 export function isDarkMode(): boolean {
-    return document.documentElement.classList.contains("dark");
+    return !document.documentElement.classList.contains("light");
 }
 
 export default function ThemeToggle() {
@@ -26,6 +26,7 @@ export default function ThemeToggle() {
     const toggle = () => {
         const next = !dark;
         document.documentElement.classList.toggle("dark", next);
+        document.documentElement.classList.toggle("light", !next);
         try {
             const mode = next ? "dark" : "light";
             localStorage.setItem("algovault-theme", mode);
@@ -40,9 +41,10 @@ export default function ThemeToggle() {
             type="button"
             onClick={toggle}
             aria-label="Toggle color theme"
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition hover:text-foreground"
+            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border bg-card px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
         >
-            {dark ? <Sun size={17} /> : <Moon size={17} />}
+            {dark ? <Sun size={14} /> : <Moon size={14} />}
+            <span>{dark ? "Light" : "Dark"}</span>
         </button>
     );
 }

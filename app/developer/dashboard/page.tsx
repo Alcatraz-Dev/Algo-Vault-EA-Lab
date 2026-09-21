@@ -5,6 +5,7 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Loader2, Shield, ArrowLeft, ExternalLink, DollarSign, Package, TrendingUp,
     Plus, Trash2, AlertTriangle, Eye, Star, Crown, Send, CheckCircle2, Clock, XCircle,
+    RefreshCw, Store,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -13,7 +14,23 @@ import { ref, get } from "firebase/database";
 import { database } from "@/lib/firebase";
 import ProductMediaUpload from "@/components/products/ProductMediaUpload";
 
-    type StripeStatus = { connected: boolean; chargesEnabled: boolean; payoutsEnabled: boolean };
+    type StripeStatus = {
+        connected: boolean;
+        chargesEnabled: boolean;
+        payoutsEnabled: boolean;
+        statusLabel?: string;
+        paymentsActive?: boolean;
+        cardPaymentsStatus?: string | null;
+        transfersStatus?: string | null;
+        accountId?: string | null;
+        accountClosed?: boolean;
+        requirements?: {
+            currentlyDue: string[];
+            eventuallyDue: string[];
+            pastDue: string[];
+            currentDeadline: number | null;
+        };
+    };
     type Product = { id: string; name: string; slug: string; description: string; productType: string; pricing: { type: string; price: number; currency: string }; downloads: number; rating: { average: number; count: number }; status: string; createdAt: number; version: string; [key: string]: unknown };
     type Earnings = { stats: { totalRevenue: number; totalSales: number; avgSale: number }; recentSales: { id: string; product: string; amount: number; date: number; buyer: string }[] };
     type DevSubscription = { plan: string; status: string; hasSubscription: boolean };
@@ -257,7 +274,13 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
             const json = await res.json();
             if (json.url) window.location.assign(json.url);
             else if (json.alreadyOnboarded) fetchAll();
-            else if (json.error) alert(json.error);
+            else if (json.error) {
+                const lines = [json.error];
+                if (json.details) lines.push(`\n\n${json.details}`);
+                if (json.stripeCode) lines.push(`\nStripe code: ${json.stripeCode}`);
+                if (json.requestId) lines.push(`\nRequest ID: ${json.requestId}`);
+                alert(lines.join(""));
+            }
         } catch {} finally { setOnboarding(false); }
     };
 
@@ -360,13 +383,125 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
                     </div>
                 )}
 
-                {stripe?.connected && !stripe.chargesEnabled && (
+                {stripe?.statusLabel === "Restricted" && (
+                    <div className="mb-6 rounded-2xl border border-rose-500/20 bg-rose-500/[0.04] p-5">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-500/10">
+                                    <XCircle size={20} className="text-rose-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-semibold text-foreground">Stripe Account Restricted</h3>
+                                    <p className="text-[11px] text-muted-foreground">Your Stripe account is restricted and cannot accept payments. Resume onboarding or contact support to resolve this.</p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={startOnboarding}
+                                disabled={onboarding}
+                                className="flex items-center gap-2 rounded-xl bg-rose-500/80 px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-rose-500 transition disabled:opacity-50"
+                            >
+                                {onboarding ? <Loader2 size={13} className="animate-spin" /> : <ExternalLink size={13} />}
+                                Resume Onboarding
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {stripe?.connected && stripe.statusLabel === "Requirements Due" && (
+                    <div className="mb-6 rounded-2xl border border-amber-500/20 bg-amber-500/[0.04] p-5">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/10">
+                                    <AlertTriangle size={20} className="text-amber-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-semibold text-foreground">Stripe Requirements Due</h3>
+                                    <p className="text-[11px] text-muted-foreground">
+                                        Complete the open requirements to keep accepting payments.
+                                        {stripe.requirements?.currentDeadline
+                                            ? ` Deadline: ${new Date(stripe.requirements.currentDeadline).toLocaleDateString()}.`
+                                            : ""}
+                                    </p>
+                                    {(stripe.requirements?.currentlyDue || []).slice(0, 3).map((req) => (
+                                        <p key={req} className="mt-1 text-[11px] text-amber-400/80">• {req}</p>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={fetchAll}
+                                    className="flex items-center gap-2 rounded-xl border border-amber-500/30 px-3 py-2.5 text-xs font-semibold text-amber-400 hover:bg-amber-500/10 transition"
+                                >
+                                    <RefreshCw size={12} /> Refresh
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={startOnboarding}
+                                    disabled={onboarding}
+                                    className="flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-amber-400 transition disabled:opacity-50"
+                                >
+                                    {onboarding ? <Loader2 size={13} className="animate-spin" /> : <ExternalLink size={13} />}
+                                    Resume Onboarding
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {stripe?.connected && !stripe.paymentsActive && stripe.statusLabel !== "Restricted" && stripe.statusLabel !== "Requirements Due" && (
                     <div className="mb-6 rounded-2xl border border-violet-500/20 bg-violet-500/[0.04] p-5">
-                        <div className="flex items-center gap-4">
-                            <Loader2 size={18} className="animate-spin text-violet-400" />
-                            <div>
-                                <h3 className="text-sm font-semibold text-foreground">Stripe Onboarding In Progress</h3>
-                                <p className="text-[11px] text-muted-foreground">Complete your Stripe setup to start selling. <button type="button" onClick={startOnboarding} className="text-violet-400 hover:underline">Resume onboarding</button></p>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <Loader2 size={18} className="animate-spin text-violet-400" />
+                                <div>
+                                    <h3 className="text-sm font-semibold text-foreground">Stripe Onboarding In Progress</h3>
+                                    <p className="text-[11px] text-muted-foreground">
+                                        <span className="text-violet-400/90">{stripe.statusLabel || "Stripe Connected"}</span> — complete your Stripe setup to start selling.{" "}
+                                        <button type="button" onClick={startOnboarding} className="text-violet-400 hover:underline">Resume onboarding</button>
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={fetchAll}
+                                className="flex items-center gap-2 rounded-xl border border-violet-500/30 px-3 py-2.5 text-xs font-semibold text-violet-400 hover:bg-violet-500/10 transition"
+                            >
+                                <RefreshCw size={12} /> Refresh
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {stripe?.paymentsActive && (
+                    <div className="mb-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.04] p-5">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10">
+                                    <CheckCircle2 size={20} className="text-emerald-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-semibold text-foreground">Payments Active</h3>
+                                    <p className="text-[11px] text-muted-foreground">Your Stripe account is ready to accept payments.</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                {stripe.accountId && (
+                                    <Link
+                                        href={`/store/${encodeURIComponent(stripe.accountId)}`}
+                                        className="flex items-center gap-2 rounded-xl border border-emerald-500/30 px-3 py-2.5 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/10 transition"
+                                    >
+                                        <Store size={12} /> View Storefront
+                                    </Link>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={fetchAll}
+                                    className="flex items-center gap-2 rounded-xl border border-emerald-500/30 px-3 py-2.5 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/10 transition"
+                                >
+                                    <RefreshCw size={12} /> Refresh
+                                </button>
                             </div>
                         </div>
                     </div>

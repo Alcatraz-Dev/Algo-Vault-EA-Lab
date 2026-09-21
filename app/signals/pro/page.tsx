@@ -1,106 +1,52 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-    Activity,
+    AlertCircle,
     ArrowLeft,
     BarChart3,
-    CheckCircle2,
-    Clock,
+    Loader2,
     Lock,
     Radio,
     ShieldAlert,
     Sparkles,
-    UserPlus,
     Zap,
 } from "lucide-react";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { onSubscriptionChange } from "@/lib/subscription";
-
-import { RealtimeFeed } from "@/features/telegram-signals/components/RealtimeFeed";
+import { RealtimeFeed, type CompleteActionResult, type FollowActionResult, type TradeActionResult } from "@/features/telegram-signals/components/RealtimeFeed";
 import { ConflictBanner } from "@/features/telegram-signals/components/ConflictBanner";
 import { AnalyticsView } from "@/features/telegram-signals/components/AnalyticsView";
-import type { SignalAnalyticsSegment, SignalConflictSummary } from "@/features/telegram-signals/types";
 import type { AISignal } from "@/lib/ai-signals/types";
+import type { SignalAnalyticsSegment, SignalConflictSummary } from "@/features/telegram-signals/types";
+
+type Notice = {
+    tone: "success" | "error";
+    message: string;
+};
 
 export default function ProSignalsPage() {
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
-    const [hasPro, setHasPro] = useState<boolean>(false);
-    const [loading, setLoading] = useState<boolean>(true);
+    const [hasPro, setHasPro] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<"live" | "analytics">("live");
     const [conflicts, setConflicts] = useState<SignalConflictSummary[]>([]);
     const [analytics, setAnalytics] = useState<SignalAnalyticsSegment | null>(null);
     const [followedIds, setFollowedIds] = useState<Set<string>>(new Set());
-
-    async function handleTrade(signal: AISignal) {
-        try {
-            const token = await user?.getIdToken();
-            const headers = { Authorization: `Bearer ${token ?? ""}`, "Content-Type": "application/json" };
-            const res = await fetch("/api/signals/execute", {
-                method: "POST",
-                headers,
-                body: JSON.stringify({
-                    signalId: signal.id,
-                    symbol: signal.symbol,
-                    direction: signal.direction,
-                    entryPrice: signal.entry,
-                    stopLoss: signal.stopLoss,
-                    takeProfit: signal.tp1,
-                    mt5Account: "default",
-                }),
-            });
-            const data = await res.json();
-            if (!data.success) {
-                console.error("Trade execution failed:", data.error);
-            }
-        } catch (err) {
-            console.error("Trade execution error:", err);
-        }
-    }
-
-    async function handleComplete(signal: AISignal) {
-        if (!confirm(`Complete this signal on ${signal.symbol} (${signal.direction})?`)) return;
-        try {
-            const token = await user?.getIdToken();
-            const headers = { Authorization: `Bearer ${token ?? ""}`, "Content-Type": "application/json" };
-            const res = await fetch("/api/signals/complete", {
-                method: "POST",
-                headers,
-                body: JSON.stringify({ signalId: signal.id }),
-            });
-            const data = await res.json();
-            if (data.success) {
-                // Firebase realtime listener will auto-update; no reload needed
-            } else {
-                console.error("Complete failed:", data.error);
-            }
-        } catch (err) {
-            console.error("Complete error:", err);
-        }
-    }
-
-    function handleFollow(signalId: string) {
-        setFollowedIds((prev) => {
-            const next = new Set(prev);
-            if (next.has(signalId)) {
-                next.delete(signalId);
-            } else {
-                next.add(signalId);
-            }
-            return next;
-        });
-    }
+    const [followLoadingIds, setFollowLoadingIds] = useState<Set<string>>(new Set());
+    const [tradeLoadingIds, setTradeLoadingIds] = useState<Set<string>>(new Set());
+    const [completeLoadingIds, setCompleteLoadingIds] = useState<Set<string>>(new Set());
+    const [notice, setNotice] = useState<Notice | null>(null);
+    const noticeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
-        const unsub = onAuthStateChanged(auth, (u) => {
-            setUser(u);
-            if (!u) {
-                setLoading(false);
-            }
+        const unsub = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
+            if (!currentUser) setLoading(false);
         });
         return () => unsub();
     }, []);
@@ -108,47 +54,177 @@ export default function ProSignalsPage() {
     useEffect(() => {
         if (!user) return;
 
-        const checkAccess = async () => {
+        let cancelled = false;
+        const loadWorkspace = async () => {
             try {
-                const sub = await onSubscriptionChange(user.uid);
-                setHasPro(sub.hasSubscription);
+                const subscription = await onSubscriptionChange(user.uid);
+                if (cancelled) return;
+                setHasPro(subscription.hasSubscription);
 
-                if (sub.hasSubscription) {
-                    const token = await user.getIdToken();
-                    const headers = { Authorization: `Bearer ${token}` };
+                const token = await user.getIdToken();
+                const headers = { Authorization: `Bearer ${token}` };
 
-                    // Fetch conflicts & analytics asynchronously
-                    fetch("/api/pro-signals/conflicts", { headers })
-                        .then((res) => res.json())
-                        .then((data) => {
-                            if (data.conflicts) setConflicts(data.conflicts);
-                        })
-                        .catch(console.error);
+                const [conflictsResponse, analyticsResponse, followedResponse] = await Promise.all([
+                    fetch("/api/pro-signals/conflicts", { headers }),
+                    fetch("/api/pro-signals/analytics", { headers }),
+                    fetch("/api/pro-signals/follow", { headers }),
+                ]);
 
-                    fetch("/api/pro-signals/analytics", { headers })
-                        .then((res) => res.json())
-                        .then((data) => {
-                            if (data.analytics) setAnalytics(data.analytics);
-                        })
-                        .catch(console.error);
+                const [conflictsData, analyticsData, followedData] = await Promise.all([
+                    conflictsResponse.json(),
+                    analyticsResponse.json(),
+                    followedResponse.json(),
+                ]);
+
+                if (cancelled) return;
+                if (conflictsData.conflicts) setConflicts(conflictsData.conflicts);
+                if (analyticsData.analytics) setAnalytics(analyticsData.analytics);
+                if (followedData.followedIds) {
+                    setFollowedIds(new Set(followedData.followedIds.filter((id: string) => typeof id === "string")));
                 }
             } catch (err) {
-                console.error("Pro subscription check error:", err);
-                setHasPro(false);
+                if (!cancelled) {
+                    setHasPro(false);
+                    setNotice({ tone: "error", message: "Unable to load your Pro Signals workspace." });
+                }
             } finally {
-                setLoading(false);
+                if (!cancelled) setLoading(false);
             }
         };
 
-        checkAccess();
+        void loadWorkspace();
+        return () => {
+            cancelled = true;
+        };
     }, [user]);
+
+    useEffect(() => {
+        return () => {
+            if (noticeTimeoutRef.current) clearTimeout(noticeTimeoutRef.current);
+        };
+    }, []);
+
+    function showNotice(tone: Notice["tone"], message: string) {
+        if (noticeTimeoutRef.current) clearTimeout(noticeTimeoutRef.current);
+        setNotice({ tone, message });
+        noticeTimeoutRef.current = setTimeout(() => setNotice(null), 5000);
+    }
+
+    async function handleFollow(signalId: string): Promise<FollowActionResult> {
+        const willFollow = !followedIds.has(signalId);
+        setFollowLoadingIds((current) => new Set(current).add(signalId));
+        setFollowedIds((current) => {
+            const next = new Set(current);
+            if (willFollow) next.add(signalId);
+            else next.delete(signalId);
+            return next;
+        });
+
+        try {
+            const token = await user?.getIdToken();
+            const response = await fetch("/api/pro-signals/follow", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token ?? ""}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ signalId, action: willFollow ? "follow" : "unfollow" }),
+            });
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || "Unable to update follow state.");
+            }
+
+            const followed = Boolean(data.followed ?? willFollow);
+            setFollowedIds((current) => {
+                const next = new Set(current);
+                if (followed) next.add(signalId);
+                else next.delete(signalId);
+                return next;
+            });
+            showNotice("success", followed ? "Signal added to your followed list." : "Signal removed from your followed list.");
+            return { signalId, followed, followCount: data.followCount };
+        } catch (err) {
+            setFollowedIds((current) => {
+                const next = new Set(current);
+                if (willFollow) next.delete(signalId);
+                else next.add(signalId);
+                return next;
+            });
+            showNotice("error", err instanceof Error ? err.message : "Unable to update follow state.");
+            return { signalId, followed: !willFollow };
+        } finally {
+            setFollowLoadingIds((current) => {
+                const next = new Set(current);
+                next.delete(signalId);
+                return next;
+            });
+        }
+    }
+
+    async function handleTrade(signal: AISignal): Promise<TradeActionResult> {
+        setTradeLoadingIds((current) => new Set(current).add(signal.id));
+        try {
+            const token = await user?.getIdToken();
+            const response = await fetch("/api/pro-signals/execute", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token ?? ""}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ signalId: signal.id, mt5Account: "default" }),
+            });
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || "Trade command could not be queued.");
+            }
+
+            showNotice("success", data.message || "Trade command queued for MT5.");
+            return { signalId: signal.id, tradeCount: data.signal?.tradeCount };
+        } catch (err) {
+            showNotice("error", err instanceof Error ? err.message : "Trade command could not be queued.");
+            return { signalId: signal.id };
+        } finally {
+            setTradeLoadingIds((current) => {
+                const next = new Set(current);
+                next.delete(signal.id);
+                return next;
+            });
+        }
+    }
+
+    async function handleComplete(signal: AISignal): Promise<CompleteActionResult> {
+        if (!confirm(`Close this Pro signal on ${signal.symbol} (${signal.direction})?`)) {
+            return { signalId: signal.id, status: signal.status };
+        }
+
+        setCompleteLoadingIds((current) => new Set(current).add(signal.id));
+        try {
+            const token = await user?.getIdToken();
+            const response = await fetch(`/api/pro-signals/${encodeURIComponent(signal.id)}`, {
+                method: "PATCH",
+                headers: { Authorization: `Bearer ${token ?? ""}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "close" }),
+            });
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || "Signal could not be closed.");
+            }
+
+            showNotice("success", "Pro signal closed.");
+            return { signalId: signal.id, status: "COMPLETED" };
+        } catch (err) {
+            showNotice("error", err instanceof Error ? err.message : "Signal could not be closed.");
+            return { signalId: signal.id, status: signal.status };
+        } finally {
+            setCompleteLoadingIds((current) => {
+                const next = new Set(current);
+                next.delete(signal.id);
+                return next;
+            });
+        }
+    }
 
     if (loading) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
+            <div className="flex min-h-screen items-center justify-center bg-background px-4 text-foreground">
                 <div className="flex items-center gap-3">
-                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
-                    <span className="text-sm font-medium text-muted-foreground">Verifying Pro Entitlement...</span>
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    <span className="text-sm font-medium text-muted-foreground">Verifying Pro entitlement...</span>
                 </div>
             </div>
         );
@@ -156,28 +232,26 @@ export default function ProSignalsPage() {
 
     if (!user || !hasPro) {
         return (
-            <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
-                <div className="max-w-md w-full rounded-2xl border border-amber-500/20 bg-card p-8 text-center backdrop-blur-xl shadow-2xl">
-                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 border border-amber-500/20">
-                        <Lock className="h-7 w-7 text-amber-400" />
+            <div className="flex min-h-screen items-center justify-center bg-background px-4 text-foreground">
+                <div className="w-full max-w-md rounded-card border border-warning/20 bg-card p-8 text-center">
+                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-button border border-warning/20 bg-warning/10">
+                        <Lock className="h-6 w-6 text-warning" />
                     </div>
-                    <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
-                        AlgoVault Pro Signals
-                    </h1>
-                    <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
-                        Access real-time institutional signals, instant SL/TP tracking, conflict detection, and MT5 execution. Requires an active Pro subscription.
+                    <h1 className="text-2xl font-semibold tracking-tight text-foreground">AlgoVault Pro Signals</h1>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                        Live institutional signals, SL/TP tracking, conflict detection, and MT5 execution require an active Pro subscription.
                     </p>
-                    <div className="mt-6 flex flex-col gap-3">
+                    <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                         <Link
                             href="/pricing"
-                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-5 py-3 text-xs font-bold text-foreground transition-colors hover:bg-amber-400 shadow-lg shadow-amber-500/20"
+                            className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-button bg-warning px-4 py-2.5 text-sm font-semibold text-warning-foreground transition-colors hover:bg-warning/90"
                         >
-                            <Zap className="h-4 w-4 fill-black" />
+                            <Zap className="h-4 w-4 fill-current" />
                             Upgrade to Pro
                         </Link>
                         <Link
                             href="/signals"
-                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-border px-5 py-3 text-xs font-medium text-muted-foreground hover:text-foreground"
+                            className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-button border border-border px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
                         >
                             <ArrowLeft className="h-4 w-4" />
                             Back to AI Signals
@@ -189,78 +263,102 @@ export default function ProSignalsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-background text-foreground selection:bg-amber-500/30">
-            {/* Ambient Lighting */}
-            <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px]" />
-                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-blue-500/10 blur-[120px]" />
-            </div>
+        <div className="min-h-screen bg-background text-foreground">
+            <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+                <Link
+                    href="/signals"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                >
+                    <ArrowLeft size={16} />
+                    Signals overview
+                </Link>
 
-            <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                {/* Header */}
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
-                    <div>
-                        <Link
-                            href="/signals"
-                            className="mb-3 inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                            <ArrowLeft className="h-3.5 w-3.5" />
-                            Back to Signals Overview
-                        </Link>
-                        <div className="flex items-center gap-2 text-xs font-bold text-amber-400">
-                            <Sparkles className="h-4 w-4" />
-                            <span>Institutional Signal Intelligence</span>
+                <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between" data-guide="page-header">
+                    <div className="max-w-2xl">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                            <Sparkles size={16} />
+                            Institutional signal intelligence
                         </div>
-                        <h1 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">
-                            AlgoVault Pro Signals
-                        </h1>
+                        <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">AlgoVault Pro Signals</h1>
+                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                            Monitor live setups, review exact levels, follow the signals that matter, and send approved orders to MT5.
+                        </p>
                     </div>
 
-                    <div className="flex items-center gap-2 rounded-xl border border-border/40 bg-card p-1">
+                    <div className="flex w-full max-w-sm items-center gap-1 rounded-button border border-border bg-card p-1" role="tablist" aria-label="Pro Signals sections">
                         <button
                             type="button"
+                            role="tab"
+                            aria-selected={activeTab === "live"}
                             onClick={() => setActiveTab("live")}
-                            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
-                                activeTab === "live"
-                                    ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                                    : "text-muted-foreground hover:text-foreground"
-                            }`}
+                            className={cnTab(activeTab === "live")}
                         >
-                            <Radio className="h-3.5 w-3.5" />
+                            <Radio size={15} />
                             Live Feed
                         </button>
                         <button
                             type="button"
+                            role="tab"
+                            aria-selected={activeTab === "analytics"}
                             onClick={() => setActiveTab("analytics")}
-                            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
-                                activeTab === "analytics"
-                                    ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                                    : "text-muted-foreground hover:text-foreground"
-                            }`}
+                            className={cnTab(activeTab === "analytics")}
                         >
-                            <BarChart3 className="h-3.5 w-3.5" />
+                            <BarChart3 size={15} />
                             Analytics
                         </button>
                     </div>
                 </div>
 
-                {/* Signal Conflict Warning Banner */}
-                <ConflictBanner conflicts={conflicts} />
+                {notice && (
+                    <div
+                        role="status"
+                        aria-live="polite"
+                        className={cnNotice(notice.tone)}
+                    >
+                        {notice.tone === "error" ? <AlertCircle size={16} /> : <ShieldAlert size={16} />}
+                        <span className="flex-1">{notice.message}</span>
+                    </div>
+                )}
 
-                {/* Active Tab View */}
+                <div className="mt-6">
+                    <ConflictBanner conflicts={conflicts} />
+                </div>
+
                 {activeTab === "live" ? (
                     <RealtimeFeed
                         uid={user.uid}
                         onTrade={handleTrade}
                         onComplete={handleComplete}
-                        onView={(signal) => router.push(`/signals/pro?id=${signal.id}`)}
+                        onView={(signal) => router.push(`/signals/pro/${signal.id}`)}
                         onFollow={handleFollow}
                         followedIds={followedIds}
+                        followLoadingIds={followLoadingIds}
+                        tradeLoadingIds={tradeLoadingIds}
+                        completeLoadingIds={completeLoadingIds}
                     />
+                ) : analytics ? (
+                    <AnalyticsView analytics={analytics} />
                 ) : (
-                    analytics && <AnalyticsView analytics={analytics} />
+                    <div className="flex min-h-72 flex-col items-center justify-center rounded-card border border-border bg-card p-8 text-center">
+                        <Loader2 className="h-7 w-7 animate-spin text-primary" />
+                        <p className="mt-3 text-sm font-medium text-foreground">Loading analytics...</p>
+                    </div>
                 )}
             </div>
         </div>
     );
+}
+
+function cnTab(active: boolean) {
+    return `flex flex-1 min-h-9 items-center justify-center gap-2 rounded-button px-3 py-2 text-sm font-medium transition-colors ${
+        active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
+    }`;
+}
+
+function cnNotice(tone: Notice["tone"]) {
+    return `mt-6 flex items-center gap-2 rounded-button border p-3 text-sm ${
+        tone === "success"
+            ? "border-positive/20 bg-positive/10 text-positive"
+            : "border-negative/20 bg-negative/10 text-negative"
+    }`;
 }
