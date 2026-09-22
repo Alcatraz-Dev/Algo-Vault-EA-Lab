@@ -112,15 +112,12 @@ export function optimizeStrategy(
     const scores: number[] = [];
 
     for (const combo of sampled) {
-        const entries = Object.entries(combo);
-        let param: OptimizeParam = "slAtr";
-        let value: string | number = combo[param];
-        if (entries.length > 0) {
-            const [p, v] = entries[0];
-            param = p as OptimizeParam;
-            value = v;
+        // Apply EVERY parameter in the combination — a grid over multiple
+        // ranges must vary all of them, not just the first entry.
+        let variant = strategy;
+        for (const [p, v] of Object.entries(combo)) {
+            variant = applyParam(variant, p as OptimizeParam, v);
         }
-        const variant = applyParam(strategy, param, value);
         const result = backtestStrategy(variant, symbol, { [timeframe]: candles }, baseConfig, from, to);
 
         const { score, breakdown } = computeScore(result.metrics);

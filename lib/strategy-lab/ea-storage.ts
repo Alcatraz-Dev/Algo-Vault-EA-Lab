@@ -18,9 +18,21 @@ function pushId(uid: string): string {
     return adminDatabase.ref(basePath(uid)).push().key!;
 }
 
+function stripUndefined(obj: unknown): unknown {
+    if (obj === null || obj === undefined) return null;
+    if (Array.isArray(obj)) return obj.map(stripUndefined);
+    if (typeof obj !== "object") return obj;
+    const cleaned: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
+        if (value === undefined) continue;
+        cleaned[key] = stripUndefined(value);
+    }
+    return cleaned;
+}
+
 export async function saveGeneratedEA(uid: string, ea: GeneratedEA): Promise<string> {
     const id = ea.eaId || pushId(uid);
-    const record = { ...ea, eaId: id };
+    const record = stripUndefined({ ...ea, eaId: id });
     await adminDatabase.ref(`${basePath(uid)}/${id}`).set(record);
     return id;
 }
