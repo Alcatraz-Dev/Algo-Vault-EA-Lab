@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
         const orders =
             ordersSnapshot.val();
 
-        let paidOrder: any = null;
+        let paidOrder: unknown = null;
         let paidOrderId: string | null =
             null;
 
@@ -219,7 +219,7 @@ export async function POST(request: NextRequest) {
         const isDonationReward = paidOrderId === "donation_reward" ||
             String(paidOrderId).startsWith("donation_");
 
-        let activeLicense: any = null;
+        let activeLicense: unknown = null;
         let activeLicenseId: string | null = null;
 
         if (!isDonationReward) {
@@ -478,7 +478,7 @@ export async function POST(request: NextRequest) {
                 },
             }
         );
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(
             "SECURE DOWNLOAD ERROR:",
             error
@@ -488,8 +488,9 @@ export async function POST(request: NextRequest) {
             {
                 success: false,
                 error:
-                    error?.message ||
-                    "Download failed.",
+                    error instanceof Error
+                        ? error.message
+                        : "Download failed.",
             },
             { status: 500 }
         );

@@ -575,7 +575,7 @@ export async function POST(
 
         const updates: Record<
             string,
-            any
+            unknown
         > = {
             status: "paid",
 
@@ -627,7 +627,7 @@ export async function POST(
             licenseId:
                 licenseId || null,
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(
             "CHECKOUT VERIFY ERROR:",
             error
@@ -636,8 +636,9 @@ export async function POST(
         return NextResponse.json(
             {
                 error:
-                    error?.message ||
-                    "Unable to verify checkout session.",
+                    error instanceof Error
+                        ? error.message
+                        : "Unable to verify checkout session.",
             },
             { status: 500 }
         );

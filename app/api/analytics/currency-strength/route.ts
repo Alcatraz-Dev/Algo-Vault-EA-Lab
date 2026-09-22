@@ -12,6 +12,11 @@ const CURRENCY_PAIRS: Record<string, string[]> = {
     NZD: ["NZDUSD", "EURNZD", "GBPNZD", "AUDNZD", "CADNZD", "NZDJPY", "NZDCHF"],
 };
 
+type OhlcBar = {
+    close?: unknown;
+    openTime?: string;
+};
+
 export async function GET(request: NextRequest) {
     try {
         const user = await authenticate(request);
@@ -25,10 +30,10 @@ export async function GET(request: NextRequest) {
             try {
                 const res = await fetch(`https://biquote.io/api/${pair}/ohlc?interval=1d&limit=2`, { signal: AbortSignal.timeout(3000) });
                 if (!res.ok) continue;
-                const data = await res.json();
+                const data = (await res.json()) as { bars?: OhlcBar[] };
                 const bars = data.bars || [];
                 if (bars.length === 0) continue;
-                const sorted = bars.sort((a: any, b: any) => Date.parse(a.openTime) - Date.parse(b.openTime));
+                const sorted = bars.sort((a, b) => Date.parse(a.openTime || "") - Date.parse(b.openTime || ""));
                 const latest = sorted[sorted.length - 1];
                 const prev = sorted.length > 1 ? sorted[sorted.length - 2] : latest;
                 const close = Number(latest.close);

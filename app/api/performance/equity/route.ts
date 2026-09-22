@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDatabase } from "@/lib/firebase-admin";
 
+interface EquityPointRecord {
+    timestamp?: unknown;
+    balance?: unknown;
+    equity?: unknown;
+    floatingProfit?: unknown;
+    peakEquity?: unknown;
+    drawdown?: unknown;
+}
+
 function errorResponse(
     message: string,
     status = 400
@@ -318,9 +327,9 @@ export async function GET(
          */
 
         const points =
-            Object.values(data)
+            Object.values(data as Record<string, EquityPointRecord>)
                 .map(
-                    (point: any) => ({
+                    (point) => ({
                         timestamp:
                             Number(
                                 point?.timestamp ||

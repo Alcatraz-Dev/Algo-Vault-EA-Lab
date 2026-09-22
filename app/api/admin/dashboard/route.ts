@@ -4,7 +4,16 @@ import {
     adminDatabase,
 } from "@/lib/firebase-admin";
 
-type AnyRecord = Record<string, any>;
+type AnyRecord = Record<string, unknown>;
+
+interface DashboardProductRecord {
+    name?: unknown;
+    pricing?: {
+        currency?: unknown;
+        type?: unknown;
+    } | null;
+    [key: string]: unknown;
+}
 
 function isObject(value: unknown): value is AnyRecord {
     return (
@@ -365,7 +374,7 @@ export async function GET(request: NextRequest) {
                         rawBot.productType ||
                         "expert_advisor",
                     type:
-                        rawBot.pricing?.type ===
+                        (rawBot.pricing as Record<string, unknown> | undefined)?.type ===
                             "free"
                             ? "Free"
                             : "Paid",
@@ -387,9 +396,9 @@ export async function GET(request: NextRequest) {
             })
             .filter(Boolean)
             .sort(
-                (a: any, b: any) =>
-                    Number(b.updatedAt || 0) -
-                    Number(a.updatedAt || 0)
+                (a, b) =>
+                    Number(b?.updatedAt || 0) -
+                    Number(a?.updatedAt || 0)
             )
             .slice(0, 5);
 
@@ -402,7 +411,7 @@ export async function GET(request: NextRequest) {
                 const product =
                     order.productId &&
                         isObject(bots)
-                        ? bots[order.productId]
+                        ? (bots[order.productId as string] as DashboardProductRecord | null)
                         : null;
 
                 const amount =

@@ -513,7 +513,7 @@ export async function POST(
                 `versions/${safeVersionName}/${safeFileName}`,
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(
             "ADMIN PRODUCT FILE VERSION UPLOAD ERROR:",
             error
@@ -523,8 +523,9 @@ export async function POST(
             {
                 success: false,
                 error:
-                    error?.message ||
-                    "Product file upload failed.",
+                    error instanceof Error
+                        ? error.message
+                        : "Product file upload failed.",
             },
             { status: 500 }
         );

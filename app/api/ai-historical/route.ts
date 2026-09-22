@@ -50,7 +50,15 @@ export async function GET(request: NextRequest) {
         const structureLevels = structure.filter((e: MarketStructureEvent) => e.type === "swing_high" || e.type === "swing_low").length;
         const structureBlocks = structure.filter((e: MarketStructureEvent) => e.type === "BOS" || e.type === "CHOCH").length;
 
-        const history: any[] = [];
+        interface HistoryBucket {
+            period: string;
+            avgReturn: number;
+            high: number;
+            low: number;
+            regime: string;
+        }
+
+        const history: HistoryBucket[] = [];
         const bucketSize = Math.max(1, Math.floor(candles.length / 30));
         for (let i = 0; i < candles.length; i += bucketSize) {
             const batch = candles.slice(i, i + bucketSize);

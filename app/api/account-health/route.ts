@@ -8,6 +8,22 @@ import { calculateVWAP } from "@/lib/analytics/vwap";
 import { computeMetrics } from "@/lib/strategy-lab/metrics";
 import { BacktestTrade } from "@/lib/strategy-lab/types";
 
+interface HealthSignal {
+    id?: string;
+    createdAt?: number;
+    result?: string;
+    resultR?: number | string;
+}
+
+interface PositionRecord {
+    symbol?: unknown;
+    type?: unknown;
+    volume?: unknown;
+    profit?: unknown;
+    currentPrice?: unknown;
+    sl?: unknown;
+}
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -40,20 +56,20 @@ export async function GET(request: NextRequest) {
         const trades = tradeSnap.exists() ? Object.values(tradeSnap.val()) : [];
 
         const signalSnap = await adminDatabase.ref("aiSignals").get();
-        const signals: any[] = [];
+        const signals: HealthSignal[] = [];
         if (signalSnap.exists()) {
             signalSnap.forEach((child) => {
                 const s = child.val();
                 if (s && s.id) signals.push(s);
             });
         }
-        const recentSignals = signals.filter((s) => s.createdAt > Date.now() - 30 * 86400000).slice(-50);
+        const recentSignals = signals.filter((s) => (s.createdAt ?? 0) > Date.now() - 30 * 86400000).slice(-50);
 
         const totalPositions = Object.keys(positions).length;
         let totalFloatingPnl = 0;
         let positionsAtRisk = 0;
 
-        const positionList = Object.values(positions).map((p: any) => {
+        const positionList = Object.values(positions as Record<string, PositionRecord>).map((p) => {
             const profit = Number(p.profit || 0);
             totalFloatingPnl += profit;
             const risk = Math.abs(Number(p.currentPrice || 0) - Number(p.sl || 0)) * Number(p.volume || 0);
@@ -123,7 +139,7 @@ export async function GET(request: NextRequest) {
                     marginUtilization: Math.round(marginUtilization * 10) / 10,
                     totalPositions,
                     positionsAtRisk,
-                    openRisk: positionList.reduce((s: number, p: any) => s + p.risk, 0),
+                    openRisk: positionList.reduce((sum, p) => sum + p.risk, 0),
                 },
                 trading: {
                     totalSignals: recentSignals.length,

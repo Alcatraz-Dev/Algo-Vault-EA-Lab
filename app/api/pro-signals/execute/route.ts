@@ -188,10 +188,10 @@ export async function POST(request: NextRequest) {
             message: result.message,
             signal: updatedSignal,
         });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[POST /api/pro-signals/execute]", err);
         return NextResponse.json(
-            { error: err?.message || "Internal server error" },
+            { error: err instanceof Error ? err.message : "Internal server error" },
             { status: 500 }
         );
     }
@@ -225,7 +225,7 @@ function adaptAiSignalToPro(aiSignal: AISignal): ProSignal {
         parserMetadata: { fastParsed: false, confidence: aiSignal.confidence, warnings: [], errors: [], aiUsed: true },
         latency: { receivedAt: aiSignal.createdAt, parsedAt: 0, normalizedAt: 0 },
         rawMessageId: aiSignal.id,
-        events: aiSignal.timeline as any[],
+        events: aiSignal.timeline.map((event) => ({ ...event, signalId: aiSignal.id })),
         lastUpdateAt: aiSignal.updatedAt,
     };
 }

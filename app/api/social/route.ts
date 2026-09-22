@@ -128,7 +128,7 @@ export async function DELETE(request: NextRequest) {
         if (!postId) return NextResponse.json({ error: "postId required" }, { status: 400 });
 
         const postSnap = await adminDatabase.ref(`social_feed/${postId}`).get();
-        if (!postSnap.exists() || (postSnap.val() as any).userId !== user.uid) {
+        if (!postSnap.exists() || (postSnap.val() as { userId?: string } | null)?.userId !== user.uid) {
             return NextResponse.json({ error: "Not found or not authorized" }, { status: 403 });
         }
 

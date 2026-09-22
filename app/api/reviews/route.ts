@@ -15,6 +15,22 @@ type Review = {
     updatedAt?: number;
 };
 
+type ReviewRecord = {
+    productId?: string;
+    userId?: string;
+    status?: string;
+};
+
+type OrderRecord = {
+    productId?: string;
+    status?: string;
+    paymentStatus?: string;
+};
+
+type LicenseRecord = {
+    productId?: string;
+};
+
 async function getAuthenticatedUser(
     request: NextRequest
 ) {
@@ -323,14 +339,14 @@ export async function POST(
                 .once("value");
 
         const reviewsData =
-            reviewsSnapshot.val();
+            reviewsSnapshot.val() as Record<string, ReviewRecord> | null;
 
         if (reviewsData) {
             const existingReview =
                 Object.values(
                     reviewsData
                 ).find(
-                    (value: any) =>
+                    (value) =>
                         value?.productId ===
                         productId &&
                         value?.userId ===
@@ -367,14 +383,14 @@ export async function POST(
                 .once("value");
 
         const orders =
-            ordersSnapshot.val();
+            ordersSnapshot.val() as Record<string, OrderRecord> | null;
 
         if (orders) {
             verifiedPurchase =
                 Object.values(
                     orders
                 ).some(
-                    (order: any) =>
+                    (order) =>
                         order?.productId ===
                         productId &&
                         (
@@ -401,14 +417,14 @@ export async function POST(
                     .once("value");
 
             const licenses =
-                licensesSnapshot.val();
+                licensesSnapshot.val() as Record<string, LicenseRecord> | null;
 
             if (licenses) {
                 verifiedPurchase =
                     Object.values(
                         licenses
                     ).some(
-                        (license: any) =>
+                        (license) =>
                             license?.productId ===
                             productId
                     );

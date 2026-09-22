@@ -4,7 +4,7 @@ import {
     adminDatabase,
 } from "@/lib/firebase-admin";
 
-type AnyRecord = Record<string, any>;
+type AnyRecord = Record<string, unknown>;
 
 function isObject(
     value: unknown
@@ -315,10 +315,10 @@ export async function GET(
         rows.sort((a, b) => {
             const rankDiff =
                 (statusRank[
-                    a.status
+                    String(a.status ?? "")
                 ] ?? 99) -
                 (statusRank[
-                    b.status
+                    String(b.status ?? "")
                 ] ?? 99);
 
             if (rankDiff !== 0) {

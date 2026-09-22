@@ -59,6 +59,11 @@ function errorResponse(error: unknown) {
  * GET
  * Returns all affiliate offers.
  */
+type AffiliateOfferRecord = {
+    id: string;
+    [key: string]: unknown;
+};
+
 export async function GET(request: NextRequest) {
     try {
         await verifyAdmin(request);
@@ -71,18 +76,12 @@ export async function GET(request: NextRequest) {
             ? snapshot.val()
             : {};
 
-        const offers = Object.entries(data).map(
-            ([id, value]) => {
-                const offer = value as Record<string, unknown>;
+        const offers: AffiliateOfferRecord[] = Object.entries(data).map(([id, value]) => ({
+            id,
+            ...(value as Record<string, unknown>),
+        }));
 
-                return {
-                    id,
-                    ...offer,
-                };
-            }
-        );
-
-        offers.sort((a: any, b: any) => {
+        offers.sort((a, b) => {
             return (
                 Number(b.updatedAt || b.createdAt || 0) -
                 Number(a.updatedAt || a.createdAt || 0)

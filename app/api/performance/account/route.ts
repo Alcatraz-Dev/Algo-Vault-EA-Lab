@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDatabase } from "@/lib/firebase-admin";
 
+interface TradeRecord {
+    ticket?: unknown;
+    symbol?: unknown;
+    type?: unknown;
+    volume?: unknown;
+    openPrice?: unknown;
+    closePrice?: unknown;
+    profit?: unknown;
+    commission?: unknown;
+    swap?: unknown;
+    openedAt?: unknown;
+    closedAt?: unknown;
+    createdAt?: unknown;
+}
+
 function errorResponse(
     message: string,
     status = 400
@@ -301,10 +316,10 @@ export async function GET(
                 .get();
 
         const tradesData =
-            tradesSnapshot.val() || {};
+            (tradesSnapshot.val() || {}) as Record<string, TradeRecord>;
 
         const trades = Object.values(tradesData)
-            .map((trade: any) => {
+            .map((trade) => {
                 const profit = Number(trade?.profit || 0);
                 const commission = Number(trade?.commission || 0);
                 const swap = Number(trade?.swap || 0);

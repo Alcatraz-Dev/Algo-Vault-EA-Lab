@@ -4,7 +4,7 @@ import {
     adminDatabase,
 } from "@/lib/firebase-admin";
 
-type RecordData = Record<string, any>;
+type RecordData = Record<string, unknown>;
 
 async function verifyAdmin(
     request: NextRequest

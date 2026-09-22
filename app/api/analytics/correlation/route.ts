@@ -3,6 +3,11 @@ import { authenticate } from "@/lib/admin-auth";
 
 const SYMBOLS = ["XAUUSD", "EURUSD", "GBPUSD", "USDJPY", "BTCUSD", "ETHUSD", "US30", "NAS100"];
 
+type OhlcBar = {
+    close?: unknown;
+    openTime?: string;
+};
+
 export async function GET(request: NextRequest) {
     try {
         const user = await authenticate(request);
@@ -14,9 +19,9 @@ export async function GET(request: NextRequest) {
             try {
                 const res = await fetch(`https://biquote.io/api/${symbol}/ohlc?interval=1d&limit=30`);
                 if (res.ok) {
-                    const data = await res.json();
+                    const data = (await res.json()) as { bars?: OhlcBar[] };
                     const bars = data.bars || [];
-                    ohlcvData[symbol] = bars.map((b: any) => Number(b.close));
+                    ohlcvData[symbol] = bars.map((b) => Number(b.close));
                 }
             } catch {}
         }

@@ -109,10 +109,10 @@ export async function POST(request: NextRequest) {
             },
             { status: 200, headers: corsHeaders }
         );
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("SIGNAL EXECUTION ERROR:", err);
         return NextResponse.json(
-            { success: false, error: err?.message || "Failed to execute signal on MT5" },
+            { success: false, error: err instanceof Error ? err.message : "Failed to execute signal on MT5" },
             { status: 500, headers: corsHeaders }
         );
     }

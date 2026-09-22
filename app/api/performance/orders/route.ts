@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDatabase } from "@/lib/firebase-admin";
 import { attachCopiedMt5Ticket } from "@/lib/copy-trading";
 
+interface PendingOrderRecord {
+    status?: string;
+    [key: string]: unknown;
+}
+
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -33,7 +38,7 @@ export async function GET(request: NextRequest) {
             .get();
 
         const data = snapshot.val() || {};
-        const pendingOrders: any[] = [];
+        const pendingOrders: PendingOrderRecord[] = [];
 
         for (const ticket of Object.keys(data)) {
             const item = data[ticket];
@@ -51,10 +56,10 @@ export async function GET(request: NextRequest) {
             },
             { status: 200, headers: corsHeaders }
         );
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("GET ORDERS ERROR:", err);
         return NextResponse.json(
-            { success: false, error: err?.message || "Failed to fetch orders" },
+            { success: false, error: err instanceof Error ? err.message : "Failed to fetch orders" },
             { status: 500, headers: corsHeaders }
         );
     }
@@ -111,10 +116,10 @@ export async function POST(request: NextRequest) {
             },
             { status: 200, headers: corsHeaders }
         );
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("UPDATE ORDER ERROR:", err);
         return NextResponse.json(
-            { success: false, error: err?.message || "Failed to update order" },
+            { success: false, error: err instanceof Error ? err.message : "Failed to update order" },
             { status: 500, headers: corsHeaders }
         );
     }

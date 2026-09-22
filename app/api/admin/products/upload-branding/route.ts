@@ -442,15 +442,16 @@ export async function POST(
 
             branding,
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(
             "UPLOAD BRANDING ERROR:",
             error
         );
 
         const message =
-            error?.message ||
-            "Unable to upload branding image.";
+            error instanceof Error
+                ? error.message
+                : "Unable to upload branding image.";
 
         if (
             message ===

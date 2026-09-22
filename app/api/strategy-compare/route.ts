@@ -3,6 +3,23 @@ import { authenticate } from "@/lib/admin-auth";
 import { adminDatabase } from "@/lib/firebase-admin";
 import { computeMetrics } from "@/lib/strategy-lab/metrics";
 
+interface BacktestMetrics {
+    netProfit?: number;
+    [key: string]: unknown;
+}
+
+interface StrategyBacktestRecord {
+    strategyId?: string;
+    strategyName?: string;
+    metrics?: BacktestMetrics;
+}
+
+interface StrategyComparison {
+    strategyId: string;
+    strategyName?: string;
+    metrics?: BacktestMetrics;
+}
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -18,12 +35,12 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Provide at least 2 strategy IDs" }, { status: 400 });
         }
 
-        const comparisons: any[] = [];
+        const comparisons: StrategyComparison[] = [];
         for (const sid of strategyIds) {
             const btSnap = await adminDatabase.ref(`strategyLab/${user.uid}/backtests`).get();
-            const all: any[] = [];
+            const all: StrategyBacktestRecord[] = [];
             if (btSnap.exists()) {
-                const allBt = Object.values(btSnap.val()) as any[];
+                const allBt = Object.values(btSnap.val()) as StrategyBacktestRecord[];
                 allBt.filter((b) => b.strategyId === sid).forEach((b) => { if (b?.metrics) all.push(b); });
             }
             if (all.length > 0) {

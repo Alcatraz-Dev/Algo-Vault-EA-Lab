@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
+import type { ProSignal } from "@/features/telegram-signals/types";
 
 export async function GET(request: NextRequest) {
     try {
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
 
         // Fetch signals for latency audit
         const signalsSnap = await adminDatabase.ref(`telegramSignals/${uid}`).get();
-        const signals = signalsSnap.exists() ? (Object.values(signalsSnap.val()) as any[]) : [];
+        const signals = signalsSnap.exists() ? (Object.values(signalsSnap.val()) as ProSignal[]) : [];
 
         const latencies = signals.map((s) => ({
             signalId: s.id,
@@ -41,10 +42,10 @@ export async function GET(request: NextRequest) {
             deliveriesSample: deliveries.slice(-10),
             latenciesSample: latencies.slice(-10),
         });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[GET /api/telegram-signals/debug]", err);
         return NextResponse.json(
-            { error: err?.message || "Internal server error" },
+            { error: err instanceof Error ? err.message : "Internal server error" },
             { status: 500 }
         );
     }

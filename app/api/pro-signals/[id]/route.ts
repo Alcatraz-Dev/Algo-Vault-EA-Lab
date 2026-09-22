@@ -3,6 +3,9 @@ import { adminAuth } from "@/lib/firebase-admin";
 import { adminDatabase } from "@/lib/firebase-admin";
 import { getAdminSubscriptionStatus } from "@/lib/subscription-server";
 import type { ProSignal, SignalEvent } from "@/features/telegram-signals/types";
+import type { transitionSignalState } from "@/features/telegram-signals/lifecycle/state-machine";
+
+type SignalStateEvent = Parameters<typeof transitionSignalState>[1];
 
 function mapProEventToTimeline(raw: Record<string, unknown>) {
     const timestamp = Number(raw.timestamp || 0);
@@ -262,7 +265,7 @@ export async function PATCH(
 
         // Map action to state machine event
         let eventType: string;
-        const eventData: any = { reason };
+        const eventData: { reason?: string } = { reason };
 
         switch (action) {
             case "close":
@@ -288,7 +291,7 @@ export async function PATCH(
         const { transitionSignalState } = await import("@/features/telegram-signals/lifecycle/state-machine");
         const { saveProSignal } = await import("@/features/telegram-signals/signals/signal-engine");
 
-        const transition = transitionSignalState(signal, eventType as any, eventData);
+        const transition = transitionSignalState(signal, eventType as SignalStateEvent, eventData);
 
         if (!transition.transitioned) {
             return NextResponse.json({ error: "No state transition occurred" }, { status: 400 });

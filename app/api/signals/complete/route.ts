@@ -74,8 +74,8 @@ export async function POST(request: NextRequest) {
             resultR: outcome.resultR,
             profitPoints: outcome.profitPoints,
         });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("Signal complete POST error:", err);
-        return NextResponse.json({ error: err?.message || "Failed to complete signal" }, { status: 500 });
+        return NextResponse.json({ error: err instanceof Error ? err.message : "Failed to complete signal" }, { status: 500 });
     }
 }

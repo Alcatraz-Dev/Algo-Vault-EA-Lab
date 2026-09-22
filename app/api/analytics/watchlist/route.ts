@@ -12,6 +12,11 @@ type QuoteData = {
     timestamp: number;
 };
 
+type OhlcBar = {
+    openTime?: string;
+    close?: unknown;
+};
+
 export async function GET(request: NextRequest) {
     try {
         const symbolsParam = request.nextUrl.searchParams.get("symbols") || "XAUUSD,EURUSD,GBPUSD";
@@ -30,11 +35,11 @@ export async function GET(request: NextRequest) {
                 });
                 if (!res.ok) return;
 
-                const data = await res.json();
+                const data = (await res.json()) as { bars?: OhlcBar[] };
                 const bars = data.bars || [];
                 if (bars.length === 0) return;
 
-                const sorted = bars.sort((a: any, b: any) => Date.parse(a.openTime) - Date.parse(b.openTime));
+                const sorted = bars.sort((a, b) => Date.parse(a.openTime || "") - Date.parse(b.openTime || ""));
                 const lastBar = sorted[sorted.length - 1];
                 const prevBar = sorted.length > 1 ? sorted[sorted.length - 2] : lastBar;
 
@@ -51,7 +56,7 @@ export async function GET(request: NextRequest) {
                     spread: Number(spread.toFixed(spread >= 1 ? 2 : 6)),
                     change: Number(change.toFixed(5)),
                     changePercent: Number(changePercent.toFixed(3)),
-                    timestamp: Date.parse(lastBar.openTime),
+                    timestamp: Date.parse(lastBar.openTime || ""),
                 };
             } catch {}
         });

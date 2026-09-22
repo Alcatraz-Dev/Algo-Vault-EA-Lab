@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { authenticate } from "@/lib/admin-auth";
 import { adminDatabase } from "@/lib/firebase-admin";
 
+interface JournalNoteRecord {
+    mt5Ticket?: unknown;
+}
+
 export async function POST(request: NextRequest) {
     try {
         const user = await authenticate(request);
@@ -26,10 +30,10 @@ export async function POST(request: NextRequest) {
         const tradesData = snapshot.val();
         const notesRef = adminDatabase.ref(`users/${user.uid}/notes`);
         const existingNotes = await notesRef.get();
-        const existing = existingNotes.val() || {};
+        const existing = existingNotes.val() as Record<string, JournalNoteRecord> | null;
 
         const existingTickets = new Set(
-            Object.values(existing).map((note: any) => note.mt5Ticket).filter(Boolean)
+            Object.values(existing || {}).map((note) => note.mt5Ticket).filter(Boolean)
         );
 
         let synced = 0;

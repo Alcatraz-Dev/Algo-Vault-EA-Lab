@@ -43,10 +43,10 @@ export async function GET(request: NextRequest) {
             hasPro: true,
             signals: normalizedSignals,
         });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[GET /api/pro-signals]", err);
         return NextResponse.json(
-            { error: err?.message || "Internal server error" },
+            { error: err instanceof Error ? err.message : "Internal server error" },
             { status: 500 }
         );
     }
@@ -84,10 +84,10 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json(result);
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[POST /api/pro-signals]", err);
         return NextResponse.json(
-            { error: err?.message || "Internal server error" },
+            { error: err instanceof Error ? err.message : "Internal server error" },
             { status: 500 }
         );
     }
@@ -128,10 +128,10 @@ export async function DELETE(request: NextRequest) {
         }
 
         return NextResponse.json({ success: true, message: "Signal deleted successfully." });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[DELETE /api/pro-signals]", err);
         return NextResponse.json(
-            { error: err?.message || "Internal server error" },
+            { error: err instanceof Error ? err.message : "Internal server error" },
             { status: 500 }
         );
     }

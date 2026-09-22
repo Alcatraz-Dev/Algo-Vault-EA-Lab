@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDatabase } from "@/lib/firebase-admin";
 
+interface LivePositionRecord {
+    lastSeenAt?: unknown;
+    updatedAt?: unknown;
+    openedAt?: unknown;
+    [key: string]: unknown;
+}
+
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -522,8 +529,8 @@ export async function GET(
         const now = Date.now();
 
         const positions =
-            Object.values(raw).filter(
-                (position: any) => {
+            (Object.values(raw) as LivePositionRecord[]).filter(
+                (position) => {
                     if (!position) return false;
                     const lastSeenAt =
                         Number(

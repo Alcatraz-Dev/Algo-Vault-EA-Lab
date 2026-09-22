@@ -9,7 +9,7 @@ const SUBSCRIPTION_PLANS: Record<string, {
     name: string;
     price: number;
     currency: string;
-    interval: string;
+    interval: "day" | "week" | "month" | "year";
     tier: "pro" | "dev";
 }> = {
     pro: { name: "Pro Monthly", price: 29, currency: "usd", interval: "month", tier: "pro" },
@@ -143,7 +143,7 @@ export async function POST(
                                 description: `${plan.name} subscription for trading platform access`,
                             },
                             unit_amount: unitAmount,
-                            recurring: { interval: plan.interval as any },
+                            recurring: { interval: plan.interval },
                         },
                         quantity: 1,
                     },
@@ -725,7 +725,7 @@ export async function POST(
             sessionId:
                 session.id,
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(
             "CHECKOUT CREATE ERROR:",
             error
@@ -734,8 +734,9 @@ export async function POST(
         return NextResponse.json(
             {
                 error:
-                    error?.message ||
-                    "Unable to create checkout session.",
+                    error instanceof Error
+                        ? error.message
+                        : "Unable to create checkout session.",
             },
             { status: 500 }
         );
