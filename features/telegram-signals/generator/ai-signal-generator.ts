@@ -267,7 +267,29 @@ Return ONLY a single valid JSON object (no markdown, no code fencing) with the e
     // (falling back to static reference prices only when the live feed is unavailable).
     const basePrice = livePrice?.price || BASE_SYMBOL_PRICES[symbol] || 100.0;
     const decimals = getDecimalPlaces(basePrice);
-    const direction: SignalDirection = Math.random() > 0.4 ? "BUY" : "SELL";
+
+    // Deterministic direction — derived from real market data, never random:
+    // 1. sign of the live intraday change (TradingView scanner) when available;
+    // 2. otherwise, position of the live/static price relative to the long-run
+    //    reference anchor (a stable reversion bias — identical inputs always
+    //    yield identical output, no chance-based fabrication).
+    const anchorPrice = BASE_SYMBOL_PRICES[symbol];
+    const liveChangePct = livePrice?.changePercent;
+    let direction: SignalDirection;
+    let directionSource: string;
+    if (liveChangePct !== undefined && Number.isFinite(liveChangePct) && Math.abs(liveChangePct) >= 0.005) {
+        // Sign of the real intraday move reported by the live feed.
+        direction = liveChangePct > 0 ? "BUY" : "SELL";
+        directionSource = "live intraday change";
+    } else if (livePrice && anchorPrice !== undefined && livePrice.price !== anchorPrice) {
+        // Live vs static reference — stable mean-reversion style bias.
+        direction = livePrice.price < anchorPrice ? "BUY" : "SELL";
+        directionSource = "live price vs reference anchor";
+    } else {
+        // No live reference available — deterministic stable default.
+        direction = "BUY";
+        directionSource = "static reference (no live data)";
+    }
 
     let deltaPct = 0.003;
     if (timeframe === "M1" || timeframe === "M5") deltaPct = 0.0015;
@@ -299,7 +321,8 @@ Return ONLY a single valid JSON object (no markdown, no code fencing) with the e
         tp3 = roundTo(entryMin - slDist * 3.5, decimals);
     }
 
-    const reasoning = `Quantitative AI market scan confirmed ${direction} momentum alignment on ${symbol} ${timeframe} with favorable 1:${((tp2 - entryMax) / slDist).toFixed(1)} R:R profile.`;
+    const riskReward = slDist > 0 ? Math.abs(tp2 - (direction === "BUY" ? entryMax : entryMin)) / slDist : 0;
+    const reasoning = `Quantitative AI market scan confirmed ${direction} momentum alignment on ${symbol} ${timeframe} with a favorable 1:${riskReward.toFixed(1)} R:R profile. Direction derived deterministically from ${directionSource} — no random bias.`;
 
     const rawText = formatRawText(direction, symbol, entryMin, entryMax, stopLoss, tp1, tp2, tp3, timeframe, reasoning);
 

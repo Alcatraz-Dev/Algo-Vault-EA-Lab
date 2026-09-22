@@ -22,6 +22,19 @@ import type {
 const API_ID = process.env.TELEGRAM_API_ID ? parseInt(process.env.TELEGRAM_API_ID, 10) : 0;
 const API_HASH = process.env.TELEGRAM_API_HASH || "";
 
+/**
+ * Extract a safe message from an unknown caught value. GramJS surfaces errors with
+ * both `errorMessage` (RPC error code) and `message`; prefer the RPC code when present.
+ */
+function telegramErrorMessage(err: unknown, fallback: string): string {
+    if (err && typeof err === "object") {
+        const e = err as { errorMessage?: unknown; message?: unknown };
+        if (typeof e.errorMessage === "string" && e.errorMessage) return e.errorMessage;
+        if (typeof e.message === "string" && e.message) return e.message;
+    }
+    return fallback;
+}
+
 class TelegramUserClientManager {
     private client: TelegramClient | null = null;
     private stringSession: StringSession | null = null;
@@ -31,7 +44,6 @@ class TelegramUserClientManager {
     private monitoringStartPromise: Promise<{ success: boolean; error?: string }> | null = null;
     private monitoringHandler: ((event: NewMessageEvent) => Promise<void>) | null = null;
     private monitoringEvent: NewMessage | null = null;
-    private activeEventHandlers: Map<string, any> = new Map();
     private qrClient: TelegramClient | null = null;
     private qrLoginRunning: boolean = false;
 
@@ -45,7 +57,7 @@ class TelegramUserClientManager {
             const cleanDetails = details ? this.redactSecrets(details) : undefined;
             const logId = `log_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
             
-            const logEntry: Record<string, any> = {
+            const logEntry: TelegramLogEntry = {
                 id: logId,
                 timestamp: Date.now(),
                 level,
@@ -204,8 +216,8 @@ class TelegramUserClientManager {
             }
 
             return this.client;
-        } catch (err: any) {
-            const errorMsg = err?.message || "Failed to connect Telegram MTProto client";
+        } catch (err) {
+            const errorMsg = telegramErrorMessage(err, "Failed to connect Telegram MTProto client");
             if (this.isAuthKeyUnregistered(errorMsg)) {
                 await this.handleDeadSession(errorMsg);
                 return null;
@@ -232,6 +244,9 @@ class TelegramUserClientManager {
         return {
             ...stored,
             connected: this.client?.connected === true ? true : Boolean(stored.connected),
+            connectionStatus:
+                stored.connectionStatus ??
+                (this.client?.connected === true ? "connected" : "disconnected"),
             monitoringActive: this.isMonitoringActive,
             monitoringStartedAt: this.monitoringStartedAt ?? stored.monitoringStartedAt,
         };
@@ -249,7 +264,7 @@ class TelegramUserClientManager {
         try {
             const me = await this.client.getMe();
             if (me && me instanceof Api.User) {
-                const userAccount: Record<string, string> = {
+                const userAccount: NonNullable<TelegramAdminConfig["userAccount"]> = {
                     id: me.id.toString(),
                 };
                 if (me.username) userAccount.username = `@${me.username}`;
@@ -260,7 +275,7 @@ class TelegramUserClientManager {
                 await this.updateAdminConfig({
                     connected: true,
                     connectionStatus: "connected",
-                    userAccount: userAccount as any,
+                    userAccount,
                 });
             }
         } catch (err) {
@@ -316,8 +331,8 @@ class TelegramUserClientManager {
             await this.addLog("info", `Verification code sent via ${deliveryMethod} to phone number ending in ${phoneNumber.slice(-4)}`);
 
             return { success: true, phoneCodeHash, isCodeViaApp };
-        } catch (err: any) {
-            const raw = err?.errorMessage || err?.message || "Failed to send Telegram verification code";
+        } catch (err) {
+            const raw = telegramErrorMessage(err, "Failed to send Telegram verification code");
             console.error("[TelegramClientManager:sendCode]", raw, err);
             const msg = raw.includes("SEND_CODE_UNAVAILABLE")
                 ? "SEND_CODE_UNAVAILABLE: Telegram refuses to send a code for this number right now (all delivery options used / SMS blocked). Wait several minutes, or use QR login instead (no code needed)."
@@ -364,8 +379,9 @@ class TelegramUserClientManager {
                         phoneCode,
                     })
                 );
-            } catch (err: any) {
-                if (err?.message?.includes("SESSION_PASSWORD_NEEDED") || err?.errorMessage === "SESSION_PASSWORD_NEEDED") {
+            } catch (err) {
+                const raw = telegramErrorMessage(err, "");
+                if (raw.includes("SESSION_PASSWORD_NEEDED")) {
                     await this.updateAdminConfig({
                         connected: false,
                         connectionStatus: "awaiting_2fa",
@@ -386,8 +402,8 @@ class TelegramUserClientManager {
             await this.addLog("success", "Telegram USER ACCOUNT successfully connected");
 
             return { success: true };
-        } catch (err: any) {
-            const raw = err?.errorMessage || err?.message || "Verification code failed";
+        } catch (err) {
+            const raw = telegramErrorMessage(err, "Verification code failed");
             const msg = raw.includes("PHONE_CODE_INVALID")
                 ? 'PHONE_CODE_INVALID: The code does not match the code request. Use ONLY the code Telegram sent right after pressing "Send Verification Code". A code from my.telegram.org or another device/session will NEVER work (each code is tied to one session/hash).'
                 : raw.includes("PHONE_CODE_EXPIRED")
@@ -413,8 +429,8 @@ class TelegramUserClientManager {
                 try {
                     await adminDatabase.ref("telegramAdminConfig/qr2FAPassword").set({ password, createdAt: Date.now() });
                     return await this.waitForQrCompletion();
-                } catch (err: any) {
-                    const msg = err?.message || "2FA authentication failed";
+                } catch (err) {
+                    const msg = telegramErrorMessage(err, "2FA authentication failed");
                     await this.addLog("error", "QR 2FA failed", msg);
                     return { success: false, error: msg };
                 }
@@ -454,8 +470,8 @@ class TelegramUserClientManager {
             await this.addLog("success", "2FA authentication completed & Telegram USER ACCOUNT connected");
 
             return { success: true };
-        } catch (err: any) {
-            const msg = err?.message || "2FA authentication failed";
+        } catch (err) {
+            const msg = telegramErrorMessage(err, "2FA authentication failed");
             await this.addLog("error", "signIn2FA failed", msg);
             return { success: false, error: msg };
         }
@@ -547,8 +563,8 @@ class TelegramUserClientManager {
                     await this.fetchAndStoreAccountDetails();
                     await this.addLog("success", `Telegram USER ACCOUNT connected via QR login`);
                     await this.startMonitoring();
-                } catch (err: any) {
-                    const msg = err?.message || "QR login failed";
+                } catch (err) {
+                    const msg = telegramErrorMessage(err, "QR login failed");
                     this.qrLoginRunning = false;
                     // If a newer QR session replaced us, don't clobber its state
                     if (this.qrClient !== client) return;
@@ -564,8 +580,8 @@ class TelegramUserClientManager {
             })();
 
             return { success: true };
-        } catch (err: any) {
-            const msg = err?.message || "Failed to start QR login";
+        } catch (err) {
+            const msg = telegramErrorMessage(err, "Failed to start QR login");
             this.qrLoginRunning = false;
             await this.addLog("error", "startQrLogin failed", msg);
             await this.updateAdminConfig({
@@ -670,8 +686,8 @@ class TelegramUserClientManager {
 
             await this.addLog("info", "Telegram USER ACCOUNT disconnected");
             return { success: true };
-        } catch (err: any) {
-            return { success: false, error: err?.message || "Failed to disconnect" };
+        } catch (err) {
+            return { success: false, error: telegramErrorMessage(err, "Failed to disconnect") };
         }
     }
 
@@ -741,8 +757,8 @@ class TelegramUserClientManager {
             }
 
             return { success: true, channels: result };
-        } catch (err: any) {
-            const msg = err?.message || "Failed to fetch Telegram dialogs";
+        } catch (err) {
+            const msg = telegramErrorMessage(err, "Failed to fetch Telegram dialogs");
             await this.addLog("error", "getDialogs failed", msg);
             if (this.isAuthKeyUnregistered(msg)) {
                 await this.handleDeadSession(msg);
@@ -755,7 +771,7 @@ class TelegramUserClientManager {
     /**
      * Validate accessibility of a specific Telegram channel
      */
-    public async validateChannelAccess(channelId: string): Promise<{ accessible: boolean; entity?: any; error?: string }> {
+    public async validateChannelAccess(channelId: string): Promise<{ accessible: boolean; entity?: object; error?: string }> {
         const client = await this.getOrInitClient();
         if (!client) {
             return { accessible: false, error: "Telegram account not connected" };
@@ -764,7 +780,7 @@ class TelegramUserClientManager {
         try {
             // Channels are addressed with their marked peer id (-100<id>); GramJS treats a
             // bare positive integer as a *user* id, so try both forms for numeric ids.
-            const candidates: any[] = [];
+            const candidates: (string | number)[] = [];
             if (/^-?\d+$/.test(channelId)) {
                 const num = parseInt(channelId, 10);
                 candidates.push(num);
@@ -773,18 +789,18 @@ class TelegramUserClientManager {
                 candidates.push(channelId);
             }
 
-            let lastError: any = null;
+            let lastError: unknown = null;
             for (const peerInput of candidates) {
                 try {
                     const entity = await client.getEntity(peerInput);
                     return { accessible: true, entity };
-                } catch (err: any) {
+                } catch (err) {
                     lastError = err;
                 }
             }
-            return { accessible: false, error: lastError?.message || "Channel not accessible by Telegram account" };
-        } catch (err: any) {
-            return { accessible: false, error: err?.message || "Channel not accessible by Telegram account" };
+            return { accessible: false, error: lastError instanceof Error ? lastError.message : "Channel not accessible by Telegram account" };
+        } catch (err) {
+            return { accessible: false, error: telegramErrorMessage(err, "Channel not accessible by Telegram account") };
         }
     }
 
@@ -848,8 +864,8 @@ class TelegramUserClientManager {
                     const chatId = message.chatId ? message.chatId.toString() : "";
                     if (!chatId) return;
 
-                    const chatUsername = message.chat && (message.chat as any).username
-                        ? `@${(message.chat as any).username}`.toLowerCase()
+                    const chatUsername = message.chat && (message.chat as { username?: string }).username
+                        ? `@${(message.chat as { username?: string }).username}`.toLowerCase()
                         : "";
                     const normalizeChannelId = (value: string) => {
                         const raw = String(value).trim();
@@ -933,8 +949,8 @@ class TelegramUserClientManager {
             });
             await this.addLog("success", "Server-side Telegram MTProto channel monitoring started");
             return { success: true };
-        } catch (err: any) {
-            const msg = err?.message || "Failed to start monitoring";
+        } catch (err) {
+            const msg = telegramErrorMessage(err, "Failed to start monitoring");
             await this.addLog("error", "startMonitoring failed", msg);
             return { success: false, error: msg };
         }
@@ -973,8 +989,8 @@ class TelegramUserClientManager {
                 checks.sessionValidity = { passed: false, message: "Session expired or missing" };
                 log("✗ Telegram auth failed");
             }
-        } catch (err: any) {
-            checks.telegramAuth = { passed: false, message: err?.message || "Auth test error" };
+        } catch (err) {
+            checks.telegramAuth = { passed: false, message: telegramErrorMessage(err, "Auth test error") };
             checks.sessionValidity = { passed: false, message: "Session check failed" };
         }
 
@@ -989,8 +1005,8 @@ class TelegramUserClientManager {
                 checks.channelAccess = { passed: false, message: dialogsResult.error || "Channel access failed" };
                 checks.messageRetrieval = { passed: false, message: "Unable to retrieve dialogs" };
             }
-        } catch (err: any) {
-            checks.channelAccess = { passed: false, message: err?.message || "Channel access error" };
+        } catch (err) {
+            checks.channelAccess = { passed: false, message: telegramErrorMessage(err, "Channel access error") };
         }
 
         // 3. Test Signal Parser & Normalization
@@ -1014,8 +1030,8 @@ class TelegramUserClientManager {
                 checks.parserAvailability = { passed: false, message: processRes.error || "Parser failed" };
                 checks.signalNormalization = { passed: false, message: "Normalization failed" };
             }
-        } catch (err: any) {
-            checks.parserAvailability = { passed: false, message: err?.message || "Parser error" };
+        } catch (err) {
+            checks.parserAvailability = { passed: false, message: telegramErrorMessage(err, "Parser error") };
         }
 
         // 4. Test Firebase Write
@@ -1025,8 +1041,8 @@ class TelegramUserClientManager {
             await testRef.remove();
             checks.firebaseWrite = { passed: true, message: "Firebase RTDB write & cleanup verified" };
             log("✓ Firebase RTDB write test passed");
-        } catch (err: any) {
-            checks.firebaseWrite = { passed: false, message: err?.message || "Firebase write error" };
+        } catch (err) {
+            checks.firebaseWrite = { passed: false, message: telegramErrorMessage(err, "Firebase write error") };
         }
 
         // 5. Test Notification Pipeline Configuration

@@ -1,6 +1,6 @@
-import { runParserTests } from "./parser.test";
-import { runLifecycleTests } from "./lifecycle.test";
+import { runAnalyticsTests, runLifecycleTests } from "./lifecycle.test";
 import { runMultilingualTests } from "./multilingual-parser.test";
+import { runParserTests } from "./parser.test";
 
 function runAllProSignalTests() {
     console.log("==========================================");
@@ -11,10 +11,12 @@ function runAllProSignalTests() {
     console.log("");
     const multilingualResult = runMultilingualTests();
     console.log("");
+    const analyticsResult = runAnalyticsTests();
+    console.log("");
     const lifecycleResult = runLifecycleTests();
 
     console.log("==========================================");
-    if (parserResult && multilingualResult && lifecycleResult) {
+    if (parserResult && multilingualResult && analyticsResult && lifecycleResult) {
         console.log("🎉 ALL PRO SIGNALS TESTS PASSED (100%)");
         console.log("==========================================");
         process.exit(0);

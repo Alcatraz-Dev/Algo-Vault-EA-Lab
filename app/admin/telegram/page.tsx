@@ -47,8 +47,41 @@ import type {
     SignalStyle,
     SignalTimeframe,
 } from "@/features/telegram-signals/types";
+import type { ParsedSignalResult } from "@/features/telegram-signals/parser/fast-parser";
+import type { GeneratedAiSignalResult } from "@/features/telegram-signals/generator/ai-signal-generator";
 
 type TabType = "connect" | "channels" | "sources" | "groups" | "parser" | "aigenerator" | "analytics" | "logs";
+
+/** Analytics row returned by GET /api/admin/telegram/analytics. */
+interface TelegramAnalyticsRow {
+    sourceId: string;
+    channelName: string;
+    groupId: string;
+    status: string;
+    totalSignals: number;
+    wins: number;
+    losses: number;
+    expired: number;
+    cancelled: number;
+    winRate: number;
+    lastReceivedAt: number | null;
+    lastMessageAt: number | null;
+}
+
+/** Response body of POST /api/admin/telegram/generate-ai-signal. */
+interface AiGenerateResponse {
+    success: boolean;
+    siteName: string;
+    channelBrandName: string;
+    generatedSignal: GeneratedAiSignalResult | null;
+    publishedSignal: unknown;
+    published: boolean;
+    error?: string;
+}
+
+function errMsg(err: unknown, fallback: string): string {
+    return err instanceof Error && err.message ? err.message : fallback;
+}
 
 export default function AdminTelegramPage() {
     return (
@@ -63,7 +96,6 @@ export default function AdminTelegramPage() {
 function AdminTelegramDashboard() {
     const [activeTab, setActiveTab] = useState<TabType>("sources");
     const [status, setStatus] = useState<TelegramAdminConfig>({ connected: false, connectionStatus: "disconnected" });
-    const [loadingStatus, setLoadingStatus] = useState(true);
 
     // Auth state
     const [phoneNumber, setPhoneNumber] = useState("");
@@ -106,7 +138,7 @@ function AdminTelegramDashboard() {
     // Parser Tester State
     const [testMessage, setTestMessage] = useState("BUY XAUUSD @ 2655 - 2657\nSL: 2649\nTP1: 2662\nTP2: 2670\nTP3: 2680");
     const [useAi, setUseAi] = useState(true);
-    const [testResult, setTestResult] = useState<any>(null);
+    const [testResult, setTestResult] = useState<ParsedSignalResult | null>(null);
     const [testingParser, setTestingParser] = useState(false);
 
     // AI Signal Generator State
@@ -115,11 +147,11 @@ function AdminTelegramDashboard() {
     const [aiStyle, setAiStyle] = useState<"SCALPING" | "INTRADAY" | "SWING">("INTRADAY");
     const [aiNotes, setAiNotes] = useState("");
     const [aiGenerating, setAiGenerating] = useState(false);
-    const [aiGeneratedResult, setAiGeneratedResult] = useState<any>(null);
+    const [aiGeneratedResult, setAiGeneratedResult] = useState<AiGenerateResponse | null>(null);
     const [aiSiteName, setAiSiteName] = useState("AlgoVault");
 
     // Analytics & Logs State
-    const [analytics, setAnalytics] = useState<any[]>([]);
+    const [analytics, setAnalytics] = useState<TelegramAnalyticsRow[]>([]);
     const [logs, setLogs] = useState<TelegramLogEntry[]>([]);
     const [diagnosticResult, setDiagnosticResult] = useState<TelegramConnectionTestResult | null>(null);
     const [runningDiagnostic, setRunningDiagnostic] = useState(false);
@@ -143,12 +175,56 @@ function AdminTelegramDashboard() {
         };
     };
 
-    // Load Status & Data on Mount
-    useEffect(() => {
-        fetchStatus();
-        fetchSources();
-        fetchGroups();
-    }, []);
+    const fetchStatus = async () => {
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch("/api/admin/telegram/status", { headers });
+            const data = await res.json();
+            if (data.success && data.status) {
+                setStatus(data.status);
+                if (data.status.connected) {
+                    setAuthStep("connected");
+                } else if (data.status.connectionStatus === "awaiting_code") {
+                    setAuthStep("code");
+                } else if (data.status.connectionStatus === "awaiting_2fa") {
+                    setAuthStep("2fa");
+                } else {
+                    setAuthStep("phone");
+                }
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const fetchSources = async () => {
+        setLoadingSources(true);
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch("/api/admin/telegram/sources", { headers });
+            const data = await res.json();
+            if (data.success) {
+                setSources(data.sources || []);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoadingSources(false);
+        }
+    };
+
+    const fetchGroups = async () => {
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch("/api/admin/telegram/groups", { headers });
+            const data = await res.json();
+            if (data.success) {
+                setGroups(data.groups || []);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     // Poll QR login status while awaiting a scan
     useEffect(() => {
@@ -193,59 +269,19 @@ function AdminTelegramDashboard() {
         };
     }, [authStep]);
 
-    const fetchStatus = async () => {
-        setLoadingStatus(true);
-        try {
-            const headers = await getAuthHeaders();
-            const res = await fetch("/api/admin/telegram/status", { headers });
-            const data = await res.json();
-            if (data.success && data.status) {
-                setStatus(data.status);
-                if (data.status.connected) {
-                    setAuthStep("connected");
-                } else if (data.status.connectionStatus === "awaiting_code") {
-                    setAuthStep("code");
-                } else if (data.status.connectionStatus === "awaiting_2fa") {
-                    setAuthStep("2fa");
-                } else {
-                    setAuthStep("phone");
-                }
-            }
-        } catch (err: any) {
-            console.error(err);
-        } finally {
-            setLoadingStatus(false);
-        }
-    };
-
-    const fetchSources = async () => {
-        setLoadingSources(true);
-        try {
-            const headers = await getAuthHeaders();
-            const res = await fetch("/api/admin/telegram/sources", { headers });
-            const data = await res.json();
-            if (data.success) {
-                setSources(data.sources || []);
-            }
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setLoadingSources(false);
-        }
-    };
-
-    const fetchGroups = async () => {
-        try {
-            const headers = await getAuthHeaders();
-            const res = await fetch("/api/admin/telegram/groups", { headers });
-            const data = await res.json();
-            if (data.success) {
-                setGroups(data.groups || []);
-            }
-        } catch (err) {
-            console.error(err);
-        }
-    };
+    // Load Status & Data on Mount
+    useEffect(() => {
+        let cancelled = false;
+        void (async () => {
+            await fetchStatus();
+            if (cancelled) return;
+            await fetchSources();
+            await fetchGroups();
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     const fetchChannels = async () => {
         setLoadingChannels(true);
@@ -262,8 +298,8 @@ function AdminTelegramDashboard() {
             } else {
                 showToast("error", data.error || "Failed to load Telegram channels");
             }
-        } catch (err: any) {
-            showToast("error", err.message || "Failed to load channels");
+        } catch (err) {
+            showToast("error", errMsg(err, "Failed to load channels"));
         } finally {
             setLoadingChannels(false);
         }
@@ -315,8 +351,8 @@ function AdminTelegramDashboard() {
             } else {
                 setAuthError(data.error || "Failed to send verification code");
             }
-        } catch (err: any) {
-            setAuthError(err.message || "Failed to send verification code");
+        } catch (err) {
+            setAuthError(errMsg(err, "Failed to send verification code"));
         } finally {
             setAuthLoading(false);
         }
@@ -346,8 +382,8 @@ function AdminTelegramDashboard() {
             } else {
                 setAuthError(data.error || "Invalid verification code");
             }
-        } catch (err: any) {
-            setAuthError(err.message || "Verification failed");
+        } catch (err) {
+            setAuthError(errMsg(err, "Verification failed"));
         } finally {
             setAuthLoading(false);
         }
@@ -372,8 +408,8 @@ function AdminTelegramDashboard() {
             } else {
                 setAuthError(data.error || "2FA password incorrect");
             }
-        } catch (err: any) {
-            setAuthError(err.message || "2FA failed");
+        } catch (err) {
+            setAuthError(errMsg(err, "2FA failed"));
         } finally {
             setAuthLoading(false);
         }
@@ -396,8 +432,8 @@ function AdminTelegramDashboard() {
             } else {
                 setAuthError(data.error || "Failed to start QR login");
             }
-        } catch (err: any) {
-            setAuthError(err.message || "Failed to start QR login");
+        } catch (err) {
+            setAuthError(errMsg(err, "Failed to start QR login"));
         } finally {
             setAuthLoading(false);
         }
@@ -421,8 +457,8 @@ function AdminTelegramDashboard() {
             } else {
                 showToast("error", data.error || "Failed to disconnect");
             }
-        } catch (err: any) {
-            showToast("error", err.message || "Disconnect failed");
+        } catch (err) {
+            showToast("error", errMsg(err, "Disconnect failed"));
         } finally {
             setAuthLoading(false);
         }
@@ -479,8 +515,8 @@ function AdminTelegramDashboard() {
             }
             fetchSources();
             setActiveTab("sources");
-        } catch (err: any) {
-            showToast("error", err.message || "Failed to save channels");
+        } catch (err) {
+            showToast("error", errMsg(err, "Failed to save channels"));
         } finally {
             setSavingSource(false);
         }
@@ -518,8 +554,8 @@ function AdminTelegramDashboard() {
             } else {
                 showToast("error", data.error || "Failed to save group");
             }
-        } catch (err: any) {
-            showToast("error", err.message || "Failed to save group");
+        } catch (err) {
+            showToast("error", errMsg(err, "Failed to save group"));
         } finally {
             setSavingGroup(false);
         }
@@ -540,8 +576,8 @@ function AdminTelegramDashboard() {
             } else {
                 showToast("error", data.error || "Failed to delete group");
             }
-        } catch (err: any) {
-            showToast("error", err.message || "Delete error");
+        } catch (err) {
+            showToast("error", errMsg(err, "Delete error"));
         }
     };
 
@@ -565,8 +601,8 @@ function AdminTelegramDashboard() {
             } else {
                 showToast("error", data.error || "Failed to update source");
             }
-        } catch (err: any) {
-            showToast("error", err.message || "Update error");
+        } catch (err) {
+            showToast("error", errMsg(err, "Update error"));
         }
     };
 
@@ -585,8 +621,8 @@ function AdminTelegramDashboard() {
             } else {
                 showToast("error", data.error || "Failed to delete source");
             }
-        } catch (err: any) {
-            showToast("error", err.message || "Delete error");
+        } catch (err) {
+            showToast("error", errMsg(err, "Delete error"));
         }
     };
 
@@ -608,8 +644,8 @@ function AdminTelegramDashboard() {
             } else {
                 showToast("error", data.error || "Parser test failed");
             }
-        } catch (err: any) {
-            showToast("error", err.message || "Parser error");
+        } catch (err) {
+            showToast("error", errMsg(err, "Parser error"));
         } finally {
             setTestingParser(false);
         }
@@ -640,8 +676,8 @@ function AdminTelegramDashboard() {
             } else {
                 showToast("error", data.error || "Failed to publish signal to live feed");
             }
-        } catch (err: any) {
-            showToast("error", err.message || "Publish error");
+        } catch (err) {
+            showToast("error", errMsg(err, "Publish error"));
         } finally {
             setTestingParser(false);
         }
@@ -676,8 +712,8 @@ function AdminTelegramDashboard() {
             } else {
                 showToast("error", data.error || "AI generation failed");
             }
-        } catch (err: any) {
-            showToast("error", err.message || "AI Generator error");
+        } catch (err) {
+            showToast("error", errMsg(err, "AI Generator error"));
         } finally {
             setAiGenerating(false);
         }
@@ -700,8 +736,8 @@ function AdminTelegramDashboard() {
             } else {
                 showToast("error", data.error || "Diagnostic test failed");
             }
-        } catch (err: any) {
-            showToast("error", err.message || "Diagnostic error");
+        } catch (err) {
+            showToast("error", errMsg(err, "Diagnostic error"));
         } finally {
             setRunningDiagnostic(false);
         }
@@ -722,8 +758,8 @@ function AdminTelegramDashboard() {
             } else {
                 showToast("error", data.error || "Failed to start monitoring");
             }
-        } catch (err: any) {
-            showToast("error", err.message || "Failed to start monitoring");
+        } catch (err) {
+            showToast("error", errMsg(err, "Failed to start monitoring"));
         } finally {
             setStartingMonitoring(false);
         }
@@ -1650,8 +1686,8 @@ function AdminTelegramDashboard() {
                                     <div className="rounded-xl border border-border/50 bg-muted/20 p-3">
                                         <p><span className="text-muted-foreground">Is Signal:</span> <strong className={testResult.isSignal ? "text-emerald-400" : "text-red-400"}>{String(testResult.isSignal ?? true)}</strong></p>
                                         <p><span className="text-muted-foreground">Confidence:</span> <strong>{testResult.confidence}%</strong></p>
-                                        <p><span className="text-muted-foreground">Fast Parsed:</span> <strong>{String(testResult.parserMetadata?.fastParsed ?? testResult.fastParsed ?? (testResult.isSignal && !testResult.aiUsed))}</strong></p>
-                                        <p><span className="text-muted-foreground">AI Used:</span> <strong>{String(testResult.parserMetadata?.aiUsed ?? testResult.aiUsed ?? false)}</strong></p>
+                                        <p><span className="text-muted-foreground">Fast Parsed:</span> <strong>{String(testResult.isSignal && !testResult.aiUsed)}</strong></p>
+                                        <p><span className="text-muted-foreground">AI Used:</span> <strong>{String(testResult.aiUsed ?? false)}</strong></p>
                                     </div>
 
                                     {testResult.isSignal && (
@@ -1662,7 +1698,7 @@ function AdminTelegramDashboard() {
                                             <p><span className="text-muted-foreground">Stop Loss:</span> <strong>{testResult.stopLoss}</strong></p>
                                             <p><span className="text-muted-foreground">Take Profit Targets:</span></p>
                                             <ul className="pl-4 list-disc">
-                                                {testResult.takeProfits?.map((tp: any, idx: number) => (
+                                                {testResult.takeProfits?.map((tp, idx: number) => (
                                                     <li key={idx}>TP{tp.index}: {tp.price || "OPEN RUNNER"}</li>
                                                 ))}
                                             </ul>
@@ -1723,7 +1759,7 @@ function AdminTelegramDashboard() {
                                     <label className="block text-xs font-semibold mb-1.5">Timeframe</label>
                                     <select
                                         value={aiTimeframe}
-                                        onChange={(e) => setAiTimeframe(e.target.value as any)}
+                                        onChange={(e) => setAiTimeframe(e.target.value as "M1" | "M5" | "M15" | "M30" | "H1" | "H4" | "D1")}
                                         className="w-full rounded-xl border border-border bg-background p-2.5 text-xs text-foreground outline-none focus:border-amber-500"
                                     >
                                         <option value="M1">M1</option>
@@ -1740,7 +1776,7 @@ function AdminTelegramDashboard() {
                                     <label className="block text-xs font-semibold mb-1.5">Trading Style</label>
                                     <select
                                         value={aiStyle}
-                                        onChange={(e) => setAiStyle(e.target.value as any)}
+                                        onChange={(e) => setAiStyle(e.target.value as "SCALPING" | "INTRADAY" | "SWING")}
                                         className="w-full rounded-xl border border-border bg-background p-2.5 text-xs text-foreground outline-none focus:border-amber-500"
                                     >
                                         <option value="SCALPING">SCALPING</option>
@@ -1830,7 +1866,7 @@ function AdminTelegramDashboard() {
                                         </div>
 
                                         <div className="pt-2 border-t border-border/30 text-[11px] text-muted-foreground italic">
-                                            "{aiGeneratedResult.generatedSignal?.reasoning}"
+                                            &ldquo;{aiGeneratedResult.generatedSignal?.reasoning}&rdquo;
                                         </div>
                                     </div>
 
@@ -2132,7 +2168,7 @@ function AdminTelegramDashboard() {
                                     <label className="block text-muted-foreground mb-1">Signal Style</label>
                                     <select
                                         value={editingSource.style}
-                                        onChange={(e) => setEditingSource({ ...editingSource, style: e.target.value as any })}
+                                        onChange={(e) => setEditingSource({ ...editingSource, style: e.target.value as SignalStyle })}
                                         className="w-full rounded-xl border border-border bg-background p-2.5 text-foreground outline-none"
                                     >
                                         <option value="SCALPING">Scalping</option>
@@ -2144,7 +2180,7 @@ function AdminTelegramDashboard() {
                                     <label className="block text-muted-foreground mb-1">Default Timeframe</label>
                                     <select
                                         value={editingSource.defaultTimeframe}
-                                        onChange={(e) => setEditingSource({ ...editingSource, defaultTimeframe: e.target.value as any })}
+                                        onChange={(e) => setEditingSource({ ...editingSource, defaultTimeframe: e.target.value as SignalTimeframe })}
                                         className="w-full rounded-xl border border-border bg-background p-2.5 text-foreground outline-none"
                                     >
                                         <option value="M1">M1</option>

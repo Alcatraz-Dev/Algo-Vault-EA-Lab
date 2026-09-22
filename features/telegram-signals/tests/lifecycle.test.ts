@@ -1,5 +1,123 @@
+import {
+    collectSignals,
+    computeSignalAnalytics,
+    normalizeSignalForAnalytics,
+    sourceMatchesSignal,
+} from "../analytics/signal-analytics";
 import { transitionSignalState } from "../lifecycle/state-machine";
 import type { ProSignal } from "../types";
+
+export function runAnalyticsTests(): boolean {
+    console.log("--- Running Telegram Analytics Unit Tests ---");
+    let passed = true;
+
+    const legacySignal = {
+        id: "legacy-1",
+        sourceMetadata: {
+            sourceId: "1001298433783",
+            sourceType: "telegram_channel",
+        },
+        receivedAt: 1000,
+        createdAt: 1000,
+        status: "STOPPED",
+        takeProfits: [4370, 4380],
+        symbol: "XAUUSD",
+        style: "SCALPING",
+        timeframe: "M5",
+        entryMin: 4360,
+        stopLoss: 4350,
+    };
+    const normalizedLegacy = normalizeSignalForAnalytics(legacySignal);
+    if (
+        !normalizedLegacy ||
+        normalizedLegacy.lastUpdateAt !== 1000 ||
+        normalizedLegacy.takeProfits[0]?.price !== 4370 ||
+        normalizedLegacy.takeProfits[1]?.type !== "PRICE"
+    ) {
+        console.error("Analytics Test Failed: legacy signal normalization");
+        passed = false;
+    }
+
+    const signalsRoot = {
+        userA: {
+            "legacy-1": {
+                ...legacySignal,
+                status: "CREATED",
+                lastUpdateAt: 2000,
+            },
+        },
+        userB: {
+            "legacy-1": {
+                ...legacySignal,
+                status: "TP1_HIT",
+                lastUpdateAt: 3000,
+                receivedAt: 2500,
+                takeProfits: [
+                    { index: 1, type: "PRICE", price: 4370, hit: true },
+                    { index: 2, type: "PRICE", price: 4380 },
+                ],
+            },
+        },
+        system: {
+            "legacy-2": {
+                id: "legacy-2",
+                sourceMetadata: {
+                    sourceId: "src__1001298433783",
+                    sourceType: "telegram_channel",
+                },
+                receivedAt: 4000,
+                createdAt: 4000,
+                lastUpdateAt: 4000,
+                status: "TP1_HIT",
+                takeProfits: [
+                    { index: 1, type: "PRICE", price: 4370, hit: true },
+                ],
+                symbol: "XAUUSD",
+                style: "SCALPING",
+                timeframe: "M5",
+                entryMin: 4360,
+                stopLoss: 4350,
+            },
+        },
+    };
+    const collected = collectSignals(signalsRoot);
+    const deduplicated = collected.find((signal) => signal.id === "legacy-1");
+    if (
+        collected.length !== 2 ||
+        !deduplicated ||
+        deduplicated.status !== "TP1_HIT" ||
+        deduplicated.receivedAt !== 2500
+    ) {
+        console.error("Analytics Test Failed: cross-shard collection or deduplication");
+        passed = false;
+    }
+
+    const sourceMatch = deduplicated && sourceMatchesSignal(
+        deduplicated,
+        "src__1001298433783",
+        "src__1001298433783",
+        "-1001298433783"
+    );
+    if (!sourceMatch) {
+        console.error("Analytics Test Failed: Telegram source identifier matching");
+        passed = false;
+    }
+
+    const segment = computeSignalAnalytics(collected.filter((signal) =>
+        sourceMatchesSignal(
+            signal,
+            "src__1001298433783",
+            "src__1001298433783",
+            "-1001298433783"
+        )
+    ));
+    if (segment.totalSignals !== 2 || segment.wins !== 2 || segment.losses !== 0 || segment.winRate !== 100) {
+        console.error("Analytics Test Failed: signal metrics", segment);
+        passed = false;
+    }
+
+    return passed;
+}
 
 export function runLifecycleTests(): boolean {
     console.log("--- Running Signal Lifecycle Unit Tests ---");

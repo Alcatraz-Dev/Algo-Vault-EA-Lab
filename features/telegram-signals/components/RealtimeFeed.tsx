@@ -6,6 +6,7 @@ import { ref, onValue } from "firebase/database";
 import { useRouter } from "next/navigation";
 import SignalCard from "@/components/signals/SignalCard";
 import { Loader2, Radio } from "lucide-react";
+import { getSymbolCategory } from "@/lib/ai-signals/symbol-specs";
 import type { ProSignal, SignalTimeframe, SignalStatus as ProSignalStatus } from "../types";
 import type { AISignal, SignalStrength, MarketRegime, SignalAnalysis, ConfidenceBreakdown, SignalStatus } from "@/lib/ai-signals/types";
 
@@ -35,6 +36,7 @@ interface RealtimeFeedProps {
     followLoadingIds?: Set<string>;
     tradeLoadingIds?: Set<string>;
     completeLoadingIds?: Set<string>;
+    showHeader?: boolean;
 }
 
 function deriveStrengthFromConfidence(confidence: number): SignalStrength {
@@ -46,70 +48,64 @@ function deriveStrengthFromConfidence(confidence: number): SignalStrength {
     return "WEAK";
 }
 
-function deriveMarketRegime(timeframe: SignalTimeframe): MarketRegime {
-    if (timeframe === "M1" || timeframe === "M5") return "HIGH_VOLATILITY";
-    if (timeframe === "H1" || timeframe === "H4" || timeframe === "D1") return "TRENDING_BULLISH";
-    return "RANGING";
-}
-
 function normalizeProSignal(signal: ProSignal): AISignal {
-    const tp1 = signal.takeProfits.find((t) => t.index === 1)?.price ?? undefined;
-    const tp2 = signal.takeProfits.find((t) => t.index === 2)?.price ?? undefined;
-    const tp3 = signal.takeProfits.find((t) => t.index === 3)?.price ?? undefined;
-    const riskReward = signal.stopLoss != null && signal.stopLoss !== 0 && signal.entry !== 0
-        ? Number((Math.abs(signal.entry - signal.stopLoss) / Math.abs(signal.entry - (tp1 ?? signal.entry))).toFixed(2))
-        : 2.0;
-    const normalizedStatus = mapProStatusToAISignalStatus(signal.status);
-    const analysis: SignalAnalysis = {
-        trend: "",
-        structure: "",
-        liquidity: "",
-        momentum: "",
-        volume: "",
-        orderFlow: "",
-        higherTimeframe: "",
-        regime: "",
-    };
+    const tp1 = signal.takeProfits.find((target) => target.index === 1)?.price ?? undefined;
+    const tp2 = signal.takeProfits.find((target) => target.index === 2)?.price ?? undefined;
+    const tp3 = signal.takeProfits.find((target) => target.index === 3)?.price ?? undefined;
+    const confidence = signal.parserMetadata?.confidence ?? 0;
+    const riskReward = signal.stopLoss != null && signal.stopLoss !== 0 && signal.entry !== 0 && tp1 != null && tp1 !== 0
+        ? Number((Math.abs(signal.entry - signal.stopLoss) / Math.abs(signal.entry - tp1)).toFixed(2))
+        : 0;
     const confidenceBreakdown: ConfidenceBreakdown = {
-        trendAlignment: { score: signal.parserMetadata?.confidence ?? 0, max: 100, detail: "" },
+        trendAlignment: { score: 0, max: 100, detail: "" },
         marketStructure: { score: 0, max: 100, detail: "" },
         liquidity: { score: 0, max: 100, detail: "" },
         momentum: { score: 0, max: 100, detail: "" },
         volume: { score: 0, max: 100, detail: "" },
         orderFlow: { score: 0, max: 100, detail: "" },
-        entryConfirmation: { score: signal.parserMetadata?.confidence ?? 0, max: 100, detail: "" },
-        total: signal.parserMetadata?.confidence ?? 0,
+        entryConfirmation: { score: 0, max: 100, detail: "" },
+        total: 0,
     };
+    const sourceMessageId = signal.sourceMetadata?.messageId;
 
     return {
         id: signal.id,
         symbol: signal.symbol,
         direction: signal.direction,
         timeframe: signal.timeframe,
+        category: getSymbolCategory(signal.symbol),
+        tier: "PRO",
         entry: signal.entry,
         stopLoss: signal.stopLoss,
         tp1,
         tp2,
         tp3,
-        confidence: signal.parserMetadata?.confidence ?? 0,
-        suggestedRiskPercent: 1,
-        followCount: signal.followCount ?? signal.events?.length ?? 0,
-        category: "forex",
-        tier: "PRO",
-        strength: deriveStrengthFromConfidence(signal.parserMetadata?.confidence ?? 0),
-        marketRegime: deriveMarketRegime(signal.timeframe),
+        confidence,
+        suggestedRiskPercent: 0,
+        followCount: signal.followCount ?? 0,
+        strength: deriveStrengthFromConfidence(confidence),
+        marketRegime: "UNCERTAIN",
         riskReward,
-        status: normalizedStatus,
+        status: mapProStatusToAISignalStatus(signal.status),
         result: "PENDING",
         resultR: 0,
         profitPoints: 0,
         tp1Hit: false,
         tp2Hit: false,
         tp3Hit: false,
-        analysis,
+        analysis: {
+            trend: "",
+            structure: "",
+            liquidity: "",
+            momentum: "",
+            volume: "",
+            orderFlow: "",
+            higherTimeframe: "",
+            regime: "",
+        },
         confidenceBreakdown,
         reasoning: "",
-        currentPrice: signal.entry,
+        currentPrice: 0,
         distanceToEntry: 0,
         distanceToSL: Math.abs(signal.entry - signal.stopLoss),
         createdAt: signal.createdAt,
@@ -119,20 +115,34 @@ function normalizeProSignal(signal: ProSignal): AISignal {
         strategyVersion: "",
         analysisVersion: "",
         generatedBy: "Telegram Signal Engine",
-        lastCheckedAt: Date.now(),
-        tradeCount: signal.events?.some((event) => event.type === "ORDER_QUEUED") ? 1 : 0,
-        pipValue: 0.01,
-        contractSize: 100000,
-        typicalSpread: 1,
-        digits: 5,
+        lastCheckedAt: signal.lastUpdateAt || signal.createdAt,
+        tradeCount: signal.events?.filter((event) => event.type === "ORDER_QUEUED").length ?? 0,
+        pipValue: 0,
+        contractSize: 0,
+        typicalSpread: 0,
+        digits: 0,
         timeline: [],
-        sourceMetadata: signal.sourceMetadata,
-        rawMessageId: signal.rawMessageId,
-        style: signal.style,
+        sourceType: mapGatewaySourceType(signal.sourceMetadata?.sourceType),
+        sourceId: signal.sourceMetadata?.sourceId,
+        sourceChannel: signal.sourceMetadata?.channelName,
+        sourceMessageId: sourceMessageId == null ? undefined : String(sourceMessageId),
     };
 }
 
-function mapProStatusToAISignalStatus(status: ProSignalStatus): SignalStatus {
+/**
+ * Maps the ingestion gateway's source-type enumeration onto the canonical
+ * AISignal SignalSourceType. Telegram channels/bots → TELEGRAM;
+ * custom webhook submissions are externally authored → MANUAL.
+ */
+function mapGatewaySourceType(
+    sourceType: ProSignal["sourceMetadata"] extends { sourceType?: infer T } ? T : never
+): AISignal["sourceType"] {
+    if (sourceType === "telegram_channel" || sourceType === "telegram_bot") return "TELEGRAM";
+    if (sourceType === "custom_webhook") return "MANUAL";
+    return undefined;
+}
+
+function mapProStatusToAISignalStatus(status: ProSignalStatus | SignalTimeframe): SignalStatus {
     const mapping: Record<string, SignalStatus> = {
         CREATED: "NEW",
         PENDING_ENTRY: "ACTIVE",
@@ -150,7 +160,7 @@ function mapProStatusToAISignalStatus(status: ProSignalStatus): SignalStatus {
         NEEDS_REVIEW: "READY",
         INVALID: "CANCELLED",
     };
-    return mapping[status] ?? "WATCH";
+    return mapping[String(status)] ?? "WATCH";
 }
 
 export function RealtimeFeed({
@@ -163,6 +173,7 @@ export function RealtimeFeed({
     followLoadingIds,
     tradeLoadingIds,
     completeLoadingIds,
+    showHeader = true,
 }: RealtimeFeedProps) {
     const router = useRouter();
     const [signals, setSignals] = useState<AISignal[]>([]);
@@ -210,7 +221,7 @@ export function RealtimeFeed({
                 }
                 setLoading(false);
             },
-            (err) => {
+            () => {
                 useApiFallback.current = true;
                 void fetchViaApi();
                 pollInterval = setInterval(() => void fetchViaApi(), 5000);
@@ -223,21 +234,6 @@ export function RealtimeFeed({
             if (pollInterval) clearInterval(pollInterval);
         };
     }, [uid]);
-
-    const handleDeleteSignal = async (signalId: string) => {
-        try {
-            const currentUser = auth.currentUser;
-            if (!currentUser) return;
-            const token = await currentUser.getIdToken();
-            await fetch(`/api/pro-signals?signalId=${encodeURIComponent(signalId)}`, {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            setSignals((prev) => prev.filter((signal) => signal.id !== signalId));
-        } catch (err) {
-            console.error("Delete signal error:", err);
-        }
-    };
 
     const handleClearAllSignals = async () => {
         if (!confirm("Are you sure you want to clear all signals from your feed?")) return;
@@ -293,10 +289,12 @@ export function RealtimeFeed({
         ));
     };
 
+    const highestConfidence = signals.reduce((highest, signal) => Math.max(highest, signal.confidence), 0);
+
     if (loading) {
         return (
-            <div className="flex min-h-72 flex-col items-center justify-center rounded-card border border-border bg-card p-8 text-center">
-                <Loader2 className="h-7 w-7 animate-spin text-primary" />
+            <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border/30 bg-linear-to-br from-background/80 via-background/40 to-background/80 p-8 text-center backdrop-blur-xl">
+                <Loader2 className="h-7 w-7 animate-spin text-amber-400" />
                 <p className="mt-3 text-sm font-medium text-foreground">Listening for live Pro Signals...</p>
                 <p className="mt-1 text-xs text-muted-foreground">Connecting to your signal stream.</p>
             </div>
@@ -305,7 +303,7 @@ export function RealtimeFeed({
 
     if (signals.length === 0) {
         return (
-            <div className="flex min-h-72 flex-col items-center justify-center rounded-card border border-border bg-card p-8 text-center">
+            <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border/30 bg-linear-to-br from-background/80 via-background/40 to-background/80 p-8 text-center backdrop-blur-xl">
                 <Radio className="h-9 w-9 text-muted-foreground" />
                 <h3 className="mt-3 text-base font-semibold text-foreground">No Pro Signals Received Yet</h3>
                 <p className="mt-1 max-w-sm text-sm text-muted-foreground">
@@ -317,24 +315,28 @@ export function RealtimeFeed({
 
     return (
         <div className="space-y-4">
-            <div className="flex items-center justify-between gap-3 px-1">
-                <span className="text-sm text-muted-foreground">
-                    Showing <span className="font-semibold text-foreground">{signals.length}</span> Pro Signals
-                </span>
-                <button
-                    type="button"
-                    onClick={() => void handleClearAllSignals()}
-                    className="min-h-9 rounded-button px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-negative"
-                >
-                    Clear All Signals
-                </button>
-            </div>
+            {showHeader && (
+                <div className="flex items-center justify-between gap-3 px-1">
+                    <span className="text-sm text-muted-foreground">
+                        Showing <span className="font-semibold text-foreground">{signals.length}</span> Pro Signals
+                    </span>
+                    <button
+                        type="button"
+                        onClick={() => void handleClearAllSignals()}
+                        className="min-h-9 rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-negative"
+                    >
+                        Clear All Signals
+                    </button>
+                </div>
+            )}
 
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
                 {signals.map((signal) => (
                     <SignalCard
                         key={signal.id}
                         signal={signal}
+                        variant="pro"
+                        isHighestConfidence={signal.confidence === highestConfidence && highestConfidence > 0}
                         viewHref={`/signals/pro/${signal.id}`}
                         onView={handleView}
                         onFollow={handleFollow}
