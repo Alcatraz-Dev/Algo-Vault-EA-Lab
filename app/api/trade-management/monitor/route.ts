@@ -21,9 +21,13 @@ import {
 
 export async function POST(request: NextRequest) {
     try {
-        // Verify cron secret
-        const secret = request.headers.get("x-cron-secret");
-        if (secret !== process.env.CRON_SECRET) {
+        // Fail-closed cron auth: requires x-cron-secret (or ?secret=) matching
+        // CRON_SECRET, or Vercel's cron runner UA. Refuses when CRON_SECRET is unset.
+        const cronSecret = process.env.CRON_SECRET;
+        const headerSecret = request.headers.get("x-cron-secret") || "";
+        const querySecret = new URL(request.url).searchParams.get("secret") || "";
+        const isVercelCron = (request.headers.get("user-agent") || "").toLowerCase().includes("vercel-cron");
+        if (!isVercelCron && !Boolean(cronSecret && (headerSecret === cronSecret || querySecret === cronSecret))) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 

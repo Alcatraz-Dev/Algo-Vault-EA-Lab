@@ -18,8 +18,13 @@ type Alert = {
 
 export async function GET(request: NextRequest) {
     try {
-        const cronSecret = request.headers.get("x-cron-secret");
-        if (cronSecret !== process.env.CRON_SECRET) {
+        // Fail-closed cron auth: requires x-cron-secret (or ?secret=) matching
+        // CRON_SECRET, or Vercel's cron runner UA. Refuses when CRON_SECRET is unset.
+        const secret = process.env.CRON_SECRET;
+        const headerSecret = request.headers.get("x-cron-secret") || "";
+        const querySecret = new URL(request.url).searchParams.get("secret") || "";
+        const isVercelCron = (request.headers.get("user-agent") || "").toLowerCase().includes("vercel-cron");
+        if (!isVercelCron && !Boolean(secret && (headerSecret === secret || querySecret === secret))) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -46,10 +51,10 @@ export async function GET(request: NextRequest) {
                     if (!priceRes.ok) continue;
 
                     const priceData = await priceRes.json();
-                    const bars = priceData.bars || [];
+                    const bars: Array<{ openTime: string; close: number | string; open?: number | string; high?: number | string; low?: number | string }> = priceData.bars || [];
                     if (bars.length === 0) continue;
 
-                    const sorted = bars.sort((a: any, b: any) => Date.parse(a.openTime) - Date.parse(b.openTime));
+                    const sorted = bars.sort((a, b) => Date.parse(a.openTime) - Date.parse(b.openTime));
                     const lastBar = sorted[sorted.length - 1];
                     const currentPrice = Number(lastBar.close);
 

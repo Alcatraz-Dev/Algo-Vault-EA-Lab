@@ -3,14 +3,19 @@ import { processIncomingTelegramMessage } from "@/features/telegram-signals/sign
 
 export async function POST(request: NextRequest) {
     try {
-        const secret = process.env.TELEGRAM_INGESTION_SECRET || "default_ingest_secret";
+        // Fail-closed ingestion auth: the webhook only runs when
+        // TELEGRAM_INGESTION_SECRET is configured and the caller presents it
+        // (Authorization: Bearer <secret> or ?secret=). There is deliberately no
+        // hardcoded default. Local development can opt into unauthenticated
+        // ingestion with TELEGRAM_INGESTION_ALLOW_DEV=1.
+        const secret = process.env.TELEGRAM_INGESTION_SECRET;
         const authHeader = request.headers.get("Authorization");
         const querySecret = request.nextUrl.searchParams.get("secret");
+        const allowDevBypass = process.env.TELEGRAM_INGESTION_ALLOW_DEV === "1";
 
         const isValidSecret =
-            authHeader === `Bearer ${secret}` ||
-            querySecret === secret ||
-            process.env.NODE_ENV !== "production";
+            (Boolean(secret) && (authHeader === `Bearer ${secret}` || querySecret === secret)) ||
+            allowDevBypass;
 
         if (!isValidSecret) {
             return NextResponse.json({ error: "Unauthorized ingestion secret" }, { status: 401 });
@@ -40,10 +45,10 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json(result);
-    } catch (err: any) {
+    } catch (err) {
         console.error("[POST /api/telegram-signals/webhook]", err);
         return NextResponse.json(
-            { error: err?.message || "Internal server error" },
+            { error: err instanceof Error ? err.message : "Internal server error" },
             { status: 500 }
         );
     }

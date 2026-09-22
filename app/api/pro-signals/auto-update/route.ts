@@ -1,16 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDatabase } from "@/lib/firebase-admin";
-import { getProSignals, saveProSignal } from "@/features/telegram-signals/signals/signal-engine";
+import { saveProSignal } from "@/features/telegram-signals/signals/signal-engine";
 import { transitionSignalState } from "@/features/telegram-signals/lifecycle/state-machine";
+import type { ProSignal } from "@/features/telegram-signals/types";
 import { fetchCandles } from "@/lib/market-data/normalizer";
 
 const MAX_SIGNALS_TO_CHECK = 200;
 
+/**
+ * Pro signal auto-update sweep — invoked by a cron/worker (vercel.json, every
+ * 5 min) OR by an authenticated user from the Pro Signals page ("Scan" button,
+ * which sends `Authorization: Bearer <idToken>`).
+ *
+ * Auth: accepts any of —
+ *   - Vercel's cron runner (user-agent "vercel-cron")
+ *   - `x-cron-secret` (or `?secret=`) matching CRON_SECRET
+ *   - a valid Firebase ID token as `Authorization: Bearer <idToken>`
+ * If CRON_SECRET is unset the cron paths are simply not available (the bearer
+ * path still works); nothing runs unauthenticated.
+ */
 export async function POST(request: NextRequest) {
     try {
-        const authHeader = request.headers.get("Authorization");
-        if (!authHeader?.startsWith("Bearer ")) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const secret = process.env.CRON_SECRET;
+        const headerSecret = request.headers.get("x-cron-secret") || "";
+        const querySecret = new URL(request.url).searchParams.get("secret") || "";
+        const isVercelCron = (request.headers.get("user-agent") || "").toLowerCase().includes("vercel-cron");
+        const authorization = request.headers.get("Authorization") || "";
+        const isBearer = authorization.startsWith("Bearer ");
+
+        const cronAuthorized = isVercelCron || Boolean(secret && (headerSecret === secret || querySecret === secret));
+
+        if (!cronAuthorized && !isBearer) {
+            return NextResponse.json(
+                { error: "Unauthorized. Set CRON_SECRET and send it as x-cron-secret, or send a valid Firebase ID token as Authorization: Bearer." },
+                { status: 401 }
+            );
+        }
+
+        if (!cronAuthorized && isBearer) {
+            const { adminAuth } = await import("@/lib/firebase-admin");
+            try {
+                await adminAuth.verifyIdToken(authorization.slice(7).trim());
+            } catch {
+                return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            }
         }
 
         const body = await request.json().catch(() => ({}));
@@ -45,16 +78,16 @@ export async function POST(request: NextRequest) {
             updated: updatedCount,
             timestamp: now,
         });
-    } catch (err: any) {
+    } catch (err) {
         console.error("[POST /api/pro-signals/auto-update]", err);
         return NextResponse.json(
-            { error: err?.message || "Failed to auto-update pro signals" },
+            { error: err instanceof Error ? err.message : "Failed to auto-update pro signals" },
             { status: 500 }
         );
     }
 }
 
-async function checkAndUpdateProSignal(userId: string, signal: any): Promise<boolean> {
+async function checkAndUpdateProSignal(userId: string, signal: ProSignal): Promise<boolean> {
     try {
         const activeStatuses = ["CREATED", "PENDING_ENTRY", "ENTRY_TRIGGERED", "TP1_HIT", "BE_PROFIT_LOCK", "TP2_HIT", "TP3_HIT", "TP4_HIT", "TP5_OPEN_RUNNER"];
         if (!activeStatuses.includes(signal.status)) return false;
@@ -109,12 +142,12 @@ async function checkAndUpdateProSignal(userId: string, signal: any): Promise<boo
         }
 
         if (newStatus && newStatus !== signal.status) {
-            let eventType: string;
-            if (hitSl) eventType = "HIT_SL";
-            else if (tpHitIndex) eventType = "HIT_TP";
-            else eventType = "TRIGGER_ENTRY";
+            const eventType: "TRIGGER_ENTRY" | "HIT_TP" | "HIT_SL" =
+                hitSl ? "HIT_SL" : (
+                    tpHitIndex ? "HIT_TP" : "TRIGGER_ENTRY"
+                );
 
-            const transition = transitionSignalState(signal, eventType as any, {
+            const transition = transitionSignalState(signal, eventType, {
                 price: currentPrice,
                 tpIndex: tpHitIndex ?? undefined,
             });

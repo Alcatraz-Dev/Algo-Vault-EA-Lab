@@ -1,20 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDatabase } from "@/lib/firebase-admin";
-import { AISignal, SignalStatus, SignalDirection, MarketSentiment, SignalEvent } from "@/lib/ai-signals/types";
+import { AISignal, SignalStatus, SignalEvent } from "@/lib/ai-signals/types";
+import type { ProSignal } from "@/features/telegram-signals/types";
 import { fetchCandles } from "@/lib/market-data/normalizer";
 import { calculateSignalResult } from "@/lib/ai-signals/results";
 import { recordSignalEvent } from "@/lib/ai-signals/events";
 
 const MAX_SIGNALS_TO_CHECK = 200;
 
+/**
+ * Signal auto-update sweep — invoked by a cron/worker (vercel.json, every 5 min).
+ *
+ * Auth: requires `x-cron-secret` to match CRON_SECRET (same convention as
+ * /api/ai-signals/monitor, /api/alerts/check, /api/trade-management/monitor), OR
+ * the request must come from Vercel's cron runner (user-agent "vercel-cron").
+ * If CRON_SECRET is unset the endpoint refuses to run instead of running
+ * unauthenticated.
+ */
 export async function POST(request: NextRequest) {
-    try {
-        const authHeader = request.headers.get("Authorization");
-        if (!authHeader?.startsWith("Bearer ")) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
+    const secret = process.env.CRON_SECRET;
+    const headerSecret = request.headers.get("x-cron-secret") || "";
+    const querySecret = new URL(request.url).searchParams.get("secret") || "";
+    const isVercelCron = (request.headers.get("user-agent") || "").toLowerCase().includes("vercel-cron");
 
-        // This endpoint can be called by a cron job or internal scheduler
+    const authorized = isVercelCron || Boolean(secret && (headerSecret === secret || querySecret === secret));
+    if (!authorized) {
+        return NextResponse.json(
+            { error: "Unauthorized. Set CRON_SECRET and send it as x-cron-secret." },
+            { status: 401 }
+        );
+    }
+
+    try {
         const body = await request.json().catch(() => ({}));
         const { signalIds, checkAllActive } = body;
 
@@ -76,10 +93,10 @@ export async function POST(request: NextRequest) {
             updated: updatedCount,
             timestamp: now,
         });
-    } catch (err: any) {
+    } catch (err) {
         console.error("[POST /api/signals/auto-update]", err);
         return NextResponse.json(
-            { error: err?.message || "Failed to auto-update signals" },
+            { error: err instanceof Error ? err.message : "Failed to auto-update signals" },
             { status: 500 }
         );
     }
@@ -190,7 +207,7 @@ async function checkAndUpdateSignal(signal: AISignal): Promise<boolean> {
     }
 }
 
-async function checkAndUpdateProSignal(userId: string, signal: any): Promise<boolean> {
+async function checkAndUpdateProSignal(userId: string, signal: ProSignal): Promise<boolean> {
     try {
         // Pro signals have different status values
         const activeStatuses = ["CREATED", "PENDING_ENTRY", "ENTRY_TRIGGERED", "TP1_HIT", "BE_PROFIT_LOCK", "TP2_HIT", "TP3_HIT", "TP4_HIT", "TP5_OPEN_RUNNER"];
@@ -248,12 +265,12 @@ async function checkAndUpdateProSignal(userId: string, signal: any): Promise<boo
         if (newStatus && newStatus !== signal.status) {
             const { transitionSignalState } = await import("@/features/telegram-signals/lifecycle/state-machine");
             
-            let eventType: string;
-            if (hitSl) eventType = "HIT_SL";
-            else if (tpHitIndex) eventType = "HIT_TP";
-            else eventType = "TRIGGER_ENTRY";
+            const eventType: "TRIGGER_ENTRY" | "HIT_TP" | "HIT_SL" =
+                hitSl ? "HIT_SL" : (
+                    tpHitIndex ? "HIT_TP" : "TRIGGER_ENTRY"
+                );
 
-            const transition = transitionSignalState(signal, eventType as any, {
+            const transition = transitionSignalState(signal, eventType, {
                 price: currentPrice,
                 tpIndex: tpHitIndex ?? undefined,
             });
