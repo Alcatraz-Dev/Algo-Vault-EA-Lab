@@ -53,6 +53,28 @@ function safeVersion(version: string) {
         .replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 
+interface ProductVersionRecord {
+    version?: string | null;
+    isCurrent?: boolean | null;
+    uploadedAt?: number | null;
+    fileName?: string | null;
+    [key: string]: unknown;
+}
+
+interface ProductFileRecord {
+    version?: string | null;
+    file?: { version?: string | null } | null;
+    versions?: Record<string, ProductVersionRecord> | null;
+}
+
+function toMs(value: unknown): number {
+    return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function errorMessage(error: unknown): string | undefined {
+    return error instanceof Error ? error.message : undefined;
+}
+
 /* -----------------------------------------
    GET
    Get all product versions
@@ -103,49 +125,46 @@ export async function GET(
         }
 
         const product =
-            productSnapshot.val();
+            productSnapshot.val() as ProductFileRecord | null;
 
         const versions =
-            product.versions || {};
+            product?.versions || {};
 
         const versionList =
             Object.entries(versions).map(
-                ([key, value]: [
-                    string,
-                    any
-                ]) => ({
+                ([key, value]) => ({
                     id: key,
                     ...value,
                     isCurrent:
                         value?.version ===
-                        product.version ||
+                        product?.version ||
                         value?.isCurrent === true,
                 })
             );
 
         versionList.sort(
-            (a: any, b: any) =>
-                (b.uploadedAt || 0) -
-                (a.uploadedAt || 0)
+            (a, b) =>
+                toMs(b.uploadedAt) -
+                toMs(a.uploadedAt)
         );
 
         return NextResponse.json({
             success: true,
             productId,
             currentVersion:
-                product.version ||
-                product.file?.version ||
+                product?.version ||
+                product?.file?.version ||
                 null,
             versions: versionList,
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(
             "GET PRODUCT VERSIONS ERROR:",
             error
         );
 
         if (
-            error?.message ===
+            errorMessage(error) ===
             "AUTH_REQUIRED"
         ) {
             return NextResponse.json(
@@ -159,7 +178,7 @@ export async function GET(
         }
 
         if (
-            error?.message ===
+            errorMessage(error) ===
             "ADMIN_REQUIRED"
         ) {
             return NextResponse.json(
@@ -176,7 +195,7 @@ export async function GET(
             {
                 success: false,
                 error:
-                    error?.message ||
+                    errorMessage(error) ||
                     "Failed to load versions.",
             },
             { status: 500 }
@@ -245,11 +264,11 @@ export async function DELETE(
         }
 
         const product =
-            productSnapshot.val();
+            productSnapshot.val() as ProductFileRecord | null;
 
         const currentVersion =
-            product.version ||
-            product.file?.version ||
+            product?.version ||
+            product?.file?.version ||
             "";
 
         /* -----------------------------------------
@@ -294,7 +313,7 @@ export async function DELETE(
         }
 
         const versionData =
-            versionSnapshot.val();
+            versionSnapshot.val() as ProductVersionRecord | null;
 
         /* -----------------------------------------
            Delete physical file
@@ -370,14 +389,14 @@ export async function DELETE(
             productId,
             version,
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(
             "DELETE PRODUCT VERSION ERROR:",
             error
         );
 
         if (
-            error?.message ===
+            errorMessage(error) ===
             "AUTH_REQUIRED"
         ) {
             return NextResponse.json(
@@ -391,7 +410,7 @@ export async function DELETE(
         }
 
         if (
-            error?.message ===
+            errorMessage(error) ===
             "ADMIN_REQUIRED"
         ) {
             return NextResponse.json(
@@ -408,7 +427,7 @@ export async function DELETE(
             {
                 success: false,
                 error:
-                    error?.message ||
+                    errorMessage(error) ||
                     "Failed to delete version.",
             },
             { status: 500 }

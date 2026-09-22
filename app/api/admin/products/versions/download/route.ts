@@ -15,6 +15,10 @@ function safeVersion(version: string) {
         .replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 
+function errorMessage(error: unknown): string | undefined {
+    return error instanceof Error ? error.message : undefined;
+}
+
 function safeProductId(productId: string) {
     return /^[a-zA-Z0-9_-]+$/.test(productId);
 }
@@ -378,14 +382,14 @@ export async function GET(
                 },
             }
         );
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(
             "ADMIN VERSION DOWNLOAD ERROR:",
             error
         );
 
         if (
-            error?.message ===
+            errorMessage(error) ===
             "AUTH_REQUIRED"
         ) {
             return NextResponse.json(
@@ -399,7 +403,7 @@ export async function GET(
         }
 
         if (
-            error?.message ===
+            errorMessage(error) ===
             "ADMIN_REQUIRED"
         ) {
             return NextResponse.json(
@@ -416,7 +420,7 @@ export async function GET(
             {
                 success: false,
                 error:
-                    error?.message ||
+                    errorMessage(error) ||
                     "Failed to download version.",
             },
             { status: 500 }

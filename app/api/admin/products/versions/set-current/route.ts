@@ -11,6 +11,26 @@ function safeVersion(version: string) {
         .replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 
+interface ProductVersionRecord {
+    version?: string | null;
+    isCurrent?: boolean | null;
+    fileName?: string | null;
+    originalFileName?: string | null;
+    [key: string]: unknown;
+}
+
+interface ProductFileRecord {
+    version?: string | null;
+    file?: { version?: string | null } | null;
+    versions?: Record<string, ProductVersionRecord> | null;
+    productType?: string;
+    platform?: string;
+}
+
+function errorMessage(error: unknown): string | undefined {
+    return error instanceof Error ? error.message : undefined;
+}
+
 export async function POST(request: NextRequest) {
     try {
         // --------------------------------------------------
@@ -120,7 +140,7 @@ export async function POST(request: NextRequest) {
         }
 
         const product =
-            productSnapshot.val();
+            productSnapshot.val() as ProductFileRecord | null;
 
         // --------------------------------------------------
         // 5. Find requested version
@@ -156,8 +176,8 @@ export async function POST(request: NextRequest) {
         // --------------------------------------------------
 
         const currentVersion =
-            product.version ||
-            product.file?.version ||
+            product?.version ||
+            product?.file?.version ||
             "";
 
         if (
@@ -185,7 +205,7 @@ export async function POST(request: NextRequest) {
 
         if (
             !fileName ||
-            !isAllowedProductFileName(fileName, product.productType, product.platform)
+            !isAllowedProductFileName(fileName, product?.productType, product?.platform)
         ) {
             return NextResponse.json(
                 {
@@ -260,19 +280,16 @@ export async function POST(request: NextRequest) {
         let oldCurrentVersion = "";
 
         const versions =
-            product.versions || {};
+            product?.versions || {};
 
         for (const [key, item] of Object.entries(
             versions
         )) {
-            const versionItem =
-                item as any;
-
             if (
-                versionItem?.isCurrent === true
+                item?.isCurrent === true
             ) {
                 oldCurrentVersion =
-                    versionItem.version ||
+                    item.version ||
                     key;
                 break;
             }
@@ -300,7 +317,7 @@ export async function POST(request: NextRequest) {
 
         const updates: Record<
             string,
-            any
+            unknown
         > = {};
 
         // New current version
@@ -378,7 +395,7 @@ export async function POST(request: NextRequest) {
                 oldCurrentVersion || null,
             file: newCurrentFile,
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(
             "SET CURRENT VERSION ERROR:",
             error
@@ -388,7 +405,7 @@ export async function POST(request: NextRequest) {
             {
                 success: false,
                 error:
-                    error?.message ||
+                    errorMessage(error) ||
                     "Failed to set current version.",
             },
             { status: 500 }
