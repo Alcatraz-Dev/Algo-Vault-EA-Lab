@@ -17,6 +17,7 @@ import {
     Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatPrice } from "@/lib/ai-signals/symbol-specs";
 import type { AISignal, SignalDirection, SignalStrength } from "@/lib/ai-signals/types";
 
 type Props = {
@@ -30,6 +31,8 @@ type Props = {
     followLoading?: boolean;
     tradeLoading?: boolean;
     completeLoading?: boolean;
+    variant?: "standard" | "pro";
+    isHighestConfidence?: boolean;
 };
 
 function directionConfig(direction: SignalDirection) {
@@ -126,6 +129,8 @@ export default function SignalCard({
     followLoading,
     tradeLoading,
     completeLoading,
+    variant = "standard",
+    isHighestConfidence = false,
 }: Props) {
     const dir = directionConfig(signal.direction);
     const DirIcon = dir.icon;
@@ -145,12 +150,18 @@ export default function SignalCard({
           : actionCount === 3
             ? "grid-cols-2 sm:grid-cols-3"
             : "grid-cols-2 sm:grid-cols-4";
+    const isPro = variant === "pro";
 
     return (
-        <article className="group relative min-w-0 overflow-hidden rounded-2xl border border-border/30 bg-linear-to-br from-background/80 via-background/40 to-background/80 p-5 backdrop-blur-xl transition-all hover:border-border/50">
-            <div className="absolute -top-3 -left-3 flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500 text-[11px] font-black text-foreground shadow-lg shadow-amber-500/30">
-                PRO
-            </div>
+        <article
+            className={cn(
+                "group relative min-w-0 overflow-hidden rounded-2xl border p-5 backdrop-blur-xl transition-all",
+                isPro
+                    ? "border-amber-500/25 bg-linear-to-br from-amber-500/[0.07] via-background to-background/95 shadow-sm hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10"
+                    : "border-border/30 bg-linear-to-br from-background/80 via-background/40 to-background/80 hover:border-border/50"
+            )}
+        >
+            {isPro && <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-amber-500 via-amber-500/40 to-transparent" />}
 
             <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
@@ -163,12 +174,19 @@ export default function SignalCard({
                         <DirIcon className="h-5 w-5" />
                     </div>
                     <div className="min-w-0">
-                        <h3 className="truncate font-bold text-foreground">{signal.symbol}</h3>
-                        <p className="text-xs text-muted-foreground">{signal.timeframe} · {signal.tier || "PRO"}</p>
+                        <div className="flex items-center gap-2">
+                            <h3 className="truncate font-bold text-foreground">{signal.symbol}</h3>
+                            {isPro && (
+                                <span className="inline-flex shrink-0 items-center rounded-md border border-amber-500/25 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-400">
+                                    Pro
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">{signal.timeframe} · {signal.category || "market"}</p>
                     </div>
                 </div>
                 <span className={cn(
-                    "inline-flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold",
+                    "inline-flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold",
                     signal.direction === "BUY"
                         ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
                         : "border-rose-500/30 bg-rose-500/10 text-rose-400"
@@ -177,58 +195,73 @@ export default function SignalCard({
                 </span>
             </div>
 
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs">
-                <div className="flex items-center gap-1.5 font-semibold text-amber-300">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    <span>{signal.confidence ?? 0}% Confidence</span>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+                <div className="min-w-[150px] flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="flex items-center gap-1.5 text-xs font-semibold text-amber-300">
+                            <Sparkles className="h-3.5 w-3.5" />
+                            {signal.confidence ?? 0}% confidence
+                        </span>
+                        {isHighestConfidence && (
+                            <span className="rounded-md border border-amber-500/25 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-400">
+                                Highest
+                            </span>
+                        )}
+                    </div>
+                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-foreground/10">
+                        <div
+                            className="h-full rounded-full bg-linear-to-r from-amber-500 to-amber-300 transition-all"
+                            style={{ width: `${Math.max(0, Math.min(100, signal.confidence ?? 0))}%` }}
+                        />
+                    </div>
                 </div>
-                <span className="font-mono text-muted-foreground">R:R {(signal.riskReward ?? 0).toFixed(1)}</span>
+                <span className="font-mono text-xs text-muted-foreground">R:R {(signal.riskReward ?? 0).toFixed(1)}</span>
             </div>
 
-            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <div className="mt-3 flex flex-wrap items-center gap-1.5">
                 <span className={cn(
-                    "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] font-semibold",
+                    "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-semibold",
                     status.active ? "border-emerald-500/20 bg-emerald-500/10" : "border-border/30 bg-muted/10",
                     status.color
                 )}>
                     {status.active && <span className="h-1.5 w-1.5 rounded-full bg-current" />}
                     {status.label}
                 </span>
-                <span className={cn("rounded-md border px-2 py-0.5 text-[10px] font-semibold", strength)}>
+                <span className={cn("rounded-md border px-2 py-0.5 text-xs font-semibold", strength)}>
                     {signal.strength?.replaceAll("_", " ") || "Moderate"}
                 </span>
-                <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
-                    <Clock size={10} />
+                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                    <Clock size={12} />
                     {formatTimeAgo(signal.createdAt)}
                 </span>
             </div>
 
             <div className={cn(
-                "mt-3 grid grid-cols-2 gap-2 rounded-xl border border-border/30 p-3",
+                "mt-4 grid grid-cols-2 gap-2 rounded-xl border border-border/20 bg-background/50 p-3",
                 hasTP3 ? "sm:grid-cols-3" : "sm:grid-cols-2"
             )}>
-                <CompactPriceCell label="Entry" value={signal.entry} color="text-foreground" />
-                <CompactPriceCell label="SL" value={signal.stopLoss} color="text-rose-400" />
-                {hasTP1 && <CompactPriceCell label="TP1" value={signal.tp1} color="text-emerald-400" />}
-                {hasTP2 && <CompactPriceCell label="TP2" value={signal.tp2} color="text-emerald-400" />}
-                {hasTP3 && <CompactPriceCell label="TP3" value={signal.tp3} color="text-emerald-400" />}
+                <CompactPriceCell label="Entry" value={signal.entry} symbol={signal.symbol} color="text-foreground" />
+                <CompactPriceCell label="SL" value={signal.stopLoss} symbol={signal.symbol} color="text-rose-400" />
+                {hasTP1 && <CompactPriceCell label="TP1" value={signal.tp1} symbol={signal.symbol} color="text-emerald-400" />}
+                {hasTP2 && <CompactPriceCell label="TP2" value={signal.tp2} symbol={signal.symbol} color="text-emerald-400" />}
+                {hasTP3 && <CompactPriceCell label="TP3" value={signal.tp3} symbol={signal.symbol} color="text-emerald-400" />}
             </div>
 
-            <div className="mt-3 flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
+            <div className="mt-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">
                 <div className="flex min-w-0 flex-wrap items-center gap-3">
-                    {signal.suggestedRiskPercent != null && (
+                    {signal.suggestedRiskPercent > 0 && (
                         <span className="inline-flex items-center gap-1">
-                            <Shield size={10} />
+                            <Shield size={12} />
                             <span className="font-numeric">{signal.suggestedRiskPercent}% risk</span>
                         </span>
                     )}
                     <span className="inline-flex items-center gap-1">
-                        <Target size={10} />
+                        <Target size={12} />
                         <span className="font-numeric">RR {(signal.riskReward ?? 0).toFixed(1)}</span>
                     </span>
                 </div>
                 <span className="inline-flex shrink-0 items-center gap-1">
-                    <BarChart3 size={10} />
+                    <BarChart3 size={12} />
                     <span className="font-numeric">{signal.followCount ?? 0} following</span>
                 </span>
             </div>
@@ -239,18 +272,18 @@ export default function SignalCard({
                         viewHref ? (
                             <Link
                                 href={viewHref}
-                                className="flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] font-bold text-amber-400 transition-colors hover:bg-amber-500/20"
+                                className="flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-400 transition-colors hover:bg-amber-500/20"
                             >
-                                <Eye size={12} />
+                                <Eye size={13} />
                                 View
                             </Link>
                         ) : (
                             <button
                                 type="button"
                                 onClick={() => onView?.(signal)}
-                                className="flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] font-bold text-amber-400 transition-colors hover:bg-amber-500/20"
+                                className="flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-400 transition-colors hover:bg-amber-500/20"
                             >
-                                <Eye size={12} />
+                                <Eye size={13} />
                                 View
                             </button>
                         )
@@ -264,18 +297,18 @@ export default function SignalCard({
                             aria-pressed={isFollowed}
                             aria-busy={followLoading}
                             className={cn(
-                                "flex min-h-10 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-[11px] font-bold transition-colors disabled:cursor-wait disabled:opacity-60",
+                                "flex min-h-10 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-bold transition-colors disabled:cursor-wait disabled:opacity-60",
                                 isFollowed
                                     ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
                                     : "border-border/30 bg-muted/10 text-foreground hover:bg-muted/20"
                             )}
                         >
                             {followLoading ? (
-                                <Loader2 size={12} className="animate-spin" />
+                                <Loader2 size={13} className="animate-spin" />
                             ) : isFollowed ? (
-                                <Check size={12} />
+                                <Check size={13} />
                             ) : (
-                                <UserPlus size={12} />
+                                <UserPlus size={13} />
                             )}
                             {followLoading ? "Updating" : isFollowed ? "Following" : "Follow"}
                         </button>
@@ -288,16 +321,16 @@ export default function SignalCard({
                             disabled={tradeLoading}
                             aria-busy={tradeLoading}
                             className={cn(
-                                "flex min-h-10 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-[11px] font-bold transition-colors disabled:cursor-wait disabled:opacity-60",
+                                "flex min-h-10 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-bold transition-colors disabled:cursor-wait disabled:opacity-60",
                                 signal.direction === "BUY"
                                     ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
                                     : "border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20"
                             )}
                         >
                             {tradeLoading ? (
-                                <Loader2 size={12} className="animate-spin" />
+                                <Loader2 size={13} className="animate-spin" />
                             ) : (
-                                <Zap size={12} />
+                                <Zap size={13} />
                             )}
                             {tradeLoading ? "Sending" : "Trade"}
                         </button>
@@ -309,12 +342,12 @@ export default function SignalCard({
                             onClick={() => void onComplete(signal)}
                             disabled={completeLoading}
                             aria-busy={completeLoading}
-                            className="flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-border/30 bg-muted/10 px-3 py-2 text-[11px] font-bold text-foreground transition-colors hover:bg-muted/20 disabled:cursor-wait disabled:opacity-60"
+                            className="flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-border/30 bg-muted/10 px-3 py-2 text-xs font-bold text-foreground transition-colors hover:bg-muted/20 disabled:cursor-wait disabled:opacity-60"
                         >
                             {completeLoading ? (
-                                <Loader2 size={12} className="animate-spin" />
+                                <Loader2 size={13} className="animate-spin" />
                             ) : (
-                                <CheckCircle2 size={12} />
+                                <CheckCircle2 size={13} />
                             )}
                             {completeLoading ? "Closing" : "Complete"}
                         </button>
@@ -328,17 +361,19 @@ export default function SignalCard({
 function CompactPriceCell({
     label,
     value,
+    symbol,
     color,
 }: {
     label: string;
     value: number | undefined;
+    symbol: string;
     color: string;
 }) {
     return (
         <div className="min-w-0">
-            <span className="block text-[10px] text-muted-foreground">{label}</span>
-            <span className={cn("block truncate font-mono text-xs font-bold", color)}>
-                {value != null && value !== 0 ? value.toFixed(5) : "—"}
+            <span className="block text-xs text-muted-foreground">{label}</span>
+            <span className={cn("block truncate font-mono text-sm font-bold", color)}>
+                {value != null && value !== 0 ? formatPrice(value, symbol) : "—"}
             </span>
         </div>
     );

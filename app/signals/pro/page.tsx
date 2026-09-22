@@ -4,12 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+    Activity,
     AlertCircle,
     ArrowLeft,
     BarChart3,
     Loader2,
     Lock,
     Radio,
+    RefreshCw,
     ShieldAlert,
     Sparkles,
     Zap,
@@ -41,6 +43,7 @@ export default function ProSignalsPage() {
     const [tradeLoadingIds, setTradeLoadingIds] = useState<Set<string>>(new Set());
     const [completeLoadingIds, setCompleteLoadingIds] = useState<Set<string>>(new Set());
     const [notice, setNotice] = useState<Notice | null>(null);
+    const [scanning, setScanning] = useState(false);
     const noticeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
@@ -50,6 +53,63 @@ export default function ProSignalsPage() {
         });
         return () => unsub();
     }, []);
+
+    async function getAuthHeaders(): Promise<Record<string, string>> {
+        if (!user) return {};
+        const token = await user.getIdToken();
+        return { Authorization: `Bearer ${token}` };
+    }
+
+    async function fetchProSignalsData() {
+        try {
+            const headers = await getAuthHeaders();
+            const [conflictsResponse, analyticsResponse] = await Promise.all([
+                fetch("/api/pro-signals/conflicts", { headers }),
+                fetch("/api/pro-signals/analytics", { headers }),
+            ]);
+
+            const [conflictsData, analyticsData] = await Promise.all([
+                conflictsResponse.json(),
+                analyticsResponse.json(),
+            ]);
+
+            if (conflictsData.conflicts) setConflicts(conflictsData.conflicts);
+            if (analyticsData.analytics) setAnalytics(analyticsData.analytics);
+        } catch (err) {
+            console.error("Pro signals refresh error:", err);
+        }
+    }
+
+    async function fetchFollowedIds() {
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch("/api/pro-signals/follow", { headers });
+            const data = await res.json();
+            if (data.followedIds) {
+                setFollowedIds(new Set(data.followedIds.filter((id: string) => typeof id === "string")));
+            }
+        } catch {
+            // Followed IDs managed by RealtimeFeed
+        }
+    }
+
+    async function handleScan() {
+        setScanning(true);
+        try {
+            const headers = await getAuthHeaders();
+            await fetch("/api/pro-signals/auto-update", {
+                method: "POST",
+                headers,
+                body: JSON.stringify({ checkAllActive: true }),
+            });
+            await fetchProSignalsData();
+            await fetchFollowedIds();
+        } catch (err) {
+            console.error("Pro scan failed:", err);
+        } finally {
+            setScanning(false);
+        }
+    }
 
     useEffect(() => {
         if (!user) return;
@@ -61,33 +121,16 @@ export default function ProSignalsPage() {
                 if (cancelled) return;
                 setHasPro(subscription.hasSubscription);
 
-                const token = await user.getIdToken();
-                const headers = { Authorization: `Bearer ${token}` };
-
-                const [conflictsResponse, analyticsResponse, followedResponse] = await Promise.all([
-                    fetch("/api/pro-signals/conflicts", { headers }),
-                    fetch("/api/pro-signals/analytics", { headers }),
-                    fetch("/api/pro-signals/follow", { headers }),
+                await Promise.all([
+                    fetchProSignalsData(),
+                    fetchFollowedIds(),
                 ]);
-
-                const [conflictsData, analyticsData, followedData] = await Promise.all([
-                    conflictsResponse.json(),
-                    analyticsResponse.json(),
-                    followedResponse.json(),
-                ]);
-
-                if (cancelled) return;
-                if (conflictsData.conflicts) setConflicts(conflictsData.conflicts);
-                if (analyticsData.analytics) setAnalytics(analyticsData.analytics);
-                if (followedData.followedIds) {
-                    setFollowedIds(new Set(followedData.followedIds.filter((id: string) => typeof id === "string")));
-                }
-            } catch (err) {
-                if (!cancelled) {
-                    setHasPro(false);
-                    setNotice({ tone: "error", message: "Unable to load your Pro Signals workspace." });
-                }
-            } finally {
+        } catch {
+            if (!cancelled) {
+                setHasPro(false);
+                setNotice({ tone: "error", message: "Unable to load your Pro Signals workspace." });
+            }
+        } finally {
                 if (!cancelled) setLoading(false);
             }
         };
@@ -96,7 +139,15 @@ export default function ProSignalsPage() {
         return () => {
             cancelled = true;
         };
-    }, [user]);
+    }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        if (!user) return;
+        const interval = setInterval(() => {
+            void Promise.allSettled([fetchProSignalsData(), fetchFollowedIds()]);
+        }, 30_000);
+        return () => clearInterval(interval);
+    }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         return () => {
@@ -263,50 +314,65 @@ export default function ProSignalsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-background text-foreground">
-            <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <div className="min-h-screen bg-background text-foreground selection:bg-amber-500/30">
+            <div className="pointer-events-none fixed inset-0 overflow-hidden">
+                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px]" />
+                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-blue-500/10 blur-[120px]" />
+            </div>
+
+            <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 <Link
                     href="/signals"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                    className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground"
                 >
                     <ArrowLeft size={16} />
-                    Signals overview
+                    Back to Signals
                 </Link>
 
-                <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between" data-guide="page-header">
+                <div className="mt-2 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between" data-guide="page-header">
                     <div className="max-w-2xl">
-                        <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-amber-400">
                             <Sparkles size={16} />
                             Institutional signal intelligence
                         </div>
-                        <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">AlgoVault Pro Signals</h1>
+                        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">AlgoVault Pro Signals</h1>
                         <p className="mt-2 text-sm leading-6 text-muted-foreground">
                             Monitor live setups, review exact levels, follow the signals that matter, and send approved orders to MT5.
                         </p>
                     </div>
 
-                    <div className="flex w-full max-w-sm items-center gap-1 rounded-button border border-border bg-card p-1" role="tablist" aria-label="Pro Signals sections">
+                    <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
                         <button
                             type="button"
-                            role="tab"
-                            aria-selected={activeTab === "live"}
-                            onClick={() => setActiveTab("live")}
-                            className={cnTab(activeTab === "live")}
+                            onClick={handleScan}
+                            disabled={scanning}
+                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
                         >
-                            <Radio size={15} />
-                            Live Feed
+                            {scanning ? (
+                                <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
+                            ) : (
+                                <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                            )}
+                            <span>{scanning ? "Scanning..." : "Scan Signals"}</span>
                         </button>
-                        <button
-                            type="button"
-                            role="tab"
-                            aria-selected={activeTab === "analytics"}
-                            onClick={() => setActiveTab("analytics")}
-                            className={cnTab(activeTab === "analytics")}
+
+                        <Link
+                            href="/signals/history"
+                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
                         >
-                            <BarChart3 size={15} />
-                            Analytics
-                        </button>
+                            <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400" />
+                            <span>History</span>
+                        </Link>
                     </div>
+                </div>
+
+                {/* LIVE INDICATOR */}
+                <div className="mt-4 flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        Live
+                    </span>
+                    <span className="text-xs text-muted-foreground">Real-time signal monitoring active</span>
                 </div>
 
                 {notice && (
@@ -324,22 +390,53 @@ export default function ProSignalsPage() {
                     <ConflictBanner conflicts={conflicts} />
                 </div>
 
+                <div className="mt-6 flex items-center gap-1.5 overflow-x-auto rounded-xl border border-border/30 bg-background p-1 scrollbar-none">
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab("live")}
+                        className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all whitespace-nowrap shrink-0 ${
+                            activeTab === "live"
+                                ? "bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold"
+                                : "text-muted-foreground hover:text-foreground"
+                        }`}
+                    >
+                        <Radio className="h-3.5 w-3.5" />
+                        <span>Live Feed</span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab("analytics")}
+                        className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all whitespace-nowrap shrink-0 ${
+                            activeTab === "analytics"
+                                ? "bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold"
+                                : "text-muted-foreground hover:text-foreground"
+                        }`}
+                    >
+                        <BarChart3 className="h-3.5 w-3.5" />
+                        <span>Analytics</span>
+                    </button>
+                </div>
+
                 {activeTab === "live" ? (
-                    <RealtimeFeed
-                        uid={user.uid}
-                        onTrade={handleTrade}
-                        onComplete={handleComplete}
-                        onView={(signal) => router.push(`/signals/pro/${signal.id}`)}
-                        onFollow={handleFollow}
-                        followedIds={followedIds}
-                        followLoadingIds={followLoadingIds}
-                        tradeLoadingIds={tradeLoadingIds}
-                        completeLoadingIds={completeLoadingIds}
-                    />
+                    <div className="mt-6">
+                        <RealtimeFeed
+                            uid={user.uid}
+                            onTrade={handleTrade}
+                            onComplete={handleComplete}
+                            onView={(signal) => router.push(`/signals/pro/${signal.id}`)}
+                            onFollow={handleFollow}
+                            followedIds={followedIds}
+                            followLoadingIds={followLoadingIds}
+                            tradeLoadingIds={tradeLoadingIds}
+                            completeLoadingIds={completeLoadingIds}
+                        />
+                    </div>
                 ) : analytics ? (
-                    <AnalyticsView analytics={analytics} />
+                    <div className="mt-6">
+                        <AnalyticsView analytics={analytics} />
+                    </div>
                 ) : (
-                    <div className="flex min-h-72 flex-col items-center justify-center rounded-card border border-border bg-card p-8 text-center">
+                    <div className="mt-6 flex min-h-72 flex-col items-center justify-center rounded-card border border-border bg-card p-8 text-center">
                         <Loader2 className="h-7 w-7 animate-spin text-primary" />
                         <p className="mt-3 text-sm font-medium text-foreground">Loading analytics...</p>
                     </div>
@@ -347,12 +444,6 @@ export default function ProSignalsPage() {
             </div>
         </div>
     );
-}
-
-function cnTab(active: boolean) {
-    return `flex flex-1 min-h-9 items-center justify-center gap-2 rounded-button px-3 py-2 text-sm font-medium transition-colors ${
-        active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
-    }`;
 }
 
 function cnNotice(tone: Notice["tone"]) {

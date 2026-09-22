@@ -25,7 +25,8 @@ import {
 } from "lucide-react";
 
 import { onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { equalTo, onValue, orderByChild, query, ref } from "firebase/database";
+import { auth, database } from "@/lib/firebase";
 
 import SignalFeed from "@/components/signals/SignalFeed";
 import MarketOverview from "@/components/signals/MarketOverview";
@@ -55,6 +56,10 @@ export default function AiSignalsPage() {
             setUser(u);
             if (!u) {
                 setSignals([]);
+                setAnalytics(null);
+                setSentiments([]);
+                setDailyCount(0);
+                dailyCountRef.current = 0;
                 setLoading(false);
             }
         });
@@ -76,6 +81,24 @@ export default function AiSignalsPage() {
             }
         };
         checkSubscription();
+    }, [user]);
+
+    useEffect(() => {
+        if (!user) return;
+        const startOfDay = new Date(new Date().toISOString().slice(0, 10) + "T00:00:00.000Z").getTime();
+        const endOfDay = startOfDay + 86_400_000;
+        const usageQuery = query(ref(database, "aiSignals"), orderByChild("createdFor"), equalTo(user.uid));
+        const unsub = onValue(usageQuery, (snapshot) => {
+            let count = 0;
+            snapshot.forEach((child) => {
+                const signal = child.val() as { createdAt?: unknown };
+                const createdAt = Number(signal.createdAt);
+                if (Number.isFinite(createdAt) && createdAt >= startOfDay && createdAt < endOfDay) count++;
+            });
+            setDailyCount(count);
+            dailyCountRef.current = count;
+        });
+        return () => unsub();
     }, [user]);
 
     async function getAuthHeaders(): Promise<Record<string, string>> {
@@ -339,7 +362,7 @@ export default function AiSignalsPage() {
                 </div>
 
                 {/* DAILY LIMIT INDICATOR */}
-                <div className="mt-6 rounded-2xl border border-border/30 bg-gradient-to-br from-background/80 via-background/40 to-background/80 p-4 backdrop-blur-xl" data-guide="daily-limit">
+                <div className="mt-6 rounded-2xl border border-border/30 bg-linear-to-br from-background/80 via-background/40 to-background/80 p-4 backdrop-blur-xl" data-guide="daily-limit">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-card">
