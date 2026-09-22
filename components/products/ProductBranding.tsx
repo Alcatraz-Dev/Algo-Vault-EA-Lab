@@ -130,7 +130,7 @@ export default function ProductBranding({
      * changes.
      */
     useEffect(() => {
-        setImageError(false);
+        void Promise.resolve().then(() => setImageError(false));
     }, [
         product.id,
         type,

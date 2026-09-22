@@ -39,7 +39,7 @@ export default function SpreadMonitorPage() {
         } catch {} finally { setLoading(false); }
     }, [user]);
 
-    useEffect(() => { if (user) fetchData(); }, [user, fetchData]);
+    useEffect(() => { if (user) void Promise.resolve().then(() => fetchData()); }, [user, fetchData]);
 
     useEffect(() => {
         if (!autoRefresh || !user) return;

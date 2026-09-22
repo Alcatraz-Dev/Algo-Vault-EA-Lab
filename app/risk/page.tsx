@@ -80,7 +80,7 @@ export default function RiskPage() {
     }, [user, selectedAccount]);
 
     useEffect(() => {
-        if (selectedAccount) fetchRisk();
+        if (selectedAccount) void Promise.resolve().then(() => fetchRisk());
     }, [selectedAccount, fetchRisk]);
 
     if (authLoading) {

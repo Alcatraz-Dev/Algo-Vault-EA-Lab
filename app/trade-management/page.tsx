@@ -90,7 +90,7 @@ export default function TradeManagementPage() {
         } catch {} finally { setLoading(false); }
     }, [user]);
 
-    useEffect(() => { if (user) fetchData(); }, [user, fetchData]);
+    useEffect(() => { if (user) void Promise.resolve().then(() => fetchData()); }, [user, fetchData]);
 
     const fetchPositions = useCallback(async (accountId: string) => {
         if (!user) return;

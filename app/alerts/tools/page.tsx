@@ -44,6 +44,10 @@ const FREQUENCY_LABELS: Record<string, string> = {
     every_time: "Every Time",
 };
 
+function currentTimestamp(): number {
+    return Date.now();
+}
+
 const DIRECTION_COLORS: Record<string, string> = {
     long: "text-emerald-400 bg-emerald-500/10",
     short: "text-rose-400 bg-rose-500/10",
@@ -81,9 +85,9 @@ export default function ToolAlertsPage() {
         } catch {} finally { setLoading(false); }
     }, [user]);
 
-    useEffect(() => { if (user) fetchData(); }, [user, fetchData]);
+    useEffect(() => { if (user) void Promise.resolve().then(() => fetchData()); }, [user, fetchData]);
 
-    const now = useMemo(() => Date.now(), []);
+    const now = useMemo(() => currentTimestamp(), []);
 
     const isExpired = (def: ToolAlertDefinition) =>
         def.isActive === false || (def.expiredAt && def.expiredAt <= now);

@@ -20,6 +20,10 @@ type Widget = {
 
 type DashboardConfig = { id: string; name: string; widgets: Widget[]; createdAt: number; updatedAt: number };
 
+function currentTimestamp(): number {
+    return Date.now();
+}
+
 const WIDGET_TYPES = [
     { type: "portfolio_summary", label: "Portfolio Summary", icon: Wallet, defaultW: 2, defaultH: 1 },
     { type: "market_score", label: "Market Score", icon: Activity, defaultW: 1, defaultH: 1 },
@@ -59,7 +63,7 @@ export default function DashboardBuilderPage() {
         } catch {} finally { setLoading(false); }
     }, [user]);
 
-    useEffect(() => { if (user) fetchDashboards(); }, [user, fetchDashboards]);
+    useEffect(() => { if (user) void Promise.resolve().then(() => fetchDashboards()); }, [user, fetchDashboards]);
 
     const activeDash = dashboards.find((d) => d.id === activeDashId);
 
@@ -79,7 +83,7 @@ export default function DashboardBuilderPage() {
         if (!wt) return;
         const maxY = activeDash.widgets.reduce((max, w) => Math.max(max, w.y + w.h), 0);
         const newWidget: Widget = {
-            id: `w_${Date.now()}`, type, title: wt.label,
+            id: `w_${currentTimestamp()}`, type, title: wt.label,
             x: 0, y: maxY, w: wt.defaultW, h: wt.defaultH, config: {},
         };
         const updated = [...activeDash.widgets, newWidget];

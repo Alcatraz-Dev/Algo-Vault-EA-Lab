@@ -67,8 +67,8 @@ function AccountPluginsContent() {
     const installedExtension = searchParams.get("installedExtension");
 
     useEffect(() => {
-        if (paymentSuccess) setBanner("Payment successful — your plugin license is now active. Install it to get started.");
-        if (installedExtension) setBanner("Extension installed successfully.");
+        if (paymentSuccess) void Promise.resolve().then(() => setBanner("Payment successful — your plugin license is now active. Install it to get started."));
+        if (installedExtension) void Promise.resolve().then(() => setBanner("Extension installed successfully."));
     }, [paymentSuccess, installedExtension]);
 
     const load = useCallback(async () => {
@@ -87,7 +87,7 @@ function AccountPluginsContent() {
     }, []);
 
     useEffect(() => {
-        load();
+        void Promise.resolve().then(() => load());
     }, [load]);
 
     async function setState(pluginId: string, action: "activate" | "pause" | "resume" | "disable") {

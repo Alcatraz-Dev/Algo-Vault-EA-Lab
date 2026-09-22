@@ -54,7 +54,7 @@ export default function AlertHistoryPage() {
         } catch {} finally { setLoading(false); }
     }, [user]);
 
-    useEffect(() => { if (user) fetchData(); }, [user, fetchData]);
+    useEffect(() => { if (user) void Promise.resolve().then(() => fetchData()); }, [user, fetchData]);
 
     const deleteAlert = async (alert: AlertHistory) => {
         if (!user || !confirm("Delete this alert?")) return;

@@ -43,7 +43,7 @@ export default function CurrencyStrengthPage() {
         } catch {} finally { setLoading(false); }
     }, [user]);
 
-    useEffect(() => { if (user) fetchData(); }, [user, fetchData]);
+    useEffect(() => { if (user) void Promise.resolve().then(() => fetchData()); }, [user, fetchData]);
 
     useEffect(() => {
         const interval = setInterval(fetchData, 30000);

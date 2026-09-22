@@ -62,7 +62,7 @@ export default function AlertCenterPage() {
         } catch {} finally { setLoading(false); }
     }, [user]);
 
-    useEffect(() => { if (user) fetchData(); }, [user, fetchData]);
+    useEffect(() => { if (user) void Promise.resolve().then(() => fetchData()); }, [user, fetchData]);
 
     const markRead = async (id: string) => {
         if (!user) return;

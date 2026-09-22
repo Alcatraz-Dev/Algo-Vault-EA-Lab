@@ -60,7 +60,7 @@ export default function ReportGeneratorPage() {
         } catch {} finally { setLoading(false); }
     };
 
-    useEffect(() => { if (!authLoading && user) loadReports(); }, [authLoading, user]);
+    useEffect(() => { if (!authLoading && user) void Promise.resolve().then(() => loadReports()); }, [authLoading, user]);
 
     if (authLoading) {
         return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Report Generator"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div></AccountShell></div>);

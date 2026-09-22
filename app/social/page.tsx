@@ -58,7 +58,7 @@ export default function SocialPage() {
         } catch {} finally { setLoading(false); }
     }, [user]);
 
-    useEffect(() => { if (user) fetchPosts(); }, [user, fetchPosts]);
+    useEffect(() => { if (user) void Promise.resolve().then(() => fetchPosts()); }, [user, fetchPosts]);
 
     const createPost = async () => {
         if (!user || !formTitle || !formContent) return;

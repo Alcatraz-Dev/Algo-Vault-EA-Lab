@@ -82,7 +82,7 @@ export default function AlertsPage() {
     }, [user]);
 
     useEffect(() => {
-        if (!authLoading && user) fetchAlerts();
+        if (!authLoading && user) void Promise.resolve().then(() => fetchAlerts());
     }, [authLoading, user, fetchAlerts]);
 
     const createAlert = async () => {

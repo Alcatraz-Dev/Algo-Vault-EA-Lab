@@ -214,7 +214,7 @@ export default function ProductReviews({
     }
 
     useEffect(() => {
-        loadReviews();
+        void Promise.resolve().then(() => loadReviews());
     }, [productId]);
 
     function resetForm() {

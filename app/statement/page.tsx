@@ -44,7 +44,7 @@ export default function StatementPage() {
     useEffect(() => {
         if (!user) return;
         let cancelled = false;
-        setAccountsLoading(true);
+        void Promise.resolve().then(() => setAccountsLoading(true));
         user.getIdToken().then((token) => {
             if (cancelled) return;
             void fetch(`/api/trading/gateway/status`, {
@@ -78,7 +78,7 @@ export default function StatementPage() {
         } catch {} finally { setLoading(false); }
     }, [user, selectedAccount, period]);
 
-    useEffect(() => { if (selectedAccount) generate(); }, [selectedAccount, period, generate]);
+    useEffect(() => { if (selectedAccount) void Promise.resolve().then(() => generate()); }, [selectedAccount, period, generate]);
 
     const printStatement = () => window.print();
 

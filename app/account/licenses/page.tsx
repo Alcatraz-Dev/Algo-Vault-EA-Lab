@@ -199,12 +199,14 @@ export default function LicensesPage() {
 
     useEffect(() => {
         if (!user) {
-            setLicenses([]);
+            void Promise.resolve().then(() => setLicenses([]));
             return;
         }
 
-        setLoading(true);
-        setError("");
+        void Promise.resolve().then(() => {
+            setLoading(true);
+            setError("");
+        });
 
         const licensesRef = ref(
             database,

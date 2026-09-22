@@ -15,6 +15,10 @@ export interface TradingAccessLicense {
   expiresAt: number;
 }
 
+function currentTimestamp(): number {
+  return Date.now();
+}
+
 function formatDate(ts: number): string {
   if (!ts) return "—";
   return new Date(ts).toLocaleDateString("en-US", {
@@ -93,7 +97,7 @@ export default function TradingAccessCard({
 
   const daysLeft = Math.max(
     0,
-    Math.ceil((license.expiresAt - Date.now()) / (1000 * 60 * 60 * 24))
+    Math.ceil((license.expiresAt - currentTimestamp()) / (1000 * 60 * 60 * 24))
   );
 
   return (

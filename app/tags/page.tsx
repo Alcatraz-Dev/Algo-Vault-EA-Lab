@@ -39,7 +39,7 @@ export default function TradeTagsPage() {
         } catch {} finally { setLoading(false); }
     }, [user]);
 
-    useEffect(() => { if (user) fetchTags(); }, [user, fetchTags]);
+    useEffect(() => { if (user) void Promise.resolve().then(() => fetchTags()); }, [user, fetchTags]);
 
     const createTag = async () => {
         if (!user || !newName.trim()) return;

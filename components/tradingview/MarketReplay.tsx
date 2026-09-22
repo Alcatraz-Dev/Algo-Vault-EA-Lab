@@ -252,20 +252,22 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
                 : (position.entryPrice - exitPrice) * 10;
             const pnlPercent = (pnl / balance) * 100;
             
-            setClosedTrades((prev) => [
-                {
-                    id: `trade-${Date.now()}`,
-                    type: position.type,
-                    entryPrice: position.entryPrice,
-                    exitPrice,
-                    pnl,
-                    pnlPercent,
-                    result,
-                },
-                ...prev,
-            ]);
-            setBalance((prev) => prev + pnl);
-            setPosition(null);
+            void Promise.resolve().then(() => {
+                setClosedTrades((prev) => [
+                    {
+                        id: `trade-${Date.now()}`,
+                        type: position.type,
+                        entryPrice: position.entryPrice,
+                        exitPrice,
+                        pnl,
+                        pnlPercent,
+                        result,
+                    },
+                    ...prev,
+                ]);
+                setBalance((prev) => prev + pnl);
+                setPosition(null);
+            });
         }
     }, [visible, position, balance]);
 

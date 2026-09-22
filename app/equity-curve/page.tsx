@@ -36,7 +36,7 @@ export default function EquityCurvePage() {
         } catch {} finally { setLoading(false); }
     }, [user, selected]);
 
-    useEffect(() => { if (user) fetchData(); }, [user, fetchData]);
+    useEffect(() => { if (user) void Promise.resolve().then(() => fetchData()); }, [user, fetchData]);
 
     const activeCurve = curves.find((c) => c.accountId === selected);
 

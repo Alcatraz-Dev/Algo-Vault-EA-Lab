@@ -75,6 +75,10 @@ type Purchase = {
     product?: Product;
 };
 
+function currentTimestamp(): number {
+    return Date.now();
+}
+
 function formatDate(timestamp?: number) {
     if (!timestamp) {
         return "—";
@@ -319,8 +323,10 @@ function PurchasesContent() {
             return;
         }
 
-        setLoading(true);
-        setError("");
+        void Promise.resolve().then(() => {
+            setLoading(true);
+            setError("");
+        });
 
         const ordersRef =
             ref(
@@ -855,7 +861,7 @@ function PurchasesContent() {
                                             license?.expiresAt ||
                                             0
                                         ) >
-                                        Date.now();
+                                        currentTimestamp();
 
                                     return (
                                         <div

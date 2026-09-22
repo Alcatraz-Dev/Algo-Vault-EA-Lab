@@ -212,10 +212,12 @@ export default function CreateAlertDialog({
     // Synchronize default values on open
     useEffect(() => {
         if (open) {
-            setSelectedSymbol(normalizeAssetSymbol(symbol));
-            setSelectedTimeframe(normalizeTimeframeRaw(timeframe));
-            setSelectedScriptKey("__current__");
-            setFeedback(null);
+            void Promise.resolve().then(() => {
+                setSelectedSymbol(normalizeAssetSymbol(symbol));
+                setSelectedTimeframe(normalizeTimeframeRaw(timeframe));
+                setSelectedScriptKey("__current__");
+                setFeedback(null);
+            });
 
             const user = auth.currentUser;
             if (user) {

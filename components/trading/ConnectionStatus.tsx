@@ -2,6 +2,10 @@
 
 import { cn } from "@/lib/utils";
 
+function currentTimestamp(): number {
+  return Date.now();
+}
+
 export default function ConnectionStatus({
   status,
   lastHeartbeat,
@@ -9,7 +13,7 @@ export default function ConnectionStatus({
   status: string;
   lastHeartbeat: number;
 }) {
-  const age = Math.floor((Date.now() - lastHeartbeat) / 1000);
+  const age = Math.floor((currentTimestamp() - lastHeartbeat) / 1000);
   const isStable = status === "connected" && age < 60;
   const isUnstable = status === "connected" && age >= 60 && age <= 120;
   const isOffline = status === "offline" || age > 120 || status !== "connected";

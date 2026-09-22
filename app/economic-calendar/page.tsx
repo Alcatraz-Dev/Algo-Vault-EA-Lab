@@ -51,7 +51,7 @@ export default function EconomicCalendarPage() {
     }
 
     useEffect(() => {
-        loadCalendar();
+        void Promise.resolve().then(() => loadCalendar());
     }, []);
 
     const filteredEvents = events.filter((evt) => {

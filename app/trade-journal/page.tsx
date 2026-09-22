@@ -37,7 +37,7 @@ export default function TradeJournalPage() {
         finally { setLoading(false); }
     };
 
-    useEffect(() => { if (!authLoading && user) fetchJournal(); }, [authLoading, user]);
+    useEffect(() => { if (!authLoading && user) void Promise.resolve().then(() => fetchJournal()); }, [authLoading, user]);
 
     const formatR = (r: number) => {
         if (!r || r === 0) return "0.00R";

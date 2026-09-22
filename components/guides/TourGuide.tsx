@@ -210,7 +210,7 @@ export default function TourGuide({
 
     // ── Reset retry count when step or open state changes ─────────────────────
     useEffect(() => {
-        setRetryCount(0);
+        void Promise.resolve().then(() => setRetryCount(0));
     }, [stepIndex, open]);
 
     // ── Spotlight position tracking ───────────────────────────────────────────
@@ -258,7 +258,7 @@ export default function TourGuide({
             }
             rafRef.current = requestAnimationFrame(loop);
         };
-        updateSpot();
+        void Promise.resolve().then(() => updateSpot());
         lastSpotTime.current = Date.now();
         rafRef.current = requestAnimationFrame(loop);
         

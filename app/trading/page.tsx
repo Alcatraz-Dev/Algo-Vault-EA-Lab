@@ -127,7 +127,7 @@ export default function TradingTerminalPage() {
         });
         rtdbUnsubs.current.push(() => off(logsRef));
 
-        setLoading(false);
+        void Promise.resolve().then(() => setLoading(false));
 
         return () => {
             rtdbUnsubs.current.forEach((fn) => fn());

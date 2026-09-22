@@ -65,7 +65,7 @@ export default function Watchlist({
     }, [symbols]);
 
     useEffect(() => {
-        fetchQuotes();
+        void Promise.resolve().then(() => fetchQuotes());
         intervalRef.current = setInterval(fetchQuotes, 5000);
         return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
     }, [fetchQuotes]);

@@ -183,7 +183,7 @@ export default function ProductVersionHistory({
     useEffect(() => {
         if (!productId) return;
 
-        loadVersions();
+        void Promise.resolve().then(() => loadVersions());
     }, [
         productId,
         loadVersions,

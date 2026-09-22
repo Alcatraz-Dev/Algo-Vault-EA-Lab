@@ -14,6 +14,10 @@ type TradingGoal = {
     id: string; type: string; title: string; target: number; current: number; unit: string; deadline: number; achieved: boolean; createdAt: number;
 };
 
+function currentTimestamp(): number {
+    return Date.now();
+}
+
 const GOAL_TYPES = [
     { value: "monthly_pnl", label: "Monthly P/L", unit: "$", icon: TrendingUp },
     { value: "win_rate", label: "Win Rate", unit: "%", icon: Target },
@@ -28,7 +32,7 @@ function GoalCard({ goal, onUpdate, onDelete }: { goal: TradingGoal; onUpdate: (
     const [editValue, setEditValue] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
     const progress = goal.target > 0 ? Math.min(100, (goal.current / goal.target) * 100) : 0;
-    const daysLeft = Math.max(0, Math.ceil((goal.deadline - Date.now()) / (1000 * 60 * 60 * 24)));
+    const daysLeft = Math.max(0, Math.ceil((goal.deadline - currentTimestamp()) / (1000 * 60 * 60 * 24)));
     const typeInfo = GOAL_TYPES.find((t) => t.value === goal.type);
     const TypeIcon = typeInfo?.icon || Target;
 
@@ -172,7 +176,7 @@ export default function GoalsPage() {
         } catch {} finally { setLoading(false); }
     }, [user]);
 
-    useEffect(() => { if (user) fetchGoals(); }, [user, fetchGoals]);
+    useEffect(() => { if (user) void Promise.resolve().then(() => fetchGoals()); }, [user, fetchGoals]);
 
     const createGoal = async () => {
         if (!user || !formTitle || !formTarget) return;

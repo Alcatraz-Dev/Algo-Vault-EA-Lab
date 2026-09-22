@@ -17,6 +17,7 @@ export default function LivePriceDisplay({ symbol, timeframe = "H1", compact = f
     const [isLive, setIsLive] = useState(false);
     const [loading, setLoading] = useState(true);
     const [flash, setFlash] = useState<"up" | "down" | null>(null);
+    const [lastDirection, setLastDirection] = useState<"up" | "down">("up");
 
     const previousPriceRef = useRef(0);
     const flashTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -27,13 +28,14 @@ export default function LivePriceDisplay({ symbol, timeframe = "H1", compact = f
 
     useEffect(() => {
         let mounted = true;
-        setLoading(true);
+        void Promise.resolve().then(() => setLoading(true));
 
         const updatePrice = (newPrice: number) => {
             if (!mounted) return;
             const prev = previousPriceRef.current;
             if (prev > 0 && newPrice !== prev) {
                 setFlash(newPrice > prev ? "up" : "down");
+                setLastDirection(newPrice > prev ? "up" : "down");
                 if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
                 flashTimerRef.current = setTimeout(() => setFlash(null), 600);
             }
@@ -84,7 +86,7 @@ export default function LivePriceDisplay({ symbol, timeframe = "H1", compact = f
         );
     }
 
-    const isUp = price >= previousPriceRef.current;
+    const isUp = lastDirection === "up";
 
     if (compact) {
         return (

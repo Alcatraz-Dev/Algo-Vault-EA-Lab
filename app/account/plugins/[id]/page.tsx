@@ -125,7 +125,7 @@ export default function AccountPluginDetailPage() {
     }, [pluginId]);
 
     useEffect(() => {
-        load();
+        void Promise.resolve().then(() => load());
     }, [load]);
 
     const loadLogs = useCallback(async () => {
@@ -143,7 +143,9 @@ export default function AccountPluginDetailPage() {
     }, [pluginId]);
 
     useEffect(() => {
-        if (tab === "logs") loadLogs();
+        if (tab === "logs") {
+            void Promise.resolve().then(() => loadLogs());
+        }
     }, [tab, loadLogs]);
 
     const manifestInterval = plugin?.manifest?.runtime?.interval || "manual";

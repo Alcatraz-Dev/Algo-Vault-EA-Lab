@@ -53,7 +53,7 @@ export default function AccountAgentsPage() {
     }, []);
 
     useEffect(() => {
-        load();
+        void Promise.resolve().then(() => load());
     }, [load]);
 
     const active = agents.filter((a) => a.install?.status === "active").length;

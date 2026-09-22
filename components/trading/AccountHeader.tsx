@@ -49,8 +49,12 @@ function formatRelativeTime(timestamp: number): string {
   return `${Math.floor(diff / 86400)} day${Math.floor(diff / 86400) === 1 ? "" : "s"} ago`;
 }
 
+function currentTimestamp(): number {
+  return Date.now();
+}
+
 function StatusDot({ status, lastHeartbeat }: { status: TradingAccount["status"]; lastHeartbeat: number }) {
-  const age = Math.floor((Date.now() - lastHeartbeat) / 1000);
+  const age = Math.floor((currentTimestamp() - lastHeartbeat) / 1000);
   const isConnected = status === "connected" && age < 120;
   const isUnstable = status === "connected" && age >= 60;
   const isOffline = !isConnected || age > 120;

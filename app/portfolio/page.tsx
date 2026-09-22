@@ -82,7 +82,7 @@ export default function PortfolioPage() {
     }, [user]);
 
     useEffect(() => {
-        if (!authLoading && user) fetchPortfolio();
+        if (!authLoading && user) void Promise.resolve().then(() => fetchPortfolio());
     }, [authLoading, user, fetchPortfolio]);
 
     const syncJournal = async (accountId: string) => {
