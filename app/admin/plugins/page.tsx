@@ -57,6 +57,7 @@ export default function AdminPluginsPage() {
 
     const load = useCallback(async () => {
         setLoading(true);
+        setData(null);
         setLoadError("");
         try {
             const token = await getToken();

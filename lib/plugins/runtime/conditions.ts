@@ -142,7 +142,21 @@ export function evaluateCondition(
     const op = condition.operator;
 
     if (op === "crossed_above" || op === "crossed_below") {
-        const change = typeof currentChange === "number" ? currentChange : null;
+        let change = typeof currentChange === "number" ? currentChange : null;
+        // Fallback: derive the price-change signal from the current quote's
+        // momentum when the caller did not pass one explicitly. This keeps
+        // the sandbox test and the production engine able to evaluate crossing
+        // conditions without every caller threading the value through.
+        if (change === null) {
+            const snapshots = context.market || {};
+            const first = Object.values(snapshots)[0];
+            if (first) {
+                const q = (first as { quote?: { changePercent?: unknown } }).quote;
+                if (q && typeof q.changePercent === "number") {
+                    change = q.changePercent;
+                }
+            }
+        }
         if (change === null) return { matched: false, reason: "No price-change signal available." };
         const expected = Number(condition.value);
         const matched = op === "crossed_above" ? change > expected : change < -Math.abs(expected);
@@ -169,13 +183,14 @@ export function evaluateCondition(
 
 export function evaluateConditionTree(
     condition: DeclarativeCondition,
-    context: ConditionContext
+    context: ConditionContext,
+    currentChange?: number
 ): { matched: boolean; reasons: string[] } {
-    const primary = evaluateCondition(condition, context);
+    const primary = evaluateCondition(condition, context, currentChange);
     if (!condition.and || condition.and.length === 0) {
         return { matched: primary.matched, reasons: primary.matched ? [primary.reason] : [] };
     }
-    const subResults = condition.and.map((c) => evaluateCondition(c, context));
+    const subResults = condition.and.map((c) => evaluateCondition(c, context, currentChange));
     const allMatched = primary.matched && subResults.every((r) => r.matched);
     if (allMatched) {
         return { matched: true, reasons: [primary.reason, ...subResults.map((r) => r.reason)] };

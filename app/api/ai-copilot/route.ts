@@ -10,11 +10,31 @@ import { detectLiquidity } from "@/lib/analytics/liquidity";
 import { detectStructure, getOverallStructureBias } from "@/lib/analytics/market-structure";
 import { calculateMarketScore } from "@/lib/analytics/market-score";
 import { summarizeAnalysisWithFallback, getAIProvider } from "@/lib/ai";
+import type { AnalysisSummaryInput } from "@/lib/ai/types";
 import { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 import { isProUser } from "@/lib/ai-signals/access";
+import type { AISignal } from "@/lib/ai-signals/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+interface MarketDataEntry {
+    error?: string;
+    regime?: { regime: string; confidence: number };
+    volatility?: { state: string };
+    volume?: { state: string };
+    vwapPos?: string;
+    bias?: string;
+    score?: { total: number };
+    candleCount?: number;
+}
+
+interface TradingAccountSummary {
+    balance?: number | string;
+    equity?: number | string;
+    margin?: number | string;
+    accountId?: string;
+}
 
 function extractText(s: Awaited<ReturnType<typeof summarizeAnalysisWithFallback>> | string): string {
     return typeof s === "string" ? s : s.summary;
@@ -40,7 +60,7 @@ export async function POST(request: NextRequest) {
         const tf: Timeframe = (timeframe as Timeframe) || "H1";
 
         // ── Load market data for all symbols ──
-        const marketData: Record<string, any> = {};
+        const marketData: Record<string, MarketDataEntry> = {};
         for (const sym of symbols) {
             try {
                 const candles = await fetchCandles(sym, tf);
@@ -63,19 +83,23 @@ export async function POST(request: NextRequest) {
 
         // ── Load user account data ──
         const accountSnap = await adminDatabase.ref(`trading_accounts/${uid}`).get();
-        const accounts = accountSnap.exists() ? accountSnap.val() : {};
+        const accounts = accountSnap.exists()
+            ? (accountSnap.val() as Record<string, TradingAccountSummary>)
+            : {};
         const positionSnap = await adminDatabase.ref(`trading_positions/${uid}`).get();
-        const userPositions = positionSnap.exists() ? positionSnap.val() : {};
+        const userPositions = positionSnap.exists()
+            ? (positionSnap.val() as Record<string, { accountId?: string }>)
+            : {};
 
         const signalSnap = await adminDatabase.ref("aiSignals").get();
-        const signals: any[] = [];
+        const signals: AISignal[] = [];
         if (signalSnap.exists()) {
-            signalSnap.forEach((child) => { const s = child.val(); if (s && s.id) signals.push(s); });
+            signalSnap.forEach((child) => { const s = child.val() as AISignal | null; if (s && s.id) signals.push(s); });
         }
         const recentSignals = signals.filter((s) => s.createdAt > Date.now() - 30 * 86400000).slice(-50);
 
         const provider = getAIProvider();
-        const aiCall = async (input: any) => {
+        const aiCall = async (input: AnalysisSummaryInput) => {
             const result = await summarizeAnalysisWithFallback(input);
             return result.summary;
         };
@@ -83,7 +107,7 @@ export async function POST(request: NextRequest) {
         // ── Route questions ──
         if (q.includes("regime") || q.includes("market regime") || q.includes("trending") || q.includes("ranging") || q.includes("breakout")) {
             const summaries = Object.entries(marketData).map(([sym, data]) =>
-                data.error ? `${sym}: unavailable` : `${sym}: ${data.regime.regime} (${Math.round(data.regime.confidence)}% confidence), Volatility: ${data.volatility.state}, Score: ${data.score.total}`
+                data.error ? `${sym}: unavailable` : `${sym}: ${data.regime?.regime ?? "?"} (${Math.round(data.regime?.confidence ?? 0)}% confidence), Volatility: ${data.volatility?.state ?? "?"}, Score: ${data.score?.total ?? 0}`
             );
             responses["market_regime"] = provider.id === "local-heuristic"
                 ? `Based on real platform data:\n\n${summaries.join("\n\n")}\n\nThis analysis uses live market data from connected sources.`
@@ -92,10 +116,11 @@ export async function POST(request: NextRequest) {
 
         if (q.includes("risk") || q.includes("account health") || q.includes("dangerous") || q.includes("risk too high")) {
             const accountList = Object.entries(accounts).map(([id, acc]) => ({
-                id, balance: Number((acc as any).balance || 0),
-                equity: Number((acc as any).equity || 0),
-                margin: Number((acc as any).margin || 0),
-                positions: Object.keys(userPositions).filter((k: string) => (userPositions as any)[k]?.accountId === id).length,
+                id,
+                balance: Number(acc.balance || 0),
+                equity: Number(acc.equity || 0),
+                margin: Number(acc.margin || 0),
+                positions: Object.keys(userPositions).filter((k: string) => userPositions[k]?.accountId === id).length,
             }));
             const totalBalance = accountList.reduce((s, a) => s + a.balance, 0);
             const totalPositions = accountList.reduce((s, a) => s + a.positions, 0);
@@ -128,7 +153,7 @@ export async function POST(request: NextRequest) {
         if (q.includes("why") || q.includes("why is") || q.includes("reason") || q.includes("explain")) {
             const analysis = Object.entries(marketData).map(([sym, data]) => {
                 if (data.error) return `${sym}: Data unavailable`;
-                return `${sym}: ${data.bias} bias, ${data.regime.regime}, Volatility: ${data.volatility.state}, Score: ${data.score.total}`;
+                return `${sym}: ${data.bias ?? "?"} bias, ${data.regime?.regime ?? "?"}, Volatility: ${data.volatility?.state ?? "?"}, Score: ${data.score?.total ?? 0}`;
             }).join("\n");
             responses["signal_reasoning"] = provider.id === "local-heuristic"
                 ? `Signal Analysis (real data):\n\n${analysis}\n\nAll analysis uses real market data - no fabricated values.`
@@ -137,7 +162,7 @@ export async function POST(request: NextRequest) {
 
         if (Object.keys(responses).length === 0) {
             responses["overview"] = provider.id === "local-heuristic"
-                ? `AlgoVault AI Copilot Response\n\nI analyzed your real platform data:\n\n${Object.entries(marketData).map(([sym, data]) => `${sym}: ${data.error || `${data.regime.regime}, ${data.volatility.state} volatility, Score ${data.score.total}`}`).join("\n")}\n\nYour accounts show ${Object.keys(accounts).length} connected MT5 accounts with ${Object.keys(userPositions).length} open positions.\n\n${recentSignals.length} recent signals in the last 30 days.\n\nAsk about: market regime, account risk, trade performance, strategy recommendations, or signal analysis.`
+                ? `AlgoVault AI Copilot Response\n\nI analyzed your real platform data:\n\n${Object.entries(marketData).map(([sym, data]) => `${sym}: ${data.error || `${data.regime?.regime ?? "?"}, ${data.volatility?.state ?? "?"} volatility, Score ${data.score?.total ?? 0}`}`).join("\n")}\n\nYour accounts show ${Object.keys(accounts).length} connected MT5 accounts with ${Object.keys(userPositions).length} open positions.\n\n${recentSignals.length} recent signals in the last 30 days.\n\nAsk about: market regime, account risk, trade performance, strategy recommendations, or signal analysis.`
                 : await aiCall({ asset: symbols.join(", "), timeframe: tf, trend: "analysis", volatility: "normal", bestSession: "", bestDay: "", strongestSetup: "", averageR: null, regime: "analysis" });
         }
 
@@ -158,9 +183,9 @@ export async function GET(request: NextRequest) {
         const accountSnap = await adminDatabase.ref(`trading_accounts/${uid}`).get();
         const accounts = accountSnap.exists() ? accountSnap.val() : {};
         const signalSnap = await adminDatabase.ref("aiSignals").get();
-        let signals: any[] = [];
+        const signals: AISignal[] = [];
         if (signalSnap.exists()) {
-            signalSnap.forEach((child) => { const s = child.val(); if (s && s.id) signals.push(s); });
+            signalSnap.forEach((child) => { const s = child.val() as AISignal | null; if (s && s.id) signals.push(s); });
         }
         const recentSignals = signals.filter((s) => s.createdAt > Date.now() - 7 * 86400000).slice(-30);
 

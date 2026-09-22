@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -45,6 +45,14 @@ type ExtensionRow = {
 };
 
 export default function AccountPluginsPage() {
+    return (
+        <Suspense fallback={null}>
+            <AccountPluginsContent />
+        </Suspense>
+    );
+}
+
+function AccountPluginsContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [tab, setTab] = useState<"plugins" | "extensions">("plugins");

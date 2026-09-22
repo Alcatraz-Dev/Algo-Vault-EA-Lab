@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
 import { serverError, badRequest, unauthorized } from "@/lib/plugins/api-helpers";
-import { listAllRecords, getDraft, writeAuditLog } from "@/lib/plugins/database";
+import { listAllRecords, getDraft, writeAuditLog, stripUndefined } from "@/lib/plugins/database";
 import { adminDatabase } from "@/lib/firebase-admin";
 import { PluginRecord, PluginStatus, PluginExtensionType } from "@/lib/plugins/types";
 import { validateManifest } from "@/lib/plugins/manifest";
@@ -70,11 +70,11 @@ export async function POST(request: NextRequest) {
                 createdAt: now,
                 updatedAt: now,
                 documentation: String(spec.documentation || ""),
-                changelog: { [manifestCheck.manifest!.version]: "Generated in AI Plugin Studio." },
+                changelog: [{ version: manifestCheck.manifest!.version, note: "Generated in AI Plugin Studio." }],
                 ...(spec.configSchema && typeof spec.configSchema === "object" ? { configSchema: spec.configSchema } : {}),
             } as PluginRecord & { extensionType?: string; configSchema?: Record<string, unknown> };
 
-            await adminDatabase.ref(`plugins/${id}`).set({ ...record, extensionType });
+            await adminDatabase.ref(`plugins/${id}`).set(stripUndefined({ ...record, extensionType }));
             await adminDatabase.ref(`pluginDrafts/${draft.id}/status`).set("published");
             await writeAuditLog({ action: "extension.created_from_draft", actor: admin.uid, pluginId: id });
             return NextResponse.json({ success: true, extension: { ...record, extensionType } });

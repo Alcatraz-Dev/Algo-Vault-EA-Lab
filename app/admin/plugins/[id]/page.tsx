@@ -101,6 +101,8 @@ export default function AdminPluginDetailPage() {
     const load = useCallback(async () => {
         if (!id) return;
         setLoading(true);
+        setRecord(null);
+        setAudit([]);
         setNotice("");
         try {
             const token = await getToken();
@@ -141,7 +143,8 @@ export default function AdminPluginDetailPage() {
 
     async function apiPut(body: Record<string, unknown>) {
         const token = await getToken();
-        const res = await fetch(`/api/admin/plugins/${id}`, {
+        const pluginId = record?.id || id;
+        const res = await fetch(`/api/admin/plugins/${pluginId}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             body: JSON.stringify(body),
@@ -217,7 +220,8 @@ export default function AdminPluginDetailPage() {
         setTestResult(null);
         try {
             const token = await getToken();
-            const res = await fetch(`/api/admin/plugins/${id}/test`, {
+            const pluginId = record?.id || id;
+            const res = await fetch(`/api/admin/plugins/${pluginId}/test`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify({
@@ -252,7 +256,8 @@ export default function AdminPluginDetailPage() {
         setNotice("");
         try {
             const token = await getToken();
-            const res = await fetch(`/api/admin/plugins/${id}`, {
+            const pluginId = record?.id || id;
+            const res = await fetch(`/api/admin/plugins/${pluginId}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` },
             });

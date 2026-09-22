@@ -19,6 +19,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
 
         const plugin = await getPluginRecord(id);
         if (!plugin) return notFound("Plugin not found.");
+        const pluginId = plugin.id;
 
         const body = await request.json().catch(() => ({}));
         const symbols = Array.isArray(body.symbols)
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
         await writeAuditLog({
             action: "plugin.sandbox.tested",
             actor: admin.uid,
-            pluginId: id,
+            pluginId,
             detail: { status: result.execution.status, symbols },
         });
 

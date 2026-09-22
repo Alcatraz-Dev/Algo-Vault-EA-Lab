@@ -47,7 +47,7 @@ function sanitizeConfig(raw: Record<string, unknown>, fallback: PluginConfig): {
     const settings: Record<string, unknown> =
         raw.settings && typeof raw.settings === "object" && !Array.isArray(raw.settings)
             ? (raw.settings as Record<string, unknown>)
-            : fallback.settings;
+            : fallback.settings || {};
 
     let riskLimits: Record<string, number | boolean> = fallback.riskLimits || {};
     if (raw.riskLimits && typeof raw.riskLimits === "object" && !Array.isArray(raw.riskLimits)) {

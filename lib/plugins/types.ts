@@ -132,6 +132,11 @@ export type PluginInterval =
     | "event"
     | "manual";
 
+export type PluginChangelogEntry = {
+    version: string;
+    note: string;
+};
+
 export type PluginRecord = {
     /** Stable id — equals the slug. */
     id: string;
@@ -165,7 +170,7 @@ export type PluginRecord = {
     /** Freeform documentation (markdown-ish). */
     documentation?: string;
     /** Per-version changelog entries. */
-    changelog?: Record<string, string>;
+    changelog?: PluginChangelogEntry[];
 };
 
 export type PluginRating = {

@@ -79,7 +79,7 @@ export const BUILTIN_PLUGINS: PluginRecord[] = [
             "",
             "Output is a factual profile computed from your recorded trade history. It is not a prediction.",
         ].join("\n"),
-        changelog: { "1.0.0": "Initial release — trade-history profiling from connected bots." },
+        changelog: [{ version: "1.0.0", note: "Initial release — trade-history profiling from connected bots." }],
     }),
     record({
         id: "trading-behavior-intelligence",
@@ -131,7 +131,7 @@ export const BUILTIN_PLUGINS: PluginRecord[] = [
             "The plugin reports what the data shows. It does not make psychological diagnoses",
             "and never claims your future outcomes.",
         ].join("\n"),
-        changelog: { "1.0.0": "Initial release — recorded-data behavior profiling." },
+        changelog: [{ version: "1.0.0", note: "Initial release — recorded-data behavior profiling." }],
     }),
     record({
         id: "counterfactual-lab",
@@ -177,7 +177,7 @@ export const BUILTIN_PLUGINS: PluginRecord[] = [
             "Every result is labeled **Historical Analysis**. It simulates what the recorded",
             "data would have looked like — it is not a prediction and not investment advice.",
         ].join("\n"),
-        changelog: { "1.0.0": "Initial release — historical what-if scenarios." },
+        changelog: [{ version: "1.0.0", note: "Initial release — historical what-if scenarios." }],
     }),
     record({
         id: "trade-correlation-intelligence",
@@ -225,7 +225,7 @@ export const BUILTIN_PLUGINS: PluginRecord[] = [
             "",
             "Useful for identifying unintended concentration. Correlation ≠ guaranteed co-movement.",
         ].join("\n"),
-        changelog: { "1.0.0": "Initial release — position correlation mapping." },
+        changelog: [{ version: "1.0.0", note: "Initial release — position correlation mapping." }],
     }),
     record({
         id: "setup-fingerprint",
@@ -271,7 +271,7 @@ export const BUILTIN_PLUGINS: PluginRecord[] = [
             "in measurable dimensions. It is contextual analysis — not a trade recommendation,",
             "and it never promises an outcome.",
         ].join("\n"),
-        changelog: { "1.0.0": "Initial release — fingerprint comparison engine." },
+        changelog: [{ version: "1.0.0", note: "Initial release — fingerprint comparison engine." }],
     }),
     record({
         id: "market-opportunity-agent",
@@ -319,7 +319,7 @@ export const BUILTIN_PLUGINS: PluginRecord[] = [
             "momentum, volatility, similarity and context. AlgoVault never tells you to buy or",
             "sell, and never represents a detected condition as guaranteed profit.",
         ].join("\n"),
-        changelog: { "1.0.0": "Initial release — background opportunity monitoring." },
+        changelog: [{ version: "1.0.0", note: "Initial release — background opportunity monitoring." }],
     }),
     record({
         id: "market-anomaly-agent",
@@ -365,7 +365,7 @@ export const BUILTIN_PLUGINS: PluginRecord[] = [
             "",
             "Alerts carry the measured deviation so you can judge severity yourself.",
         ].join("\n"),
-        changelog: { "1.0.0": "Initial release — anomaly detection agent." },
+        changelog: [{ version: "1.0.0", note: "Initial release — anomaly detection agent." }],
     }),
     record({
         id: "news-impact-agent",
@@ -410,7 +410,7 @@ export const BUILTIN_PLUGINS: PluginRecord[] = [
             "The plugin states what is scheduled and what volatility was observed. It never",
             "claims to know which direction an event will move a market.",
         ].join("\n"),
-        changelog: { "1.0.0": "Initial release — economic calendar monitoring." },
+        changelog: [{ version: "1.0.0", note: "Initial release — economic calendar monitoring." }],
     }),
     record({
         id: "risk-guardian",
@@ -460,7 +460,7 @@ export const BUILTIN_PLUGINS: PluginRecord[] = [
             "",
             "The plugin alerts you when a limit is hit. It never places, modifies or closes orders.",
         ].join("\n"),
-        changelog: { "1.0.0": "Initial release — configurable risk limits." },
+        changelog: [{ version: "1.0.0", note: "Initial release — configurable risk limits." }],
     }),
     record({
         id: "personal-market-intelligence",
@@ -505,7 +505,7 @@ export const BUILTIN_PLUGINS: PluginRecord[] = [
             "Output looks like: 'current conditions resemble N historical situations; common",
             "characteristics: …'. This is contextual analysis — it makes no prediction.",
         ].join("\n"),
-        changelog: { "1.0.0": "Initial release — personal pattern comparison." },
+        changelog: [{ version: "1.0.0", note: "Initial release — personal pattern comparison." }],
     }),
 ];
 

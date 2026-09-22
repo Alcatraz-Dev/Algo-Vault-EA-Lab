@@ -167,7 +167,7 @@ export function validateManifest(input: unknown, kind?: PluginKind): ManifestChe
             type: pricingType as PluginManifest["pricing"]["type"],
             price: pricingType === "free" ? 0 : price,
             currency,
-            intervalMonths: pricingType === "subscription" ? Math.min(12, Math.max(1, Number(pricing?.intervalMonths || 1))) : undefined,
+            ...(pricingType === "subscription" ? { intervalMonths: Math.min(12, Math.max(1, Number(pricing?.intervalMonths || 1))) } : {}),
         },
         permissions,
         subscribes: subscribesRaw.filter((s) => typeof s === "string" && s.length > 0 && s.length < 120),

@@ -11,7 +11,7 @@ import {
     PermissionSet,
 } from "./types";
 import { validateManifest } from "./manifest";
-import { validatePermissionSet, sanitizePermissionSet, FORBIDDEN_PERMISSIONS } from "./permissions";
+import { validatePermissionSet, sanitizePermissionSet, FORBIDDEN_PERMISSIONS, allPermissions } from "./permissions";
 import { saveDraft, saveGenerationJob } from "./database";
 import { evaluateConditionTree, ConditionContext } from "./runtime/conditions";
 import { isValidConditionSource, isValidConditionOperator, sanitizeConditionSource, sanitizeConditionOperator } from "./runtime/conditions-sources";
@@ -134,8 +134,9 @@ export async function generatePluginSpec(prompt: string, target: PluginKind, cat
         "- ALWAYS include a complete spec: name, displayName, description, price type, permissions, capabilities, supportedMarkets, supportedNotifications, a valid runtime.condition (source + operator + value), and runtime.requires with at least one supported API. These fields are mandatory, never empty.",
         "- If the request is partially unsupported or unclear, still produce the closest valid declarative interpretation with all mandatory fields, and disclose every gap in unsupportedCapabilities with required + suggestedImplementation.",
         "- Value must be a number when the source is numeric and a string when the source is textual.",
+        "- runtime.requires lists ONLY sandbox runtime APIs: market_monitor, price_signal, risk_limits, news_calendar, notifications, scheduler, trade_history, strategy_context. Do NOT place permission names (e.g. ai_analysis) here — those belong in the permissions object, not in runtime.requires. If a requested capability has no runtime API (like ai_analysis), disclose it in unsupportedCapabilities instead.",
         "",
-        "Sandbox calibration: test contexts span atr 12-55, atrPercent 0.4-2.1 (a percentage of price like 1.1 — NOT a multiplier, so do not write 250 for a 2.5x spike), rangeExpansion 15-80, quote.changePercent -0.6 to 1.4, sessions asia/london/newyork (newyork appears with both calm and volatile values), risk.drawdownPercent 0-12, exposure 0.1-0.9, positionCount 2-8, correlatedExposure 1-4, news 0-6. Pick thresholds the condition is TRUE on at least one context (conditions that never match are rejected).",
+        "Sandbox calibration: test contexts span atr 12-55, atrPercent 0.4-2.1 (a percentage of price like 1.1 — NOT a multiplier, so do not write 250 for a 2.5x spike), rangeExpansion 15-80, quote.changePercent -0.6 to 1.4, sessions asia/london/newyork (newyork appears with both calm and volatile values), risk.drawdownPercent 0-12, exposure 0.1-0.9, positionCount 1-8, correlatedExposure 1-4, news 0-6. Gold/XAUUSD-specific contexts cover bullish breakouts (high vol + bullish bias + low risk) and calm baselines. Crossing operators (crossed_above, crossed_below) act on quote changePercent. Pick thresholds the condition is TRUE on at least one context (conditions that never match are rejected).",
         "The JSON must use EXACTLY the keys in the schema above — do not rename, reorder into wrappers, or change types (pricing is an object, permissions is an object of booleans, target is \"plugin\" or \"extension\").",
     ].join("\n");
 
@@ -278,8 +279,31 @@ function normalizeSpec(input: unknown, target: PluginKind, category: PluginCateg
         type: String(rawPricing.type || "free").includes("sub") ? "subscription" : String(rawPricing.type || "free").includes("one") || String(rawPricing.type || "free").includes("one_time") ? "one_time" : "free",
         price: Math.max(0, Number(rawPricing.price) || 0),
         currency: String(rawPricing.currency || "usd").toLowerCase(),
-        intervalMonths: Number(rawPricing.intervalMonths) > 0 ? Math.round(Number(rawPricing.intervalMonths)) : undefined,
+        ...(Number(rawPricing.intervalMonths) > 0 ? { intervalMonths: Math.round(Number(rawPricing.intervalMonths)) } : {}),
     };
+
+    // The AI sometimes places permission names (e.g. "ai_analysis") into
+    // runtime.requires. Those are permissions, not runtime APIs — promote them
+    // into the permissions block and strip them from requires so the sandbox
+    // check only sees real declarative APIs. Note: some names like
+    // "notifications" and "scheduler" are valid as BOTH a permission and a
+    // runtime API, so they are kept in requires.
+    const knownPermissions = new Set<string>(allPermissions());
+    const rawRequires = Array.isArray(rawRuntime.requires) ? rawRuntime.requires.map(String) : [];
+    const requires: string[] = rawRequires
+        .filter((r) => {
+            const lower = r.toLowerCase();
+            if (lower in SUPPORTED_RUNTIME_APIS) return true;
+            if (knownPermissions.has(lower)) return false;
+            return true;
+        })
+        .slice(0, 20);
+    for (const r of rawRequires) {
+        const lower = r.toLowerCase();
+        if (knownPermissions.has(lower) && !(lower in SUPPORTED_RUNTIME_APIS)) {
+            rawPerms[lower] = true;
+        }
+    }
 
     const permissions = sanitizePermissionSet(rawPerms);
 
@@ -310,7 +334,7 @@ function normalizeSpec(input: unknown, target: PluginKind, category: PluginCateg
                 interval: String(rawRuntime.interval || "manual") as AIGeneratedPluginSpec["runtime"]["interval"],
                 timeoutMs: Math.min(60000, Math.max(1000, Number(rawRuntime.timeoutMs) || 10000)),
                 sources: Array.isArray(rawRuntime.sources) ? rawRuntime.sources.map(String).slice(0, 20) : [],
-                requires: Array.isArray(rawRuntime.requires) ? rawRuntime.requires.map(String).slice(0, 20) : [],
+                requires,
                 condition: rawCondition && Object.keys(rawCondition).length > 0 ? sanitizeCondition(rawCondition) : undefined,
             },
         },
@@ -318,7 +342,7 @@ function normalizeSpec(input: unknown, target: PluginKind, category: PluginCateg
             interval: String(rawRuntime.interval || "manual") as AIGeneratedPluginSpec["runtime"]["interval"],
             timeoutMs: Math.min(60000, Math.max(1000, Number(rawRuntime.timeoutMs) || 10000)),
             sources: Array.isArray(rawRuntime.sources) ? rawRuntime.sources.map(String).slice(0, 20) : [],
-            requires: Array.isArray(rawRuntime.requires) ? rawRuntime.requires.map(String).slice(0, 20) : [],
+            requires,
             condition: rawCondition && Object.keys(rawCondition).length > 0 ? sanitizeCondition(rawCondition) : undefined,
         },
         configSchema:
@@ -527,6 +551,43 @@ const TEST_CONTEXTS: { label: string; market?: ConditionContext["market"]; risk?
         risk: { drawdownPercent: 4, exposure: 0.5, positionCount: 5, correlatedExposure: 3 },
         news: { incomingEvents: 3, recentImpact: 2 },
     },
+    // ── Gold (XAUUSD) contexts ──────────────────────────────────────────────
+    // These give gold-monitoring plugins resolvable data and ensure compound
+    // conditions (e.g. "bullish bias AND low risk") can actually match.
+    {
+        label: "gold-breakout",
+        market: testMarketContext({
+            XAUUSD: {
+                symbol: "XAUUSD",
+                volatility: { atr: 52, atrPercent: 1.9, rangeExpansion: 76, state: "expanding" },
+                regime: { regime: "trending", confidence: 0.87 },
+                session: { current: "newyork" },
+                quote: { changePercent: 1.3, spread: 0.5 },
+                structure: [{}, {}, {}],
+                liquidity: [{}],
+                multiTimeframe: [{ bias: "bullish" }],
+            },
+        }),
+        risk: { drawdownPercent: 0, exposure: 0.15, positionCount: 2, correlatedExposure: 1 },
+        news: { incomingEvents: 2, recentImpact: 0 },
+    },
+    {
+        label: "gold-calm",
+        market: testMarketContext({
+            XAUUSD: {
+                symbol: "XAUUSD",
+                volatility: { atr: 13, atrPercent: 0.5, rangeExpansion: 17, state: "contracting" },
+                regime: { regime: "ranging", confidence: 0.6 },
+                session: { current: "asia" },
+                quote: { changePercent: 0.05, spread: 0.8 },
+                structure: [],
+                liquidity: [],
+                multiTimeframe: [{ bias: "neutral" }],
+            },
+        }),
+        risk: { drawdownPercent: 0, exposure: 0.1, positionCount: 1, correlatedExposure: 1 },
+        news: { incomingEvents: 0, recentImpact: 0 },
+    },
 ];
 
 type SandboxTestResult = { ok: boolean; runs: number; errors: string[] };
@@ -541,7 +602,15 @@ function runSandboxTests(spec: AIGeneratedPluginSpec): SandboxTestResult {
     let matchedAny = false;
     for (const ctx of TEST_CONTEXTS) {
         try {
-            const { matched, reasons } = evaluateConditionTree(condition, { market: ctx.market, risk: ctx.risk, news: ctx.news });
+            const currentChange = ctx.market ? ((): number | undefined => {
+                const snapshots = Object.values(ctx.market!);
+                const first = snapshots[0];
+                if (first && typeof (first as { quote?: { changePercent?: unknown } }).quote?.changePercent === "number") {
+                    return Number((first as { quote: { changePercent: number } }).quote.changePercent);
+                }
+                return undefined;
+            })() : undefined;
+            const { matched, reasons } = evaluateConditionTree(condition, { market: ctx.market, risk: ctx.risk, news: ctx.news }, currentChange);
             runs += 1;
             if (matched) matchedAny = true;
             if (matched && reasons.length === 0) {

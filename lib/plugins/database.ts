@@ -7,6 +7,7 @@ import {
     PluginRuntimeState,
     PluginRating,
     PluginLicenseRecord,
+    PluginChangelogEntry,
     ExtensionInstallation,
 } from "./types";
 
@@ -31,20 +32,36 @@ const emptyDistribution = (): PluginRating["distribution"] => ({ 1: 0, 2: 0, 3: 
 
 // ─── Catalog ────────────────────────────────────────────────────────────────
 
+type PluginLookup = {
+    id: string;
+    record: PluginRecord;
+};
+
+function toPluginRecord(raw: unknown, id: string): PluginRecord | null {
+    if (!raw || Array.isArray(raw) || typeof raw !== "object") return null;
+    return { ...(raw as PluginRecord), id };
+}
+
+async function findPluginRecord(id: string): Promise<PluginLookup | null> {
+    const direct = toPluginRecord((await adminDatabase.ref(`plugins/${id}`).get()).val(), id);
+    if (direct) return { id, record: direct };
+
+    const snap = await adminDatabase.ref("plugins").get();
+    const data = (snap.val() || {}) as Record<string, unknown>;
+    for (const [key, raw] of Object.entries(data)) {
+        const rec = raw as PluginRecord;
+        if (rec?.id === id || rec?.slug === id) return { id: key, record: { ...rec, id: key } };
+    }
+    return null;
+}
+
 export async function getPluginRecord(id: string): Promise<PluginRecord | null> {
-    const snap = await adminDatabase.ref(`plugins/${id}`).get();
-    const val = snap.val();
-    if (!val || typeof val !== "object") return null;
-    return { ...(val as PluginRecord), id };
+    return (await findPluginRecord(id))?.record || null;
 }
 
 export async function getExtensionRecord(id: string): Promise<PluginRecord | null> {
-    const snap = await adminDatabase.ref(`plugins/${id}`).get();
-    const val = snap.val();
-    if (!val || typeof val !== "object") return null;
-    const rec = val as PluginRecord;
-    if (rec.type !== "extension") return null;
-    return { ...rec, id };
+    const record = await getPluginRecord(id);
+    return record?.type === "extension" ? record : null;
 }
 
 export async function listPublishedRecords(kind: "plugin" | "extension"): Promise<PluginRecord[]> {
@@ -217,7 +234,11 @@ export async function listAllRuntimeStates(): Promise<PluginRuntimeState[]> {
 // ─── Executions & logs ──────────────────────────────────────────────────────
 
 export async function recordExecution(userId: string, exec: PluginExecutionRecord): Promise<void> {
-    await adminDatabase.ref(`pluginExecutions/${userId}/${exec.pluginId}/${exec.id}`).set(exec);
+    const data: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(exec)) {
+        if (value !== undefined) data[key] = value;
+    }
+    await adminDatabase.ref(`pluginExecutions/${userId}/${exec.pluginId}/${exec.id}`).set(data);
 }
 
 export async function listExecutions(userId: string, pluginId: string, limit = 30): Promise<PluginExecutionRecord[]> {
@@ -359,7 +380,7 @@ export async function incrementCatalogCounter(pluginId: string, field: "installs
  * field that resolves to undefined (e.g. pricing.intervalMonths on a free
  * plugin) must be removed before writing.
  */
-function stripUndefined(value: unknown): unknown {
+export function stripUndefined(value: unknown): unknown {
     if (Array.isArray(value)) return value.map(stripUndefined);
     if (value && typeof value === "object") {
         const out: Record<string, unknown> = {};
@@ -370,6 +391,23 @@ function stripUndefined(value: unknown): unknown {
         return out;
     }
     return value;
+}
+
+export function normalizeChangelog(value: unknown): PluginChangelogEntry[] {
+    type RawChangelogEntry = { version?: unknown; note?: unknown };
+    const entries: RawChangelogEntry[] = Array.isArray(value)
+        ? (value as RawChangelogEntry[])
+        : value && typeof value === "object"
+          ? Object.entries(value).map(([version, note]) => ({ version, note }))
+          : [];
+
+    return entries
+        .flatMap((entry) => {
+            const version = typeof entry.version === "string" ? entry.version.trim() : "";
+            const note = typeof entry.note === "string" ? entry.note.trim() : "";
+            return version && note ? [{ version, note }] : [];
+        })
+        .slice(-20);
 }
 
 export async function saveDraft(draft: { id: string; [key: string]: unknown }): Promise<void> {

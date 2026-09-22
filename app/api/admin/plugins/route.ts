@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
 import { serverError, badRequest, unauthorized } from "@/lib/plugins/api-helpers";
-import { listAllRecords, getDraft, writeAuditLog, incrementCatalogCounter } from "@/lib/plugins/database";
+import { listAllRecords, getDraft, writeAuditLog, incrementCatalogCounter, stripUndefined, normalizeChangelog } from "@/lib/plugins/database";
 import { adminDatabase } from "@/lib/firebase-admin";
 import { PluginRecord, PluginStatus } from "@/lib/plugins/types";
 import { validateManifest } from "@/lib/plugins/manifest";
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
                 createdAt: now,
                 updatedAt: now,
                 documentation: String(spec.documentation || ""),
-                changelog: { [manifestCheck.manifest!.version]: "Generated in AI Plugin Studio." },
+                changelog: [{ version: manifestCheck.manifest!.version, note: "Generated in AI Plugin Studio." }],
                 ...(spec.configSchema && typeof spec.configSchema === "object" ? { configSchema: spec.configSchema } : {}),
             };
 
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
                 draft.target === "extension"
                     ? pickExtensionType(spec.extensionType, body.extensionType)
                     : undefined;
-            await adminDatabase.ref(`plugins/${id}`).set(extensionType ? { ...record, extensionType } : record);
+            await adminDatabase.ref(`plugins/${id}`).set(stripUndefined(extensionType ? { ...record, extensionType } : record));
             await adminDatabase.ref(`pluginDrafts/${draft.id}/status`).set("published");
             await writeAuditLog({ action: "plugin.created_from_draft", actor: admin.uid, pluginId: id, detail: { publishNow: body.publishNow === true } });
             return NextResponse.json({ success: true, record });
@@ -121,12 +121,13 @@ export async function POST(request: NextRequest) {
             installs: 0,
             activeUsers: 0,
             rating: record.rating || { average: 0, count: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }, updatedAt: 0 },
+            changelog: normalizeChangelog(record.changelog),
             versionHistory: Array.isArray(record.versionHistory) ? record.versionHistory : [manifestCheck.manifest!.version],
             lastUpdated: now,
             createdAt: now,
             updatedAt: now,
         };
-        await adminDatabase.ref(`plugins/${id}`).set(merged);
+        await adminDatabase.ref(`plugins/${id}`).set(stripUndefined(merged));
         await writeAuditLog({ action: "plugin.created", actor: admin.uid, pluginId: id, detail: { status: merged.status } });
         return NextResponse.json({ success: true, record: merged });
     } catch (err) {
