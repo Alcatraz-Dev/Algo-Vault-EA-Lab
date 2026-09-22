@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Mirrors the local development Node version (verified passing for every
+  # canonical suite on Next.js 16.3.4).
+  NODE_VERSION: "26"
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Typecheck + lint + canonical regression suites. No secrets required.
+  # ---------------------------------------------------------------------------
+  validate:
+    name: Validate (tsc, lint, suites)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript typecheck
+        run: npx tsc --noEmit
+
+      - name: ESLint (full repo)
+        # Pre-existing lint debt (~297 errors) is accepted per the AlgoVault
+        # constitution §54.8 (zero NEW errors required). `continue-on-error`
+        # keeps CI usable while the count is still printed on every run; flip
+        # to hard-fail once the debt is cleared.
+        continue-on-error: true
+        run: npm run lint
+
+      - name: EA compiler suite
+        run: npm run test:ea
+
+      - name: Strategy Lab suite
+        run: node scripts/jiti-tsrun.mjs lib/strategy-lab/tests/run-tests.ts
+
+      - name: AI Signals suite
+        run: node scripts/jiti-tsrun.mjs lib/ai-signals/__tests__/run-ai-signals-tests.ts
+
+      - name: Risk suite
+        run: node scripts/jiti-tsrun.mjs lib/risk/tests/run-tests.ts
+
+      - name: Agents suite
+        run: node scripts/jiti-tsrun.mjs lib/agents/__tests__/run-agents-tests.ts
+
+      - name: Telegram signal parser/lifecycle suite
+        run: node scripts/jiti-tsrun.mjs features/telegram-signals/tests/run-tests.ts
+
+      - name: Chrome extension typecheck
+        working-directory: chrome-extension
+        run: |
+          npm ci
+          npm run typecheck
+
+  # ---------------------------------------------------------------------------
+  # Production build. Requires Firebase Admin env; the job is skipped on PRs
+  # from forks/repos where those secrets are not configured.
+  # ---------------------------------------------------------------------------
+  build:
+    name: Build (next build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Production build
+        if: env.FIREBASE_PROJECT_ID != ''
+        run: npm run build
+        env:
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_DATABASE_URL: ${{ secrets.NEXT_PUBLIC_FIREBASE_DATABASE_URL }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+          FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+          FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+
+      - name: Build skipped — Firebase secrets not configured
+        if: env.FIREBASE_PROJECT_ID == ''
+        run: echo "::warning::next build skipped: FIREBASE_PROJECT_ID secret is not configured in this repository."
