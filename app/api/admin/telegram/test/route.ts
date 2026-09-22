@@ -21,10 +21,10 @@ export async function POST(request: NextRequest) {
             success: true,
             testResult: result,
         });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[POST /api/admin/telegram/test]", err);
         return NextResponse.json(
-            { error: err?.message || "Internal server error" },
+            { error: err instanceof Error ? err.message : "Internal server error" },
             { status: 500 }
         );
     }

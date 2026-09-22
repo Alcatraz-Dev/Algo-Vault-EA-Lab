@@ -70,9 +70,9 @@ export async function GET(request: NextRequest) {
         const groupsObj = snap.val();
         const groups: SourceGroup[] = Object.values(groupsObj);
         return NextResponse.json({ success: true, groups });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[GET /api/admin/telegram/groups]", err);
-        return NextResponse.json({ error: err?.message || "Server error" }, { status: 500 });
+        return NextResponse.json({ error: err instanceof Error ? err.message : "Server error" }, { status: 500 });
     }
 }
 
@@ -106,9 +106,9 @@ export async function POST(request: NextRequest) {
         await adminDatabase.ref(`telegramGroups/${groupId}`).set(newGroup);
 
         return NextResponse.json({ success: true, group: newGroup });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[POST /api/admin/telegram/groups]", err);
-        return NextResponse.json({ error: err?.message || "Server error" }, { status: 500 });
+        return NextResponse.json({ error: err instanceof Error ? err.message : "Server error" }, { status: 500 });
     }
 }
 
@@ -142,9 +142,9 @@ export async function PUT(request: NextRequest) {
         await groupRef.set(updatedGroup);
 
         return NextResponse.json({ success: true, group: updatedGroup });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[PUT /api/admin/telegram/groups]", err);
-        return NextResponse.json({ error: err?.message || "Server error" }, { status: 500 });
+        return NextResponse.json({ error: err instanceof Error ? err.message : "Server error" }, { status: 500 });
     }
 }
 
@@ -165,8 +165,8 @@ export async function DELETE(request: NextRequest) {
         await adminDatabase.ref(`telegramGroups/${groupId}`).remove();
 
         return NextResponse.json({ success: true, message: "Group deleted successfully" });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[DELETE /api/admin/telegram/groups]", err);
-        return NextResponse.json({ error: err?.message || "Server error" }, { status: 500 });
+        return NextResponse.json({ error: err instanceof Error ? err.message : "Server error" }, { status: 500 });
     }
 }

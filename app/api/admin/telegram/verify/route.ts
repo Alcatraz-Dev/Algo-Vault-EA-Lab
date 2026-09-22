@@ -41,10 +41,10 @@ export async function POST(request: NextRequest) {
                 ? "Two-factor authentication required. Please submit 2FA password."
                 : "Telegram USER ACCOUNT successfully connected. Monitoring started.",
         });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[POST /api/admin/telegram/verify]", err);
         return NextResponse.json(
-            { error: err?.message || "Internal server error" },
+            { error: err instanceof Error ? err.message : "Internal server error" },
             { status: 500 }
         );
     }

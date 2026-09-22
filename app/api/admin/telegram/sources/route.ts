@@ -2,14 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
 import { adminDatabase } from "@/lib/firebase-admin";
 import { telegramUserClientManager } from "@/features/telegram-signals/connectors/telegram-client-manager";
-import { sanitizeForFirebase } from "@/features/telegram-signals/utils/firebase";
 import type { TelegramSource } from "@/features/telegram-signals/types";
 
 /**
  * Realtime Database rejects `undefined` values ("value argument contains undefined
  * in property ..."), so drop any undefined keys before writing.
  */
-function stripUndefined<T extends Record<string, any>>(obj: T): T {
+function stripUndefined<T extends object>(obj: T): T {
     return Object.fromEntries(
         Object.entries(obj).filter(([, value]) => value !== undefined)
     ) as T;
@@ -27,9 +26,9 @@ export async function GET(request: NextRequest) {
         const sources: TelegramSource[] = Object.values(sourcesObj);
 
         return NextResponse.json({ success: true, sources });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[GET /api/admin/telegram/sources]", err);
-        return NextResponse.json({ error: err?.message || "Server error" }, { status: 500 });
+        return NextResponse.json({ error: err instanceof Error ? err.message : "Server error" }, { status: 500 });
     }
 }
 
@@ -112,9 +111,9 @@ export async function POST(request: NextRequest) {
             source: sourceConfig,
             message: `Source '${name}' successfully configured and monitored.`,
         });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[POST /api/admin/telegram/sources]", err);
-        return NextResponse.json({ error: err?.message || "Server error" }, { status: 500 });
+        return NextResponse.json({ error: err instanceof Error ? err.message : "Server error" }, { status: 500 });
     }
 }
 
@@ -148,9 +147,9 @@ export async function PUT(request: NextRequest) {
         await sourceRef.set(updatedSource);
 
         return NextResponse.json({ success: true, source: updatedSource });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[PUT /api/admin/telegram/sources]", err);
-        return NextResponse.json({ error: err?.message || "Server error" }, { status: 500 });
+        return NextResponse.json({ error: err instanceof Error ? err.message : "Server error" }, { status: 500 });
     }
 }
 
@@ -171,8 +170,8 @@ export async function DELETE(request: NextRequest) {
         await adminDatabase.ref(`telegramSources/${sourceId}`).remove();
 
         return NextResponse.json({ success: true, message: "Source removed successfully" });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[DELETE /api/admin/telegram/sources]", err);
-        return NextResponse.json({ error: err?.message || "Server error" }, { status: 500 });
+        return NextResponse.json({ error: err instanceof Error ? err.message : "Server error" }, { status: 500 });
     }
 }

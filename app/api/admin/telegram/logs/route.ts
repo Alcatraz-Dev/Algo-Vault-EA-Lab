@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
 import { adminDatabase } from "@/lib/firebase-admin";
 
+interface TelegramLogEntry {
+    timestamp?: number;
+    [key: string]: unknown;
+}
+
 export async function GET(request: NextRequest) {
     try {
         const adminToken = await requireAdmin(request);
@@ -17,18 +22,18 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ success: true, logs: [] });
         }
 
-        const logsObj = snap.val();
-        const logs = Object.values(logsObj);
-        logs.sort((a: any, b: any) => (b.timestamp || 0) - (a.timestamp || 0));
+        const logsObj = snap.val() as Record<string, TelegramLogEntry> | null;
+        const logs = logsObj ? Object.values(logsObj) : [];
+        logs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
         return NextResponse.json({
             success: true,
             logs,
         });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[GET /api/admin/telegram/logs]", err);
         return NextResponse.json(
-            { error: err?.message || "Internal server error" },
+            { error: err instanceof Error ? err.message : "Internal server error" },
             { status: 500 }
         );
     }

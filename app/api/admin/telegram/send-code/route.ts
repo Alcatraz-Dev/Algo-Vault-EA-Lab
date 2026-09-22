@@ -44,10 +44,10 @@ export async function POST(request: NextRequest) {
                 ? "Verification code sent to your Telegram app notification"
                 : "Verification code sent via SMS",
         });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[POST /api/admin/telegram/send-code]", err);
         return NextResponse.json(
-            { error: err?.message || "Internal server error" },
+            { error: err instanceof Error ? err.message : "Internal server error" },
             { status: 500 }
         );
     }

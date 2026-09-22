@@ -24,10 +24,10 @@ export async function GET(request: NextRequest) {
             success: true,
             channels: result.channels || [],
         });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[GET /api/admin/telegram/channels]", err);
         return NextResponse.json(
-            { error: err?.message || "Internal server error" },
+            { error: err instanceof Error ? err.message : "Internal server error" },
             { status: 500 }
         );
     }

@@ -24,10 +24,10 @@ export async function POST(request: NextRequest) {
             success: true,
             message: "Telegram USER ACCOUNT disconnected successfully.",
         });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[POST /api/admin/telegram/disconnect]", err);
         return NextResponse.json(
-            { error: err?.message || "Internal server error" },
+            { error: err instanceof Error ? err.message : "Internal server error" },
             { status: 500 }
         );
     }

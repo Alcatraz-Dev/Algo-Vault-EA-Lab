@@ -24,10 +24,10 @@ export async function POST(request: NextRequest) {
             success: true,
             message: "QR login started. Scan the QR code with the Telegram app of the signal account.",
         });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[POST /api/admin/telegram/qr/start]", err);
         return NextResponse.json(
-            { error: err?.message || "Internal server error" },
+            { error: err instanceof Error ? err.message : "Internal server error" },
             { status: 500 }
         );
     }
