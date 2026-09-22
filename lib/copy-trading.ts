@@ -1,5 +1,6 @@
 import { adminDatabase } from "@/lib/firebase-admin";
 import { notifyUser } from "@/lib/notifications";
+import { newClientOrderId } from "@/lib/gateway";
 
 export type CopyConfigRec = {
     ownerUid: string;
@@ -354,7 +355,7 @@ export async function mirrorMasterOrder(params: {
                 : "BUY"
             : rawType;
 
-        const newTicket = String(Math.floor(10000000 + Math.random() * 90000000));
+        const newTicket = newClientOrderId("copy");
         const copyNow = Date.now();
 
         const mirrored: Record<string, unknown> = {
@@ -489,7 +490,7 @@ export async function mirrorMasterClose(params: {
             }
             if (alreadyQueued) continue;
 
-            const closeTicket = String(Math.floor(10000000 + Math.random() * 90000000));
+            const closeTicket = newClientOrderId("clx");
             const closeOrder: Record<string, unknown> = {
                 ticket: closeTicket,
                 action: "CLOSE",

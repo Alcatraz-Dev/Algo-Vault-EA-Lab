@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDatabase } from "@/lib/firebase-admin";
+import { newClientOrderId } from "@/lib/gateway";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        const ticket = String(Math.floor(10000000 + Math.random() * 90000000));
+        const ticket = newClientOrderId("ord");
         const now = Date.now();
         const primaryAccountId = resolvedProductId ? `${resolvedProductId}_${mt5Account}` : `live_${mt5Account}`;
         const fallbackAccountId = `live_${mt5Account}`;
@@ -104,7 +105,7 @@ export async function POST(request: NextRequest) {
                 accountId: primaryAccountId,
                 mt5Account,
                 position: newPosition,
-                message: `Trade order #${ticket} for ${symbol} (${direction}) submitted to MT5 Account ${mt5Account}`,
+                message: `Order ${ticket} (${symbol} ${direction}) submitted to gateway for MT5 Account ${mt5Account} — awaiting execution`,
             },
             { status: 200, headers: corsHeaders }
         );

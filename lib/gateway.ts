@@ -121,3 +121,18 @@ export async function hasActiveTradingLicense(userId: string): Promise<boolean> 
 
     return false;
 }
+
+/**
+ * Generates a CLIENT order ID used to bridge pending orders to the MQL5
+ * gateway (DB keys under mt5_orders/, live_positions/, trading_order_requests/).
+ *
+ * This is deliberately NOT an MT5 broker ticket: the real ticket number is
+ * minted by the AlgoVaultTradeGateway EA when the order fills and arrives back
+ * through gateway state updates. Fabricating 8-digit "tickets" here would fake
+ * execution state, which is forbidden. The prefix keeps provenance clear and
+ * the timestamp + random suffix keeps keys collision-safe in RTDB paths.
+ */
+export function newClientOrderId(prefix: string): string {
+    const rand = Math.random().toString(36).slice(2, 10).toLowerCase();
+    return `${prefix}_${Date.now().toString(36)}_${rand}`;
+}

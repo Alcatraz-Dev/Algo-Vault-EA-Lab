@@ -5,7 +5,7 @@
  */
 
 import { adminDatabase } from "@/lib/firebase-admin";
-import { getGatewayTokenForUser, hasActiveTradingLicense } from "@/lib/gateway";
+import { newClientOrderId, getGatewayTokenForUser, hasActiveTradingLicense } from "@/lib/gateway";
 import type { ProSignal } from "../types";
 
 export interface ExecutionRequest {
@@ -41,7 +41,7 @@ export async function dispatchProSignalToGateway(
             };
         }
 
-        const ticket = String(Math.floor(10000000 + Math.random() * 90000000));
+        const ticket = newClientOrderId("sig");
         const now = Date.now();
         const tp1Price = signal.takeProfits.find((t) => t.type === "PRICE")?.price || null;
 
