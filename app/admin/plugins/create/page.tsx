@@ -54,7 +54,9 @@ export default function AdminCreatePluginPage() {
     // Support "/admin/plugins/create?type=extension" so the Extensions page can deep-link here.
     useEffect(() => {
         const queryType = new URLSearchParams(window.location.search).get("type");
-        if (queryType === "extension") setType("extension");
+        if (queryType === "extension") {
+            void Promise.resolve().then(() => setType("extension"));
+        }
     }, []);
 
     const togglePermission = (permission: PluginPermission) => {

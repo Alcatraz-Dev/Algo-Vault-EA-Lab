@@ -133,7 +133,7 @@ export default function AdminPluginDetailPage() {
     }, [id]);
 
     useEffect(() => {
-        load();
+        void Promise.resolve().then(() => load());
     }, [load]);
 
     const tell = (message: string, tone: "ok" | "error" = "ok") => {

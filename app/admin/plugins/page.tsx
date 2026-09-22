@@ -72,7 +72,7 @@ export default function AdminPluginsPage() {
     }, []);
 
     useEffect(() => {
-        load();
+        void Promise.resolve().then(() => load());
     }, [load]);
 
     async function deleteRecord(record: PluginRecord) {

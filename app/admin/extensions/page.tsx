@@ -39,7 +39,7 @@ export default function AdminExtensionsPage() {
     }, []);
 
     useEffect(() => {
-        load();
+        void Promise.resolve().then(() => load());
     }, [load]);
 
     async function deleteExtension(ext: PluginRecord) {

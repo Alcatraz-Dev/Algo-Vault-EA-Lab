@@ -127,6 +127,21 @@ export default function AdminUserDetailsPage() {
     const [success, setSuccess] =
         useState("");
 
+    const [now, setNow] =
+        useState(0);
+
+    useEffect(() => {
+        void Promise.resolve().then(() => setNow(Date.now()));
+
+        const clockInterval =
+            setInterval(() => {
+                setNow(Date.now());
+            }, 60000);
+
+        return () =>
+            clearInterval(clockInterval);
+    }, []);
+
     async function loadUser(
         refresh = false
     ) {
@@ -780,7 +795,7 @@ export default function AdminUserDetailsPage() {
                                             const expired =
                                                 license.expiresAt &&
                                                 license.expiresAt <
-                                                Date.now();
+                                                now;
 
                                             const active =
                                                 license.status ===

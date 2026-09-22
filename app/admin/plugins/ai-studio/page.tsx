@@ -87,7 +87,7 @@ export default function AdminAiStudioPage() {
     }, []);
 
     useEffect(() => {
-        loadJobs();
+        void Promise.resolve().then(() => loadJobs());
     }, [loadJobs]);
 
     async function generate() {

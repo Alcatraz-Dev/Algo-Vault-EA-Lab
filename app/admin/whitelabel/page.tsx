@@ -53,7 +53,7 @@ export default function WhiteLabelPage() {
         } catch {} finally { setLoading(false); }
     }, [user]);
 
-    useEffect(() => { if (user) fetchConfig(); }, [user, fetchConfig]);
+    useEffect(() => { if (user) void Promise.resolve().then(() => fetchConfig()); }, [user, fetchConfig]);
 
     const saveConfig = async () => {
         if (!user) return;

@@ -23,11 +23,11 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { onValue, ref } from "firebase/database";
 import { database } from "@/lib/firebase";
 import { useEffect } from "react";
-import { PluginRecord, PluginStatus, PluginExtensionType, PluginPermission } from "@/lib/plugins/types";
+import { PluginRecord, PluginStatus, PluginExtensionType, PluginPermission, ExtensionRecord } from "@/lib/plugins/types";
 import { EXTENSION_TYPE_LABELS } from "@/lib/plugins/ui";
 
 export default function AdminExtensionsPage() {
-    const [extensions, setExtensions] = useState<PluginRecord[]>([]);
+    const [extensions, setExtensions] = useState<ExtensionRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -39,7 +39,7 @@ export default function AdminExtensionsPage() {
         const unsubscribe = onValue(
             pluginsRef,
             (snapshot) => {
-                const data = snapshot.val() as Record<string, PluginRecord> | null;
+                const data = snapshot.val() as Record<string, ExtensionRecord> | null;
                 if (!data) {
                     setExtensions([]);
                     setLoading(false);
@@ -62,11 +62,11 @@ export default function AdminExtensionsPage() {
             p.description?.toLowerCase().includes(search.toLowerCase()) ||
             p.id?.toLowerCase().includes(search.toLowerCase());
         const matchesStatus = filterStatus === "all" || p.status === filterStatus;
-        const matchesType = filterType === "all" || (p as any).extensionType === filterType;
+        const matchesType = filterType === "all" || p.extensionType === filterType;
         return matchesSearch && matchesStatus && matchesType;
     });
 
-    const extensionTypes = [...new Set(extensions.map((p) => (p as any).extensionType).filter(Boolean))] as PluginExtensionType[];
+    const extensionTypes = [...new Set(extensions.map((p) => p.extensionType).filter(Boolean))] as PluginExtensionType[];
 
     return (
         <AdminShell
@@ -140,12 +140,12 @@ function ExtensionCard({
     isExpanded,
     onToggle,
 }: {
-    extension: PluginRecord;
+    extension: ExtensionRecord;
     isExpanded: boolean;
     onToggle: () => void;
 }) {
-    const extType = (extension as any).extensionType;
-    const endpoints = (extension as any).endpoints || [];
+    const extType = extension.extensionType;
+    const endpoints = extension.endpoints || [];
 
     return (
         <div className="rounded-2xl border border-border/30 bg-muted/50 overflow-hidden transition hover:border-border/50">

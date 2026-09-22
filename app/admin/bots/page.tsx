@@ -77,6 +77,10 @@ type BrandingType =
     | "logo"
     | "banner";
 
+function currentTimestamp() {
+    return Date.now();
+}
+
 export default function AdminBotsPage() {
     const [bots, setBots] = useState<BotItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -157,9 +161,9 @@ export default function AdminBotsPage() {
         }
     }
 
-    async function toggleStatus(
+    const toggleStatus = async (
         bot: BotItem
-    ) {
+    ) => {
         const newStatus =
             bot.status === "published"
                 ? "draft"
@@ -174,7 +178,7 @@ export default function AdminBotsPage() {
                 {
                     status: newStatus,
                     updatedAt:
-                        Date.now(),
+                        currentTimestamp(),
                 }
             );
         } catch (error) {

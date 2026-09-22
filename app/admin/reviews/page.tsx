@@ -109,15 +109,16 @@ export default function AdminReviewsPage() {
                     rejected: 0,
                 }
             );
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(
                 "ADMIN REVIEWS LOAD ERROR:",
                 err
             );
 
             setError(
-                err?.message ||
-                "Unable to load reviews."
+                err instanceof Error
+                    ? err.message
+                    : "Unable to load reviews."
             );
         } finally {
             setLoading(false);
@@ -171,10 +172,11 @@ export default function AdminReviewsPage() {
             }
 
             await loadReviews();
-        } catch (err: any) {
+        } catch (err: unknown) {
             setError(
-                err?.message ||
-                "Unable to update review."
+                err instanceof Error
+                    ? err.message
+                    : "Unable to update review."
             );
         } finally {
             setActionId(null);
@@ -216,10 +218,11 @@ export default function AdminReviewsPage() {
             }
 
             await loadReviews();
-        } catch (err: any) {
+        } catch (err: unknown) {
             setError(
-                err?.message ||
-                "Unable to delete review."
+                err instanceof Error
+                    ? err.message
+                    : "Unable to delete review."
             );
         } finally {
             setActionId(null);

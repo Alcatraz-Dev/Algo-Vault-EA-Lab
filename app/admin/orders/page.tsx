@@ -213,7 +213,7 @@ export default function AdminOrdersPage() {
             return;
         }
 
-        loadOrders();
+        void Promise.resolve().then(() => loadOrders());
     }, [
         currentUser,
         loadOrders,

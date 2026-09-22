@@ -232,14 +232,6 @@ export default function EditBotPage() {
         return () => unsubscribe();
     }, []);
 
-    useEffect(() => {
-        if (!productId) {
-            return;
-        }
-
-        loadProduct();
-    }, [productId]);
-
     async function loadProduct() {
         try {
             setLoading(true);
@@ -429,6 +421,14 @@ export default function EditBotPage() {
         }
     }
 
+    useEffect(() => {
+        if (!productId) {
+            return;
+        }
+
+        void Promise.resolve().then(() => loadProduct());
+    }, [productId]);
+
     function updateField(
         field: string,
         value: string | boolean
@@ -606,15 +606,16 @@ export default function EditBotPage() {
                 currentVersion:
                     data.currentVersion,
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(
                 "REPLACE PRODUCT FILE ERROR:",
                 error
             );
 
             alert(
-                error?.message ||
-                "Failed to replace product file."
+                error instanceof Error
+                    ? error.message
+                    : "Failed to replace product file."
             );
 
             return {
@@ -785,7 +786,8 @@ export default function EditBotPage() {
             const text =
                 await response.text();
 
-            let data: any;
+            let data:
+                Partial<Record<string, unknown>> | null;
 
             try {
                 data = JSON.parse(text);
@@ -802,21 +804,23 @@ export default function EditBotPage() {
 
             if (!response.ok) {
                 throw new Error(
-                    data?.error ||
-                    "Branding upload failed."
+                    typeof data?.error === "string"
+                        ? data.error
+                        : "Branding upload failed."
                 );
             }
 
             return true;
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(
                 `UPLOAD ${type.toUpperCase()} ERROR:`,
                 error
             );
 
             alert(
-                error?.message ||
-                `Failed to upload ${type}.`
+                error instanceof Error
+                    ? error.message
+                    : `Failed to upload ${type}.`
             );
 
             return false;

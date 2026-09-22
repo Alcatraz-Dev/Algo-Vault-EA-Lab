@@ -25,7 +25,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { onValue, ref } from "firebase/database";
 import { database } from "@/lib/firebase";
 import { useEffect } from "react";
-import { PluginRecord, PluginStatus, PluginCategory } from "@/lib/plugins/types";
+import { PluginRecord, PluginStatus, PluginCategory, ExtensionRecord } from "@/lib/plugins/types";
 import { CATEGORIES, CATEGORY_LABELS, formatPrice, grantedPermissions, pluginStatusTone } from "@/lib/plugins/ui";
 
 export default function AdminPluginsPage() {
@@ -156,7 +156,7 @@ function PluginCard({
     const perms = grantedPermissions(plugin.permissions);
     const isFree = plugin.pricing?.type === "free";
     const isExtension = plugin.type === "extension";
-    const extType = (plugin as any).extensionType;
+    const extType = (plugin as ExtensionRecord).extensionType;
 
     return (
         <div className="rounded-2xl border border-border/30 bg-muted/50 overflow-hidden transition hover:border-border/50">
