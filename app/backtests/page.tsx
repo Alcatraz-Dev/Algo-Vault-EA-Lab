@@ -96,6 +96,48 @@ type License = {
     mt5Account?: string | number;
 };
 
+type EquityPoint = {
+    timestamp: number;
+    balance?: number;
+    equity?: number;
+    drawdown?: number;
+};
+
+type LiveTrade = {
+    ticket?: number | string;
+    symbol?: string;
+    type?: string;
+    volume?: number | string;
+    openPrice?: number | string;
+    closePrice?: number | string;
+    profit?: number | string;
+    netProfit?: number | string;
+    openedAt?: number | string;
+    closedAt?: number | string;
+    createdAt?: number | string;
+};
+
+type LiveStats = {
+    winRate?: number;
+    profitFactor?: number;
+    totalTrades?: number;
+    winningTrades?: number;
+    losingTrades?: number;
+    netProfit?: number;
+    totalProfit?: number;
+};
+
+type LiveAccount = {
+    balance?: number | string;
+    drawdown?: number | string;
+};
+
+type LiveData = {
+    trades?: LiveTrade[];
+    stats?: LiveStats;
+    account?: LiveAccount;
+};
+
 type ViewMode = "myfxbook" | "mt5" | "trades" | "comparison";
 type ChartType = "equity" | "drawdown" | "weekday" | "session";
 
@@ -112,11 +154,11 @@ export default function BacktestsPage() {
     const [chartType, setChartType] = useState<ChartType>("equity");
     const [dateRange, setDateRange] = useState<"1D" | "1W" | "1M" | "3M" | "1Y" | "All">("1D");
 
-    const [liveData, setLiveData] = useState<any>(null);
-    const [equityPoints, setEquityPoints] = useState<any[]>([]);
+    const [liveData, setLiveData] = useState<LiveData | null>(null);
+    const [equityPoints, setEquityPoints] = useState<EquityPoint[]>([]);
     const [loadingLive, setLoadingLive] = useState(false);
 
-    function filterEquityByRange(data: any[], range: "1D" | "1W" | "1M" | "3M" | "1Y" | "All") {
+    function filterEquityByRange(data: EquityPoint[], range: "1D" | "1W" | "1M" | "3M" | "1Y" | "All") {
         if (range === "All" || !data || data.length === 0) return data;
         const msMap: Record<string, number> = {
             "1D": 24 * 60 * 60 * 1000,
@@ -126,7 +168,7 @@ export default function BacktestsPage() {
             "1Y": 365 * 24 * 60 * 60 * 1000,
         };
         const cutoff = Date.now() - msMap[range];
-        return data.filter((pt: any) => pt.timestamp >= cutoff);
+        return data.filter((pt) => pt.timestamp >= cutoff);
     }
 
     // 1. Auth state listener
@@ -142,13 +184,13 @@ export default function BacktestsPage() {
     useEffect(() => {
         const productsRef = ref(database, "bots");
         const unsubscribe = onValue(productsRef, (snapshot) => {
-            const data = snapshot.val() || {};
-            const list: Product[] = Object.entries(data)
+            const raw = (snapshot.val() || {}) as Record<string, Product>;
+            const list: Product[] = Object.entries(raw)
                 .map(([id, value]) => ({
+                    ...value,
                     id,
-                    ...(value as any),
                 }))
-                .filter((p: any) => p.status === "published");
+                .filter((p) => p.status === "published");
 
             setProducts(list);
             if (list.length > 0 && !selectedProductId) {
@@ -162,16 +204,16 @@ export default function BacktestsPage() {
     // 3. Load user licenses if logged in
     useEffect(() => {
         if (!user) {
-            setLicenses([]);
+            void Promise.resolve().then(() => setLicenses([]));
             return;
         }
 
         const licensesRef = ref(database, `licenses/${user.uid}`);
         const unsubscribe = onValue(licensesRef, (snapshot) => {
-            const data = snapshot.val() || {};
-            const list: License[] = Object.entries(data).map(([id, val]) => ({
+            const raw = (snapshot.val() || {}) as Record<string, License>;
+            const list: License[] = Object.entries(raw).map(([id, val]) => ({
                 id,
-                ...(val as any),
+                ...val,
             }));
             setLicenses(list);
         });
@@ -186,7 +228,7 @@ export default function BacktestsPage() {
     // Fetch real bot logo when selected product changes
     useEffect(() => {
         if (!selectedProduct?.id) {
-            setBotLogo(null);
+            void Promise.resolve().then(() => setBotLogo(null));
             return;
         }
 
@@ -231,8 +273,10 @@ export default function BacktestsPage() {
     // 4. Fetch Live MT5 account performance & equity history
     useEffect(() => {
         if (!selectedProduct || !matchingLicense?.licenseKey) {
-            setLiveData(null);
-            setEquityPoints([]);
+            void Promise.resolve().then(() => {
+                setLiveData(null);
+                setEquityPoints([]);
+            });
             return;
         }
 
@@ -284,7 +328,7 @@ export default function BacktestsPage() {
     // Real or derived backtest equity curve
     const equityCurve = useMemo(() => {
         if (equityPoints && equityPoints.length > 0) {
-            return equityPoints.map((pt: any, idx: number) => ({
+            return equityPoints.map((pt, idx) => ({
                 point: idx,
                 date: new Date(pt.timestamp).toLocaleDateString("en-US", {
                     month: "short",
@@ -838,7 +882,7 @@ export default function BacktestsPage() {
                                                     borderRadius: "12px",
                                                     color: "#fff",
                                                 }}
-                                                formatter={(val: any) => [`$${val}`, "Equity"]}
+                                                formatter={(val) => [`$${val}`, "Equity"]}
                                             />
                                             <Area
                                                 type="monotone"
@@ -861,7 +905,7 @@ export default function BacktestsPage() {
                                                     borderRadius: "12px",
                                                     color: "#fff",
                                                 }}
-                                                formatter={(val: any) => [`-${val}%`, "Drawdown"]}
+                                                formatter={(val) => [`-${val}%`, "Drawdown"]}
                                             />
                                             <Bar dataKey="drawdown" fill="#ef4444" radius={[4, 4, 0, 0]} />
                                         </BarChart>
@@ -877,7 +921,7 @@ export default function BacktestsPage() {
                                                     borderRadius: "12px",
                                                     color: "#fff",
                                                 }}
-                                                formatter={(val: any) => [`$${val}`, "Net Profit"]}
+                                                formatter={(val) => [`$${val}`, "Net Profit"]}
                                             />
                                             <Bar dataKey="profit" fill="#10b981" radius={[6, 6, 0, 0]}>
                                                 {weekdayData.map((entry, index) => (
@@ -897,7 +941,7 @@ export default function BacktestsPage() {
                                                     borderRadius: "12px",
                                                     color: "#fff",
                                                 }}
-                                                formatter={(val: any) => [`$${val}`, "Net Profit"]}
+                                                formatter={(val) => [`$${val}`, "Net Profit"]}
                                             />
                                             <Bar dataKey="profit" fill="#3b82f6" radius={[6, 6, 0, 0]} />
                                         </BarChart>
@@ -1226,7 +1270,7 @@ export default function BacktestsPage() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
-                                        {liveData.trades.map((t: any, idx: number) => {
+                                        {liveData.trades.map((t, idx) => {
                                             const isWin = Number(t.netProfit || t.profit || 0) >= 0;
                                             return (
                                                 <tr key={t.ticket || idx} className="hover:bg-muted/50">
@@ -1341,7 +1385,7 @@ export default function BacktestsPage() {
                                                 {liveData?.account?.drawdown != null ? `${liveData.account.drawdown}%` : "—"}
                                             </td>
                                             <td className="py-3.5 px-4 text-xs font-semibold text-emerald-400">
-                                                {liveData?.account?.drawdown != null && selectedProduct?.risk?.maxDrawdown ? (liveData.account.drawdown <= Number(selectedProduct.risk.maxDrawdown) ? "Within Risk Limits" : "Higher Risk") : "—"}
+                                                {liveData?.account?.drawdown != null && selectedProduct?.risk?.maxDrawdown ? (Number(liveData.account.drawdown) <= Number(selectedProduct.risk.maxDrawdown) ? "Within Risk Limits" : "Higher Risk") : "—"}
                                             </td>
                                         </tr>
 

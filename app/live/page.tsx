@@ -22,6 +22,8 @@ import {
     Wallet,
 } from "lucide-react";
 
+import type { LucideIcon } from "lucide-react";
+
 import {
     onAuthStateChanged,
     User,
@@ -68,6 +70,7 @@ type Product = {
     platform?: string;
     symbol?: string;
     description?: string;
+    status?: string;
     performance?: {
         profit?: number | string;
         winRate?: number | string;
@@ -257,7 +260,7 @@ function StatCard({
 }: {
     title: string;
     value: string;
-    icon: any;
+    icon: LucideIcon;
     description?: string;
 }) {
     return (
@@ -351,6 +354,24 @@ export default function LivePerformancePage() {
         useState<"1D" | "1W" | "1M" | "3M" | "1Y" | "All">("1D");
 
     /*
+     * CLOCK
+     */
+    const [nowTimestamp, setNowTimestamp] =
+        useState(0);
+
+    useEffect(() => {
+        void Promise.resolve().then(() => setNowTimestamp(Date.now()));
+
+        const clockInterval =
+            setInterval(() => {
+                setNowTimestamp(Date.now());
+            }, 60000);
+
+        return () =>
+            clearInterval(clockInterval);
+    }, []);
+
+    /*
      * AUTH
      */
     useEffect(() => {
@@ -370,12 +391,14 @@ export default function LivePerformancePage() {
      */
     useEffect(() => {
         if (!user) {
-            setLicenses([]);
-            setProducts([]);
-            setOpenPositions([]);
-            setPerformance(null);
-            setEquity([]);
-            setLoading(false);
+            void Promise.resolve().then(() => {
+                setLicenses([]);
+                setProducts([]);
+                setOpenPositions([]);
+                setPerformance(null);
+                setEquity([]);
+                setLoading(false);
+            });
             return;
         }
 
@@ -403,24 +426,22 @@ export default function LivePerformancePage() {
                     "bots"
                 ),
                 (snapshot) => {
-                    const data =
-                        snapshot.val() || {};
+                    const raw =
+                        (snapshot.val() || {}) as Record<string, Product>;
 
                     const list: Product[] =
-                        Object.entries(data)
+                        Object.entries(raw)
                             .map(
                                 ([
                                     id,
                                     value,
                                 ]) => ({
+                                    ...value,
                                     id,
-                                    ...(value as any),
                                 })
                             )
                             .filter(
-                                (
-                                    product: any
-                                ) =>
+                                (product) =>
                                     product.status ===
                                     "published"
                             );
@@ -447,9 +468,9 @@ export default function LivePerformancePage() {
                     Number(
                         license.expiresAt ||
                         0
-                    ) > Date.now()
+                    ) > nowTimestamp
             ),
-        [licenses]
+        [licenses, nowTimestamp]
     );
 
     /*
@@ -653,15 +674,16 @@ export default function LivePerformancePage() {
                 console.warn("[LIVE] Open positions fetch non-critical error:", posErr);
                 setOpenPositions([]);
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(
                 "LIVE PERFORMANCE ERROR:",
                 err
             );
 
             setError(
-                err?.message ||
-                "Unable to load live performance."
+                err instanceof Error
+                    ? err.message
+                    : "Unable to load live performance."
             );
         } finally {
             setLoading(false);
@@ -673,7 +695,7 @@ export default function LivePerformancePage() {
      * AUTO REFRESH
      */
     useEffect(() => {
-        loadPerformance();
+        void Promise.resolve().then(() => loadPerformance());
 
         const interval =
             setInterval(() => {
@@ -1321,7 +1343,7 @@ export default function LivePerformancePage() {
                                                                         "#a1a1aa",
                                                                 }}
                                                                 formatter={(
-                                                                    value: any
+                                                                    value
                                                                 ) =>
                                                                     formatMoney(
                                                                         Number(
@@ -1382,7 +1404,7 @@ export default function LivePerformancePage() {
                                                                         innerRadius={60}
                                                                         outerRadius={100}
                                                                         dataKey="value"
-                                                                        label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(1)}%`}
+                                                                        label={({ name, percent }) => `${String(name ?? "")} ${((percent ?? 0) * 100).toFixed(1)}%`}
                                                                         labelLine={false}
                                                                     >
                                                                         <Cell fill="#22c55e" />
@@ -1403,7 +1425,7 @@ export default function LivePerformancePage() {
                                                                             borderRadius: "12px",
                                                                             color: "#fff",
                                                                         }}
-                                                                        formatter={(value: any) => [String(value), "Trades"]}
+                                                                        formatter={(value) => [String(value), "Trades"]}
                                                                     />
                                                                 </PieChart>
                                                             </ResponsiveContainer>
