@@ -1,32 +1,61 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import AccountShell from "@/components/account/AccountShell";
 import { RefreshCw, Loader2, AlertTriangle, Shield, Activity, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+interface PositionRow {
+    symbol: string;
+    type: string;
+    volume: number;
+    currentPrice: number;
+    sl: number;
+    profit: number;
+    risk: number;
+}
+
+interface CorrelationGroup {
+    group: string;
+    symbols: string[];
+    totalVolume: number;
+    netVolume: number;
+    concentration: number;
+}
+
+interface CorrelationResponse {
+    success: boolean;
+    warning?: string;
+    positions: PositionRow[];
+    correlations: CorrelationGroup[];
+    portfolio: { totalPositions: number; totalRisk: number };
+}
+
 export default function CorrelationPage() {
     const [user, setUser] = useState<User | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<CorrelationResponse | null>(null);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => { const unsub = onAuthStateChanged(auth, (u) => { setUser(u); setAuthLoading(false); }); return () => unsub(); }, []);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         if (!user) return;
         setLoading(true);
         try {
             const token = await user.getIdToken();
             const res = await fetch("/api/correlation", { headers: { Authorization: `Bearer ${token}` } });
-            const d = await res.json();
+            const d = (await res.json()) as CorrelationResponse;
             if (d.success) setData(d);
         } catch {}
         finally { setLoading(false); }
-    };
+    }, [user]);
 
-    useEffect(() => { if (!authLoading && user) fetchData(); }, [authLoading, user]);
+    useEffect(() => {
+        if (authLoading || !user) return;
+        void Promise.resolve().then(() => fetchData());
+    }, [authLoading, user, fetchData]);
 
     if (authLoading) return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Correlation & Exposure"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div></AccountShell></div>);
     if (!user) return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Correlation & Exposure"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1></div></AccountShell></div>);
@@ -56,7 +85,7 @@ export default function CorrelationPage() {
                         <div className="rounded-xl border border-border/30 bg-muted/50 p-5">
                             <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><TrendingUp size={16} className="text-violet-400" />Correlated Groups</h3>
                             <div className="space-y-3">
-                                {data.correlations.map((c: any, i: number) => (
+                                {data.correlations.map((c, i) => (
                                     <div key={i} className={cn("rounded-lg border p-3", c.concentration > 70 ? "border-rose-500/20 bg-rose-500/[0.03]" : c.concentration > 40 ? "border-amber-500/20 bg-amber-500/[0.03]" : "border-emerald-500/20 bg-emerald-500/[0.03]")}>
                                         <div className="flex items-center justify-between">
                                             <span className="font-mono text-sm font-bold text-foreground">{c.group.replace(/_/g, " ").toUpperCase()}</span>
@@ -90,7 +119,7 @@ export default function CorrelationPage() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {data.positions.map((p: any, i: number) => (
+                                        {data.positions.map((p, i) => (
                                             <tr key={i} className="border-b border-border/10">
                                                 <td className="px-4 py-2.5 font-mono font-medium text-foreground">{p.symbol}</td>
                                                 <td className={cn("px-4 py-2.5 font-medium", p.type === "BUY" ? "text-emerald-400" : "text-rose-400")}>{p.type}</td>

@@ -5,6 +5,23 @@ import { adminDatabase } from "@/lib/firebase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+interface PositionRecord {
+    symbol?: unknown;
+    type?: unknown;
+    volume?: unknown;
+    currentPrice?: unknown;
+    sl?: unknown;
+    profit?: unknown;
+}
+
+interface CorrelationGroup {
+    group: string;
+    symbols: string[];
+    totalVolume: number;
+    netVolume: number;
+    concentration: number;
+}
+
 export async function GET(request: NextRequest) {
     try {
         const user = await authenticate(request);
@@ -13,18 +30,23 @@ export async function GET(request: NextRequest) {
         const accountId = request.nextUrl.searchParams.get("accountId") || "default";
         const positionSnap = await adminDatabase.ref(`trading_positions/${user.uid}/${accountId}`).get();
         const positions = positionSnap.exists() ? positionSnap.val() : {};
-        const positionList = Object.values(positions).map((p: any) => ({
-            symbol: p.symbol, type: p.type, volume: Number(p.volume || 0),
-            currentPrice: Number(p.currentPrice || 0), sl: Number(p.sl || 0), profit: Number(p.profit || 0),
-        })).filter((p: any) => p.symbol && p.volume > 0);
+        const positionList = Object.values(positions as Record<string, PositionRecord>).map((p) => ({
+            symbol: String(p.symbol || ""),
+            type: String(p.type || ""),
+            volume: Number(p.volume || 0),
+            currentPrice: Number(p.currentPrice || 0),
+            sl: Number(p.sl || 0),
+            profit: Number(p.profit || 0),
+            risk: Math.round(Math.abs(Number(p.currentPrice || 0) - Number(p.sl || 0)) * Number(p.volume || 0) * 100) / 100,
+        })).filter((p) => p.symbol && p.volume > 0);
 
         const SYMBOL_GROUPS: Record<string, string[]> = {
             precious_metals: ["XAUUSD", "XAGUSD"], major_forex: ["EURUSD", "GBPUSD", "USDJPY"],
             indices: ["US30", "NAS100"], crypto: ["BTCUSD", "ETHUSD"],
         };
-        const correlations: any[] = [];
+        const correlations: CorrelationGroup[] = [];
         for (const [group, gs] of Object.entries(SYMBOL_GROUPS)) {
-            const gp = positionList.filter((p: any) => gs.includes(p.symbol));
+            const gp = positionList.filter((p) => gs.includes(p.symbol));
             if (gp.length >= 2) {
                 const tv = gp.reduce((s, p) => s + p.volume, 0);
                 const bv = gp.filter((p) => p.type === "BUY").reduce((s, p) => s + p.volume, 0);
