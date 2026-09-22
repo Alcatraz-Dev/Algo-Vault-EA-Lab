@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
-import ThemeInit from "@/components/theme/theme-init";
+import { THEME_INIT_ID, THEME_INIT_SCRIPT } from "@/components/theme/theme-init";
 import GuideHost from "@/components/guides/GuideHost";
 
 const geistSans = Geist({
@@ -27,7 +28,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <head>
-        <ThemeInit />
+        <Script
+          id={THEME_INIT_ID}
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }}
+        />
       </head>
       <body className="min-h-full flex flex-col">
         {children}

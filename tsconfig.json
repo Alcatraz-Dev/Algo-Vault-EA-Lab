@@ -30,5 +30,12 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    // chrome-extension is a self-contained Vite project with its own tsconfig
+    // (`@/*` → `src/*`) and its own typecheck/build. Excluding it keeps the
+    // root Next.js typecheck from resolving its aliases as if they lived at
+    // the repo root. Verify with: cd chrome-extension && npm run typecheck.
+    "chrome-extension"
+  ]
 }
