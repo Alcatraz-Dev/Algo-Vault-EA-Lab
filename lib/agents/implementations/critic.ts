@@ -35,7 +35,7 @@ export async function criticAgent(
     const missing: string[] = [];
     const riskFlags: string[] = [];
 
-    let baselineConfidence = 0.7;
+    const baselineConfidence = 0.7;
     let confidenceAdjustment = 0;
 
     const priorEvId = addEvidence(evidence, dataUsed, {

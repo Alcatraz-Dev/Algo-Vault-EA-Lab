@@ -487,3 +487,14 @@ export type AgentAuditLog = {
     detail: Record<string, unknown>;
     createdAt: number;
 };
+
+export type PermissionSet = Partial<Record<AgentPermission, boolean>>;
+
+export type OrchestratorInput = {
+    workflowId: string;
+    workflowVersion?: string;
+    context: Partial<WorkflowContext>;
+    permissions?: PermissionSet;
+    testOnly?: boolean;
+    timeoutMs?: number;
+};

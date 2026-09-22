@@ -1,0 +1,8 @@
+{
+  "database": [
+    {
+      "instance": "algovault-4c564-default-rtdb",
+      "rules": "database.rules.json"
+    }
+  ]
+}

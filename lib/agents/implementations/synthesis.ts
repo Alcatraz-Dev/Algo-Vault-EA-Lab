@@ -114,7 +114,7 @@ export async function synthesizer(
                     : `Conditions are worth reviewing (evidence: ${evidenceStrength}).`;
 
     const titleParts = [snap?.symbol || "Market"];
-    const title = `🧠 AlgoVault Intelligence — ${titleParts[0]} ${snap?.timeframe || ""}`.trim();
+    const title = `🧠 AlgoVault Intelligence — ${titleParts[0]} ${snap?.snap?.timeframe || ""}`.trim();
     const message = [
         `Context: ${regime} regime · ${volatility} volatility · ${structureCount} structure event(s) · ${session} session.`,
         `Similarity: ${similar > 0 ? `${similar} recorded setup(s) match` : "no historical match"}.`,

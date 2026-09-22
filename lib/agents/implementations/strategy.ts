@@ -35,7 +35,7 @@ export async function strategyMatcher(
 ): Promise<AgentOutput> {
     const trades = tradesOf(context);
     const snap = firstSnapshot(context);
-    const label = snap ? `${snap.symbol} ${snap.timeframe || "M5"}` : "current market";
+    const label = snap ? `${snap.symbol} ${snap.snap?.timeframe || "M5"}` : "current market";
     const evidence: AgentOutput["evidence"] = [];
     const dataUsed: string[] = [];
     const findings: AgentOutput["findings"] = [];

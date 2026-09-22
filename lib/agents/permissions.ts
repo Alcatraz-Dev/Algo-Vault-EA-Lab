@@ -1,5 +1,7 @@
 import { AgentPermission, AgentPermissionSet } from "./types";
-import { PluginPermission, PermissionSet } from "@/lib/plugins/types";
+import { PluginPermission } from "@/lib/plugins/types";
+
+export type PermissionSet = Partial<Record<AgentPermission, boolean>>;
 
 /**
  * Central permission catalog for the Agent Orchestrator.
@@ -137,7 +139,7 @@ export function sanitizeAgentPermissionSet(
     const out: AgentPermissionSet = {};
     if (!input || typeof input !== "object") return out;
     for (const key of Object.keys(input) as AgentPermission[]) {
-        if (key in AGENT_PERMISSION_CATALOG && input[key] === true) {
+        if (key in AGENT_PERMISSION_CATALOG && (input as Record<string, unknown>)[key] === true) {
             out[key] = true;
         }
     }
@@ -150,8 +152,8 @@ export function sanitizeAgentPermissionSet(
  */
 export function agentToPluginPermissions(
     agentPermissions: AgentPermission[]
-): PermissionSet {
-    const out: PermissionSet = {};
+): Partial<Record<PluginPermission, boolean>> {
+    const out: Partial<Record<PluginPermission, boolean>> = {};
     for (const permission of agentPermissions) {
         const mapped = AGENT_PERMISSION_CATALOG[permission]?.pluginPermission;
         if (mapped) out[mapped] = true;
@@ -166,13 +168,13 @@ export function agentToPluginPermissions(
  */
 export function missingPermissions(
     required: AgentPermission[],
-    granted: PermissionSet | undefined
+    granted: Partial<Record<PluginPermission, boolean>> | undefined
 ): AgentPermission[] {
     const grantedMap = granted || {};
     const missing: AgentPermission[] = [];
     for (const permission of required) {
         const mapped = AGENT_PERMISSION_CATALOG[permission]?.pluginPermission;
-        if (mapped && grantedMap[mapped] !== true) {
+        if (mapped && grantedMap[mapped as PluginPermission] !== true) {
             missing.push(permission);
         }
     }
