@@ -4,6 +4,7 @@ import type { PineExecutionResult, StrategyTrade } from "./types";
 import { computeMetrics } from "@/lib/strategy-lab/metrics";
 import type { BacktestMetrics, EquityPoint, BacktestTrade, ExitReason, BacktestDirection } from "@/lib/strategy-lab/types";
 import type { Timeframe, MarketCandle } from "@/lib/market-data/types";
+import { SYMBOL_SPECS } from "@/lib/ai-signals/symbol-specs";
 
 export type PineBacktestConfig = {
     initialBalance: number;
@@ -122,7 +123,27 @@ export function backtestPine(
         strategyTrades = result.strategy.closed_trades;
     }
 
-    const pineTrades: PineBacktestTrade[] = strategyTrades.map((t) => ({
+    // Canonical cost model (mirrors the Strategy Lab engine, without the
+    // contractSize factor — Pine trade size is the engine's unit of size):
+    //   entry/exit round-trip spread (once) + slippage (both sides) + flat
+    //   commission per lot. Applied as a flat PnL reduction per trade.
+    const spec = SYMBOL_SPECS[symbolStr] ?? { pipSize: 0.01, contractSize: 100, typicalSpread: 0.20 };
+    const unitCostPerUnit =
+        cfg.spreadPips * spec.pipSize +
+        cfg.slippagePips * spec.pipSize * 2 +
+        cfg.commissionPerLot;
+
+    const costedTrades = strategyTrades.map((t): StrategyTrade => {
+        const cost = unitCostPerUnit * (t.size || 1);
+        const netPnl = (t.pnl ?? 0) - cost;
+        return {
+            ...t,
+            pnl: netPnl,
+            pnlPercent: t.entryPrice > 0 ? (netPnl / t.entryPrice) * 100 : 0,
+        };
+    });
+
+    const pineTrades: PineBacktestTrade[] = costedTrades.map((t) => ({
         id: t.id,
         symbol: symbolStr,
         direction: t.direction,
@@ -142,7 +163,7 @@ export function backtestPine(
         size: t.size,
     }));
 
-    const metricsTrades: BacktestTrade[] = strategyTrades.map((t): BacktestTrade => ({
+    const metricsTrades: BacktestTrade[] = costedTrades.map((t): BacktestTrade => ({
         id: t.id,
         ticket: 0,
         openBarIndex: t.entryBar,
@@ -168,13 +189,13 @@ export function backtestPine(
             : 0,
         regime: "n/a",
         session: "n/a",
-        spreadCost: 0,
-        commission: 0,
-        slippageCost: 0,
+        spreadCost: cfg.spreadPips * spec.pipSize * t.size,
+        commission: cfg.commissionPerLot * t.size,
+        slippageCost: cfg.slippagePips * spec.pipSize * 2 * t.size,
         pnlGross: t.pnl ?? 0,
     }));
 
-    const equityPoints = computeEquityCurve(strategyTrades, candles, cfg.initialBalance);
+    const equityPoints = computeEquityCurve(costedTrades, candles, cfg.initialBalance);
     const metrics = computeMetrics(metricsTrades, equityPoints, cfg.initialBalance);
 
     if (candles.length >= 2) {

@@ -154,6 +154,8 @@ export interface AlertCondition {
 
 export interface StrategyTrade {
   id: string;
+  /** Order id passed to strategy.entry("name", …); used to match strategy.exit/close by name. */
+  entryId?: string;
   direction: "long" | "short";
   entryPrice: number;
   entryBar: number;

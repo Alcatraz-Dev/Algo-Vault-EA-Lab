@@ -229,8 +229,12 @@ export function runBacktestTests(): boolean {
             slippagePips: 1,
             commissionPerLot: 7,
         });
+        // The script closes on barstate.islast, so the reference gross is the
+        // last bar's close minus the entry bar's close (as in block 3, which runs
+        // on 10 candles where last == index 9).
+        const grossRef = candles[candles.length - 1].close - candles[0].close;
         check(
-            r.trades.every((t) => Math.abs(t.profit - ((candles[9].close - candles[0].close) - unitCost * t.size)) < 1e-6),
+            r.trades.every((t) => Math.abs(t.profit - (grossRef - unitCost * t.size)) < 1e-6),
             "Pine cost reduction = costPerUnit × size on every trade"
         );
     }

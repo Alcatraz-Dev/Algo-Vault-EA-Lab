@@ -49,8 +49,8 @@ function scopeSet(scope: VarScope, name: string, value: unknown): void {
 }
 
 // Deduplication state for crossover/crossunder
-let prevCrossoverState = new Map<string, boolean>();
-let prevCrossunderState = new Map<string, boolean>();
+const prevCrossoverState = new Map<string, boolean>();
+const prevCrossunderState = new Map<string, boolean>();
 
 export function executePine(source: string, candles: Candle[], symbol = "FX:EURUSD", timeframe = "1h"): PineExecutionResult {
   const result: PineExecutionResult = {
@@ -206,6 +206,24 @@ function resolveExpr(expr: Expression, ctx: RuntimeContext, scope: VarScope, res
       return callFunction(expr.namespace, expr.name, expr.args, ctx, scope, result);
     }
     case "FieldAccess": {
+      // Builtin namespaced objects used as plain field access (barstate.islast,
+      // syminfo.mintick, timeframe.isintraday) resolve against bar/symbol/period
+      // info — the same sources the namespaced-call path uses below.
+      if (expr.object.type === "Identifier") {
+        const ns = expr.object.name;
+        if (ns === "barstate") {
+          const bs = getDefaultBarState(ctx.barIndex, ctx.candles.length);
+          return (bs as unknown as Record<string, unknown>)[expr.field] ?? undefined;
+        }
+        if (ns === "syminfo") {
+          const info = getDefaultSymbolInfo(ctx.symbol);
+          return (info as unknown as Record<string, unknown>)[expr.field] ?? undefined;
+        }
+        if (ns === "timeframe") {
+          const info = getDefaultTimeframeInfo(ctx.timeframe);
+          return (info as unknown as Record<string, unknown>)[expr.field] ?? undefined;
+        }
+      }
       const obj = resolveExpr(expr.object, ctx, scope, result);
       if (obj && typeof obj === "object" && expr.field in obj) {
         return (obj as Record<string, unknown>)[expr.field];
@@ -554,6 +572,7 @@ function callFunction(namespace: string | undefined, name: string, args: { name?
     const barClose = closes[ctx.barIndex];
 
     if (fn === "entry") {
+      const entryName = typeof resolvedArgs[0] === "string" ? resolvedArgs[0] : undefined;
       const dir = (resolvedArgs[1] as number) || 1;
       const price = barClose;
       const direction = dir >= 0 ? "long" : "short";
@@ -585,6 +604,7 @@ function callFunction(namespace: string | undefined, name: string, args: { name?
       if (strat.position_size === 0 || (strat.position_size > 0 && direction === "short") || (strat.position_size < 0 && direction === "long")) {
         const trade: StrategyTrade = {
           id: `trade_${ctx.barIndex}_${Date.now().toString(36)}`,
+          entryId: entryName,
           direction,
           entryPrice: price,
           entryBar: ctx.barIndex,
@@ -606,7 +626,7 @@ function callFunction(namespace: string | undefined, name: string, args: { name?
 
       for (let t = strat.open_trades.length - 1; t >= 0; t--) {
         const openTrade = strat.open_trades[t];
-        if (exitId && !openTrade.id.includes(exitId)) continue;
+        if (exitId && openTrade.entryId !== exitId && !openTrade.id.includes(exitId)) continue;
 
         let exitPrice: number | null = null;
         let exitReason: StrategyTrade["exitReason"] = "manual";
@@ -656,7 +676,7 @@ function callFunction(namespace: string | undefined, name: string, args: { name?
     if (fn === "close") {
       const closeId = resolvedArgs[0] as string | undefined;
       const price = closes[ctx.barIndex];
-      const target = strat.open_trades.find(t => !closeId || t.id.includes(closeId));
+      const target = strat.open_trades.find((t) => !closeId || t.entryId === closeId || t.id.includes(closeId));
       if (target) {
         target.exitPrice = price;
         target.exitBar = ctx.barIndex;
