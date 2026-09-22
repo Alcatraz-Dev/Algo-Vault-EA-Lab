@@ -23,6 +23,18 @@ interface PriceLine {
     lineWidth?: 1 | 2 | 3 | 4;
 }
 
+interface CandlePoint {
+    time: number;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+}
+
+// Map the signal's timeframe label onto the timeframe enum used by the
+// canonical OHLC API (M1..D1). Unknown values are left as-is so the API
+// validation can report an honest error instead of silently fabricating data.
 function timeframeToSeconds(tf: string): number {
     const map: Record<string, number> = {
         M1: 60,
@@ -36,27 +48,10 @@ function timeframeToSeconds(tf: string): number {
     return map[String(tf).toUpperCase()] || 3600;
 }
 
-function generateSignalCandles(signal: AISignal, count: number) {
-    const seconds = timeframeToSeconds(signal.timeframe);
-    const basePrice = signal.entry || 1.1;
-    const volatility = Math.abs(signal.entry - signal.stopLoss) * 0.6 || basePrice * 0.005;
-    const now = Math.floor(Date.now() / 1000);
-    const alignedNow = Math.floor(now / seconds) * seconds;
-    const data: { time: number; open: number; high: number; low: number; close: number; volume: number }[] = [];
-    let current = basePrice - volatility * 2;
-    for (let i = count - 1; i >= 0; i--) {
-        const time = alignedNow - i * seconds;
-        const open = current;
-        const wick = (Math.random() - 0.5) * volatility;
-        const body = (Math.random() - 0.45) * volatility * 0.8;
-        const close = Math.max(open * 0.998, Math.min(open * 1.002, open + body));
-        const high = Math.max(open, close) + Math.abs(wick) * 0.5;
-        const low = Math.min(open, close) - Math.abs(wick) * 0.5;
-        const volume = Math.floor(500 + Math.random() * 2000);
-        data.push({ time, open, high, low, close, volume });
-        current = close;
-    }
-    return data;
+function timeframeParam(tf: string): string {
+    const value = String(tf ?? "H1").toUpperCase();
+    const known = ["M1", "M5", "M15", "M30", "H1", "H4", "D1"];
+    return known.includes(value) ? value : "H1";
 }
 
 function buildPriceLines(signal: AISignal): PriceLine[] {
@@ -84,6 +79,17 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
     const chartRef = useRef<IChartApi | null>(null);
     const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
     const [width, setWidth] = useState(800);
+    // Real market data from the canonical OHLC API — never fabricated candles.
+    // Keyed by symbol|timeframe so a symbol change immediately shows the
+    // loading state (derived from the key mismatch) instead of stale candles.
+    const [market, setMarket] = useState<{
+        key: string;
+        candles: CandlePoint[] | null;
+        error: string | null;
+    }>({ key: "", candles: null, error: null });
+    const requestKey = `${signal.symbol}|${timeframeParam(signal.timeframe)}`;
+    const candles = market.key === requestKey ? market.candles : null;
+    const marketError = market.key === requestKey ? market.error : null;
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -98,8 +104,61 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
     }, []);
 
     useEffect(() => {
+        const ctrl = new AbortController();
+        const key = requestKey;
+
+        (async () => {
+            try {
+                const params = new URLSearchParams({
+                    symbol: signal.symbol,
+                    timeframe: timeframeParam(signal.timeframe),
+                    limit: "150",
+                });
+                const res = await fetch(`/api/analytics/ohlc?${params.toString()}`, {
+                    signal: ctrl.signal,
+                    cache: "no-store",
+                });
+                const data = (await res.json().catch(() => ({}))) as {
+                    candles?: Array<{
+                        timestamp: number;
+                        open: number;
+                        high: number;
+                        low: number;
+                        close: number;
+                        volume?: number;
+                    }>;
+                    error?: string;
+                };
+                if (!res.ok || !data?.candles?.length) {
+                    setMarket({ key, candles: null, error: data?.error ?? "No market data available for this symbol/timeframe" });
+                    return;
+                }
+                setMarket({
+                    key,
+                    candles: data.candles.map((c) => ({
+                        time: Math.floor(c.timestamp / 1000),
+                        open: c.open,
+                        high: c.high,
+                        low: c.low,
+                        close: c.close,
+                        volume: c.volume ?? 0,
+                    })),
+                    error: null,
+                });
+            } catch (err) {
+                if ((err as Error)?.name !== "AbortError") {
+                    setMarket({ key, candles: null, error: "Failed to load market data" });
+                }
+            }
+        })();
+
+        return () => ctrl.abort();
+    }, [signal.symbol, signal.timeframe, requestKey]);
+
+    useEffect(() => {
         const container = containerRef.current;
         if (!container) return;
+        if (!candles || candles.length < 2) return;
 
         if (chartRef.current) {
             chartRef.current.remove();
@@ -148,7 +207,6 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
         });
         seriesRef.current = series;
 
-        const candles = generateSignalCandles(signal, 100);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         series.setData(candles as any);
 
@@ -194,7 +252,9 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
             chartRef.current = null;
             seriesRef.current = null;
         };
-    }, [width, height, signal.entry, signal.stopLoss, signal.tp1, signal.tp2, signal.tp3, signal.timeframe]);
+    }, [width, height, candles, signal, requestKey]);
+
+    const timeframeLabel = timeframeToSeconds(signal.timeframe) >= 86400 ? "D1" : signal.timeframe;
 
     return (
         <div className="rounded-2xl border border-border/20 bg-gradient-to-br from-background/80 via-background/40 to-background/80 backdrop-blur-xl p-5">
@@ -217,7 +277,26 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
                     </span>
                 </div>
             </div>
-            <div ref={containerRef} className="w-full" style={{ height }} />
+            <div className="relative w-full" style={{ height }}>
+                <div ref={containerRef} className="w-full" style={{ height }} />
+                {marketError ? (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-lg border border-dashed border-border bg-background/60 backdrop-blur-sm">
+                        <div className="max-w-xs text-center">
+                            <p className="text-xs font-medium text-muted-foreground">
+                                Real-time chart unavailable
+                            </p>
+                            <p className="mt-1 text-[11px] leading-5 text-muted-foreground/70">
+                                {marketError} — the market data provider returned no candles for{" "}
+                                {signal.symbol} {timeframeLabel}.
+                            </p>
+                        </div>
+                    </div>
+                ) : candles === null ? (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-xs text-muted-foreground">Loading market data…</span>
+                    </div>
+                ) : null}
+            </div>
         </div>
     );
 }

@@ -16,37 +16,63 @@ interface TradingChartProps {
     height?: number;
 }
 
-function intervalToSeconds(intv: string): number {
-    if (intv.endsWith("m")) return parseInt(intv, 10) * 60;
-    if (intv.endsWith("h")) return parseInt(intv, 10) * 3600;
-    if (intv.endsWith("D")) return parseInt(intv, 10) * 86400;
-    if (intv.endsWith("W")) return parseInt(intv, 10) * 604800;
-    if (intv.endsWith("M")) return parseInt(intv, 10) * 2592000;
-    return 3600;
+// Map the toolbar interval label onto the timeframe enum accepted by the
+// canonical OHLC API (M1..D1). Unsupported intervals return undefined so the
+// request is not silently remapped to a different timeframe.
+const INTERVAL_TO_TIMEFRAME: Record<string, string> = {
+    "1m": "M1",
+    "5m": "M5",
+    "15m": "M15",
+    "30m": "M30",
+    "1h": "H1",
+    "4h": "H4",
+    "1D": "D1",
+};
+
+function normalizeSymbol(symbol: string): string {
+    return symbol
+        .replace(/^FX:/, "")
+        .replace(/\/USD$/, "USD")
+        .toUpperCase();
 }
 
-function generateCandles(sym: string, intv: string, count: number): Candle[] {
-    const seconds = intervalToSeconds(intv);
-    const basePrice = sym.includes("BTC") ? 45000 : sym.includes("XAU") ? 2400 : 1.1;
-    const volBase = sym.includes("BTC") ? 10 : sym.includes("XAU") ? 100 : 1000;
-    const now = Math.floor(Date.now() / 1000);
-    const alignedNow = Math.floor(now / seconds) * seconds;
-    const data: Candle[] = [];
-    let current = basePrice;
-    for (let i = count - 1; i >= 0; i--) {
-        const timestamp = alignedNow - i * seconds;
-        const volatility = basePrice * 0.012;
-        const open = current;
-        const wick = (Math.random() - 0.5) * volatility;
-        const body = (Math.random() - 0.5) * volatility * 0.6;
-        const close = Math.max(open * 0.99, open + body);
-        const high = Math.max(open, close) + Math.abs(wick);
-        const low = Math.min(open, close) - Math.abs(wick);
-        const volume = Math.floor(volBase * (0.5 + Math.random()));
-        data.push({ time: timestamp, open, high, low, close, volume });
-        current = close;
+async function fetchRealCandles(symbol: string, timeframe: string): Promise<{ candles: Candle[]; providerError: string | null }> {
+    const timeframeParam = INTERVAL_TO_TIMEFRAME[timeframe];
+    if (!timeframeParam) {
+        return { candles: [], providerError: `Timeframe ${timeframe} is not supported by the market data provider` };
     }
-    return data;
+    const cleanSymbol = normalizeSymbol(symbol);
+    try {
+        const params = new URLSearchParams({ symbol: cleanSymbol, timeframe: timeframeParam, limit: "250" });
+        const res = await fetch(`/api/analytics/ohlc?${params.toString()}`, { cache: "no-store" });
+        const data = (await res.json().catch(() => ({}))) as {
+            candles?: Array<{
+                timestamp: number;
+                open: number;
+                high: number;
+                low: number;
+                close: number;
+                volume?: number;
+            }>;
+            error?: string;
+        };
+        if (!res.ok || !data?.candles?.length) {
+            return { candles: [], providerError: data?.error ?? "No market data available" };
+        }
+        return {
+            candles: data.candles.map((c) => ({
+                time: Math.floor(c.timestamp / 1000),
+                open: c.open,
+                high: c.high,
+                low: c.low,
+                close: c.close,
+                volume: c.volume ?? 0,
+            })),
+            providerError: null,
+        };
+    } catch {
+        return { candles: [], providerError: "Failed to load market data" };
+    }
 }
 
 export default function TradingChart({
@@ -62,7 +88,18 @@ export default function TradingChart({
     const [activeDrawingTool, setActiveDrawingTool] = useState<DrawingTool>("cursor");
     const [alerts, setAlerts] = useState<PriceAlert[]>([]);
     const [containerWidth, setContainerWidth] = useState(800);
-    const [candles, setCandles] = useState<Candle[]>(() => generateCandles(chartSymbol, chartInterval, 120));
+    // Market data keyed by symbol|interval: a symbol/interval change derives the
+    // loading state from the key mismatch (no imperative setState in the effect).
+    const [market, setMarket] = useState<{
+        key: string;
+        candles: Candle[];
+        error: string | null;
+    }>({ key: "", candles: [], error: null });
+    const marketKey = `${chartSymbol}|${chartInterval}`;
+    const marketIsCurrent = market.key === marketKey;
+    const candles = marketIsCurrent ? market.candles : [];
+    const marketError = marketIsCurrent ? market.error : null;
+    const marketLoading = !marketIsCurrent;
     const [undoStack, setUndoStack] = useState<unknown[][]>([]);
     const [redoStack, setRedoStack] = useState<unknown[][]>([]);
 
@@ -78,16 +115,28 @@ export default function TradingChart({
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
+    // Fetch real candles from the canonical OHLC API — never fabricated.
+    useEffect(() => {
+        let cancelled = false;
+        const key = marketKey;
+        (async () => {
+            const result = await fetchRealCandles(chartSymbol, chartInterval);
+            if (cancelled) return;
+            setMarket({ key, candles: result.candles, error: result.providerError });
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [chartSymbol, chartInterval, marketKey]);
+
     const handleSymbolChange = useCallback((sym: string) => {
         setUndoStack((prev) => [...prev, [{ symbol: chartSymbol, interval: chartInterval }]]);
         setChartSymbol(sym);
-        setCandles(generateCandles(sym, chartInterval, 120));
     }, [chartSymbol, chartInterval]);
 
     const handleIntervalChange = useCallback((intv: string) => {
         setUndoStack((prev) => [...prev, [{ symbol: chartSymbol, interval: chartInterval }]]);
         setChartInterval(intv);
-        setCandles(generateCandles(chartSymbol, intv, 120));
     }, [chartSymbol, chartInterval]);
 
     const handleChartTypeChange = useCallback((type: ChartType) => {
@@ -114,6 +163,8 @@ export default function TradingChart({
 
     const layout = { symbol: chartSymbol, interval: chartInterval, chartType, studies: activeStudies, theme: "dark" as const };
 
+    const showEmptyState = !marketLoading && marketError !== null;
+
     return (
         <div className="flex h-full flex-col rounded-lg border border-border/20 bg-background">
             <ChartStorage layout={layout} />
@@ -137,6 +188,22 @@ export default function TradingChart({
             <DrawingToolbar activeTool={activeDrawingTool} onChangeTool={setActiveDrawingTool} />
 
             <div className="relative flex-1" data-chart-container>
+                {showEmptyState && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-md border border-dashed border-border/40 bg-background/70 backdrop-blur-sm">
+                        <div className="max-w-xs text-center">
+                            <p className="text-xs font-medium text-muted-foreground">Chart unavailable</p>
+                            <p className="mt-1 text-[11px] leading-5 text-muted-foreground/70">
+                                {marketError} — no candles were returned for {normalizeSymbol(chartSymbol)}{" "}
+                                {chartInterval}.
+                            </p>
+                        </div>
+                    </div>
+                )}
+                {marketLoading && candles.length === 0 && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center">
+                        <span className="text-xs text-muted-foreground">Loading market data…</span>
+                    </div>
+                )}
                 <ChartEngine
                     width={containerWidth}
                     height={height}

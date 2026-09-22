@@ -52,27 +52,30 @@ const STUDY_IDS: Record<StudyType, string> = {
     VWAP: "VWAP@tv-basicstudies",
 };
 
-const INTERVAL_MAP: Record<string, string> = {
-    "60": "1h",
-    M1: "1m",
-    M5: "5m",
-    M15: "15m",
-    M30: "30m",
-    H1: "1h",
-    H4: "4h",
-    D1: "1D",
-    W1: "1W",
-    MN: "1M",
-    "1m": "1m",
-    "5m": "5m",
-    "15m": "15m",
-    "30m": "30m",
-    "1h": "1h",
-    "4h": "4h",
-    "240": "4h",
-    "1D": "1D",
-    "1W": "1W",
-    "1M": "1M",
+// Map the toolbar interval onto the timeframe enum accepted by the canonical
+// OHLC API (M1..D1). Unsupported intervals fall back to H1 and the chart
+// footer labels the actual timeframe so the displayed data is never misleading.
+const INTERVAL_TO_TIMEFRAME: Record<string, string> = {
+    "60": "H1",
+    M1: "M1",
+    M5: "M5",
+    M15: "M15",
+    M30: "M30",
+    H1: "H1",
+    H4: "H4",
+    D1: "D1",
+    W1: "D1",
+    MN: "D1",
+    "1m": "M1",
+    "5m": "M5",
+    "15m": "M15",
+    "30m": "M30",
+    "1h": "H1",
+    "4h": "H4",
+    "240": "H4",
+    "1D": "D1",
+    "1W": "D1",
+    "1M": "D1",
 };
 
 const CHART_TYPE_MAP: Record<string, string> = {
@@ -224,129 +227,115 @@ const STUDY_OPTIONS: { type: StudyType; label: string }[] = [
     { type: "VWAP", label: "VWAP" },
 ];
 
-function generateMockData(count = 150, basePrice = 1.085): GoChartTick[] {
-    const points: GoChartTick[] = [];
-    let price = basePrice;
-    const now = Date.now();
-    for (let i = 0; i < count; i++) {
-        const change = (Math.random() - 0.48) * 0.003;
-        const open = price;
-        const close = price + change;
-        const high = Math.max(open, close) + Math.random() * 0.001;
-        const low = Math.min(open, close) - Math.random() * 0.001;
-        const volume = Math.floor(Math.random() * 100000 + 5000);
-        points.push({
-            time: now - (count - i) * 60000,
-            open,
-            high,
-            low,
-            close,
-            volume,
-        });
-        price = close;
-    }
-    return points;
-}
-
 type ResolutionLike = string | { scale?: string; units?: number; type?: string };
 
-function resolutionToSeconds(resolution: ResolutionLike): number {
-    const str = typeof resolution === "string"
-        ? resolution
-        : resolution?.type || "";
-    const num = parseInt(str, 10);
-    if (str.endsWith("m") && !isNaN(num)) return num * 60;
-    if (str.endsWith("h") && !isNaN(num)) return num * 3600;
-    if (str === "1D" || str === "D" || str === "D1") return 86400;
-    if (str === "1W" || str === "W" || str === "W1") return 604800;
-    if (str === "1M" || str === "MN" || str === "MN1") return 2592000;
-    if (typeof resolution !== "string" && resolution?.scale) {
-        const secs: Record<string, number> = {
-            seconds: 1, minutes: 60, hours: 3600,
-            days: 86400, weeks: 604800, months: 2592000,
-        };
-        return (resolution.units ?? 1) * (secs[resolution.scale] ?? 60);
-    }
-    return 60;
+function normalizeSymbolInput(symbolName: string): string {
+    return symbolName.replace(/^FX:/, "").toUpperCase();
 }
 
-function createMockDatafeed(
-    onTick?: (data: GoChartTick) => void
-): GoChartingDatafeed {
-    const initialData = generateMockData(150, 1.085);
-    let lastPrice = initialData[initialData.length - 1]?.close ?? 1.085;
+function symbolKind(symbolName: string): { type: string; exchange: string; tickSize: number } {
+    const clean = normalizeSymbolInput(symbolName);
+    if (/^BTC|^ETH|^SOL|^XRP|^ADA|^DOGE/.test(clean)) {
+        return { type: "crypto", exchange: "CRYPTO", tickSize: 0.01 };
+    }
+    if (/^(US30|NAS100|SPX500|DXY|SPY|QQQ|AAPL|TSLA|MSFT|NVDA|AMZN|META|GOOGL|AMD|NFLX|COIN)$/.test(clean)) {
+        return { type: "index", exchange: "INDEX", tickSize: 0.1 };
+    }
+    return { type: "forex", exchange: "FX", tickSize: 0.0001 };
+}
 
+// Fetch REAL daily/intraday candles from the canonical OHLC API — the GoCharting
+// SDK is wired to this feed instead of fabricated data.
+async function fetchMarketCandles(symbolName: string, timeframe: string, limit: number): Promise<GoChartTick[]> {
+    const cleanSymbol = normalizeSymbolInput(symbolName);
+    try {
+        const params = new URLSearchParams({
+            symbol: cleanSymbol,
+            timeframe,
+            limit: String(Math.min(Math.max(limit, 10), 500)),
+        });
+        const res = await fetch(`/api/analytics/ohlc?${params.toString()}`, { cache: "no-store" });
+        const data = (await res.json().catch(() => ({}))) as {
+            candles?: Array<{
+                timestamp: number;
+                open: number;
+                high: number;
+                low: number;
+                close: number;
+                volume?: number;
+            }>;
+            error?: string;
+        };
+        if (!res.ok || !data?.candles?.length) return [];
+        return data.candles.map((c) => ({
+            time: Math.floor(c.timestamp / 1000),
+            open: c.open,
+            high: c.high,
+            low: c.low,
+            close: c.close,
+            volume: c.volume ?? 0,
+        }));
+    } catch {
+        return [];
+    }
+}
+
+function createRealDatafeed(onTick?: (data: GoChartTick) => void): GoChartingDatafeed {
     return {
         resolveSymbol(
             symbolName: string,
-            onResolve: (info: GoChartingSymbolInfo) => void
+            onResolve: (info: GoChartingSymbolInfo) => void,
+            onError: (error: string) => void
         ) {
-            const cleanSymbol = symbolName.replace(/^FX:/, "");
+            const cleanSymbol = normalizeSymbolInput(symbolName);
+            if (!cleanSymbol) {
+                onError("Invalid symbol");
+                return;
+            }
+            const { type, exchange, tickSize } = symbolKind(symbolName);
             onResolve({
                 symbol: cleanSymbol,
                 full_name: symbolName,
                 description: symbolName,
-                type:
-                    symbolName.startsWith("BTC") || symbolName.startsWith("ETH")
-                        ? "crypto"
-                        : "forex",
+                type,
                 session: "24x7",
                 timezone: "UTC",
                 has_intraday: true,
                 has_daily: true,
-                supported_resolutions: ["1m", "5m", "15m", "30m", "1h", "4h", "1D", "1W", "1M"],
-                tick_size: symbolName.startsWith("FX:") ? 0.0001 : 0.01,
-                display_tick_size: symbolName.startsWith("FX:") ? 0.0001 : 0.01,
+                supported_resolutions: ["1m", "5m", "15m", "30m", "1h", "4h", "1D"],
+                tick_size: tickSize,
+                display_tick_size: tickSize,
                 data_status: "streaming",
                 tradeable: true,
-                exchange: symbolName.startsWith("FX:")
-                    ? "FX"
-                    : symbolName.startsWith("BTC") || symbolName.startsWith("ETH")
-                      ? "CRYPTO"
-                      : "INDEX",
+                exchange,
                 segment: "SPOT",
                 exchange_info: {
-                    name: "mock",
-                    code: "MOCK",
+                    name: "algovault",
+                    code: "ALGOVAULT",
                     zone: "UTC",
                     hours: [{ open: true }],
-                    valid_intervals: ["1m", "5m", "15m", "30m", "1h", "4h", "1D", "1W", "1M"],
+                    valid_intervals: ["1m", "5m", "15m", "30m", "1h", "4h", "1D"],
                 },
             });
         },
 
         async getBars(
-            _symbolInfo: GoChartingSymbolInfo,
+            symbolInfo: GoChartingSymbolInfo,
             resolution: ResolutionLike,
             periodParams: GoChartingPeriodParams
         ): Promise<GoChartingUDFResponse> {
             const count = Math.min(periodParams?.countBack || periodParams?.rows || 150, 500);
-            const now = Math.floor(Date.now() / 1000);
-            const intervalSec = resolutionToSeconds(resolution);
-            const bars: GoChartTick[] = [];
-            let price = lastPrice;
+            const resolutionStr = typeof resolution === "string" ? resolution : String(resolution?.type ?? "");
+            const timeframe = INTERVAL_TO_TIMEFRAME[resolutionStr] ?? INTERVAL_TO_TIMEFRAME[String(resolutionStr).toUpperCase()] ?? "H1";
 
-            for (let i = count - 1; i >= 0; i--) {
-                const time = now - i * intervalSec;
-                const change = (Math.random() - 0.48) * 0.003;
-                const open = price;
-                const close = price + change;
-                const high = Math.max(open, close) + Math.random() * 0.001;
-                const low = Math.min(open, close) - Math.random() * 0.001;
-                const volume = Math.floor(Math.random() * 100000 + 5000);
-                bars.push({ time: time * 1000, open, high, low, close, volume });
-                price = close;
-            }
-
-            lastPrice = price;
-
+            const bars = await fetchMarketCandles(symbolInfo.full_name || symbolInfo.symbol, timeframe, count);
             if (!bars.length) {
                 return { s: "no_data", nextTime: null };
             }
 
             return {
                 s: "ok",
-                t: bars.map((b) => Math.floor(b.time / 1000)),
+                t: bars.map((b) => b.time),
                 o: bars.map((b) => b.open),
                 h: bars.map((b) => b.high),
                 l: bars.map((b) => b.low),
@@ -356,39 +345,14 @@ function createMockDatafeed(
             };
         },
 
+        // No fabricated ticks: historical candles above are real. Live tick
+        // streaming is intentionally omitted rather than simulated.
         subscribeTicks(
-            symbolInfo: GoChartingSymbolInfo,
+            _symbolInfo: GoChartingSymbolInfo,
             _resolution: ResolutionLike,
-            onRealtimeCallback: (tick: GoChartingRealtimeTick) => void
+            _onRealtimeCallback: (tick: GoChartingRealtimeTick) => void
         ) {
-            const interval = setInterval(() => {
-                const change = (Math.random() - 0.48) * 0.002;
-                lastPrice = Math.max(0.001, lastPrice + change);
-                const volume = Math.floor(Math.random() * 100000 + 5000);
-                const tick: GoChartingRealtimeTick = {
-                    type: "trade",
-                    productId: symbolInfo.full_name || "FX:EURUSD",
-                    symbol: symbolInfo.symbol || "EURUSD",
-                    exchange: symbolInfo.exchange || "FX",
-                    segment: symbolInfo.segment || "SPOT",
-                    timeStamp: new Date(),
-                    tradeID: String(Date.now()),
-                    price: lastPrice,
-                    quantity: volume,
-                    amount: lastPrice * volume,
-                    side: Math.random() > 0.5 ? "Buy" : "Sell",
-                };
-                onRealtimeCallback(tick);
-                onTick?.({
-                    time: tick.timeStamp.getTime(),
-                    open: lastPrice - change,
-                    high: Math.max(lastPrice - change, lastPrice) + Math.random() * 0.0005,
-                    low: Math.min(lastPrice - change, lastPrice) - Math.random() * 0.0005,
-                    close: lastPrice,
-                    volume,
-                });
-            }, 3000);
-            return interval;
+            void onTick;
         },
 
         unsubscribeTicks(_subscriberUID: string) {
@@ -460,7 +424,9 @@ export default function GoCharting({
     const containerRef = useRef<HTMLDivElement>(null);
     const chartWrapperRef = useRef<GoChartingChartWrapper | null>(null);
     const scriptRef = useRef<HTMLScriptElement | null>(null);
-    const [sdkLoaded, setSdkLoaded] = useState(false);
+    const [sdkLoaded, setSdkLoaded] = useState(() =>
+        typeof window !== "undefined" && Boolean(window.GoChartingSDK)
+    );
     const [sdkError, setSdkError] = useState<string | null>(null);
     const [currentSymbol, setCurrentSymbol] = useState(symbol);
     const [timeframe, setTimeframe] = useState(interval);
@@ -471,11 +437,7 @@ export default function GoCharting({
     const [showStudyMenu, setShowStudyMenu] = useState(false);
 
     useEffect(() => {
-        if (typeof window === "undefined") return;
-        if (window.GoChartingSDK) {
-            setSdkLoaded(true);
-            return;
-        }
+        if (typeof window === "undefined" || window.GoChartingSDK) return;
 
         const script = document.createElement("script");
         script.src = SDK_URL;
@@ -499,14 +461,14 @@ export default function GoCharting({
         const containerId = `gocharting-sdk-${Date.now()}`;
         containerRef.current.id = containerId;
 
-        const datafeed = createMockDatafeed(onTick);
+        const datafeed = createRealDatafeed(onTick);
 
         const resolvedStudies = resolveStudies(appliedStudies);
 
         try {
             const wrapper = window.GoChartingSDK!.createChart(`#${containerId}`, {
                 symbol: currentSymbol,
-                interval: INTERVAL_MAP[timeframe] ?? timeframe,
+                interval: INTERVAL_TO_TIMEFRAME[timeframe] ?? timeframe,
                 datafeed,
                 licenseKey: LICENSE_KEY,
                 theme: "dark",
@@ -533,7 +495,10 @@ export default function GoCharting({
                 chartWrapperRef.current = null;
             };
         } catch (err) {
-            setSdkError(err instanceof Error ? err.message : "Failed to create GoCharting chart");
+            const message = err instanceof Error ? err.message : "Failed to create GoCharting chart";
+            // The SDK failure is an external-system event; surface it outside the
+            // synchronous effect body to avoid cascading renders.
+            queueMicrotask(() => setSdkError(message));
             return;
         }
     }, [sdkLoaded, sdkError, currentSymbol, timeframe, chartTypes, appliedStudies, onTick]);
@@ -548,6 +513,8 @@ export default function GoCharting({
             </div>
         );
     }
+
+    const resolvedInterval = INTERVAL_TO_TIMEFRAME[timeframe] ?? timeframe;
 
     return (
         <div
@@ -701,7 +668,7 @@ export default function GoCharting({
                     </span>
                 ))}
                 <span className="ml-auto">
-                    {currentSymbol} · {INTERVAL_MAP[timeframe] ?? timeframe}
+                    {currentSymbol} · {resolvedInterval}
                 </span>
             </div>
         </div>
