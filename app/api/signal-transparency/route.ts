@@ -8,9 +8,39 @@ import { analyzeVolatility } from "@/lib/analytics/volatility";
 import { calculateVWAP } from "@/lib/analytics/vwap";
 import { calculateMarketScore } from "@/lib/analytics/market-score";
 import { detectStructure } from "@/lib/analytics/market-structure";
+import type { AISignal } from "@/lib/ai-signals/types";
+import type { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+interface TransparencyRow {
+    id: string;
+    symbol: string;
+    direction: string;
+    confidence: number;
+    winRate: number;
+    result: string;
+    resultR: number;
+    marketRegime: string;
+    aiModel: string;
+    entryPrice: number | null;
+    stopLoss: number | null;
+    takeProfit: number | null;
+    timestamp: number | null;
+    realTimeAnalysis: object | null;
+    signalSource: string;
+    provider: string;
+    providerAvailable: boolean;
+}
+
+/** aiSignals records as stored by the ETF/transparency update path (may carry extra stats fields). */
+interface TransparencySignalRecord extends AISignal {
+    winRate?: number;
+    entryPrice?: number;
+    takeProfit?: number;
+    aiModel?: string;
+}
 
 export async function GET(request: NextRequest) {
     try {
@@ -18,25 +48,28 @@ export async function GET(request: NextRequest) {
         if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const signalSnap = await adminDatabase.ref("aiSignals").get();
-        let signals: any[] = [];
+        const signals: TransparencySignalRecord[] = [];
         if (signalSnap.exists()) {
-            signalSnap.forEach((child) => { const s = child.val(); if (s && s.id) signals.push(s); });
+            signalSnap.forEach((child) => {
+                const s = child.val() as TransparencySignalRecord | null;
+                if (s && s.id) signals.push(s);
+            });
         }
 
         const recentSignals = signals.slice(-30);
-        const transparency: any[] = [];
+        const transparency: TransparencyRow[] = [];
 
         for (const signal of recentSignals) {
-            let analysis = null;
+            let analysis: object | null = null;
             try {
                 if (signal.symbol) {
-                    const candles = await fetchCandles(signal.symbol as any, (signal.timeframe as any) || "H1");
+                    const candles = await fetchCandles(signal.symbol as SupportedSymbol, (signal.timeframe || "H1") as Timeframe);
                     if (candles.length >= 20) {
-                        const regime = detectRegime(candles, (signal.timeframe as any) || "H1");
+                        const regime = detectRegime(candles, (signal.timeframe || "H1") as Timeframe);
                         const volatility = analyzeVolatility(candles);
                         const vwap = calculateVWAP(candles);
-                        const structure = detectStructure(candles, (signal.timeframe as any) || "H1");
-                        const score = calculateMarketScore(candles, (signal.timeframe as any) || "H1");
+                        const structure = detectStructure(candles, (signal.timeframe || "H1") as Timeframe);
+                        const score = calculateMarketScore(candles, (signal.timeframe || "H1") as Timeframe);
                         analysis = { regime, volatility, vwap, structure, score };
                     }
                 }

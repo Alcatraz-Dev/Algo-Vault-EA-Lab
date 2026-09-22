@@ -5,10 +5,19 @@ import { adminDatabase } from "@/lib/firebase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function computeMetrics(trades: any[]) {
-    const netProfit = trades.reduce((s: number, t: any) => s + Number(t.resultR || 0), 0);
-    const wins = trades.filter((t: any) => t.result === "WIN").length;
-    const losses = trades.filter((t: any) => t.result === "LOSS").length;
+/** A trade journal entry stored under tradeJournal/{uid}. */
+interface TradeJournalEntry {
+    id?: string;
+    result?: string;
+    resultR?: number | string;
+    createdAt?: number | string;
+    signalId?: string;
+}
+
+function computeMetrics(trades: TradeJournalEntry[]) {
+    const netProfit = trades.reduce((s: number, t: TradeJournalEntry) => s + Number(t.resultR || 0), 0);
+    const wins = trades.filter((t: TradeJournalEntry) => t.result === "WIN").length;
+    const losses = trades.filter((t: TradeJournalEntry) => t.result === "LOSS").length;
     const totalTrades = trades.length;
     const winRate = totalTrades > 0 ? (wins / totalTrades) * 100 : 0;
     const profitFactor = losses > 0 ? wins / losses : wins > 0 ? Infinity : 0;
@@ -35,29 +44,31 @@ export async function GET(request: NextRequest) {
         if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const tradeSnap = await adminDatabase.ref(`tradeJournal/${user.uid}`).get();
-        const trades = tradeSnap.exists() ? tradeSnap.val() : {};
-        const tradeList = Object.values(trades).filter((t: any) => t && t.result);
+        const trades = tradeSnap.exists()
+            ? (tradeSnap.val() as Record<string, TradeJournalEntry>)
+            : {};
+        const tradeList = Object.values(trades).filter((t) => t && t.result);
 
         const metrics = computeMetrics(tradeList);
 
         const signalSnap = await adminDatabase.ref("aiSignals").get();
-        let signals: any[] = [];
+        const signals: Array<{ id?: string }> = [];
         if (signalSnap.exists()) {
             signalSnap.forEach((child) => { const s = child.val(); if (s && s.id) signals.push(s); });
         }
 
         const verifiedPerformance = {
             verifiedAt: new Date().toISOString(),
-            tradingDays: new Set(tradeList.map((t: any) => { const d = new Date(t.createdAt || Date.now()); return d.toDateString(); })).size,
+            tradingDays: new Set(tradeList.map((t: TradeJournalEntry) => { const d = new Date(t.createdAt || Date.now()); return d.toDateString(); })).size,
             ...metrics,
             totalTrades: tradeList.length,
             signalCorrelation: {
                 totalSignals: signals.length,
-                signalsWithTrades: tradeList.filter((t: any) => t.signalId).length,
-                correlation: tradeList.filter((t: any) => t.signalId).length > 0 ? "correlated" : "uncorrelated",
+                signalsWithTrades: tradeList.filter((t: TradeJournalEntry) => t.signalId).length,
+                correlation: tradeList.filter((t: TradeJournalEntry) => t.signalId).length > 0 ? "correlated" : "uncorrelated",
             },
             consistency: {
-                weeklyTrades: Math.round(tradeList.length / Math.max(1, new Set(tradeList.map((t: any) => new Date(t.createdAt || Date.now()).toISOString().slice(0, 7))).size)),
+                weeklyTrades: Math.round(tradeList.length / Math.max(1, new Set(tradeList.map((t: TradeJournalEntry) => new Date(t.createdAt || Date.now()).toISOString().slice(0, 7))).size)),
                 avgTradesPerWeek: tradeList.length / Math.max(1, 4),
                 bestWeek: 0,
                 worstWeek: 0,

@@ -27,8 +27,25 @@ function isValidId(value: string) {
     );
 }
 
+/** An order record stored under orders/{uid}. */
+interface OrderRecord {
+    userId?: string;
+    productId?: string;
+    status?: string;
+    paymentStatus?: string;
+    [key: string]: unknown;
+}
+
+/** A license record stored under licenses/{uid}. */
+interface LicenseRecord {
+    productId?: string;
+    status?: string;
+    expiresAt?: number | string;
+    [key: string]: unknown;
+}
+
 function isLicenseActive(
-    license: any
+    license: LicenseRecord
 ) {
     if (!license) return false;
 
@@ -224,9 +241,9 @@ export async function GET(
         }
 
         const orders =
-            ordersSnapshot.val();
+            (ordersSnapshot.val() ?? {}) as Record<string, OrderRecord>;
 
-        let paidOrder: any = null;
+        let paidOrder: (OrderRecord & { id: string }) | null = null;
 
         for (
             const [orderId, order] of Object.entries(
@@ -234,7 +251,7 @@ export async function GET(
             )
         ) {
             const currentOrder =
-                order as any;
+                order;
 
             /*
              * Make sure the order belongs
@@ -303,9 +320,9 @@ export async function GET(
         }
 
         const licenses =
-            licensesSnapshot.val();
+            (licensesSnapshot.val() ?? {}) as Record<string, LicenseRecord>;
 
-        let activeLicense: any =
+        let activeLicense: (LicenseRecord & { id: string }) | null =
             null;
 
         for (
@@ -317,7 +334,7 @@ export async function GET(
             )
         ) {
             const currentLicense =
-                license as any;
+                license;
 
             if (
                 currentLicense.productId !==

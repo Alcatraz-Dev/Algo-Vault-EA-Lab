@@ -502,7 +502,7 @@ export async function GET(
         const accountId =
             `${productId}_${mt5Account}`;
 
-        let snapshot =
+        const snapshot =
             await adminDatabase
                 .ref(
                     `live_positions/${accountId}`

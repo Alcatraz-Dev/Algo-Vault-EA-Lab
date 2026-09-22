@@ -28,8 +28,6 @@ export const TWELVE_DATA_SYMBOL_MAP: Record<SupportedSymbol, string> = {
   GBPJPY: "GBP/JPY",
   AUDJPY: "AUD/JPY",
   EURCHF: "EUR/CHF",
-  AUDCNH: "AUD/CNH",
-  USDCNH: "USD/CNH",
   // Metals
   XAUUSD: "XAU/USD",
   XAGUSD: "XAG/USD",

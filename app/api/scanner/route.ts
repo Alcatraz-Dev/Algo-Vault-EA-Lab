@@ -11,9 +11,37 @@ import { calculateMarketScore } from "@/lib/analytics/market-score";
 import { getSymbolSpec } from "@/lib/ai-signals/symbol-specs";
 import { isProUser } from "@/lib/ai-signals/access";
 import { MarketRegime } from "@/lib/ai-signals/types";
+import type { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/** A scanner result row: either { symbol, error } or a fully-scored row. */
+interface ScannerResultRow {
+    symbol: string;
+    error?: string;
+    currentPrice?: number;
+    direction?: "BUY" | "SELL" | "NEUTRAL";
+    strength?: number;
+    trend?: string;
+    momentum?: number;
+    volatility?: string;
+    volatilityPercent?: number;
+    regime?: string;
+    regimeConfidence?: number;
+    liquidity?: string;
+    timeframe?: string;
+    vwapPosition?: string;
+    atr?: number;
+    distanceToSL?: number;
+    riskReward?: number;
+    volumeState?: string;
+    relativeVolume?: number;
+    score?: number;
+    pipSize?: number;
+    typicalSpread?: number;
+    category?: string;
+}
 
 export async function GET(request: NextRequest) {
     try {
@@ -21,30 +49,30 @@ export async function GET(request: NextRequest) {
         if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const symbols = request.nextUrl.searchParams.get("symbols")?.split(",") || ["XAUUSD", "EURUSD", "GBPUSD", "USDJPY", "BTCUSD", "NAS100", "US30"];
-        const timeframe = request.nextUrl.searchParams.get("timeframe") || "H1";
+        const timeframe = (request.nextUrl.searchParams.get("timeframe") || "H1") as Timeframe;
         const minStrength = parseFloat(request.nextUrl.searchParams.get("minStrength") || "50");
 
         const isPro = await isProUser(user.uid);
-        const results: any[] = [];
+        const results: ScannerResultRow[] = [];
 
         for (const sym of symbols) {
             try {
-                const candles = await fetchCandles(sym as any, timeframe as any);
+                const candles = await fetchCandles(sym as SupportedSymbol, timeframe);
                 if (!candles || candles.length < 20) {
                     results.push({ symbol: sym, error: "Insufficient data" });
                     continue;
                 }
 
-                const regime = detectRegime(candles, timeframe as any);
+                const regime = detectRegime(candles, timeframe);
                 const volatility = analyzeVolatility(candles);
                 const volume = analyzeVolume(candles);
                 const vwap = calculateVWAP(candles);
                 const vwapPos = getVWAPPosition(candles[candles.length - 1].close, vwap);
-                const liquidity = detectLiquidity(candles, timeframe as any);
-                const structure = detectStructure(candles, timeframe as any);
+                const liquidity = detectLiquidity(candles, timeframe);
+                const structure = detectStructure(candles, timeframe);
                 const bias = getOverallStructureBias(structure);
-                const score = calculateMarketScore(candles, timeframe as any);
-                const spec = getSymbolSpec(sym as any);
+                const score = calculateMarketScore(candles, timeframe);
+                const spec = getSymbolSpec(sym as SupportedSymbol);
 
                 const currentPrice = candles[candles.length - 1].close;
                 const atr = candles.slice(-14).reduce((s, c) => s + Math.max(c.high - c.low, Math.abs(c.high - candles[candles.indexOf(c) - 1]?.close || 0), Math.abs(c.low - candles[candles.indexOf(c) - 1]?.close || 0)), 0) / 14;
@@ -98,7 +126,7 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        const filtered = results.filter((r) => !r.error && r.strength >= minStrength);
+        const filtered = results.filter((r) => !r.error && (r.strength ?? 0) >= minStrength);
 
         return NextResponse.json({
             success: true,

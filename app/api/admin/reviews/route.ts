@@ -33,6 +33,17 @@ async function requireAdmin(request: NextRequest) {
     }
 }
 
+/** A product review record stored under productReviews/{id} (or similar). */
+interface ReviewRecord {
+    productId?: string;
+    userId?: string;
+    createdAt?: number | string;
+    status?: string;
+    rating?: number;
+    text?: string;
+    updatedAt?: number | string;
+}
+
 export async function GET(request: NextRequest) {
     try {
         const admin = await requireAdmin(request);
@@ -51,21 +62,21 @@ export async function GET(request: NextRequest) {
                 adminDatabase.ref("users").once("value"),
             ]);
 
-        const reviewsData = reviewsSnapshot.val() || {};
-        const botsData = botsSnapshot.val() || {};
-        const usersData = usersSnapshot.val() || {};
+        const reviewsData = (reviewsSnapshot.val() ?? {}) as Record<string, ReviewRecord>;
+        const botsData = (botsSnapshot.val() ?? {}) as Record<string, { name?: string; slug?: string; platform?: string }>;
+        const usersData = (usersSnapshot.val() ?? {}) as Record<string, { displayName?: string; email?: string }>;
 
         const reviews = Object.entries(reviewsData)
-            .map(([id, value]: [string, any]) => {
-                const product = botsData[value?.productId];
-                const user = usersData[value?.userId];
+            .map(([id, value]) => {
+                const product = botsData[value.productId ?? ""];
+                const user = usersData[value.userId ?? ""];
 
                 return {
                     id,
                     ...value,
                     productName:
                         product?.name ||
-                        value?.productId ||
+                        value.productId ||
                         "Unknown Product",
                     productSlug: product?.slug || "",
                     platform: product?.platform || "",
@@ -77,7 +88,7 @@ export async function GET(request: NextRequest) {
                 };
             })
             .sort(
-                (a: any, b: any) =>
+                (a, b) =>
                     Number(b.createdAt || 0) -
                     Number(a.createdAt || 0)
             );
@@ -85,13 +96,13 @@ export async function GET(request: NextRequest) {
         const summary = {
             total: reviews.length,
             published: reviews.filter(
-                (r: any) => r.status === "published"
+                (r) => r.status === "published"
             ).length,
             pending: reviews.filter(
-                (r: any) => r.status === "pending"
+                (r) => r.status === "pending"
             ).length,
             rejected: reviews.filter(
-                (r: any) => r.status === "rejected"
+                (r) => r.status === "rejected"
             ).length,
         };
 

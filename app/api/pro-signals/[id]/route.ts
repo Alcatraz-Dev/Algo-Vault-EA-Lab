@@ -98,7 +98,7 @@ export async function GET(
         const { id } = await params;
 
         // Check user's signals first
-        let signalSnap = await adminDatabase.ref(`telegramSignals/${uid}/${id}`).get();
+        const signalSnap = await adminDatabase.ref(`telegramSignals/${uid}/${id}`).get();
         let signal: ProSignal | null = signalSnap.exists() ? (signalSnap.val() as ProSignal) : null;
 
         // If not found in user's signals, check system/broadcast signals
@@ -246,7 +246,7 @@ export async function PATCH(
         }
 
         // Check user's signals first
-        let signalSnap = await adminDatabase.ref(`telegramSignals/${uid}/${id}`).get();
+        const signalSnap = await adminDatabase.ref(`telegramSignals/${uid}/${id}`).get();
         let signal: ProSignal | null = signalSnap.exists() ? (signalSnap.val() as ProSignal) : null;
 
         if (!signal) {
@@ -262,7 +262,7 @@ export async function PATCH(
 
         // Map action to state machine event
         let eventType: string;
-        let eventData: any = { reason };
+        const eventData: any = { reason };
 
         switch (action) {
             case "close":

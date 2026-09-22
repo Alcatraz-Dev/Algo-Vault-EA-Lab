@@ -9,9 +9,19 @@ import { calculateVWAP } from "@/lib/analytics/vwap";
 import { calculateMarketScore } from "@/lib/analytics/market-score";
 import { summarizeAnalysisWithFallback } from "@/lib/ai";
 import { parseAnalyticsParams } from "@/lib/market-data/validation";
+import type { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/** A trade journal entry stored under tradeJournal/{uid}. */
+interface TradeJournalEntry {
+    id?: string;
+    result?: string;
+    resultR?: number | string;
+    createdAt?: number | string;
+    signalId?: string;
+}
 
 export async function POST(request: NextRequest) {
     try {
@@ -26,12 +36,12 @@ export async function POST(request: NextRequest) {
             type?: "daily" | "weekly" | "monthly";
         };
 
-        const symbol = body.symbol || "XAUUSD";
-        const timeframe = (body.timeframe as any) || "H1";
+        const symbol = (body.symbol || "XAUUSD") as SupportedSymbol;
+        const timeframe = (body.timeframe || "H1") as Timeframe;
         const type = body.type || "daily";
 
         const { from, to } = parseAnalyticsParams(request.nextUrl.searchParams);
-        const candles = await fetchCandles(symbol as any, timeframe as any, { from: body.from || from, to: body.to || to });
+        const candles = await fetchCandles(symbol, timeframe, { from: body.from || from, to: body.to || to });
         if (candles.length < 10) return NextResponse.json({ error: "Insufficient data" }, { status: 400 });
 
         const regime = detectRegime(candles, timeframe);
@@ -53,13 +63,15 @@ export async function POST(request: NextRequest) {
         });
 
         const tradesSnap = await adminDatabase.ref(`tradeJournal/${user.uid}`).get();
-        const trades = tradesSnap.exists() ? tradesSnap.val() : {};
-        const tradeList = Object.values(trades).filter((t: any) => t && t.result);
+        const trades = tradesSnap.exists()
+            ? (tradesSnap.val() as Record<string, TradeJournalEntry>)
+            : {};
+        const tradeList = Object.values(trades).filter((t) => t && t.result);
 
-        const wins = tradeList.filter((t: any) => t.result === "WIN").length;
-        const losses = tradeList.filter((t: any) => t.result === "LOSS").length;
+        const wins = tradeList.filter((t: TradeJournalEntry) => t.result === "WIN").length;
+        const losses = tradeList.filter((t: TradeJournalEntry) => t.result === "LOSS").length;
         const winRate = tradeList.length > 0 ? ((wins / tradeList.length) * 100).toFixed(1) : "0";
-        const totalPnl = tradeList.reduce((s: number, t: any) => s + Number(t.resultR || 0), 0);
+        const totalPnl = tradeList.reduce((s: number, t: TradeJournalEntry) => s + Number(t.resultR || 0), 0);
 
         const report = {
             generatedAt: new Date().toISOString(),
@@ -101,7 +113,10 @@ export async function GET(request: NextRequest) {
 
         const reportSnap = await adminDatabase.ref(`reports/${user.uid}`).get();
         const reports = reportSnap.exists() ? reportSnap.val() : {};
-        const reportList = Object.entries(reports).map(([id, data]: [string, any]) => ({ id, ...data }));
+        const reportList = Object.entries(reports).map(([id, data]) => ({
+            id,
+            ...(data as Record<string, unknown>),
+        }));
 
         return NextResponse.json({ success: true, reports: reportList }, { status: 200 });
     } catch (err) {

@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
         const unreadOnly = searchParams.get("unread") === "true";
         const limit = Number(searchParams.get("limit")) || 50;
 
-        let ref = adminDatabase.ref(`notifications/${user.uid}`).limitToLast(limit * 2);
+        const ref = adminDatabase.ref(`notifications/${user.uid}`).limitToLast(limit * 2);
 
         const snapshot = await ref.get();
         if (!snapshot.exists()) return NextResponse.json({ success: true, notifications: [], unreadCount: 0 });

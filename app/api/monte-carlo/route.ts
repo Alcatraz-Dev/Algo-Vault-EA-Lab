@@ -3,9 +3,35 @@ import { authenticate } from "@/lib/admin-auth";
 import { adminDatabase } from "@/lib/firebase-admin";
 import { computeMetrics } from "@/lib/strategy-lab/metrics";
 import { BacktestTrade, EquityPoint } from "@/lib/strategy-lab/types";
+import type { AISignal } from "@/lib/ai-signals/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+interface SimulationRow {
+    finalR: number;
+    maxDD: number;
+    isNegative: boolean;
+    maxLosingStreak: number;
+}
+
+interface MonteCarloSummary {
+    tradeCount: number;
+    avgR: number;
+    stdR: number;
+    totalR: number;
+    numSimulations: number;
+    simulations: SimulationRow[];
+    confidenceIntervals?: Record<string, { maxDD?: number; finalReturn?: number }>;
+    probabilityOfRuin?: number;
+    expectedMaxDD?: number;
+    worstSimulatedDD?: number;
+    probabilityOfNegativePeriod?: number;
+    losingStreakProbability?: number;
+    medianFinalR?: number;
+    bestCaseR?: number;
+    worstCaseR?: number;
+}
 
 function seededRandom(seed: number) {
     const x = Math.sin(seed) * 10000;
@@ -39,8 +65,7 @@ export async function POST(request: NextRequest) {
         const avgR = rValues.reduce((a, b) => a + b, 0) / rValues.length;
         const stdR = Math.sqrt(rValues.reduce((a, b) => a + Math.pow(b - avgR, 2), 0) / rValues.length);
 
-        const results: Record<string, any[]> = {};
-        const summary: any = {
+        const summary: MonteCarloSummary = {
             tradeCount: trades.length,
             avgR,
             stdR,
@@ -76,12 +101,13 @@ export async function POST(request: NextRequest) {
                 finalR: Math.round(finalR * 100) / 100,
                 maxDD: Math.round(maxDD * 10) / 10,
                 isNegative,
+                maxLosingStreak,
             });
         }
 
-        const sortedDDs = summary.simulations.map((s: any) => s.maxDD).sort((a: number, b: number) => a - b);
-        const sortedFinals = summary.simulations.map((s: any) => s.finalR).sort((a: number, b: number) => a - b);
-        const negatives = summary.simulations.filter((s: any) => s.isNegative).length;
+        const sortedDDs = summary.simulations.map((s) => s.maxDD).sort((a, b) => a - b);
+        const sortedFinals = summary.simulations.map((s) => s.finalR).sort((a, b) => a - b);
+        const negatives = summary.simulations.filter((s) => s.isNegative).length;
 
         summary.confidenceIntervals = {};
         for (const cl of confidenceLevels) {
@@ -96,7 +122,7 @@ export async function POST(request: NextRequest) {
         summary.expectedMaxDD = sortedDDs[Math.floor(sortedDDs.length * 0.95)];
         summary.worstSimulatedDD = sortedDDs[sortedDDs.length - 1];
         summary.probabilityOfNegativePeriod = summary.probabilityOfRuin;
-        summary.losingStreakProbability = summary.simulations.filter((s: any) => s.maxLosingStreak && s.maxLosingStreak >= 5).length / numSims * 100;
+        summary.losingStreakProbability = summary.simulations.filter((s) => s.maxLosingStreak >= 5).length / numSims * 100;
         summary.medianFinalR = sortedFinals[Math.floor(sortedFinals.length / 2)];
         summary.bestCaseR = sortedFinals[sortedFinals.length - 1];
         summary.worstCaseR = sortedFinals[0];
@@ -118,10 +144,10 @@ export async function GET(request: NextRequest) {
         if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const signalSnap = await adminDatabase.ref("aiSignals").get();
-        let signals: any[] = [];
+        const signals: AISignal[] = [];
         if (signalSnap.exists()) {
             signalSnap.forEach((child) => {
-                const s = child.val();
+                const s = child.val() as AISignal | null;
                 if (s && s.id) signals.push(s);
             });
         }

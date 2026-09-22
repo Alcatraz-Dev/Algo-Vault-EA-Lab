@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
         const trades = tradeSnap.exists() ? Object.values(tradeSnap.val()) : [];
 
         const signalSnap = await adminDatabase.ref("aiSignals").get();
-        let signals: any[] = [];
+        const signals: any[] = [];
         if (signalSnap.exists()) {
             signalSnap.forEach((child) => {
                 const s = child.val();
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
         }
         const recentSignals = signals.filter((s) => s.createdAt > Date.now() - 30 * 86400000).slice(-50);
 
-        let totalPositions = Object.keys(positions).length;
+        const totalPositions = Object.keys(positions).length;
         let totalFloatingPnl = 0;
         let positionsAtRisk = 0;
 
