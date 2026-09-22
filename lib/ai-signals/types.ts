@@ -1,5 +1,3 @@
-import { MarketCandle } from "@/lib/market-data/types";
-
 export type SignalDirection = "BUY" | "SELL";
 
 export type SignalSourceType = "AI_GENERATED" | "TELEGRAM" | "MANUAL" | "STRATEGY_LAB";
@@ -178,43 +176,6 @@ export type SignalEventType =
     | "SIGNAL_CANCELLED"
     | "SIGNAL_CLOSED"
     | "SIGNAL_INVALIDATED";
-
-export interface MarketContextForAI {
-    symbol: string;
-    timeframe: Timeframe;
-    currentPrice: number;
-    bid: number;
-    ask: number;
-    spreadPips: number;
-    trend: string;
-    marketStructure: "trending_bullish" | "trending_bearish" | "ranging" | "uncertain";
-    structureBias: "bullish" | "bearish" | "neutral";
-    supportResistance: Array<{ price: number; type: "support" | "resistance" }>;
-    liquidity: {
-        levels: Array<{ price: number; type: string; strength: number }>;
-        sweeps: Array<{ side: string; level: number; timestamp: number }>;
-    };
-    VWAP: { value: number; distancePercent: number };
-    volume: { current: number; average: number; relative: number; state: string };
-    ATR: { value: number; percent: number; state: string };
-    regime: string;
-    marketSession: string;
-    marketStatus: "open" | "closed";
-    higherTimeframeContext: {
-        timeframe: Timeframe;
-        bias: string;
-        trend: string;
-        lastPrice: number;
-    };
-    recentCandles: Array<{
-        timestamp: number;
-        open: number;
-        high: number;
-        low: number;
-        close: number;
-        volume: number;
-    }>;
-}
 
 export interface AiSignalUserInput {
     notes?: string;
@@ -400,11 +361,16 @@ export interface SignalAnalytics {
     activeSignals: number;
     winningSignals: number;
     losingSignals: number;
+    breakevenSignals: number;
     expiredSignals: number;
     cancelledSignals: number;
     winRate: number;
     averageRR: number;
     averageConfidence: number;
+    tp1Hits: number;
+    tp2Hits: number;
+    tp3Hits: number;
+    slHits: number;
     tp1HitRate: number;
     tp2HitRate: number;
     tp3HitRate: number;

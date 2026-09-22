@@ -14,6 +14,7 @@ export type StatsFilter = {
     symbol?: string;
     timeframe?: string;
     direction?: "BUY" | "SELL";
+    entitlement?: "all" | "free";
 };
 
 const PERIOD_RANGES: Record<NonNullable<StatsFilter["period"]>, (now: number) => number> = {
@@ -53,6 +54,10 @@ export function matchesFilter(signal: AISignal, filter: StatsFilter, now: number
 
     if (filter.tier && filter.tier !== "all") {
         if (signal.tier !== filter.tier) return false;
+    }
+
+    if (filter.entitlement === "free" && signal.tier === "PRO") {
+        return false;
     }
 
     if (filter.symbol) {
@@ -234,6 +239,7 @@ export async function getCachedStats(filter: StatsFilter = {}): Promise<SignalSt
         filter.symbol || "all",
         filter.timeframe || "all",
         filter.direction || "all",
+        filter.entitlement || "all",
     ].join("/");
 
     const path = `signalStats/cache/${cacheKey.replace(/[^a-zA-Z0-9\/]/g, "_")}`;

@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
         const categoryFilter = searchParams.get("category");
         const statusFilter = searchParams.get("status");
         const timeframeFilter = searchParams.get("timeframe");
-        const limit = Math.min(Number(searchParams.get("limit")) || 50, 200);
+        const queryLimit = Math.min(Number(searchParams.get("limit")) || 50, 200);
 
         const snap = await adminDatabase.ref("aiSignals").get();
         let signals: AISignal[] = [];
@@ -34,15 +34,25 @@ export async function GET(request: NextRequest) {
         if (timeframeFilter) signals = signals.filter((s) => s.timeframe === timeframeFilter);
 
         signals.sort((a, b) => b.createdAt - a.createdAt);
-        signals = signals.slice(0, limit);
+        signals = signals.slice(0, queryLimit);
 
         // Server-side read-time enforcement: free users never receive PRO (M1)
         // signals. The client is never trusted with tier/subscription decisions.
         // Legacy signals without a tier are treated as FREE.
+        const config = await loadSignalConfig();
         const isPro = await isProUser(user.uid);
         const responseSignals = signals.filter((s) => s.tier !== "PRO" || isPro);
+        const daily = await trackDailySignals(user.uid);
+        const limit = isPro ? config.proSignalsPerDay : config.freeSignalsPerDay;
 
-        return NextResponse.json({ success: true, signals: responseSignals, total: responseSignals.length });
+        return NextResponse.json({
+            success: true,
+            signals: responseSignals,
+            total: responseSignals.length,
+            dailyCount: daily.total,
+            dailyLimit: limit,
+            remaining: Math.max(0, limit - daily.total),
+        });
     } catch (err) {
         console.error("AI Signals GET error:", err);
         return NextResponse.json({ error: "Failed to load signals" }, { status: 500 });
@@ -62,7 +72,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json().catch(() => ({}));
         const singleSymbol = body.symbol?.toUpperCase();
 
-        const daily = await trackDailySignals();
+        const daily = await trackDailySignals(user.uid);
         const isPro = await isProUser(user.uid);
         const limit = isPro ? config.proSignalsPerDay : config.freeSignalsPerDay;
         const remaining = limit - daily.total;
@@ -194,8 +204,9 @@ await adminDatabase.ref(`aiSignals/${signal.id}`).set(signal);
             success: true,
             signals: generatedSignals,
             generated: generatedSignals.length,
-            remaining: Math.max(0, remaining - generatedSignals.length),
+            dailyCount: daily.total + generatedSignals.length,
             dailyLimit: limit,
+            remaining: Math.max(0, remaining - generatedSignals.length),
             tier: isPro ? "pro" : "free",
         });
     } catch (err) {

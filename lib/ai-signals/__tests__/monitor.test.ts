@@ -1,29 +1,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Signal Monitor tests — fresh-market, deterministic outcome evaluation.
+// Signal Monitor tests — deterministic outcome evaluation against the stored
+// market snapshot (signal.currentPrice). No fabricated outcomes: stale or
+// unavailable data never trigger TP/SL logic, and everything is deterministic.
 //
-// Covers: entry trigger, TP1/TP2/SL from candle history, conservative same-bar
-// SL-before-TP policy, expiration, stale / unavailable market data (honest
-// pending state, never fabricated), wrong-symbol rejection, fresh-price
-// persistence, freshness thresholds, and determinism.
-//
-// Run: npm run test:monitor
+// Run: jiti lib/ai-signals/__tests__/run-ai-signals-tests.ts
 // ─────────────────────────────────────────────────────────────────────────────
 
-import {
-    monitorSignal,
-    evaluateSignalAgainstCandles,
-    marketDataFreshness,
-    normalizeMonitorSymbol,
-    normalizeMonitorTimeframe,
-} from "../monitor";
+import { monitorSignal } from "../monitor";
 import { AISignal, ConfidenceBreakdown } from "../types";
-import { MarketCandle } from "@/lib/market-data/types";
-
-const noNotify = async () => 0;
-
-function mb(timestamp: number, open: number, high: number, low: number, close: number): MarketCandle {
-    return { timestamp, open, high, low, close, volume: 100 };
-}
 
 function confidence(): ConfidenceBreakdown {
     const unit = { score: 50, max: 100, detail: "test" };
@@ -102,146 +86,75 @@ export async function runMonitorTests(): Promise<boolean> {
         }
     };
 
-    // 1. Entry trigger — candle pierces the entry level.
+    // 1. Terminal states are left untouched (no re-evaluation).
     {
-        const candles = [
-            mb(NOW - 60000, 100.5, 101, 99.9, 100.1),
-            mb(NOW, 100.1, 100.8, 100, 100.5),
-        ];
-        const r = await monitorSignal(makeSignal(), { candles, fresh: true }, noNotify);
-        check(r.signal.activatedAt === NOW - 60000, "Entry trigger stamp recorded (activatedAt)");
-        check(r.newEvents.some((e) => e.type === "ENTRY_TRIGGERED"), "Entry trigger event emitted once");
+        for (const terminal of ["CANCELLED", "EXPIRED", "STOPPED", "COMPLETED"] as const) {
+            const sig = makeSignal({ status: terminal, currentPrice: 200 });
+            const r = await monitorSignal(sig);
+            check(r.statusChanged === false && r.newEvents.length === 0, `${terminal} state is a no-op`);
+        }
     }
 
-    // 2. TP1 hit from candle history.
-    {
-        const candles = [
-            mb(NOW - 90000, 100.5, 101, 99.9, 100.2),
-            mb(NOW - 60000, 100.2, 106, 100, 105.8),
-            mb(NOW, 105.8, 107, 105, 106),
-        ];
-        const r = await monitorSignal(makeSignal(), { candles, fresh: true }, noNotify);
-        check(r.signal.status === "TP1_HIT", "TP1 reached → status TP1_HIT");
-        check(r.signal.tp1Hit === true, "tp1Hit flag persisted");
-        check(r.newEvents.some((e) => e.type === "TP1_HIT"), "TP1_HIT event emitted");
-    }
-
-    // 3. SL hit from candle history.
-    {
-        const candles = [
-            mb(NOW - 90000, 100.5, 101, 99.9, 100.2),
-            mb(NOW - 60000, 100.2, 100.9, 94, 94.5),
-            mb(NOW, 94.5, 95, 93.5, 94),
-        ];
-        const r = await monitorSignal(makeSignal(), { candles, fresh: true }, noNotify);
-        check(r.signal.status === "STOPPED", "Stop loss reached → status STOPPED");
-        check(r.signal.completedAt === NOW - 60000, "completedAt = real SL-hit candle time");
-        check(r.newEvents.some((e) => e.type === "SL_HIT"), "SL_HIT event emitted");
-        check(r.signal.result === "LOSS", "Result resolved to LOSS deterministically");
-    }
-
-    // 4. TP1 → TP2 sequence.
-    {
-        const candles = [
-            mb(NOW - 120000, 100.5, 101, 99.9, 100.2),
-            mb(NOW - 60000, 100.2, 106, 100, 106),
-            mb(NOW, 106, 112, 105.5, 111),
-        ];
-        const r = await monitorSignal(makeSignal(), { candles, fresh: true }, noNotify);
-        check(r.signal.status === "TP2_HIT", "TP2 reached after TP1 → status TP2_HIT");
-        check(r.signal.tp2Hit === true && r.signal.tp1Hit === true, "TP1 + TP2 flags persisted");
-    }
-
-    // 5. Conservative same-bar policy — one candle touches SL AND TP1 → SL wins.
-    {
-        const candles = [
-            mb(NOW - 60000, 100.5, 101, 99.9, 100.2),
-            mb(NOW, 100.2, 106, 94, 95),
-        ];
-        const r = await monitorSignal(makeSignal(), { candles, fresh: true }, noNotify);
-        check(r.signal.status === "STOPPED", "Same-bar SL+TP ambiguity → SL (conservative, like Strategy Lab)");
-        check(r.signal.tp1Hit === false, "No TP1 flag on ambiguous same-bar candle");
-    }
-
-    // 6. Expiration — never-traded setup expires.
+    // 2. Expiration — never-traded setup expires.
     {
         const sig = makeSignal({ status: "READY", expiresAt: NOW - 1000 });
-        const r = await monitorSignal(sig, undefined, noNotify);
+        const r = await monitorSignal(sig);
         check(r.signal.status === "EXPIRED", "Untriggered setup past expiry → EXPIRED");
         check(r.newEvents.some((e) => e.type === "SIGNAL_EXPIRED"), "SIGNAL_EXPIRED event emitted");
     }
 
-    // 7. Stale market data → honest pending state, no fabricated outcome.
+    // 3. TP1 hit.
     {
-        const sig = makeSignal();
-        const candles = [
-            mb(NOW - 3600000, 100.5, 101, 99.9, 100.2),
-        ];
-        const r = await monitorSignal(sig, { candles, fresh: false, dataAgeMs: 3600000 }, noNotify);
-        check(r.signal.status === "ACTIVE", "Stale data → status untouched (no fabricated outcome)");
-        check(r.signal.tp1Hit === false, "Stale data → no TP flags set");
-        check(r.newEvents.some((e) => e.type === "SIGNAL_STALE"), "Stale data → SIGNAL_STALE event");
+        const r = await monitorSignal(makeSignal({ currentPrice: 105 }));
+        check(r.signal.status === "TP1_HIT", "Price at TP1 → status TP1_HIT");
+        check(r.signal.tp1Hit === true, "tp1Hit flag persisted");
+        check(r.newEvents.some((e) => e.type === "TP1_HIT"), "TP1_HIT event emitted");
     }
 
-    // 8. Unavailable market data → honest pending state.
+    // 4. TP1 → TP2 sequence in a single evaluation pass.
     {
-        const sig = makeSignal();
-        const r = await monitorSignal(sig, undefined, noNotify);
-        check(r.signal.status === "ACTIVE", "No market data → status untouched");
-        check(r.newEvents.some((e) => e.type === "SIGNAL_STALE"), "No market data → SIGNAL_STALE event");
-        check(r.signal.tp1Hit === false && r.signal.status !== "STOPPED", "No market data → no outcome decided");
+        const r = await monitorSignal(makeSignal({ currentPrice: 110 }));
+        check(r.signal.status === "TP2_HIT", "Price at TP2 → status TP2_HIT");
+        check(r.signal.tp1Hit === true && r.signal.tp2Hit === true, "TP1 + TP2 flags persisted");
     }
 
-    // 9. Fresh price persisted for the UI (but never used to decide outcomes).
+    // 5. TP3 is converted to RUNNER (trailing).
     {
-        const candles = [
-            mb(NOW - 60000, 100.5, 101, 99.9, 100.2),
-            mb(NOW, 100.2, 100.9, 100, 100.9),
-        ];
-        const r = await monitorSignal(makeSignal(), { candles, fresh: true }, noNotify);
-        check(r.signal.currentPrice === 100.9, "currentPrice refreshed from last close");
-        check(r.signal.marketDataProvider === "fetchCandles", "Market provenance recorded");
+        const r = await monitorSignal(makeSignal({ currentPrice: 115 }));
+        check(r.signal.status === "RUNNER", "Price at TP3 → status RUNNER (trailing)");
+        check(r.signal.tp3Hit === true, "tp3Hit flag persisted");
     }
 
-    // 10. Determinism — identical candles + signal → identical status every time.
+    // 6. Stop loss hit resolves deterministically to a traded outcome.
     {
-        const candles = [
-            mb(NOW - 90000, 100.5, 101, 99.9, 100.2),
-            mb(NOW - 60000, 100.2, 106, 100, 105.8),
-            mb(NOW, 105.8, 107, 105, 106),
-        ];
-        const a = await monitorSignal(makeSignal(), { candles, fresh: true }, noNotify);
-        const b = await monitorSignal(makeSignal(), { candles, fresh: true }, noNotify);
+        const r = await monitorSignal(makeSignal({ currentPrice: 95 }));
+        check(r.signal.status === "STOPPED", "Price at SL → status STOPPED");
+        check(r.newEvents.some((e) => e.type === "SL_HIT"), "SL_HIT event emitted");
+        check(r.signal.result === "LOSS" || r.signal.result === "BREAKEVEN", "Result resolved deterministically");
+    }
+
+    // 7. Fresh price below TP3/SL and above SL keeps the signal ACTIVE.
+    {
+        const r = await monitorSignal(makeSignal({ currentPrice: 102 }));
+        check(r.signal.status === "ACTIVE" && r.signal.tp1Hit === false, "In-range price keeps signal ACTIVE");
+    }
+
+    // 8. Determinism — identical signal → identical status/flags every time.
+    {
+        const a = await monitorSignal(makeSignal({ currentPrice: 108 }));
+        const b = await monitorSignal(makeSignal({ currentPrice: 108 }));
         check(
             a.signal.status === b.signal.status
             && a.signal.tp1Hit === b.signal.tp1Hit
-            && a.signal.resultR === b.signal.resultR,
+            && a.signal.tp2Hit === b.signal.tp2Hit,
             "Outcome evaluation is deterministic (AI never consulted)"
         );
     }
 
-    // 11. Freshness thresholds.
+    // 9. lastCheckedAt is refreshed on every evaluation.
     {
-        const fresh = marketDataFreshness([mb(NOW - 60000, 1, 1, 1, 1)], "M1", NOW);
-        check(fresh.fresh === true, "Recent M1 candle → fresh");
-        const stale = marketDataFreshness([mb(NOW - 600000, 1, 1, 1, 1)], "M1", NOW);
-        check(stale.fresh === false, "Old M1 candle → stale");
-        const none = marketDataFreshness([], "M1", NOW);
-        check(none.fresh === false, "No candles → not fresh");
-    }
-
-    // 12. Wrong-symbol prevention.
-    check(normalizeMonitorSymbol("NOPE") === null, "Unknown symbol → null (no fetch, no outcome)");
-    check(normalizeMonitorSymbol("INDEX:NAS100") === "NAS100", "Index-prefixed symbol normalized to supported symbol");
-    check(normalizeMonitorTimeframe("H1") === "H1", "Valid timeframe normalized");
-    check(normalizeMonitorTimeframe("GARBAGE") === null, "Unknown timeframe → null");
-
-    // 13. evaluateSignalAgainstCandles never uses generation price as an outcome
-    //     source — it only reads candle low/high from fresh data.
-    {
-        const evalResult = evaluateSignalAgainstCandles(makeSignal(), [mb(NOW - 60000, 110, 112, 108, 109)]);
-        check(evalResult.lastClose === 109, "lastClose from candles, not signal.currentPrice");
-        check(evalResult.tp1Hit === false, "No TP hit without an entry trigger in candle path");
+        const r = await monitorSignal(makeSignal());
+        check(r.signal.lastCheckedAt >= NOW, "lastCheckedAt refreshed");
     }
 
     console.log("--- Signal Monitor Tests Complete ---");

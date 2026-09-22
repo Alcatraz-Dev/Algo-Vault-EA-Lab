@@ -18,12 +18,15 @@ const DEFAULT_INSTRUMENT_THRESHOLDS: Record<string, number> = {
     NAS100: 0.10,
     US30: 0.10,
     SPX500: 0.10,
-    EURUSD: 0.01,
-    GBPUSD: 0.01,
-    USDJPY: 0.01,
-    USDCHF: 0.01,
-    AUDUSD: 0.01,
-    NZDUSD: 0.01,
+    // FX majors: 0.05% (≈5 pips on EURUSD / 7.5 pips on USDJPY). A 0.01% tolerance
+    // (≈1 pip) would reject almost any real signal — entry prices naturally differ
+    // from the live quote by a few pips between snapshot and consumption.
+    EURUSD: 0.05,
+    GBPUSD: 0.05,
+    USDJPY: 0.05,
+    USDCHF: 0.05,
+    AUDUSD: 0.05,
+    NZDUSD: 0.05,
 };
 
 function getInstrumentThreshold(symbol: string): number {

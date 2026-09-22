@@ -19,7 +19,7 @@ const freshSnapshot: MarketSnapshot = {
     marketSession: "new_york",
     marketStatus: "open",
     recentCandles: [],
-    multiTimeframeCandles: {} as any,
+    multiTimeframeCandles: { M1: [], M3: [], M5: [], M15: [], M30: [], H1: [], H4: [], D1: [] } as MarketSnapshot["multiTimeframeCandles"],
     trend: "bullish",
     marketStructure: "trending_bullish",
     supportResistance: { supports: [3950, 3900], resistances: [4050, 4100] },

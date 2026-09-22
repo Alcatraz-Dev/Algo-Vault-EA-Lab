@@ -1,5 +1,6 @@
 import { adminDatabase } from "@/lib/firebase-admin";
-import { SignalStatus, SignalTimelineEvent, AISignal } from "@/lib/ai-signals/types";
+import { SignalStatus, SignalTimelineEvent, SignalEvent, AISignal } from "@/lib/ai-signals/types";
+import type { ProSignal, SignalEvent as ProSignalEvent } from "@/features/telegram-signals/types";
 import { recordSignalEvent } from "./events";
 
 export type LifecycleEventType =
@@ -115,7 +116,9 @@ export async function transitionSignalLifecycle(
     const event: SignalTimelineEvent = {
         id: `evt_${signal.id}_${eventType}_${now}`,
         timestamp: now,
-        type: eventType as any,
+        // The timeline type taxonomy and LifecycleEventType overlap but are not
+        // identical; the event string is intentionally preserved as-is.
+        type: eventType as unknown as SignalTimelineEvent["type"],
         message: `${eventType}: ${prevStatus} → ${rule.toStatus}`,
         metadata: {
             signalId: signal.id,
@@ -209,7 +212,8 @@ export async function transitionSignalLifecycle(
 
     await recordSignalEvent(
         { id: signal.id },
-        eventType as any,
+        // Stored event log uses its own taxonomy; preserve the lifecycle string.
+        eventType as unknown as SignalEvent["eventType"],
         metadata?.price as number,
         metadata
     );
@@ -228,14 +232,14 @@ export async function transitionSignalLifecycle(
 }
 
 export async function transitionProSignalLifecycle(
-    signal: any,
+    signal: ProSignal,
     eventType: string,
     eventData?: { price?: number; tpIndex?: number; newStopLoss?: number; reason?: string }
-): Promise<{ updatedSignal: any; newEvent: any; transitioned: boolean }> {
+): Promise<{ updatedSignal: ProSignal; newEvent: ProSignalEvent | null; transitioned: boolean }> {
     const now = Date.now();
     let newStatus = signal.status;
     let transitioned = false;
-    let newEvent: any = null;
+    let newEvent: ProSignalEvent | null = null;
 
     const isTerminal = ["CLOSED", "STOPPED", "EXPIRED", "CANCELLED"].includes(signal.status);
     if (isTerminal && eventType !== "CLOSE_SIGNAL") {
@@ -252,7 +256,7 @@ export async function transitionProSignalLifecycle(
         case "HIT_TP": {
             const tpIndex = eventData?.tpIndex || 1;
             if (signal.takeProfits) {
-                const targetTp = signal.takeProfits.find((t: any) => t.index === tpIndex);
+                const targetTp = signal.takeProfits.find((t) => t.index === tpIndex);
                 if (targetTp) {
                     targetTp.hit = true;
                     targetTp.hitAt = now;
@@ -263,7 +267,7 @@ export async function transitionProSignalLifecycle(
             else if (tpIndex === 3) newStatus = "TP3_HIT";
             else if (tpIndex === 4) newStatus = "TP4_HIT";
             else if (tpIndex >= 5) newStatus = "TP5_OPEN_RUNNER";
-            if (signal.takeProfits?.every((t: any) => t.hit)) newStatus = "CLOSED";
+            if (signal.takeProfits?.every((t) => t.hit)) newStatus = "CLOSED";
             transitioned = true;
             break;
         }

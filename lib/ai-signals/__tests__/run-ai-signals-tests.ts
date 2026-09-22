@@ -1,5 +1,6 @@
 import { runPriceSanityTests } from "./price-sanity.test";
 import { runLifecycleTests } from "./ai-generation.test";
+import { runMonitorTests } from "./monitor.test";
 
 async function runAllAISignalTests(): Promise<boolean> {
     console.log("==========================================");
@@ -12,8 +13,11 @@ async function runAllAISignalTests(): Promise<boolean> {
     const lifecycleResult = await runLifecycleTests();
     console.log("");
 
+    const monitorResult = await runMonitorTests();
+    console.log("");
+
     console.log("==========================================");
-    if (sanityResult && lifecycleResult) {
+    if (sanityResult && lifecycleResult && monitorResult) {
         console.log("🎉 ALL AI SIGNAL TESTS PASSED (100%)");
         console.log("==========================================");
         return true;
@@ -26,8 +30,6 @@ async function runAllAISignalTests(): Promise<boolean> {
 
 export { runAllAISignalTests };
 
-if (require.main === module) {
-    runAllAISignalTests().then((passed) => {
-        process.exit(passed ? 0 : 1);
-    });
-}
+runAllAISignalTests().then((passed) => {
+    process.exit(passed ? 0 : 1);
+});

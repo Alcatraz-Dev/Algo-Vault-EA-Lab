@@ -34,7 +34,7 @@ import { calculateMarketScore } from "@/lib/analytics/market-score";
 import { MarketCandle, Timeframe } from "@/lib/market-data/types";
 import { adminDatabase } from "@/lib/firebase-admin";
 import { recordSignalEvent } from "./events";
-import { ai } from "@/ai";
+import { ai } from "@/lib/ai";
 
 export const ENGINE_VERSION = "1.1.0";
 export const STRATEGY_VERSION = "1.1.0";

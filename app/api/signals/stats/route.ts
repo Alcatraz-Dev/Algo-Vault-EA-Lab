@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticate } from "@/lib/admin-auth";
+import { isProUser } from "@/lib/ai-signals/access";
 import { getCachedStats } from "@/lib/ai-signals/statistics";
 
 const VALID_PERIODS = ["today", "week", "month", "last7", "last30", "last90", "all"];
@@ -29,12 +30,14 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "Invalid direction. Use BUY or SELL" }, { status: 400 });
         }
 
+        const isPro = await isProUser(user.uid);
         const stats = await getCachedStats({
             period: period as "today" | "week" | "month" | "last7" | "last30" | "last90" | "all",
             tier: tier as "FREE" | "PRO" | "all",
             symbol,
             timeframe,
             direction: direction as "BUY" | "SELL" | undefined,
+            entitlement: isPro ? "all" : "free",
         });
 
         return NextResponse.json({ success: true, stats });
