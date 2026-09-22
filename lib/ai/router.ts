@@ -17,6 +17,7 @@ import { OpenRouterProvider } from "./providers/openrouter";
 import { OpenCodeProvider } from "./providers/opencode";
 import { BAIProvider } from "./providers/bai";
 import { GeminiProvider } from "./providers/gemini";
+import { BytezProvider } from "./providers/bytez";
 import { LocalStrategyAIProvider } from "./local";
 
 export class AIRouter {
@@ -31,11 +32,13 @@ export class AIRouter {
         const openrouter = new OpenRouterProvider();
         const opencode = new OpenCodeProvider();
         const bai = new BAIProvider();
+        const bytez = new BytezProvider();
 
         this.providers.set(gemini.id, gemini);
         this.providers.set(openrouter.id, openrouter);
         this.providers.set(opencode.id, opencode);
         this.providers.set(bai.id, bai);
+        this.providers.set(bytez.id, bytez);
     }
 
     getProvider(id: string): AIProvider | undefined {
@@ -53,6 +56,7 @@ export class AIRouter {
             this.providers.get("openrouter"),
             this.providers.get("opencode"),
             this.providers.get("bai"),
+            this.providers.get("bytez"),
         ];
 
         for (const provider of providers) {
@@ -77,11 +81,14 @@ export class AIRouter {
     }
 
     /**
-     * Executes chat request with automatic FREE provider fallback
-     * (Gemini -> OpenRouter -> OpenCode -> B.AI [only when a paid budget is
-     * allowed] -> Local Heuristic). Each provider resolves the effective model
-     * against its own free catalog, so a quota failure on one provider no longer
-     * cascades into the next provider being handed an unsupported model.
+     * Executes chat request with automatic provider fallback
+     * (Gemini -> OpenRouter -> OpenCode -> B.AI -> Bytez -> Local Heuristic).
+     * Bytez participates whenever BYTEZ_API_KEY is configured: under
+     * AI_FREE_ONLY=true (the default) only its `*-free` models are served, and
+     * when a paid budget is allowed it may use its full discovered catalog.
+     * Each provider resolves the effective model against its own catalog, so a
+     * quota failure on one provider no longer cascades into the next provider
+     * being handed an unsupported model.
      */
     async chat(request: AIChatRequest): Promise<AIResponse> {
         // Enforce hard free-only check if model specified

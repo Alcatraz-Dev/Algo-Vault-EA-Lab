@@ -149,7 +149,7 @@ One canonical system per domain (audit contract). When adding a feature, extend 
 ## §K. AI Router & Bytez Integration (canonical)
 
 ### Architecture
-`lib/ai/router.ts` (class `AIRouter` + exported `defaultRouter`) manages a `Map<providerId, AIProvider>`. Fixed fallback order: Gemini → OpenRouter → OpenCode → B.AI → **Bytez** → Local heuristic (`lib/ai/local.ts`). Free-only guard `assertFreeModelAllowed` in `lib/ai/models.ts` blocks paid models unless a paid budget is allowed. Dynamic model discovery per provider via `getModels()`; `getAllModels()` aggregates and falls back to `KNOWN_FREE_MODELS` on total failure.
+`lib/ai/router.ts` (class `AIRouter` + exported `defaultRouter`) manages a `Map<providerId, AIProvider>`. Fixed fallback order: Gemini → OpenRouter → OpenCode → B.AI → **Bytez** → Local heuristic (`lib/ai/local.ts`). Free-only guard `assertFreeModelAllowed` in `lib/ai/models.ts` blocks paid models unless a paid budget is allowed. Dynamic model discovery per provider via `getModels()`; `getAllModels()` aggregates and falls back to `KNOWN_FREE_MODELS` on total failure. Bytez joins the chain whenever `BYTEZ_API_KEY` is configured: under `AI_FREE_ONLY=true` (default) only `meter`-`*-free` models are served, and when a paid budget is allowed (`AI_FREE_ONLY=false`) its chat default is the first enabled discovered model (never a hardcoded catalog). `getAIProvider()` mirrors the provider chain (gemini → openrouter → opencode → bai → bytez).
 
 ### Provider interface (implement in `lib/ai/providers/*`)
 `id`, `name`, `isAvailable()`, `getModels(): Promise<AIModel[]>`, `chat(req): Promise<AIResponse>`, plus optional `describeStrategy`/`summarizeAnalysis`. Register in `AIRouter` constructor and in `getAvailableCloudProviders()` (and ensure `getAllModels()` covers it — it iterates `this.providers.values()`, so constructor registration is enough).
@@ -361,7 +361,7 @@ Removed/archived: `scripts/tmp-dispatch.ts`, `scripts/signal-auto-update.js`, ro
 1. ✅ Audit + inventory (this doc).
 2. ✅ Documentation reset & junk cleanup (§Y).
 3. ✅ TS error fixes (§Q) — re-verified with `npx tsc --noEmit` (clean).
-4. ✅ Bytez provider + registration (§K) + `.env.example`.
+4. ✅ Bytez provider + registration (§K) + config/router/index wiring + `.env.example`.
 5. ✅ Security fixes (§F).
 6. ✅ Fake-data fixes (§L/§U/§S).
 7. ✅ **VERIFY** (2026-09-22): `npx tsc --noEmit` clean · `npm run lint` 906 problems (294 errors/612 warnings, zero in touched files) · `npm run build` exit 0 · **all 8 runnable suites green** (EA, strategy-lab backtest, pro/telegram signals, risk, ai-signals, agents) · chrome-extension typecheck clean.

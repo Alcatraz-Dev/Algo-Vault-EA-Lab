@@ -16,7 +16,7 @@ export * from "./router";
 export * from "./client";
 
 export function getAIProvider(): AIProvider {
-    return defaultRouter.getProvider("gemini") || defaultRouter.getProvider("openrouter") || defaultRouter.getProvider("opencode") || defaultRouter.getProvider("bai")!;
+    return defaultRouter.getProvider("gemini") || defaultRouter.getProvider("openrouter") || defaultRouter.getProvider("opencode") || defaultRouter.getProvider("bai") || defaultRouter.getProvider("bytez")!;
 }
 
 export function currentProviderInfo(): { id: string; name: string; usingExternal: boolean } {

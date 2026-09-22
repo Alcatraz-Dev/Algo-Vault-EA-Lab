@@ -135,9 +135,9 @@ export class BytezProvider implements AIProvider {
         const models = await this.getModels();
         const freeModels = models.filter((m) => m.confirmedFree && m.enabled);
 
-        // Explicit model: enforce the free-only guard, then only pass a model
-        // that Bytez actually exposes; otherwise fall back to a discovered
-        // free model rather than sending a foreign model id.
+        // Explicit model: enforce the canonical free-only guard, then only pass
+        // a model that Bytez actually exposes; otherwise fall back to a
+        // discovered free model rather than sending a foreign model id.
         if (request.model) {
             assertFreeModelAllowed(request.model);
         }
@@ -145,11 +145,12 @@ export class BytezProvider implements AIProvider {
         let model: string;
         if (request.model) {
             const match = models.find((m) => m.id.toLowerCase() === request.model!.toLowerCase());
-            if (match) {
-                model = match.id;
-            } else {
-                model = freeModels[0]?.id ?? "";
-            }
+            model = match ? match.id : freeModels[0]?.id ?? "";
+        } else if (!AIConfig.freeOnly) {
+            // A paid budget is allowed: default to Bytez's first enabled
+            // discovered model so the credit-based capacity is usable, not
+            // just the `*-free` subset.
+            model = models.find((m) => m.enabled)?.id ?? "";
         } else {
             model = freeModels[0]?.id ?? "";
         }
@@ -158,9 +159,13 @@ export class BytezProvider implements AIProvider {
             throw {
                 code: "MODEL_UNAVAILABLE",
                 provider: this.id,
-                message: "Bytez returned no free-eligible model. Check that BYTEZ_API_KEY is valid and the free tier has a `*-free` model.",
+                message: "Bytez returned no usable model. Check that BYTEZ_API_KEY is valid and the discovery endpoint is reachable.",
             };
         }
+
+        // Defense-in-depth: the canonical free-only guard on the resolved model
+        // (redundant when it came from `freeModels`, required for the paid path).
+        assertFreeModelAllowed(model);
 
         const messages: Array<{ role: string; content: string }> = [];
         if (request.systemPrompt) {

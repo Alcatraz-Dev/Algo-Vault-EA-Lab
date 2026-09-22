@@ -59,4 +59,11 @@ export const AIConfig = {
     get baiBaseUrl(): string {
         return (process.env.BAI_BASE_URL || "https://api.b.ai/v1").replace(/\/$/, "");
     },
+
+    // Bytez (https://api.bytez.com — credit-based models; free-eligible models
+    // are only those whose `meter` ends in `-free`). Auth is the raw key, no
+    // "Bearer" prefix. Server-side only.
+    get bytezApiKey(): string {
+        return process.env.BYTEZ_API_KEY || "";
+    },
 };
