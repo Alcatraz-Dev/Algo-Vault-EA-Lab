@@ -6,6 +6,7 @@ import { fetchCandles } from "@/lib/market-data/normalizer";
 import { detectRegime } from "@/lib/analytics/market-regime";
 import { analyzeVolatility } from "@/lib/analytics/volatility";
 import { calculateMarketScore } from "@/lib/analytics/market-score";
+import type { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,12 +37,11 @@ export async function POST(request: NextRequest) {
         }
 
         const imageBuffer = Buffer.from(await imageFile.arrayBuffer());
-        const imageBase64 = imageBuffer.toString("base64");
 
-        const candles = await fetchCandles(symbol as any, timeframe as any);
-        const regime = candles.length >= 20 ? detectRegime(candles, timeframe as any) : null;
+        const candles = await fetchCandles(symbol as SupportedSymbol, timeframe as Timeframe);
+        const regime = candles.length >= 20 ? detectRegime(candles, timeframe as Timeframe) : null;
         const volatility = candles.length >= 20 ? analyzeVolatility(candles) : null;
-        const score = candles.length >= 20 ? calculateMarketScore(candles, timeframe as any) : null;
+        const score = candles.length >= 20 ? calculateMarketScore(candles, timeframe as Timeframe) : null;
 
         const analysis = await summarizeAnalysisWithFallback({
             asset: symbol,

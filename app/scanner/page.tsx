@@ -6,25 +6,52 @@ import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import AccountShell from "@/components/account/AccountShell";
 import {
-    Activity, ArrowLeft, BarChart3, Zap, Target,
-    Loader2, Filter, Search, TrendingUp, AlertTriangle,
-    Shield, Crown, Lock, Upload, Image, Eye,
+    Zap,
+    Loader2, Crown, Upload,
+    Shield, Lock, Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+interface ScannerResultRow {
+    symbol: string;
+    error?: string;
+    direction?: "BUY" | "SELL" | "NEUTRAL";
+    strength?: number;
+    trend?: string;
+    momentum?: number;
+    volatility?: string;
+    regime?: string;
+    liquidity?: string;
+}
+
+interface ImageScanResult {
+    success: boolean;
+    symbol?: string;
+    timeframe?: string;
+    imageSize?: number;
+    detectedMarketData?: {
+        regime?: string;
+        confidence?: number;
+        volatility?: string;
+        score?: number;
+    };
+    analysis?: string;
+    message?: string;
+}
 
 export default function ScannerPage() {
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
-    const [results, setResults] = useState<any[]>([]);
-    const [filtered, setFiltered] = useState<any[]>([]);
+    const [results, setResults] = useState<ScannerResultRow[]>([]);
+    const [filtered, setFiltered] = useState<ScannerResultRow[]>([]);
     const [loading, setLoading] = useState(false);
     const [isPro, setIsPro] = useState(false);
-    const [filters, setFilters] = useState({
+    const [filters] = useState({
         symbol: "", direction: "", strength: "", regime: "", timeframe: "H1", minStrength: "0",
     });
     const [imageUploading, setImageUploading] = useState(false);
-    const [imageResult, setImageResult] = useState<any>(null);
+    const [imageResult, setImageResult] = useState<ImageScanResult | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -53,13 +80,16 @@ export default function ScannerPage() {
         finally { setLoading(false); }
     }, [user, filters]);
 
-    useEffect(() => { if (!authLoading && user) scan(); }, [authLoading, user]);
+    useEffect(() => {
+        if (authLoading || !user) return;
+        void Promise.resolve().then(() => scan());
+    }, [authLoading, user, scan]);
 
     const applyFilters = () => {
         let f = results;
         if (filters.symbol) f = f.filter((r) => r.symbol === filters.symbol);
         if (filters.direction) f = f.filter((r) => r.direction === filters.direction);
-        if (filters.strength) f = f.filter((r) => r.strength >= parseFloat(filters.strength));
+        if (filters.strength) f = f.filter((r) => (r.strength ?? 0) >= parseFloat(filters.strength));
         if (filters.regime) f = f.filter((r) => r.regime === filters.regime);
         setFiltered(f);
     };
@@ -189,9 +219,9 @@ export default function ScannerPage() {
                                         <td className="px-4 py-3 font-mono font-bold text-foreground">{r.symbol}</td>
                                         <td className={cn("px-4 py-3 font-medium", r.direction === "BUY" ? "text-emerald-400" : r.direction === "SELL" ? "text-rose-400" : "text-muted-foreground")}>
                                             {r.direction}
-                                            {r.strength >= 80 && <span className="ml-1 text-[10px] text-amber-400">●</span>}
+                                            {(r.strength ?? 0) >= 80 && <span className="ml-1 text-[10px] text-amber-400">●</span>}
                                         </td>
-                                        <td className="px-4 py-3 text-right font-mono font-bold" style={{ color: r.strength >= 80 ? "#10b981" : r.strength >= 60 ? "#f59e0b" : "#ef4444" }}>{r.strength}</td>
+                                        <td className="px-4 py-3 text-right font-mono font-bold" style={{ color: (r.strength ?? 0) >= 80 ? "#10b981" : (r.strength ?? 0) >= 60 ? "#f59e0b" : "#ef4444" }}>{r.strength}</td>
                                         <td className="px-4 py-3 text-right text-muted-foreground">{r.trend}</td>
                                         <td className="px-4 py-3 text-right font-mono text-muted-foreground">{r.momentum}</td>
                                         <td className="px-4 py-3 text-left"><span className={cn("rounded px-1.5 py-0.5 text-[10px]", r.volatility === "high" ? "bg-rose-500/10 text-rose-400" : r.volatility === "low" ? "bg-emerald-500/10 text-emerald-400" : "bg-muted/10 text-muted-foreground")}>{r.volatility}</span></td>
