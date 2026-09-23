@@ -11,6 +11,51 @@ export type GuideConfig = {
 const exactOrPrefix = (target: string) => (p: string) => p === target || p.startsWith(target + "?") || p.startsWith(target + "/");
 
 const GUIDES: GuideConfig[] = [
+    // ── Workflow Intelligence Studio ──
+    {
+        key: "workflow-studio",
+        pageTitle: "Workflow Intelligence Studio",
+        match: exactOrPrefix("/admin/intelligence/studio"),
+        steps: [
+            { target: "[data-guide='page-header']", title: "Workflow Intelligence Studio", body: "Build, test, and deploy automated trading strategies with a visual node DAG editor." },
+            { target: "[data-guide='studio-actions']", title: "Create & Load Workflows", body: "Start with a blank canvas, load pre-built templates, or let AI generate the strategy graph." },
+            { target: "[data-guide='ai-builder']", title: "Build Strategy with AI", body: "Describe your trading rules in plain language, and the AI Router will generate a validated node graph." },
+            { target: "[data-guide='templates']", title: "Workflow Templates", body: "Pick battle-tested trading workflows like RSI breakouts, trailing stops, or volatility scalpers." },
+            { target: "[data-guide='palette']", title: "Node Library Palette", body: "Drag market data, indicator, risk, AI, logic, and alert nodes onto the canvas." },
+            { target: "[data-guide='canvas']", title: "React Flow DAG Canvas", body: "Wire node outputs to inputs to construct your strategy flow. Click any node to open the Inspector." },
+            { target: "[data-guide='inspector']", title: "Node Parameter Inspector", body: "Customize symbols, timeframes, indicator parameters, and toggle node states in real-time." },
+            { target: "[data-guide='actions']", title: "Validate & Run Test", body: "Validate node schemas and test execution live against real market data before saving." },
+        ],
+    },
+
+    // ── Account Workflows ──
+    {
+        key: "account-workflows",
+        pageTitle: "Workflow Automation",
+        match: exactOrPrefix("/account/workflows"),
+        steps: [
+            { target: "[data-guide='page-header']", title: "Workflow Automations", body: "Create, monitor, and run automated trading strategies connected to your account." },
+            { target: "[data-guide='create-actions']", title: "New Workflow & AI Tools", body: "Use New Workflow, Templates, or AI Builder to build trading strategy DAGs." },
+            { target: "[data-guide='stats']", title: "Workflow Counters", body: "Track total, active, draft, and paused automations at a glance." },
+            { target: "[data-guide='search-bar']", title: "Search & Status Filters", body: "Quickly filter automations by name or state (active, draft, paused)." },
+            { target: "[data-guide='workflows-grid']", title: "Workflow Management Cards", body: "Run, edit in Studio, duplicate, or manage permissions for each workflow card." },
+        ],
+    },
+
+    // ── Admin Workflows Hub ──
+    {
+        key: "admin-workflows",
+        pageTitle: "Admin Workflow Hub",
+        match: (p) => p === "/admin/workflows" || p === "/admin/intelligence/workflows",
+        steps: [
+            { target: "[data-guide='page-header']", title: "Admin Workflow Management", body: "Monitor system execution runs, configure kill switch, and manage platform workflow definitions." },
+            { target: "[data-guide='kill-switch']", title: "Global Kill Switch", body: "Emergency stop switch to halt all automated workflow executions instantly across the platform." },
+            { target: "[data-guide='stats']", title: "Status Breakdown", body: "Overview of active, paused, disabled, draft, and archived workflows." },
+            { target: "[data-guide='workflows-list']", title: "Realtime Workflows List", body: "Inspect, trigger manual runs, toggle active/paused states, or edit in Studio." },
+            { target: "[data-guide='audit-log']", title: "Execution Audit Log", body: "Track recent failures, execution tracebacks, and automated trigger logs." },
+        ],
+    },
+
     // ── Trading Studio ──
     {
         key: "studio",

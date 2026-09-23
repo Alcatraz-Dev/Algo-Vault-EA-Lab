@@ -41,7 +41,23 @@ function deepClean<T>(value: T): T {
 
 export async function getWorkflow(uid: string, workflowId: string): Promise<WorkflowAutomation | null> {
     const snap = await REF(PATHS.workflow(uid, workflowId)).get();
-    return (snap.val() || null) as WorkflowAutomation | null;
+    if (snap.exists()) return snap.val() as WorkflowAutomation;
+
+    // Cross-user / Admin fallback search
+    const allSnap = await REF("workflowAutomation").get();
+    const byUser = (allSnap.val() || {}) as Record<string, Record<string, WorkflowAutomation>>;
+    for (const u of Object.keys(byUser)) {
+        if (byUser[u] && byUser[u][workflowId]) {
+            return byUser[u][workflowId];
+        }
+    }
+    return null;
+}
+
+export async function deleteWorkflow(uid: string, workflowId: string): Promise<void> {
+    const wf = await getWorkflow(uid, workflowId);
+    const targetUid = wf?.userId || uid;
+    await REF(PATHS.workflow(targetUid, workflowId)).set(null);
 }
 
 export async function saveWorkflow(wf: WorkflowAutomation): Promise<void> {
@@ -63,7 +79,9 @@ export async function listAllWorkflows(): Promise<WorkflowAutomation[]> {
     const byUser = (snap.val() || {}) as Record<string, Record<string, WorkflowAutomation>>;
     const out: WorkflowAutomation[] = [];
     for (const user of Object.values(byUser)) {
-        out.push(...Object.values(user));
+        if (user && typeof user === "object") {
+            out.push(...Object.values(user));
+        }
     }
     return out.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 }

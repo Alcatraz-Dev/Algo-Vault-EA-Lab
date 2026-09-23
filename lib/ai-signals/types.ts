@@ -448,7 +448,11 @@ export interface SignalStats {
     lossRate: number;
     averageR: number;
     totalR: number;
-    profitFactor: number;
+        profitFactor: number | null;
+    totalProfitUSD?: number;
+    grossProfitUSD?: number;
+    grossLossUSD?: number;
+    monetaryProfitFactor?: number | null;
     averageWin: number;
     averageLoss: number;
     largestWin: number;

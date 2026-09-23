@@ -11,6 +11,26 @@
     {
       "path": "/api/plugins/runtime/tick",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/growth/cron/reports",
+      "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/growth/cron/content",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/growth/cron/analysis",
+      "schedule": "0 6 * * 1"
+    },
+    {
+      "path": "/api/growth/cron/affiliates",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/growth/cron/optimization",
+      "schedule": "0 7 * * 7"
     }
   ]
 }

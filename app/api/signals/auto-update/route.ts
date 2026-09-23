@@ -183,13 +183,34 @@ async function checkAndUpdateSignal(signal: AISignal): Promise<boolean> {
             if (hitTpIndex === 2) updates.tp2Hit = true;
             if (hitTpIndex === 3) updates.tp3Hit = true;
 
-            // If SL hit, calculate result
+            // If SL hit, calculate result and mark as COMPLETED
             if (hitSl) {
                 const outcome = calculateSignalResult(signal);
                 updates.result = outcome.result;
                 updates.resultR = outcome.resultR;
                 updates.profitPoints = outcome.profitPoints;
                 updates.closedAt = now;
+                updates.status = "COMPLETED"; // Mark as completed when SL hit
+            }
+            
+            // If TP3 hit (final TP), mark as COMPLETED
+            if (hitTpIndex === 3) {
+                const outcome = calculateSignalResult(signal);
+                updates.result = outcome.result;
+                updates.resultR = outcome.resultR;
+                updates.profitPoints = outcome.profitPoints;
+                updates.closedAt = now;
+                updates.status = "COMPLETED";
+            }
+            
+            // If TP1 or TP2 hit but not final, keep as TP_HIT status but also update result if we can calculate
+            if (hitTpIndex === 1 || hitTpIndex === 2) {
+                const outcome = calculateSignalResult(signal);
+                if (outcome.result !== "PENDING") {
+                    updates.result = outcome.result;
+                    updates.resultR = outcome.resultR;
+                    updates.profitPoints = outcome.profitPoints;
+                }
             }
 
             await adminDatabase.ref(`aiSignals/${signal.id}`).update(updates);

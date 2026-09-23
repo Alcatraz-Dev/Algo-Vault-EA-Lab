@@ -49,3 +49,27 @@ export function FormField({
     </div>
   );
 }
+
+/** Inline error banner for form-level validation/submission errors. */
+export function FormError({ children }: { children: ReactNode }) {
+  return (
+    <div
+      role="alert"
+      className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive-foreground"
+    >
+      {children}
+    </div>
+  );
+}
+
+/** Inline success banner after a successful save. */
+export function FormSuccess({ children }: { children: ReactNode }) {
+  return (
+    <div
+      role="status"
+      className="rounded-md border border-success/30 bg-success/10 px-3 py-2 text-xs text-success-foreground"
+    >
+      {children}
+    </div>
+  );
+}

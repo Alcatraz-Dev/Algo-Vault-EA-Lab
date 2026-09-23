@@ -1,5 +1,8 @@
 import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
 import { isEmailConfigured, sendEmail } from "@/lib/email";
+import { getServerDiscordWebhookUrl } from "@/lib/discord-webhook";
+
+export { getServerDiscordWebhookUrl };
 
 export type NotifyPayload = {
     title: string;
@@ -179,9 +182,6 @@ async function sendDiscord(webhookUrl: string, payload: NotifyPayload) {
     }
 }
 
-export function getServerDiscordWebhookUrl() {
-    return String(process.env.DISCORD_WEBHOOK_URL || process.env.DISCROD_WEBHOOK_URL || "").trim();
-}
 
 /**
  * Server-side notification dispatcher.

@@ -20,6 +20,8 @@ import {
     setAgentDefinition,
     getAgentDraft,
     saveAgentDraft,
+    saveAgentGenerationJob,
+    listAgentGenerationJobs,
     getAgentLogs,
 } from "./database";
 import { executeWorkflow, registerBuiltInExecutors, EngineResult } from "./workflow-engine";
@@ -145,6 +147,17 @@ export async function generateFromPrompt(
         finishedAt: null,
     };
 
+    // Persist the job immediately so the UI can track progress.
+    await saveAgentGenerationJob({
+        id: job.id,
+        kind: job.kind,
+        prompt: job.prompt,
+        status: job.status,
+        createdBy: job.createdBy,
+        createdAt: job.createdAt,
+        finishedAt: null,
+    });
+
     try {
         // Generate a draft using the AI router
         const systemPrompt = kind === "agent"
@@ -198,6 +211,18 @@ export async function generateFromPrompt(
     }
 
     job.finishedAt = Date.now();
+    // Persist the final job state (status, draftId, error, finishedAt).
+    await saveAgentGenerationJob({
+        id: job.id,
+        kind: job.kind,
+        prompt: job.prompt,
+        status: job.status,
+        createdBy: job.createdBy,
+        createdAt: job.createdAt,
+        finishedAt: job.finishedAt,
+        draftId: job.draftId,
+        error: job.error,
+    });
     return job;
 }
 

@@ -206,7 +206,7 @@ export default function AnalysisPage() {
                 const res = await fetch(`/api/analytics/positions?accountId=${selectedAccount.id}`, { headers: { Authorization: `Bearer ${token}` } });
                 const json = await res.json();
                 if (json.success) setPositions(json.positions || []);
-            } catch {} finally { setPositionsLoading(false); }
+            } catch { } finally { setPositionsLoading(false); }
         };
         loadPositions();
         const interval = setInterval(loadPositions, 15000);
@@ -499,8 +499,22 @@ export default function AnalysisPage() {
                                                             <td className="px-4 py-2 text-right font-mono text-muted-foreground">{pos.volume.toFixed(2)}</td>
                                                             <td className="px-4 py-2 text-right font-mono text-muted-foreground">{pos.openPrice.toFixed(pos.openPrice >= 100 ? 2 : 5)}</td>
                                                             <td className="px-4 py-2 text-right font-mono text-muted-foreground">{pos.currentPrice.toFixed(pos.currentPrice >= 100 ? 2 : 5)}</td>
-                                                            <td className="px-4 py-2 text-right font-mono text-muted-foreground">{pos.sl > 0 ? pos.sl.toFixed(pos.sl >= 100 ? 2 : 5) : "—"}</td>
-                                                            <td className="px-4 py-2 text-right font-mono text-muted-foreground">{pos.tp > 0 ? pos.tp.toFixed(pos.tp >= 100 ? 2 : 5) : "—"}</td>
+                                                            <td className="px-4 py-2 text-right">
+                                                                {pos.sl > 0 ? (
+                                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-red-500/25 bg-red-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-red-400">
+                                                                        <Shield size={8} className="opacity-60" />
+                                                                        {pos.sl.toFixed(pos.sl >= 100 ? 2 : 5)}
+                                                                    </span>
+                                                                ) : <span className="font-mono text-muted-foreground">—</span>}
+                                                            </td>
+                                                            <td className="px-4 py-2 text-right">
+                                                                {pos.tp > 0 ? (
+                                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-emerald-400">
+                                                                        <Target size={8} className="opacity-60" />
+                                                                        {pos.tp.toFixed(pos.tp >= 100 ? 2 : 5)}
+                                                                    </span>
+                                                                ) : <span className="font-mono text-muted-foreground">—</span>}
+                                                            </td>
                                                             <td className={cn("px-4 py-2 text-right font-mono font-medium", pos.profit >= 0 ? "text-emerald-400" : "text-rose-400")}>{pos.profit >= 0 ? "+" : ""}${pos.profit.toFixed(2)}</td>
                                                         </tr>
                                                     ))}

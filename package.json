@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:ea": "jiti lib/strategy-lab/ea/tests/run-tests.ts"
+    "test:ea": "jiti lib/strategy-lab/ea/tests/run-tests.ts",
+    "test:growth": "JITI_TSCONFIG_PATHS=1 jiti lib/growth/__tests__/run-growth-tests.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -18,6 +19,7 @@
     "@radix-ui/react-slot": "^1.3.3",
     "@radix-ui/react-tabs": "^1.1.21",
     "@radix-ui/react-tooltip": "^1.2.16",
+    "@xyflow/react": "^12.11.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cn": "^0.3.0",

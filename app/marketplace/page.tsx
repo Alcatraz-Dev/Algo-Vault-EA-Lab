@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { MarketplaceSponsoredAd } from "@/components/growth/MarketplaceSponsoredAd";
 import {
     ArrowLeft,
     ArrowRight,
@@ -382,6 +383,11 @@ export default function MarketplacePage() {
                         </div>
                     </div>
                 </div>
+            </section>
+
+            {/* One sponsored/native placement between content sections (non-intrusive) */}
+            <section className="mx-auto max-w-7xl px-6 py-6">
+                <MarketplaceSponsoredAd />
             </section>
 
             {/* Marketplace */}

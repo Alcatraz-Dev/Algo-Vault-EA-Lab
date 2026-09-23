@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import {
     ArrowLeft,
@@ -10,18 +10,23 @@ import {
     Flame,
     Heart,
     Loader2,
+    RefreshCw,
+    Shield,
     ShieldAlert,
+    Target,
     TrendingDown,
     TrendingUp,
     Zap,
 } from "lucide-react";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { ref as dbRef, onValue } from "firebase/database";
+import { auth, database } from "@/lib/firebase";
 import type { AISignal, SignalTimelineEvent } from "@/lib/ai-signals/types";
 import { formatPrice } from "@/lib/ai-signals/symbol-specs";
 import ConfidenceBreakdown from "@/components/signals/ConfidenceBreakdown";
 import SignalTimeline from "@/components/signals/SignalTimeline";
 import SignalChart from "@/components/signals/SignalChart";
+import { useLivePrices } from "@/hooks/useLivePrices";
 
 type Params = { id: string };
 
@@ -60,6 +65,95 @@ const REGIME_LABELS: Record<string, string> = {
     LOW_VOLATILITY: "Low Volatility",
     UNCERTAIN: "Uncertain",
 };
+
+/* ─── Live Price Panel ─── */
+function LivePricePanel({ signal, lastUpdatedAt, onRefresh }: {
+    signal: AISignal;
+    lastUpdatedAt: number;
+    onRefresh: () => void;
+}) {
+    const symbols = signal.symbol ? [signal.symbol] : [];
+    const { prices } = useLivePrices(symbols, { intervalMs: 10_000 });
+    const bid = prices[signal.symbol] ?? null;
+
+    const slDist  = Math.abs(signal.entry - signal.stopLoss);
+    const tp1Dist = signal.tp1 ? Math.abs(signal.tp1 - signal.entry) : 0;
+    const isBuy   = signal.direction === "BUY";
+
+    // progress along SL→Entry→TP1 track
+    let progress = 50; // at entry by default
+    if (bid !== null && signal.tp1) {
+        const totalRange = slDist + tp1Dist;
+        const fromSl = isBuy
+            ? bid - signal.stopLoss
+            : signal.stopLoss - bid;
+        progress = Math.min(100, Math.max(0, (fromSl / totalRange) * 100));
+    }
+
+    const secAgo = lastUpdatedAt > 0 ? Math.round((Date.now() - lastUpdatedAt) / 1000) : null;
+
+    return (
+        <div className="mt-6 rounded-2xl border border-border/30 bg-gradient-to-br from-background/80 via-background/40 to-background/80 backdrop-blur-xl p-5">
+            <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Live Market</span>
+                    {bid !== null && (
+                        <span className={`font-mono text-lg font-black ${isBuy ? "text-emerald-400" : "text-rose-400"}`}>
+                            {bid >= 100 ? bid.toFixed(2) : bid.toFixed(5)}
+                        </span>
+                    )}
+                    {bid === null && <span className="text-xs text-muted-foreground">Connecting…</span>}
+                </div>
+                <div className="flex items-center gap-2">
+                    {secAgo !== null && (
+                        <span className="text-[10px] text-muted-foreground">{secAgo}s ago</span>
+                    )}
+                    <button onClick={onRefresh} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/20 transition">
+                        <RefreshCw size={12} />
+                    </button>
+                </div>
+            </div>
+
+            {/* SL → Entry → TP risk track */}
+            <div className="space-y-2">
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                    <span className="flex items-center gap-1 text-red-400 font-mono font-semibold">
+                        <Shield size={9} />
+                        {formatPrice(signal.stopLoss, signal.symbol)}
+                    </span>
+                    <span className="font-mono text-muted-foreground/60">
+                        Entry {formatPrice(signal.entry, signal.symbol)}
+                    </span>
+                    {signal.tp1 && (
+                        <span className="flex items-center gap-1 text-emerald-400 font-mono font-semibold">
+                            {formatPrice(signal.tp1, signal.symbol)}
+                            <Target size={9} />
+                        </span>
+                    )}
+                </div>
+                <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted/20">
+                    <div
+                        className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
+                        style={{
+                            width: `${progress}%`,
+                            background: `linear-gradient(90deg, rgba(239,68,68,0.7) 0%, rgba(16,185,129,0.7) 100%)`,
+                        }}
+                    />
+                    {/* cursor dot */}
+                    <div
+                        className="absolute top-0 h-2 w-2 -translate-x-1/2 rounded-full border-2 border-white bg-white shadow-md transition-all duration-500"
+                        style={{ left: `${progress}%` }}
+                    />
+                </div>
+                <div className="flex justify-between text-[9px] text-muted-foreground/40">
+                    <span>SL {slDist >= 1 ? slDist.toFixed(0) : slDist.toFixed(4)} pts</span>
+                    {signal.tp1 && <span>TP1 {tp1Dist >= 1 ? tp1Dist.toFixed(0) : tp1Dist.toFixed(4)} pts · {signal.riskReward.toFixed(1)}R</span>}
+                </div>
+            </div>
+        </div>
+    );
+}
 
 function strengthColor(s: string) {
     if (s === "HIGH_CONVICTION") return "text-emerald-400";
@@ -110,32 +204,59 @@ export default function SignalDetailPage({ params }: { params: Promise<Params> }
     const [cancelling, setCancelling] = useState(false);
     const [executing, setExecuting] = useState(false);
     const [executionResult, setExecutionResult] = useState<{ ok: boolean; msg: string; commandId?: string } | null>(null);
+    const [lastUpdatedAt, setLastUpdatedAt] = useState(0);
+    const userRef = useRef<User | null>(null);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (u) => setUser(u));
+        const unsubscribe = onAuthStateChanged(auth, (u) => { setUser(u); userRef.current = u; });
         return () => unsubscribe();
     }, []);
 
+    // Core fetch function
+    const fetchSignal = useCallback(async (u: User | null) => {
+        if (!u) return;
+        try {
+            const token = await u.getIdToken();
+            const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+            const r = await fetch(`/api/ai-signals/${id}`, { headers });
+            if (!r.ok) throw new Error("Failed to load signal");
+            const data = await r.json();
+            setSignal(data.signal);
+            setEvents(data.events || []);
+            setLastUpdatedAt(Date.now());
+        } catch (e: unknown) {
+            setError(e instanceof Error ? e.message : "Failed to load signal");
+        }
+    }, [id]);
+
+    // Initial load
     useEffect(() => {
         if (!user) return;
-        (async () => {
-            try {
-                const token = await user.getIdToken();
-                const headers = { Authorization: `Bearer ${token ?? ""}`, "Content-Type": "application/json" };
-                setLoading(true);
-                setError(null);
-                const r = await fetch(`/api/ai-signals/${id}`, { headers });
-                if (!r.ok) throw new Error("Failed to load signal");
-                const data = await r.json();
-                setSignal(data.signal);
-                setEvents(data.events || []);
-            } catch (e: unknown) {
-                setError(e instanceof Error ? e.message : "Failed to load signal");
-            } finally {
-                setLoading(false);
-            }
-        })();
+        setLoading(true);
+        setError(null);
+        fetchSignal(user).finally(() => setLoading(false));
+    }, [user, fetchSignal]);
+
+    // Firebase onValue — real-time updates when signal changes in DB
+    useEffect(() => {
+        if (!user) return;
+        const signalRef = dbRef(database, `aiSignals/${id}`);
+        const unsub = onValue(signalRef, (snapshot) => {
+            if (!snapshot.exists()) return;
+            const raw = snapshot.val() as AISignal;
+            // Merge live DB data into current state (preserves events)
+            setSignal((prev) => prev ? { ...prev, ...raw } : raw);
+            setLastUpdatedAt(Date.now());
+        });
+        return () => unsub();
     }, [user, id]);
+
+    // 30s auto-refresh fallback
+    useEffect(() => {
+        if (!user) return;
+        const interval = setInterval(() => { void fetchSignal(userRef.current); }, 30_000);
+        return () => clearInterval(interval);
+    }, [user, fetchSignal]);
 
     // Auth token helper
     async function authHeaders() {
@@ -403,6 +524,8 @@ export default function SignalDetailPage({ params }: { params: Promise<Params> }
                 </div>
 
                 {/* MAIN CONTENT: 2 COLUMN LAYOUT */}
+                <LivePricePanel signal={signal} lastUpdatedAt={lastUpdatedAt} onRefresh={() => void fetchSignal(user)} />
+
                 <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
 
                     {/* LEFT COLUMN (2/3) */}

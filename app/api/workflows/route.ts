@@ -44,8 +44,8 @@ export async function POST(request: Request) {
 
     const body = await request.json().catch(() => ({}));
     const name = String(body.name || "").trim();
-    const nodes: WorkflowNode[] = Array.isArray(body.nodes) ? body.nodes : [];
-    const edges: WorkflowEdge[] = Array.isArray(body.edges) ? body.edges : [];
+    let nodes: WorkflowNode[] = Array.isArray(body.nodes) ? body.nodes : [];
+    let edges: WorkflowEdge[] = Array.isArray(body.edges) ? body.edges : [];
 
     if (!name) return Response.json({ error: "name required" }, { status: 400 });
 
@@ -55,6 +55,19 @@ export async function POST(request: Request) {
     if (!ent.allowed) return deny();
     if (usage.atLimitFor.includes("workflows")) return Response.json({ error: "Workflow limit reached", upgrade: true, hasPro: false }, { status: 403 });
     if (usage.atLimitFor.includes("active_workflows") && !auth.isAdmin) return Response.json({ error: "Active workflow limit reached", upgrade: true, hasPro: false }, { status: 403 });
+
+    // Seed default starter trigger node if creating a blank workflow
+    if (nodes.length === 0) {
+        nodes = [
+            {
+                id: "trigger_1",
+                type: "trigger.manual",
+                label: "Manual Trigger",
+                position: { x: 250, y: 150 },
+                config: { label: "Start" },
+            },
+        ];
+    }
 
     // Validate
     const known = nodes.every((n) => getNodeDefinition(n.type) !== undefined);

@@ -220,3 +220,23 @@ export async function getAgentDraft(draftId: string): Promise<unknown | null> {
     const snap = await REF(`agentDrafts/${draftId}`).get();
     return (snap.val() || null);
 }
+
+// ─── Agent Generation Jobs ──────────────────────────────────────
+
+export async function saveAgentGenerationJob(job: Record<string, unknown>): Promise<void> {
+    await REF(`agentGenerationJobs/${job.id}`).set({
+        ...job,
+        updatedAt: Date.now(),
+    });
+}
+
+export async function getAgentGenerationJob(jobId: string): Promise<unknown | null> {
+    const snap = await REF(`agentGenerationJobs/${jobId}`).get();
+    return (snap.val() || null);
+}
+
+export async function listAgentGenerationJobs(limit = 50): Promise<unknown[]> {
+    const snap = await REF("agentGenerationJobs").orderByChild("createdAt").limitToLast(limit).get();
+    const data = (snap.val() || {}) as Record<string, unknown>;
+    return Object.values(data).sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
+}

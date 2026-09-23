@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import {
+    deleteWorkflow,
     getWorkflow,
     saveWorkflow,
     snapshotVersion,
@@ -106,9 +107,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const isPro = await isProUser(auth.uid);
     if (!isPro && !auth.isAdmin) return deny();
     await unscheduleWorkflow(auth.uid, workflowId);
-    // Archive instead of hard delete (traceability).
-    existing.status = "archived";
-    existing.updatedAt = Date.now();
-    await saveWorkflow(existing);
-    return ok({ archived: true });
+    await deleteWorkflow(auth.uid, workflowId);
+    return ok({ deleted: true });
 }

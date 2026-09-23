@@ -8,12 +8,11 @@ import {
     ChevronDown,
     Loader2,
     Radio,
-    TrendingUp,
-    TrendingDown,
-    Minus,
+    Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AISignal, SignalCategory, SignalStatus } from "@/lib/ai-signals/types";
+import { useLivePrices } from "@/hooks/useLivePrices";
 import SignalCard from "./SignalCard";
 
 type Props = {
@@ -59,32 +58,23 @@ const SORT_OPTIONS: { label: string; value: SortKey }[] = [
 
 function SkeletonCard() {
     return (
-        <div className="rounded-2xl border border-border/20 bg-linear-to-br from-background/80 via-background/40 to-background/80 backdrop-blur-xl">
-            <div className="flex items-start justify-between border-b border-border/10 px-4 py-3">
-                <div className="flex items-center gap-3">
-                    <div className="h-6 w-14 animate-pulse rounded-lg " />
-                    <div>
-                        <div className="mb-1 h-4 w-16 animate-pulse rounded " />
-                        <div className="h-2.5 w-8 animate-pulse rounded " />
-                    </div>
+        <div className="rounded-2xl border border-border/20 bg-gradient-to-br from-background/80 via-background/40 to-background/80 backdrop-blur-xl p-5">
+            <div className="flex items-center gap-3 mb-4">
+                <div className="h-10 w-10 animate-pulse rounded-xl bg-muted/20" />
+                <div className="flex-1 space-y-2">
+                    <div className="h-4 w-20 animate-pulse rounded bg-muted/20" />
+                    <div className="h-3 w-14 animate-pulse rounded bg-muted/20" />
                 </div>
-                <div className="h-5 w-10 animate-pulse rounded " />
+                <div className="h-6 w-12 animate-pulse rounded-full bg-muted/20" />
             </div>
-            <div className="flex items-center gap-2 border-b border-border/10 px-4 py-2">
-                <div className="h-4 w-24 animate-pulse rounded " />
+            <div className="space-y-2 mb-4">
+                <div className="h-2 w-full animate-pulse rounded-full bg-muted/20" />
             </div>
-            <div className="grid grid-cols-5 gap-px ">
-                {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="flex flex-col items-center bg-muted/20 px-2 py-2">
-                        <div className="mb-1 h-2 w-6 animate-pulse rounded " />
-                        <div className="h-3 w-14 animate-pulse rounded " />
-                    </div>
-                ))}
-            </div>
-            <div className="flex border-t border-border/10">
+            <div className="rounded-xl border border-border/20 p-3 space-y-2">
                 {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="flex flex-1 items-center justify-center border-r border-border/10 py-3 last:border-r-0">
-                        <div className="h-3 w-12 animate-pulse rounded " />
+                    <div key={i} className="flex justify-between">
+                        <div className="h-3 w-12 animate-pulse rounded bg-muted/20" />
+                        <div className="h-3 w-20 animate-pulse rounded bg-muted/20" />
                     </div>
                 ))}
             </div>
@@ -92,13 +82,38 @@ function SkeletonCard() {
     );
 }
 
-export default function SignalFeed({ signals, loading = false, onView, onFollow, onTrade, onComplete, followedIds, followLoadingIds, tradeLoadingIds, completeLoadingIds }: Props) {
+function formatRelativeTime(ts: number): string {
+    const s = Math.floor((Date.now() - ts) / 1000);
+    if (s < 5) return "just now";
+    if (s < 60) return `${s}s ago`;
+    return `${Math.floor(s / 60)}m ago`;
+}
+
+export default function SignalFeed({
+    signals,
+    loading = false,
+    onView,
+    onFollow,
+    onTrade,
+    onComplete,
+    followedIds,
+    followLoadingIds,
+    tradeLoadingIds,
+    completeLoadingIds,
+}: Props) {
     const [activeCategory, setActiveCategory] = useState<SignalCategory | "all">("all");
     const [statusFilter, setStatusFilter] = useState<SignalStatus | "all">("all");
     const [search, setSearch] = useState("");
     const [sort, setSort] = useState<SortKey>("confidence");
     const [statusOpen, setStatusOpen] = useState(false);
     const [sortOpen, setSortOpen] = useState(false);
+
+    // Collect unique symbols from visible signals for live price polling
+    const symbols = useMemo(() => [...new Set(signals.map((s) => s.symbol))], [signals]);
+    const { prices, lastUpdatedAt, isLive } = useLivePrices(symbols, {
+        intervalMs: 10_000,
+        enabled: symbols.length > 0,
+    });
 
     const filtered = useMemo(() => {
         let result = [...signals];
@@ -116,12 +131,9 @@ export default function SignalFeed({ signals, loading = false, onView, onFollow,
 
         result.sort((a, b) => {
             switch (sort) {
-                case "confidence":
-                    return b.confidence - a.confidence;
-                case "riskReward":
-                    return b.riskReward - a.riskReward;
-                case "time":
-                    return b.createdAt - a.createdAt;
+                case "confidence": return b.confidence - a.confidence;
+                case "riskReward": return b.riskReward - a.riskReward;
+                case "time": return b.createdAt - a.createdAt;
             }
         });
 
@@ -131,7 +143,7 @@ export default function SignalFeed({ signals, loading = false, onView, onFollow,
     return (
         <div className="space-y-4">
             {/* Category Tabs */}
-            <div className="flex items-center gap-1 rounded-xl border border-border/20  p-1">
+            <div className="flex items-center gap-1 rounded-xl border border-border/20 p-1">
                 {CATEGORIES.map((cat) => (
                     <button
                         key={cat.value}
@@ -158,7 +170,7 @@ export default function SignalFeed({ signals, loading = false, onView, onFollow,
                         placeholder="Search symbol..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="h-8 w-full rounded-lg border border-border/20  pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground/50 outline-none transition-colors focus:border-amber-500/30"
+                        className="h-8 w-full rounded-lg border border-border/20 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground/50 outline-none transition-colors focus:border-amber-500/30 bg-background/50"
                     />
                 </div>
 
@@ -166,7 +178,7 @@ export default function SignalFeed({ signals, loading = false, onView, onFollow,
                 <div className="relative">
                     <button
                         onClick={() => { setStatusOpen(!statusOpen); setSortOpen(false); }}
-                        className="flex h-8 items-center gap-1.5 rounded-lg border border-border/20  px-3 text-xs text-muted-foreground transition-colors hover:border-border/40 hover:text-foreground/80"
+                        className="flex h-8 items-center gap-1.5 rounded-lg border border-border/20 px-3 text-xs text-muted-foreground transition-colors hover:border-border/40 hover:text-foreground/80"
                     >
                         <SlidersHorizontal size={12} />
                         {STATUS_OPTIONS.find((o) => o.value === statusFilter)?.label ?? "All Status"}
@@ -196,7 +208,7 @@ export default function SignalFeed({ signals, loading = false, onView, onFollow,
                 <div className="relative">
                     <button
                         onClick={() => { setSortOpen(!sortOpen); setStatusOpen(false); }}
-                        className="flex h-8 items-center gap-1.5 rounded-lg border border-border/20  px-3 text-xs text-muted-foreground transition-colors hover:border-border/40 hover:text-foreground/80"
+                        className="flex h-8 items-center gap-1.5 rounded-lg border border-border/20 px-3 text-xs text-muted-foreground transition-colors hover:border-border/40 hover:text-foreground/80"
                     >
                         <ArrowUpDown size={12} />
                         {SORT_OPTIONS.find((o) => o.value === sort)?.label}
@@ -231,7 +243,7 @@ export default function SignalFeed({ signals, loading = false, onView, onFollow,
                 />
             )}
 
-            {/* Signal Count */}
+            {/* Signal Count + Live Indicator */}
             <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2 text-xs text-foreground/70">
                     <Radio size={12} className="text-amber-400" />
@@ -239,6 +251,14 @@ export default function SignalFeed({ signals, loading = false, onView, onFollow,
                         <span className="font-bold text-foreground">{filtered.length}</span> signal{filtered.length !== 1 ? "s" : ""}
                     </span>
                 </div>
+
+                {/* Live price indicator */}
+                {isLive && lastUpdatedAt > 0 && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+                        <Activity className="h-2.5 w-2.5 animate-pulse" />
+                        Prices live · {formatRelativeTime(lastUpdatedAt)}
+                    </span>
+                )}
             </div>
 
             {/* Signals Grid */}
@@ -249,7 +269,7 @@ export default function SignalFeed({ signals, loading = false, onView, onFollow,
                     ))}
                 </div>
             ) : filtered.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-2xl border border-border/20  py-16">
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-border/20 py-16">
                     <div className="mb-3 rounded-full bg-foreground/10 p-3">
                         <Radio size={24} className="text-foreground/50" />
                     </div>
@@ -259,23 +279,24 @@ export default function SignalFeed({ signals, loading = false, onView, onFollow,
                     </p>
                 </div>
             ) : (
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
-                        {filtered.map((signal) => (
-                            <SignalCard
-                                key={signal.id}
-                                signal={signal}
-                                viewHref={`/signals/${signal.id}`}
-                                onView={onView ? () => onView(signal) : undefined}
-                                onFollow={onFollow}
-                                onTrade={onTrade}
-                                onComplete={onComplete}
-                                isFollowed={followedIds?.has(signal.id) ?? false}
-                                followLoading={followLoadingIds?.has(signal.id) ?? false}
-                                tradeLoading={tradeLoadingIds?.has(signal.id) ?? false}
-                                completeLoading={completeLoadingIds?.has(signal.id) ?? false}
-                            />
-                        ))}
-                    </div>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
+                    {filtered.map((signal) => (
+                        <SignalCard
+                            key={signal.id}
+                            signal={signal}
+                            viewHref={`/signals/${signal.id}`}
+                            onView={onView ? () => onView(signal) : undefined}
+                            onFollow={onFollow}
+                            onTrade={onTrade}
+                            onComplete={onComplete}
+                            isFollowed={followedIds?.has(signal.id) ?? false}
+                            followLoading={followLoadingIds?.has(signal.id) ?? false}
+                            tradeLoading={tradeLoadingIds?.has(signal.id) ?? false}
+                            completeLoading={completeLoadingIds?.has(signal.id) ?? false}
+                            currentPrice={prices[signal.symbol] ?? 0}
+                        />
+                    ))}
+                </div>
             )}
         </div>
     );

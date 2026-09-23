@@ -153,7 +153,12 @@ async function checkAndUpdateProSignal(userId: string, signal: ProSignal): Promi
             });
 
             if (transition.transitioned) {
-                await saveProSignal(userId, transition.updatedSignal);
+                // If SL hit or final TP (TP5/TP5_OPEN_RUNNER) hit, mark as CLOSED (COMPLETED equivalent)
+                let finalSignal = transition.updatedSignal;
+                if (hitSl || (tpHitIndex && tpHitIndex >= 5)) {
+                    finalSignal = { ...finalSignal, status: "CLOSED" };
+                }
+                await saveProSignal(userId, finalSignal);
                 return true;
             }
         }

@@ -1,6 +1,7 @@
 import { AISignal, SignalStats, SignalTier, SignalResult } from "./types";
 import { adminDatabase } from "@/lib/firebase-admin";
 import { calculateSignalResult } from "./results";
+import { calculateProfitUSD } from "./calculations";
 
 /**
  * Signal statistics engine — derived data, calculated only from the
@@ -120,6 +121,9 @@ export function calculateStreaks(results: SignalResult[]): StreakInfo {
     return { maxWinningStreak: maxWin, maxLosingStreak: maxLoss, currentStreak };
 }
 
+
+
+
 export function calculateStats(signals: AISignal[], filter: StatsFilter = {}): SignalStats {
     const now = Date.now();
     const filtered = signals.filter((s) => matchesFilter(s, filter, now));
@@ -148,9 +152,34 @@ export function calculateStats(signals: AISignal[], filter: StatsFilter = {}): S
     const totalR = runds.reduce((a, b) => a + b, 0);
     const averageR = runds.length > 0 ? totalR / runds.length : 0;
 
+
+    // Exact USD calculations (0.01 lot baseline)
+    let grossProfitUSD = 0;
+    let grossLossUSD = 0;
+
+    for (const r of winning) {
+        const s = r.signal;
+        const target = (s.tp3Hit || ["TP3_HIT","RUNNER","COMPLETED"].includes(s.status)) && s.tp3
+            ? s.tp3
+            : (s.tp2Hit || ["TP2_HIT"].includes(s.status)) && s.tp2
+            ? s.tp2
+            : s.tp1 || s.entry;
+        const p = calculateProfitUSD(s.symbol, s.direction, s.entry, target, 0.01);
+        grossProfitUSD += Math.max(0, p);
+    }
+
+    for (const r of losing) {
+        const s = r.signal;
+        const p = calculateProfitUSD(s.symbol, s.direction, s.entry, s.stopLoss, 0.01);
+        grossLossUSD += Math.abs(Math.min(0, p));
+    }
+
+    const totalProfitUSD = Math.round((grossProfitUSD - grossLossUSD) * 100) / 100;
+    const monetaryProfitFactor = grossLossUSD > 0 ? Math.round((grossProfitUSD / grossLossUSD) * 100) / 100 : grossProfitUSD > 0 ? null : 0;
+
     const grossProfit = winning.reduce((a, r) => a + Math.max(r.resultR, 0), 0);
     const grossLoss = Math.abs(losing.reduce((a, r) => a + Math.min(r.resultR, 0), 0));
-    const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? 999 : 0;
+    const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? null : 0;
 
     const winAmounts = winning.map((r) => r.resultR);
     const lossAmounts = losing.map((r) => Math.abs(r.resultR));
@@ -201,7 +230,11 @@ export function calculateStats(signals: AISignal[], filter: StatsFilter = {}): S
         lossRate: Math.round((completed.length > 0 ? (losing.length / completed.length) * 100 : 0) * 10) / 10,
         averageR: Math.round(averageR * 100) / 100,
         totalR: Math.round(totalR * 100) / 100,
-        profitFactor: Math.round(profitFactor * 100) / 100,
+        profitFactor: profitFactor === null ? null : Math.round(profitFactor * 100) / 100,
+        totalProfitUSD,
+        grossProfitUSD: Math.round(grossProfitUSD * 100) / 100,
+        grossLossUSD: Math.round(grossLossUSD * 100) / 100,
+        monetaryProfitFactor,
         averageWin: Math.round(averageWin * 100) / 100,
         averageLoss: Math.round(averageLoss * 100) / 100,
         largestWin: Math.round(largestWin * 100) / 100,

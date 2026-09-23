@@ -1,7 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  headers: async () => [
+    {
+      source: "/api/growth/cron/:path*",
+      headers: [
+        {
+          key: "x-cron-secret",
+          value: process.env.CRON_SECRET || "",
+        },
+      ],
+    },
+  ],
 };
 
 export default nextConfig;

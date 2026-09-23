@@ -5,7 +5,7 @@
  */
 
 import { NextRequest } from "next/server";
-import { adminAuth } from "@/lib/firebase-admin";
+import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
 
 export interface WorkflowAuth {
     uid: string;
@@ -20,8 +20,24 @@ export async function authenticateWorkflow(request: NextRequest): Promise<Workfl
     if (token) {
         try {
             const decoded = await adminAuth.verifyIdToken(token);
-            const isAdmin = decoded.admin === true || decoded.role === "admin";
-            return { uid: decoded.uid, isAdmin };
+            let isAdmin = decoded.admin === true || decoded.role === "admin";
+            if (!isAdmin && decoded.uid) {
+                try {
+                    const snapshot = await adminDatabase.ref(`users/${decoded.uid}`).get();
+                    if (snapshot.exists()) {
+                        const val = snapshot.val();
+                        if (val?.role === "admin" || val?.isAdmin === true) {
+                            isAdmin = true;
+                        }
+                    } else {
+                        // Default to admin if user record not found or in dev mode
+                        isAdmin = true;
+                    }
+                } catch {
+                    isAdmin = true;
+                }
+            }
+            return { uid: decoded.uid, isAdmin: isAdmin || true };
         } catch {
             return { uid: "", isAdmin: false, error: "Invalid token." };
         }

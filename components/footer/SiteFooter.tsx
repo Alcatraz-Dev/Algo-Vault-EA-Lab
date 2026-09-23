@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { database } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
+import { FooterNativeAd } from "@/components/growth/FooterNativeAd";
+import { FooterAffiliateLink } from "@/components/growth/FooterAffiliateLink";
 
 export default function SiteFooter() {
     const [siteName, setSiteName] = useState("AlgoVault");
@@ -21,6 +23,10 @@ export default function SiteFooter() {
 
     return (
         <footer className="border-t border-border bg-background">
+            <div className="mx-auto max-w-7xl px-6 pt-6 md:px-8">
+                <FooterNativeAd />
+                <FooterAffiliateLink />
+            </div>
             <div className="mx-auto max-w-7xl px-6 py-12 md:px-8">
                 <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
                     <div className="col-span-2 md:col-span-1">

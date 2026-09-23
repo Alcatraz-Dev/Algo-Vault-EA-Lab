@@ -70,7 +70,7 @@ export default function BarCompareChart({
                     }
                 />
 
-                <Bar radius={[6, 6, 0, 0]} maxBarSize={48}>
+                <Bar dataKey={valueKey} radius={[6, 6, 0, 0]} maxBarSize={48}>
                     {data.map((entry, i) => (
                         <Cell
                             key={i}

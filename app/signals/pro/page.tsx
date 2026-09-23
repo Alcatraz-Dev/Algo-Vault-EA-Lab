@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -24,6 +24,7 @@ import { ConflictBanner } from "@/features/telegram-signals/components/ConflictB
 import { AnalyticsView } from "@/features/telegram-signals/components/AnalyticsView";
 import type { AISignal } from "@/lib/ai-signals/types";
 import type { SignalAnalyticsSegment, SignalConflictSummary } from "@/features/telegram-signals/types";
+import { useLivePrices } from "@/hooks/useLivePrices";
 
 type Notice = {
     tone: "success" | "error";
@@ -45,6 +46,11 @@ export default function ProSignalsPage() {
     const [notice, setNotice] = useState<Notice | null>(null);
     const [scanning, setScanning] = useState(false);
     const noticeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [liveSignals, setLiveSignals] = useState<AISignal[]>([]);
+
+    // Derive unique symbols from signals visible in the realtime feed
+    const liveSymbols = useMemo(() => [...new Set(liveSignals.map((s) => s.symbol))], [liveSignals]);
+    const { prices: livePrices, isLive: pricesLive, lastUpdatedAt: pricesLastUpdatedAt } = useLivePrices(liveSymbols, { intervalMs: 10_000 });
 
     useEffect(() => {
         const unsub = onAuthStateChanged(auth, (currentUser) => {
@@ -367,12 +373,21 @@ export default function ProSignalsPage() {
                 </div>
 
                 {/* LIVE INDICATOR */}
-                <div className="mt-4 flex items-center gap-2">
+                <div className="mt-4 flex flex-wrap items-center gap-2">
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-400">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                         Live
                     </span>
                     <span className="text-xs text-muted-foreground">Real-time signal monitoring active</span>
+                    {pricesLive && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 text-[10px] font-medium text-blue-400">
+                            <span className="h-1 w-1 rounded-full bg-blue-400 animate-ping" />
+                            Prices live
+                            {pricesLastUpdatedAt > 0 && (
+                                <span className="text-blue-400/60"> · {Math.round((Date.now() - pricesLastUpdatedAt) / 1000)}s ago</span>
+                            )}
+                        </span>
+                    )}
                 </div>
 
                 {notice && (
@@ -429,6 +444,8 @@ export default function ProSignalsPage() {
                             followLoadingIds={followLoadingIds}
                             tradeLoadingIds={tradeLoadingIds}
                             completeLoadingIds={completeLoadingIds}
+                            currentPrices={livePrices}
+                            onSignalsChange={setLiveSignals}
                         />
                     </div>
                 ) : analytics ? (

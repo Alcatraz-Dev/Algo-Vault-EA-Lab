@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { pluginFetch } from "@/lib/plugins/ui";
 import AccountShell from "@/components/account/AccountShell";
 import {
     Shield, Activity, Wallet, TrendingDown, AlertTriangle,
@@ -62,8 +63,7 @@ export default function AccountHealthPage() {
         if (!user) return;
         setLoading(true);
         try {
-            const token = await user.getIdToken();
-            const res = await fetch("/api/account-health", { headers: { Authorization: `Bearer ${token}` } });
+            const res = await pluginFetch("/api/account-health", { method: "GET" });
             const data = (await res.json()) as { success: boolean; health: AccountHealth };
             if (data.success) setHealth(data.health);
         } catch {}

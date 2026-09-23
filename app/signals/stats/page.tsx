@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
     Activity,
+    Calculator,
     ArrowLeft,
     BarChart3,
     History,
@@ -28,7 +29,8 @@ import { LoadingState } from "@/components/ui/loading-state";
 import AreaTrendChart from "@/components/charts/AreaTrendChart";
 import BarCompareChart from "@/components/charts/BarCompareChart";
 import SignalAnalyticsDashboard from "@/components/signals/SignalAnalyticsDashboard";
-import type { AISignal, MarketSentiment, SignalAnalytics } from "@/lib/ai-signals/types";
+import { calculateProfitUSD } from "@/lib/ai-signals/calculations";
+import type { AISignal, MarketSentiment, SignalAnalytics, SignalStats } from "@/lib/ai-signals/types";
 
 const FREE_LIMIT = 3;
 const PRO_LIMIT = 10;
@@ -79,10 +81,14 @@ export default function SignalStatsPage() {
     const [signals, setSignals] = useState<AISignal[]>([]);
     const [analytics, setAnalytics] = useState<SignalAnalytics | null>(null);
     const [sentiments, setSentiments] = useState<MarketSentiment[]>([]);
+    const [serverStats, setServerStats] = useState<SignalStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [scanning, setScanning] = useState(false);
     const [activeTab, setActiveTab] = useState<"live" | "stats">("stats");
     const [dailyCount, setDailyCount] = useState(0);
+    const [lotSize, setLotSize] = useState<number>(0.01);
+
+
     const signalsCountRef = useRef(0);
     const dailyCountRef = useRef(0);
 
@@ -145,17 +151,27 @@ export default function SignalStatsPage() {
 
     async function fetchSignals() {
         try {
-            const res = await fetch("/api/ai-signals", {
+            // Fetch usage metadata (daily count, remaining) from the user-scoped endpoint
+            const usageRes = await fetch("/api/ai-signals", {
                 headers: await getAuthHeaders(),
             });
-            const data = await res.json();
-            if (data.signals) {
-                setSignals(data.signals);
-                signalsCountRef.current = data.signals.length;
+            const usageData = await usageRes.json();
+            if (usageData.dailyCount != null) {
+                setDailyCount(usageData.dailyCount);
+                dailyCountRef.current = usageData.dailyCount;
             }
-            if (data.dailyCount != null) {
-                setDailyCount(data.dailyCount);
-                dailyCountRef.current = data.dailyCount;
+            // Track whether user has generated any signals today
+            if (usageData.signals) {
+                signalsCountRef.current = usageData.signals.length;
+            }
+
+            // Fetch full historical signals for chart + table (up to 1000, all time)
+            const histRes = await fetch("/api/signals/history?period=all&limit=1000", {
+                headers: await getAuthHeaders(),
+            });
+            const histData = await histRes.json();
+            if (histData.signals) {
+                setSignals(histData.signals as AISignal[]);
             }
         } catch (err) {
             console.error("Failed to fetch signals:", err);
@@ -179,6 +195,20 @@ export default function SignalStatsPage() {
         }
     }
 
+    async function fetchServerStats() {
+        try {
+            const res = await fetch("/api/signals/stats?period=all", {
+                headers: await getAuthHeaders(),
+            });
+            const data = await res.json();
+            if (data.stats) {
+                setServerStats(data.stats as SignalStats);
+            }
+        } catch (err) {
+            console.error("Failed to fetch server stats:", err);
+        }
+    }
+
     async function handleScan() {
         setScanning(true);
         try {
@@ -191,8 +221,7 @@ export default function SignalStatsPage() {
                 setDailyCount(data.dailyCount);
                 dailyCountRef.current = data.dailyCount;
             }
-            await fetchSignals();
-            await fetchAnalytics();
+            await Promise.allSettled([fetchSignals(), fetchAnalytics(), fetchServerStats()]);
         } catch (err) {
             console.error("Scan failed:", err);
         } finally {
@@ -211,7 +240,7 @@ export default function SignalStatsPage() {
             await handleScan();
         };
         (async () => {
-            await Promise.allSettled([fetchSignals(), fetchAnalytics()]);
+            await Promise.allSettled([fetchSignals(), fetchAnalytics(), fetchServerStats()]);
             setLoading(false);
             await maybeAutoScan();
         })();
@@ -220,13 +249,74 @@ export default function SignalStatsPage() {
     useEffect(() => {
         if (!user) return;
         const interval = setInterval(() => {
-            void Promise.allSettled([fetchSignals(), fetchAnalytics()]);
+            void Promise.allSettled([fetchSignals(), fetchAnalytics(), fetchServerStats()]);
         }, 60_000);
         return () => clearInterval(interval);
     }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Mirror the server-side resolveOutcome() from lib/ai-signals/analytics.ts
+    const resolveOutcome = useCallback((s: AISignal): { result: string; resultR: number } => {
+        if (s.result && s.result !== "PENDING") {
+            return { result: s.result, resultR: Number(s.resultR || 0) };
+        }
+        const TERMINAL_TRADED = ["STOPPED", "TP1_HIT", "TP2_HIT", "TP3_HIT", "RUNNER", "COMPLETED"];
+        const TERMINAL_CANCEL = ["CANCELLED", "EXPIRED"];
+        if (TERMINAL_CANCEL.includes(s.status)) {
+            return { result: s.status === "CANCELLED" ? "CANCELLED" : "EXPIRED", resultR: 0 };
+        }
+        if (!TERMINAL_TRADED.includes(s.status)) {
+            return { result: "PENDING", resultR: 0 };
+        }
+        const riskPts = Math.abs(s.entry - s.stopLoss);
+        if (riskPts === 0) return { result: "PENDING", resultR: 0 };
+        const rTp1 = s.tp1 ? Math.abs(s.tp1 - s.entry) / riskPts : 0;
+        const rTp2 = s.tp2 ? Math.abs(s.tp2 - s.entry) / riskPts : 0;
+        const rTp3 = s.tp3 ? Math.abs(s.tp3 - s.entry) / riskPts : 0;
+        const tp3Hit = s.tp3Hit || ["TP3_HIT","RUNNER","COMPLETED"].includes(s.status);
+        const tp2Hit = s.tp2Hit || ["TP2_HIT","TP3_HIT","RUNNER","COMPLETED"].includes(s.status);
+        const tp1Hit = s.tp1Hit || ["TP1_HIT","TP2_HIT","TP3_HIT","RUNNER","COMPLETED"].includes(s.status);
+        let r = 0;
+        if (tp3Hit)      r = 0.3*rTp1 + 0.3*rTp2 + 0.4*rTp3;
+        else if (tp2Hit) r = 0.3*rTp1 + 0.3*rTp2;
+        else if (tp1Hit) r = 0.3*rTp1;
+        else             r = -1;
+        const resultR = Math.round(r * 1000) / 1000;
+        const result  = resultR > 0.05 ? "WIN" : resultR < -0.05 ? "LOSS" : "BREAKEVEN";
+        return { result, resultR };
+    }, []);
+
+    const totalUSDProfit = useMemo(() => {
+        return signals.reduce((acc, s) => {
+            const { result } = resolveOutcome(s);
+            if (result === "PENDING" || result === "CANCELLED" || result === "EXPIRED") return acc;
+            const tp3Hit = s.tp3Hit || ["TP3_HIT", "RUNNER", "COMPLETED"].includes(s.status);
+            const tp2Hit = s.tp2Hit || ["TP2_HIT"].includes(s.status);
+            const exit = result === "LOSS" || s.status === "STOPPED"
+                ? (s.stopLoss || s.entry)
+                : (tp3Hit && s.tp3 ? s.tp3 : tp2Hit && s.tp2 ? s.tp2 : s.tp1 || s.entry);
+            return acc + calculateProfitUSD(s.symbol, s.direction, s.entry, exit, lotSize);
+        }, 0);
+    }, [signals, resolveOutcome, lotSize]);
+
     const chartData = useMemo<ChartPoint[]>(() => {
         const byDay = new Map<string, ChartPoint>();
+
+        // Pre-fill the last 7 days so the timeline shows a full 7-day week
+        const now = Date.now();
+        const DAY_MS = 86_400_000;
+        for (let i = 6; i >= 0; i--) {
+            const ts = now - i * DAY_MS;
+            const key = getDayKey(ts);
+            byDay.set(key, {
+                key,
+                label: formatDay(ts),
+                signals: 0,
+                wins: 0,
+                losses: 0,
+                cumulativeR: 0,
+            });
+        }
+
         const ordered = [...signals].sort((a, b) => Number(a.createdAt) - Number(b.createdAt));
 
         for (const signal of ordered) {
@@ -242,29 +332,32 @@ export default function SignalStatsPage() {
                 cumulativeR: 0,
             };
 
+            const { result, resultR } = resolveOutcome(signal);
             entry.signals += 1;
-            if (signal.result === "WIN") entry.wins += 1;
-            if (signal.result === "LOSS") entry.losses += 1;
-            const resultR = Number(signal.resultR || 0);
-            if (signal.result === "WIN" || signal.result === "LOSS" || signal.result === "BREAKEVEN") {
+            if (result === "WIN") entry.wins += 1;
+            if (result === "LOSS") entry.losses += 1;
+            if (result === "WIN" || result === "LOSS" || result === "BREAKEVEN") {
                 entry.cumulativeR += resultR;
             }
             byDay.set(key, entry);
         }
 
+        const sorted = [...byDay.values()].sort((a, b) => a.key.localeCompare(b.key));
         let running = 0;
-        return [...byDay.values()].map((entry) => {
+        return sorted.map((entry) => {
             running += entry.cumulativeR;
             return { ...entry, cumulativeR: running };
         });
-    }, [signals]);
+    }, [signals, resolveOutcome]);
 
     const recentSignals = useMemo(
         () => [...signals]
-            .filter((s) => s.result && s.result !== "PENDING")
-            .sort((a, b) => Number(b.completedAt || b.createdAt) - Number(a.completedAt || a.createdAt))
-            .slice(0, 6),
-        [signals],
+            .map((s) => ({ ...s, _resolved: resolveOutcome(s) }))
+            .filter(({ _resolved }) => _resolved.result !== "PENDING" && _resolved.result !== "CANCELLED" && _resolved.result !== "EXPIRED")
+            .sort((a, b) => Number(b.completedAt || b.updatedAt || b.createdAt) - Number(a.completedAt || a.updatedAt || a.createdAt))
+            .slice(0, 8)
+            .map(({ _resolved, ...s }) => ({ ...s, _resolvedResult: _resolved.result, _resolvedR: _resolved.resultR })),
+        [signals, resolveOutcome],
     );
 
     const proFeedSignals = useMemo(() => signals.filter((s) => s.tier === "PRO"), [signals]);
@@ -477,6 +570,69 @@ export default function SignalStatsPage() {
                             )}
                         </div>
 
+                        
+                        {/* LOT SIZE SELECTOR */}
+                        <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+                            <div className="flex items-center gap-2">
+                                <Calculator className="h-4 w-4 text-amber-400" />
+                                <span className="text-xs font-bold text-foreground">Exact Monetary Lot Size Baseline:</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                {[0.01, 0.05, 0.1, 0.5, 1.0].map((lot) => (
+                                    <button
+                                        key={lot}
+                                        type="button"
+                                        onClick={() => setLotSize(lot)}
+                                        className={`rounded-lg px-2.5 py-1 text-xs font-mono font-bold transition-all ${
+                                            lotSize === lot
+                                                ? "bg-amber-500/20 text-amber-400 border border-amber-500/40"
+                                                : "bg-muted/10 text-muted-foreground hover:bg-muted/20"
+                                        }`}
+                                    >
+                                        {lot} lot
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* SERVER STATS SUMMARY (real computed metrics) */}
+                        {serverStats && (
+                            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                                {[
+                                    {
+                                        label: "Win Rate",
+                                        value: `${serverStats.winRate.toFixed(1)}%`,
+                                        sub: `${serverStats.winningSignals}W / ${serverStats.losingSignals}L`,
+                                        color: serverStats.winRate >= 60 ? "text-emerald-400" : serverStats.winRate >= 45 ? "text-amber-400" : "text-red-400",
+                                    },
+                                    {
+                                        label: `Net Profit (${lotSize} lot)`,
+                                        value: `${totalUSDProfit >= 0 ? "+$" : "-$"}${Math.abs(totalUSDProfit).toFixed(2)}`,
+                                        sub: `${serverStats.totalR >= 0 ? "+" : ""}${serverStats.totalR.toFixed(2)}R total (${serverStats.averageR >= 0 ? "+" : ""}${serverStats.averageR.toFixed(2)}R avg)`,
+                                        color: totalUSDProfit >= 0 ? "text-emerald-400" : "text-red-400",
+                                    },
+                                    {
+                                        label: "Profit Factor",
+                                        value: serverStats.profitFactor === null ? "∞" : serverStats.profitFactor > 0 ? serverStats.profitFactor.toFixed(2) : "—",
+                                        sub: serverStats.profitFactor === null ? "Perfect (no losses)" : serverStats.profitFactor >= 2 ? "Excellent" : serverStats.profitFactor >= 1.5 ? "Good" : serverStats.profitFactor >= 1 ? "Break-even" : "Below 1",
+                                        color: serverStats.profitFactor === null || (serverStats.profitFactor ?? 0) >= 1.5 ? "text-emerald-400" : (serverStats.profitFactor ?? 0) >= 1 ? "text-amber-400" : "text-red-400",
+                                    },
+                                    {
+                                        label: "Total Signals",
+                                        value: serverStats.totalSignals.toString(),
+                                        sub: `${serverStats.tp1HitRate.toFixed(0)}% TP1 rate`,
+                                        color: "text-blue-400",
+                                    },
+                                ].map((stat) => (
+                                    <div key={stat.label} className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+                                        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{stat.label}</p>
+                                        <p className={`mt-1 text-2xl font-black tabular-nums ${stat.color}`}>{stat.value}</p>
+                                        <p className="mt-0.5 text-[10px] text-muted-foreground/70">{stat.sub}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
                         {/* ANALYTICS DASHBOARD */}
                         {analytics && (
                             <div className="mt-10">
@@ -565,27 +721,44 @@ export default function SignalStatsPage() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {recentSignals.map((signal) => (
-                                                <tr key={signal.id} className="border-b border-border/20 last:border-0 hover:bg-muted/40">
-                                                    <td className="py-3 pr-4 font-semibold text-foreground">{signal.symbol}</td>
-                                                    <td className="py-3 pr-4 font-mono text-muted-foreground">{signal.timeframe}</td>
-                                                    <td className={`py-3 pr-4 font-semibold ${signal.direction === "BUY" ? "text-positive" : "text-negative"}`}>
-                                                        <span className="inline-flex items-center gap-1.5">
-                                                            {signal.direction === "BUY" ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
-                                                            {signal.direction}
-                                                        </span>
-                                                    </td>
-                                                    <td className="py-3 pr-4">
-                                                        {signal.status}
-                                                    </td>
-                                                    <td className={`py-3 pr-4 text-right font-mono font-semibold tabular-nums ${(signal.resultR || 0) >= 0 ? "text-positive" : "text-negative"}`}>
-                                                        {formatR(Number(signal.resultR || 0), (signal.resultR || 0) > 0)}
-                                                    </td>
-                                                    <td className="py-3 text-right font-mono text-muted-foreground tabular-nums">
-                                                        {formatTimestamp(Number(signal.completedAt || signal.createdAt))}
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                            {recentSignals.map((signal) => {
+                                                const s = signal as typeof signal & { _resolvedResult?: string; _resolvedR?: number };
+                                                const resResult = s._resolvedResult ?? signal.status;
+                                                const resR = s._resolvedR ?? 0;
+                                                return (
+                                                    <tr key={signal.id} className="border-b border-border/20 last:border-0 hover:bg-muted/40">
+                                                        <td className="py-3 pr-4 font-semibold text-foreground">
+                                                            <Link href={`/signals/${signal.id}`} className="hover:text-amber-400 transition-colors">
+                                                                {signal.symbol}
+                                                            </Link>
+                                                        </td>
+                                                        <td className="py-3 pr-4 font-mono text-muted-foreground">{signal.timeframe}</td>
+                                                        <td className={`py-3 pr-4 font-semibold ${signal.direction === "BUY" ? "text-positive" : "text-negative"}`}>
+                                                            <span className="inline-flex items-center gap-1.5">
+                                                                {signal.direction === "BUY" ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
+                                                                {signal.direction}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-3 pr-4">
+                                                            <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${
+                                                                resResult === "WIN"
+                                                                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                                                    : resResult === "LOSS"
+                                                                    ? "bg-red-500/10 text-red-400 border-red-500/20"
+                                                                    : "bg-muted/10 text-muted-foreground border-border/20"
+                                                            }`}>
+                                                                {resResult}
+                                                            </span>
+                                                        </td>
+                                                        <td className={`py-3 pr-4 text-right font-mono font-semibold tabular-nums ${resR >= 0 ? "text-positive" : "text-negative"}`}>
+                                                            {formatR(resR, resR > 0)}
+                                                        </td>
+                                                        <td className="py-3 text-right font-mono text-muted-foreground tabular-nums">
+                                                            {formatTimestamp(Number(signal.completedAt || signal.updatedAt || signal.createdAt))}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
                                         </tbody>
                                     </table>
                                 </div>

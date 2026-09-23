@@ -161,10 +161,11 @@ export const ADMIN_NAV: NavGroup[] = [
  */
 export const DEVELOPER_NAV: NavGroup[] = [
   {
-    label: "Developer",
+    label: "Intelligence",
     items: [
-      { href: "/developer/dashboard", label: "Dashboard", icon: Terminal },
-      { href: "/developer/subscription", label: "Subscription", icon: CreditCard },
+      { href: "/admin/workflows", label: "Workflow Automation", icon: GitBranch },
+      { href: "/admin/telegram", label: "Telegram Signals", icon: Radio },
+      { href: "/admin/backtests", label: "Backtests", icon: MonitorPlay },
     ],
   },
 ];

@@ -4,39 +4,39 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Activity,
-  AlertTriangle,
-  ArrowLeft,
-  BarChart3,
-  Bell,
-  Bot,
-  Calculator,
-  Calendar,
-  Code,
-  Copy,
-  CreditCard,
-  Crown,
-  DollarSign,
-  FileCode2,
-  FileKey2,
-  FileText,
-  FlaskConical,
-  Gift,
-  GitBranch,
-  Globe,
-  LineChart,
-  LogOut,
-  Menu,
-  Plug,
-  Settings,
-  Cpu,
-  RotateCcw,
-  Target,
-  Tag,
-  TrendingUp,
-  Wallet,
-  X,
-  Zap,
+   Activity,
+   AlertTriangle,
+   ArrowLeft,
+   BarChart3,
+   Bell,
+   Bot,
+   Calculator,
+   Calendar,
+   Code,
+   Copy,
+   CreditCard,
+   Crown,
+   DollarSign,
+   FileCode2,
+   FileKey2,
+   FileText,
+   FlaskConical,
+   Gift,
+   GitBranch,
+   Globe,
+   LineChart,
+   LogOut,
+   Menu,
+   Plug,
+   Settings,
+   Cpu,
+   RotateCcw,
+   Target,
+   Tag,
+   TrendingUp,
+   Wallet,
+   X,
+   Zap,
 } from "lucide-react";
 import { signOut, onAuthStateChanged, User } from "firebase/auth";
 import { auth, database } from "@/lib/firebase";
@@ -100,12 +100,12 @@ const ACCOUNT_NAV: NavGroup[] = [
       { icon: Activity, label: "Equity Curve", href: "/equity-curve" },
     ],
   },
-  {
-    label: "Trading",
-    items: [
-      { icon: Bot, label: "My Bots", href: "/account/bots" },
-      { icon: GitBranch, label: "Workflow Automation", href: "/workflows" },
-      { icon: Zap, label: "AI Signals", href: "/signals" },
+   {
+     label: "Trading",
+     items: [
+       { icon: Bot, label: "My Bots", href: "/account/bots" },
+       { icon: GitBranch, label: "Workflow Automation", href: "/account/workflows" },
+       { icon: Zap, label: "AI Signals", href: "/signals" },
       { icon: LineChart, label: "Trading Studio", href: "/account/tradingview" },
       { icon: RotateCcw, label: "Trade Replay", href: "/trade-replay" },
       { icon: FlaskConical, label: "Strategy Lab", href: "/strategy-lab" },
@@ -122,12 +122,12 @@ const ACCOUNT_NAV: NavGroup[] = [
 
 export default function AccountShell({
   children,
-  title,
+  title = "Account",
   subtitle,
   onBack,
 }: {
   children: React.ReactNode;
-  title: string;
+  title?: string;
   subtitle?: string;
   onBack?: () => void;
 }) {

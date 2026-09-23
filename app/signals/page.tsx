@@ -31,6 +31,7 @@ import { auth, database } from "@/lib/firebase";
 import SignalFeed from "@/components/signals/SignalFeed";
 import MarketOverview from "@/components/signals/MarketOverview";
 import ProGate from "@/components/subscription/ProGate";
+import { useLivePrices } from "@/hooks/useLivePrices";
 import type { AISignal, MarketSentiment, SignalAnalytics } from "@/lib/ai-signals/types";
 
 const FREE_LIMIT = 3;
@@ -48,6 +49,7 @@ export default function AiSignalsPage() {
     const [dailyCount, setDailyCount] = useState(0);
     const [activeTab, setActiveTab] = useState<"all" | "active" | "ready" | "forming">("all");
     const [followedIds, setFollowedIds] = useState<Set<string>>(new Set());
+    const [lastUpdatedAt, setLastUpdatedAt] = useState(0);
     const signalsCountRef = useRef(0);
     const dailyCountRef = useRef(0);
 
@@ -101,6 +103,14 @@ export default function AiSignalsPage() {
         return () => unsub();
     }, [user]);
 
+    useEffect(() => {
+        if (!user) return;
+        const interval = setInterval(() => {
+            void Promise.allSettled([fetchSignals(), fetchAnalytics()]);
+        }, 15_000);
+        return () => clearInterval(interval);
+    }, [user]);
+
     async function getAuthHeaders(): Promise<Record<string, string>> {
         if (!user) return {};
         const token = await user.getIdToken(/* forceRefresh */ true);
@@ -116,6 +126,7 @@ export default function AiSignalsPage() {
             if (data.signals) {
                 setSignals(data.signals);
                 signalsCountRef.current = data.signals.length;
+                setLastUpdatedAt(Date.now());
             }
             if (data.dailyCount != null) {
                 setDailyCount(data.dailyCount);
@@ -155,6 +166,14 @@ export default function AiSignalsPage() {
                 setDailyCount(data.dailyCount);
                 dailyCountRef.current = data.dailyCount;
             }
+            
+            // Trigger auto-update to check for SL/TP hits
+            await fetch("/api/signals/auto-update", {
+                method: "POST",
+                headers: await getAuthHeaders(),
+                body: JSON.stringify({ checkAllActive: true }),
+            });
+            
             await fetchSignals();
             await fetchAnalytics();
         } catch (err) {
@@ -252,10 +271,17 @@ export default function AiSignalsPage() {
             .slice(0, 3);
     }, [signals]);
 
+    // Only show actionable (non-terminal) signals in the live feed
+    const TERMINAL_STATUSES = new Set(["STOPPED", "COMPLETED", "CANCELLED", "EXPIRED"]);
+    const liveSignals = useMemo(
+        () => signals.filter((s) => !TERMINAL_STATUSES.has(s.status)),
+        [signals]
+    );
+
     const filteredSignals = useMemo(() => {
-        if (activeTab === "all") return signals;
-        return signals.filter((s) => s.status === activeTab.toUpperCase());
-    }, [signals, activeTab]);
+        if (activeTab === "all") return liveSignals;
+        return liveSignals.filter((s) => s.status === activeTab.toUpperCase());
+    }, [liveSignals, activeTab]);
 
     const freeSignals = useMemo(
         () => filteredSignals.filter((s) => s.tier === "FREE"),
@@ -267,14 +293,21 @@ export default function AiSignalsPage() {
         [filteredSignals]
     );
 
+    // Live prices for top-opportunity cards
+    const topSignalSymbols = useMemo(() => topSignals.map((s) => s.symbol), [topSignals]);
+    const { prices: topPrices, isLive: topPricesLive } = useLivePrices(topSignalSymbols, {
+        intervalMs: 10_000,
+        enabled: topSignalSymbols.length > 0,
+    });
+
     const dailyLimit = hasPro ? PRO_LIMIT : FREE_LIMIT;
     const limitReached = dailyCount >= dailyLimit;
 
     const tabs = [
-        { key: "all" as const, label: "All Signals", count: signals.length },
-        { key: "active" as const, label: "Active", count: signals.filter((s) => s.status === "ACTIVE").length },
-        { key: "ready" as const, label: "Ready", count: signals.filter((s) => s.status === "READY").length },
-        { key: "forming" as const, label: "Forming", count: signals.filter((s) => s.status === "FORMING").length },
+        { key: "all" as const, label: "All Signals", count: liveSignals.length },
+        { key: "active" as const, label: "Active", count: liveSignals.filter((s) => s.status === "ACTIVE").length },
+        { key: "ready" as const, label: "Ready", count: liveSignals.filter((s) => s.status === "READY").length },
+        { key: "forming" as const, label: "Forming", count: liveSignals.filter((s) => s.status === "FORMING").length },
     ];
 
     return (

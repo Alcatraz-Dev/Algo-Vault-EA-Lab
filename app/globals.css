@@ -900,3 +900,63 @@ body {
 /* .shadow-xl, .shadow-2xl, .shadow-3xl on cards — banned */
 /* .animate-ping except on live status dots — banned */
 /* text-[9px], text-[10px] — banned (use text-micro) */
+
+/* ── React Flow Studio Node Overrides ── */
+/* Strip the default ReactFlow wrapper box from custom wfNode type */
+.react-flow__node-wfNode {
+  background: transparent;
+  border: none;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+  width: auto;
+}
+.react-flow__node-wfNode.selected,
+.react-flow__node-wfNode:focus,
+.react-flow__node-wfNode:focus-visible {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  outline: none;
+}
+/* ReactFlow canvas dark-mode background grid */
+.react-flow__background {
+  background-color: var(--background);
+}
+/* Handles */
+.react-flow__handle {
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.react-flow__handle:hover {
+  transform: scale(1.4);
+}
+/* Edge */
+.react-flow__edge-path {
+  stroke: var(--muted-foreground);
+}
+/* MiniMap theming */
+.react-flow__minimap {
+  background-color: var(--card) !important;
+  border: 1px solid var(--border) !important;
+}
+.react-flow__minimap-mask {
+  fill: color-mix(in oklch, var(--primary) 12%, transparent);
+}
+/* Controls */
+.react-flow__controls {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: none;
+}
+.react-flow__controls-button {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+}
+.react-flow__controls-button:hover {
+  background: var(--muted);
+}
+.react-flow__controls-button svg {
+  fill: currentColor;
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -11,13 +11,17 @@ import {
     Heart,
     Loader2,
     Radio,
+    RefreshCw,
+    Shield,
     ShieldAlert,
+    Target,
     TrendingDown,
     TrendingUp,
     Zap,
 } from "lucide-react";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { ref as dbRef, onValue } from "firebase/database";
+import { auth, database } from "@/lib/firebase";
 import { onSubscriptionChange } from "@/lib/subscription";
 import type { AISignal, SignalTimelineEvent } from "@/lib/ai-signals/types";
 import { formatPrice } from "@/lib/ai-signals/symbol-specs";
@@ -25,6 +29,7 @@ import ConfidenceBreakdown from "@/components/signals/ConfidenceBreakdown";
 import SignalChart from "@/components/signals/SignalChart";
 import SignalTimeline from "@/components/signals/SignalTimeline";
 import { cn } from "@/lib/utils";
+import { useLivePrices } from "@/hooks/useLivePrices";
 
 type Params = { id: string };
 
@@ -60,6 +65,76 @@ function confidenceColor(c: number) {
     return "text-rose-400";
 }
 
+/* ─── Live Price Panel (shared with signals/[id]) ─── */
+function LivePricePanel({ signal, lastUpdatedAt, onRefresh }: {
+    signal: AISignal;
+    lastUpdatedAt: number;
+    onRefresh: () => void;
+}) {
+    const symbols = signal.symbol ? [signal.symbol] : [];
+    const { prices } = useLivePrices(symbols, { intervalMs: 10_000 });
+    const bid = prices[signal.symbol] ?? null;
+
+    const slDist  = Math.abs(signal.entry - signal.stopLoss);
+    const tp1Dist = signal.tp1 ? Math.abs(signal.tp1 - signal.entry) : 0;
+    const isBuy   = signal.direction === "BUY";
+
+    let progress = 50;
+    if (bid !== null && signal.tp1) {
+        const totalRange = slDist + tp1Dist;
+        const fromSl = isBuy ? bid - signal.stopLoss : signal.stopLoss - bid;
+        progress = Math.min(100, Math.max(0, (fromSl / totalRange) * 100));
+    }
+
+    const secAgo = lastUpdatedAt > 0 ? Math.round((Date.now() - lastUpdatedAt) / 1000) : null;
+
+    return (
+        <div className={cn("mt-6 rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-background/40 to-background/80 backdrop-blur-xl p-5")}>
+            <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Live Market</span>
+                    {bid !== null && (
+                        <span className={`font-mono text-lg font-black ${isBuy ? "text-emerald-400" : "text-rose-400"}`}>
+                            {bid >= 100 ? bid.toFixed(2) : bid.toFixed(5)}
+                        </span>
+                    )}
+                    {bid === null && <span className="text-xs text-muted-foreground">Connecting…</span>}
+                </div>
+                <div className="flex items-center gap-2">
+                    {secAgo !== null && <span className="text-[10px] text-muted-foreground">{secAgo}s ago</span>}
+                    <button onClick={onRefresh} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/20 transition">
+                        <RefreshCw size={12} />
+                    </button>
+                </div>
+            </div>
+            <div className="space-y-2">
+                <div className="flex items-center justify-between text-[10px]">
+                    <span className="flex items-center gap-1 text-red-400 font-mono font-semibold">
+                        <Shield size={9} />{formatPrice(signal.stopLoss, signal.symbol)}
+                    </span>
+                    <span className="font-mono text-muted-foreground/60">Entry {formatPrice(signal.entry, signal.symbol)}</span>
+                    {signal.tp1 && (
+                        <span className="flex items-center gap-1 text-emerald-400 font-mono font-semibold">
+                            {formatPrice(signal.tp1, signal.symbol)}<Target size={9} />
+                        </span>
+                    )}
+                </div>
+                <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted/20">
+                    <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
+                        style={{ width: `${progress}%`, background: "linear-gradient(90deg,rgba(239,68,68,0.7) 0%,rgba(16,185,129,0.7) 100%)" }} />
+                    <div className="absolute top-0 h-2 w-2 -translate-x-1/2 rounded-full border-2 border-white bg-white shadow-md transition-all duration-500"
+                        style={{ left: `${progress}%` }} />
+                </div>
+                <div className="flex justify-between text-[9px] text-muted-foreground/40">
+                    <span>SL {slDist >= 1 ? slDist.toFixed(0) : slDist.toFixed(4)} pts</span>
+                    {signal.tp1 && <span>TP1 {tp1Dist >= 1 ? tp1Dist.toFixed(0) : tp1Dist.toFixed(4)} pts · {signal.riskReward.toFixed(1)}R</span>}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function formatTimeAgo(ts: number | undefined): string {
     if (!ts) return "Unknown";
     const diffMs = Date.now() - ts;
@@ -86,127 +161,103 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
     const [cancelling, setCancelling] = useState(false);
     const [executing, setExecuting] = useState(false);
     const [executionResult, setExecutionResult] = useState<{ ok: boolean; msg: string; commandId?: string } | null>(null);
+    const [lastUpdatedAt, setLastUpdatedAt] = useState(0);
+    const userRef = useRef<User | null>(null);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (u) => setUser(u));
+        const unsubscribe = onAuthStateChanged(auth, (u) => { setUser(u); userRef.current = u; });
         return () => unsubscribe();
     }, []);
 
     useEffect(() => {
         if (!user) return;
         (async () => {
-            try {
-                const sub = await onSubscriptionChange(user.uid);
-                setHasPro(sub.hasSubscription);
-            } catch {
-                setHasPro(false);
-            }
+            try { const sub = await onSubscriptionChange(user.uid); setHasPro(sub.hasSubscription); } catch { setHasPro(false); }
         })();
     }, [user]);
 
+    const fetchSignal = useCallback(async (u: User | null) => {
+        if (!u) return;
+        try {
+            const token = await u.getIdToken();
+            const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+            const r = await fetch(`/api/pro-signals/${id}`, { headers });
+            if (!r.ok) throw new Error("Failed to load signal");
+            const data = await r.json();
+            const raw = data.signal;
+            if (!raw) { setError("Signal not found"); return; }
+            const normalized = {
+                ...({
+                    id: raw.id, symbol: raw.symbol, direction: raw.direction,
+                    timeframe: raw.timeframe, category: raw.category || "forex", tier: "PRO",
+                    entry: raw.entry, stopLoss: raw.stopLoss, tp1: raw.tp1, tp2: raw.tp2, tp3: raw.tp3, tp4: raw.tp4,
+                    confidence: raw.confidence || 0,
+                    strength: raw.parserMetadata?.confidence
+                        ? raw.parserMetadata.confidence >= 95 ? "HIGH_CONVICTION"
+                        : raw.parserMetadata.confidence >= 85 ? "VERY_STRONG"
+                        : raw.parserMetadata.confidence >= 75 ? "STRONG"
+                        : raw.parserMetadata.confidence >= 65 ? "GOOD"
+                        : raw.parserMetadata.confidence >= 50 ? "MODERATE" : "WEAK"
+                        : "MODERATE",
+                    marketRegime: "HIGH_VOLATILITY", riskReward: raw.riskReward || 2.0,
+                    status: raw.displayStatus || "WATCH", result: "PENDING", resultR: 0, profitPoints: 0,
+                    tp1Hit: false, tp2Hit: false, tp3Hit: false,
+                    analysis: raw.analysis || {},
+                    confidenceBreakdown: raw.confidenceBreakdown || {
+                        trendAlignment: { score: raw.confidence || 0, max: 100, detail: "" },
+                        marketStructure: { score: 0, max: 100, detail: "" },
+                        liquidity: { score: 0, max: 100, detail: "" },
+                        momentum: { score: 0, max: 100, detail: "" },
+                        volume: { score: 0, max: 100, detail: "" },
+                        orderFlow: { score: 0, max: 100, detail: "" },
+                        entryConfirmation: { score: raw.confidence || 0, max: 100, detail: "" },
+                        total: raw.confidence || 0,
+                    } as AISignal["confidenceBreakdown"],
+                    reasoning: "", currentPrice: raw.entry, distanceToEntry: 0,
+                    distanceToSL: Math.abs(raw.entry - raw.stopLoss),
+                    createdAt: raw.createdAt, updatedAt: raw.lastUpdateAt || raw.createdAt, expiresAt: raw.expirationAt || 0,
+                    engineVersion: "", strategyVersion: "", analysisVersion: "",
+                    generatedBy: "Telegram Signal Engine", lastCheckedAt: Date.now(),
+                    followCount: raw.followCount || 0, tradeCount: raw.tradeCount || 0,
+                    suggestedRiskPercent: 1, pipValue: 0.01, contractSize: 100000, typicalSpread: 1, digits: 5,
+                    timeline: [], sourceMetadata: raw.sourceMetadata, rawMessageId: raw.rawMessageId, style: raw.style,
+                } as unknown as AISignal),
+                tp5: raw.tp5,
+            } as AISignal & { tp5?: number };
+            setSignal(normalized);
+            setEvents(data.events || []);
+            setFollowing(Boolean(data.isFollowed));
+            setLastUpdatedAt(Date.now());
+        } catch (e: unknown) {
+            setError(e instanceof Error ? e.message : "Failed to load signal");
+        }
+    }, [id]);
+
+    // Initial load
     useEffect(() => {
         if (!user) return;
-        (async () => {
-            try {
-                const token = await user.getIdToken();
-                const headers = { Authorization: `Bearer ${token ?? ""}`, "Content-Type": "application/json" };
-                setLoading(true);
-                setError(null);
-                const r = await fetch(`/api/pro-signals/${id}`, { headers });
-                if (!r.ok) throw new Error("Failed to load signal");
-                const data = await r.json();
+        setLoading(true); setError(null);
+        fetchSignal(user).finally(() => setLoading(false));
+    }, [user, fetchSignal]);
 
-                const raw = data.signal;
-                if (!raw) {
-                    setError("Signal not found");
-                    return;
-                }
+    // Firebase onValue — real-time updates on pro signal node (telegramSignals)
+    useEffect(() => {
+        if (!user) return;
+        const signalRef = dbRef(database, `telegramSignals/${id}`);
+        const unsub = onValue(signalRef, (snapshot) => {
+            if (!snapshot.exists()) return;
+            // Re-fetch via API to get fully normalized data
+            void fetchSignal(userRef.current);
+        });
+        return () => unsub();
+    }, [user, id, fetchSignal]);
 
-                const normalized = {
-                    ...({
-                        id: raw.id,
-                        symbol: raw.symbol,
-                        direction: raw.direction,
-                        timeframe: raw.timeframe,
-                        category: raw.category || "forex",
-                        tier: "PRO",
-                        entry: raw.entry,
-                        stopLoss: raw.stopLoss,
-                        tp1: raw.tp1,
-                        tp2: raw.tp2,
-                        tp3: raw.tp3,
-                        tp4: raw.tp4,
-                        confidence: raw.confidence || 0,
-                        strength: raw.parserMetadata?.confidence
-                            ? raw.parserMetadata.confidence >= 95
-                                ? "HIGH_CONVICTION"
-                                : raw.parserMetadata.confidence >= 85
-                                ? "VERY_STRONG"
-                                : raw.parserMetadata.confidence >= 75
-                                ? "STRONG"
-                                : raw.parserMetadata.confidence >= 65
-                                ? "GOOD"
-                                : raw.parserMetadata.confidence >= 50
-                                ? "MODERATE"
-                                : "WEAK"
-                            : "MODERATE",
-                        marketRegime: "HIGH_VOLATILITY",
-                        riskReward: raw.riskReward || 2.0,
-                        status: raw.displayStatus || "WATCH",
-                        result: "PENDING",
-                        resultR: 0,
-                        profitPoints: 0,
-                        tp1Hit: false,
-                        tp2Hit: false,
-                        tp3Hit: false,
-                        analysis: raw.analysis || {},
-                        confidenceBreakdown: raw.confidenceBreakdown || {
-                            trendAlignment: { score: raw.confidence || 0, max: 100, detail: "" },
-                            marketStructure: { score: 0, max: 100, detail: "" },
-                            liquidity: { score: 0, max: 100, detail: "" },
-                            momentum: { score: 0, max: 100, detail: "" },
-                            volume: { score: 0, max: 100, detail: "" },
-                            orderFlow: { score: 0, max: 100, detail: "" },
-                            entryConfirmation: { score: raw.confidence || 0, max: 100, detail: "" },
-                            total: raw.confidence || 0,
-                        } as AISignal["confidenceBreakdown"],
-                        reasoning: "",
-                        currentPrice: raw.entry,
-                        distanceToEntry: 0,
-                        distanceToSL: Math.abs(raw.entry - raw.stopLoss),
-                        createdAt: raw.createdAt,
-                        updatedAt: raw.lastUpdateAt || raw.createdAt,
-                        expiresAt: raw.expirationAt || 0,
-                        engineVersion: "",
-                        strategyVersion: "",
-                        analysisVersion: "",
-                        generatedBy: "Telegram Signal Engine",
-                        lastCheckedAt: Date.now(),
-                        followCount: raw.followCount || 0,
-                        tradeCount: raw.tradeCount || 0,
-                        suggestedRiskPercent: 1,
-                        pipValue: 0.01,
-                        contractSize: 100000,
-                        typicalSpread: 1,
-                        digits: 5,
-                        timeline: [],
-                        sourceMetadata: raw.sourceMetadata,
-                        rawMessageId: raw.rawMessageId,
-                        style: raw.style,
-                    } as unknown as AISignal),
-                    tp5: raw.tp5,
-                } as AISignal & { tp5?: number };
-
-                setSignal(normalized);
-                setEvents(data.events || []);
-                setFollowing(Boolean(data.isFollowed));
-            } catch (e: unknown) {
-                setError(e instanceof Error ? e.message : "Failed to load signal");
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, [user, id]);
+    // 30s auto-refresh fallback
+    useEffect(() => {
+        if (!user) return;
+        const interval = setInterval(() => { void fetchSignal(userRef.current); }, 30_000);
+        return () => clearInterval(interval);
+    }, [user, fetchSignal]);
 
     async function authHeaders() {
         const token = await user?.getIdToken();

@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
         workflowCount: workflows.length,
         runsTotal: runs.length,
         statusBreakdown,
+        workflows,
         recentFailures: recentFailures.map((r) => ({
             id: r.id,
             workflowId: r.workflowId,
@@ -59,5 +60,10 @@ export async function PATCH(request: NextRequest) {
         settings.aiBuilderEnabled = body.resetLimits.aiBuilderEnabled ?? true;
         await setGlobalSettings(settings);
     }
-    return ok(settings);
+    return ok({
+        ...settings,
+        killSwitch: settings.killSwitchEnabled,
+        killSwitchEnabled: settings.killSwitchEnabled,
+        killSwitchReason: settings.killSwitchReason,
+    });
 }

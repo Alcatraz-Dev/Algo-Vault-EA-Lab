@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { auth, database } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
 import { useRouter } from "next/navigation";
@@ -37,6 +37,10 @@ interface RealtimeFeedProps {
     tradeLoadingIds?: Set<string>;
     completeLoadingIds?: Set<string>;
     showHeader?: boolean;
+    /** Live bid prices keyed by symbol, forwarded to each SignalCard */
+    currentPrices?: Record<string, number>;
+    /** Callback invoked with the current signal list whenever it changes */
+    onSignalsChange?: (signals: AISignal[]) => void;
 }
 
 function deriveStrengthFromConfidence(confidence: number): SignalStrength {
@@ -163,6 +167,9 @@ function mapProStatusToAISignalStatus(status: ProSignalStatus | SignalTimeframe)
     return mapping[String(status)] ?? "WATCH";
 }
 
+
+const TERMINAL_STATUSES = new Set(["STOPPED", "COMPLETED", "CANCELLED", "EXPIRED"]);
+
 export function RealtimeFeed({
     uid,
     onTrade,
@@ -174,11 +181,27 @@ export function RealtimeFeed({
     tradeLoadingIds,
     completeLoadingIds,
     showHeader = true,
+    currentPrices,
+    onSignalsChange,
 }: RealtimeFeedProps) {
     const router = useRouter();
     const [signals, setSignals] = useState<AISignal[]>([]);
     const [loading, setLoading] = useState(true);
     const useApiFallback = useRef(false);
+    const onSignalsChangeRef = useRef(onSignalsChange);
+    onSignalsChangeRef.current = onSignalsChange;
+
+        const activeSignals = useMemo<AISignal[]>(() => {
+        return signals.filter((s: AISignal) => !TERMINAL_STATUSES.has(s.status));
+    }, [signals]);
+
+    useEffect(() => {
+        onSignalsChangeRef.current?.(activeSignals);
+    }, [activeSignals]);
+
+    const setSignalsAndNotify = useCallback((updater: AISignal[] | ((prev: AISignal[]) => AISignal[])) => {
+        setSignals(updater);
+    }, []);
 
     const fetchViaApi = async () => {
         try {
@@ -192,7 +215,7 @@ export function RealtimeFeed({
             if (data.signals) {
                 const list = (data.signals as ProSignal[]).map(normalizeProSignal);
                 list.sort((a, b) => b.createdAt - a.createdAt);
-                setSignals(list);
+                setSignalsAndNotify(list);
             }
         } catch (err) {
             console.error("API signals fetch fallback error:", err);
@@ -215,9 +238,9 @@ export function RealtimeFeed({
                     const data = snapshot.val();
                     const list = (Object.values(data) as ProSignal[]).map(normalizeProSignal);
                     list.sort((a, b) => b.createdAt - a.createdAt);
-                    setSignals(list);
+                    setSignalsAndNotify(list);
                 } else {
-                    setSignals([]);
+                    setSignalsAndNotify([]);
                 }
                 setLoading(false);
             },
@@ -245,7 +268,7 @@ export function RealtimeFeed({
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` },
             });
-            setSignals([]);
+            setSignalsAndNotify([]);
         } catch (err) {
             console.error("Clear signals error:", err);
         }
@@ -289,7 +312,7 @@ export function RealtimeFeed({
         ));
     };
 
-    const highestConfidence = signals.reduce((highest, signal) => Math.max(highest, signal.confidence), 0);
+    const highestConfidence = activeSignals.reduce((highest: number, signal: AISignal) => Math.max(highest, signal.confidence), 0);
 
     if (loading) {
         return (
@@ -301,7 +324,7 @@ export function RealtimeFeed({
         );
     }
 
-    if (signals.length === 0) {
+    if (activeSignals.length === 0) {
         return (
             <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border/30 bg-linear-to-br from-background/80 via-background/40 to-background/80 p-8 text-center backdrop-blur-xl">
                 <Radio className="h-9 w-9 text-muted-foreground" />
@@ -318,7 +341,7 @@ export function RealtimeFeed({
             {showHeader && (
                 <div className="flex items-center justify-between gap-3 px-1">
                     <span className="text-sm text-muted-foreground">
-                        Showing <span className="font-semibold text-foreground">{signals.length}</span> Pro Signals
+                        Showing <span className="font-semibold text-foreground">{activeSignals.length}</span> Pro Signals
                     </span>
                     <button
                         type="button"
@@ -331,7 +354,7 @@ export function RealtimeFeed({
             )}
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
-                {signals.map((signal) => (
+                {activeSignals.map((signal: AISignal) => (
                     <SignalCard
                         key={signal.id}
                         signal={signal}
@@ -346,6 +369,7 @@ export function RealtimeFeed({
                         followLoading={followLoadingIds?.has(signal.id) ?? false}
                         tradeLoading={tradeLoadingIds?.has(signal.id) ?? false}
                         completeLoading={completeLoadingIds?.has(signal.id) ?? false}
+                        currentPrice={currentPrices?.[signal.symbol] ?? 0}
                     />
                 ))}
             </div>

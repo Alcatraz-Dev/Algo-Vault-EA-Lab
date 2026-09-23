@@ -15,8 +15,8 @@ import {
     FileCode2,
     FileKey2,
     GitBranch,
-    LineChart,
     LayoutDashboard,
+    LineChart,
     Menu,
     MessageSquare,
     MonitorPlay,
@@ -40,6 +40,8 @@ import { NotificationsMenu } from "@/components/layout/NotificationsMenu";
 
 const NAV_ITEMS = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
+    { icon: Target, label: "Growth", href: "/admin/growth" },
+    { icon: DollarSign, label: "Monetization", href: "/admin/monetization" },
     { icon: Radio, label: "Telegram Signals", href: "/admin/telegram" },
     { icon: Bot, label: "Bots / Products", href: "/admin/bots" },
     { icon: Activity, label: "Live Accounts", href: "/admin/live" },

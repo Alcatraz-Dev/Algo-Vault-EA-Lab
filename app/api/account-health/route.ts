@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticate } from "@/lib/admin-auth";
 import { adminDatabase } from "@/lib/firebase-admin";
-import { fetchCandles } from "@/lib/market-data/normalizer";
-import { detectRegime } from "@/lib/analytics/market-regime";
-import { analyzeVolatility } from "@/lib/analytics/volatility";
-import { calculateVWAP } from "@/lib/analytics/vwap";
-import { computeMetrics } from "@/lib/strategy-lab/metrics";
-import { BacktestTrade } from "@/lib/strategy-lab/types";
 
 interface HealthSignal {
     id?: string;

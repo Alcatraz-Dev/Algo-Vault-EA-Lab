@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import SiteNavbar from "@/components/navbar/SiteNavbar";
+import { DashboardNativeAd } from "@/components/growth/DashboardNativeAd";
 import { cn } from "@/lib/utils";
 
 type Widget = {
@@ -127,6 +128,8 @@ export default function DashboardBuilderPage() {
                         )}
                     </div>
                 </div>
+
+                <DashboardNativeAd />
 
                 {/* Quick Access Cards */}
                 <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-guide="quick-links">

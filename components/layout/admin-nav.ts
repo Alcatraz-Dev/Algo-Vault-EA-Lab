@@ -3,6 +3,7 @@ import {
   Bot,
   Code2,
   Copy,
+  CreditCard,
   DollarSign,
   FileCode2,
   FileKey2,
@@ -21,6 +22,8 @@ import {
   Sparkles,
   Target,
   Users,
+  Megaphone,
+  BarChart3,
 } from "lucide-react";
 import type { NavGroup } from "@/components/layout/AppShell";
 
@@ -81,6 +84,20 @@ export const ADMIN_NAV: NavGroup[] = [
       { href: "/admin/users", label: "Users", icon: Users },
       { href: "/admin/developers", label: "Developers", icon: Code2 },
       { href: "/admin/reviews", label: "Reviews", icon: MessageSquare },
+    ],
+  },
+  {
+    label: "Growth",
+    items: [
+      { href: "/admin/growth", label: "Growth Overview", icon: BarChart3 },
+      { href: "/admin/growth/campaigns", label: "Campaigns", icon: Megaphone },
+      { href: "/admin/growth/channels", label: "Channels", icon: Radio },
+    ],
+  },
+  {
+    label: "Monetization",
+    items: [
+      { href: "/admin/monetization", label: "Monetization", icon: CreditCard },
     ],
   },
   {
