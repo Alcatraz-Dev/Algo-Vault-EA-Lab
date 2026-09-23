@@ -13,6 +13,7 @@ import {
   FileText,
   FlaskConical,
   Gauge,
+  GitBranch,
   History,
   LineChart,
   LayoutDashboard,
@@ -95,6 +96,7 @@ export const APP_NAV: NavGroup[] = [
   {
     label: "Automation",
     items: [
+      { href: "/workflows", label: "Workflow Automation", icon: GitBranch },
       { href: "/account/bots", label: "My Bots", icon: Bot },
       { href: "/copy-trading", label: "Copy Trading", icon: Copy },
       { href: "/account/trading-access", label: "MT5 Gateway", icon: Terminal },

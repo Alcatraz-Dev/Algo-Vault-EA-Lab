@@ -22,6 +22,7 @@ import {
   FileText,
   FlaskConical,
   Gift,
+  GitBranch,
   Globe,
   LineChart,
   LogOut,
@@ -103,6 +104,7 @@ const ACCOUNT_NAV: NavGroup[] = [
     label: "Trading",
     items: [
       { icon: Bot, label: "My Bots", href: "/account/bots" },
+      { icon: GitBranch, label: "Workflow Automation", href: "/workflows" },
       { icon: Zap, label: "AI Signals", href: "/signals" },
       { icon: LineChart, label: "Trading Studio", href: "/account/tradingview" },
       { icon: RotateCcw, label: "Trade Replay", href: "/trade-replay" },

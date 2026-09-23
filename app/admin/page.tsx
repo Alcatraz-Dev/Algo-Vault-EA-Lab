@@ -7,6 +7,7 @@ import {
     Brain,
     Bot,
     DollarSign,
+    GitBranch,
     KeyRound,
     Plus,
     RefreshCw,
@@ -347,6 +348,10 @@ export default function AdminPage() {
                             <Link href="/insights" className="flex items-center gap-4 rounded-xl border border-sky-500/20 bg-sky-500/5 p-4 transition hover:bg-sky-500/10">
                                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/20"><Sparkles size={20} className="text-sky-400" /></div>
                                 <div><p className="text-sm font-semibold text-foreground">AI Insights</p><p className="text-xs text-muted-foreground">Intelligence & trend analysis</p></div>
+                            </Link>
+                            <Link href="/admin/workflows" className="flex items-center gap-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 transition hover:bg-amber-500/10">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/20"><GitBranch size={20} className="text-amber-400" /></div>
+                                <div><p className="text-sm font-semibold text-foreground">Workflow Studio</p><p className="text-xs text-muted-foreground">Monitor runs, manage templates, kill switch</p></div>
                             </Link>
                         </div>
 

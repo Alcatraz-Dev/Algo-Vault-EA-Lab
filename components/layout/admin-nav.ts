@@ -6,6 +6,7 @@ import {
   DollarSign,
   FileCode2,
   FileKey2,
+  GitBranch,
   LayoutDashboard,
   LineChart,
   MessageSquare,
@@ -61,6 +62,7 @@ export const ADMIN_NAV: NavGroup[] = [
   {
     label: "Intelligence",
     items: [
+      { href: "/admin/workflows", label: "Workflow Automation", icon: GitBranch },
       { href: "/admin/telegram", label: "Telegram Signals", icon: Radio },
       { href: "/admin/backtests", label: "Backtests", icon: MonitorPlay },
     ],

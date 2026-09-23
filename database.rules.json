@@ -584,6 +584,67 @@
       }
     },
 
+    "workflowAutomation": {
+      "$userId": {
+        ".read": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "workflowAutomationVersions": {
+      "$userId": {
+        ".read": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "workflowAutomationRuns": {
+      "$userId": {
+        ".read": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "workflowAutomationRunNodes": {
+      ".indexOn": ["runId", "workflowId"],
+      "$runId": {
+        ".read": "auth != null && (auth.uid === data.child('userId').val() || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && (auth.uid === data.child('userId').val() || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "workflowAutomationSignals": {
+      "$userId": {
+        ".read": "auth != null && auth.uid === $userId",
+        ".write": "auth != null && auth.uid === $userId"
+      }
+    },
+    "workflowAutomationMarketplace": {
+      ".read": "auth != null",
+      ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+      "$itemId": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "workflowAutomationSettings": {
+      ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+      ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+    },
+    "workflowAutomationSchedules": {
+      ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+      ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+      "$userId": {
+        ".read": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "workflowAutomationScheduleQueue": {
+      ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+      ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+    },
+    "workflowAutomationVariables": {
+      "$userId": {
+        ".read": "auth != null && auth.uid === $userId",
+        ".write": "auth != null && auth.uid === $userId"
+      }
+    },
     "gateway_tokens_meta": {
       ".read": false,
       ".write": false

@@ -224,12 +224,26 @@ export const AGENT_BY_ID: Record<string, AgentContract> = BUILT_IN_AGENTS.reduce
     {} as Record<string, AgentContract>
 );
 
+/**
+ * Runtime registry for domain agents (e.g. the Growth marketing pipeline).
+ * Domain modules call `registerAgentContract` at import time so workflow
+ * definitions can reference their agents through the same catalog lookup.
+ */
+export const REGISTRY_AGENTS: AgentContract[] = [];
+
+export function registerAgentContract(agent: AgentContract): void {
+    const index = REGISTRY_AGENTS.findIndex((a) => a.id === agent.id);
+    if (index >= 0) REGISTRY_AGENTS[index] = agent;
+    else REGISTRY_AGENTS.push(agent);
+    AGENT_BY_ID[agent.id] = agent;
+}
+
 export function getAgent(id: string): AgentContract | undefined {
     return AGENT_BY_ID[id];
 }
 
 export function getActiveAgents(): AgentContract[] {
-    return BUILT_IN_AGENTS.filter((a) => a.status === "active" || a.status === "testing");
+    return [...BUILT_IN_AGENTS, ...REGISTRY_AGENTS].filter((a) => a.status === "active" || a.status === "testing");
 }
 
 export const AGENT_ROLE_LABELS: Record<AgentRole, string> = {
