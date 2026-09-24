@@ -24,6 +24,9 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { FormField, FormError, FormSuccess } from "@/components/ui/form-field";
+import { FormSection } from "@/components/ui/form-section";
+import { Input } from "@/components/ui/input";
+import { Select, Textarea } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useAdminFetch } from "@/components/growth/admin/useAdminFetch";
 import { adminFetch } from "@/components/growth/admin/session";
@@ -376,83 +379,95 @@ export default function AdminPlacementsPage() {
                             Placement configuration is read by the live placement engine. Priority is 0–100 (higher wins).
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                         {err && <FormError>{err}</FormError>}
                         {success && <FormSuccess>{success}</FormSuccess>}
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <FormField label="Name *" htmlFor="pl-name">
-                                <input id="pl-name" className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm" value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="Sidebar banner" />
-                            </FormField>
-                            <FormField label="Placement key" htmlFor="pl-key">
-                                <select id="pl-key" className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm" value={form.key} onChange={(e) => set({ key: e.target.value })} disabled={!!editing}>
-                                    {PLACEMENT_TYPES.map((k) => (
-                                        <option key={k} value={k}>{PLACEMENT_LABELS[k]}</option>
-                                    ))}
-                                </select>
-                            </FormField>
-                        </div>
-                        <FormField label="Description" htmlFor="pl-desc">
-                            <textarea id="pl-desc" className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm" rows={2} value={form.description} onChange={(e) => set({ description: e.target.value })} placeholder="Where this slot appears" />
-                        </FormField>
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <FormField label="Priority (0–100)" htmlFor="pl-prio">
-                                <input id="pl-prio" type="number" min={0} max={100} className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm" value={form.priority} onChange={(e) => set({ priority: e.target.value })} />
-                            </FormField>
-                            <FormField label="Max ads per page" htmlFor="pl-maxads">
-                                <input id="pl-maxads" type="number" min={0} className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm" value={form.maxAds} onChange={(e) => set({ maxAds: e.target.value })} placeholder="Unlimited" />
-                            </FormField>
-                        </div>
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <FormField label="Frequency cap type" htmlFor="pl-freqtype">
-                                <select id="pl-freqtype" className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm" value={form.freqType} onChange={(e) => set({ freqType: e.target.value })}>
-                                    <option value="">No cap</option>
-                                    <option value="PER_SESSION">Per session</option>
-                                    <option value="PER_DAY">Per day</option>
-                                </select>
-                            </FormField>
-                            <FormField label="Cap limit" htmlFor="pl-freqlimit">
-                                <input id="pl-freqlimit" type="number" min={1} className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm" value={form.freqLimit} onChange={(e) => set({ freqLimit: e.target.value })} placeholder="e.g. 3" disabled={!form.freqType} />
-                            </FormField>
-                        </div>
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <FormField label="Premium handling" htmlFor="pl-premium">
-                                <select id="pl-premium" className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm" value={form.premiumMode} onChange={(e) => set({ premiumMode: e.target.value })}>
-                                    {PREMIUM_AD_MODES.map((m) => (
-                                        <option key={m} value={m}>{m === "SHOW" ? "Show ads to premium too" : m === "REDUCED" ? "Reduced frequency" : "Hide from premium"}</option>
-                                    ))}
-                                </select>
-                            </FormField>
-                            {form.premiumMode === "REDUCED" ? (
-                                <FormField label="Reduction ratio (0–1)" htmlFor="pl-ratio">
-                                    <input id="pl-ratio" type="number" min={0} max={1} step={0.05} className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm" value={form.reductionRatio} onChange={(e) => set({ reductionRatio: e.target.value })} />
+                        <FormSection title="Basics">
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <FormField label="Name" htmlFor="pl-name" required>
+                                    <Input id="pl-name" value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="Sidebar banner" />
                                 </FormField>
-                            ) : (
-                                <FormField label="Targeting" htmlFor="pl-countries">
-                                    <input id="pl-countries" className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm" value={form.countries} onChange={(e) => set({ countries: e.target.value })} placeholder="Countries, comma separated" />
+                                <FormField label="Placement key" htmlFor="pl-key" required>
+                                    <Select id="pl-key" value={form.key} onChange={(e) => set({ key: e.target.value })} disabled={!!editing}>
+                                        {PLACEMENT_TYPES.map((k) => (
+                                            <option key={k} value={k}>{PLACEMENT_LABELS[k]}</option>
+                                        ))}
+                                    </Select>
+                                </FormField>
+                            </div>
+                            <FormField label="Description" htmlFor="pl-desc">
+                                <Textarea id="pl-desc" rows={2} value={form.description} onChange={(e) => set({ description: e.target.value })} placeholder="Where this slot appears" />
+                            </FormField>
+                        </FormSection>
+                        <FormSection title="Delivery">
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <FormField label="Priority (0–100)" htmlFor="pl-prio">
+                                    <Input id="pl-prio" type="number" min={0} max={100} value={form.priority} onChange={(e) => set({ priority: e.target.value })} />
+                                </FormField>
+                                <FormField label="Max ads per page" htmlFor="pl-maxads">
+                                    <Input id="pl-maxads" type="number" min={0} value={form.maxAds} onChange={(e) => set({ maxAds: e.target.value })} placeholder="Unlimited" />
+                                </FormField>
+                            </div>
+                        </FormSection>
+                        <FormSection title="Frequency">
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <FormField label="Frequency cap type" htmlFor="pl-freqtype">
+                                    <Select id="pl-freqtype" value={form.freqType} onChange={(e) => set({ freqType: e.target.value })}>
+                                        <option value="">No cap</option>
+                                        <option value="PER_SESSION">Per session</option>
+                                        <option value="PER_DAY">Per day</option>
+                                    </Select>
+                                </FormField>
+                                <FormField label="Cap limit" htmlFor="pl-freqlimit">
+                                    <Input id="pl-freqlimit" type="number" min={1} value={form.freqLimit} onChange={(e) => set({ freqLimit: e.target.value })} placeholder="e.g. 3" disabled={!form.freqType} />
+                                </FormField>
+                            </div>
+                        </FormSection>
+                        <FormSection title="Audience">
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <FormField label="Premium handling" htmlFor="pl-premium">
+                                    <Select id="pl-premium" value={form.premiumMode} onChange={(e) => set({ premiumMode: e.target.value })}>
+                                        {PREMIUM_AD_MODES.map((m) => (
+                                            <option key={m} value={m}>{m === "SHOW" ? "Show ads to premium too" : m === "REDUCED" ? "Reduced frequency" : "Hide from premium"}</option>
+                                        ))}
+                                    </Select>
+                                </FormField>
+                                {form.premiumMode === "REDUCED" ? (
+                                    <FormField label="Reduction ratio (0–1)" htmlFor="pl-ratio">
+                                        <Input id="pl-ratio" type="number" min={0} max={1} step={0.05} value={form.reductionRatio} onChange={(e) => set({ reductionRatio: e.target.value })} />
+                                    </FormField>
+                                ) : (
+                                    <FormField label="Targeting" htmlFor="pl-countries">
+                                        <Input id="pl-countries" value={form.countries} onChange={(e) => set({ countries: e.target.value })} placeholder="Countries, comma separated" />
+                                    </FormField>
+                                )}
+                            </div>
+                            {form.premiumMode !== "REDUCED" && (
+                                <FormField label="Devices" htmlFor="pl-devices">
+                                    <Input id="pl-devices" value={form.devices} onChange={(e) => set({ devices: e.target.value })} placeholder="Devices, comma separated" />
                                 </FormField>
                             )}
-                        </div>
-                        {form.premiumMode !== "REDUCED" && (
-                            <FormField label="Devices" htmlFor="pl-devices">
-                                <input id="pl-devices" className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm" value={form.devices} onChange={(e) => set({ devices: e.target.value })} placeholder="Devices, comma separated" />
-                            </FormField>
-                        )}
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <FormField label="Start" htmlFor="pl-start">
-                                <input id="pl-start" type="datetime-local" className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm" value={form.startAt} onChange={(e) => set({ startAt: e.target.value })} />
-                            </FormField>
-                            <FormField label="End" htmlFor="pl-end">
-                                <input id="pl-end" type="datetime-local" className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm" value={form.endAt} onChange={(e) => set({ endAt: e.target.value })} />
-                            </FormField>
-                        </div>
-                        <label className="flex items-center gap-2 text-xs text-foreground">
-                            <input type="checkbox" checked={form.active} onChange={(e) => set({ active: e.target.checked })} className="h-3.5 w-3.5" />
-                            Active (available to the placement engine)
-                        </label>
-                        <label className="flex items-center gap-2 text-xs text-foreground">
-                            <input type="checkbox" checked={form.loggedOutOnly} onChange={(e) => set({ loggedOutOnly: e.target.checked })} className="h-3.5 w-3.5" />
-                            Only show to logged-out visitors
-                        </label>
+                        </FormSection>
+                        <FormSection title="Schedule">
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <FormField label="Start" htmlFor="pl-start">
+                                    <Input id="pl-start" type="datetime-local" value={form.startAt} onChange={(e) => set({ startAt: e.target.value })} />
+                                </FormField>
+                                <FormField label="End" htmlFor="pl-end">
+                                    <Input id="pl-end" type="datetime-local" value={form.endAt} onChange={(e) => set({ endAt: e.target.value })} />
+                                </FormField>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="flex cursor-pointer items-center gap-2 text-xs text-foreground">
+                                    <input type="checkbox" checked={form.active} onChange={(e) => set({ active: e.target.checked })} className="size-4 accent-primary" />
+                                    Active (available to the placement engine)
+                                </label>
+                                <label className="flex cursor-pointer items-center gap-2 text-xs text-foreground">
+                                    <input type="checkbox" checked={form.loggedOutOnly} onChange={(e) => set({ loggedOutOnly: e.target.checked })} className="size-4 accent-primary" />
+                                    Only show to logged-out visitors
+                                </label>
+                            </div>
+                        </FormSection>
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} disabled={busy}>

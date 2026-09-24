@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/dialog";
 import { FormField } from "@/components/ui/form-field";
 import { Select, Textarea } from "@/components/ui/select";
+import { ToggleChip } from "@/components/ui/toggle-chip";
 import { useAdminFetch } from "@/components/growth/admin/useAdminFetch";
 import { adminFetch } from "@/components/growth/admin/session";
 import { RefreshButton } from "@/components/growth/admin/RefreshButton";
@@ -462,15 +463,15 @@ export default function AdminGrowthContentPage() {
                         <DialogDescription>Creates a marketing task, then optionally runs the AI pipeline immediately.</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
-                            <FormField label="Type" htmlFor="ct-type" required>
-                                <Select id="ct-type" value={createForm.type} onChange={(e) => setCreateForm((f) => ({ ...f, type: e.target.value }))}>
-                                    {CONTENT_TYPES.map((t) => (
-                                        <option key={t} value={t}>
-                                            {CONTENT_TYPE_LABELS[t]}
-                                        </option>
-                                    ))}
-                                </Select>
-                            </FormField>
+                        <FormField label="Type" htmlFor="ct-type" required>
+                            <Select id="ct-type" value={createForm.type} onChange={(e) => setCreateForm((f) => ({ ...f, type: e.target.value }))}>
+                                {CONTENT_TYPES.map((t) => (
+                                    <option key={t} value={t}>
+                                        {CONTENT_TYPE_LABELS[t]}
+                                    </option>
+                                ))}
+                            </Select>
+                        </FormField>
                         <FormField label="Topic" htmlFor="ct-topic" required>
                             <Input id="ct-topic" value={createForm.topic} onChange={(e) => setCreateForm((f) => ({ ...f, topic: e.target.value }))} placeholder="e.g. Trend following basics" />
                         </FormField>
@@ -479,31 +480,27 @@ export default function AdminGrowthContentPage() {
                                 {CHANNEL_TYPES.map((c) => {
                                     const on = createChannels.includes(c);
                                     return (
-                                        <button
+                                        <ToggleChip
                                             key={c}
-                                            type="button"
-                                            aria-pressed={on}
+                                            active={on}
                                             onClick={() => setCreateChannels(on ? createChannels.filter((x) => x !== c) : [...createChannels, c])}
-                                            className={`rounded-md border px-2.5 py-1 text-xs font-medium transition ${
-                                                on ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted"
-                                            }`}
                                         >
                                             {CHANNEL_LABELS[c]}
-                                        </button>
+                                        </ToggleChip>
                                     );
                                 })}
                             </div>
                         </FormField>
-                            <FormField label="Campaign" htmlFor="ct-campaign" description="Optional link to a campaign.">
-                                <Select id="ct-campaign" value={createForm.campaignId} onChange={(e) => setCreateForm((f) => ({ ...f, campaignId: e.target.value }))}>
-                                    <option value="">No campaign</option>
-                                    {(campaigns.data || []).map((c) => (
-                                        <option key={c.id} value={c.id}>
-                                            {c.name}
-                                        </option>
-                                    ))}
-                                </Select>
-                            </FormField>
+                        <FormField label="Campaign" htmlFor="ct-campaign" description="Optional link to a campaign.">
+                            <Select id="ct-campaign" value={createForm.campaignId} onChange={(e) => setCreateForm((f) => ({ ...f, campaignId: e.target.value }))}>
+                                <option value="">No campaign</option>
+                                {(campaigns.data || []).map((c) => (
+                                    <option key={c.id} value={c.id}>
+                                        {c.name}
+                                    </option>
+                                ))}
+                            </Select>
+                        </FormField>
                         <FormField label="Tone" htmlFor="ct-tone">
                             <Input id="ct-tone" value={createForm.tone} onChange={(e) => setCreateForm((f) => ({ ...f, tone: e.target.value }))} placeholder="professional" />
                         </FormField>
@@ -512,6 +509,7 @@ export default function AdminGrowthContentPage() {
                                 type="checkbox"
                                 checked={createForm.generateNow}
                                 onChange={(e) => setCreateForm((f) => ({ ...f, generateNow: e.target.checked }))}
+                                className="size-4 accent-primary"
                             />
                             Generate now (run the AI pipeline immediately)
                         </label>

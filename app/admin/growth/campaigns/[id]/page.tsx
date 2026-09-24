@@ -30,6 +30,8 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { FormField } from "@/components/ui/form-field";
+import { Select } from "@/components/ui/select";
+import { ToggleChip } from "@/components/ui/toggle-chip";
 import { useAdminFetch } from "@/components/growth/admin/useAdminFetch";
 import { adminFetch } from "@/components/growth/admin/session";
 import { GrowthStatusBadge } from "@/components/growth/admin/GrowthStatusBadge";
@@ -55,9 +57,6 @@ type RevenuePayload = { entries: RevenueEntry[] };
 type AuditRow = { id?: string; actor: string; action: string; targetType?: string; targetId?: string; detail?: Record<string, unknown>; createdAt: number };
 
 type OfferRow = { id: string; name: string };
-
-const inputCls =
-    "h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50";
 
 export default function AdminCampaignDetailPage() {
     const params = useParams<{ id: string }>();
@@ -515,13 +514,13 @@ export default function AdminCampaignDetailPage() {
                     </DialogHeader>
                     <div className="space-y-4">
                         <FormField label="Content type" htmlFor="gen-type" required>
-                            <select id="gen-type" className={inputCls} value={genForm.type} onChange={(e) => setGenForm((f) => ({ ...f, type: e.target.value }))}>
+                            <Select id="gen-type" value={genForm.type} onChange={(e) => setGenForm((f) => ({ ...f, type: e.target.value }))}>
                                 {CONTENT_TYPES.map((t) => (
                                     <option key={t} value={t}>
                                         {CONTENT_TYPE_LABELS[t]}
                                     </option>
                                 ))}
-                            </select>
+                            </Select>
                         </FormField>
                         <FormField label="Topic" htmlFor="gen-topic" required description="The subject the pipeline researches and writes about.">
                             <Input
@@ -539,19 +538,15 @@ export default function AdminCampaignDetailPage() {
                                 {(campaign.channels || []).map((ch) => {
                                     const on = genChannels.includes(ch);
                                     return (
-                                        <button
+                                        <ToggleChip
                                             key={ch}
-                                            type="button"
-                                            aria-pressed={on}
+                                            active={on}
                                             onClick={() =>
                                                 setGenChannels(on ? genChannels.filter((x) => x !== ch) : [...genChannels, ch])
                                             }
-                                            className={`rounded-md border px-2.5 py-1 text-xs font-medium transition ${
-                                                on ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted"
-                                            }`}
                                         >
                                             {CHANNEL_LABELS[ch as keyof typeof CHANNEL_LABELS] || ch}
-                                        </button>
+                                        </ToggleChip>
                                     );
                                 })}
                             </div>

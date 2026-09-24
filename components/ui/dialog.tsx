@@ -50,7 +50,7 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed inset-x-0 bottom-0 z-50 grid max-h-[92dvh] w-full gap-4 overflow-y-auto rounded-t-lg border border-border bg-popover px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5 text-sm/relaxed text-popover-foreground shadow-lg outline-none sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:max-h-[calc(100dvh-2rem)] sm:max-w-sm sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:pb-5",
+          "fixed inset-x-0 bottom-0 z-50 flex max-h-[92dvh] w-full flex-col gap-4 overflow-y-auto rounded-t-lg border border-border bg-popover px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5 text-sm/relaxed text-popover-foreground shadow-lg outline-none sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:max-h-[calc(100dvh-2rem)] sm:max-w-sm sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:pb-5",
           className
         )}
         {...props}
@@ -103,7 +103,7 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>button]:w-full sm:[&>button]:w-auto",
+        "mt-2 flex flex-col-reverse gap-2 border-t border-border pt-4 sm:flex-row sm:justify-end [&>button]:w-full sm:[&>button]:w-auto",
         className
       )}
       {...props}
@@ -122,7 +122,7 @@ function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn("font-heading text-sm font-medium", className)}
+      className={cn("font-heading text-base font-semibold tracking-tight", className)}
       {...props}
     />
   )

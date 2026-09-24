@@ -25,6 +25,9 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { FormField, FormError } from "@/components/ui/form-field";
+import { FormSection } from "@/components/ui/form-section";
+import { Input } from "@/components/ui/input";
+import { Select, Textarea } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useAdminFetch } from "@/components/growth/admin/useAdminFetch";
 import { adminFetch } from "@/components/growth/admin/session";
@@ -103,8 +106,6 @@ const blankForm: FormState = {
     active: true,
     featured: false,
 };
-
-const inputCls = "h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50";
 
 export default function AdminAffiliatePage() {
     const offers = useAdminFetch<OfferRow[]>("/api/growth/affiliates");
@@ -431,76 +432,86 @@ export default function AdminAffiliatePage() {
                             The disclosure field is required — it is part of the affiliate compliance rules for placements.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                         {err && <FormError>{err}</FormError>}
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <FormField label="Name *" htmlFor="af-name">
-                                <input id="af-name" className={inputCls} value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="5% off hosting" />
+                        <FormSection title="Basics">
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <FormField label="Name" htmlFor="af-name" required>
+                                    <Input id="af-name" value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="5% off hosting" />
+                                </FormField>
+                                <FormField label="Provider" htmlFor="af-provider">
+                                    <Input id="af-provider" value={form.provider} onChange={(e) => set({ provider: e.target.value })} placeholder="Partner name" />
+                                </FormField>
+                            </div>
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <FormField label="Category" htmlFor="af-category">
+                                    <Select id="af-category" value={form.category} onChange={(e) => set({ category: e.target.value })}>
+                                        {AFFILIATE_CATEGORIES.map((c) => (
+                                            <option key={c} value={c}>{AFFILIATE_CATEGORY_LABELS[c]}</option>
+                                        ))}
+                                    </Select>
+                                </FormField>
+                                <FormField label="Placement" htmlFor="af-placement">
+                                    <Select id="af-placement" value={form.placement} onChange={(e) => set({ placement: e.target.value })}>
+                                        <option value="">Automatic</option>
+                                        {PLACEMENT_TYPES.map((p) => (
+                                            <option key={p} value={p}>{PLACEMENT_LABELS[p]}</option>
+                                        ))}
+                                    </Select>
+                                </FormField>
+                            </div>
+                            <FormField label="Description" htmlFor="af-desc">
+                                <Textarea id="af-desc" rows={2} value={form.description} onChange={(e) => set({ description: e.target.value })} placeholder="What the reader gets" />
                             </FormField>
-                            <FormField label="Provider" htmlFor="af-provider">
-                                <input id="af-provider" className={inputCls} value={form.provider} onChange={(e) => set({ provider: e.target.value })} placeholder="Partner name" />
+                        </FormSection>
+                        <FormSection title="Commission">
+                            <div className="grid gap-4 sm:grid-cols-3">
+                                <FormField label="Commission model" htmlFor="af-model">
+                                    <Select id="af-model" value={form.commissionModel} onChange={(e) => set({ commissionModel: e.target.value })}>
+                                        {COMMISSION_MODELS.map((m) => (
+                                            <option key={m} value={m}>{COMMISSION_MODEL_LABELS[m]}</option>
+                                        ))}
+                                    </Select>
+                                </FormField>
+                                <FormField label="Amount" htmlFor="af-amount" required>
+                                    <Input id="af-amount" type="number" min={0} step="0.01" value={form.commissionAmount} onChange={(e) => set({ commissionAmount: e.target.value })} placeholder="10" />
+                                </FormField>
+                                <FormField label="Currency" htmlFor="af-currency">
+                                    <Input id="af-currency" value={form.currency} onChange={(e) => set({ currency: e.target.value.toUpperCase() })} placeholder="USD" />
+                                </FormField>
+                            </div>
+                        </FormSection>
+                        <FormSection title="Links & disclosure">
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <FormField label="Public URL" htmlFor="af-url" required>
+                                    <Input id="af-url" value={form.url} onChange={(e) => set({ url: e.target.value })} placeholder="https://…" />
+                                </FormField>
+                                <FormField label="Tracking URL" htmlFor="af-track">
+                                    <Input id="af-track" value={form.trackingUrl} onChange={(e) => set({ trackingUrl: e.target.value })} placeholder="https://partner/tag?id=…" />
+                                </FormField>
+                            </div>
+                            <FormField label="Disclosure" htmlFor="af-disclosure" required>
+                                <Textarea id="af-disclosure" rows={2} value={form.disclosure} onChange={(e) => set({ disclosure: e.target.value })} placeholder="e.g. If you sign up through this link, we may earn a commission." />
                             </FormField>
+                        </FormSection>
+                        <FormSection title="AI recommendation">
+                            <FormField label="Relevance tags" htmlFor="af-tags">
+                                <Input id="af-tags" value={form.relevanceTags} onChange={(e) => set({ relevanceTags: e.target.value })} placeholder="vps, hosting, low-latency" />
+                            </FormField>
+                            <FormField label="Recommendation rules" htmlFor="af-rules">
+                                <Textarea id="af-rules" rows={2} value={form.recommendationRules} onChange={(e) => set({ recommendationRules: e.target.value })} placeholder="e.g. Only recommend when the reader mentions latency" />
+                            </FormField>
+                        </FormSection>
+                        <div className="flex flex-wrap gap-x-6 gap-y-2">
+                            <label className="flex cursor-pointer items-center gap-2 text-xs text-foreground">
+                                <input type="checkbox" checked={form.active} onChange={(e) => set({ active: e.target.checked })} className="size-4 accent-primary" />
+                                Active
+                            </label>
+                            <label className="flex cursor-pointer items-center gap-2 text-xs text-foreground">
+                                <input type="checkbox" checked={form.featured} onChange={(e) => set({ featured: e.target.checked })} className="size-4 accent-primary" />
+                                Featured (highlighted in affiliate placements)
+                            </label>
                         </div>
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <FormField label="Category" htmlFor="af-category">
-                                <select id="af-category" className={inputCls} value={form.category} onChange={(e) => set({ category: e.target.value })}>
-                                    {AFFILIATE_CATEGORIES.map((c) => (
-                                        <option key={c} value={c}>{AFFILIATE_CATEGORY_LABELS[c]}</option>
-                                    ))}
-                                </select>
-                            </FormField>
-                            <FormField label="Placement" htmlFor="af-placement">
-                                <select id="af-placement" className={inputCls} value={form.placement} onChange={(e) => set({ placement: e.target.value })}>
-                                    <option value="">Automatic</option>
-                                    {PLACEMENT_TYPES.map((p) => (
-                                        <option key={p} value={p}>{PLACEMENT_LABELS[p]}</option>
-                                    ))}
-                                </select>
-                            </FormField>
-                        </div>
-                        <FormField label="Description" htmlFor="af-desc">
-                            <textarea id="af-desc" className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm" rows={2} value={form.description} onChange={(e) => set({ description: e.target.value })} placeholder="What the reader gets" />
-                        </FormField>
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <FormField label="Public URL *" htmlFor="af-url">
-                                <input id="af-url" className={inputCls} value={form.url} onChange={(e) => set({ url: e.target.value })} placeholder="https://…" />
-                            </FormField>
-                            <FormField label="Tracking URL" htmlFor="af-track">
-                                <input id="af-track" className={inputCls} value={form.trackingUrl} onChange={(e) => set({ trackingUrl: e.target.value })} placeholder="https://partner/tag?id=…" />
-                            </FormField>
-                        </div>
-                        <div className="grid gap-4 sm:grid-cols-3">
-                            <FormField label="Commission model" htmlFor="af-model">
-                                <select id="af-model" className={inputCls} value={form.commissionModel} onChange={(e) => set({ commissionModel: e.target.value })}>
-                                    {COMMISSION_MODELS.map((m) => (
-                                        <option key={m} value={m}>{COMMISSION_MODEL_LABELS[m]}</option>
-                                    ))}
-                                </select>
-                            </FormField>
-                            <FormField label="Amount *" htmlFor="af-amount">
-                                <input id="af-amount" type="number" min={0} step="0.01" className={inputCls} value={form.commissionAmount} onChange={(e) => set({ commissionAmount: e.target.value })} placeholder="10" />
-                            </FormField>
-                            <FormField label="Currency" htmlFor="af-currency">
-                                <input id="af-currency" className={inputCls} value={form.currency} onChange={(e) => set({ currency: e.target.value.toUpperCase() })} placeholder="USD" />
-                            </FormField>
-                        </div>
-                        <FormField label="Disclosure *" htmlFor="af-disclosure">
-                            <textarea id="af-disclosure" className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm" rows={2} value={form.disclosure} onChange={(e) => set({ disclosure: e.target.value })} placeholder="e.g. If you sign up through this link, we may earn a commission." />
-                        </FormField>
-                        <FormField label="Relevance tags" htmlFor="af-tags">
-                            <input id="af-tags" className={inputCls} value={form.relevanceTags} onChange={(e) => set({ relevanceTags: e.target.value })} placeholder="vps, hosting, low-latency" />
-                        </FormField>
-                        <FormField label="Recommendation rules (AI)" htmlFor="af-rules">
-                            <textarea id="af-rules" className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm" rows={2} value={form.recommendationRules} onChange={(e) => set({ recommendationRules: e.target.value })} placeholder="e.g. Only recommend when the reader mentions latency" />
-                        </FormField>
-                        <label className="flex items-center gap-2 text-xs text-foreground">
-                            <input type="checkbox" checked={form.active} onChange={(e) => set({ active: e.target.checked })} className="h-3.5 w-3.5" />
-                            Active
-                        </label>
-                        <label className="flex items-center gap-2 text-xs text-foreground">
-                            <input type="checkbox" checked={form.featured} onChange={(e) => set({ featured: e.target.checked })} className="h-3.5 w-3.5" />
-                            Featured (highlighted in affiliate placements)
-                        </label>
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} disabled={busy}>

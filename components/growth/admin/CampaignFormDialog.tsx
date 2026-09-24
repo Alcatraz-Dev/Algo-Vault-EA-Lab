@@ -12,6 +12,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
+import { FormSection } from "@/components/ui/form-section";
+import { Select } from "@/components/ui/select";
+import { ToggleChip } from "@/components/ui/toggle-chip";
 import { useAdminFetch } from "@/components/growth/admin/useAdminFetch";
 import { fromInputDateTime, toInputDateTime } from "@/components/growth/admin/format";
 import {
@@ -55,9 +58,6 @@ export type CampaignFormRow = {
 };
 
 type OfferRow = { id: string; name: string; active?: boolean };
-
-const inputCls =
-    "h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50";
 
 export function CampaignFormDialog({
     open,
@@ -146,191 +146,188 @@ export function CampaignFormDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="grid gap-4">
-                    <FormField label="Name" htmlFor="campaign-name" required error={errors.name}>
-                        <Input
-                            id="campaign-name"
-                            value={values.name}
-                            onChange={(e) => set("name", e.target.value)}
-                            placeholder="e.g. Q3 Awareness push"
-                            aria-invalid={Boolean(errors.name)}
-                        />
-                    </FormField>
-
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <FormField label="Objective" htmlFor="campaign-objective" required>
-                            <select
-                                id="campaign-objective"
-                                className={inputCls}
-                                value={values.objective}
-                                onChange={(e) => set("objective", e.target.value)}
-                            >
-                                {CAMPAIGN_OBJECTIVES.map((o) => (
-                                    <option key={o} value={o}>
-                                        {CAMPAIGN_OBJECTIVE_LABELS[o]}
-                                    </option>
-                                ))}
-                            </select>
-                        </FormField>
-                        <FormField label="Status" htmlFor="campaign-status">
-                            <select
-                                id="campaign-status"
-                                className={inputCls}
-                                value={values.status}
-                                onChange={(e) => set("status", e.target.value)}
-                            >
-                                {CAMPAIGN_STATUSES.map((s) => (
-                                    <option key={s} value={s}>
-                                        {s}
-                                    </option>
-                                ))}
-                            </select>
-                        </FormField>
-                    </div>
-
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <FormField label="Start" htmlFor="campaign-start" description="Optional target start time." error={errors.startDate}>
+                <div className="space-y-5">
+                    <FormSection title="Basics">
+                        <FormField label="Name" htmlFor="campaign-name" required error={errors.name}>
                             <Input
-                                id="campaign-start"
-                                type="datetime-local"
-                                value={toInputDateTime(values.startDate)}
-                                onChange={(e) => set("startDate", fromInputDateTime(e.target.value))}
+                                id="campaign-name"
+                                value={values.name}
+                                onChange={(e) => set("name", e.target.value)}
+                                placeholder="e.g. Q3 Awareness push"
+                                aria-invalid={Boolean(errors.name)}
                             />
                         </FormField>
-                        <FormField label="End" htmlFor="campaign-end" error={errors.endDate}>
-                            <Input
-                                id="campaign-end"
-                                type="datetime-local"
-                                value={toInputDateTime(values.endDate)}
-                                onChange={(e) => set("endDate", fromInputDateTime(e.target.value))}
-                            />
-                        </FormField>
-                    </div>
 
-                    <FormField
-                        label="Channels"
-                        required
-                        description="Campaign content distributes across these channels."
-                        error={errors.channels}
-                    >
-                        <div className="flex flex-wrap gap-1.5">
-                            {CHANNEL_TYPES.map((c) => {
-                                const on = values.channels.includes(c);
-                                return (
-                                    <button
-                                        key={c}
-                                        type="button"
-                                        aria-pressed={on}
-                                        onClick={() =>
-                                            set("channels", on ? values.channels.filter((x) => x !== c) : [...values.channels, c])
-                                        }
-                                        className={`rounded-md border px-2.5 py-1 text-xs font-medium transition ${
-                                            on
-                                                ? "border-primary bg-primary/10 text-primary"
-                                                : "border-border text-muted-foreground hover:bg-muted"
-                                        }`}
-                                    >
-                                        {CHANNEL_LABELS[c]}
-                                    </button>
-                                );
-                            })}
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <FormField label="Objective" htmlFor="campaign-objective" required>
+                                <Select
+                                    id="campaign-objective"
+                                    value={values.objective}
+                                    onChange={(e) => set("objective", e.target.value)}
+                                >
+                                    {CAMPAIGN_OBJECTIVES.map((o) => (
+                                        <option key={o} value={o}>
+                                            {CAMPAIGN_OBJECTIVE_LABELS[o]}
+                                        </option>
+                                    ))}
+                                </Select>
+                            </FormField>
+                            <FormField label="Status" htmlFor="campaign-status">
+                                <Select
+                                    id="campaign-status"
+                                    value={values.status}
+                                    onChange={(e) => set("status", e.target.value)}
+                                >
+                                    {CAMPAIGN_STATUSES.map((s) => (
+                                        <option key={s} value={s}>
+                                            {s}
+                                        </option>
+                                    ))}
+                                </Select>
+                            </FormField>
                         </div>
-                    </FormField>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <FormField label="Target countries" htmlFor="campaign-countries" description="Comma-separated ISO codes, e.g. US, GB.">
-                            <Input
-                                id="campaign-countries"
-                                value={values.audienceCountries}
-                                onChange={(e) => set("audienceCountries", e.target.value)}
-                                placeholder="US, GB, DE"
-                            />
-                        </FormField>
-                        <FormField label="Content tone" htmlFor="campaign-tone">
-                            <Input
-                                id="campaign-tone"
-                                value={values.tone}
-                                onChange={(e) => set("tone", e.target.value)}
-                                placeholder="professional, factual"
-                            />
-                        </FormField>
-                    </div>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <FormField label="Start" htmlFor="campaign-start" description="Optional target start time." error={errors.startDate}>
+                                <Input
+                                    id="campaign-start"
+                                    type="datetime-local"
+                                    value={toInputDateTime(values.startDate)}
+                                    onChange={(e) => set("startDate", fromInputDateTime(e.target.value))}
+                                />
+                            </FormField>
+                            <FormField label="End" htmlFor="campaign-end" error={errors.endDate}>
+                                <Input
+                                    id="campaign-end"
+                                    type="datetime-local"
+                                    value={toInputDateTime(values.endDate)}
+                                    onChange={(e) => set("endDate", fromInputDateTime(e.target.value))}
+                                />
+                            </FormField>
+                        </div>
+                    </FormSection>
 
-                    <FormField label="Content topics" htmlFor="campaign-topics" description="Comma-separated topics the AI content pipeline should cover.">
-                        <Input
-                            id="campaign-topics"
-                            value={values.contentTopics}
-                            onChange={(e) => set("contentTopics", e.target.value)}
-                            placeholder="trading psychology, risk management"
-                        />
-                    </FormField>
-
-                    <FormField
-                        label="Affiliate offers"
-                        description={
-                            <>
-                                Offers surfaced for this campaign. AI selects recommendations by relevance first — never by commission.{" "}
-                                {offers.loading ? "Loading offers…" : ""}
-                            </>
-                        }
-                    >
-                        {activeOffers.length === 0 ? (
-                            <p className="rounded-md border border-dashed border-border px-3 py-2 text-xs text-muted-foreground">
-                                No active affiliate offers yet — add them from <a className="underline" href="/admin/monetization/affiliate">Affiliate</a>.
-                            </p>
-                        ) : (
-                            <div className="space-y-1.5">
-                                {activeOffers.map((o) => {
-                                    const on = values.affiliateOfferIds.includes(o.id);
+                    <FormSection title="Distribution">
+                        <FormField
+                            label="Channels"
+                            required
+                            description="Campaign content distributes across these channels."
+                            error={errors.channels}
+                        >
+                            <div className="flex flex-wrap gap-1.5">
+                                {CHANNEL_TYPES.map((c) => {
+                                    const on = values.channels.includes(c);
                                     return (
-                                        <label
-                                            key={o.id}
-                                            className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-xs hover:bg-muted/40"
+                                        <ToggleChip
+                                            key={c}
+                                            active={on}
+                                            onClick={() =>
+                                                set("channels", on ? values.channels.filter((x) => x !== c) : [...values.channels, c])
+                                            }
                                         >
-                                            <input
-                                                type="checkbox"
-                                                checked={on}
-                                                onChange={(e) =>
-                                                    set(
-                                                        "affiliateOfferIds",
-                                                        e.target.checked
-                                                            ? [...values.affiliateOfferIds, o.id]
-                                                            : values.affiliateOfferIds.filter((id) => id !== o.id)
-                                                    )
-                                                }
-                                            />
-                                            <span className="font-medium text-foreground">{o.name}</span>
-                                        </label>
+                                            {CHANNEL_LABELS[c]}
+                                        </ToggleChip>
                                     );
                                 })}
                             </div>
-                        )}
-                    </FormField>
+                        </FormField>
 
-                    <FormField label="Monetization placements" description="Where ad placements should be considered for this campaign.">
-                        <div className="flex flex-wrap gap-1.5">
-                            {PLACEMENT_TYPES.map((p) => {
-                                const on = values.placements.includes(p);
-                                return (
-                                    <button
-                                        key={p}
-                                        type="button"
-                                        aria-pressed={on}
-                                        onClick={() =>
-                                            set("placements", on ? values.placements.filter((x) => x !== p) : [...values.placements, p])
-                                        }
-                                        className={`rounded-md border px-2.5 py-1 text-xs font-medium transition ${
-                                            on
-                                                ? "border-primary bg-primary/10 text-primary"
-                                                : "border-border text-muted-foreground hover:bg-muted"
-                                        }`}
-                                    >
-                                        {PLACEMENT_LABELS[p]}
-                                    </button>
-                                );
-                            })}
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <FormField label="Target countries" htmlFor="campaign-countries" description="Comma-separated ISO codes, e.g. US, GB.">
+                                <Input
+                                    id="campaign-countries"
+                                    value={values.audienceCountries}
+                                    onChange={(e) => set("audienceCountries", e.target.value)}
+                                    placeholder="US, GB, DE"
+                                />
+                            </FormField>
+                            <FormField label="Content tone" htmlFor="campaign-tone">
+                                <Input
+                                    id="campaign-tone"
+                                    value={values.tone}
+                                    onChange={(e) => set("tone", e.target.value)}
+                                    placeholder="professional, factual"
+                                />
+                            </FormField>
                         </div>
-                    </FormField>
+
+                        <FormField label="Content topics" htmlFor="campaign-topics" description="Comma-separated topics the AI content pipeline should cover.">
+                            <Input
+                                id="campaign-topics"
+                                value={values.contentTopics}
+                                onChange={(e) => set("contentTopics", e.target.value)}
+                                placeholder="trading psychology, risk management"
+                            />
+                        </FormField>
+                    </FormSection>
+
+                    <FormSection title="Monetization">
+                        <FormField
+                            label="Affiliate offers"
+                            description={
+                                <>
+                                    Offers surfaced for this campaign. AI selects recommendations by relevance first — never by commission.{" "}
+                                    {offers.loading ? "Loading offers…" : ""}
+                                </>
+                            }
+                        >
+                            {activeOffers.length === 0 ? (
+                                <p className="rounded-md border border-dashed border-border px-3 py-2 text-xs text-muted-foreground">
+                                    No active affiliate offers yet — add them from <a className="underline" href="/admin/monetization/affiliate">Affiliate</a>.
+                                </p>
+                            ) : (
+                                <div className="space-y-1.5">
+                                    {activeOffers.map((o) => {
+                                        const on = values.affiliateOfferIds.includes(o.id);
+                                        return (
+                                            <label
+                                                key={o.id}
+                                                className={`flex cursor-pointer items-center gap-2.5 rounded-md border px-3 py-2 text-xs transition-colors ${
+                                                    on
+                                                        ? "border-primary/40 bg-primary/5"
+                                                        : "border-border hover:bg-muted/40"
+                                                }`}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={on}
+                                                    className="size-4 accent-primary"
+                                                    onChange={(e) =>
+                                                        set(
+                                                            "affiliateOfferIds",
+                                                            e.target.checked
+                                                                ? [...values.affiliateOfferIds, o.id]
+                                                                : values.affiliateOfferIds.filter((id) => id !== o.id)
+                                                        )
+                                                    }
+                                                />
+                                                <span className="font-medium text-foreground">{o.name}</span>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </FormField>
+
+                        <FormField label="Monetization placements" description="Where ad placements should be considered for this campaign.">
+                            <div className="flex flex-wrap gap-1.5">
+                                {PLACEMENT_TYPES.map((p) => {
+                                    const on = values.placements.includes(p);
+                                    return (
+                                        <ToggleChip
+                                            key={p}
+                                            active={on}
+                                            onClick={() =>
+                                                set("placements", on ? values.placements.filter((x) => x !== p) : [...values.placements, p])
+                                            }
+                                        >
+                                            {PLACEMENT_LABELS[p]}
+                                        </ToggleChip>
+                                    );
+                                })}
+                            </div>
+                        </FormField>
+                    </FormSection>
                 </div>
 
                 <DialogFooter>
