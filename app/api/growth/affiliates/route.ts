@@ -1,16 +1,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
+import { adminDatabase } from "@/lib/firebase-admin";
 import { GROWTH_COLLECTIONS } from "@/lib/growth/constants";
 import { AffiliateOffer } from "@/lib/growth/types";
+import { requireGrowthAdmin } from "@/lib/growth/server-auth";
 
 export async function getAffiliateOffers(adminToken: string) {
-    try {
-        const decoded = await adminAuth.verifyIdToken(adminToken);
-        if (!decoded.admin && decoded.role !== "admin") return { error: "Unauthorized" };
-    } catch {
-        return { error: "Unauthorized" };
-    }
+    const admin = await requireGrowthAdmin(adminToken);
+    if (!admin) return { error: "Unauthorized" };
 
     const snap = await adminDatabase.ref(GROWTH_COLLECTIONS.affiliateOffers).get();
     if (!snap.exists()) return [];

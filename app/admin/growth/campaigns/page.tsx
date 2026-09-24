@@ -27,7 +27,6 @@ import { NoticeBanner } from "@/components/growth/admin/NoticeBanner";
 import {
     CampaignFormDialog,
     type CampaignFormValues,
-    type CampaignFormRow,
 } from "@/components/growth/admin/CampaignFormDialog";
 import { fmtDate, fmtCurrency } from "@/components/growth/admin/format";
 import { CAMPAIGN_OBJECTIVE_LABELS, CAMPAIGN_STATUSES, CHANNEL_LABELS } from "@/lib/growth/constants";
@@ -41,6 +40,8 @@ type Campaign = {
     channels?: string[];
     startDate?: number;
     endDate?: number;
+    startAt?: number;
+    endAt?: number;
     createdAt: number;
     campaignId?: string;
     budget?: number;
@@ -49,13 +50,6 @@ type Campaign = {
     clicks?: number;
     conversions?: number;
     revenue?: number;
-};
-
-type CampaignPerformance = {
-    impressions: number;
-    clicks: number;
-    conversions: number;
-    revenue: number;
 };
 
 export default function AdminCampaignsPage() {
@@ -268,7 +262,7 @@ export default function AdminCampaignsPage() {
                 />
             ) : (
                 <div className="overflow-hidden rounded-lg border border-border">
-                    <Table>
+                    <Table className="min-w-[880px]">
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Name</TableHead>
@@ -302,7 +296,7 @@ export default function AdminCampaignsPage() {
                                     <TableCell className="max-w-48">
                                         <div className="flex flex-wrap gap-1">
                                             {(c.channels || []).map((ch) => (
-                                                <span key={ch} className="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                                                <span key={ch} className="rounded border border-border px-1.5 py-0.5 text-xs text-muted-foreground">
                                                     {CHANNEL_LABELS[ch as keyof typeof CHANNEL_LABELS] || ch}
                                                 </span>
                                             ))}
@@ -337,8 +331,8 @@ export default function AdminCampaignsPage() {
                                             <span className="text-xs">Conversions: {c.conversions ? String(c.conversions) : "—"}</span>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-muted-foreground">{fmtDate(c.startDate || (c as any).startAt)}</TableCell>
-                                    <TableCell className="text-muted-foreground">{fmtDate(c.endDate || (c as any).endAt)}</TableCell>
+                                    <TableCell className="text-muted-foreground">{fmtDate(c.startDate || c.startAt)}</TableCell>
+                                    <TableCell className="text-muted-foreground">{fmtDate(c.endDate || c.endAt)}</TableCell>
                                     <TableCell>
                                         <div className="flex items-center justify-end gap-1">
                                             {c.status === "ACTIVE" && (

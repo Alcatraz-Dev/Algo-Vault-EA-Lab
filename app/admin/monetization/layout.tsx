@@ -38,7 +38,7 @@ export default function AdminMonetizationLayout({
     return (
         <AdminShell title="Monetization" subtitle="Ad networks, placements, ads, affiliate offers and revenue">
             <nav
-                className="mb-6 flex flex-wrap gap-2"
+                className="mb-6 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 role="tablist"
                 aria-label="Monetization sections"
             >
@@ -51,7 +51,7 @@ export default function AdminMonetizationLayout({
                             href={s.href}
                             aria-current={active ? "page" : undefined}
                             className={cn(
-                                "flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition",
+                                "flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition",
                                 active
                                     ? "border-border bg-muted/60 text-foreground"
                                     : "border-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground"

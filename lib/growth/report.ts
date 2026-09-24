@@ -275,9 +275,11 @@ export async function generateGrowthReport(input: GenerateReportInput): Promise<
 
 export async function listGrowthReports(limit = 60): Promise<GrowthReport[]> {
     const { adminDatabase } = await db();
-    const snap = await adminDatabase.ref(COLLECTION_PATHS.reports).orderByChild("createdAt").limitToLast(limit).get();
+    const snap = await adminDatabase.ref(COLLECTION_PATHS.reports).get();
     const data = (snap.val() || {}) as Record<string, GrowthReport>;
     return Object.values(data)
         .filter((r) => !r.id?.startsWith("_"))
+        .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
+        .slice(0, limit)
         .sort((a, b) => (b.periodEnd ?? 0) - (a.periodEnd ?? 0));
 }

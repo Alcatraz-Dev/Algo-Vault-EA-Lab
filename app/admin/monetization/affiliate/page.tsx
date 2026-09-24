@@ -351,7 +351,7 @@ export default function AdminAffiliatePage() {
                 />
             ) : (
                 <div className="overflow-x-auto rounded-lg border border-border">
-                    <Table>
+                    <Table className="min-w-[720px]">
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Offer</TableHead>
@@ -370,13 +370,13 @@ export default function AdminAffiliatePage() {
                                             <p className="font-medium text-foreground">{o.name}</p>
                                             {o.featured && <Star size={12} className="text-warning" aria-label="Featured" />}
                                         </div>
-                                        <p className="text-[11px] text-muted-foreground">
+                                        <p className="text-xs text-muted-foreground">
                                             {AFFILIATE_CATEGORY_LABELS[o.category as keyof typeof AFFILIATE_CATEGORY_LABELS] || o.category}
                                             {o.provider ? ` · ${o.provider}` : ""}
                                         </p>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant="outline" className="text-[10px] normal-case">
+                                        <Badge variant="outline" className="text-xs normal-case">
                                             {COMMISSION_MODEL_LABELS[o.commissionModel as keyof typeof COMMISSION_MODEL_LABELS] || o.commissionModel}
                                         </Badge>
                                         <p className="mt-1 text-xs text-foreground">{fmtCurrency(o.commissionAmount, o.currency || "USD")}</p>
@@ -424,7 +424,7 @@ export default function AdminAffiliatePage() {
 
             {/* Create / edit dialog */}
             <Dialog open={dialogOpen} onOpenChange={(o) => { if (!o && !busy) setDialogOpen(false); }}>
-                <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto">
+                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
                     <DialogHeader>
                         <DialogTitle>{editing ? `Edit ${editing.name}` : "New affiliate offer"}</DialogTitle>
                         <DialogDescription>

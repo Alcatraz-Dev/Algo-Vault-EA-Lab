@@ -108,13 +108,11 @@ function QuickActionButton({
 }) {
     return (
         <Button render={<Link href={href} />} variant="outline" className="h-auto flex-col items-start gap-2 p-4">
-            <Link href={href}>
-                <Icon size={18} className="text-primary" />
-                <div className="flex flex-col items-start gap-0.5">
-                    <span className="font-semibold">{label}</span>
-                    <span className="text-xs text-muted-foreground">{description}</span>
-                </div>
-            </Link>
+            <Icon size={18} className="text-primary" />
+            <div className="flex flex-col items-start gap-0.5">
+                <span className="font-semibold">{label}</span>
+                <span className="text-xs text-muted-foreground">{description}</span>
+            </div>
         </Button>
     );
 }
@@ -504,7 +502,7 @@ export default function AdminGrowthOverviewPage() {
                                         <li key={e.id || i} className="flex items-center justify-between gap-3 border-b border-border/50 pb-2 text-xs last:border-0 last:pb-0">
                                             <span className="inline-flex items-center gap-2">
                                                 <GrowthStatusBadge kind="revenue" value={e.type} />
-                                                {e.estimated && <span className="rounded bg-warning-muted px-1.5 py-0.5 text-[10px] text-warning-foreground">estimate</span>}
+                                                {e.estimated && <span className="rounded bg-warning-muted px-1.5 py-0.5 text-xs text-warning-foreground">estimate</span>}
                                             </span>
                                             <span className="truncate text-muted-foreground">
                                                 {e.type === "AFFILIATE" && e.offerId ? `offer ${e.offerId.slice(-6)}` : e.type === "SPONSORED" ? "sponsored contract" : e.type}

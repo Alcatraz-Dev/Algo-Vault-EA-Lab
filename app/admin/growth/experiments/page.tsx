@@ -31,7 +31,7 @@ import { adminFetch } from "@/components/growth/admin/session";
 import { RefreshButton } from "@/components/growth/admin/RefreshButton";
 import { GrowthStatusBadge } from "@/components/growth/admin/GrowthStatusBadge";
 import { NoticeBanner } from "@/components/growth/admin/NoticeBanner";
-import { fmtDate, fmtNumber, fmtRelative } from "@/components/growth/admin/format";
+import { fmtDate, fmtNumber } from "@/components/growth/admin/format";
 import { EXPERIMENT_STATUSES, EXPERIMENT_MIN_SAMPLE_SIZE, EXPERIMENT_MIN_UPLIFT_PCT } from "@/lib/growth/constants";
 
 type ExperimentRow = {
@@ -220,7 +220,7 @@ export default function AdminGrowthExperimentsPage() {
                     </div>
 
                     <div className="overflow-hidden rounded-lg border border-border">
-                        <Table>
+                        <Table className="min-w-[860px]">
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Name</TableHead>
@@ -243,7 +243,7 @@ export default function AdminGrowthExperimentsPage() {
                                                 {e.name}
                                             </span>
                                             <br />
-                                            {e.hypothesis && <span className="max-w-md truncate text-[11px] text-muted-foreground">{e.hypothesis}</span>}
+                                            {e.hypothesis && <span className="max-w-md truncate text-xs text-muted-foreground">{e.hypothesis}</span>}
                                         </TableCell>
                                         <TableCell className="text-muted-foreground">{e.metric || "—"}</TableCell>
                                         <TableCell>
@@ -411,7 +411,7 @@ function ExperimentDetailDialog({
 
     return (
         <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-            <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto">
+            <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
                 <DialogHeader>
                     <DialogTitle>{experiment.name}</DialogTitle>
                     <DialogDescription>{experiment.hypothesis}</DialogDescription>
@@ -427,19 +427,19 @@ function ExperimentDetailDialog({
 
                     <div className="grid grid-cols-3 gap-3">
                         <div className="rounded border border-border bg-muted/30 p-2 text-center">
-                            <p className="text-[10px] text-muted-foreground">Total impressions</p>
+                            <p className="text-xs text-muted-foreground">Total impressions</p>
                             <p className="text-lg font-semibold text-foreground">
                                 {fmtNumber((experiment.results?.impressionsA || 0) + (experiment.results?.impressionsB || 0))}
                             </p>
                         </div>
                         <div className="rounded border border-border bg-muted/30 p-2 text-center">
-                            <p className="text-[10px] text-muted-foreground">Total conversions</p>
+                            <p className="text-xs text-muted-foreground">Total conversions</p>
                             <p className="text-lg font-semibold text-foreground">
                                 {fmtNumber((experiment.results?.conversionsA || 0) + (experiment.results?.conversionsB || 0))}
                             </p>
                         </div>
                         <div className="rounded border border-border bg-muted/30 p-2 text-center">
-                            <p className="text-[10px] text-muted-foreground">Winner</p>
+                            <p className="text-xs text-muted-foreground">Winner</p>
                             <p className="text-lg font-semibold text-foreground">{winnerLabel}</p>
                         </div>
                     </div>

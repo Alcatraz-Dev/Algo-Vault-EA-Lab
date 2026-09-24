@@ -45,8 +45,8 @@ export async function adminFetch<T>(path: string, init?: RequestInit): Promise<T
         throw new Error("You don't have access to this data.");
     }
     if (!res.ok) {
-        const body = (await res.json().catch(() => null)) as { error?: string; message?: string } | null;
-        throw new Error(body?.error || body?.message || `Request failed (${res.status}).`);
+        const body = (await res.json().catch(() => null)) as { error?: string; message?: string; reason?: string } | null;
+        throw new Error(body?.error || body?.message || body?.reason || `Request failed (${res.status}).`);
     }
     return res.json() as Promise<T>;
 }

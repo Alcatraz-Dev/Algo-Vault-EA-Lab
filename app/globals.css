@@ -658,6 +658,39 @@ body {
   }
 }
 
+/* ── Dialog / bottom-sheet motion (Base UI data attributes) ── */
+[data-slot="dialog-content"] {
+  transition:
+    opacity 160ms ease,
+    translate 240ms cubic-bezier(0.32, 0.72, 0, 1),
+    scale 200ms ease;
+}
+[data-slot="dialog-content"][data-starting-style],
+[data-slot="dialog-content"][data-ending-style] {
+  opacity: 0;
+}
+@media (max-width: 639px) {
+  /* Mobile: full-width bottom sheet slides up / down */
+  [data-slot="dialog-content"][data-starting-style],
+  [data-slot="dialog-content"][data-ending-style] {
+    translate: 0 100%;
+  }
+}
+@media (min-width: 640px) {
+  /* sm+: centered modal scales in from 97% */
+  [data-slot="dialog-content"][data-starting-style],
+  [data-slot="dialog-content"][data-ending-style] {
+    scale: 0.97;
+  }
+}
+[data-slot="dialog-overlay"] {
+  transition: opacity 160ms ease;
+}
+[data-slot="dialog-overlay"][data-starting-style],
+[data-slot="dialog-overlay"][data-ending-style] {
+  opacity: 0;
+}
+
 /* ── Accessibility & Motion Control ── */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {

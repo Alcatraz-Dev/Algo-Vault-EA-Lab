@@ -151,7 +151,7 @@ export default function AdminRevenuePage() {
                         />
                     ) : (
                         <div className="overflow-x-auto rounded-lg border border-border">
-                            <Table>
+                            <Table className="min-w-[680px]">
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Type</TableHead>
@@ -170,7 +170,7 @@ export default function AdminRevenuePage() {
                                             <TableCell className="font-semibold text-foreground">
                                                 {fmtCurrency(e.amount, e.currency || "USD")}
                                                 {e.estimated && (
-                                                    <span className="ml-2 rounded bg-warning-muted px-1.5 py-0.5 align-middle text-[10px] font-normal text-warning-foreground">estimate</span>
+                                                    <span className="ml-2 rounded bg-warning-muted px-1.5 py-0.5 align-middle text-xs font-normal text-warning-foreground">estimate</span>
                                                 )}
                                             </TableCell>
                                             <TableCell className="text-muted-foreground">{fmtDateTime(e.recordedAt)}</TableCell>

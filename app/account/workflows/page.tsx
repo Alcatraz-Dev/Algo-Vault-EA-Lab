@@ -44,7 +44,7 @@ function CreateWorkflowDialog({ open, onClose, onCreate, creating }: CreateDialo
   const [desc, setDesc] = useState("");
   return (
     <Dialog open={open} onOpenChange={v => { if (!v) onClose(); }}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2"><GitBranch size={18} className="text-blue-500" /> New Workflow</DialogTitle>
           <DialogDescription className="text-xs">Give your workflow a name to get started. You can edit details in the Studio.</DialogDescription>

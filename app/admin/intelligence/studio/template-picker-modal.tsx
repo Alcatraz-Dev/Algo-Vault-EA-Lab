@@ -48,7 +48,7 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] sm:max-w-2xl md:max-w-4xl lg:max-w-6xl h-[92vh] max-h-[850px] flex flex-col p-0 overflow-hidden rounded-2xl">
+      <DialogContent className="w-full h-[92vh] max-h-[850px] flex flex-col p-0 overflow-hidden rounded-2xl sm:w-[95vw] sm:max-w-2xl md:max-w-4xl lg:max-w-6xl">
         {/* Header */}
         <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4 border-b border-border shrink-0">
           <div className="flex items-center justify-between">

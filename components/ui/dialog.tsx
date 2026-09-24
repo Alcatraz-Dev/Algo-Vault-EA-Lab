@@ -30,10 +30,7 @@ function DialogOverlay({
   return (
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
-      className={cn(
-        "fixed inset-0 isolate z-50 bg-foreground/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
-        className
-      )}
+      className={cn("fixed inset-0 isolate z-50 bg-foreground/10 supports-backdrop-filter:backdrop-blur-xs", className)}
       {...props}
     />
   )
@@ -53,11 +50,15 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg border border-border bg-popover p-5 text-sm/relaxed text-popover-foreground shadow-lg duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "fixed inset-x-0 bottom-0 z-50 grid max-h-[92dvh] w-full gap-4 overflow-y-auto rounded-t-lg border border-border bg-popover px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5 text-sm/relaxed text-popover-foreground shadow-lg outline-none sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:max-h-[calc(100dvh-2rem)] sm:max-w-sm sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:pb-5",
           className
         )}
         {...props}
       >
+        <span
+          aria-hidden
+          className="pointer-events-none mx-auto mb-1 block h-1 w-9 shrink-0 rounded-full bg-foreground/15 sm:hidden"
+        />
         {children}
         {showCloseButton && (
           <DialogPrimitive.Close
@@ -102,7 +103,7 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
+        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>button]:w-full sm:[&>button]:w-auto",
         className
       )}
       {...props}

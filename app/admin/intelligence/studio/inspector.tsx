@@ -93,6 +93,25 @@ export function ConfigField({ field, value, onChange }: ConfigFieldProps) {
       />
     );
   }
+  if (field.type === "json") {
+    const display = typeof value === "string"
+      ? value
+      : (() => { try { return JSON.stringify(value ?? {}, null, 2); } catch { return String(value ?? ""); } })();
+    return (
+      <textarea
+        className="w-full text-xs rounded-lg border border-border bg-background font-mono px-2.5 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-[72px] resize-y placeholder:text-muted-foreground/60"
+        value={display}
+        placeholder={field.placeholder || '{ "key": "value" }'}
+        spellCheck={false}
+        onChange={(e) => {
+          const raw = e.target.value;
+          const trimmed = raw.trim();
+          if (!trimmed) { onChange(""); return; }
+          try { onChange(JSON.parse(trimmed)); } catch { onChange(raw); }
+        }}
+      />
+    );
+  }
   return (
     <Input
       className="h-8 text-xs bg-background border-border"

@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
+import { adminDatabase } from "@/lib/firebase-admin";
 import { GROWTH_COLLECTIONS, EXPERIMENT_MIN_SAMPLE_SIZE, EXPERIMENT_MIN_UPLIFT_PCT } from "@/lib/growth/constants";
 import { Experiment, GrowthEvent } from "@/lib/growth/types";
+import { requireGrowthAdmin } from "@/lib/growth/server-auth";
 
 export async function getExperiments(adminToken: string) {
-    try {
-        const decoded = await adminAuth.verifyIdToken(adminToken);
-        if (!decoded.admin && decoded.role !== "admin") return { error: "Unauthorized" };
-    } catch {
-        return { error: "Unauthorized" };
-    }
+    const admin = await requireGrowthAdmin(adminToken);
+    if (!admin) return { error: "Unauthorized" };
 
     const [expSnap, eventsSnap] = await Promise.all([
         adminDatabase.ref(GROWTH_COLLECTIONS.experiments).get(),

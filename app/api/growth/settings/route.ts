@@ -1,17 +1,14 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
+import { adminDatabase } from "@/lib/firebase-admin";
 import { GROWTH_COLLECTIONS } from "@/lib/growth/constants";
 import { MonetizationSettings } from "@/lib/growth/types";
 import { deepClean } from "@/lib/growth/database";
+import { requireGrowthAdmin } from "@/lib/growth/server-auth";
 
 export async function getSettings(adminToken: string) {
-    try {
-        const decoded = await adminAuth.verifyIdToken(adminToken);
-        if (!decoded.admin && decoded.role !== "admin") return { error: "Unauthorized" };
-    } catch {
-        return { error: "Unauthorized" };
-    }
+    const admin = await requireGrowthAdmin(adminToken);
+    if (!admin) return { error: "Unauthorized" };
 
     const snap = await adminDatabase.ref(GROWTH_COLLECTIONS.settings).get();
     if (!snap.exists()) return null;
@@ -32,13 +29,8 @@ export async function POST(request: NextRequest) {
     const token = header.startsWith("Bearer ") ? header.slice(7) : "";
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    let decoded: { uid: string; admin?: boolean; role?: string } | null = null;
-    try {
-        decoded = await adminAuth.verifyIdToken(token);
-        if (!decoded.admin && decoded.role !== "admin") return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    } catch {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
+    const admin = await requireGrowthAdmin(request);
+    if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
 
     let data: Partial<MonetizationSettings>;
     try {
@@ -55,7 +47,7 @@ export async function POST(request: NextRequest) {
         ...existing,
         ...data,
         updatedAt: Date.now(),
-        updatedBy: decoded.uid,
+        updatedBy: admin.uid,
     }));
     return NextResponse.json({ ok: true });
 }

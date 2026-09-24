@@ -1,29 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
+import { adminDatabase } from "@/lib/firebase-admin";
 import { GROWTH_COLLECTIONS } from "@/lib/growth/constants";
 import { buildContentWorkflow } from "@/lib/growth/agents/pipeline";
+import { requireGrowthAdmin } from "@/lib/growth/server-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function adminToken(request: NextRequest): string | null {
-    const h = request.headers.get("authorization");
-    if (!h?.startsWith("Bearer ")) return null;
-    return h.slice(7);
-}
-
-async function requireAdmin(request: NextRequest) {
-    const token = adminToken(request);
-    if (!token) return null;
-    try {
-        const decoded = await adminAuth.verifyIdToken(token);
-        const admin = decoded.admin === true || decoded.role === "admin";
-        return admin ? decoded : null;
-    } catch { return null; }
-}
-
 export async function GET(request: NextRequest) {
-    const admin = await requireAdmin(request);
+    const admin = await requireGrowthAdmin(request);
     if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const snap = await adminDatabase.ref(`${GROWTH_COLLECTIONS.tasks}/workflows`).get();
     const data = snap.exists() ? snap.val() : {};
@@ -32,7 +17,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-    const admin = await requireAdmin(request);
+    const admin = await requireGrowthAdmin(request);
     if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     try {
         const body = await request.json();

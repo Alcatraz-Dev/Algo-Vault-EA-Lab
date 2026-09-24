@@ -209,7 +209,7 @@ export default function AdminGrowthReportsPage() {
                 />
             ) : (
                 <div className="overflow-hidden rounded-lg border border-border">
-                    <Table>
+                    <Table className="min-w-[640px]">
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Title</TableHead>
@@ -284,7 +284,7 @@ export default function AdminGrowthReportsPage() {
 
             {/* View report dialog */}
             <Dialog open={viewing !== null} onOpenChange={(o) => { if (!o) setViewing(null); }}>
-                <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
+                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
                      <DialogHeader>
                         <DialogTitle>{viewing?.title}</DialogTitle>
                         {viewing ? (
@@ -301,7 +301,7 @@ export default function AdminGrowthReportsPage() {
                                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                                         {(section.metrics || []).map((m) => (
                                             <div key={m.label} className="rounded border border-border bg-muted/30 p-2">
-                                                <p className="text-[10px] text-muted-foreground">{m.label}</p>
+                                                <p className="text-xs text-muted-foreground">{m.label}</p>
                                                 <p className="text-sm font-semibold text-foreground">{m.value}</p>
                                             </div>
                                         ))}

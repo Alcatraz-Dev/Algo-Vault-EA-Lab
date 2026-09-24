@@ -1,24 +1,21 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
+import { adminDatabase } from "@/lib/firebase-admin";
 import { GROWTH_COLLECTIONS } from "@/lib/growth/constants";
 import { MarketingTask } from "@/lib/growth/types";
+import { requireGrowthAdmin } from "@/lib/growth/server-auth";
 
 export async function getTasks(adminToken: string): Promise<MarketingTask[] | { error: string }> {
-    let decoded: { uid: string; admin?: boolean; role?: string } | null = null;
-    try {
-        decoded = await adminAuth.verifyIdToken(adminToken);
-        if (!decoded.admin && decoded.role !== "admin") return { error: "Unauthorized" };
-    } catch {
-        return { error: "Unauthorized" };
-    }
+    const admin = await requireGrowthAdmin(adminToken);
+    if (!admin) return { error: "Unauthorized" };
 
-    const snap = await adminDatabase.ref(GROWTH_COLLECTIONS.tasks).orderByChild("createdAt").limitToLast(100).get();
+    const snap = await adminDatabase.ref(GROWTH_COLLECTIONS.tasks).get();
     if (!snap.exists()) return [];
     const data = snap.val() as Record<string, MarketingTask>;
     return Object.values(data)
         .map((val) => ({ ...val }))
-        .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+        .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
+        .slice(0, 100);
 }
 
 export async function GET(request: NextRequest) {

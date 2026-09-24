@@ -1,18 +1,14 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
+import { adminDatabase } from "@/lib/firebase-admin";
 import { GROWTH_COLLECTIONS } from "@/lib/growth/constants";
 import { MonetizationPlacement } from "@/lib/growth/types";
 import { deepClean, writeGrowthAudit } from "@/lib/growth/database";
+import { requireGrowthAdmin } from "@/lib/growth/server-auth";
 
 export async function createPlacement(adminToken: string, data: Partial<MonetizationPlacement>): Promise<{ id: string } | { error: string }> {
-    let decoded: { uid: string; admin?: boolean; role?: string } | null = null;
-    try {
-        decoded = await adminAuth.verifyIdToken(adminToken);
-        if (!decoded.admin && decoded.role !== "admin") return { error: "Unauthorized" };
-    } catch {
-        return { error: "Unauthorized" };
-    }
+    const admin = await requireGrowthAdmin(adminToken);
+    if (!admin) return { error: "Unauthorized" };
 
     const now = Date.now();
     const ref = adminDatabase.ref(GROWTH_COLLECTIONS.placements).push();
@@ -21,22 +17,17 @@ export async function createPlacement(adminToken: string, data: Partial<Monetiza
         ...data,
         createdAt: now,
         updatedAt: now,
-        createdBy: decoded.uid,
+        createdBy: admin.uid,
         status: "ACTIVE",
     }) as MonetizationPlacement;
     await ref.set(placement);
-    await writeGrowthAudit({ actor: decoded.uid, action: "placement_created", targetType: "monetizationPlacement", targetId: id, detail: { name: placement.name, key: placement.key as string } });
+    await writeGrowthAudit({ actor: admin.uid, action: "placement_created", targetType: "monetizationPlacement", targetId: id, detail: { name: placement.name, key: placement.key as string } });
     return { id };
 }
 
 export async function updatePlacement(adminToken: string, id: string, updates: Partial<MonetizationPlacement>): Promise<{ ok: boolean } | { error: string }> {
-    let decoded: { uid: string; admin?: boolean; role?: string } | null = null;
-    try {
-        decoded = await adminAuth.verifyIdToken(adminToken);
-        if (!decoded.admin && decoded.role !== "admin") return { error: "Unauthorized" };
-    } catch {
-        return { error: "Unauthorized" };
-    }
+    const admin = await requireGrowthAdmin(adminToken);
+    if (!admin) return { error: "Unauthorized" };
 
     const ref = adminDatabase.ref(`${GROWTH_COLLECTIONS.placements}/${id}`);
     const snap = await ref.get();
@@ -45,9 +36,9 @@ export async function updatePlacement(adminToken: string, id: string, updates: P
     await ref.update({
         ...deepClean(updates),
         updatedAt: Date.now(),
-        updatedBy: decoded.uid,
+        updatedBy: admin.uid,
     } as Record<string, unknown>);
-    await writeGrowthAudit({ actor: decoded.uid, action: "placement_updated", targetType: "monetizationPlacement", targetId: id, detail: { fields: Object.keys(updates) } });
+    await writeGrowthAudit({ actor: admin.uid, action: "placement_updated", targetType: "monetizationPlacement", targetId: id, detail: { fields: Object.keys(updates) } });
     return { ok: true };
 }
 

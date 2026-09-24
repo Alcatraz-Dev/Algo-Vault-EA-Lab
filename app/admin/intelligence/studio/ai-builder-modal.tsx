@@ -99,7 +99,7 @@ export function AiBuilderModal({ open, onOpenChange, onApplyGeneratedWorkflow }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl lg:max-w-6xl w-[95vw] max-h-[90vh] flex flex-col p-0 overflow-hidden">
+      <DialogContent className="w-full max-h-[90vh] flex flex-col p-0 overflow-hidden sm:max-w-5xl lg:max-w-6xl">
         <DialogHeader className="px-6 pt-5 pb-3 border-b">
           <DialogTitle className="flex items-center gap-2 text-lg font-bold">
             <Sparkles className="w-5 h-5 text-blue-500" />

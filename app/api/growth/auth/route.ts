@@ -2,20 +2,17 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { adminAuth } from "@/lib/firebase-admin";
+import { requireGrowthAdmin } from "@/lib/growth/server-auth";
 
 export async function GET(request: NextRequest) {
     try {
-        const authHeader = request.headers.get("authorization");
-        const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
-        if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-        const decoded = await adminAuth.verifyIdToken(token);
-        if (!decoded.admin && decoded.role !== "admin") {
+        const admin = await requireGrowthAdmin(request);
+        if (!admin) {
             return NextResponse.json({ error: "Admin required" }, { status: 403 });
         }
 
         // Verify Firebase auth server-side.
-        const userSnap = await adminAuth.getUser(decoded.uid);
+        const userSnap = await adminAuth.getUser(admin.uid);
         if (!userSnap) return NextResponse.json({ error: "User not found" }, { status: 403 });
 
         return NextResponse.json({ ok: true });

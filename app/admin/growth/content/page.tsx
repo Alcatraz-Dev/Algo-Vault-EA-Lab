@@ -191,13 +191,12 @@ export default function AdminGrowthContentPage() {
         if (busyAction) return;
         setBusyAction("publish");
         try {
-            const res = await fetch("/api/growth/content/manage", {
+            const body = await adminFetch<{ ok?: boolean; reason?: string }>("/api/growth/content/manage", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action: "publish", taskId: publishTask.id, channel: publishChannel }),
             });
-            const body = (await res.json().catch(() => ({}))) as { ok?: boolean; reason?: string };
-            if (!res.ok || body.ok !== true) {
+            if (body.ok !== true) {
                 flash("error", body.reason || "Publish failed.");
             } else {
                 flash("ok", `Published to ${CHANNEL_LABELS[publishChannel as keyof typeof CHANNEL_LABELS] || publishChannel}.`);
@@ -304,7 +303,7 @@ export default function AdminGrowthContentPage() {
                 />
             ) : (
                 <div className="overflow-hidden rounded-lg border border-border">
-                    <Table>
+                    <Table className="min-w-[780px]">
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Title / topic</TableHead>
@@ -325,7 +324,7 @@ export default function AdminGrowthContentPage() {
                                         <TableCell className="max-w-56">
                                             <p className="truncate font-medium text-foreground">{t.title || t.topic}</p>
                                             {t.scheduledAt ? (
-                                                <p className="text-[10px] text-muted-foreground">scheduled {fmtDateTime(t.scheduledAt)}</p>
+                                                <p className="text-xs text-muted-foreground">scheduled {fmtDateTime(t.scheduledAt)}</p>
                                             ) : null}
                                         </TableCell>
                                         <TableCell className="text-muted-foreground">
@@ -334,7 +333,7 @@ export default function AdminGrowthContentPage() {
                                         <TableCell className="max-w-40">
                                             <div className="flex flex-wrap gap-1">
                                                 {(t.channels || []).map((c) => (
-                                                    <span key={c} className="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                                                    <span key={c} className="rounded border border-border px-1.5 py-0.5 text-xs text-muted-foreground">
                                                         {CHANNEL_LABELS[c as keyof typeof CHANNEL_LABELS] || c}
                                                     </span>
                                                 ))}
@@ -530,7 +529,7 @@ export default function AdminGrowthContentPage() {
 
             {/* Preview dialog */}
             <Dialog open={preview !== null} onOpenChange={(o) => { if (!o) setPreview(null); }}>
-                <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
+                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>{preview?.title || preview?.topic}</DialogTitle>
                         <DialogDescription>

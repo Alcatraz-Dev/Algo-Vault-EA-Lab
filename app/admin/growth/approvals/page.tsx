@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
-import { ArrowLeft, CheckCircle2, ChevronRight, Eye, FileText, Loader2, ShieldAlert, XCircle } from "lucide-react";
+import { CheckCircle2, ChevronRight, Eye, FileText, ShieldAlert, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -13,7 +12,7 @@ import { adminFetch } from "@/components/growth/admin/session";
 import { RefreshButton } from "@/components/growth/admin/RefreshButton";
 import { GrowthStatusBadge } from "@/components/growth/admin/GrowthStatusBadge";
 import { fmtRelative } from "@/components/growth/admin/format";
-import { CONTENT_TYPE_LABELS, MARKETING_TASK_STATES } from "@/lib/growth/constants";
+import { CONTENT_TYPE_LABELS } from "@/lib/growth/constants";
 
 type TaskRow = {
     id: string;
@@ -242,7 +241,7 @@ export default function AdminApprovalsPage() {
                                         <div className="flex items-center justify-between gap-2">
                                             <span className="font-mono text-xs text-muted-foreground">{a.taskId.slice(0, 12)}…</span>
                                             <span
-                                                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                                                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
                                                     a.decision === "APPROVED"
                                                         ? "bg-success/10 text-success-foreground"
                                                         : "bg-destructive/10 text-destructive-foreground"
@@ -261,9 +260,9 @@ export default function AdminApprovalsPage() {
                                                 )}
                                             </span>
                                         </div>
-                                        <p className="mt-1 text-[11px] text-muted-foreground">{a.approvedBy}</p>
-                                        {a.comment && <p className="mt-1 text-[11px] text-foreground line-clamp-1">"{a.comment}"</p>}
-                                        <p className="mt-1 text-[10px] text-muted-foreground">{fmtRelative(a.decidedAt)}</p>
+                                        <p className="mt-1 text-xs text-muted-foreground">{a.approvedBy}</p>
+                                        {a.comment && <p className="mt-1 text-xs text-foreground line-clamp-1">&ldquo;{a.comment}&rdquo;</p>}
+                                        <p className="mt-1 text-xs text-muted-foreground">{fmtRelative(a.decidedAt)}</p>
                                     </li>
                                 ))}
                             </ul>
@@ -272,7 +271,7 @@ export default function AdminApprovalsPage() {
 
                     <div className="rounded-lg border border-border bg-card p-4">
                         <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Rules</h3>
-                        <ul className="space-y-1 text-[11px] text-muted-foreground">
+                        <ul className="space-y-1 text-xs text-muted-foreground">
                             <li>• Only tasks in <b>READY_FOR_REVIEW</b> appear in the queue.</li>
                             <li>• <b>Approve</b> moves the task to APPROVED — it can then be scheduled or published.</li>
                             <li>• <b>Reject</b> requires a reason; the task returns to REJECTED with the note.</li>
@@ -404,7 +403,7 @@ function ApprovalCard({
                         <span className="text-xs text-muted-foreground">{CONTENT_TYPE_LABELS[task.type as keyof typeof CONTENT_TYPE_LABELS] || task.type}</span>
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{task.topic}</p>
-                    <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px]">
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                         <span className="inline-flex items-center gap-1 text-muted-foreground">
                             <FileText size={10} /> {task.channels.join(", ")}
                         </span>
@@ -414,10 +413,10 @@ function ApprovalCard({
                         <span className="text-muted-foreground">Updated {fmtRelative(task.updatedAt || task.createdAt)}</span>
                     </div>
                     {blocked && (
-                        <p className="mt-2 text-[10px] text-destructive">Blocked by compliance: {task.rejectReason}</p>
+                        <p className="mt-2 text-xs text-destructive">Blocked by compliance: {task.rejectReason}</p>
                     )}
                     {complianceOk === true && (
-                        <p className="mt-2 text-[10px] text-success-foreground">Compliance review passed.</p>
+                        <p className="mt-2 text-xs text-success-foreground">Compliance review passed.</p>
                     )}
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">

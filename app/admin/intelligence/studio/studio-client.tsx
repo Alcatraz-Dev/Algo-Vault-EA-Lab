@@ -10,7 +10,7 @@ import {
   TrendingUp, Bell, Filter, BarChart2, FlaskConical,
   PanelLeftClose, PanelLeftOpen, Info, XCircle,
   ChevronLeft, BookOpen, Plus, Boxes, Globe, FileText,
-  SlidersHorizontal, Layers,
+  SlidersHorizontal, Layers, ChevronDown, ChevronRight, ChevronsDown, ChevronsUp,
 } from "lucide-react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -164,6 +164,7 @@ export default function StudioClient() {
   const [libraryOpen,   setLibraryOpen]   = useState(true);
   const [inspectorOpen, setInspectorOpen] = useState(true);
   const [searchQuery,   setSearchQuery]   = useState("");
+  const [collapsedCats, setCollapsedCats] = useState<Set<string>>(new Set());
   const [showGuide,     setShowGuide]     = useState(true);
 
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
@@ -408,6 +409,16 @@ export default function StudioClient() {
   const selectedDef  = selectedNode ? getNodeDefinition((selectedNode.data as any).node.type) : null;
   const deleteNode   = () => { if (!selectedId) return; setNodes(n => n.filter(x => x.id !== selectedId)); setEdges(e => e.filter(x => x.source !== selectedId && x.target !== selectedId)); setSelectedId(null); };
 
+  const toggleCat = (cat: string) => {
+    setCollapsedCats(prev => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat); else next.add(cat);
+      return next;
+    });
+  };
+  const expandAllCats   = () => setCollapsedCats(new Set());
+  const collapseAllCats = () => setCollapsedCats(new Set(NODE_CATEGORY_ORDER));
+
   if (loading || !user) return <LoadingState />;
   if (!pro) return <UpgradeState />;
 
@@ -601,7 +612,15 @@ export default function StudioClient() {
                 <div className="flex flex-col h-full p-3 gap-2 min-w-0" style={{ width: 224 }}>
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-[10px] uppercase tracking-wider text-muted-foreground">Library</span>
-                    <button onClick={() => setLibraryOpen(false)} className="text-muted-foreground hover:text-foreground"><PanelLeftClose size={13} /></button>
+                    <div className="flex items-center gap-0.5">
+                      <button onClick={collapseAllCats} title="Collapse all categories" className="text-muted-foreground hover:text-foreground p-0.5 rounded hover:bg-muted transition-colors">
+                        <ChevronsUp size={12} />
+                      </button>
+                      <button onClick={expandAllCats} title="Expand all categories" className="text-muted-foreground hover:text-foreground p-0.5 rounded hover:bg-muted transition-colors">
+                        <ChevronsDown size={12} />
+                      </button>
+                      <button onClick={() => setLibraryOpen(false)} className="text-muted-foreground hover:text-foreground"><PanelLeftClose size={13} /></button>
+                    </div>
                   </div>
                   <div className="relative">
                     <Search size={11} className="absolute left-2.5 top-2.5 text-muted-foreground pointer-events-none" />
@@ -612,13 +631,23 @@ export default function StudioClient() {
                       const matching = getAllNodes().filter(n => n.category === cat && (!searchQuery || n.name.toLowerCase().includes(searchQuery.toLowerCase()) || n.type.toLowerCase().includes(searchQuery.toLowerCase())));
                       if (!matching.length) return null;
                       const cs = getCat(cat);
+                      // Searching always reveals matches; otherwise respect the collapsed set.
+                      const expanded = !searchQuery.trim() && collapsedCats.has(cat) ? false : true;
                       return (
                         <div key={cat} className="space-y-0.5">
-                          <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground mt-1">
+                          <button
+                            onClick={() => toggleCat(cat)}
+                            title={expanded ? `Collapse ${NODE_CATEGORY_LABELS[cat] ?? cat}` : `Expand ${NODE_CATEGORY_LABELS[cat] ?? cat}`}
+                            className="w-full flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground mt-1 hover:text-foreground transition-colors group"
+                          >
                             <span style={{ color: cs.dot }}>{cs.icon}</span>
-                            {NODE_CATEGORY_LABELS[cat] ?? cat}
-                          </div>
-                          {matching.map(n => (
+                            <span className="flex-1 text-left truncate">{NODE_CATEGORY_LABELS[cat] ?? cat}</span>
+                            <span className="text-[8px] font-semibold text-muted-foreground/50 group-hover:text-muted-foreground/80 shrink-0">{matching.length}</span>
+                            {expanded
+                              ? <ChevronDown size={10} className="shrink-0 text-muted-foreground/50 group-hover:text-muted-foreground/80" />
+                              : <ChevronRight size={10} className="shrink-0 text-muted-foreground/50 group-hover:text-muted-foreground/80" />}
+                          </button>
+                          {expanded && matching.map(n => (
                             <div key={n.type} draggable
                               onDragStart={e => { e.dataTransfer.setData("application/node-type", n.type); e.dataTransfer.effectAllowed = "copy"; }}
                               title={n.description}
@@ -698,7 +727,7 @@ export default function StudioClient() {
       <ImportExportModal open={showImportExport} onOpenChange={setShowImportExport} currentWorkflow={selected} onImportWorkflow={handleImport} />
 
       <Dialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-amber-600"><AlertTriangle size={18} /> Unsaved Changes</DialogTitle>
             <DialogDescription className="text-xs">You have unsaved edits. Proceeding will discard them.</DialogDescription>

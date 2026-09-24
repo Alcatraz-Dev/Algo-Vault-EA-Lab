@@ -13,24 +13,17 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { adminAuth } from "@/lib/firebase-admin";
 import { channelStatuses } from "@/lib/growth/channels/registry";
 import { CHANNEL_TYPES, ChannelType } from "@/lib/growth/constants";
+import { requireGrowthAdmin } from "@/lib/growth/server-auth";
 
 export async function POST(request: NextRequest) {
     const header = request.headers.get("authorization") || "";
     const token = header.startsWith("Bearer ") ? header.slice(7) : "";
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    let decoded: { uid: string; admin?: boolean; role?: string } | null = null;
-    try {
-        decoded = await adminAuth.verifyIdToken(token);
-        if (!decoded.admin && decoded.role !== "admin") {
-            return NextResponse.json({ error: "Admin access required" }, { status: 403 });
-        }
-    } catch {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const admin = await requireGrowthAdmin(token);
+    if (!admin) return NextResponse.json({ error: "Admin access required" }, { status: 403 });
 
     let body: { action?: string; type?: string };
     try {

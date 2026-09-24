@@ -11,10 +11,11 @@ import { notifyUser } from "@/lib/notifications";
 import { evaluateOrder, sizePositionByRisk, RiskLimits, AccountRiskState } from "@/lib/risk/risk-engine";
 import { hasActiveTradingLicense, getGatewayTokenForUser, newClientOrderId } from "@/lib/gateway";
 import { fetchEconomicEvents } from "@/lib/plugins/runtime/scheduler";
-import { getSymbolCategory } from "@/lib/ai-signals/symbol-specs";
-import { NodeExecutionArgs, NodeExecutionResult } from "./types";
+import { getSymbolCategory, getSymbolSpec } from "@/lib/ai-signals/symbol-specs";
+import { NodeExecutionArgs, NodeExecutionResult, NodeExecutionRecord } from "./types";
 import { fetchWorkflowCandles, fetchWorkflowQuote, fetchWorkflowSnapshot } from "./market";
 import { computeIndicator } from "./ta";
+import { parsePath } from "./paths";
 import { validateUrlForRequest, assertPublicHost } from "./ssrf";
 import { saveSignal, saveOrderRequest, saveReport, readVariable, writeVariable, listUserSignals } from "./database";
 
@@ -55,6 +56,31 @@ async function marketSnapshotNode(args: NodeExecutionArgs): Promise<NodeExecutio
         return { status: "failed", error: err };
     }
     return { status: "success", output: ((cached as { snapshot?: unknown }).snapshot ?? cached) as Record<string, unknown> };
+}
+
+async function marketSymbolInfo(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const symbol = String(args.config.symbol || "").trim().toUpperCase();
+    if (!symbol) return { status: "failed", error: "Symbol is required." };
+    const spec = getSymbolSpec(symbol);
+    return {
+        status: "success",
+        output: {
+            symbol,
+            category: getSymbolCategory(symbol),
+            supported: spec !== null,
+            spec: spec ? {
+                pipSize: spec.pipSize,
+                pipDigits: spec.pipDigits,
+                contractSize: spec.contractSize,
+                typicalSpread: spec.typicalSpread,
+                digits: spec.digits,
+                minLot: spec.minLot,
+                maxLot: spec.maxLot,
+                tickValue: spec.tickValue,
+                volatilityMultiplier: spec.volatilityMultiplier,
+            } : null,
+        },
+    };
 }
 
 // ─── Technical analysis ──────────────────────────────────────────────────────
@@ -134,6 +160,53 @@ async function aiAnalyze(args: NodeExecutionArgs): Promise<NodeExecutionResult> 
     return { status: "success", output: { analysis: text.slice(0, 6000), model: "ai-router" } };
 }
 
+async function aiExtractJson(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const prompt = String(args.config.prompt || "").trim();
+    if (!prompt) return { status: "failed", error: "Prompt is required." };
+
+    let fullPrompt = prompt;
+    const rawContext = args.config.contextNode as unknown;
+    let contextData: unknown = null;
+    if (rawContext && typeof rawContext === "object" && !Array.isArray(rawContext)) {
+        contextData = rawContext;
+    } else {
+        const contextRef = String(rawContext || "").trim().replace(/^\$/, "");
+        if (contextRef) contextData = args.payloads[contextRef]?.output ?? null;
+    }
+    if (contextData !== null && contextData !== undefined) {
+        try {
+            fullPrompt += `\n\nContext:\n${JSON.stringify(contextData, null, 2)}`;
+        } catch {
+            // JSON stringify of a huge payload — fall back to prompt only.
+        }
+    }
+
+    const text = await defaultRouter.generateText(
+        `${fullPrompt}\n\nRespond with a single valid JSON object and nothing else — no markdown fences, no commentary.`,
+        "You are an AlgoVault workflow data-extraction step. Output strict JSON only."
+    );
+    if (!text || !text.trim()) return { status: "failed", error: "AI returned no response." };
+
+    const json = parseJsonResponse(text);
+    if (json === undefined) return { status: "failed", error: "AI response was not valid JSON." };
+    return { status: "success", output: { json, model: "ai-router" } };
+}
+
+function parseJsonResponse(text: string): unknown {
+    const t = text.trim();
+    try { return JSON.parse(t); } catch { /* continue */ }
+    const fence = t.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (fence?.[1]) {
+        try { return JSON.parse(fence[1].trim()); } catch { /* continue */ }
+    }
+    const start = t.indexOf("{");
+    const end = t.lastIndexOf("}");
+    if (start !== -1 && end > start) {
+        try { return JSON.parse(t.slice(start, end + 1)); } catch { /* continue */ }
+    }
+    return undefined;
+}
+
 // ─── Logic ───────────────────────────────────────────────────────────────────
 
 function compareValues(left: unknown, operator: string, right: unknown): boolean {
@@ -169,6 +242,122 @@ async function logicSetVariable(args: NodeExecutionArgs): Promise<NodeExecutionR
     if (!name) return { status: "failed", error: "Variable name is required." };
     args.variables[name] = args.config.value;
     return { status: "success", output: { name, value: args.config.value ?? null } };
+}
+
+function toNum(v: unknown): number | null {
+    if (v === null || v === undefined || v === "") return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+}
+
+async function logicMath(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const op = String(args.config.op || "add");
+    const a = toNum(args.config.a);
+    if (a === null) return { status: "failed", error: "Value A must be numeric." };
+    const b = toNum(args.config.b);
+    const decimals = Math.min(Math.max(Number(args.config.decimals) || 2, 0), 10);
+
+    let result: number;
+    switch (op) {
+        case "add": result = b === null ? a : a + b; break;
+        case "sub": result = b === null ? a : a - b; break;
+        case "mul": result = b === null ? a : a * b; break;
+        case "div":
+            if (b === null || b === 0) return { status: "failed", error: "Division requires a non-zero value B." };
+            result = a / b;
+            break;
+        case "pct": result = b === null ? a : (a / 100) * b; break;
+        case "min": result = b === null ? a : Math.min(a, b); break;
+        case "max": result = b === null ? a : Math.max(a, b); break;
+        case "abs": result = Math.abs(a); break;
+        case "round": result = Number(a.toFixed(decimals)); break;
+        default: return { status: "failed", error: `Unknown math operation "${op}".` };
+    }
+
+    return { status: "success", output: { op, a, b, result } };
+}
+
+/** Walks a nested path (parsePath segments) over a value; undefined when absent. */
+function walkPath(obj: unknown, segments: Array<string | number>): unknown {
+    let cur: unknown = obj;
+    for (const seg of segments) {
+        if (cur === null || cur === undefined || typeof cur !== "object") return undefined;
+        cur = (cur as Record<string | number, unknown>)[seg];
+        if (cur === undefined) return undefined;
+    }
+    return cur;
+}
+
+/** Resolves a raw "$nodeId[.path]" string against upstream payloads; passes values through otherwise. */
+function resolveRef(ref: unknown, payloads: Record<string, NodeExecutionRecord>): unknown {
+    if (typeof ref === "string") {
+        const t = ref.trim();
+        if (t.startsWith("$") && !t.includes("{")) {
+            const segments = parsePath(t);
+            const nodeId = String(segments[0]).slice(1);
+            const record = payloads[nodeId];
+            return segments.length > 1 ? walkPath(record?.output, segments.slice(1)) : record?.output;
+        }
+        return ref;
+    }
+    return ref;
+}
+
+async function logicExtract(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const source = args.config.source ?? "";
+    if (source === null || source === undefined || source === "") {
+        return { status: "failed", error: "A source reference ($nodeId) is required." };
+    }
+    const rawPath = String(args.config.path ?? "").trim();
+    if (!rawPath) {
+        return { status: "success", output: { path: null, value: source ?? null, found: source !== undefined } };
+    }
+    const value = walkPath(source, parsePath(rawPath));
+    return {
+        status: "success",
+        output: { path: rawPath, value: value !== undefined ? value : null, found: value !== undefined },
+    };
+}
+
+async function logicMerge(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const entries = Array.isArray(args.config.entries) ? args.config.entries : [];
+    if (entries.length === 0) return { status: "failed", error: "At least one entry ({ key, ref }) is required." };
+
+    const merged: Record<string, unknown> = {};
+    const missing: string[] = [];
+    for (const raw of entries) {
+        const entry = (raw ?? {}) as { key?: string; ref?: unknown };
+        const key = String(entry.key ?? "").trim();
+        if (!key) continue;
+        const value = resolveRef(entry.ref, args.payloads);
+        merged[key] = value ?? null;
+        if (value === undefined || value === null) missing.push(key);
+    }
+    return { status: "success", output: { keys: Object.keys(merged), missing, merged } };
+}
+
+async function logicSwitch(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const input = args.config.input;
+    const inputStr = String(input ?? "");
+    const cases = Array.isArray(args.config.cases) ? args.config.cases : [];
+
+    let matchedValue: string | null = null;
+    let output: unknown = null;
+    for (const raw of cases) {
+        const c = (raw ?? {}) as { value?: unknown; output?: unknown };
+        const caseStr = String(c.value ?? "");
+        if (caseStr === inputStr) {
+            matchedValue = caseStr;
+            output = c.output ?? null;
+            break;
+        }
+    }
+    if (matchedValue === null) output = args.config.fallback ?? null;
+
+    return {
+        status: "success",
+        output: { input: inputStr, matched: matchedValue, output, matchedFallback: matchedValue === null },
+    };
 }
 
 // ─── Risk ────────────────────────────────────────────────────────────────────
@@ -592,17 +781,25 @@ export async function executeNodeForType(args: NodeExecutionArgs): Promise<NodeE
         case "market_data.quote": return marketQuote(args);
         case "market_data.candles": return marketCandles(args);
         case "market_data.snapshot": return marketSnapshotNode(args);
+        case "market_data.symbol_info": return marketSymbolInfo(args);
         case "technical.sma":
         case "technical.ema":
         case "technical.rsi":
         case "technical.macd":
         case "technical.atr":
         case "technical.bollinger":
+        case "technical.stoch":
+        case "technical.obv":
             return technicalNode(args);
         case "ai.analyze": return aiAnalyze(args);
+        case "ai.extract_json": return aiExtractJson(args);
         case "logic.condition": return logicCondition(args);
         case "logic.delay": return logicDelay(args);
         case "logic.set_variable": return logicSetVariable(args);
+        case "logic.math": return logicMath(args);
+        case "logic.extract": return logicExtract(args);
+        case "logic.merge": return logicMerge(args);
+        case "logic.switch": return logicSwitch(args);
         case "risk.check": return riskCheck(args);
         case "risk.position_size": return riskPositionSize(args);
         case "signal.create": return signalCreate(args);

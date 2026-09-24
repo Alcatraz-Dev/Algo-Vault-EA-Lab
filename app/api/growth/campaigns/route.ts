@@ -1,17 +1,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
+import { adminDatabase } from "@/lib/firebase-admin";
 import { GrowthCampaign } from "@/lib/growth/types";
 import { GROWTH_COLLECTIONS } from "@/lib/growth/constants";
+import { requireGrowthAdmin } from "@/lib/growth/server-auth";
 
 export async function getCampaigns(adminToken: string): Promise<GrowthCampaign[] | { error: string }> {
-    let decoded: { uid: string; admin?: boolean; role?: string } | null = null;
-    try {
-        decoded = await adminAuth.verifyIdToken(adminToken);
-        if (!decoded.admin && decoded.role !== "admin") return { error: "Unauthorized" };
-    } catch {
-        return { error: "Unauthorized" };
-    }
+    const admin = await requireGrowthAdmin(adminToken);
+    if (!admin) return { error: "Unauthorized" };
 
     const snap = await adminDatabase.ref(GROWTH_COLLECTIONS.campaigns).get();
     if (!snap.exists()) return [];
@@ -20,13 +16,8 @@ export async function getCampaigns(adminToken: string): Promise<GrowthCampaign[]
 }
 
 export async function createCampaign(adminToken: string, data: Partial<GrowthCampaign>): Promise<{ id: string } | { error: string }> {
-    let decoded: { uid: string; admin?: boolean; role?: string } | null = null;
-    try {
-        decoded = await adminAuth.verifyIdToken(adminToken);
-        if (!decoded.admin && decoded.role !== "admin") return { error: "Unauthorized" };
-    } catch {
-        return { error: "Unauthorized" };
-    }
+    const admin = await requireGrowthAdmin(adminToken);
+    if (!admin) return { error: "Unauthorized" };
 
     const now = Date.now();
     const ref = adminDatabase.ref(GROWTH_COLLECTIONS.campaigns).push();
@@ -37,7 +28,7 @@ export async function createCampaign(adminToken: string, data: Partial<GrowthCam
         status: data.status || "DRAFT",
         createdAt: now,
         updatedAt: now,
-        createdBy: decoded.uid,
+        createdBy: admin.uid,
     } as GrowthCampaign;
     await ref.set(campaign);
     return { id };

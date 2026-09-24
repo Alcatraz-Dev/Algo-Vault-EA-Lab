@@ -122,8 +122,8 @@ export default function AdminAdNetworksPage() {
                                 </div>
 
                                 <div className="flex flex-wrap gap-1.5">
-                                    <Badge variant="outline" className="text-[10px] normal-case">{rows[0].platform === "WEB" ? "Web" : "Mobile"}{rows.length > 1 ? " · iOS + Android" : ""}</Badge>
-                                    <Badge variant="outline" className="text-[10px] normal-case">
+                                    <Badge variant="outline" className="text-xs normal-case">{rows[0].platform === "WEB" ? "Web" : "Mobile"}{rows.length > 1 ? " · iOS + Android" : ""}</Badge>
+                                    <Badge variant="outline" className="text-xs normal-case">
                                         <Zap size={10} /> Test mode: {rows[0].testMode ? "on" : "off"}
                                     </Badge>
                                 </div>
@@ -139,7 +139,7 @@ export default function AdminAdNetworksPage() {
                                     <p className="text-xs font-medium text-foreground">Required environment</p>
                                     <ul className="space-y-1">
                                         {meta.env.map((v) => (
-                                            <li key={v} className="rounded border border-border bg-muted/40 px-2 py-1 font-mono text-[11px] text-foreground">
+                                            <li key={v} className="rounded border border-border bg-muted/40 px-2 py-1 font-mono text-xs text-foreground">
                                                 {v}
                                             </li>
                                         ))}
@@ -157,7 +157,7 @@ export default function AdminAdNetworksPage() {
 
                                 <div className="mt-auto space-y-1 border-t border-border/60 pt-3">
                                     <p className="text-xs font-medium text-foreground">Steps</p>
-                                    <ol className="list-decimal space-y-1 pl-4 text-[11px] text-muted-foreground">
+                                    <ol className="list-decimal space-y-1 pl-4 text-xs text-muted-foreground">
                                         {meta.steps.map((s, i) => (
                                             <li key={i}>{s}</li>
                                         ))}

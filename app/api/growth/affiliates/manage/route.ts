@@ -1,18 +1,14 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
+import { adminDatabase } from "@/lib/firebase-admin";
 import { GROWTH_COLLECTIONS } from "@/lib/growth/constants";
 import { AffiliateOffer } from "@/lib/growth/types";
 import { deepClean, writeGrowthAudit } from "@/lib/growth/database";
+import { requireGrowthAdmin } from "@/lib/growth/server-auth";
 
 export async function createAffiliateOffer(adminToken: string, data: Partial<AffiliateOffer>): Promise<{ id: string } | { error: string }> {
-    let decoded: { uid: string; admin?: boolean; role?: string } | null = null;
-    try {
-        decoded = await adminAuth.verifyIdToken(adminToken);
-        if (!decoded.admin && decoded.role !== "admin") return { error: "Unauthorized" };
-    } catch {
-        return { error: "Unauthorized" };
-    }
+    const admin = await requireGrowthAdmin(adminToken);
+    if (!admin) return { error: "Unauthorized" };
 
     const now = Date.now();
     const ref = adminDatabase.ref(GROWTH_COLLECTIONS.affiliateOffers).push();
@@ -22,24 +18,19 @@ export async function createAffiliateOffer(adminToken: string, data: Partial<Aff
         active: data.active ?? true,
         createdAt: now,
         updatedAt: now,
-        createdBy: decoded.uid,
+        createdBy: admin.uid,
         status: "ACTIVE",
         clicks: 0,
         conversions: 0,
     }) as AffiliateOffer;
     await ref.set(offer);
-    await writeGrowthAudit({ actor: decoded.uid, action: "affiliate_created", targetType: "affiliateOffer", targetId: id, detail: { name: offer.name } });
+    await writeGrowthAudit({ actor: admin.uid, action: "affiliate_created", targetType: "affiliateOffer", targetId: id, detail: { name: offer.name } });
     return { id };
 }
 
 export async function updateAffiliateOffer(adminToken: string, id: string, updates: Partial<AffiliateOffer>): Promise<{ ok: boolean } | { error: string }> {
-    let decoded: { uid: string; admin?: boolean; role?: string } | null = null;
-    try {
-        decoded = await adminAuth.verifyIdToken(adminToken);
-        if (!decoded.admin && decoded.role !== "admin") return { error: "Unauthorized" };
-    } catch {
-        return { error: "Unauthorized" };
-    }
+    const admin = await requireGrowthAdmin(adminToken);
+    if (!admin) return { error: "Unauthorized" };
 
     const ref = adminDatabase.ref(`${GROWTH_COLLECTIONS.affiliateOffers}/${id}`);
     const snap = await ref.get();
@@ -48,9 +39,9 @@ export async function updateAffiliateOffer(adminToken: string, id: string, updat
     await ref.update({
         ...deepClean(updates),
         updatedAt: Date.now(),
-        updatedBy: decoded.uid,
+        updatedBy: admin.uid,
     } as Record<string, unknown>);
-    await writeGrowthAudit({ actor: decoded.uid, action: "affiliate_updated", targetType: "affiliateOffer", targetId: id, detail: { fields: Object.keys(updates) } });
+    await writeGrowthAudit({ actor: admin.uid, action: "affiliate_updated", targetType: "affiliateOffer", targetId: id, detail: { fields: Object.keys(updates) } });
     return { ok: true };
 }
 

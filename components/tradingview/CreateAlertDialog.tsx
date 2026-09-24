@@ -392,7 +392,7 @@ export default function CreateAlertDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="w-full max-w-xl sm:max-w-xl rounded-2xl border border-border bg-card p-0 shadow-2xl overflow-hidden">
+            <DialogContent className="w-full sm:max-w-xl rounded-2xl border border-border bg-card p-0 shadow-2xl overflow-hidden">
                 {/* Header */}
                 <DialogHeader className="border-b border-border bg-muted/20 px-4 py-4 sm:px-6">
                     <div className="flex items-center justify-between pr-8">

@@ -1,22 +1,22 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
+import { adminDatabase } from "@/lib/firebase-admin";
 import { GROWTH_COLLECTIONS } from "@/lib/growth/constants";
 import { GrowthReport } from "@/lib/growth/types";
 import { generateGrowthReport } from "@/lib/growth/report";
+import { requireGrowthAdmin } from "@/lib/growth/server-auth";
 
 export async function getReports(adminToken: string) {
-    try {
-        const decoded = await adminAuth.verifyIdToken(adminToken);
-        if (!decoded.admin && decoded.role !== "admin") return { error: "Unauthorized" };
-    } catch {
-        return { error: "Unauthorized" };
-    }
+    const admin = await requireGrowthAdmin(adminToken);
+    if (!admin) return { error: "Unauthorized" };
 
-    const snap = await adminDatabase.ref(GROWTH_COLLECTIONS.reports).orderByChild("createdAt").limitToLast(50).get();
+    const snap = await adminDatabase.ref(GROWTH_COLLECTIONS.reports).get();
     if (!snap.exists()) return [];
     const data = snap.val() as Record<string, GrowthReport>;
-    return Object.values(data).sort((a, b) => (b.periodEnd ?? 0) - (a.periodEnd ?? 0));
+    return Object.values(data)
+        .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
+        .slice(0, 50)
+        .sort((a, b) => (b.periodEnd ?? 0) - (a.periodEnd ?? 0));
 }
 
 export async function GET(request: NextRequest) {
@@ -32,6 +32,10 @@ export async function POST(request: NextRequest) {
     const header = request.headers.get("authorization") || "";
     const token = header.startsWith("Bearer ") ? header.slice(7) : "";
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const admin = await requireGrowthAdmin(token);
+    if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+
     let body: { interval?: string; periodStart?: number; periodEnd?: number };
     try {
         body = (await request.json()) as { interval?: string; periodStart?: number; periodEnd?: number };
@@ -45,7 +49,7 @@ export async function POST(request: NextRequest) {
         interval,
         periodStart: body.periodStart || Date.now() - 24 * 60 * 60 * 1000,
         periodEnd: body.periodEnd || Date.now(),
-        actor: "admin:manual",
+        actor: admin.uid,
         source: "admin-ui",
     });
     if (result.error) return NextResponse.json(result, { status: 500 });

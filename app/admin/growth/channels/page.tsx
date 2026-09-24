@@ -183,7 +183,7 @@ export default function AdminGrowthChannelsPage() {
 
                                 <div className="flex flex-wrap gap-1">
                                     {c.capabilities.map((cap) => (
-                                        <Badge key={cap} variant="outline" className="text-[10px] normal-case">
+                                        <Badge key={cap} variant="outline" className="text-xs normal-case">
                                             {cap}
                                         </Badge>
                                     ))}
@@ -199,7 +199,7 @@ export default function AdminGrowthChannelsPage() {
                                     )}
                                 </p>
 
-                                <div className="mt-auto flex items-center gap-2 border-t border-border/60 pt-3">
+                                <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
                                     <Button type="button" variant="outline" size="sm" onClick={() => setConfigureFor(c)}>
                                         <Plug /> Configure
                                     </Button>
@@ -212,7 +212,7 @@ export default function AdminGrowthChannelsPage() {
                                     >
                                         {testing === c.type ? "Testing…" : <><RefreshCw /> Test</>}
                                     </Button>
-                                    <span className="ml-auto text-[10px] text-muted-foreground">
+                                    <span className="ml-auto text-xs text-muted-foreground">
                                         {c.state === "NOT_CONFIGURED" || c.state === "DISABLED" ? "env-based" : "live"}
                                     </span>
                                 </div>
@@ -324,19 +324,23 @@ function ChannelSetupProgress({
     channel: ChannelStatusRow;
     setup?: { env: string[]; steps: string[] };
 }) {
-    const checks = (setup?.env || []).map((env) => {
-        const isSet = Boolean(process.env[env]);
-        return { label: env.replace(/^GROWTH_/, ""), passed: isSet };
-    });
+    const envNames = setup?.env || [];
 
-    if (checks.length === 0) {
+    if (envNames.length === 0) {
         return (
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
                 No external credentials required — adapter is built-in.
             </p>
         );
     }
 
+    // Server-only env vars are never bundled into a client component, so
+    // process.env here is always empty and can't tell us what is actually set.
+    // The channel adapter reports the REAL configuration state server-side —
+    // derive the checks from that instead (CONFIGURED ⇒ every required var is
+    // in place; anything else ⇒ setup is still pending).
+    const ready = channel.state === "CONFIGURED";
+    const checks = envNames.map((env) => ({ label: env.replace(/^GROWTH_/, ""), passed: ready }));
     const passed = checks.filter((c) => c.passed).length;
     const total = checks.length;
     const pct = total > 0 ? (passed / total) * 100 : 0;
@@ -355,7 +359,7 @@ function ChannelSetupProgress({
                     <span
                         key={c.label}
                         className={cn(
-                            "inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px]",
+                            "inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs",
                             c.passed
                                 ? "bg-positive/10 text-positive-foreground"
                                 : "bg-muted text-muted-foreground"

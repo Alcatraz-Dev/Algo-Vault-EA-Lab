@@ -1,25 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
+import { adminDatabase } from "@/lib/firebase-admin";
 import { GROWTH_COLLECTIONS } from "@/lib/growth/constants";
 import { Experiment } from "@/lib/growth/types";
 import { Experiment as ExperimentLib } from "@/lib/growth/experiments/types";
 import { createExperiment as createExperimentLib } from "@/lib/growth/experiments";
 import { deepClean, writeGrowthAudit } from "@/lib/growth/database";
+import { requireGrowthAdmin } from "@/lib/growth/server-auth";
 
 async function verifyAdmin(request: NextRequest): Promise<{ uid: string; error: NextResponse | null }> {
-    const header = request.headers.get("authorization") || "";
-    const token = header.startsWith("Bearer ") ? header.slice(7) : "";
-    if (!token) return { uid: "", error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
-
-    try {
-        const decoded = await adminAuth.verifyIdToken(token);
-        if (!decoded.admin && decoded.role !== "admin") {
-            return { uid: "", error: NextResponse.json({ error: "Admin access required" }, { status: 403 }) };
-        }
-        return { uid: decoded.uid, error: null };
-    } catch {
+    const admin = await requireGrowthAdmin(request);
+    if (!admin) {
         return { uid: "", error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
     }
+    return { uid: admin.uid, error: null };
 }
 
 export async function POST(request: NextRequest) {

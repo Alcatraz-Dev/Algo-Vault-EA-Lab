@@ -1,21 +1,15 @@
 "use server";
 
 import { NextRequest, NextResponse } from "next/server";
-import { adminAuth } from "@/lib/firebase-admin";
 import { runCronJob } from "@/lib/growth/jobs";
 import type { CronJobName } from "@/lib/growth/jobs";
+import { requireGrowthAdmin } from "@/lib/growth/server-auth";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ job: string }> }) {
     try {
-        const authHeader = request.headers.get("authorization");
-        const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+        const admin = await requireGrowthAdmin(request);
 
-        if (!token) {
-            return NextResponse.json({ error: "Authentication required" }, { status: 401 });
-        }
-
-        const decoded = await adminAuth.verifyIdToken(token);
-        if (!decoded.admin && decoded.role !== "admin") {
+        if (!admin) {
             return NextResponse.json({ error: "Admin access required" }, { status: 403 });
         }
 

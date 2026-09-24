@@ -19,7 +19,6 @@ import {
     LineChart,
     Menu,
     MessageSquare,
-    MonitorPlay,
     Plug,
     Puzzle,
     Radio,
@@ -190,7 +189,7 @@ export default function AdminShell({
             {/* ── Content ── */}
             <div className="flex flex-1 flex-col overflow-auto">
                 {/* Header */}
-                <header className="flex items-center justify-between border-b border-border bg-background px-6 py-4 md:px-8">
+                <header className="flex items-center justify-between border-b border-border bg-background px-4 py-3.5 sm:px-6 md:px-8">
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
@@ -206,7 +205,7 @@ export default function AdminShell({
                             </p>
                             <h1 className="mt-0.5 text-lg font-semibold">{title}</h1>
                             {subtitle && (
-                                <p className="mt-0.5 text-sm text-muted-foreground">
+                                <p className="mt-0.5 hidden text-sm text-muted-foreground sm:block">
                                     {subtitle}
                                 </p>
                             )}
@@ -219,7 +218,7 @@ export default function AdminShell({
                 </header>
 
                 {/* Page content */}
-                <main className="flex-1 animate-page-enter p-5 md:p-8">{children}</main>
+                <main className="flex-1 animate-page-enter p-4 sm:p-5 md:p-8">{children}</main>
             </div>
         </div>
     );

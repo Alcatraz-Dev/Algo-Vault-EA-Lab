@@ -1,18 +1,14 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
+import { adminDatabase } from "@/lib/firebase-admin";
 import { GROWTH_COLLECTIONS } from "@/lib/growth/constants";
 import { GrowthCampaign } from "@/lib/growth/types";
 import { deepClean, writeGrowthAudit } from "@/lib/growth/database";
+import { requireGrowthAdmin } from "@/lib/growth/server-auth";
 
 export async function createCampaign(adminToken: string, data: Partial<GrowthCampaign>): Promise<{ id: string } | { error: string }> {
-    let decoded: { uid: string; admin?: boolean; role?: string } | null = null;
-    try {
-        decoded = await adminAuth.verifyIdToken(adminToken);
-        if (!decoded.admin && decoded.role !== "admin") return { error: "Unauthorized" };
-    } catch {
-        return { error: "Unauthorized" };
-    }
+    const admin = await requireGrowthAdmin(adminToken);
+    if (!admin) return { error: "Unauthorized" };
 
     const now = Date.now();
     const ref = adminDatabase.ref(GROWTH_COLLECTIONS.campaigns).push();
@@ -22,21 +18,16 @@ export async function createCampaign(adminToken: string, data: Partial<GrowthCam
         status: data.status || "DRAFT",
         createdAt: now,
         updatedAt: now,
-        createdBy: decoded.uid,
+        createdBy: admin.uid,
     }) as GrowthCampaign;
     await ref.set(campaign);
-    await writeGrowthAudit({ actor: decoded.uid, action: "campaign_created", targetType: "growthCampaign", targetId: id, detail: { name: campaign.name } });
+    await writeGrowthAudit({ actor: admin.uid, action: "campaign_created", targetType: "growthCampaign", targetId: id, detail: { name: campaign.name } });
     return { id };
 }
 
 export async function updateCampaign(adminToken: string, id: string, updates: Partial<GrowthCampaign>): Promise<{ ok: boolean } | { error: string }> {
-    let decoded: { uid: string; admin?: boolean; role?: string } | null = null;
-    try {
-        decoded = await adminAuth.verifyIdToken(adminToken);
-        if (!decoded.admin && decoded.role !== "admin") return { error: "Unauthorized" };
-    } catch {
-        return { error: "Unauthorized" };
-    }
+    const admin = await requireGrowthAdmin(adminToken);
+    if (!admin) return { error: "Unauthorized" };
 
     const ref = adminDatabase.ref(`${GROWTH_COLLECTIONS.campaigns}/${id}`);
     const snap = await ref.get();
@@ -45,14 +36,14 @@ export async function updateCampaign(adminToken: string, id: string, updates: Pa
     await ref.update({
         ...deepClean(updates),
         updatedAt: Date.now(),
-        updatedBy: decoded.uid,
+        updatedBy: admin.uid,
     } as Record<string, unknown>);
 
     const before = snap.val() as Partial<GrowthCampaign>;
     if (before.status && updates.status && before.status !== updates.status) {
-        await writeGrowthAudit({ actor: decoded.uid, action: "campaign_status_changed", targetType: "growthCampaign", targetId: id, detail: { from: before.status, to: updates.status } });
+        await writeGrowthAudit({ actor: admin.uid, action: "campaign_status_changed", targetType: "growthCampaign", targetId: id, detail: { from: before.status, to: updates.status } });
     } else {
-        await writeGrowthAudit({ actor: decoded.uid, action: "campaign_updated", targetType: "growthCampaign", targetId: id, detail: { fields: Object.keys(updates) } });
+        await writeGrowthAudit({ actor: admin.uid, action: "campaign_updated", targetType: "growthCampaign", targetId: id, detail: { fields: Object.keys(updates) } });
     }
     return { ok: true };
 }

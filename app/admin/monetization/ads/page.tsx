@@ -108,7 +108,7 @@ export default function AdminAdsPage() {
                 />
             ) : (
                 <div className="overflow-x-auto rounded-lg border border-border">
-                    <Table>
+                    <Table className="min-w-[920px]">
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Ad</TableHead>
@@ -137,12 +137,12 @@ export default function AdminAdsPage() {
                                             )}
                                             <div>
                                                 <p className="font-medium text-foreground">{a.title}</p>
-                                                {a.disclosure && <p className="max-w-xs truncate text-[10px] text-muted-foreground">{a.disclosure}</p>}
+                                                {a.disclosure && <p className="max-w-xs truncate text-xs text-muted-foreground">{a.disclosure}</p>}
                                             </div>
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant="outline" className="text-[10px] normal-case">{AD_TYPE_LABELS[a.type] || a.type}</Badge>
+                                        <Badge variant="outline" className="text-xs normal-case">{AD_TYPE_LABELS[a.type] || a.type}</Badge>
                                     </TableCell>
                                     <TableCell className="text-muted-foreground">
                                         {a.placementKey ? PLACEMENT_LABELS[a.placementKey as PlacementType] || a.placementKey : "—"}
@@ -152,7 +152,7 @@ export default function AdminAdsPage() {
                                         {a.eCPM != null ? (
                                             <span>
                                                 {fmtCurrency(a.eCPM, a.currency || "USD")}
-                                                <span className="ml-1 rounded bg-warning-muted px-1 py-0.5 text-[10px] text-warning-foreground">est.</span>
+                                                <span className="ml-1 rounded bg-warning-muted px-1 py-0.5 text-xs text-warning-foreground">est.</span>
                                             </span>
                                         ) : (
                                             "—"

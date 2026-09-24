@@ -16,7 +16,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
+import { adminDatabase } from "@/lib/firebase-admin";
 import { GROWTH_COLLECTIONS, CHANNEL_TYPES, CONTENT_TYPES } from "@/lib/growth/constants";
 import { MarketingTask, MarketingApproval } from "@/lib/growth/types";
 import { updateRecord, writeGrowthAudit } from "@/lib/growth/database";
@@ -26,18 +26,7 @@ import {
     runContentPipeline,
     publishTaskToChannel,
 } from "@/lib/growth/agents";
-
-type AdminClaims = { uid: string; admin?: boolean; role?: string };
-
-async function requireAdmin(token: string): Promise<AdminClaims | null> {
-    try {
-        const decoded = await adminAuth.verifyIdToken(token);
-        if (!decoded.admin && decoded.role !== "admin") return null;
-        return { uid: decoded.uid, admin: decoded.admin, role: decoded.role };
-    } catch {
-        return null;
-    }
-}
+import { requireGrowthAdmin } from "@/lib/growth/server-auth";
 
 async function getTask(taskId: string): Promise<MarketingTask | null> {
     const snap = await adminDatabase.ref(`${GROWTH_COLLECTIONS.tasks}/${taskId}`).get();
@@ -45,11 +34,7 @@ async function getTask(taskId: string): Promise<MarketingTask | null> {
 }
 
 export async function POST(request: NextRequest) {
-    const header = request.headers.get("authorization") || "";
-    const token = header.startsWith("Bearer ") ? header.slice(7) : "";
-    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    const admin = await requireAdmin(token);
+    const admin = await requireGrowthAdmin(request);
     if (!admin) return NextResponse.json({ error: "Admin access required" }, { status: 403 });
 
     let body: Record<string, unknown>;

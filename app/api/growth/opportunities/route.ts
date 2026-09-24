@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
 import { detectAllOpportunities } from "@/lib/growth/opportunities/detect";
 import { collectFeedback } from "@/lib/growth/feedback";
+import { requireGrowthAdmin } from "@/lib/growth/server-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,8 +13,8 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
         const token = authHeader.slice(7);
-        const decoded = await adminAuth.verifyIdToken(token);
-        if (!decoded.admin && decoded.role !== "admin") {
+        const admin = await requireGrowthAdmin(token);
+        if (!admin) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 

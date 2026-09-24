@@ -106,10 +106,10 @@ export default function WorkflowEditorPage() {
               <div className="text-[10px] font-bold text-muted-foreground uppercase mt-2 mb-1">{cat}</div>
               <div className="space-y-1">
                 <PaletteItem label="Manual Trigger" type="trigger.manual" />
-                {cat === "market_data" && <><PaletteItem label="Market Quote" type="market_data.quote" /><PaletteItem label="Market Candles" type="market_data.candles" /></>}
-                {cat === "technical" && <><PaletteItem label="SMA" type="technical.sma" /><PaletteItem label="RSI" type="technical.rsi" /></>}
-                {cat === "ai" && <PaletteItem label="AI Analysis" type="ai.analyze" />}
-                {cat === "logic" && <><PaletteItem label="Condition" type="logic.condition" /><PaletteItem label="Delay" type="logic.delay" /></>}
+                {cat === "market_data" && <><PaletteItem label="Market Quote" type="market_data.quote" /><PaletteItem label="Market Candles" type="market_data.candles" /><PaletteItem label="Symbol Info" type="market_data.symbol_info" /></>}
+                {cat === "technical" && <><PaletteItem label="SMA" type="technical.sma" /><PaletteItem label="RSI" type="technical.rsi" /><PaletteItem label="Stochastic %K" type="technical.stoch" /><PaletteItem label="OBV" type="technical.obv" /></>}
+                {cat === "ai" && <><PaletteItem label="AI Analysis" type="ai.analyze" /><PaletteItem label="Extract JSON" type="ai.extract_json" /></>}
+                {cat === "logic" && <><PaletteItem label="Condition" type="logic.condition" /><PaletteItem label="Delay" type="logic.delay" /><PaletteItem label="Math" type="logic.math" /><PaletteItem label="Extract Field" type="logic.extract" /><PaletteItem label="Merge" type="logic.merge" /><PaletteItem label="Switch" type="logic.switch" /></>}
                 {cat === "signal" && <PaletteItem label="Create Signal" type="signal.create" />}
                 {cat === "execution" && <PaletteItem label="Place Order" type="execution.place_order" />}
                 {cat === "notification" && <PaletteItem label="Send Notification" type="notification.send" />}

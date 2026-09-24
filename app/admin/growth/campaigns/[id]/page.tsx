@@ -460,7 +460,7 @@ export default function AdminCampaignDetailPage() {
                                         <li key={e.id || i} className="flex items-center justify-between gap-2 border-b border-border/50 pb-2 text-xs last:border-0">
                                             <span className="inline-flex items-center gap-2">
                                                 <GrowthStatusBadge kind="revenue" value={e.type} />
-                                                {e.estimated && <span className="rounded bg-warning-muted px-1.5 py-0.5 text-[10px] text-warning-foreground">estimate</span>}
+                                                {e.estimated && <span className="rounded bg-warning-muted px-1.5 py-0.5 text-xs text-warning-foreground">estimate</span>}
                                             </span>
                                             <span className="text-muted-foreground">{fmtRelative(e.recordedAt)}</span>
                                             <span className="font-semibold text-foreground">{fmtCurrency(e.amount, e.currency)}</span>

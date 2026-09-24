@@ -159,6 +159,64 @@ export function bollinger(candles: MarketCandle[], period = 20, deviations = 2):
     };
 }
 
+export function stoch(candles: MarketCandle[], period = 14): IndicatorResult {
+    if (candles.length < period) return { value: null, series: [], note: "Not enough candles." };
+    const kSeries: number[] = [];
+    for (let i = period - 1; i < candles.length; i++) {
+        const window = candles.slice(i - period + 1, i + 1);
+        let high = -Infinity;
+        let low = Infinity;
+        for (const c of window) {
+            if (Number(c.high) > high) high = Number(c.high);
+            if (Number(c.low) < low) low = Number(c.low);
+        }
+        const close = Number(candles[i].close);
+        // Flat window has no range — treat as neutral 50 rather than dividing by zero.
+        if (high === low) { kSeries.push(50); continue; }
+        kSeries.push(((close - low) / (high - low)) * 100);
+    }
+    if (kSeries.length === 0) return { value: null, series: [], note: "Not enough candles." };
+
+    // %D = 3-period SMA of %K (standard default).
+    const dPeriod = 3;
+    const dSeries: number[] = [];
+    for (let i = dPeriod - 1; i < kSeries.length; i++) {
+        const window = kSeries.slice(i - dPeriod + 1, i + 1);
+        dSeries.push(window.reduce((a, b) => a + b, 0) / dPeriod);
+    }
+
+    return {
+        value: kSeries[kSeries.length - 1],
+        series: lastN(kSeries),
+        extra: { d: dSeries.length ? dSeries[dSeries.length - 1] : null },
+        note: dSeries.length ? undefined : "Not enough candles for %D.",
+    };
+}
+
+export function obv(candles: MarketCandle[]): IndicatorResult {
+    if (candles.length < 2) return { value: null, series: [], note: "Not enough candles." };
+    const series: number[] = [0];
+    let level = 0;
+    let sawVolume = false;
+    for (let i = 1; i < candles.length; i++) {
+        const volume = Number(candles[i].volume ?? 0);
+        if (volume > 0) sawVolume = true;
+        const close = Number(candles[i].close);
+        const prevClose = Number(candles[i - 1].close);
+        if (close > prevClose) level += volume;
+        else if (close < prevClose) level -= volume;
+        series.push(level);
+    }
+    if (!sawVolume) return { value: null, series: [], note: "Volume data is required for OBV." };
+    const last = series[series.length - 1];
+    const prev = series.length > 1 ? series[series.length - 2] : null;
+    return {
+        value: last,
+        series: lastN(series),
+        extra: { change: prev !== null ? last - prev : 0 },
+    };
+}
+
 export function computeIndicator(type: string, candles: MarketCandle[], period: number): IndicatorResult {
     switch (type) {
         case "technical.sma": return sma(candles, period);
@@ -167,6 +225,8 @@ export function computeIndicator(type: string, candles: MarketCandle[], period: 
         case "technical.macd": return macd(candles, period);
         case "technical.atr": return atr(candles, period);
         case "technical.bollinger": return bollinger(candles, period);
+        case "technical.stoch": return stoch(candles, period);
+        case "technical.obv": return obv(candles);
         default: return { value: null, series: [], note: `Unknown indicator ${type}` };
     }
 }

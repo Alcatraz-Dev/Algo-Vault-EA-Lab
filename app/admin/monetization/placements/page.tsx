@@ -307,7 +307,7 @@ export default function AdminPlacementsPage() {
                 />
             ) : (
                 <div className="overflow-x-auto rounded-lg border border-border">
-                    <Table>
+                    <Table className="min-w-[800px]">
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Name</TableHead>
@@ -324,10 +324,10 @@ export default function AdminPlacementsPage() {
                                 <TableRow key={p.id || p.key}>
                                     <TableCell>
                                         <p className="font-medium text-foreground">{p.name}</p>
-                                        {p.description && <p className="max-w-xs truncate text-[11px] text-muted-foreground">{p.description}</p>}
+                                        {p.description && <p className="max-w-xs truncate text-xs text-muted-foreground">{p.description}</p>}
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant="outline" className="text-[10px] normal-case">
+                                        <Badge variant="outline" className="text-xs normal-case">
                                             {PLACEMENT_LABELS[p.key as PlacementType] || p.key}
                                         </Badge>
                                     </TableCell>
@@ -369,7 +369,7 @@ export default function AdminPlacementsPage() {
 
             {/* Create / edit dialog */}
             <Dialog open={dialogOpen} onOpenChange={(o) => { if (!o && !busy) setDialogOpen(false); }}>
-                <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto">
+                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
                     <DialogHeader>
                         <DialogTitle>{editing ? `Edit ${editing.name}` : "New placement"}</DialogTitle>
                         <DialogDescription>

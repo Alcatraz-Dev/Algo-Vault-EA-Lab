@@ -195,7 +195,7 @@ export default function AdminMonetizationPage() {
                                     <span className="inline-flex items-center gap-2">
                                         <GrowthStatusBadge kind="revenue" value={e.type} />
                                         {e.estimated && (
-                                            <span className="rounded bg-warning-muted px-1.5 py-0.5 text-[10px] text-warning-foreground">estimate</span>
+                                            <span className="rounded bg-warning-muted px-1.5 py-0.5 text-xs text-warning-foreground">estimate</span>
                                         )}
                                     </span>
                                     <span className="truncate text-muted-foreground">

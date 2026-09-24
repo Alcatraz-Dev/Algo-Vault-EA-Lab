@@ -967,6 +967,186 @@ const GUIDES: GuideConfig[] = [
             { target: "[data-guide='content']", title: "Preview & save", body: "Preview changes before saving — the preview shows how the platform will look with your branding." },
         ],
     },
+
+    // ── Growth Admin ──
+    {
+        key: "growth-overview",
+        pageTitle: "Growth Overview",
+        match: (p) => p === "/admin/growth",
+        steps: [
+            { target: "[data-guide='page-header']", title: "Growth overview", body: "Operational view across campaigns, content, channels and revenue — built only from what the engine has really recorded." },
+            { title: "Impressions", body: "Impressions, clicks, CTR, active campaigns, conversions and total events roll up from real placement and campaign events." },
+            { title: "Revenue trend", body: "Revenue summed per day for the selected range — switch between last 30 days, 90 days, or all time." },
+            { title: "Channel performance", body: "Compare how each channel converts so you can double down on what actually works." },
+            { title: "Revenue summary", body: "Revenue broken down by source — ads, affiliate, sponsored, subscriptions and marketplace. Estimated portions are always labelled as estimates." },
+            { title: "Recent revenue", body: "The newest recorded revenue entries with their type, amount and date." },
+        ],
+    },
+    {
+        key: "growth-campaigns",
+        pageTitle: "Growth Campaigns",
+        match: (p) => p === "/admin/growth/campaigns",
+        steps: [
+            { target: "[data-guide='page-header']", title: "Campaigns", body: "Plan, run and track growth campaigns — each with an objective, budget, schedule and target channels." },
+            { title: "New campaign", body: "Click 'New campaign' to create one — pick the objective, set budget and schedule, choose channels, target countries and attach affiliate offers." },
+            { title: "What status changes do", body: "Statuses drive behaviour — draft campaigns make no changes, while tasks that require approval must be approved before the campaign can run." },
+            { title: "All objectives", body: "Filter the list by status or objective to focus on what needs attention." },
+        ],
+    },
+    {
+        key: "growth-content",
+        pageTitle: "Growth Content",
+        match: (p) => p === "/admin/growth/content",
+        steps: [
+            { target: "[data-guide='page-header']", title: "Content", body: "Marketing content tasks and their lifecycle — draft, approval, scheduling and publishing." },
+            { title: "New content", body: "Create a task with a type and topic; you can optionally run the AI pipeline immediately to generate the asset." },
+            { title: "Publishing rules", body: "Content only reaches live channels when it passes the rules here — what gets approved, scheduled and published, and where it cannot go." },
+            { title: "Approve", body: "Approve a task to let it move forward, or reject it with a required reason." },
+        ],
+    },
+    {
+        key: "growth-channels",
+        pageTitle: "Growth Channels",
+        match: (p) => p === "/admin/growth/channels",
+        steps: [
+            { target: "[data-guide='page-header']", title: "Channels", body: "Central control for the channels content and campaigns publish through, with live health status." },
+            { title: "Enable / disable", body: "Toggle a channel on or off — disabled channels are skipped when content is scheduled or published." },
+        ],
+    },
+    {
+        key: "growth-opportunities",
+        pageTitle: "Growth Opportunities",
+        match: (p) => p === "/admin/growth/opportunities",
+        steps: [
+            { target: "[data-guide='page-header']", title: "Opportunities", body: "Real opportunity detection from stored content, events, placements, revenue and metrics — never simulated." },
+            { title: "Real opportunity detection from stored content", body: "Opportunities are only created from data that actually exists in the system — sources with no data report back instead of inventing ideas." },
+            { title: "All impacts", body: "Filter by status, impact and type, then review each opportunity's confidence, status and the action it proposes." },
+        ],
+    },
+    {
+        key: "growth-loop",
+        pageTitle: "Growth Loop",
+        match: (p) => p === "/admin/growth/loop",
+        steps: [
+            { target: "[data-guide='page-header']", title: "Loop", body: "The feedback loop that learns from what's working — detection, recommendation and approval flow." },
+            { title: "Current policy", body: "The active recommendation policy that decides what the loop proposes next. Changes here only affect new detections." },
+            { title: "Latest detections", body: "Recent signals the loop has picked up, with their status as they move through the pipeline." },
+        ],
+    },
+    {
+        key: "growth-workflows",
+        pageTitle: "Growth Workflows",
+        match: (p) => p === "/admin/growth/workflows",
+        steps: [
+            { target: "[data-guide='page-header']", title: "Workflows", body: "Run and monitor content generation workflows — research, drafting and production pipelines." },
+            { title: "Run a content workflow", body: "Give a topic and objective, then press 'Run workflow' — the pipeline queues an execution and reports its ID." },
+            { title: "Pipeline stages", body: "Each execution moves through the pipeline stages in order; the current step is highlighted as it goes." },
+        ],
+    },
+    {
+        key: "growth-approvals",
+        pageTitle: "Growth Approvals",
+        match: (p) => p === "/admin/growth/approvals",
+        steps: [
+            { target: "[data-guide='page-header']", title: "Approvals", body: "Review decisions for tasks that need human sign-off before they can run or publish." },
+            { title: "Pending review", body: "Tasks waiting for a decision — open one to see the full proposal, then approve or reject it." },
+            { title: "Recent decisions", body: "A history of past decisions, with the rules that were applied to each." },
+        ],
+    },
+    {
+        key: "growth-reports",
+        pageTitle: "Growth Reports",
+        match: (p) => p === "/admin/growth/reports",
+        steps: [
+            { target: "[data-guide='page-header']", title: "Reports", body: "Generate structured growth and monetization reports and review previously generated ones." },
+            { title: "Generate report", body: "Pick the report type and date range, then generate — the report is built from real recorded data." },
+            { title: "What every report contains", body: "Every report follows the same structure — the sections listed here are always included." },
+            { title: "Recommendations", body: "Each report closes with actionable recommendations based on the data it analysed." },
+        ],
+    },
+    {
+        key: "growth-experiments",
+        pageTitle: "Growth Experiments",
+        match: (p) => p === "/admin/growth/experiments",
+        steps: [
+            { target: "[data-guide='page-header']", title: "Experiments", body: "Run controlled experiments between content variants and measure which performs better." },
+            { title: "Create experiment", body: "Define the baseline and challenger variant, choose the success metric, and set the holdout percentage before launching." },
+            { title: "How winning is determined", body: "Winners are decided by statistical significance — not by raw numbers alone. This card explains the exact rule." },
+        ],
+    },
+
+    // ── Monetization Admin ──
+    {
+        key: "monetization-overview",
+        pageTitle: "Monetization Overview",
+        match: (p) => p === "/admin/monetization",
+        steps: [
+            { target: "[data-guide='page-header']", title: "Monetization overview", body: "Revenue, ad networks and placements at a glance — what the engine has actually recorded." },
+            { title: "Revenue records", body: "The most recent revenue entries with their type and amount — nothing here is estimated." },
+            { title: "Ad networks", body: "Quick status of connected ad networks and a shortcut to manage them." },
+            { title: "Placements & ads", body: "Where ads render and which ads are registered in the inventory, with shortcuts to both." },
+            { title: "Settings", body: "Monetization defaults — premium handling, ad caps and display currency." },
+        ],
+    },
+    {
+        key: "monetization-ad-networks",
+        pageTitle: "Ad Networks",
+        match: (p) => p === "/admin/monetization/ad-networks",
+        steps: [
+            { target: "[data-guide='page-header']", title: "Ad networks", body: "The real configuration state of each ad network, read from the server environment — never shown as configured when it isn't." },
+            { title: "Required environment", body: "Each network lists the environment variables it needs — a network only reports 'CONFIGURED' once they are all set." },
+            { title: "No secrets, no fakes", body: "Networks are listed honestly with their real status — nothing is fabricated to make the inventory look fuller." },
+        ],
+    },
+    {
+        key: "monetization-placements",
+        pageTitle: "Placements",
+        match: (p) => p === "/admin/monetization/placements",
+        steps: [
+            { target: "[data-guide='page-header']", title: "Placements", body: "Define where ads may render — sidebar, inline, footer and more — for the live placement engine." },
+            { title: "New placement", body: "Create a placement with its key, type and priority (0–100, higher wins). The configuration is read live by the placement engine." },
+        ],
+    },
+    {
+        key: "monetization-ads",
+        pageTitle: "Ads",
+        match: (p) => p === "/admin/monetization/ads",
+        steps: [
+            { target: "[data-guide='page-header']", title: "Ads", body: "The ad inventory — every registered advertisement with its status and target URL." },
+            { title: "About this list", body: "Ads are displayed through placements; this list shows what's registered and where each ad links." },
+        ],
+    },
+    {
+        key: "monetization-affiliate",
+        pageTitle: "Affiliate",
+        match: (p) => p === "/admin/monetization/affiliate",
+        steps: [
+            { target: "[data-guide='page-header']", title: "Affiliate offers", body: "Affiliate offers, their counters and reconciliation with source events." },
+            { title: "New offer", body: "Create an offer for trading tools, VPS, brokers and more. The disclosure field is required — it's part of the affiliate compliance rules." },
+            { title: "Attribution policy", body: "The AI recommends offers by relevance to the reader's intent — never by commission. No secret deals." },
+            { title: "Reconcile counters", body: "Re-run reconciliation to align the stored counters with the actual source events." },
+        ],
+    },
+    {
+        key: "monetization-revenue",
+        pageTitle: "Revenue",
+        match: (p) => p === "/admin/monetization/revenue",
+        steps: [
+            { target: "[data-guide='page-header']", title: "Revenue", body: "Revenue records grouped by source — only real recorded entries, never estimated to fill the table." },
+            { title: "Total", body: "Totals for the selected range and each source — ads, affiliate, sponsored, subscriptions and marketplace." },
+            { title: "All types", body: "Filter the records by type and inspect each entry's amount and recorded date." },
+        ],
+    },
+    {
+        key: "monetization-settings",
+        pageTitle: "Monetization Settings",
+        match: (p) => p === "/admin/monetization/settings",
+        steps: [
+            { target: "[data-guide='page-header']", title: "Settings", body: "Monetization engine defaults — premium ad handling, daily caps and display currency." },
+            { title: "Save settings", body: "Changes are saved with the 'Save settings' button and become the engine defaults immediately." },
+            { title: "Where the defaults apply", body: "Defaults can be overridden per placement or ad — and AdMob is mobile-only, never rendered in the web app." },
+        ],
+    },
 ];
 
 export function findGuide(pathname: string): GuideConfig | undefined {
