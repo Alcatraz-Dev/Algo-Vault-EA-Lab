@@ -5,7 +5,7 @@ import { adminAuth } from "@/lib/firebase-admin";
 import { runCronJob } from "@/lib/growth/jobs";
 import type { CronJobName } from "@/lib/growth/jobs";
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ job: string }> }) {
     try {
         const authHeader = request.headers.get("authorization");
         const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
@@ -19,8 +19,9 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Admin access required" }, { status: 403 });
         }
 
+        const { job } = await params;
         const body = await request.json().catch(() => ({}));
-        const { job, payload, cronSecret } = body;
+        const { payload, cronSecret } = body;
 
         // Verify cron secret.
         const expectedSecret = process.env.CRON_SECRET;

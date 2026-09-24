@@ -1,12 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BarChart3, FileBarChart2, Plus, RefreshCw } from "lucide-react";
+import { BarChart3, Download, FileBarChart2, FileText, Plus, RefreshCw } from "lucide-react";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/loading-state";
+import { Select } from "@/components/ui/select";
 import {
     Table,
     TableBody,
@@ -25,11 +27,13 @@ import {
 } from "@/components/ui/dialog";
 import { FormField } from "@/components/ui/form-field";
 import { Badge } from "@/components/ui/badge";
+import { ReportTypeSelector } from "./ReportTypeSelector";
 import { useAdminFetch } from "@/components/growth/admin/useAdminFetch";
 import { adminFetch } from "@/components/growth/admin/session";
 import { RefreshButton } from "@/components/growth/admin/RefreshButton";
-import { fmtDate, fmtDateTime, fmtRelative } from "@/components/growth/admin/format";
-import { REPORT_INTERVALS, ReportInterval } from "@/lib/growth/constants";
+import { NoticeBanner } from "@/components/growth/admin/NoticeBanner";
+import { fmtDate, fmtDateTime, fmtRelative, fmtCurrency } from "@/components/growth/admin/format";
+import { REPORT_INTERVALS, ReportInterval, ReportType } from "@/lib/growth/constants";
 
 type ReportSection = {
     key: string;
@@ -43,6 +47,7 @@ type ReportRow = {
     id?: string;
     title: string;
     interval: string;
+    type?: string;
     periodStart: number;
     periodEnd: number;
     sections: ReportSection[];
@@ -50,16 +55,58 @@ type ReportRow = {
     generatedBy?: string;
     createdAt?: number;
     updatedAt?: number;
+    rawData?: { revenue?: Array<{ recordedAt: number; amount: number; type: string }> };
 };
 
-const inputCls =
-    "h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50";
+function exportReportCSV(report: ReportRow) {
+    const rows: string[] = ["Report Type,Generated At,Interval", `${report.type || "GROWTH"},${fmtDateTime(report.createdAt)},${report.interval}`, "", "Section,Metric,Value"];
+    for (const section of report.sections || []) {
+        for (const m of section.metrics || []) {
+            rows.push(`${section.title},${m.label},${m.value}`);
+        }
+        for (const item of section.items || []) {
+            rows.push(`${section.title},${item.label},${item.value}`);
+        }
+    }
+    const blob = new Blob([rows.join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${report.title}-${report.interval}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function exportReportPDF(report: ReportRow) {
+    const content = [
+        `<h1>${report.title}</h1>`,
+        `<p>${report.interval} · ${fmtDate(report.periodStart)} – ${fmtDate(report.periodEnd)}</p>`,
+        "",
+        ...(report.sections || []).flatMap((section) => [
+            `<h2>${section.title}</h2>`,
+            ...(section.metrics || []).map((m) => `<p><b>${m.label}:</b> ${m.value}</p>`),
+            section.narrative ? `<p>${section.narrative}</p>` : "",
+        ]),
+        "",
+        ...(report.recommendations || []).map((rec) => `<li>${rec}</li>`),
+        "",
+        `<p>Generated ${fmtDateTime(report.createdAt)} by ${report.generatedBy || "pipeline"}</p>`,
+    ].join("\n");
+    const blob = new Blob([content], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${report.title}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
 
 export default function AdminGrowthReportsPage() {
     const reports = useAdminFetch<ReportRow[]>("/api/growth/reports");
     const [interval, setInterval] = useState("");
     const [genOpen, setGenOpen] = useState(false);
     const [genInterval, setGenInterval] = useState<ReportInterval>("WEEKLY");
+    const [genType, setGenType] = useState<ReportType>("GROWTH");
     const [busy, setBusy] = useState(false);
     const [viewing, setViewing] = useState<ReportRow | null>(null);
     const [notice, setNotice] = useState<{ kind: "ok" | "error" | "info"; text: string } | null>(null);
@@ -82,7 +129,7 @@ export default function AdminGrowthReportsPage() {
             const result = await adminFetch<{ report?: ReportRow | null; duplicate?: boolean; error?: string }>("/api/growth/reports", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ interval: genInterval }),
+                body: JSON.stringify({ interval: genInterval, type: genType }),
             });
             if (result.duplicate) {
                 flash("info", "A report for this period already exists — the job is idempotent.");
@@ -116,30 +163,17 @@ export default function AdminGrowthReportsPage() {
                 }
             />
 
-            {notice && (
-                <div
-                    role="status"
-                    className={`rounded-md border px-3 py-2 text-xs ${
-                        notice.kind === "ok"
-                            ? "border-success/30 bg-success/10 text-success-foreground"
-                            : notice.kind === "error"
-                              ? "border-destructive/30 bg-destructive/10 text-destructive-foreground"
-                              : "border-info/30 bg-info/10 text-info-foreground"
-                    }`}
-                >
-                    {notice.text}
-                </div>
-            )}
+            {notice && <NoticeBanner variant={notice.kind === "ok" ? "success" : notice.kind === "info" ? "info" : "error"}>{notice.text}</NoticeBanner>}
 
             <div className="flex flex-wrap items-center gap-2">
-                <select aria-label="Filter by interval" value={interval} onChange={(e) => setInterval(e.target.value)} className={inputCls}>
+                <Select aria-label="Filter by interval" value={interval} onChange={(e) => setInterval(e.target.value)}>
                     <option value="">All intervals</option>
                     {REPORT_INTERVALS.map((iv) => (
                         <option key={iv} value={iv}>
                             {iv}
                         </option>
                     ))}
-                </select>
+                </Select>
                 <span className="ml-auto text-xs text-muted-foreground">{filtered.length} report(s)</span>
             </div>
 
@@ -228,14 +262,15 @@ export default function AdminGrowthReportsPage() {
                         </DialogDescription>
                     </DialogHeader>
                     <FormField label="Interval" htmlFor="rep-interval">
-                        <select id="rep-interval" className={inputCls} value={genInterval} onChange={(e) => setGenInterval(e.target.value as ReportInterval)}>
+                        <Select id="rep-interval" value={genInterval} onChange={(e) => setGenInterval(e.target.value as ReportInterval)}>
                             {REPORT_INTERVALS.map((iv) => (
                                 <option key={iv} value={iv}>
                                     {iv === "DAILY" ? "Daily — last 24h" : iv === "WEEKLY" ? "Weekly — last 7 days" : "Monthly — last 30 days"}
                                 </option>
                             ))}
-                        </select>
+                        </Select>
                     </FormField>
+                    <ReportTypeSelector value={genType} onChange={setGenType} label="Report type" description="Select the scope of the report." />
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setGenOpen(false)} disabled={busy}>
                             Cancel
@@ -250,7 +285,7 @@ export default function AdminGrowthReportsPage() {
             {/* View report dialog */}
             <Dialog open={viewing !== null} onOpenChange={(o) => { if (!o) setViewing(null); }}>
                 <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
-                    <DialogHeader>
+                     <DialogHeader>
                         <DialogTitle>{viewing?.title}</DialogTitle>
                         {viewing ? (
                             <DialogDescription>
@@ -271,6 +306,26 @@ export default function AdminGrowthReportsPage() {
                                             </div>
                                         ))}
                                     </div>
+                                    {section.key === "revenue" && viewing.rawData?.revenue && (
+                                        <div className="mt-3 h-[180px]">
+                                            <ResponsiveContainer>
+                                                <BarChart data={viewing.rawData.revenue.map((e: { recordedAt: number; amount: number }) => ({
+                                                    date: new Date(e.recordedAt).toISOString().slice(0, 10),
+                                                    revenue: e.amount,
+                                                }))}>
+                                                    <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+                                                    <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                                                    <YAxis tick={{ fontSize: 10 }} />
+                                                    <Tooltip
+                                                        contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+                                                        formatter={(value: unknown) => [fmtCurrency(Number(value)), "Revenue"]}
+                                                    />
+                                                    <Legend />
+                                                    <Bar dataKey="revenue" fill="hsl(var(--primary))" name="Revenue" />
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    )}
                                     {(section.items || []).length > 0 && (
                                         <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
                                             {(section.items || []).map((item, i) => (
@@ -293,7 +348,19 @@ export default function AdminGrowthReportsPage() {
                                     </ul>
                                 </div>
                             )}
-                            <p className="text-xs text-muted-foreground">{fmtDateTime(viewing.createdAt)} · {viewing.generatedBy || "pipeline"}</p>
+                            <div className="flex items-center justify-between border-t border-border pt-3">
+                                <p className="text-xs text-muted-foreground">{fmtDateTime(viewing.createdAt)} · {viewing.generatedBy || "pipeline"}</p>
+                                <div className="flex gap-2">
+                                    <Button type="button" variant="outline" size="sm" onClick={() => exportReportCSV(viewing)}>
+                                        <Download size={14} />
+                                        Export CSV
+                                    </Button>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => exportReportPDF(viewing)}>
+                                        <FileText size={14} />
+                                        Export PDF
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </DialogContent>

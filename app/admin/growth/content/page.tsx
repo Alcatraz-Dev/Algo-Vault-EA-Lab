@@ -37,10 +37,12 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { FormField } from "@/components/ui/form-field";
+import { Select, Textarea } from "@/components/ui/select";
 import { useAdminFetch } from "@/components/growth/admin/useAdminFetch";
 import { adminFetch } from "@/components/growth/admin/session";
 import { RefreshButton } from "@/components/growth/admin/RefreshButton";
 import { GrowthStatusBadge } from "@/components/growth/admin/GrowthStatusBadge";
+import { NoticeBanner } from "@/components/growth/admin/NoticeBanner";
 import { fromInputDateTime, fmtDateTime, fmtRelative, toInputDateTime } from "@/components/growth/admin/format";
 import {
     CHANNEL_LABELS,
@@ -78,9 +80,6 @@ type TaskRow = {
 
 type CampaignRow = { id: string; name: string; status?: string };
 type ChannelStatus = { type: string; state: string; reason?: string };
-
-const inputCls =
-    "h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50";
 
 export default function AdminGrowthContentPage() {
     const tasks = useAdminFetch<TaskRow[]>("/api/growth/content");
@@ -231,18 +230,7 @@ export default function AdminGrowthContentPage() {
                 }
             />
 
-            {notice && (
-                <div
-                    role="status"
-                    className={`rounded-md border px-3 py-2 text-xs ${
-                        notice.kind === "ok"
-                            ? "border-success/30 bg-success/10 text-success-foreground"
-                            : "border-destructive/30 bg-destructive/10 text-destructive-foreground"
-                    }`}
-                >
-                    {notice.text}
-                </div>
-            )}
+            {notice && <NoticeBanner variant={notice.kind === "ok" ? "success" : "error"}>{notice.text}</NoticeBanner>}
 
             <div className="flex flex-wrap items-center gap-2">
                 <div className="relative min-w-52 flex-1 sm:max-w-xs">
@@ -256,30 +244,30 @@ export default function AdminGrowthContentPage() {
                     />
                 </div>
                 <div className="flex flex-wrap gap-2">
-                    <select aria-label="Filter by state" value={state} onChange={(e) => setState(e.target.value)} className={inputCls}>
+                    <Select aria-label="Filter by state" value={state} onChange={(e) => setState(e.target.value)}>
                         <option value="">All states</option>
                         {MARKETING_TASK_STATES.map((s) => (
                             <option key={s} value={s}>
                                 {MARKETING_TASK_STATE_LABELS[s]}
                             </option>
                         ))}
-                    </select>
-                    <select aria-label="Filter by channel" value={channel} onChange={(e) => setChannel(e.target.value)} className={inputCls}>
+                    </Select>
+                    <Select aria-label="Filter by channel" value={channel} onChange={(e) => setChannel(e.target.value)}>
                         <option value="">All channels</option>
                         {CHANNEL_TYPES.map((c) => (
                             <option key={c} value={c}>
                                 {CHANNEL_LABELS[c]}
                             </option>
                         ))}
-                    </select>
-                    <select aria-label="Filter by campaign" value={campaignId} onChange={(e) => setCampaignId(e.target.value)} className={inputCls}>
+                    </Select>
+                    <Select aria-label="Filter by campaign" value={campaignId} onChange={(e) => setCampaignId(e.target.value)}>
                         <option value="">All campaigns</option>
                         {(campaigns.data || []).map((c) => (
                             <option key={c.id} value={c.id}>
                                 {c.name}
                             </option>
                         ))}
-                    </select>
+                    </Select>
                 </div>
                 <span className="ml-auto text-xs text-muted-foreground">{filtered.length} task(s)</span>
             </div>
@@ -475,15 +463,15 @@ export default function AdminGrowthContentPage() {
                         <DialogDescription>Creates a marketing task, then optionally runs the AI pipeline immediately.</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
-                        <FormField label="Type" htmlFor="ct-type" required>
-                            <select id="ct-type" className={inputCls} value={createForm.type} onChange={(e) => setCreateForm((f) => ({ ...f, type: e.target.value }))}>
-                                {CONTENT_TYPES.map((t) => (
-                                    <option key={t} value={t}>
-                                        {CONTENT_TYPE_LABELS[t]}
-                                    </option>
-                                ))}
-                            </select>
-                        </FormField>
+                            <FormField label="Type" htmlFor="ct-type" required>
+                                <Select id="ct-type" value={createForm.type} onChange={(e) => setCreateForm((f) => ({ ...f, type: e.target.value }))}>
+                                    {CONTENT_TYPES.map((t) => (
+                                        <option key={t} value={t}>
+                                            {CONTENT_TYPE_LABELS[t]}
+                                        </option>
+                                    ))}
+                                </Select>
+                            </FormField>
                         <FormField label="Topic" htmlFor="ct-topic" required>
                             <Input id="ct-topic" value={createForm.topic} onChange={(e) => setCreateForm((f) => ({ ...f, topic: e.target.value }))} placeholder="e.g. Trend following basics" />
                         </FormField>
@@ -507,16 +495,16 @@ export default function AdminGrowthContentPage() {
                                 })}
                             </div>
                         </FormField>
-                        <FormField label="Campaign" htmlFor="ct-campaign" description="Optional link to a campaign.">
-                            <select id="ct-campaign" className={inputCls} value={createForm.campaignId} onChange={(e) => setCreateForm((f) => ({ ...f, campaignId: e.target.value }))}>
-                                <option value="">No campaign</option>
-                                {(campaigns.data || []).map((c) => (
-                                    <option key={c.id} value={c.id}>
-                                        {c.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </FormField>
+                            <FormField label="Campaign" htmlFor="ct-campaign" description="Optional link to a campaign.">
+                                <Select id="ct-campaign" value={createForm.campaignId} onChange={(e) => setCreateForm((f) => ({ ...f, campaignId: e.target.value }))}>
+                                    <option value="">No campaign</option>
+                                    {(campaigns.data || []).map((c) => (
+                                        <option key={c.id} value={c.id}>
+                                            {c.name}
+                                        </option>
+                                    ))}
+                                </Select>
+                            </FormField>
                         <FormField label="Tone" htmlFor="ct-tone">
                             <Input id="ct-tone" value={createForm.tone} onChange={(e) => setCreateForm((f) => ({ ...f, tone: e.target.value }))} placeholder="professional" />
                         </FormField>
@@ -615,14 +603,14 @@ export default function AdminGrowthContentPage() {
                         </DialogDescription>
                     </DialogHeader>
                     <FormField label="Channel" htmlFor="pub-channel" required>
-                        <select id="pub-channel" className={inputCls} value={publishChannel} onChange={(e) => setPublishChannel(e.target.value)}>
+                        <Select id="pub-channel" value={publishChannel} onChange={(e) => setPublishChannel(e.target.value)}>
                             {publishChannelOptions.map((c) => (
                                 <option key={c} value={c}>
                                     {CHANNEL_LABELS[c as keyof typeof CHANNEL_LABELS] || c}
                                     {channelByName.get(c)?.state === "CONFIGURED" ? " · configured" : " · not configured"}
                                 </option>
                             ))}
-                        </select>
+                        </Select>
                     </FormField>
                     {publishChannel && (
                         <p className="text-xs text-muted-foreground">
@@ -684,12 +672,10 @@ export default function AdminGrowthContentPage() {
                         <DialogDescription>Add a reason — it is stored on the task and keeps the feedback loop honest.</DialogDescription>
                     </DialogHeader>
                     <FormField label="Reason" htmlFor="reject-reason" required>
-                        <textarea
+                        <Textarea
                             id="reject-reason"
-                            rows={3}
                             value={rejectReason}
                             onChange={(e) => setRejectReason(e.target.value)}
-                            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
                             placeholder="e.g. Claims not backed by the data."
                         />
                     </FormField>

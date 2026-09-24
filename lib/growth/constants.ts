@@ -274,6 +274,18 @@ export type MarketingWorkflowAction = (typeof MARKETING_WORKFLOW_ACTIONS)[number
 export const REPORT_INTERVALS = ["DAILY", "WEEKLY", "MONTHLY"] as const;
 export type ReportInterval = (typeof REPORT_INTERVALS)[number];
 
+export const REPORT_TYPES = ["GROWTH", "REVENUE", "ACQUISITION", "CONTENT", "CHANNEL", "CAMPAIGN"] as const;
+export type ReportType = (typeof REPORT_TYPES)[number];
+
+export const REPORT_TYPE_LABELS: Record<ReportType, string> = {
+    GROWTH: "Growth Overview",
+    REVENUE: "Revenue Breakdown",
+    ACQUISITION: "Acquisition Funnel",
+    CONTENT: "Content Performance",
+    CHANNEL: "Channel Performance",
+    CAMPAIGN: "Campaign Deep-Dive",
+};
+
 // ─── Audit ───────────────────────────────────────────────────────────────────
 
 export const GROWTH_AUDIT_ACTIONS = [
@@ -406,6 +418,7 @@ export const GROWTH_COLLECTIONS = {
     opportunities: "growthOpportunities",
     growthApprovals: "growthApprovals",
     loopExecutions: "growthLoopExecutions",
+    loopState: "growthLoopState",
     fatigueSignals: "growthFatigueSignals",
     feedback: "growthFeedback",
     policies: "growthPolicies",

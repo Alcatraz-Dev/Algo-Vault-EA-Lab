@@ -33,6 +33,7 @@ import {
 } from "../types";
 
 import { getMarketingAssetLibrary, lookupAsset } from "../assets";
+import { registerMarketingMediaProvider } from "./index";
 
 const PROVIDER_ID = "local-deterministic";
 
@@ -65,7 +66,7 @@ export class LocalDeterministicProvider implements MarketingMediaProvider {
     async generateScript(input: GenerateScriptInput): Promise<{ ok: boolean; script?: Script; error?: string }> {
         try {
             const preset = getVideoPreset("tiktok");
-            const duration = estimateDuration(input.durationSec ?? 30, preset.maxDurationSec);
+            const duration = estimateDuration(input.durationSec ?? 30, preset?.maxDurationSec ?? 60);
             const scenes: ScriptScene[] = buildScenes(input, duration);
             const script: Script = {
                 id: deterministicId(`script:${input.feature}:${input.angle}`),
@@ -140,31 +141,21 @@ export class LocalDeterministicProvider implements MarketingMediaProvider {
         };
     }
 
-    async composeVideo(input: ComposeVideoInput): Promise<ComposeVideoResult> {
-        const { composeVideoLocal } = await import("../render/composer");
-        try {
-            return await composeVideoLocal(input, { provider: PROVIDER_ID });
-        } catch (err) {
-            return {
-                ok: false,
-                error: err instanceof Error ? err.message : "Local composition failed.",
-                provider: PROVIDER_ID,
-                fallbackUsed: false,
-            };
-        }
+    async composeVideo(_input: ComposeVideoInput): Promise<ComposeVideoResult> {
+        return {
+            ok: false,
+            error: "Local video composition is not available (FFmpeg/render backend not configured).",
+            provider: PROVIDER_ID,
+            fallbackUsed: false,
+        };
     }
 
-    async generateThumbnail(input: GenerateThumbnailInput): Promise<GenerateThumbnailResult> {
-        const { generateThumbnailLocal } = await import("../render/composer");
-        try {
-            return await generateThumbnailLocal(input, { provider: PROVIDER_ID });
-        } catch (err) {
-            return {
-                ok: false,
-                error: err instanceof Error ? err.message : "Local thumbnail generation failed.",
-                provider: PROVIDER_ID,
-            };
-        }
+    async generateThumbnail(_input: GenerateThumbnailInput): Promise<GenerateThumbnailResult> {
+        return {
+            ok: false,
+            error: "Local thumbnail generation is not available (FFmpeg/render backend not configured).",
+            provider: PROVIDER_ID,
+        };
     }
 }
 

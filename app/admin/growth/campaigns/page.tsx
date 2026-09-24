@@ -2,13 +2,14 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Archive, Pause, Play, Pencil, Plus, Search } from "lucide-react";
+import { Archive, Megaphone, Pause, Play, Pencil, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/loading-state";
+import { Select } from "@/components/ui/select";
 import {
     Table,
     TableBody,
@@ -21,15 +22,41 @@ import { useAdminFetch } from "@/components/growth/admin/useAdminFetch";
 import { adminFetch } from "@/components/growth/admin/session";
 import { RefreshButton } from "@/components/growth/admin/RefreshButton";
 import { GrowthStatusBadge } from "@/components/growth/admin/GrowthStatusBadge";
+import { ConfirmDialog } from "@/components/growth/admin/ConfirmDialog";
+import { NoticeBanner } from "@/components/growth/admin/NoticeBanner";
 import {
     CampaignFormDialog,
-    type CampaignFormRow,
     type CampaignFormValues,
+    type CampaignFormRow,
 } from "@/components/growth/admin/CampaignFormDialog";
-import { fmtDate } from "@/components/growth/admin/format";
+import { fmtDate, fmtCurrency } from "@/components/growth/admin/format";
 import { CAMPAIGN_OBJECTIVE_LABELS, CAMPAIGN_STATUSES, CHANNEL_LABELS } from "@/lib/growth/constants";
+import { ctr, roas } from "@/lib/growth/metrics";
 
-type Campaign = CampaignFormRow & { createdAt: number; budget?: number };
+type Campaign = {
+    id: string;
+    name: string;
+    objective?: string;
+    status?: string;
+    channels?: string[];
+    startDate?: number;
+    endDate?: number;
+    createdAt: number;
+    campaignId?: string;
+    budget?: number;
+    spent?: number;
+    impressions?: number;
+    clicks?: number;
+    conversions?: number;
+    revenue?: number;
+};
+
+type CampaignPerformance = {
+    impressions: number;
+    clicks: number;
+    conversions: number;
+    revenue: number;
+};
 
 export default function AdminCampaignsPage() {
     const campaigns = useAdminFetch<Campaign[]>("/api/growth/campaigns");
@@ -40,6 +67,10 @@ export default function AdminCampaignsPage() {
     const [editing, setEditing] = useState<Campaign | null>(null);
     const [busy, setBusy] = useState(false);
     const [busyAction, setBusyAction] = useState<string | null>(null);
+    const [confirmState, setConfirmState] = useState<{ action: "archive" | "pause" | "resume" | null; campaign: Campaign | null }>({
+        action: null,
+        campaign: null,
+    });
     const [notice, setNotice] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
 
     const flash = (kind: "ok" | "error", text: string) => {
@@ -74,6 +105,13 @@ export default function AdminCampaignsPage() {
         } finally {
             setBusyAction(null);
         }
+    };
+
+    const handleConfirmAction = async () => {
+        if (!confirmState.campaign || !confirmState.action) return;
+        const { id, action } = { id: confirmState.campaign.id, action: confirmState.action };
+        await runAction(id, action);
+        setConfirmState({ action: null, campaign: null });
     };
 
     const submitForm = async (values: CampaignFormValues) => {
@@ -121,6 +159,27 @@ export default function AdminCampaignsPage() {
         setModalOpen(true);
     };
 
+    const confirmArchive = (c: Campaign) => {
+        setConfirmState({ action: "archive", campaign: c });
+    };
+
+    const getCtr = (c: Campaign): string => {
+        const result = ctr(c.clicks || 0, c.impressions || 0);
+        if (!result || result.insufficient) return "—";
+        return `${result.value.toFixed(2)}%`;
+    };
+
+    const getRoas = (c: Campaign): string => {
+        const result = roas(c.revenue || 0, c.spent || 0);
+        if (result === null) return "—";
+        return `${result.toFixed(1)}x`;
+    };
+
+    const budgetProgress = (c: Campaign): number => {
+        if (!c.budget || c.budget <= 0) return 0;
+        return Math.min(((c.spent || 0) / c.budget) * 100, 100);
+    };
+
     return (
         <div className="space-y-6">
             <PageHeader
@@ -137,18 +196,7 @@ export default function AdminCampaignsPage() {
                 }
             />
 
-            {notice && (
-                <div
-                    role="status"
-                    className={`rounded-md border px-3 py-2 text-xs ${
-                        notice.kind === "ok"
-                            ? "border-success/30 bg-success/10 text-success-foreground"
-                            : "border-destructive/30 bg-destructive/10 text-destructive-foreground"
-                    }`}
-                >
-                    {notice.text}
-                </div>
-            )}
+            {notice && <NoticeBanner variant={notice.kind === "ok" ? "success" : "error"}>{notice.text}</NoticeBanner>}
 
             <div className="flex flex-wrap items-center gap-2">
                 <div className="relative min-w-52 flex-1 sm:max-w-xs">
@@ -161,11 +209,10 @@ export default function AdminCampaignsPage() {
                         className="pl-8"
                     />
                 </div>
-                <select
+                <Select
                     aria-label="Filter by status"
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
-                    className="h-9 rounded-md border border-input bg-transparent px-2 text-sm text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
                 >
                     <option value="">All statuses</option>
                     {CAMPAIGN_STATUSES.map((s) => (
@@ -173,12 +220,11 @@ export default function AdminCampaignsPage() {
                             {s}
                         </option>
                     ))}
-                </select>
-                <select
+                </Select>
+                <Select
                     aria-label="Filter by objective"
                     value={objective}
                     onChange={(e) => setObjective(e.target.value)}
-                    className="h-9 rounded-md border border-input bg-transparent px-2 text-sm text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
                 >
                     <option value="">All objectives</option>
                     {Object.entries(CAMPAIGN_OBJECTIVE_LABELS).map(([key, label]) => (
@@ -186,7 +232,7 @@ export default function AdminCampaignsPage() {
                             {label}
                         </option>
                     ))}
-                </select>
+                </Select>
                 <span className="ml-auto text-xs text-muted-foreground">{filtered.length} campaign(s)</span>
             </div>
 
@@ -204,7 +250,7 @@ export default function AdminCampaignsPage() {
                 />
             ) : filtered.length === 0 ? (
                 <EmptyState
-                    icon={<MegaphoneIcon />}
+                    icon={<Megaphone size={18} />}
                     title={query || status || objective ? "No campaigns match your filters" : "No campaigns yet"}
                     description={
                         query || status || objective
@@ -229,6 +275,8 @@ export default function AdminCampaignsPage() {
                                 <TableHead>Objective</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Channels</TableHead>
+                                <TableHead>Budget</TableHead>
+                                <TableHead>Performance</TableHead>
                                 <TableHead>Start</TableHead>
                                 <TableHead>End</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
@@ -241,6 +289,9 @@ export default function AdminCampaignsPage() {
                                         <Link href={`/admin/growth/campaigns/${c.id}`} className="font-medium text-foreground hover:text-primary">
                                             {c.name}
                                         </Link>
+                                        {c.campaignId && (
+                                            <span className="ml-2 text-xs text-muted-foreground">#{c.campaignId}</span>
+                                        )}
                                     </TableCell>
                                     <TableCell className="text-muted-foreground">
                                         {c.objective ? CAMPAIGN_OBJECTIVE_LABELS[c.objective as keyof typeof CAMPAIGN_OBJECTIVE_LABELS] || c.objective : "—"}
@@ -257,8 +308,37 @@ export default function AdminCampaignsPage() {
                                             ))}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-muted-foreground">{fmtDate(c.startDate || c.startAt)}</TableCell>
-                                    <TableCell className="text-muted-foreground">{fmtDate(c.endDate || c.endAt)}</TableCell>
+                                    <TableCell>
+                                        {c.budget ? (
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-sm font-medium text-foreground">{fmtCurrency(c.budget)}</span>
+                                                {c.spent !== undefined && (
+                                                    <>
+                                                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                                                            <div
+                                                                className="h-full bg-primary transition-all"
+                                                                style={{ width: `${budgetProgress(c)}%` }}
+                                                            />
+                                                        </div>
+                                                        <span className="text-xs text-muted-foreground">
+                                                            {fmtCurrency(c.spent)} of {fmtCurrency(c.budget)} spent
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <span className="text-muted-foreground">—</span>
+                                        )}
+                                    </TableCell>
+                                    <TableCell className="text-muted-foreground">
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-xs">CTR: {getCtr(c)}</span>
+                                            <span className="text-xs">ROAS: {getRoas(c)}</span>
+                                            <span className="text-xs">Conversions: {c.conversions ? String(c.conversions) : "—"}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-muted-foreground">{fmtDate(c.startDate || (c as any).startAt)}</TableCell>
+                                    <TableCell className="text-muted-foreground">{fmtDate(c.endDate || (c as any).endAt)}</TableCell>
                                     <TableCell>
                                         <div className="flex items-center justify-end gap-1">
                                             {c.status === "ACTIVE" && (
@@ -274,7 +354,13 @@ export default function AdminCampaignsPage() {
                                                 </Button>
                                             )}
                                             {!["COMPLETED", "ARCHIVED"].includes(c.status || "") && (
-                                                <Button type="button" variant="outline" size="xs" disabled={busyAction !== null} onClick={() => void runAction(c.id, "archive")}>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="xs"
+                                                    disabled={busyAction !== null}
+                                                    onClick={() => void confirmArchive(c)}
+                                                >
                                                     <Archive />
                                                     Archive
                                                 </Button>
@@ -299,6 +385,17 @@ export default function AdminCampaignsPage() {
                 </p>
             </div>
 
+            <ConfirmDialog
+                open={confirmState.action !== null && confirmState.campaign !== null}
+                onOpenChange={(o) => !o && setConfirmState({ action: null, campaign: null })}
+                title={`Archive "${confirmState.campaign?.name}"?`}
+                description="This will archive the campaign. You can unarchive it later from the filters."
+                confirmLabel="Archive"
+                destructive
+                busy={busyAction !== null}
+                onConfirm={handleConfirmAction}
+            />
+
             <CampaignFormDialog
                 open={modalOpen}
                 onOpenChange={(o) => {
@@ -310,14 +407,5 @@ export default function AdminCampaignsPage() {
                 onSubmit={submitForm}
             />
         </div>
-    );
-}
-
-function MegaphoneIcon() {
-    return (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="m3 11 18-5v12L3 14v-3z" />
-            <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
-        </svg>
     );
 }

@@ -345,6 +345,7 @@ export type Experiment = GrowthRecord & {
     hypothesis?: string;
     variantA?: Record<string, unknown>;
     variantB?: Record<string, unknown>;
+    variants?: Array<{ id: string; label: string; settings?: Record<string, unknown> }>;
     metric?: string;
     startAt?: number;
     endAt?: number;

@@ -24,8 +24,10 @@ type TaskRow = {
     campaignId?: string;
     state: string;
     approvalRequired?: boolean;
+    createdBy?: string;
     createdAt?: number;
     updatedAt?: number;
+    rejectReason?: string;
     generatedContent?: Record<string, { format?: string; value?: string }>;
     compliance?: {
         passed?: boolean;

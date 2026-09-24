@@ -2,6 +2,7 @@
 
 import { useEligiblePlacement } from "@/components/growth/eligible";
 import { NativeAdCard } from "@/components/growth/NativeAdCard";
+import { PlacementType } from "@/lib/growth/constants";
 
 export function FooterNativeAd() {
     const { data, loading, error } = useEligiblePlacement("FOOTER");
@@ -15,7 +16,7 @@ export function FooterNativeAd() {
             title={item.creative.title}
             summary={item.creative.body || ""}
             url={item.creative.destinationUrl}
-            placementKey={item.placementKey}
+            placementKey={item.placementKey as PlacementType}
             content={item.creative.body}
         />
     );

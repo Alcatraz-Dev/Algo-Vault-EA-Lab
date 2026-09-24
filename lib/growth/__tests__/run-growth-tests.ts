@@ -17,6 +17,8 @@ import { isPlacementLive, isAdLive, isPlacementTargeted, frequencyCapReached, re
 import { resolveEligibility } from "../eligibility";
 import { appendAttribution, parseAttribution, buildAttributionQuery } from "../attribution";
 import { ctr, cvr, rpm, cpa, cac, roas, pctChange, metricToString, dateRangeKeys, isoWeekKey, monthKey, bucketize } from "../metrics";
+import { createExperiment } from "../experiments";
+import { EXPERIMENT_MIN_SAMPLE_SIZE, EXPERIMENT_MIN_UPLIFT_PCT } from "../constants";
 import { PLACEMENT_TYPES, REVENUE_TYPES, CHANNEL_TYPES, PREMIUM_AD_MODES, FREQUENCY_CAP_TYPES } from "../constants";
 import { MARKETING_TASK_TRANSITIONS as TaskTransitions, MonetizationPlacement, MonetizationAd } from "../types";
 
@@ -346,6 +348,45 @@ async function runGrowthTests(): Promise<boolean> {
             passed = assert(!(creative as any).eCPM, "public eligibility: no eCPM leaked") && passed;
             passed = assert(!(creative as any).impressions, "public eligibility: no impressions leaked") && passed;
         }
+    }
+
+    // 28. Experiment lifecycle — createExperiment produces DRAFT
+    {
+        const exp = createExperiment("Headline test", "Changing hero increases CTR", [
+            { label: "Control" },
+            { label: "New headline" },
+        ]);
+        passed = assert(exp.id.startsWith("exp_"), "experiments: createExperiment assigns id") && passed;
+        passed = assert(exp.name === "Headline test", "experiments: name preserved") && passed;
+        passed = assert(exp.hypothesis === "Changing hero increases CTR", "experiments: hypothesis preserved") && passed;
+        passed = assert(exp.status === "DRAFT", "experiments: starts in DRAFT") && passed;
+        passed = assert(exp.startAt > 0, "experiments: startAt set") && passed;
+        passed = assert(exp.variants.length === 2, "experiments: two variants") && passed;
+        passed = assert(exp.targetMetric === "CTR", "experiments: default target metric") && passed;
+    }
+
+    // 29. Experiment minimum sample size constant
+    {
+        passed = assert(EXPERIMENT_MIN_SAMPLE_SIZE === 50, "experiments: min sample size is 50") && passed;
+        passed = assert(EXPERIMENT_MIN_UPLIFT_PCT === 5, "experiments: min uplift is 5%") && passed;
+    }
+
+    // 30. Experiment winner logic (inconclusive — insufficient sample)
+    {
+        const computeWinner = (aImp: number, bImp: number, aConv: number, bConv: number) => {
+            const aRate = aImp > 0 ? aConv / aImp : 0;
+            const bRate = bImp > 0 ? bConv / bImp : 0;
+            if (aImp < EXPERIMENT_MIN_SAMPLE_SIZE || bImp < EXPERIMENT_MIN_SAMPLE_SIZE) return "INCONCLUSIVE";
+            if (aRate === 0 && bRate === 0) return "INCONCLUSIVE";
+            const relUplift = aRate > 0 ? (bRate - aRate) / aRate : Infinity;
+            if (Math.abs(relUplift) < EXPERIMENT_MIN_UPLIFT_PCT / 100) return "INCONCLUSIVE";
+            return bRate > aRate ? "B" : "A";
+        };
+        passed = assert(computeWinner(0, 0, 0, 0) === "INCONCLUSIVE", "experiments: insufficient sample → inconclusive") && passed;
+        passed = assert(computeWinner(49, 49, 1, 1) === "INCONCLUSIVE", "experiments: below min sample → inconclusive") && passed;
+        passed = assert(computeWinner(100, 100, 10, 10) === "INCONCLUSIVE", "experiments: same rate → inconclusive") && passed;
+        passed = assert(computeWinner(100, 100, 5, 10) === "B", "experiments: B wins by 50% uplift") && passed;
+        passed = assert(computeWinner(100, 100, 10, 5) === "A", "experiments: A wins by 50% negative uplift") && passed;
     }
 
     // 28. Affiliate disclosure — affiliate cards must include disclosure text

@@ -63,32 +63,34 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ wo
         }
     }
 
-    // Soft-edit (draft only): nodes/edges/settings/description/schedule/tags
-    if (existing.status === "draft") {
-        if (Array.isArray(body.nodes)) existing.nodes = body.nodes;
-        if (Array.isArray(body.edges)) existing.edges = body.edges;
-        if (body.settings && typeof body.settings === "object") existing.settings = { ...existing.settings, ...body.settings };
-        if (typeof body.description === "string") existing.description = body.description.slice(0, 500);
-        if (body.schedule && typeof body.schedule === "object") existing.schedule = body.schedule;
-        if (Array.isArray(body.tags)) existing.tags = body.tags;
-        if (typeof body.name === "string" && body.name.trim()) existing.name = body.name.trim();
+    // Persist node/edge/settings edits and validate them for ANY workflow status
+    // (draft, active, paused, disabled, archived). Previously this block was gated
+    // on `existing.status === "draft"`, which meant edits to an activated workflow
+    // were silently dropped — the PATCH still returned 200 OK, the client showed
+    // "Saved ✓", but on refresh the changes were gone.
+    if (Array.isArray(body.nodes)) existing.nodes = body.nodes;
+    if (Array.isArray(body.edges)) existing.edges = body.edges;
+    if (body.settings && typeof body.settings === "object") existing.settings = { ...existing.settings, ...body.settings };
+    if (typeof body.description === "string") existing.description = body.description.slice(0, 500);
+    if (body.schedule && typeof body.schedule === "object") existing.schedule = body.schedule;
+    if (Array.isArray(body.tags)) existing.tags = body.tags;
+    if (typeof body.name === "string" && body.name.trim()) existing.name = body.name.trim();
 
-        const nodes = existing.nodes ?? [];
-        const known = nodes.every((n: { type: string }) => getNodeDefinition(n.type) !== undefined);
-        if (!known || nodes.length === 0) return Response.json({ error: "Invalid nodes" }, { status: 400 });
+    const nodes = existing.nodes ?? [];
+    const known = nodes.every((n: { type: string }) => getNodeDefinition(n.type) !== undefined);
+    if (!known || nodes.length === 0) return Response.json({ error: "Invalid nodes" }, { status: 400 });
 
-        const ent = await resolveEntitlement(auth.uid, auth.isAdmin);
-        const validation = validateWorkflow(
-            { nodes, edges: existing.edges, settings: existing.settings, schedule: existing.schedule, name: existing.name },
-            { analysis: ent.limits.executionEnabled, signal: true, execution: ent.limits.executionEnabled },
-            { maxNodes: ent.limits.maxNodesPerWorkflow },
-        );
-        if (!validation.valid) return Response.json({ error: "Validation failed", details: validation }, { status: 400 });
+    const ent = await resolveEntitlement(auth.uid, auth.isAdmin);
+    const validation = validateWorkflow(
+        { nodes, edges: existing.edges, settings: existing.settings, schedule: existing.schedule, name: existing.name },
+        { analysis: ent.limits.executionEnabled, signal: true, execution: ent.limits.executionEnabled },
+        { maxNodes: ent.limits.maxNodesPerWorkflow },
+    );
+    if (!validation.valid) return Response.json({ error: "Validation failed", details: validation }, { status: 400 });
 
-        existing.requiredPermissions = ["analysis"];
-        const { deriveRequiredPermissions } = await import("@/lib/workflows/validate");
-        existing.requiredPermissions = deriveRequiredPermissions(nodes);
-    }
+    existing.requiredPermissions = ["analysis"];
+    const { deriveRequiredPermissions } = await import("@/lib/workflows/validate");
+    existing.requiredPermissions = deriveRequiredPermissions(nodes);
 
     existing.updatedAt = Date.now();
     await saveWorkflow(existing);

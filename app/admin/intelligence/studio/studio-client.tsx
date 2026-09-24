@@ -351,8 +351,36 @@ export default function StudioClient() {
     } catch (e: any) { notify(e.message || "Template error", "err"); }
   };
 
-  const handleApplyAi = (g: { name: string; description: string; nodes: any[]; edges: any[] }) => {
-    applyToCanvas(g.nodes, g.edges, g.name, g.description); notify("AI workflow applied");
+  const handleApplyAi = async (g: {
+    name: string;
+    description: string;
+    nodes: WorkflowAutomation["nodes"];
+    edges: WorkflowAutomation["edges"];
+    settings?: WorkflowAutomation["settings"];
+    schedule?: WorkflowAutomation["schedule"];
+  }) => {
+    const tok = await getToken();
+    const r = await fetch("/api/workflows", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${tok}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: g.name,
+        description: g.description,
+        nodes: g.nodes,
+        edges: g.edges,
+        settings: g.settings,
+        schedule: g.schedule,
+      }),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      throw new Error(data.error || data.message || "Failed to save AI workflow");
+    }
+
+    const workflow = data as WorkflowAutomation;
+    setWorkflows((current) => [workflow, ...current.filter((item) => item.id !== workflow.id)]);
+    openInBuilder(workflow);
+    notify("AI workflow saved");
   };
 
   const handleImport = (p: PortableWorkflow) => {

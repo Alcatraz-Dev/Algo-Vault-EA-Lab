@@ -18,7 +18,7 @@ export default function LoopPage() {
             <PageHeader title="Growth Loop" subtitle="Continuous autonomous growth engine status" />
             <div className="mb-4 flex gap-2">
                 <button onClick={runScan} className="rounded-lg bg-violet-600 px-4 py-2 text-xs font-bold text-white hover:bg-violet-500">Scan Opportunities</button>
-                <RefreshButton />
+                <RefreshButton onRefresh={runScan} loading={false} />
             </div>
             <div className="rounded-xl border border-border bg-card p-4 text-xs">
                 <p>Policy mode: <span className="font-semibold">APPROVAL (default)</span> — autonomous execution requires approved policy.</p>

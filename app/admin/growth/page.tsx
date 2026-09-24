@@ -8,23 +8,29 @@ import {
     Coins,
     Eye,
     FileText,
+    FlaskConical,
     Megaphone,
     MousePointerClick,
+    PieChart,
     Radio,
+    Settings,
     TrendingUp,
     Users,
     Wallet,
 } from "lucide-react";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import { Button } from "@/components/ui/button";
 import { MetricCard } from "@/components/ui/metric-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/loading-state";
 import { PageHeader } from "@/components/ui/page-header";
+import { Select } from "@/components/ui/select";
 import { useAdminFetch } from "@/components/growth/admin/useAdminFetch";
 import { RefreshButton } from "@/components/growth/admin/RefreshButton";
 import { GrowthStatusBadge } from "@/components/growth/admin/GrowthStatusBadge";
 import { fmtCurrency, fmtNumber, fmtRelative } from "@/components/growth/admin/format";
+import { pctChange } from "@/lib/growth/metrics";
 import { CAMPAIGN_OBJECTIVE_LABELS, MARKETING_TASK_STATES, CHANNEL_LABELS, REVENUE_LABELS } from "@/lib/growth/constants";
 
 type OverviewMetrics = {
@@ -55,6 +61,7 @@ type CampaignRow = {
     startDate?: number;
     endDate?: number;
     createdAt: number;
+    campaignId?: string;
 };
 
 type ContentRow = { id: string; state: string; type: string; channels: string[]; updatedAt?: number };
@@ -88,9 +95,32 @@ function pct(part: number, whole: number): string {
     return whole > 0 ? `${((part / whole) * 100).toFixed(1)}%` : "—";
 }
 
+function QuickActionButton({
+    href,
+    icon: Icon,
+    label,
+    description,
+}: {
+    href: string;
+    icon: React.ComponentType<{ size?: number; className?: string }>;
+    label: string;
+    description: string;
+}) {
+    return (
+        <Button render={<Link href={href} />} variant="outline" className="h-auto flex-col items-start gap-2 p-4">
+            <Link href={href}>
+                <Icon size={18} className="text-primary" />
+                <div className="flex flex-col items-start gap-0.5">
+                    <span className="font-semibold">{label}</span>
+                    <span className="text-xs text-muted-foreground">{description}</span>
+                </div>
+            </Link>
+        </Button>
+    );
+}
+
 export default function AdminGrowthOverviewPage() {
     const [range, setRange] = useState<"all" | "30" | "90">("30");
-    // Stable "now" for the revenue window — refreshed on range change (never mid-render).
     const [now, setNow] = useState(() => Date.now());
 
     const changeRange = (r: "all" | "30" | "90") => {
@@ -115,7 +145,6 @@ export default function AdminGrowthOverviewPage() {
         revenue.refresh();
     };
 
-    // Revenue section respects the selected range (real, client-side filter on recordedAt).
     const revenueForRange = useMemo(() => {
         const cutoff = RANGE_MS[range];
         const entries = revenue.data?.entries || [];
@@ -137,6 +166,18 @@ export default function AdminGrowthOverviewPage() {
         for (const t of content.data || []) counts[t.state] = (counts[t.state] || 0) + 1;
         return counts;
     }, [content.data]);
+
+    const revenueChartData = useMemo(() => {
+        const entries = revenueForRange.entries;
+        const byDate = new Map<string, number>();
+        for (const e of entries) {
+            const d = new Date(e.recordedAt || 0).toISOString().slice(0, 10);
+            byDate.set(d, (byDate.get(d) || 0) + Number(e.amount || 0));
+        }
+        return Array.from(byDate.entries())
+            .map(([date, rev]) => ({ date, revenue: rev }))
+            .sort((a, b) => (a.date < b.date ? -1 : 1));
+    }, [revenueForRange.entries]);
 
     if (anyLoading) {
         return (
@@ -168,17 +209,6 @@ export default function AdminGrowthOverviewPage() {
     const insufficientTraffic = Boolean(m && m.impressions < 50);
     const insufficientRevenue = Boolean(m && m.revenueTotal <= 0);
 
-    const metricCards = m
-        ? [
-              { label: "Impressions", value: fmtNumber(m.impressions), icon: <Eye size={16} /> },
-              { label: "Clicks", value: fmtNumber(m.clicks), icon: <MousePointerClick size={16} /> },
-              { label: "CTR", value: pct(m.clicks, m.impressions), icon: <TrendingUp size={16} /> },
-              { label: "Active campaigns", value: fmtNumber(m.activeCampaigns), icon: <Megaphone size={16} /> },
-              { label: "Conversions", value: fmtNumber(m.conversions), icon: <Activity size={16} /> },
-              { label: "Total events", value: fmtNumber(m.totalEvents), icon: <BarChart3 size={16} /> },
-          ]
-        : [];
-
     return (
         <div className="space-y-6">
             <PageHeader
@@ -186,16 +216,15 @@ export default function AdminGrowthOverviewPage() {
                 subtitle="Operational view across campaigns, content, channels and revenue."
                 actions={
                     <>
-                        <select
+                        <Select
                             aria-label="Revenue date range"
                             value={range}
                             onChange={(e) => changeRange(e.target.value as "all" | "30" | "90")}
-                            className="h-8 rounded-md border border-input bg-transparent px-2 text-sm text-muted-foreground transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
                         >
                             <option value="30">Revenue · last 30 days</option>
                             <option value="90">Revenue · last 90 days</option>
                             <option value="all">Revenue · all time</option>
-                        </select>
+                        </Select>
                         <RefreshButton onRefresh={refreshAll} loading={anyLoading} />
                     </>
                 }
@@ -209,9 +238,11 @@ export default function AdminGrowthOverviewPage() {
                     action={
                         <div className="flex gap-2">
                             <Button type="button" variant="outline" size="sm" render={<Link href="/admin/growth/campaigns" />}>
+                                <Megaphone size={14} />
                                 Create a campaign
                             </Button>
                             <Button type="button" variant="outline" size="sm" render={<Link href="/admin/growth/content" />}>
+                                <FileText size={14} />
                                 Manage content
                             </Button>
                         </div>
@@ -221,9 +252,45 @@ export default function AdminGrowthOverviewPage() {
                 <>
                     {/* ── Metric cards ── */}
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-                        {metricCards.map((c) => (
-                            <MetricCard key={c.label} label={c.label} value={c.value} icon={c.icon} />
-                        ))}
+                        <MetricCard label="Impressions" value={fmtNumber(m?.impressions ?? 0)} icon={<Eye size={16} />} />
+                        <MetricCard label="Clicks" value={fmtNumber(m?.clicks ?? 0)} icon={<MousePointerClick size={16} />} />
+                        <MetricCard label="CTR" value={pct(m?.clicks ?? 0, m?.impressions ?? 0)} delta={m?.impressions ? pctChange(m.clicks, m.impressions) !== null ? `${pctChange(m.clicks, m.impressions)!.toFixed(1)}%` : undefined : undefined} deltaTone="neutral" icon={<TrendingUp size={16} />} />
+                        <MetricCard label="Active campaigns" value={fmtNumber(m?.activeCampaigns ?? 0)} icon={<Megaphone size={16} />} />
+                        <MetricCard label="Conversions" value={fmtNumber(m?.conversions ?? 0)} icon={<Activity size={16} />} />
+                        <MetricCard label="Total events" value={fmtNumber(m?.totalEvents ?? 0)} icon={<BarChart3 size={16} />} />
+                    </div>
+
+                    {/* ── Revenue trend chart ── */}
+                    {revenueForRange.entries.length > 0 && (
+                        <div className="rounded-lg border border-border bg-card p-4">
+                            <div className="mb-3 flex items-center justify-between">
+                                <h2 className="text-sm font-medium text-foreground">Revenue trend</h2>
+                                <PieChart size={15} className="text-muted-foreground" />
+                            </div>
+                            <div className="h-[200px] w-full">
+                                <ResponsiveContainer>
+                                    <LineChart data={revenueChartData}>
+                                        <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+                                        <XAxis dataKey="date" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                                        <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                                        <Tooltip
+                                            contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+                                            formatter={(value) => [fmtCurrency(Number(value) || 0), "Revenue"]}
+                                            labelStyle={{ fontSize: 11 }}
+                                        />
+                                        <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ── Quick actions ── */}
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <QuickActionButton href="/admin/growth/campaigns" icon={Megaphone} label="New campaign" description="Launch a growth campaign" />
+                        <QuickActionButton href="/admin/growth/content" icon={FileText} label="Generate content" description="AI-powered marketing content" />
+                        <QuickActionButton href="/admin/growth/experiments" icon={FlaskConical} label="New experiment" description="Start an A/B test" />
+                        <QuickActionButton href="/admin/growth/channels" icon={Settings} label="Test channels" description="Verify channel connectivity" />
                     </div>
 
                     <div className="grid gap-6 lg:grid-cols-2">
@@ -304,13 +371,13 @@ export default function AdminGrowthOverviewPage() {
                                         {["DRAFT", "ACTIVE", "PAUSED", "COMPLETED", "ARCHIVED"].map((st) => {
                                             const count = (campaigns.data || []).filter((c) => (c.status || "DRAFT") === st).length;
                                             if (count === 0) return null;
-                                            return <GrowthStatusBadge key={st} kind="campaign" value={st} />;
+                                            return <GrowthStatusBadge key={st} kind="campaign" value={st} />
                                         })}
                                     </div>
                                     <ul className="space-y-2">
                                         {(campaigns.data || []).slice(0, 6).map((c) => (
                                             <li key={c.id} className="flex items-center justify-between gap-2 text-xs">
-                                                <Link href={`/admin/growth/campaigns/${c.id}`} className="truncate font-medium text-foreground hover:text-primary">
+                                                <Link href={`/admin/growth/campaigns/${c.id}`} className="truncate font-medium text-foreground hover:text-primary hover:underline">
                                                     {c.name}
                                                 </Link>
                                                 <span className="shrink-0 text-muted-foreground">
@@ -393,7 +460,11 @@ export default function AdminGrowthOverviewPage() {
                                         { label: REVENUE_LABELS.SPONSORED, value: revenueForRange.sponsored },
                                         { label: REVENUE_LABELS.SUBSCRIPTION, value: revenueForRange.subscriptions },
                                         { label: REVENUE_LABELS.MARKETPLACE, value: revenueForRange.marketplace },
-                                        { label: "Total", value: revenueForRange.ads + revenueForRange.affiliate + revenueForRange.sponsored + revenueForRange.subscriptions + revenueForRange.marketplace },
+                                        {
+                                            label: "Total",
+                                            value:
+                                                revenueForRange.ads + revenueForRange.affiliate + revenueForRange.sponsored + revenueForRange.subscriptions + revenueForRange.marketplace,
+                                        },
                                     ].map((r) => (
                                         <div key={r.label} className="rounded-md border border-border bg-background p-3">
                                             <p className="text-xs text-muted-foreground">{r.label}</p>

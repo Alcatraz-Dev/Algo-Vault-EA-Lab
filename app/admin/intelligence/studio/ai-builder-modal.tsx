@@ -7,11 +7,19 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Loader2, AlertTriangle, XCircle, CheckCircle2, Info, ArrowRight } from "lucide-react";
 import { auth } from "@/lib/firebase";
+import { WorkflowAutomation } from "@/lib/workflows/types";
 
 interface AiBuilderModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onApplyGeneratedWorkflow: (workflow: { name: string; description: string; nodes: any[]; edges: any[] }) => void;
+  onApplyGeneratedWorkflow: (workflow: {
+    name: string;
+    description: string;
+    nodes: WorkflowAutomation["nodes"];
+    edges: WorkflowAutomation["edges"];
+    settings?: WorkflowAutomation["settings"];
+    schedule?: WorkflowAutomation["schedule"];
+  }) => Promise<void>;
 }
 
 export function AiBuilderModal({ open, onOpenChange, onApplyGeneratedWorkflow }: AiBuilderModalProps) {
@@ -63,16 +71,27 @@ export function AiBuilderModal({ open, onOpenChange, onApplyGeneratedWorkflow }:
     }
   };
 
-  const handleApply = () => {
+  const handleApply = async () => {
     if (!result?.draft?.workflow) return;
     const wf = result.draft.workflow;
-    onApplyGeneratedWorkflow({
-      name: customName || wf.name,
-      description: customDesc || wf.description,
-      nodes: wf.nodes ?? [],
-      edges: wf.edges ?? [],
-    });
-    onOpenChange(false);
+    setGenerating(true);
+    setGenError(null);
+
+    try {
+      await onApplyGeneratedWorkflow({
+        name: customName || wf.name,
+        description: customDesc || wf.description,
+        nodes: wf.nodes ?? [],
+        edges: wf.edges ?? [],
+        settings: wf.settings,
+        schedule: wf.schedule,
+      });
+      onOpenChange(false);
+    } catch (err: any) {
+      setGenError(err.message || "Failed to save AI workflow.");
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const validation = result?.validation;
@@ -247,8 +266,16 @@ export function AiBuilderModal({ open, onOpenChange, onApplyGeneratedWorkflow }:
             Close
           </Button>
           {result && (
-            <Button size="sm" onClick={handleApply} disabled={isInvalid}>
-              Apply to Canvas
+            <Button size="sm" onClick={handleApply} disabled={isInvalid || generating}>
+              {generating ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...
+                </>
+              ) : (
+                <>
+                  <ArrowRight className="w-4 h-4 mr-1.5" /> Save & Apply
+                </>
+              )}
             </Button>
           )}
         </div>

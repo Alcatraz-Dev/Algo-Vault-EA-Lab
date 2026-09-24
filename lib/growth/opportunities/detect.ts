@@ -7,8 +7,13 @@
 
 import { adminDatabase } from "@/lib/firebase-admin";
 import { GROWTH_COLLECTIONS } from "../constants";
-import { OpportunityEvidence, GrowthOpportunity, OpportunityType } from "./types";
+import { GrowthOpportunity } from "./types";
 import { genId } from "../database";
+
+/** Stable fingerprint used to dedupe the same opportunity across scans. */
+export function opportunityFingerprint(o: Pick<GrowthOpportunity, "type" | "source" | "title">): string {
+    return [o.type, o.source, o.title].join("|").slice(0, 220);
+}
 
 export async function detectContentGap(): Promise<GrowthOpportunity[]> {
     const opportunities: GrowthOpportunity[] = [];
@@ -20,17 +25,18 @@ export async function detectContentGap(): Promise<GrowthOpportunity[]> {
         if (total < 3) {
             opportunities.push({
                 id: genId("op_"),
-                type: "CONTENT_GAP",
-                source: "content_inventory",
-                title: "Content gap detected",
-                description: `Only ${total} marketing content items exist. More content would improve pipeline depth.`,
-                evidence: [{ metric: "content_items", value: total, source: GROWTH_COLLECTIONS.content }],
-                confidence: 0.65,
-                impact: "MEDIUM",
-                status: "DETECTED",
-                recommendedAction: "Generate educational content using existing pipeline",
-                createdAt: Date.now(),
-                updatedAt: Date.now(),
+                 type: "CONTENT_GAP",
+                 source: "content_inventory",
+                 title: "Content gap detected",
+                 description: `Only ${total} marketing content items exist. More content would improve pipeline depth.`,
+                 evidence: [{ metric: "content_items", value: total, source: GROWTH_COLLECTIONS.content }],
+                 confidence: 0.65,
+                 impact: "MEDIUM",
+                 status: "DETECTED",
+                 recommendedAction: "Generate educational content using existing pipeline",
+                 createdAt: Date.now(),
+                 updatedAt: Date.now(),
+                 createdBy: "growth-engine",
             });
         }
     } catch {
@@ -45,7 +51,7 @@ export async function detectContentRefresh(): Promise<GrowthOpportunity[]> {
         const snap = await adminDatabase.ref(GROWTH_COLLECTIONS.content).get();
         const data = snap.exists() ? snap.val() : {};
         const now = Date.now();
-        for (const [id, val] of Object.entries(data as Record<string, unknown>)) {
+        for (const [id, val] of Object.entries(data as Record<string, any>)) {
             if (val?.updatedAt && (now - val.updatedAt) > 30 * 24 * 60 * 60 * 1000) {
                 const title = val?.title || "Untitled";
                 opportunities.push({
@@ -59,8 +65,9 @@ export async function detectContentRefresh(): Promise<GrowthOpportunity[]> {
                     impact: "LOW",
                     status: "DETECTED",
                     recommendedAction: "Run content refresh pipeline",
-                    createdAt: now,
-                    updatedAt: now,
+                     createdAt: now,
+                     updatedAt: now,
+                     createdBy: "growth-engine",
                 });
             }
         }
@@ -93,6 +100,7 @@ export async function detectFatigue(): Promise<GrowthOpportunity[]> {
                 recommendedAction: "Consider content refresh, new angles, or reduced frequency",
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
+                createdBy: "growth-engine",
             });
         }
     } catch {
@@ -125,9 +133,10 @@ export async function detectMonetizationOpportunity(): Promise<GrowthOpportunity
                     impact: "MEDIUM",
                     status: "DETECTED",
                     recommendedAction: "Create ad or sponsored content for placement",
-                    createdAt: Date.now(),
-                    updatedAt: Date.now(),
-                });
+                     createdAt: Date.now(),
+                     updatedAt: Date.now(),
+                     createdBy: "growth-engine",
+                 });
             }
         }
     } catch {
@@ -145,13 +154,14 @@ export async function detectSEOOpportunity(): Promise<GrowthOpportunity[]> {
         source: "internal_fallback",
         title: "SEO opportunity — data unavailable",
         description: "No external search data source is configured. When a real SEO/integration source is added, this opportunity will be computed from actual data.",
-        evidence: [{ metric: "search_data_available", value: 0, period: "now", source: "unavailable" }],
-        confidence: null,
-        impact: "UNKNOWN",
-        status: "DETECTED",
-        recommendedAction: "Configure SEO/integration source for real opportunity detection",
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+         evidence: [{ metric: "search_data_available", value: 0, period: "now", source: "unavailable" }],
+         confidence: null,
+         impact: "UNKNOWN",
+         status: "DETECTED",
+         recommendedAction: "Configure SEO/integration source for real opportunity detection",
+         createdAt: Date.now(),
+         updatedAt: Date.now(),
+         createdBy: "growth-engine",
     }];
 }
 

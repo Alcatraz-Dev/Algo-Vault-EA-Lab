@@ -9,7 +9,7 @@
  */
 import { MarketingMediaProvider, MediaProviderStatus } from "../types";
 
-export { MarketingMediaProvider, MediaProviderStatus } from "../types";
+export type { MarketingMediaProvider, MediaProviderStatus } from "../types";
 
 const _providers: MarketingMediaProvider[] = [];
 

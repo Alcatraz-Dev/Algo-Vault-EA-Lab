@@ -6,8 +6,10 @@ import { RefreshButton } from "@/components/growth/admin/RefreshButton";
 import { PageHeader } from "@/components/ui/page-header";
 import { useAdminFetch } from "@/components/growth/admin/useAdminFetch";
 
+type WorkflowRow = { id: string; name?: string; status?: string; step?: string; createdAt?: number };
+
 export default function GrowthWorkflows() {
-    const { data, loading, error } = useAdminFetch("/api/growth/workflows");
+    const { data, loading, error, refresh } = useAdminFetch<{ workflows: WorkflowRow[] }>("/api/growth/workflows");
     const [runResult, setRunResult] = useState<{ executionId?: string; status?: string; error?: string } | null>(null);
 
     async function runWorkflow() {
@@ -18,6 +20,7 @@ export default function GrowthWorkflows() {
         });
         const json = await res.json();
         setRunResult(json);
+        refresh();
     }
 
     return (
@@ -25,7 +28,7 @@ export default function GrowthWorkflows() {
             <PageHeader title="Growth Workflows" subtitle="Sequential AI agent pipeline" />
             <div className="mb-4 flex gap-2">
                 <button onClick={runWorkflow} className="rounded-lg bg-violet-600 px-4 py-2 text-xs font-bold text-white hover:bg-violet-500">Run Workflow</button>
-                <RefreshButton />
+                <RefreshButton onRefresh={refresh} loading={loading} />
             </div>
             {runResult && (
                 <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs">
@@ -35,7 +38,7 @@ export default function GrowthWorkflows() {
             <div className="space-y-2">
                 {loading && <p className="text-xs text-muted-foreground">Loading...</p>}
                 {error && <p className="text-xs text-red-600">{error}</p>}
-                {data?.workflows?.map((w: { id: string; name?: string; status?: string; step?: string; createdAt?: number }) => (
+                {data?.workflows?.map((w) => (
                     <div key={w.id} className="rounded-xl border border-border bg-card p-3 text-xs">
                         <div className="font-semibold">{w.name || w.id}</div>
                         <div className="text-muted-foreground">Status: {w.status} | Step: {w.step || "—"} | Created: {w.createdAt ? new Date(w.createdAt).toISOString() : "—"}</div>

@@ -2,6 +2,7 @@
 
 import { useEligiblePlacement } from "@/components/growth/eligible";
 import { SponsoredCard } from "@/components/growth/SponsoredCard";
+import { PlacementType } from "@/lib/growth/constants";
 
 export function MarketplaceSponsoredAd() {
     const { data, loading, error } = useEligiblePlacement("MARKETPLACE_SPONSORED");
@@ -19,7 +20,7 @@ export function MarketplaceSponsoredAd() {
             targetUrl={creative.destinationUrl}
             advertiser={creative.advertiser}
             disclosure={creative.disclosure || "Sponsored"}
-            placementKey={item.placementKey}
+            placementKey={item.placementKey as PlacementType}
         />
     );
 }

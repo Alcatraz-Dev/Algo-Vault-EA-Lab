@@ -4,6 +4,7 @@
  * of errors (empty array = valid).
  */
 import {
+    AD_TYPES,
     AFFILIATE_CATEGORIES,
     CAMPAIGN_OBJECTIVES,
     CAMPAIGN_STATUSES,
@@ -42,6 +43,7 @@ export const isTaskState = isOneOf(MARKETING_TASK_STATES);
 export const isAffiliateCategory = isOneOf(AFFILIATE_CATEGORIES);
 export const isFrequencyCapType = isOneOf(FREQUENCY_CAP_TYPES);
 export const isPremiumMode = isOneOf(PREMIUM_AD_MODES);
+export const isAdType = isOneOf(AD_TYPES);
 
 export function isHttpsUrl(value: unknown): value is string {
     if (typeof value !== "string" || !value.trim()) return false;
@@ -86,27 +88,6 @@ export function validatePlacement(input: Partial<MonetizationPlacement>): string
             }
         }
     }
-    return errors;
-}
-
-// ─── Ad ──────────────────────────────────────────────────────────────────────
-
-export function validateAd(input: Partial<MonetizationAd>): string[] {
-    const errors: string[] = [];
-    if (!isNonEmptyString(input.title, 160)) errors.push("Ad title is required (max 160 chars).");
-    if (!isHttpsUrl(input.targetUrl)) errors.push("Ad target URL is required and must be a valid URL.");
-    if (input.type !== "NATIVE" && input.type !== "BANNER" && input.type !== "SPONSORED_CARD") {
-        errors.push("Ad type must be NATIVE, BANNER or SPONSORED_CARD.");
-    }
-    if (input.eCPM !== undefined && (!isFiniteNumber(input.eCPM) || input.eCPM < 0)) {
-        errors.push("eCPM must be a non-negative number.");
-    }
-    if (input.startAt !== undefined && !isFiniteNumber(input.startAt)) errors.push("startAt must be a timestamp.");
-    if (input.endAt !== undefined && !isFiniteNumber(input.endAt)) errors.push("endAt must be a timestamp.");
-    if (isFiniteNumber(input.startAt) && isFiniteNumber(input.endAt) && input.startAt! >= input.endAt!) {
-        errors.push("startAt must be before endAt.");
-    }
-    if (input.active !== undefined && typeof input.active !== "boolean") errors.push("active must be a boolean.");
     return errors;
 }
 
@@ -160,6 +141,30 @@ export function validateMarketingTask(input: Partial<MarketingTask>): string[] {
 }
 
 // ─── Publish guidance ────────────────────────────────────────────────────────
+
+export function validateAd(input: Partial<MonetizationAd>): string[] {
+    const errors: string[] = [];
+    if (!isNonEmptyString(input.title, 200)) errors.push("Ad title is required (max 200 chars).");
+    if (!isSafeDestUrl(input.targetUrl)) errors.push("Target URL must be a valid http(s) address.");
+    if (input.type !== undefined && !isAdType(input.type)) errors.push("Ad type must be NATIVE, BANNER, or SPONSORED_CARD.");
+    if (input.placementKey !== undefined && !isPlacementType(input.placementKey)) {
+        errors.push("Placement must be one of the supported types.");
+    }
+    if (input.eCPM !== undefined && (!isFiniteNumber(input.eCPM) || input.eCPM < 0)) {
+        errors.push("eCPM estimate must be a non-negative number.");
+    }
+    if (input.priority !== undefined && (!isFiniteNumber(input.priority) || input.priority < 0)) {
+        errors.push("Priority must be a non-negative number.");
+    }
+    if (input.imageUrl !== undefined && input.imageUrl !== "" && !isSafeDestUrl(input.imageUrl)) {
+        errors.push("Image URL must be a valid http(s) address.");
+    }
+    if (!isOptionalString(input.body, 2000)) errors.push("Body must be 2000 characters or fewer.");
+    if (!isOptionalString(input.advertiser, 200)) errors.push("Advertiser must be 200 characters or fewer.");
+    if (!isOptionalString(input.disclosure, 500)) errors.push("Disclosure must be 500 characters or fewer.");
+    if (!isOptionalString(input.ctaLabel, 40)) errors.push("CTA label must be 40 characters or fewer.");
+    return errors;
+}
 
 /** A URL that is safe to redirect/anchor to from placement cards. */
 export function isSafeDestUrl(value: unknown): boolean {

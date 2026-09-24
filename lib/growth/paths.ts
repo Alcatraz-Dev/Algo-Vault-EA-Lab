@@ -30,6 +30,7 @@ export const COLLECTION_PATHS = {
     opportunities: GROWTH_COLLECTIONS.opportunities,
     growthApprovals: GROWTH_COLLECTIONS.growthApprovals,
     loopExecutions: GROWTH_COLLECTIONS.loopExecutions,
+    loopState: GROWTH_COLLECTIONS.loopState,
     fatigueSignals: GROWTH_COLLECTIONS.fatigueSignals,
     feedback: GROWTH_COLLECTIONS.feedback,
     policies: GROWTH_COLLECTIONS.policies,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 import { BookOpen, Camera, CheckCircle2, Clapperboard, Globe, Mail, MessageCircle, Plug, Radio, RefreshCw, Rss, Tv, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
@@ -20,6 +21,7 @@ import { adminFetch } from "@/components/growth/admin/session";
 import { RefreshButton } from "@/components/growth/admin/RefreshButton";
 import { GrowthStatusBadge } from "@/components/growth/admin/GrowthStatusBadge";
 import { fmtTime } from "@/components/growth/admin/format";
+import { NoticeBanner } from "@/components/growth/admin/NoticeBanner";
 import { CHANNEL_LABELS, ChannelType } from "@/lib/growth/constants";
 
 type ChannelStatusRow = {
@@ -146,18 +148,7 @@ export default function AdminGrowthChannelsPage() {
                 actions={<RefreshButton onRefresh={statuses.refresh} loading={statuses.loading} />}
             />
 
-            {notice && (
-                <div
-                    role="status"
-                    className={`rounded-md border px-3 py-2 text-xs ${
-                        notice.kind === "ok"
-                            ? "border-success/30 bg-success/10 text-success-foreground"
-                            : "border-destructive/30 bg-destructive/10 text-destructive-foreground"
-                    }`}
-                >
-                    {notice.text}
-                </div>
-            )}
+            {notice && <NoticeBanner variant={notice.kind === "ok" ? "success" : "error"}>{notice.text}</NoticeBanner>}
 
             {statuses.loading ? (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="status" aria-label="Loading channel status">
@@ -225,9 +216,7 @@ export default function AdminGrowthChannelsPage() {
                                         {c.state === "NOT_CONFIGURED" || c.state === "DISABLED" ? "env-based" : "live"}
                                     </span>
                                 </div>
-                                <p className="text-[10px] text-muted-foreground">
-                                    {setup?.env.length ? `Required env: ${setup.env.join(", ")}.` : "No external credentials required."}
-                                </p>
+                                <ChannelSetupProgress channel={c} setup={setup} />
                             </div>
                         );
                     })}
@@ -324,6 +313,59 @@ export default function AdminGrowthChannelsPage() {
                     )}
                 </DialogContent>
             </Dialog>
+        </div>
+    );
+}
+
+function ChannelSetupProgress({
+    channel,
+    setup,
+}: {
+    channel: ChannelStatusRow;
+    setup?: { env: string[]; steps: string[] };
+}) {
+    const checks = (setup?.env || []).map((env) => {
+        const isSet = Boolean(process.env[env]);
+        return { label: env.replace(/^GROWTH_/, ""), passed: isSet };
+    });
+
+    if (checks.length === 0) {
+        return (
+            <p className="text-[10px] text-muted-foreground">
+                No external credentials required — adapter is built-in.
+            </p>
+        );
+    }
+
+    const passed = checks.filter((c) => c.passed).length;
+    const total = checks.length;
+    const pct = total > 0 ? (passed / total) * 100 : 0;
+
+    return (
+        <div className="mt-2 space-y-2">
+            <div className="flex items-center justify-between text-xs">
+                <span>Setup progress</span>
+                <span>{passed}/{total}</span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+                {checks.map((c) => (
+                    <span
+                        key={c.label}
+                        className={cn(
+                            "inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px]",
+                            c.passed
+                                ? "bg-positive/10 text-positive-foreground"
+                                : "bg-muted text-muted-foreground"
+                        )}
+                    >
+                        <span className={cn("h-1.5 w-1.5 rounded-full", c.passed ? "bg-positive" : "bg-muted-foreground")} />
+                        {c.label}
+                    </span>
+                ))}
+            </div>
         </div>
     );
 }
