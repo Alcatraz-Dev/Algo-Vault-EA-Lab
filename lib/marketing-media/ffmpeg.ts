@@ -17,8 +17,12 @@ const FFMPEG = "/opt/homebrew/bin/ffmpeg";
 
 export async function ffmpegAvailable(): Promise<boolean> {
   try {
-    const { stdout } = await execFile(FFMPEG, ["-version"], { encoding: "utf8", timeout: 5000 });
-    return stdout.includes("ffmpeg version");
+    const result = await new Promise<{ stdout?: string | null; stderr?: string | null }>((resolve) => {
+      execFile(FFMPEG, ["-version"], { encoding: "utf8", timeout: 5000 }, (err, stdout, stderr) => {
+        resolve({ stdout: stdout || "", stderr: stderr || "" });
+      });
+    });
+    return Boolean(result.stdout && result.stdout.includes("ffmpeg version"));
   } catch {
     return false;
   }

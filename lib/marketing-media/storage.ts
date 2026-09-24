@@ -8,7 +8,7 @@
 
 import { adminDatabase } from "@/lib/firebase-admin";
 import { deepClean, genId, claimJobKey, writeGrowthAudit } from "../growth/database";
-import { MARKETING_COLLECTIONS } from "./collections";
+import { MARKETING_COLLECTIONS, MARKETING_DEFAULTS } from "./collections";
 import type { MarketingCampaign, MarketingCreative, MarketingJob, MarketingAssetRecord, MarketingVariant, MarketingAnalyticsEvent } from "./domain";
 
 export { adminDatabase };

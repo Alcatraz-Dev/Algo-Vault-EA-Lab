@@ -1,8 +1,8 @@
 /** Marketing Content Factory — barrel module. */
-export { MARKETING_COLLECTIONS, MARKETING_PIPELINE_STAGES, MARKETING_TEMPLATE_IDS, MARKETING_DEFAULTS, DEMO_LABEL_TEXT, MARKETING_CREATIVE_STATES, MARKETING_CREATIVE_STATE_LABELS, MARKETING_PIPELINE_STAGE_LABELS, MARKETING_CREATIVE_TRANSITIONS, canTransitionCreative } from "./collections";
+export { MARKETING_COLLECTIONS, MARKETING_PIPELINE_STAGES, MARKETING_TEMPLATE_IDS, MARKETING_DEFAULTS, DEMO_LABEL_TEXT, MARKETING_CREATIVE_STATES, MARKETING_CREATIVE_STATE_LABELS, MARKETING_PIPELINE_STAGE_LABELS } from "./collections";
 export { MARKETING_CREATIVE_STATES as CreativeStates } from "./collections";
 export * from "./domain";
-export * from "./types";
+export type { AspectRatio, VideoPreset, ScriptScene, Script, CaptionCue, MediaAsset, ComposeVideoInput, ComposeVideoResult, GenerateScriptInput, GenerateVoiceoverInput, GenerateVoiceoverResult, GenerateCaptionsInput, GenerateCaptionsResult, GenerateThumbnailInput, GenerateThumbnailResult, GenerateVisualsInput, GenerateVisualsResult, MarketingMediaProvider, MediaProviderStatus } from "./types";
 export * from "./assets";
 export * from "./concepts";
 export * from "./templates";

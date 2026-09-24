@@ -14,7 +14,7 @@ import { WorkflowContext } from "@/lib/agents/types";
 import { registerAgentExecutor } from "@/lib/agents/workflow-engine";
 import { successOutput, failureOutput } from "@/lib/agents/implementations/shared";
 import { writeGrowthAudit } from "../growth/database";
-import { MARKETING_COLLECTIONS, MARKETING_PIPELINE_STAGES, MARKETING_DEFAULTS, DEMO_LABEL_TEXT } from "./collections";
+import { MARKETING_COLLECTIONS, MARKETING_PIPELINE_STAGES, MARKETING_DEFAULTS, DEMO_LABEL_TEXT, MarketingPipelineStage } from "./collections";
 import type { MarketingCreative, MarketingStageSnapshot } from "./domain";
 import { requireGrowthAdmin } from "../growth/server-auth";
 import { getNodeDefinition } from "../workflows/node-registry";
@@ -54,7 +54,7 @@ export async function runPipeline(
   resumeStage?: string
 ): Promise<{ ok: boolean; creative: MarketingCreative; failedStage?: string; error?: string }> {
   const startIdx = resumeStage
-    ? MARKETING_PIPELINE_STAGES.indexOf(resumeStage)
+    ? MARKETING_PIPELINE_STAGES.indexOf(resumeStage as MarketingPipelineStage)
     : creative.state === "GENERATING"
       ? 0
       : -1;
@@ -85,7 +85,7 @@ export async function runPipeline(
     }
     const fn = STAGE_FNS[stage];
     if (!fn) {
-      await recordSnapshot(creative, stage, "failed", 0, `No executor registered for stage ${stage}.`);
+      await recordSnapshot(creative, stage as MarketingPipelineStage, "failed", 0, `No executor registered for stage ${stage}.`);
       return { ok: false, creative, failedStage: stage, error: `Missing executor for stage ${stage}.` };
     }
     const t0 = Date.now();
@@ -106,7 +106,7 @@ export async function runPipeline(
   // ── Compliance (authoritative, always runs last) ──────────────────
   const compStage = "compliance";
   const complianceResult = await runComplianceStage(ctx, creative);
-  await recordSnapshot(creative, compStage, complianceResult.ok ? "success" : "failed", 0, complianceResult.error, complianceResult.output);
+  await recordSnapshot(creative, "compliance" as MarketingPipelineStage, complianceResult.ok ? "success" : "failed", 0, (complianceResult as { error?: string }).error, complianceResult.output);
 
   const finalState = complianceResult.ok ? "READY_FOR_REVIEW" : "FAILED";
   await updateCreativeState(creative, finalState);
@@ -119,6 +119,7 @@ export async function regenerateStage(
   stage: string,
   actor: string
 ): Promise<{ ok: boolean; error?: string }> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (!MARKETING_PIPELINE_STAGES.includes(stage as any)) {
     return { ok: false, error: `Unknown stage: ${stage}` };
   }
@@ -170,6 +171,7 @@ async function recordSnapshot(
   output?: Record<string, unknown>
 ) {
   const snap: MarketingStageSnapshot = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     stage: stage as any,
     agentId: `marketing-${stage}`,
     status,
@@ -178,13 +180,14 @@ async function recordSnapshot(
     output,
     error,
   };
-  creative.stages[stage as any] = snap;
+  creative.stages[stage as MarketingPipelineStage] = snap;
 }
 
 async function updateCreativeState(creative: MarketingCreative, state: string) {
   // Persist to RTDB via the storage module (best-effort, non-throwing).
   try {
     const { updateCreative } = await import("./storage");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await updateCreative(creative.id || "", { state: state as any, stages: creative.stages, updatedAt: Date.now() }, "system");
   } catch {
     // best-effort

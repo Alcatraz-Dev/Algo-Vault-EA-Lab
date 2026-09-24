@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:ea": "jiti lib/strategy-lab/ea/tests/run-tests.ts",
-    "test:growth": "JITI_TSCONFIG_PATHS=1 jiti lib/growth/__tests__/run-growth-tests.ts"
+    "test:growth": "JITI_TSCONFIG_PATHS=1 jiti lib/growth/__tests__/run-growth-tests.ts",
+    "test:marketing": "JITI_TSCONFIG_PATHS=1 jiti lib/marketing-media/__tests__/run-marketing-tests.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

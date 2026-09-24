@@ -8,18 +8,19 @@
 import { AgentExecutionRecord, AgentOutput, WorkflowContext } from "@/lib/agents/types";
 import { registerAgentExecutor } from "@/lib/agents/workflow-engine";
 import { successOutput, failureOutput, tryNarrate } from "@/lib/agents/implementations/shared";
-import { MARKETING_AGENT_IDS } from "./agents/contracts";
-import { generateConceptForTemplate, type ConceptOutput } from "./concepts";
-import { generateVariants, deduplicateVariants, type VariantKind } from "./variation";
-import { generateCaptionsFromScript, captionsToSrt } from "./captions";
-import { runMediaCompliance } from "./compliance";
-import { generateMarketVisual } from "./market-visuals";
-import { assetForScene, assetIdsForScript } from "./platform-visuals";
-import { composeVideo, generateThumbnail } from "./ffmpeg";
-import { generateVoiceoverWithSay } from "./tts";
-import { MARKETING_TEMPLATE_IDS, MARKETING_TEMPLATE_LABELS, MARKETING_DEFAULTS, MARKETING_PIPELINE_STAGES, DEMO_LABEL_TEXT } from "./collections";
+import { MARKETING_AGENT_IDS } from "@/lib/marketing-media/agents/contracts";
+import { ConceptOutput, generateConceptForTemplate } from "@/lib/marketing-media/concepts";
+import { generateVariants, deduplicateVariants, type VariantKind } from "@/lib/marketing-media/variation";
+import { generateCaptionsFromScript, captionsToSrt } from "@/lib/marketing-media/captions";
+import { runMediaCompliance } from "@/lib/marketing-media/compliance";
+import { generateMarketVisual, type MarketVisual } from "@/lib/marketing-media/market-visuals";
+import { assetForScene, assetIdsForScript } from "@/lib/marketing-media/platform-visuals";
+import { composeVideo, generateThumbnail } from "@/lib/marketing-media/ffmpeg";
+import { generateVoiceoverWithSay } from "@/lib/marketing-media/tts";
+import type { Script, VideoPreset, ComposeVideoInput } from "@/lib/marketing-media/types";
+import { MarketingPipelineStage, MarketingTemplateId, MARKETING_PIPELINE_STAGES, MARKETING_TEMPLATE_IDS, MARKETING_TEMPLATE_LABELS, MARKETING_DEFAULTS, DEMO_LABEL_TEXT } from "@/lib/marketing-media/collections";
 
-function stageOutput(record: AgentExecutionRecord, stage: string, summary: string, metadata?: Record<string, unknown>, aiEnhanced = false): AgentOutput {
+function stageOutput(record: AgentExecutionRecord, stage: MarketingPipelineStage, summary: string, metadata?: Record<string, unknown>, aiEnhanced = false): AgentOutput {
   return successOutput({
     agentId: record.agentId,
     summary,
@@ -36,8 +37,8 @@ const conceptExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowConte
   const c = ctx.config || {};
   const feature = String(c.feature || "AlgoVault");
   const audience = String(c.audience || "traders");
-  const templateId = (MARKETING_TEMPLATE_IDS as readonly string[]).includes(String(c.templateId)) ? String(c.templateId) : "HOOK_EDU";
-  const out: ConceptOutput = generateConceptForTemplate(templateId as any, feature, audience);
+  const templateId = (MARKETING_TEMPLATE_IDS as readonly string[]).includes(String(c.templateId || "")) ? String(c.templateId) : "HOOK_EDU";
+  const out: ConceptOutput = generateConceptForTemplate(templateId as MarketingTemplateId, feature, audience);
   return successOutput({
     agentId: MARKETING_AGENT_IDS.concept,
     summary: `Concept prepared for "${feature}".`,
@@ -52,8 +53,8 @@ const conceptExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowConte
 const researchExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowContext): Promise<AgentOutput> => {
   const c = ctx.config || {};
   const topic = String(c.topic || "AlgoVault");
-  const narration = await tryNarrate(`Research ${topic} for a marketing concept. Be factual. No invented statistics.`, "You are the AlgoVault Marketing Research Agent.", { maxTokens: 400 });
-  const brief = narration.ok ? narration.text : `Research brief: ${topic} — education over hype; factual claims only; include risk framing.`;
+  const narration = await tryNarrate(`Research ${topic} for a marketing concept. Be factual. No invented statistics. Product context: AlgoVault.`, "You are the AlgoVault Marketing Research Agent.", { maxTokens: 400 });
+  const brief = narration.ok ? String(narration.text || "") : `Research brief: ${topic} — education over hype; factual claims only; include risk framing.`;
   return successOutput({
     agentId: MARKETING_AGENT_IDS.research,
     summary: `Research brief prepared for "${topic}".`,
@@ -68,17 +69,17 @@ const researchExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowCont
 
 const scriptExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowContext): Promise<AgentOutput> => {
   const c = ctx.config || {};
-  const narration = await tryNarrate(`Create a ${c.durationSec || 30}-second video script for ${c.feature || "AlgoVault"}. Hook, scenes, CTA. Include risk disclosure.`, "You are the AlgoVault Script Agent.", { maxTokens: 900 });
-  const script = narration.ok ? undefined : undefined;
+  const narration = await tryNarrate(`Create a ${c.durationSec || 30}-second video script for ${c.feature || "AlgoVault"}. Hook, scenes, CTA. Include risk disclosure. Context: AlgoVault trading automation and AI signals.`, "You are the AlgoVault Script Agent.", { maxTokens: 900 });
+  const script = narration.ok ? String(narration.text || "") : undefined;
   return successOutput({
     agentId: MARKETING_AGENT_IDS.script,
     summary: "Script stage prepared.",
     confidence: narration.ok ? 0.55 : 0.35,
-    findings: [{ id: "script", title: "Script draft", detail: narration.ok ? narration.text.slice(0, 160) : "Deterministic script draft.", tags: ["script"] }],
+    findings: [{ id: "script", title: "Script draft", detail: narration.ok ? String(narration.text || "").slice(0, 160) : "Deterministic script draft.", tags: ["script"] }],
     dataUsed: ["marketing:script:template"],
     nextStep: MARKETING_AGENT_IDS.copy,
     aiEnhanced: narration.ok,
-    metadata: { script, narration: narration.ok ? narration.text.slice(0, 500) : undefined },
+    metadata: { script, narration: narration.ok ? String(narration.text || "").slice(0, 500) : undefined },
   });
 };
 
@@ -102,7 +103,7 @@ const copyExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowContext)
 const templateExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowContext): Promise<AgentOutput> => {
   const c = ctx.config || {};
   const templateId = String(c.templateId || "HOOK_EDU");
-  const copy = String(c.copy || c.copies?.main || "");
+  const copy = String(c.copy || (c.copies && (c.copies as Record<string,string>).main) || "");
   return successOutput({
     agentId: MARKETING_AGENT_IDS.template,
     summary: `Template "${templateId}" applied.`,
@@ -117,10 +118,10 @@ const templateExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowCont
 const variationExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowContext): Promise<AgentOutput> => {
   const c = ctx.config || {};
   const stage = String(c.stage || "copy");
-  const kind = (["hook", "cta", "caption", "copy", "script"] as VariantKind[]).includes(String(c.kind)) ? String(c.kind) : "copy";
+  const kind = (["hook", "cta", "caption", "copy", "script"] as VariantKind[]).includes(String(c.kind) as VariantKind) ? (String(c.kind) as VariantKind) : "copy";
   const seed = String(c.seed || `${stage}:${kind}`);
   const count = Math.min(Number(c.count || MARKETING_DEFAULTS.defaultVariantCount), MARKETING_DEFAULTS.maxVariantCount);
-  const variants = deduplicateVariants(generateVariants(String(c.feature || "AlgoVault"), seed, stage, kind, count));
+  const variants = deduplicateVariants(generateVariants(String(c.feature || "AlgoVault"), seed, stage, kind as VariantKind, count));
   return successOutput({
     agentId: MARKETING_AGENT_IDS.variation,
     summary: `Generated ${variants.length} variant(s).`,
@@ -134,7 +135,8 @@ const variationExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowCon
 
 const seoExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowContext): Promise<AgentOutput> => {
   const c = ctx.config || {};
-  const title = String(c.title || c.script?.title || "AlgoVault");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const title = String(c.title || ((c.script as any)?.title) || "AlgoVault");
   const draft = String(c.draft || c.copy || "");
   const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "algovault";
   return successOutput({
@@ -150,8 +152,9 @@ const seoExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowContext):
 
 const captionsExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowContext): Promise<AgentOutput> => {
   const c = ctx.config || {};
-  const script = c.script || {};
-  const cues = generateCaptionsFromScript(script as any, Number(c.voiceoverDurationMs));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const scriptData = (c.script ? (c.script as any) : {}) as any;
+  const cues = generateCaptionsFromScript(scriptData, Number(c.voiceoverDurationMs));
   return successOutput({
     agentId: MARKETING_AGENT_IDS.captions,
     summary: `Caption cues generated (${cues.length} cues).`,
@@ -165,9 +168,10 @@ const captionsExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowCont
 
 const visualsExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowContext): Promise<AgentOutput> => {
   const c = ctx.config || {};
-  const script = c.script || {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const script = (c.script ? (c.script as any) : {}) as { scenes?: Array<{ visualRef?: string; visualType?: string }> };
   const sceneList = Array.isArray(script.scenes) ? script.scenes : [];
-  const assets = sceneList.map((scene: any) => assetForScene(scene)).filter(Boolean);
+  const assets = sceneList.map((scene) => assetForScene(scene as import("@/lib/marketing-media/types").ScriptScene)).filter(Boolean);
   return successOutput({
     agentId: MARKETING_AGENT_IDS.visuals,
     summary: `Mapped ${assets.length} scene asset(s).`,
@@ -184,34 +188,38 @@ const marketVisualsExecutor = async (_record: AgentExecutionRecord, ctx: Workflo
   const symbol = String(c.symbol || "XAUUSD");
   const timeframe = String(c.timeframe || "M5");
   const visual = await generateMarketVisual(symbol, timeframe, 20);
-  if (!("ok" in visual) && visual.ok) {
+  if ("ok" in visual && !visual.ok) {
+    const errMsg = (visual as { ok: false; error: string }).error;
     return successOutput({
       agentId: MARKETING_AGENT_IDS.market_visuals,
-      summary: `Market visual generated for ${symbol}.`,
-      confidence: 0.55,
-      findings: [{ id: "market_visual", title: "Chart ready", detail: visual.url, tags: ["market"] }],
-      dataUsed: ["marketing:market_visuals:candles"],
+      summary: `Market visual unavailable for ${symbol}.`,
+      confidence: 0.2,
+      findings: [{ id: "market_visual", title: "Chart unavailable", detail: errMsg, tags: ["market"] }],
+      dataUsed: ["marketing:market_visuals:chart"],
       nextStep: MARKETING_AGENT_IDS.voiceover,
+      warnings: [errMsg],
       metadata: { visual },
     });
   }
+  const visualResult = visual as MarketVisual;
   return successOutput({
     agentId: MARKETING_AGENT_IDS.market_visuals,
-    summary: `Market visual unavailable for ${symbol}.`,
-    confidence: 0.2,
-    findings: [{ id: "market_visual", title: "Chart unavailable", detail: visual.error, tags: ["market"] }],
-    dataUsed: ["marketing:market_visuals:chart"],
+    summary: `Market visual generated for ${symbol}.`,
+    confidence: 0.55,
+    findings: [{ id: "market_visual", title: "Chart ready", detail: visualResult.url || "", tags: ["market"] }],
+    dataUsed: ["marketing:market_visuals:candles"],
     nextStep: MARKETING_AGENT_IDS.voiceover,
-    warnings: [visual.error],
-    metadata: { visual },
+    metadata: { visual: visualResult },
   });
 };
 
 const voiceoverExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowContext): Promise<AgentOutput> => {
   const c = ctx.config || {};
-  const script = c.script || {};
-  const result = await generateVoiceoverWithSay({ script: script as any, voice: String(c.voice || ""), language: String(c.language || "en") });
-  if (!result.ok) return failureOutput(MARKETING_AGENT_IDS.voiceover, result.error);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const scriptData = (c.script ? (c.script as any) : {}) as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const result = await generateVoiceoverWithSay({ script: scriptData as any, voice: String(c.voice || ""), language: String(c.language || "en") });
+  if (!result.ok) return failureOutput(MARKETING_AGENT_IDS.voiceover, result.error || "Voiceover failed.");
   return successOutput({
     agentId: MARKETING_AGENT_IDS.voiceover,
     summary: "Voiceover generated via local TTS.",
@@ -225,9 +233,19 @@ const voiceoverExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowCon
 
 const composeExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowContext): Promise<AgentOutput> => {
   const c = ctx.config || {};
-  const input = { script: c.script, assets: c.assets || [], captions: c.captions, preset: c.preset || { id: "tiktok", aspectRatio: "9:16", width: 1080, height: 1920, maxDurationSec: 60 }, outputName: "mktg_video" };
+  const defaultScript: Script = {
+    id: "script_default", title: "Default Script", hook: "Default hook.", cta: "Default CTA.", durationSec: 30, aspectRatio: "9:16", language: "en", tone: "neutral", disclosure: DEMO_LABEL_TEXT,
+    scenes: [{ id: "s1", order: 1, durationSec: 5, voiceover: "Default voiceover.", onScreenText: "Text.", visualRef: "ref", visualType: "graphic" }],
+    metadata: { feature: "AlgoVault", audience: "traders", angle: "default", demoLabel: true },
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const scriptData: Script = (c.script && typeof c.script === "object" && (c.script as any).scenes) ? (c.script as Script) : defaultScript;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const presetData: VideoPreset = (c.preset && typeof c.preset === "object" && (c.preset as any).id) ? (c.preset as VideoPreset) : { id: "tiktok", label: "TikTok", aspectRatio: "9:16", width: 1080, height: 1920, maxDurationSec: 60, platforms: ["TIKTOK"] };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const input: ComposeVideoInput = { script: scriptData, assets: (c.assets || []) as any, captions: (c.captions || undefined) as any, preset: presetData, outputName: String(c.outputName || "mktg_video") };
   const result = await composeVideo(input);
-  if (!result.ok) return failureOutput(MARKETING_AGENT_IDS.compose, result.error);
+  if (!result.ok) return failureOutput(MARKETING_AGENT_IDS.compose, result.error || "Composition failed.");
   return successOutput({
     agentId: MARKETING_AGENT_IDS.compose,
     summary: "Video composed via FFmpeg.",
@@ -241,8 +259,18 @@ const composeExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowConte
 
 const thumbnailExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowContext): Promise<AgentOutput> => {
   const c = ctx.config || {};
-  const result = await generateThumbnail(c.script, c.preset, c.assets || []);
-  if (!result.ok) return failureOutput(MARKETING_AGENT_IDS.thumbnail, result.error);
+  const defaultScriptThumb: Script = {
+    id: "script_default", title: "Default Script", hook: "Default hook.", cta: "Default CTA.", durationSec: 30, aspectRatio: "9:16", language: "en", tone: "neutral", disclosure: DEMO_LABEL_TEXT,
+    scenes: [{ id: "s1", order: 1, durationSec: 5, voiceover: "Default voiceover.", onScreenText: "Text.", visualRef: "ref", visualType: "graphic" }],
+    metadata: { feature: "AlgoVault", audience: "traders", angle: "default", demoLabel: true },
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const scriptThumb: Script = (c.script && typeof c.script === "object" && (c.script as any).scenes) ? (c.script as Script) : defaultScriptThumb;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const presetThumb: VideoPreset = (c.preset && typeof c.preset === "object" && (c.preset as any).id) ? (c.preset as VideoPreset) : { id: "tiktok", label: "TikTok", aspectRatio: "9:16", width: 1080, height: 1920, maxDurationSec: 60, platforms: ["TIKTOK"] };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const result = await generateThumbnail(scriptThumb, presetThumb, (c.assets || []) as any);
+  if (!result.ok) return failureOutput(MARKETING_AGENT_IDS.thumbnail, result.error || "Thumbnail failed.");
   return successOutput({
     agentId: MARKETING_AGENT_IDS.thumbnail,
     summary: "Thumbnail generated.",
@@ -256,8 +284,9 @@ const thumbnailExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowCon
 
 const complianceExecutor = async (_record: AgentExecutionRecord, ctx: WorkflowContext): Promise<AgentOutput> => {
   const c = ctx.config || {};
-  const script = c.script || {};
-  const result = runMediaCompliance(script as any, { demoLabelRequired: true });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const scriptData = (c.script ? (c.script as any) : {}) as any;
+  const result = runMediaCompliance(scriptData, { demoLabelRequired: true });
   return successOutput({
     agentId: MARKETING_AGENT_IDS.compliance,
     summary: result.blocked ? "Compliance blocked." : "Compliance passed.",

@@ -134,5 +134,18 @@ export const MARKETING_DEFAULTS = {
 /** Required marker on demo/illustrative content — never omitted. */
 export const DEMO_LABEL_TEXT = "Demo — illustrative example. Not real trading performance.";
 
+export const MARKETING_TEMPLATE_LABELS: Record<string, string> = {
+  HOOK_EDU: "Hook + Education",
+  FEATURE_SPOTLIGHT: "Feature Spotlight",
+  HOW_IT_WORKS: "How It Works",
+  USE_CASE: "Use Case",
+  MYTH_VS_FACT: "Myth vs Fact",
+  COMPARISON: "Comparison",
+  LIFECYCLE: "Lifecycle",
+  MARKET_CONTEXT: "Market Context",
+  RISK_FIRST: "Risk First",
+  CTA_DRIVE: "CTA Drive",
+};
+
 /** Standard AlgoVault trading risk disclosure (shared with the growth engine). */
 export { RISK_DISCLOSURE_TEXT } from "../growth/constants";

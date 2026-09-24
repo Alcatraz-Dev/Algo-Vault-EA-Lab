@@ -5,7 +5,7 @@
  *  If qlmanage or ffmpeg is missing, the result is NOT_AVAILABLE.
  */
 
-import { ExecSyncOptions, execSync } from "child_process";
+import { ExecFileSyncOptions, execFileSync } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -78,8 +78,8 @@ async function renderSvgToPng(svg: string, outputDir: string): Promise<string | 
   try {
     fs.writeFileSync(svgPath, svg);
     // Use qlmanage: /usr/bin/qlmanage -t <svg> -o <png> -s 2 (scale)
-    const opts: ExecSyncOptions = { encoding: "utf8" };
-    execSync("/usr/bin/qlmanage -t", [svgPath, "-o", pngPath, "-s", "2"], opts);
+    const opts: ExecFileSyncOptions = { encoding: "utf8" };
+    execFileSync("/usr/bin/qlmanage", ["-t", svgPath, "-o", pngPath, "-s", "2"], opts);
     if (fs.existsSync(pngPath)) {
       return `/marketing-video/assets/${path.basename(pngPath)}`;
     }
