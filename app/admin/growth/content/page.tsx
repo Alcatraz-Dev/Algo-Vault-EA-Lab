@@ -457,7 +457,7 @@ export default function AdminGrowthContentPage() {
 
             {/* Create dialog */}
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>New content</DialogTitle>
                         <DialogDescription>Creates a marketing task, then optionally runs the AI pipeline immediately.</DialogDescription>
@@ -527,7 +527,7 @@ export default function AdminGrowthContentPage() {
 
             {/* Preview dialog */}
             <Dialog open={preview !== null} onOpenChange={(o) => { if (!o) setPreview(null); }}>
-                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl md:max-w-3xl lg:max-w-4xl">
                     <DialogHeader>
                         <DialogTitle>{preview?.title || preview?.topic}</DialogTitle>
                         <DialogDescription>
@@ -591,7 +591,7 @@ export default function AdminGrowthContentPage() {
 
             {/* Publish dialog */}
             <Dialog open={publishTask !== null} onOpenChange={(o) => { if (!o) { setPublishTask(null); setPublishChannel(""); } }}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Publish content</DialogTitle>
                         <DialogDescription>
@@ -629,7 +629,7 @@ export default function AdminGrowthContentPage() {
 
             {/* Schedule dialog */}
             <Dialog open={scheduleTask !== null} onOpenChange={(o) => { if (!o) setScheduleTask(null); }}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Schedule publishing</DialogTitle>
                         <DialogDescription>Marks the task as scheduled for the target time (state SCHEDULED).</DialogDescription>
@@ -663,7 +663,7 @@ export default function AdminGrowthContentPage() {
 
             {/* Reject dialog */}
             <Dialog open={rejectTask !== null} onOpenChange={(o) => { if (!o) setRejectTask(null); }}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Reject content</DialogTitle>
                         <DialogDescription>Add a reason — it is stored on the task and keeps the feedback loop honest.</DialogDescription>

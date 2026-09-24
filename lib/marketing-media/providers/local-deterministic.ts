@@ -133,7 +133,13 @@ export class LocalDeterministicProvider implements MarketingMediaProvider {
         }
     }
 
-    async generateVoiceover(_input: GenerateVoiceoverInput): Promise<GenerateVoiceoverResult> {
+    async generateVoiceover(input: GenerateVoiceoverInput): Promise<GenerateVoiceoverResult> {
+        try {
+            const ttsMod = await import("../tts");
+            if (await ttsMod.isTtsAvailable()) {
+                return await ttsMod.generateVoiceoverWithSay(input);
+            }
+        } catch { /* fall through */ }
         return {
             ok: false,
             error: "TTS provider not configured. Set TTS_PROVIDER or a voice API key to enable voiceover generation.",
@@ -141,7 +147,13 @@ export class LocalDeterministicProvider implements MarketingMediaProvider {
         };
     }
 
-    async composeVideo(_input: ComposeVideoInput): Promise<ComposeVideoResult> {
+    async composeVideo(input: ComposeVideoInput): Promise<ComposeVideoResult> {
+        try {
+            const ffmpegMod = await import("../ffmpeg");
+            if (await ffmpegMod.ffmpegAvailable()) {
+                return await ffmpegMod.composeVideo(input);
+            }
+        } catch { /* fall through */ }
         return {
             ok: false,
             error: "Local video composition is not available (FFmpeg/render backend not configured).",
@@ -150,7 +162,13 @@ export class LocalDeterministicProvider implements MarketingMediaProvider {
         };
     }
 
-    async generateThumbnail(_input: GenerateThumbnailInput): Promise<GenerateThumbnailResult> {
+    async generateThumbnail(input: GenerateThumbnailInput): Promise<GenerateThumbnailResult> {
+        try {
+            const ffmpegMod = await import("../ffmpeg");
+            if (await ffmpegMod.ffmpegAvailable()) {
+                return await ffmpegMod.generateThumbnail(input.script, input.preset, input.assets);
+            }
+        } catch { /* fall through */ }
         return {
             ok: false,
             error: "Local thumbnail generation is not available (FFmpeg/render backend not configured).",

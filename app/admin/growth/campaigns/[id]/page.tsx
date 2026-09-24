@@ -504,7 +504,7 @@ export default function AdminCampaignDetailPage() {
             <CampaignFormDialog open={editOpen} onOpenChange={setEditOpen} campaign={campaign} busy={busyAction === "edit"} onSubmit={saveEdit} />
 
             <Dialog open={genOpen} onOpenChange={setGenOpen}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Generate content</DialogTitle>
                         <DialogDescription>

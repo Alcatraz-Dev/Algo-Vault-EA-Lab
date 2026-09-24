@@ -28,7 +28,8 @@ export type NodeCategory =
     | "http"           // outbound HTTP (SSRF-protected, no secret exposure)
     | "transform"      // template rendering / JSON shaping
     | "simulation"     // backtest / simulation over fetched data
-    | "reports";       // structured report generation (real data only)
+    | "reports"       // structured report generation (real data only)
+    | "marketing";     // AI marketing content factory (analysis-gated)
 
 export interface WorkflowNode {
     id: string;

@@ -234,7 +234,7 @@ export default function AdminGrowthChannelsPage() {
 
             {/* Configure dialog */}
             <Dialog open={configureFor !== null} onOpenChange={(o) => { if (!o) setConfigureFor(null); }}>
-                <DialogContent className="sm:max-w-lg">
+                <DialogContent className="sm:max-w-lg md:max-w-2xl lg:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>
                             Configure {configureFor ? CHANNEL_LABELS[configureFor.type as ChannelType] || configureFor.type : ""}
@@ -283,7 +283,7 @@ export default function AdminGrowthChannelsPage() {
 
             {/* Test result dialog */}
             <Dialog open={testDialogOpen} onOpenChange={setTestDialogOpen}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Connection test</DialogTitle>
                         <DialogDescription>

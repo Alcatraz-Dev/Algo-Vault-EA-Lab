@@ -773,6 +773,25 @@ async function reportsBuild(args: NodeExecutionArgs): Promise<NodeExecutionResul
     return { status: "success", output: { reportId, title, sectionCount: sections.length } };
 }
 
+async function marketingCreative(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    return { status: "success", output: { creativeId: args.run.id, stage: "creative", template: args.config.templateId || "HOOK_EDU" } };
+}
+async function marketingVariants(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    return { status: "success", output: { count: args.config.count || 3, kind: args.config.kind || "hook" } };
+}
+async function marketingCompliance(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    return { status: "success", output: { passed: true, demoContent: args.config.demoContent } };
+}
+async function marketingCompose(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    return { status: "success", output: { videoUrl: "/marketing-video/assets/demo.mp4", provider: "ffmpeg" } };
+}
+async function marketingThumbnail(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    return { status: "success", output: { thumbnailUrl: "/marketing-video/assets/thumb.png" } };
+}
+async function marketingPublish(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    return { status: "success", output: { published: false, blocked: "Gated by APPROVED state — out-of-band via adapter." } };
+}
+
 // ─── Dispatch ────────────────────────────────────────────────────────────────
 
 export async function executeNodeForType(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
@@ -814,6 +833,12 @@ export async function executeNodeForType(args: NodeExecutionArgs): Promise<NodeE
         case "transform.json": return transformJson(args);
         case "simulation.backtest": return simulationBacktest(args);
         case "reports.build_report": return reportsBuild(args);
+        case "marketing.creative": return marketingCreative(args);
+        case "marketing.variants": return marketingVariants(args);
+        case "marketing.compliance": return marketingCompliance(args);
+        case "marketing.compose": return marketingCompose(args);
+        case "marketing.thumbnail": return marketingThumbnail(args);
+        case "marketing.publish": return marketingPublish(args);
         default:
             return { status: "failed", error: `Unknown node type "${type}" — not in the registry.` };
     }

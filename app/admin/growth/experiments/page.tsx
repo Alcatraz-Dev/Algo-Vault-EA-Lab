@@ -321,7 +321,7 @@ export default function AdminGrowthExperimentsPage() {
 
             {/* Create dialog */}
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Create experiment</DialogTitle>
                         <DialogDescription>
@@ -411,7 +411,7 @@ function ExperimentDetailDialog({
 
     return (
         <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-            <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
+            <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl md:max-w-4xl lg:max-w-5xl">
                 <DialogHeader>
                     <DialogTitle>{experiment.name}</DialogTitle>
                     <DialogDescription>{experiment.hypothesis}</DialogDescription>

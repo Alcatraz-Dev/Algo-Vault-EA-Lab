@@ -809,6 +809,12 @@
       "$id": {
         ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
-    }
+    },
+    "marketingCampaigns": { ".read": false, ".indexOn": ["status", "objective", "createdBy"] },
+    "marketingCreatives": { ".read": false, ".indexOn": ["state", "templateId", "campaignId", "createdBy"] },
+    "marketingJobs": { ".read": false, ".indexOn": ["jobKey", "status", "type"] },
+    "marketingAssets": { ".read": false, ".indexOn": ["creativeId", "kind", "source"] },
+    "marketingVariants": { ".read": false, ".indexOn": ["creativeId", "kind", "seed"] },
+    "marketingAnalytics": { ".read": false, ".indexOn": ["creativeId", "eventType", "channel", "createdAt"] }
   }
 }

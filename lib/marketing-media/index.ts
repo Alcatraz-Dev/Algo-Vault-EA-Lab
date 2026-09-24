@@ -1,0 +1,23 @@
+/** Marketing Content Factory — barrel module. */
+export { MARKETING_COLLECTIONS, MARKETING_PIPELINE_STAGES, MARKETING_TEMPLATE_IDS, MARKETING_DEFAULTS, DEMO_LABEL_TEXT, MARKETING_CREATIVE_STATES, MARKETING_CREATIVE_STATE_LABELS, MARKETING_PIPELINE_STAGE_LABELS, MARKETING_CREATIVE_TRANSITIONS, canTransitionCreative } from "./collections";
+export { MARKETING_CREATIVE_STATES as CreativeStates } from "./collections";
+export * from "./domain";
+export * from "./types";
+export * from "./assets";
+export * from "./concepts";
+export * from "./templates";
+export * from "./captions";
+export * from "./variation";
+export * from "./compliance";
+export * from "./market-visuals";
+export * from "./platform-visuals";
+export * from "./ffmpeg";
+export * from "./tts";
+export * from "./storage";
+export * from "./pipeline";
+export { MARKETING_AGENT_CONTRACTS, MARKETING_AGENT_IDS, ensureMarketingAgentsRegistered } from "./agents/contracts";
+export { registerMarketingExecutors } from "./agents/executors";
+export { registerLocalDeterministicProvider } from "./providers/local-deterministic";
+export { registerFfmpegProvider } from "./providers/ffmpeg";
+export { registerTtsProvider } from "./providers/tts";
+export { getProviderStatuses, findProviderFor } from "./providers";

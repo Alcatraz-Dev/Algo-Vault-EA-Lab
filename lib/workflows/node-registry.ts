@@ -30,6 +30,7 @@ export const NODE_CATEGORY_LABELS: Record<NodeCategory, string> = {
     transform: "Data Transform",
     simulation: "Backtesting / Simulation",
     reports: "Reports / Analytics",
+    marketing: "Marketing / Creative",
 };
 
 export const NODE_CATEGORY_ORDER: NodeCategory[] = [
@@ -48,6 +49,7 @@ export const NODE_CATEGORY_ORDER: NodeCategory[] = [
     "transform",
     "simulation",
     "reports",
+    "marketing",
 ];
 
 export const CATEGORY_PERMISSION: Record<NodeCategory, WorkflowPermissionLevel | "none"> = {
@@ -66,6 +68,7 @@ export const CATEGORY_PERMISSION: Record<NodeCategory, WorkflowPermissionLevel |
     transform: "none",
     simulation: "analysis",
     reports: "analysis",
+    marketing: "analysis",
 };
 
 const NODES: WorkflowNodeDefinition[] = [
@@ -507,6 +510,13 @@ const NODES: WorkflowNodeDefinition[] = [
         timeoutMs: 30_000,
         rateLimitPerMinute: 10,
     },
+    // ─── Marketing ───────────────────────────────────────────────────────
+    { type: "marketing.creative", category: "marketing", name: "Creative", description: "Generate a marketing creative (concept → pipeline).", permission: "analysis", configSchema: [{ key: "templateId", label: "Template", type: "select", options: [{ value: "HOOK_EDU", label: "Hook + Edu" }, { value: "FEATURE_SPOTLIGHT", label: "Feature Spotlight" }, { value: "HOW_IT_WORKS", label: "How It Works" }, { value: "USE_CASE", label: "Use Case" }, { value: "MYTH_VS_FACT", label: "Myth vs Fact" }, { value: "COMPARISON", label: "Comparison" }, { value: "LIFECYCLE", label: "Lifecycle" }, { value: "MARKET_CONTEXT", label: "Market Context" }, { value: "RISK_FIRST", label: "Risk First" }, { value: "CTA_DRIVE", label: "CTA Drive" }], default: "HOOK_EDU" }], defaults: { templateId: "HOOK_EDU" }, timeoutMs: 180000 },
+    { type: "marketing.variants", category: "marketing", name: "Variants", description: "Generate cost-controlled per-stage variants.", permission: "analysis", configSchema: [{ key: "count", label: "Variant count", type: "number", default: 3 }, { key: "kind", label: "Variant kind", type: "select", options: [{ value: "hook", label: "Hook" }, { value: "cta", label: "CTA" }, { value: "copy", label: "Copy" }], default: "hook" }], defaults: { count: 3, kind: "hook" }, timeoutMs: 30000 },
+    { type: "marketing.compliance", category: "marketing", name: "Compliance", description: "Authoritative compliance review (blocks distribution on high severity).", permission: "analysis", configSchema: [{ key: "demoContent", label: "Demo content", type: "boolean", default: true }], defaults: { demoContent: true }, timeoutMs: 10000 },
+    { type: "marketing.compose", category: "marketing", name: "Compose", description: "Assemble video via FFmpeg (Ken Burns + overlay + concat). Reports NOT_AVAILABLE when FFmpeg missing.", permission: "analysis", configSchema: [{ key: "preset", label: "Preset", type: "string", default: "tiktok" }], defaults: { preset: "tiktok" }, timeoutMs: 120000 },
+    { type: "marketing.thumbnail", category: "marketing", name: "Thumbnail", description: "Extract thumbnail from composed video.", permission: "analysis", configSchema: [], defaults: {}, timeoutMs: 30000 },
+    { type: "marketing.publish", category: "marketing", name: "Publish", description: "Publish approved content through configured channel adapters (gated by APPROVED state).", permission: "analysis", configSchema: [{ key: "channels", label: "Channels", type: "multiselect", options: [{ value: "BLOG", label: "Blog" }, { value: "EMAIL", label: "Email" }, { value: "DISCORD", label: "Discord" }], default: ["BLOG"] }], defaults: { channels: ["BLOG"] }, timeoutMs: 30000 },
     // ─── Reports ───────────────────────────────────────────────────────────
     {
         type: "reports.build_report",

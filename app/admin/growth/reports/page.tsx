@@ -254,7 +254,7 @@ export default function AdminGrowthReportsPage() {
 
             {/* Generate dialog */}
             <Dialog open={genOpen} onOpenChange={setGenOpen}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Generate report</DialogTitle>
                         <DialogDescription>
@@ -284,7 +284,7 @@ export default function AdminGrowthReportsPage() {
 
             {/* View report dialog */}
             <Dialog open={viewing !== null} onOpenChange={(o) => { if (!o) setViewing(null); }}>
-                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl md:max-w-3xl lg:max-w-4xl">
                      <DialogHeader>
                         <DialogTitle>{viewing?.title}</DialogTitle>
                         {viewing ? (

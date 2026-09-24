@@ -425,7 +425,7 @@ export default function AdminAffiliatePage() {
 
             {/* Create / edit dialog */}
             <Dialog open={dialogOpen} onOpenChange={(o) => { if (!o && !busy) setDialogOpen(false); }}>
-                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg md:max-w-2xl lg:max-w-4xl">
                     <DialogHeader>
                         <DialogTitle>{editing ? `Edit ${editing.name}` : "New affiliate offer"}</DialogTitle>
                         <DialogDescription>

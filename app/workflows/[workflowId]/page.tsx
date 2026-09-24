@@ -101,7 +101,7 @@ export default function WorkflowEditorPage() {
         {/* Palette */}
         <div className="border rounded-2xl bg-card p-4 space-y-2 overflow-y-auto">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Node Library</h3>
-          {["trigger", "market_data", "technical", "ai", "logic", "risk", "signal", "execution", "notification", "integration", "transform", "simulation", "reports"].map((cat) => (
+          {["trigger", "market_data", "technical", "ai", "logic", "risk", "signal", "execution", "notification", "integration", "transform", "simulation", "reports", "marketing"].map((cat) => (
             <div key={cat}>
               <div className="text-[10px] font-bold text-muted-foreground uppercase mt-2 mb-1">{cat}</div>
               <div className="space-y-1">
@@ -115,6 +115,7 @@ export default function WorkflowEditorPage() {
                 {cat === "notification" && <PaletteItem label="Send Notification" type="notification.send" />}
                 {cat === "simulation" && <PaletteItem label="Backtest" type="simulation.backtest" />}
                 {cat === "reports" && <PaletteItem label="Build Report" type="reports.build_report" />}
+                {cat === "marketing" && <><PaletteItem label="Creative" type="marketing.creative" /><PaletteItem label="Variants" type="marketing.variants" /><PaletteItem label="Compliance" type="marketing.compliance" /><PaletteItem label="Compose" type="marketing.compose" /><PaletteItem label="Thumbnail" type="marketing.thumbnail" /><PaletteItem label="Publish" type="marketing.publish" /></>}
               </div>
             </div>
           ))}

@@ -372,7 +372,7 @@ export default function AdminPlacementsPage() {
 
             {/* Create / edit dialog */}
             <Dialog open={dialogOpen} onOpenChange={(o) => { if (!o && !busy) setDialogOpen(false); }}>
-                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg md:max-w-2xl lg:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>{editing ? `Edit ${editing.name}` : "New placement"}</DialogTitle>
                         <DialogDescription>
@@ -482,7 +482,7 @@ export default function AdminPlacementsPage() {
 
             {/* Preview dialog */}
             <Dialog open={previewing !== null} onOpenChange={(o) => { if (!o) setPreviewing(null); }}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Placement preview</DialogTitle>
                         <DialogDescription>
