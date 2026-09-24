@@ -187,24 +187,22 @@ export function CampaignFormDialog({
                             </FormField>
                         </div>
 
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <FormField label="Start" htmlFor="campaign-start" description="Optional target start time." error={errors.startDate}>
-                                <Input
-                                    id="campaign-start"
-                                    type="datetime-local"
-                                    value={toInputDateTime(values.startDate)}
-                                    onChange={(e) => set("startDate", fromInputDateTime(e.target.value))}
-                                />
-                            </FormField>
-                            <FormField label="End" htmlFor="campaign-end" error={errors.endDate}>
-                                <Input
-                                    id="campaign-end"
-                                    type="datetime-local"
-                                    value={toInputDateTime(values.endDate)}
-                                    onChange={(e) => set("endDate", fromInputDateTime(e.target.value))}
-                                />
-                            </FormField>
-                        </div>
+                        <FormField label="Start" htmlFor="campaign-start" description="Optional target start time." error={errors.startDate}>
+                            <Input
+                                id="campaign-start"
+                                type="datetime-local"
+                                value={toInputDateTime(values.startDate)}
+                                onChange={(e) => set("startDate", fromInputDateTime(e.target.value))}
+                            />
+                        </FormField>
+                        <FormField label="End" htmlFor="campaign-end" error={errors.endDate}>
+                            <Input
+                                id="campaign-end"
+                                type="datetime-local"
+                                value={toInputDateTime(values.endDate)}
+                                onChange={(e) => set("endDate", fromInputDateTime(e.target.value))}
+                            />
+                        </FormField>
                     </FormSection>
 
                     <FormSection title="Distribution">
