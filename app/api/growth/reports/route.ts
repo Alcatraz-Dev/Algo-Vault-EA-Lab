@@ -13,7 +13,8 @@ export async function getReports(adminToken: string) {
     const snap = await adminDatabase.ref(GROWTH_COLLECTIONS.reports).get();
     if (!snap.exists()) return [];
     const data = snap.val() as Record<string, GrowthReport>;
-    return Object.values(data)
+    return Object.entries(data)
+        .map(([id, val]) => ({ ...val, id: val.id ?? id }))
         .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
         .slice(0, 50)
         .sort((a, b) => (b.periodEnd ?? 0) - (a.periodEnd ?? 0));

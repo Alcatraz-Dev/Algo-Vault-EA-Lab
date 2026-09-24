@@ -12,8 +12,8 @@ export async function getTasks(adminToken: string): Promise<MarketingTask[] | { 
     const snap = await adminDatabase.ref(GROWTH_COLLECTIONS.tasks).get();
     if (!snap.exists()) return [];
     const data = snap.val() as Record<string, MarketingTask>;
-    return Object.values(data)
-        .map((val) => ({ ...val }))
+    return Object.entries(data)
+        .map(([id, val]) => ({ ...val, id: val.id ?? id }))
         .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
         .slice(0, 100);
 }

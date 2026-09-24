@@ -277,7 +277,8 @@ export async function listGrowthReports(limit = 60): Promise<GrowthReport[]> {
     const { adminDatabase } = await db();
     const snap = await adminDatabase.ref(COLLECTION_PATHS.reports).get();
     const data = (snap.val() || {}) as Record<string, GrowthReport>;
-    return Object.values(data)
+    return Object.entries(data)
+        .map(([id, val]) => ({ ...val, id: val.id ?? id }))
         .filter((r) => !r.id?.startsWith("_"))
         .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
         .slice(0, limit)
