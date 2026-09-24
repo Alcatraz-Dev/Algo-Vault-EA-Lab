@@ -810,11 +810,11 @@
         ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
     },
-    "marketingCampaigns": { ".read": false, ".indexOn": ["status", "objective", "createdBy"] },
-    "marketingCreatives": { ".read": false, ".indexOn": ["state", "templateId", "campaignId", "createdBy"] },
-    "marketingJobs": { ".read": false, ".indexOn": ["jobKey", "status", "type"] },
-    "marketingAssets": { ".read": false, ".indexOn": ["creativeId", "kind", "source"] },
-    "marketingVariants": { ".read": false, ".indexOn": ["creativeId", "kind", "seed"] },
-    "marketingAnalytics": { ".read": false, ".indexOn": ["creativeId", "eventType", "channel", "createdAt"] }
+    "marketingCampaigns": { ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')", ".indexOn": ["status", "objective", "createdBy"], "$id": { ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')" } },
+    "marketingCreatives": { ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')", ".indexOn": ["state", "templateId", "campaignId", "createdBy"], "$id": { ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')" } },
+    "marketingJobs": { ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')", ".indexOn": ["jobKey", "status", "type"], "$id": { ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin') || root.child('growthJobs').child('publicWrite').val() == true" } },
+    "marketingAssets": { ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')", ".indexOn": ["creativeId", "kind", "source"], "$id": { ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')" } },
+    "marketingVariants": { ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')", ".indexOn": ["creativeId", "kind", "seed"], "$id": { ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')" } },
+    "marketingAnalytics": { ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')", ".indexOn": ["creativeId", "eventType", "channel", "createdAt"], "$id": { ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')" } }
   }
 }

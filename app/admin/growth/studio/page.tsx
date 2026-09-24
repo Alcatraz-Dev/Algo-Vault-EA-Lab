@@ -35,7 +35,7 @@ export default function MarketingStudioPage() {
       });
       setActiveCampaignId(data.id || data.campaignId || "");
       setOpenCampaign(false);
-    } catch { /* silent on error */ }
+    } catch (e) { console.error("Campaign create failed:", e); }
   };
 
   const handleGenerateConcept = async () => {
@@ -45,7 +45,7 @@ export default function MarketingStudioPage() {
         body: JSON.stringify({ feature: form.feature, audience: form.audience, objective: form.objective, count: form.concepts }),
       });
       setConcepts((data.concepts || []).map((c, i: number) => ({ id: `cpt_${i}`, hook: c.hook || "Demo hook", angle: c.angle || "Education", audience: c.audience || form.audience, cta: c.cta || form.cta, status: "READY", durationSec: form.durationSec })));
-    } catch { /* silent */ }
+    } catch (e) { console.error("Generate concept failed:", e); }
   };
 
   const handleRegenerate = (conceptId: string) => {

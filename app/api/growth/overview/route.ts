@@ -32,8 +32,8 @@ export async function getGrowthOverviewMetrics(adminToken: string) {
     let revenueAds = 0;
     let revenueAffiliate = 0;
     let revenueSponsored = 0;
-    const revenueSubscription = 0;
-    const revenueMarketplace = 0;
+    let revenueSubscription = 0;
+    let revenueMarketplace = 0;
 
     for (const e of Object.values(events)) {
         const ev = e as GrowthEvent;
@@ -57,13 +57,8 @@ export async function getGrowthOverviewMetrics(adminToken: string) {
             case "AD": revenueAds += (rev.amount || 0); break;
             case "AFFILIATE": revenueAffiliate += (rev.amount || 0); break;
             case "SPONSORED": revenueSponsored += (rev.amount || 0); break;
-        }
-    }
-
-    for (const c of Object.values(conversions)) {
-        const cv = c as AffiliateConversion;
-        if (cv.type === "COMMISSION" && cv.commission) {
-            revenueAffiliate += cv.commission;
+            case "SUBSCRIPTION": revenueSubscription += (rev.amount || 0); break;
+            case "MARKETPLACE": revenueMarketplace += (rev.amount || 0); break;
         }
     }
 
