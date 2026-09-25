@@ -66,4 +66,15 @@ export const AIConfig = {
     get bytezApiKey(): string {
         return process.env.BYTEZ_API_KEY || "";
     },
+
+    // CodeCraft API (https://www.codecraftapi.com/v1 — OpenAI compatible)
+    get codecraftApiKey(): string {
+        return process.env.CODECRAFT_API_KEY || "";
+    },
+    get codecraftBaseUrl(): string {
+        return (process.env.CODECRAFT_BASE_URL || "https://www.codecraftapi.com/v1").replace(/\/$/, "");
+    },
+    get codecraftModel(): string {
+        return process.env.CODECRAFT_MODEL || "codecraft-default";
+    },
 };

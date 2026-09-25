@@ -14,9 +14,10 @@ export * from "./config";
 export * from "./models";
 export * from "./router";
 export * from "./client";
+export * from "./usage";
 
 export function getAIProvider(): AIProvider {
-    return defaultRouter.getProvider("gemini") || defaultRouter.getProvider("openrouter") || defaultRouter.getProvider("opencode") || defaultRouter.getProvider("bai") || defaultRouter.getProvider("bytez")!;
+    return defaultRouter.getProvider("gemini") || defaultRouter.getProvider("openrouter") || defaultRouter.getProvider("opencode") || defaultRouter.getProvider("codecraft") || defaultRouter.getProvider("bai") || defaultRouter.getProvider("bytez")!;
 }
 
 export function currentProviderInfo(): { id: string; name: string; usingExternal: boolean } {

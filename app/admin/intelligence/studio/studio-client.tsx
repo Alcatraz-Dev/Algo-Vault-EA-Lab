@@ -24,6 +24,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { WorkflowAutomation, WorkflowNode, WorkflowEdge } from "@/lib/workflows/types";
 import { getAllNodes, getNodeDefinition, NODE_CATEGORY_ORDER, NODE_CATEGORY_LABELS } from "@/lib/workflows/node-registry";
 import { isConnectionAllowed } from "@/lib/workflows/connection-rules";
+import { autoConnectNodes, autoPositionNodes } from "@/lib/workflows/ai-builder";
 import { instantiateTemplate, WORKFLOW_TEMPLATES, WorkflowTemplate } from "@/lib/workflows/templates";
 import { PortableWorkflow } from "@/lib/workflows/portable";
 import { onSubscriptionChange } from "@/lib/subscription";
@@ -226,12 +227,20 @@ export default function StudioClient() {
     finally { setLoading(false); }
   };
 
-  const loadWorkflowById = async (id: string) => {
+  const loadWorkflowById = async (id: string, fallbackWf?: WorkflowAutomation, force = false) => {
+    if (!force && selected?.id === id && nodes.length > 0) return;
     try {
       const tok = await getToken();
       const r = await fetch(`/api/workflows/${id}`, { headers: tok ? { Authorization: `Bearer ${tok}` } : {} });
-      if (r.ok) openInBuilder(await r.json());
+      if (r.ok) {
+        const full = await r.json();
+        openInBuilder(full);
+        return;
+      }
     } catch { }
+    if (fallbackWf) {
+      openInBuilder(fallbackWf);
+    }
   };
 
   const openInBuilder = (w: WorkflowAutomation) => {
@@ -239,6 +248,28 @@ export default function StudioClient() {
     setSelected(w); setWfName(w.name || "Untitled Workflow"); setWfDesc(w.description || "");
     setView("builder"); setRunOutcome(null); setValidState(null); setSelectedId(null);
     syncCanvas(w); setIsDirty(false);
+
+    if (typeof window !== "undefined" && w.id) {
+      const currentParam = new URLSearchParams(window.location.search).get("workflow");
+      if (currentParam !== w.id) {
+        router.replace(`/admin/intelligence/studio?workflow=${encodeURIComponent(w.id)}`, { scroll: false });
+      }
+    }
+  };
+
+  const closeBuilder = () => {
+    setView("list");
+    setSelected(null);
+    setNodes([]);
+    setEdges([]);
+    setSelectedId(null);
+    setIsDirty(false);
+    if (typeof window !== "undefined") {
+      const currentParam = new URLSearchParams(window.location.search).get("workflow");
+      if (currentParam) {
+        router.replace("/admin/intelligence/studio", { scroll: false });
+      }
+    }
   };
 
   const syncCanvas = (w: WorkflowAutomation) => {
@@ -342,11 +373,34 @@ export default function StudioClient() {
 
   const applyToCanvas = (nodeArr: WorkflowNode[], edgeArr: WorkflowEdge[], name?: string, desc?: string) => {
     initialLoadRef.current = false;
-    setNodes(nodeArr.map(n => ({ id: n.id, type: "wfNode", position: { x: n.position?.x ?? 100, y: n.position?.y ?? 100 }, data: { node: n, def: getNodeDefinition(n.type) } })));
-    setEdges(edgeArr.map(e => ({ id: e.id, source: e.source, target: e.target, ...EDGE_DEF })));
+    let finalNodes = nodeArr;
+    let finalEdges = edgeArr;
+    if (finalEdges.length === 0 && finalNodes.length > 1) {
+      finalEdges = autoConnectNodes(finalNodes);
+      autoPositionNodes(finalNodes);
+    }
+    setNodes(finalNodes.map(n => ({ id: n.id, type: "wfNode", position: { x: n.position?.x ?? 100, y: n.position?.y ?? 100 }, data: { node: n, def: getNodeDefinition(n.type) } })));
+    setEdges(finalEdges.map(e => ({ id: e.id, source: e.source, target: e.target, ...EDGE_DEF })));
     if (name) setWfName(name);
     if (desc) setWfDesc(desc);
     setSelectedId(null); setIsDirty(true);
+    setTimeout(() => fitView({ padding: 0.25, duration: 350 }), 80);
+  };
+
+  const handleAutoConnect = () => {
+    if (nodes.length < 2) return;
+    const wfNodes: WorkflowNode[] = nodes.map((n) => (n.data as any).node as WorkflowNode);
+    const newEdges = autoConnectNodes(wfNodes);
+    autoPositionNodes(wfNodes);
+
+    setNodes((prev) => prev.map((n) => {
+      const updated = wfNodes.find((x) => x.id === n.id);
+      return updated ? { ...n, position: { x: updated.position.x, y: updated.position.y } } : n;
+    }));
+
+    setEdges(newEdges.map((e) => ({ id: e.id, source: e.source, target: e.target, ...EDGE_DEF })));
+    setIsDirty(true);
+    notify("Graph auto-connected & organized ✓");
     setTimeout(() => fitView({ padding: 0.25, duration: 350 }), 80);
   };
 
@@ -505,7 +559,7 @@ export default function StudioClient() {
                       <span className="inline-flex items-center gap-1"><Clock size={11} />{wf.updatedAt ? new Date(wf.updatedAt).toLocaleDateString() : "—"}</span>
                       <span className="ml-auto text-[10px] font-mono text-muted-foreground/70">v{wf.version}</span>
                     </div>
-                    <Button size="sm" variant="outline" className="w-full justify-center" onClick={() => checkUnsaved(() => openInBuilder(wf))}>Open Studio</Button>
+                    <Button size="sm" variant="outline" className="w-full justify-center" onClick={() => checkUnsaved(() => loadWorkflowById(wf.id, wf, true))}>Open Studio</Button>
                   </div>
                 </div>
               ))}
@@ -521,7 +575,7 @@ export default function StudioClient() {
           {/* Toolbar */}
           <div className="flex items-center justify-between gap-2 flex-wrap rounded-2xl border border-border bg-card px-4 py-2.5 shadow-xs">
             <div className="flex items-center gap-3 min-w-0">
-              <button onClick={() => checkUnsaved(() => { setView("list"); setSelected(null); })}
+              <button onClick={() => checkUnsaved(closeBuilder)}
                 className="text-muted-foreground hover:text-foreground transition-colors shrink-0 p-1 rounded-md hover:bg-muted" title="Back to list">
                 <ChevronLeft size={18} />
               </button>
@@ -549,6 +603,10 @@ export default function StudioClient() {
                 <Zap size={14} className="mr-1" /> Run
               </Button>
               <div className="w-px h-4 bg-border mx-1" />
+              <Button size="sm" variant="outline" onClick={handleAutoConnect} title="Auto Connect & Organize Nodes">
+                <GitBranch size={14} className="mr-1 text-indigo-500" />
+                <span className="hidden sm:inline">Auto Connect</span>
+              </Button>
               <Button size="sm" variant="outline" onClick={() => setShowTemplatePicker(true)} title="Templates">
                 <Sparkles size={14} className="text-blue-500" />
                 <span className="hidden sm:inline ml-1">Templates</span>

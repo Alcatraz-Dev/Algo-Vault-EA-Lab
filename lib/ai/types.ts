@@ -14,6 +14,7 @@ export interface AIChatRequest {
     maxTokens?: number;
     responseFormat?: "text" | "json_object";
     model?: string;
+    provider?: string;
 }
 
 export interface AIResponse {

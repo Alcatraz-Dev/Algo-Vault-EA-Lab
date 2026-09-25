@@ -18,6 +18,7 @@ import { OpenCodeProvider } from "./providers/opencode";
 import { BAIProvider } from "./providers/bai";
 import { GeminiProvider } from "./providers/gemini";
 import { BytezProvider } from "./providers/bytez";
+import { CodeCraftProvider } from "./providers/codecraft";
 import { LocalStrategyAIProvider } from "./local";
 
 export class AIRouter {
@@ -31,12 +32,14 @@ export class AIRouter {
         const gemini = new GeminiProvider();
         const openrouter = new OpenRouterProvider();
         const opencode = new OpenCodeProvider();
+        const codecraft = new CodeCraftProvider();
         const bai = new BAIProvider();
         const bytez = new BytezProvider();
 
         this.providers.set(gemini.id, gemini);
         this.providers.set(openrouter.id, openrouter);
         this.providers.set(opencode.id, opencode);
+        this.providers.set(codecraft.id, codecraft);
         this.providers.set(bai.id, bai);
         this.providers.set(bytez.id, bytez);
     }
@@ -49,15 +52,24 @@ export class AIRouter {
         return this.getAvailableCloudProviders();
     }
 
-    private async getAvailableCloudProviders(): Promise<AIProvider[]> {
+    private async getAvailableCloudProviders(preferredProviderId?: string): Promise<AIProvider[]> {
         const result: AIProvider[] = [];
-        const providers = [
+        const baseOrder = [
             this.providers.get("gemini"),
             this.providers.get("openrouter"),
             this.providers.get("opencode"),
+            this.providers.get("codecraft"),
             this.providers.get("bai"),
             this.providers.get("bytez"),
         ];
+
+        let providers = baseOrder;
+        if (preferredProviderId) {
+            const pref = this.providers.get(preferredProviderId.toLowerCase());
+            if (pref) {
+                providers = [pref, ...baseOrder.filter((p) => p?.id !== pref.id)];
+            }
+        }
 
         for (const provider of providers) {
             if (provider && await provider.isAvailable()) {
@@ -69,7 +81,7 @@ export class AIRouter {
 
     async getAllModels(): Promise<AIModel[]> {
         const models: AIModel[] = [];
-        for (const provider of this.providers.values()) {
+        for (const provider of Array.from(this.providers.values())) {
             try {
                 const list = await provider.getModels();
                 models.push(...list);
@@ -96,7 +108,7 @@ export class AIRouter {
             assertFreeModelAllowed(request.model);
         }
 
-        const candidateOrder = await this.getAvailableCloudProviders();
+        const candidateOrder = await this.getAvailableCloudProviders(request.provider);
 
         let attempts = 0;
         const maxAttempts = Math.min(AIConfig.maxAttempts, candidateOrder.length);

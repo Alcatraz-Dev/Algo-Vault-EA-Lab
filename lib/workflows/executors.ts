@@ -86,11 +86,11 @@ async function marketSymbolInfo(args: NodeExecutionArgs): Promise<NodeExecutionR
 // ─── Technical analysis ──────────────────────────────────────────────────────
 
 async function technicalNode(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
-    const period = Math.max(2, Number(args.config.period) || 14);
+    const period = Math.max(1, Number(args.config.period) || 14);
     const candles = await resolveCandles(args);
     if (!candles) return { status: "failed", error: "No candles available. Connect a market_data.candles node or set symbol + timeframe." };
 
-    const result = computeIndicator(args.node.type, candles, period);
+    const result = computeIndicator(args.node.type, candles, period, args.config);
     if (result.value === null && result.series.length === 0) {
         return { status: "failed", error: result.note || "Insufficient candles to compute indicator." };
     }
@@ -792,6 +792,26 @@ async function marketingPublish(args: NodeExecutionArgs): Promise<NodeExecutionR
     return { status: "success", output: { published: false, blocked: "Gated by APPROVED state — out-of-band via adapter." } };
 }
 
+async function logicCross(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const valA = toNum(args.config.seriesA);
+    const valB = toNum(args.config.seriesB);
+    const direction = String(args.config.direction || "above");
+
+    if (valA === null || valB === null) {
+        return { status: "failed", error: "Both Line A and Line B must be numeric values." };
+    }
+
+    let matched = false;
+    if (direction === "above") matched = valA > valB;
+    else if (direction === "below") matched = valA < valB;
+    else matched = valA !== valB;
+
+    return {
+        status: "success",
+        output: { matched, seriesA: valA, seriesB: valB, direction },
+    };
+}
+
 // ─── Dispatch ────────────────────────────────────────────────────────────────
 
 export async function executeNodeForType(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
@@ -803,16 +823,30 @@ export async function executeNodeForType(args: NodeExecutionArgs): Promise<NodeE
         case "market_data.symbol_info": return marketSymbolInfo(args);
         case "technical.sma":
         case "technical.ema":
+        case "technical.wma":
+        case "technical.hma":
         case "technical.rsi":
         case "technical.macd":
         case "technical.atr":
         case "technical.bollinger":
         case "technical.stoch":
         case "technical.obv":
+        case "technical.supertrend":
+        case "technical.keltner":
+        case "technical.donchian":
+        case "technical.stoch_rsi":
+        case "technical.vwap":
+        case "technical.adx":
+        case "technical.psar":
+        case "technical.cmf":
+        case "technical.williams_r":
+        case "technical.cci":
+        case "technical.custom_formula":
             return technicalNode(args);
         case "ai.analyze": return aiAnalyze(args);
         case "ai.extract_json": return aiExtractJson(args);
         case "logic.condition": return logicCondition(args);
+        case "logic.cross": return logicCross(args);
         case "logic.delay": return logicDelay(args);
         case "logic.set_variable": return logicSetVariable(args);
         case "logic.math": return logicMath(args);

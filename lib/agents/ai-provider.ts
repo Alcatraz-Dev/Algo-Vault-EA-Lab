@@ -23,6 +23,7 @@ export async function callAgentAI(
             maxTokens: opts?.maxTokens || agent.modelConfiguration.maxTokens || 2000,
             temperature: opts?.temperature || agent.modelConfiguration.temperature || 0.1,
             model: agent.modelConfiguration.model,
+            provider: agent.modelConfiguration.provider,
         });
         if (!response.success) {
             return { ok: false, text: "", error: "AI gateway returned no content." };

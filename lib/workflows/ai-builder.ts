@@ -11,7 +11,8 @@
  */
 
 import { defaultRouter } from "@/lib/ai/router";
-import { getAllNodes, NODE_CATEGORY_LABELS, nodePermissionClass, needsRiskGuard } from "./node-registry";
+import { getAllNodes, getNodeDefinition, NODE_CATEGORY_LABELS, nodePermissionClass, needsRiskGuard } from "./node-registry";
+import { isConnectionAllowed } from "./connection-rules";
 import { validateWorkflow } from "./validate";
 import { safeId } from "./naming";
 import {
@@ -195,13 +196,15 @@ function stripFences(content: string): string {
     return content.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
 }
 
-/** Sanitizes an AI/native build: only registry types, unique ids, valid edges. */
+/** Sanitizes an AI/native build: only registry types, unique ids, valid edges, auto-connected DAG, clean positioning. */
 function sanitizeBuild(native: NativeAIBuild): { name: string; description: string; nodes: WorkflowNode[]; edges: WorkflowEdge[]; schedule?: { enabled: boolean; cron: string } } {
     const known = new Set(REGISTRY_TYPES);
+    const rawNodes = native.nodes ?? [];
     const nodes: WorkflowNode[] = [];
     const seen = new Set<string>();
     let triggerCount = 0;
-    for (const raw of native.nodes ?? []) {
+
+    for (const raw of rawNodes) {
         const type = String(raw.type || "");
         if (!known.has(type)) continue;
         const id = String(raw.id || "").trim();
@@ -216,12 +219,15 @@ function sanitizeBuild(native: NativeAIBuild): { name: string; description: stri
             config: typeof raw.config === "object" && raw.config !== null ? (raw.config as Record<string, unknown>) : {},
         });
     }
+
     if (triggerCount === 0) {
         nodes.unshift({ id: "manual", type: "trigger.manual", label: "Manual trigger", position: { x: 40, y: 120 }, config: {} });
     }
+
     const nodeIds = new Set(nodes.map((n) => n.id));
     const edges: WorkflowEdge[] = [];
     const edgeSeen = new Set<string>();
+
     for (const raw of native.edges ?? []) {
         const source = String(raw?.source || "");
         const target = String(raw?.target || "");
@@ -229,9 +235,33 @@ function sanitizeBuild(native: NativeAIBuild): { name: string; description: stri
         if (source === target) continue;
         const eid = `${source}:${target}`;
         if (edgeSeen.has(eid)) continue;
+
+        const srcNode = nodes.find((n) => n.id === source);
+        const tgtNode = nodes.find((n) => n.id === target);
+        if (srcNode && tgtNode) {
+            const check = isConnectionAllowed(srcNode, tgtNode);
+            if (!check.allowed) continue;
+        }
+
         edgeSeen.add(eid);
-        edges.push({ id: `e_${edges.length}`, source, target });
+        edges.push({ id: `e_${source}_${target}`, source, target });
     }
+
+    // Auto-connect nodes if AI provided insufficient or no edges
+    if (edges.length === 0 && nodes.length > 1) {
+        const autoEdges = autoConnectNodes(nodes);
+        for (const e of autoEdges) {
+            const eid = `${e.source}:${e.target}`;
+            if (!edgeSeen.has(eid)) {
+                edgeSeen.add(eid);
+                edges.push(e);
+            }
+        }
+    }
+
+    // Auto-position nodes cleanly in DAG horizontal columns if positions are generic or default (0,0)
+    autoPositionNodes(nodes);
+
     return {
         name: String(native.name || "AI Draft").slice(0, 120),
         description: String(native.description || "").slice(0, 500),
@@ -241,6 +271,112 @@ function sanitizeBuild(native: NativeAIBuild): { name: string; description: stri
             ? { enabled: Boolean(native.schedule.enabled), cron: String(native.schedule.cron || "").slice(0, 64) }
             : undefined,
     };
+}
+
+/** Determines pipeline rank category for auto-wiring and layout positioning. */
+function getStageRank(category?: string): number {
+    switch (category) {
+        case "trigger": return 0;
+        case "market_data": return 1;
+        case "technical":
+        case "ai": return 2;
+        case "logic":
+        case "filter": return 3;
+        case "risk": return 4;
+        case "signal":
+        case "execution": return 5;
+        case "notification":
+        case "storage":
+        case "http":
+        case "transform":
+        case "simulation":
+        case "reports":
+        case "marketing":
+        case "integration": return 6;
+        default: return 3;
+    }
+}
+
+/** Automatically constructs valid topological DAG edges between nodes when edges are missing. */
+export function autoConnectNodes(nodes: WorkflowNode[]): WorkflowEdge[] {
+    if (nodes.length < 2) return [];
+
+    // Group nodes by stage rank
+    const stages: Record<number, WorkflowNode[]> = {};
+    for (const node of nodes) {
+        const def = getNodeDefinition(node.type);
+        const rank = getStageRank(def?.category);
+        if (!stages[rank]) stages[rank] = [];
+        stages[rank].push(node);
+    }
+
+    const sortedRanks = Object.keys(stages).map(Number).sort((a, b) => a - b);
+    const edges: WorkflowEdge[] = [];
+    const edgeSeen = new Set<string>();
+
+    for (let i = 0; i < sortedRanks.length - 1; i++) {
+        const currentRank = sortedRanks[i];
+        const nextRank = sortedRanks[i + 1];
+
+        const sources = stages[currentRank];
+        const targets = stages[nextRank];
+
+        for (const src of sources) {
+            for (const tgt of targets) {
+                const check = isConnectionAllowed(src, tgt);
+                if (check.allowed) {
+                    const eid = `${src.id}:${tgt.id}`;
+                    if (!edgeSeen.has(eid)) {
+                        edgeSeen.add(eid);
+                        edges.push({ id: `e_${src.id}_${tgt.id}`, source: src.id, target: tgt.id });
+                    }
+                }
+            }
+        }
+    }
+
+    // Fallback: If disconnected nodes remain, link sequential nodes
+    for (let i = 0; i < nodes.length - 1; i++) {
+        const src = nodes[i];
+        const tgt = nodes[i + 1];
+        const eid = `${src.id}:${tgt.id}`;
+        if (!edgeSeen.has(eid)) {
+            const check = isConnectionAllowed(src, tgt);
+            if (check.allowed) {
+                edgeSeen.add(eid);
+                edges.push({ id: `e_${src.id}_${tgt.id}`, source: src.id, target: tgt.id });
+            }
+        }
+    }
+
+    return edges;
+}
+
+/** Auto-positions nodes nicely on a horizontal DAG grid (left to right). */
+export function autoPositionNodes(nodes: WorkflowNode[]): void {
+    const needLayout = nodes.some((n) => !n.position || (n.position.x === 0 && n.position.y === 0));
+    if (!needLayout) return;
+
+    const stages: Record<number, WorkflowNode[]> = {};
+    for (const node of nodes) {
+        const def = getNodeDefinition(node.type);
+        const rank = getStageRank(def?.category);
+        if (!stages[rank]) stages[rank] = [];
+        stages[rank].push(node);
+    }
+
+    const sortedRanks = Object.keys(stages).map(Number).sort((a, b) => a - b);
+    let col = 0;
+    for (const rank of sortedRanks) {
+        const list = stages[rank];
+        list.forEach((node, idx) => {
+            node.position = {
+                x: 60 + col * 260,
+                y: 100 + idx * 140,
+            };
+        });
+        col++;
+    }
 }
 
 /** Advisory validation summary for the builder's Review step. */

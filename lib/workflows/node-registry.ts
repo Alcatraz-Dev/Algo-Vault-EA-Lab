@@ -157,12 +157,42 @@ const NODES: WorkflowNodeDefinition[] = [
     // ─── Technical analysis ────────────────────────────────────────────────
     constTA("technical.sma", "SMA", "Simple moving average over close prices."),
     constTA("technical.ema", "EMA", "Exponential moving average over close prices."),
+    constTA("technical.wma", "WMA", "Weighted Moving Average giving linear emphasis to recent prices."),
+    constTA("technical.hma", "HMA", "Hull Moving Average — fast, responsive and ultra-smooth moving average."),
     constTA("technical.rsi", "RSI", "Relative Strength Index (14)."),
     constTA("technical.macd", "MACD", "MACD line, signal line and histogram."),
     constTA("technical.atr", "ATR", "Average True Range (14)."),
     constTA("technical.bollinger", "Bollinger Bands", "Middle, upper and lower bands (20, 2σ)."),
     constTA("technical.stoch", "Stochastic %K", "Stochastic oscillator — %K with 3-period %D signal line."),
     constTA("technical.obv", "On-Balance Volume", "Cumulative volume flow; requires candles with volume data."),
+    constTA("technical.supertrend", "Supertrend", "ATR-based trend tracking indicator (period 10, multiplier 3)."),
+    constTA("technical.keltner", "Keltner Channels", "Volatility-based envelope using EMA and ATR."),
+    constTA("technical.donchian", "Donchian Channels", "Upper, lower and middle channel based on N-period high/low."),
+    constTA("technical.stoch_rsi", "Stochastic RSI", "Stochastic oscillator calculated over RSI values (0-100)."),
+    constTA("technical.vwap", "VWAP", "Volume-Weighted Average Price benchmark indicator."),
+    constTA("technical.adx", "ADX", "Average Directional Index — measures trend strength (0-100)."),
+    constTA("technical.psar", "Parabolic SAR", "Stop and Reverse trailing stop indicator for trend direction."),
+    constTA("technical.cmf", "Chaikin Money Flow", "Measures Money Flow Volume over a specific period."),
+    constTA("technical.williams_r", "Williams %R", "Momentum indicator measuring overbought and oversold levels (-100 to 0)."),
+    constTA("technical.cci", "CCI", "Commodity Channel Index — measures current price level relative to an average price level."),
+    {
+        type: "technical.custom_formula",
+        category: "technical",
+        name: "Custom Indicator Formula",
+        description: "Build custom indicators using math formulas e.g. (close - sma(20)) / atr(14) or rsi(14) - 50.",
+        permission: "analysis",
+        configSchema: [
+            { key: "formula", label: "Formula expression", type: "string", required: true, placeholder: "(close - sma(20)) / atr(14)" },
+            { key: "source", label: "Candles node (optional $nodeId)", type: "string", placeholder: "$candles" },
+            { key: "symbol", label: "Symbol (when fetching own candles)", type: "string", placeholder: "XAUUSD" },
+            { key: "timeframe", label: "Timeframe", type: "select", options: [
+                { value: "M1", label: "1 min" }, { value: "M5", label: "5 min" }, { value: "M15", label: "15 min" },
+                { value: "H1", label: "1 hour" }, { value: "H4", label: "4 hours" }, { value: "D1", label: "Daily" },
+            ], default: "M5" },
+        ],
+        defaults: { formula: "(close - sma(20)) / atr(14)", timeframe: "M5" },
+        timeoutMs: 20_000,
+    },
 
     // ─── AI ────────────────────────────────────────────────────────────────
     {
@@ -214,6 +244,24 @@ const NODES: WorkflowNodeDefinition[] = [
         ],
         defaults: { operator: "gt" },
         timeoutMs: 2_000,
+    },
+    {
+        type: "logic.cross",
+        category: "logic",
+        name: "Cross Above / Below",
+        description: "Detects when line A crosses above or below line B (e.g., Fast EMA crossing Slow EMA, RSI crossing 30).",
+        permission: "none",
+        configSchema: [
+            { key: "seriesA", label: "Line A ({{ expr }})", type: "template", required: true, placeholder: "{{ $fastEma.value }}" },
+            { key: "direction", label: "Cross direction", type: "select", required: true, options: [
+                { value: "above", label: "Crosses Above" },
+                { value: "below", label: "Crosses Below" },
+                { value: "any", label: "Crosses Either Way" },
+            ], default: "above" },
+            { key: "seriesB", label: "Line B ({{ expr }})", type: "template", required: true, placeholder: "{{ $slowEma.value }}" },
+        ],
+        defaults: { direction: "above" },
+        timeoutMs: 1_000,
     },
     {
         type: "logic.delay",

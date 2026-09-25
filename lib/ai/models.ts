@@ -94,6 +94,16 @@ export const KNOWN_FREE_MODELS: AIModel[] = [
         enabled: true,
         capabilities: { text: true, structuredOutput: true },
     },
+    // CodeCraft Models (Server-side 1M monthly free quota allowance)
+    {
+        id: "codecraft-default",
+        name: "CodeCraft Default",
+        provider: "codecraft",
+        free: true,
+        confirmedFree: true,
+        enabled: true,
+        capabilities: { text: true, structuredOutput: true, tools: true },
+    },
     // B.AI models
     // NOTE: B.AI's catalog currently contains NO free models, so no B.AI entries
     // are registered here. Under AI_FREE_ONLY=true the B.AI provider is skipped
@@ -116,13 +126,14 @@ export function isModelConfirmedFree(
         }
     }
 
-    // Check explicit free suffix / prefix markers
+    // Check explicit free suffix / prefix / provider markers
     const lower = modelId.toLowerCase();
     if (
         lower.endsWith(":free") ||
         lower.endsWith("-free") ||
         lower.includes("/free") ||
-        lower === "openrouter/free"
+        lower === "openrouter/free" ||
+        lower.startsWith("codecraft")
     ) {
         return true;
     }
