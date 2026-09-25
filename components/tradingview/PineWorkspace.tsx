@@ -1,14 +1,12 @@
 "use client";
 
 import { DragEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { Copy, Download, FolderOpen, Plus, Save, Trash2, Play, Check, AlertTriangle, BarChart3, Loader2, Brain, Wand2, Sparkles, Bell, Search, RefreshCw, Clock, ChevronDown, ChevronRight, ChevronsUp, ChevronsDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Copy, Download, FolderOpen, Plus, Save, Trash2, Play, Check, AlertTriangle, BarChart3, Loader2, Brain, Wand2, Sparkles, Bell } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import ProGate from "@/components/subscription/ProGate";
 import TradingViewChart from "@/components/tradingview/TradingViewChart";
 import MarketReplay from "@/components/tradingview/MarketReplay";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Input } from "@/components/ui/input";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { executePine } from "@/lib/pine-runtime";
 import type { PineExecutionResult } from "@/lib/pine-runtime";
 import type { PineBacktestResult } from "@/lib/pine-runtime/backtest";
@@ -18,8 +16,8 @@ import CreateAlertDialog from "@/components/tradingview/CreateAlertDialog";
 type WorkspaceScope = "account" | "admin";
 type SavedWorkspace = { id: string; name: string; mode: "visual" | "code"; type: "strategy" | "indicator"; createdAt: number };
 type NodeKind = "price" | "moving_average" | "rsi" | "macd" | "bollinger" | "stochastic" | "adx" | "atr" | "cci" | "psar" | "vwap" | "ichimoku" | "volume" | "crossover" | "rsi_oversold" | "rsi_overbought" | "macd_bullish" | "macd_bearish" | "stoch_oversold" | "stoch_overbought" | "stoch_cross" | "adx_strong" | "cci_oversold" | "cci_overbought" | "psar_bull" | "vwap_bull" | "ichimoku_bull" | "volume_surge" | "and" | "long_entry" | "short_entry" | "close_long" | "close_short" | "risk_manager" | "plot";
-type FlowNode = { id: string; kind: NodeKind; x: number; y: number; label?: string; config?: Record<string, unknown> };
-type FlowEdge = { id: string; from: string; to: string; sourceHandle?: string; targetHandle?: string };
+type FlowNode = { id: string; kind: NodeKind; x: number; y: number };
+type FlowEdge = { from: string; to: string };
 
 type PineWorkspaceProps = { scope: WorkspaceScope };
 
@@ -61,59 +59,21 @@ const nodeTypes: Record<NodeKind, { label: string; color: string }> = {
     plot: { label: "Draw line", color: "border-cyan-400/60 bg-cyan-400/10" },
 };
 
-const nodeDefaults: Record<NodeKind, Record<string, unknown>> = {
-    price: { symbol: "FX:EURUSD", timeframe: "H1" },
-    volume: { period: 20 },
-    moving_average: { length: 20, source: "close" },
-    rsi: { length: 14 },
-    macd: { fast: 12, slow: 26, signal: 9 },
-    bollinger: { length: 20, mult: 2.0 },
-    stochastic: { k: 14, d: 3 },
-    adx: { length: 14 },
-    atr: { length: 14 },
-    cci: { length: 14 },
-    psar: { step: 0.02, max: 0.2 },
-    vwap: { length: 20 },
-    ichimoku: { tenkan: 9, kijun: 26, senkou: 52 },
-    crossover: { sourceA: "fast", sourceB: "slow" },
-    rsi_oversold: { threshold: 30 },
-    rsi_overbought: { threshold: 70 },
-    macd_bullish: { source: "macd" },
-    macd_bearish: { source: "macd" },
-    stoch_oversold: { threshold: 20 },
-    stoch_overbought: { threshold: 80 },
-    stoch_cross: { source: "stochK" },
-    adx_strong: { threshold: 25 },
-    cci_oversold: { threshold: -100 },
-    cci_overbought: { threshold: 100 },
-    psar_bull: { source: "close" },
-    vwap_bull: { source: "close" },
-    ichimoku_bull: { source: "close" },
-    volume_surge: { multiplier: 1.5 },
-    and: { minInputs: 2 },
-    long_entry: { stopPct: 1.0, tpPct: 3.0 },
-    short_entry: { stopPct: 1.0, tpPct: 3.0 },
-    close_long: { pct: 100 },
-    close_short: { pct: 100 },
-    risk_manager: { stopPct: 1.0, tpPct: 3.0 },
-    plot: { color: "color.aqua", linewidth: 2, style: "line" },
-};
-
 const initialNodes: FlowNode[] = [
-    { id: "price", kind: "price", x: 36, y: 230, config: { ...nodeDefaults["price"] } },
-    { id: "average", kind: "moving_average", x: 250, y: 155, config: { ...nodeDefaults["moving_average"] } },
-    { id: "cross", kind: "crossover", x: 465, y: 230, config: { ...nodeDefaults["crossover"] } },
-    { id: "entry", kind: "long_entry", x: 680, y: 155, config: { ...nodeDefaults["long_entry"] } },
-    { id: "risk", kind: "risk_manager", x: 680, y: 340, config: { ...nodeDefaults["risk_manager"] } },
-    { id: "plot", kind: "plot", x: 465, y: 360, config: { ...nodeDefaults["plot"] } },
+    { id: "price", kind: "price", x: 36, y: 230 },
+    { id: "average", kind: "moving_average", x: 250, y: 155 },
+    { id: "cross", kind: "crossover", x: 465, y: 230 },
+    { id: "entry", kind: "long_entry", x: 680, y: 155 },
+    { id: "risk", kind: "risk_manager", x: 680, y: 340 },
+    { id: "plot", kind: "plot", x: 465, y: 360 },
 ];
 
 const initialEdges: FlowEdge[] = [
-    { id: "e-1", from: "price", to: "average" },
-    { id: "e-2", from: "average", to: "cross" },
-    { id: "e-3", from: "cross", to: "entry" },
-    { id: "e-4", from: "entry", to: "risk" },
-    { id: "e-5", from: "average", to: "plot" },
+    { from: "price", to: "average" },
+    { from: "average", to: "cross" },
+    { from: "cross", to: "entry" },
+    { from: "entry", to: "risk" },
+    { from: "average", to: "plot" },
 ];
 
 const starterCode = `//@version=6
@@ -304,11 +264,6 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
     const [workspaces, setWorkspaces] = useState<SavedWorkspace[]>([]);
     const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string>("");
     const [loadingWorkspaces, setLoadingWorkspaces] = useState(false);
-    const [libraryOpen, setLibraryOpen] = useState(true);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [collapsedCats, setCollapsedCats] = useState<Set<string>>(new Set());
-    const [workspaceSearch, setWorkspaceSearch] = useState("");
-    const [workspaceFilter, setWorkspaceFilter] = useState<"all" | "strategy" | "indicator">("all");
     const [pineResult, setPineResult] = useState<PineExecutionResult | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [showAnalysis, setShowAnalysis] = useState(false);
@@ -319,7 +274,6 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
     const [isAiFixing, setIsAiFixing] = useState(false);
     const [isAiDescribing, setIsAiDescribing] = useState(false);
     const [aiStrategyDescription, setAiStrategyDescription] = useState("");
-    const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
     const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
 
     const loadWorkspaces = useCallback(async () => {
@@ -402,29 +356,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
         }
     }
 
-    function resetWorkspace() {
-        setCurrentWorkspaceId("");
-        setName("Untitled Pine script");
-        setNodes(initialNodes);
-        setEdges(initialEdges);
-        setMode("visual");
-        setPendingConnection(null);
-        setNotice("Started a new workspace.");
-    }
-
     const generatedSource = useMemo(() => mode === "visual" ? createPineSource(nodes, edges) : source, [mode, nodes, edges, source]);
-
-    const workspaceStats = useMemo(() => ({
-        total: workspaces.length,
-        strategy: workspaces.filter((workspace) => workspace.type === "strategy").length,
-        indicator: workspaces.filter((workspace) => workspace.type === "indicator").length,
-    }), [workspaces]);
-
-    const filteredWorkspaces = useMemo(() => workspaces.filter((workspace) => {
-        const matchSearch = !workspaceSearch || workspace.name.toLowerCase().includes(workspaceSearch.toLowerCase());
-        const matchType = workspaceFilter === "all" || workspace.type === workspaceFilter;
-        return matchSearch && matchType;
-    }), [workspaces, workspaceSearch, workspaceFilter]);
 
     const parsePineIndicators = useCallback((pineSource: string): { studies: string[]; detectedNames: string[] } => {
         const detected = new Set<string>();
@@ -726,7 +658,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
     }
 
     function addNode(kind: NodeKind, x = 90, y = 90) {
-        setNodes((current) => [...current, { id: `${kind}-${Date.now()}`, kind, x, y, config: { ...nodeDefaults[kind] } }]);
+        setNodes((current) => [...current, { id: `${kind}-${Date.now()}`, kind, x, y }]);
     }
 
     function handleCanvasDrop(event: DragEvent<HTMLDivElement>) {
@@ -748,7 +680,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
 
     function connect(from: string, to: string) {
         if (from === to || edges.some((edge) => edge.from === from && edge.to === to)) return;
-        setEdges((current) => [...current, { id: `e-${from}-${to}-${Date.now()}`, from, to }]);
+        setEdges((current) => [...current, { from, to }]);
     }
 
     function handleOutputClick(id: string) {
@@ -830,161 +762,49 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
 
     return (
         <ProGate>
-            <section className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
+            <section className="grid gap-4 xl:grid-cols-[240px_minmax(0,1fr)]">
             <aside data-guide="palette" className="self-start rounded-2xl border border-border bg-card p-4">
-                {/* Workspaces header */}
-                <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground/10">
-                            <FolderOpen size={15} />
-                        </span>
-                        <div className="min-w-0">
-                            <p className="text-sm font-semibold">Saved workspaces</p>
-                            <p className="text-[11px] text-muted-foreground">{loadingWorkspaces ? "Loading…" : `${workspaces.length} saved`}</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                        <button onClick={resetWorkspace} className="rounded-md border border-border p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground" title="Start a new workspace" aria-label="New workspace"><Plus size={14} /></button>
-                        <button onClick={() => void loadWorkspaces()} disabled={loadingWorkspaces} className="rounded-md border border-border p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-50" title="Refresh workspaces" aria-label="Refresh workspaces"><RefreshCw size={14} className={loadingWorkspaces ? "animate-spin" : ""} /></button>
-                    </div>
+                <div className="flex items-center gap-2">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground/10">
+                        <FolderOpen size={15} />
+                    </span>
+                    <p className="text-sm font-semibold">Saved workspaces</p>
                 </div>
-
-                {/* Stats */}
-                {!loadingWorkspaces && workspaces.length > 0 && (
-                    <div className="mt-3 grid grid-cols-3 gap-1.5">
-                        <div className="rounded-lg border border-border bg-background px-1 py-1.5 text-center">
-                            <p className="text-sm font-bold leading-4 text-foreground">{workspaceStats.total}</p>
-                            <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">Total</p>
-                        </div>
-                        <div className="rounded-lg border border-border bg-background px-1 py-1.5 text-center">
-                            <p className="text-sm font-bold leading-4 text-foreground">{workspaceStats.strategy}</p>
-                            <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">Strategy</p>
-                        </div>
-                        <div className="rounded-lg border border-border bg-background px-1 py-1.5 text-center">
-                            <p className="text-sm font-bold leading-4 text-foreground">{workspaceStats.indicator}</p>
-                            <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">Indicator</p>
-                        </div>
-                    </div>
-                )}
-
-                {/* Search + type filter */}
-                {!loadingWorkspaces && workspaces.length > 0 && (
-                    <div className="mt-3 space-y-2">
-                        <div className="relative">
-                            <Search size={12} className="absolute left-2.5 top-2.5 pointer-events-none text-muted-foreground" />
-                            <Input value={workspaceSearch} onChange={(e) => setWorkspaceSearch(e.target.value)} placeholder="Search workspaces…" className="h-8 pl-7 text-xs" />
-                        </div>
-                        <div className="flex items-center gap-1">
-                            {(["all", "strategy", "indicator"] as const).map((f) => (
-                                <button key={f} onClick={() => setWorkspaceFilter(f)}
-                                    className={`flex-1 rounded-md border px-2 py-1 text-[10px] font-medium capitalize transition-colors ${
-                                        workspaceFilter === f ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:bg-muted"
-                                    }`}>
-                                    {f}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Workspace list */}
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">Reopen a saved workspace, or start from a blank canvas below.</p>
                 <div className="mt-3 space-y-2">
                     {loadingWorkspaces ? (
-                        <>
-                            {[1, 2, 3].map((i) => <div key={i} className="h-16 animate-pulse rounded-lg border border-border bg-muted/30" />)}
-                        </>
-                    ) : filteredWorkspaces.length === 0 ? (
-                        workspaces.length === 0 ? (
-                            <div className="space-y-2 rounded-lg border border-dashed border-border bg-background p-4 text-center">
-                                <FolderOpen size={18} className="mx-auto text-muted-foreground/50" />
-                                <div>
-                                    <p className="text-xs font-semibold text-foreground">No workspaces yet</p>
-                                    <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">Build one below and hit Save.</p>
-                                </div>
-                            </div>
-                        ) : (
-                            <p className="rounded-lg border border-dashed border-border px-3 py-2 text-xs text-muted-foreground">No workspaces match your search or filter.</p>
-                        )
+                        <p className="text-xs text-muted-foreground">Loading…</p>
+                    ) : workspaces.length === 0 ? (
+                        <p className="rounded-lg border border-dashed border-border px-3 py-2 text-xs text-muted-foreground">No saved workspaces yet. Build one and hit Save.</p>
                     ) : (
-                        filteredWorkspaces.map((workspace) => (
-                            <div key={workspace.id} className="group flex flex-col gap-2 rounded-lg border border-border bg-background p-3 transition hover:border-foreground/30 hover:bg-muted/40">
-                                <div className="flex items-start justify-between gap-2">
-                                    <div className="min-w-0">
-                                        <p className="truncate text-xs font-semibold text-foreground transition-colors group-hover:text-blue-500">{workspace.name}</p>
-                                        <div className="mt-1.5 flex items-center gap-1.5">
-                                            <StatusBadge tone={workspace.type === "strategy" ? "active" : "info"} label={workspace.type} className="text-[10px] capitalize" />
-                                            <span className="text-[10px] text-muted-foreground">{workspace.mode === "code" ? "Code" : "Visual"}</span>
-                                        </div>
-                                    </div>
-                                    <button onClick={() => deleteWorkspace(workspace.id, workspace.name)} className="rounded-md p-1 text-muted-foreground opacity-50 transition hover:text-rose-400 hover:opacity-100" title="Delete workspace" aria-label={`Delete ${workspace.name}`}><Trash2 size={13} /></button>
+                        workspaces.map((workspace) => (
+                            <div key={workspace.id} className="flex items-center justify-between gap-2 rounded-lg border border-border bg-background px-3 py-2 transition hover:border-foreground/30 hover:bg-muted/50">
+                                <div className="min-w-0">
+                                    <p className="truncate text-xs font-medium">{workspace.name}</p>
+                                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{workspace.type} · {new Date(workspace.createdAt).toLocaleDateString()}</p>
                                 </div>
-                                <p className="flex items-center gap-1 text-[10px] text-muted-foreground"><Clock size={9} />{new Date(workspace.createdAt).toLocaleDateString()}</p>
-                                <button onClick={() => openWorkspace(workspace.id)} className="mt-0.5 inline-flex w-full items-center justify-center gap-1 rounded-md bg-foreground px-2 py-1.5 text-[11px] font-medium text-background transition hover:opacity-90">
-                                    <FolderOpen size={11} /> Open
-                                </button>
+                                <div className="flex shrink-0 items-center gap-1">
+                                    <button onClick={() => openWorkspace(workspace.id)} className="rounded-md border border-border px-2 py-1 text-[11px] font-medium transition hover:border-foreground/40 hover:bg-muted" title="Open workspace">Open</button>
+                                    <button onClick={() => deleteWorkspace(workspace.id, workspace.name)} className="rounded-md p-1 text-muted-foreground transition hover:text-rose-400" title="Delete workspace" aria-label={`Delete ${workspace.name}`}><Trash2 size={13} /></button>
+                                </div>
                             </div>
                         ))
                     )}
                 </div>
-
-                {/* Strategy nodes — collapsible library */}
-                <div className="mt-5 border-t border-border pt-4" data-guide="node-library">
-                    <div className="flex items-center justify-between mb-2">
-                        <div>
-                            <p className="text-sm font-semibold">Strategy nodes</p>
-                            <p className="text-[11px] text-muted-foreground">Drag a node onto the canvas. Join dots to define flow.</p>
-                        </div>
-                        <button onClick={() => setLibraryOpen(!libraryOpen)} className="rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" aria-label={libraryOpen ? "Collapse node library" : "Expand node library"}>
-                            {libraryOpen ? <ChevronsUp size={14} /> : <ChevronsDown size={14} />}
-                        </button>
-                    </div>
-                    {libraryOpen && (
-                        <div className="space-y-2">
-                            {(() => {
-                                const groups: Record<string, { label: string; kinds: NodeKind[] }> = {
-                                    "Market Data": { label: "Market Data", kinds: ["price", "volume"] },
-                                    "Technical": { label: "Technical Analysis", kinds: ["moving_average", "rsi", "macd", "bollinger", "stochastic", "adx", "atr", "cci", "psar", "vwap", "ichimoku"] },
-                                    "Signals": { label: "Signals", kinds: ["crossover", "rsi_oversold", "rsi_overbought", "macd_bullish", "macd_bearish", "stoch_oversold", "stoch_overbought", "stoch_cross", "adx_strong", "cci_oversold", "cci_overbought", "psar_bull", "vwap_bull", "ichimoku_bull", "volume_surge"] },
-                                    "Logic": { label: "Logic", kinds: ["and"] },
-                                    "Strategy": { label: "Execution", kinds: ["long_entry", "short_entry", "close_long", "close_short", "risk_manager"] },
-                                    "Output": { label: "Output", kinds: ["plot"] },
-                                };
-                                return Object.entries(groups).map(([key, group]) => {
-                                    const cats = group.kinds.filter(k => Object.keys(nodeTypes).includes(k)).filter(k => !searchQuery.trim() || nodeTypes[k as NodeKind].label.toLowerCase().includes(searchQuery.toLowerCase()) || k.toLowerCase().includes(searchQuery.toLowerCase()));
-                                    if (cats.length === 0) return null;
-                                    const expanded = !collapsedCats.has(key);
-                                    return (
-                                        <div key={key} className="rounded-xl border border-border bg-background overflow-hidden">
-                                            <button onClick={() => setCollapsedCats(prev => {
-                                                const next = new Set(prev);
-                                                if (next.has(key)) next.delete(key); else next.add(key);
-                                                return next;
-                                            })} className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-muted-foreground hover:text-foreground transition bg-muted/30 hover:bg-muted/60 text-left">
-                                                <span className="transition-transform duration-200" style={{ transform: expanded ? "rotate(90deg)" : "rotate(0deg)" }}><ChevronRight size={10} /></span>
-                                                <span className="flex-1">{group.label}</span>
-                                                <span className="text-[9px] bg-foreground/10 px-1.5 rounded-md">{cats.length}</span>
-                                            </button>
-                                            <div className={`transition-all duration-200 overflow-hidden ${expanded ? "max-h-[600px]" : "max-h-0"}`}>
-                                                <div className="p-2 grid grid-cols-2 gap-1">
-                                                    {cats.map(kind => (
-                                                        <button key={kind} draggable onDragStart={(event) => event.dataTransfer.setData("text/plain", `palette:${kind}`)} onClick={() => addNode(kind)} title={nodeTypes[kind].label} className="flex items-center gap-1.5 rounded-lg border border-transparent bg-card hover:border-border hover:bg-muted px-2.5 py-1.5 text-left text-[11px] text-foreground transition-colors">
-                                                            <span className="h-1.5 w-1.5 rounded-full shrink-0 bg-sky-400" />
-                                                            <span className="truncate">{nodeTypes[kind].label}</span>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                });
-                            })()}
-                        </div>
-                    )}
-                    <Tooltip>
-                        <TooltipTrigger render={<button onClick={() => { setNodes([]); setEdges([]); setPendingConnection(null); }} className="mt-3 inline-flex items-center gap-2 text-xs text-muted-foreground transition hover:text-rose-400"><Trash2 size={13} />Clear canvas</button>} />
-                        <TooltipContent>Remove every node and connection from the canvas.</TooltipContent>
-                    </Tooltip>
+                <p className="mt-5 text-sm font-semibold">Strategy nodes</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">Drag a node onto the canvas. Join output dots to input dots to define the flow.</p>
+                <div className="mt-4 space-y-2">
+                    {(Object.keys(nodeTypes) as NodeKind[]).map((kind) => (
+                        <Tooltip key={kind}>
+                            <TooltipTrigger render={<button draggable onDragStart={(event) => event.dataTransfer.setData("text/plain", `palette:${kind}`)} onClick={() => addNode(kind)} className="flex w-full items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-left text-xs text-foreground transition hover:border-foreground/40 hover:bg-muted"><Plus size={13} />{nodeTypes[kind].label}</button>} />
+                            <TooltipContent>{nodeHint(kind)} — click or drag to add this node.</TooltipContent>
+                        </Tooltip>
+                    ))}
                 </div>
+                <Tooltip>
+                    <TooltipTrigger render={<button onClick={() => { setNodes([]); setEdges([]); setPendingConnection(null); }} className="mt-4 inline-flex items-center gap-2 text-xs text-muted-foreground transition hover:text-rose-400"><Trash2 size={13} />Clear canvas</button>} />
+                    <TooltipContent>Remove every node and connection from the canvas.</TooltipContent>
+                </Tooltip>
             </aside>
             <div className="min-w-0 rounded-2xl border border-border bg-card p-4">
                 <div className="flex flex-col gap-3">
@@ -1050,22 +870,10 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                                     return <path key={`${edge.from}-${edge.to}`} d={`M ${from.x + 156} ${from.y + 34} C ${from.x + 205} ${from.y + 34}, ${to.x - 48} ${to.y + 34}, ${to.x} ${to.y + 34}`} className="stroke-foreground/60" strokeWidth="2" fill="none" />;
                                 })}
                             </svg>
-                            {nodes.map((node) => <div key={node.id} draggable onDragStart={(event) => event.dataTransfer.setData("text/plain", `node:${node.id}`)} style={{ left: node.x, top: node.y }} className={`absolute w-44 cursor-grab rounded-xl border shadow-lg shadow-black/5 active:cursor-grabbing ${nodeTypes[node.kind].color} bg-card transition hover:shadow-xl`}>
-                                <div className="flex items-center gap-1.5 border-b border-white/5 px-3 py-2 bg-gradient-to-r from-white/5 to-transparent rounded-t-xl">
-                                    <span className="h-2 w-2 rounded-full ring-2 ring-offset-0 ring-white/20 bg-sky-400" />
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/60">{nodeTypes[node.kind].label}</span>
-                                </div>
-                                <div className="p-3">
-                                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                                        <div className="flex items-center gap-1.5">
-                                            <Tooltip><TooltipTrigger render={<button onClick={() => handleInputClick(node.id)} className="h-2.5 w-2.5 rounded-full border border-foreground/40 bg-background shadow-sm hover:border-foreground transition" aria-label={`Connect to ${nodeTypes[node.kind].label}`} />} /><TooltipContent>Input — connect this from a previous node&apos;s output dot.</TooltipContent></Tooltip>
-                                            <span className="text-xs font-semibold text-foreground">{nodeTypes[node.kind].label}</span>
-                                        </div>
-                                        <Tooltip><TooltipTrigger render={<button onClick={() => removeNode(node.id)} className="rounded p-0.5 text-muted-foreground transition hover:text-rose-400 hover:bg-rose-500/10" aria-label={`Remove ${nodeTypes[node.kind].label}`}><Trash2 size={10} /></button>} /><TooltipContent>Remove this node and its connections.</TooltipContent></Tooltip>
-                                    </div>
-                                    <p className="text-[10px] leading-4 text-muted-foreground">{nodeHint(node.kind)}</p>
-                                    <Tooltip><TooltipTrigger render={<button onClick={() => handleOutputClick(node.id)} className={`mt-2 h-3 w-3 rounded-full border border-foreground shadow-sm ${pendingConnection === node.id ? "bg-foreground scale-110" : "bg-background"} transition`} aria-label={`Connect to next node from ${nodeTypes[node.kind].label}`} />} /><TooltipContent>Output — connect this to the next node&apos;s input dot.</TooltipContent></Tooltip>
-                                </div>
+                            {nodes.map((node) => <div key={node.id} draggable onDragStart={(event) => event.dataTransfer.setData("text/plain", `node:${node.id}`)} style={{ left: node.x, top: node.y }} className={`absolute w-40 cursor-grab rounded-lg border p-3 shadow-lg active:cursor-grabbing ${nodeTypes[node.kind].color}`}>
+                                <div className="flex items-center justify-between gap-2"><Tooltip><TooltipTrigger render={<button onClick={() => handleInputClick(node.id)} className="h-3 w-3 rounded-full border border-foreground bg-background" aria-label={`Connect to ${nodeTypes[node.kind].label}`} />} /><TooltipContent>Input — connect this from a previous node&apos;s output dot.</TooltipContent></Tooltip><span className="text-xs font-semibold text-foreground">{nodeTypes[node.kind].label}</span><Tooltip><TooltipTrigger render={<button onClick={() => removeNode(node.id)} className="text-muted-foreground transition hover:text-rose-400" aria-label={`Remove ${nodeTypes[node.kind].label}`}><Trash2 size={12} /></button>} /><TooltipContent>Remove this node and its connections.</TooltipContent></Tooltip></div>
+                                <p className="mt-2 text-[10px] text-muted-foreground">{nodeHint(node.kind)}</p>
+                                <Tooltip><TooltipTrigger render={<button onClick={() => handleOutputClick(node.id)} className={`absolute -right-1.5 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-foreground ${pendingConnection === node.id ? "bg-foreground" : "bg-background"}`} aria-label={`Connect to next node from ${nodeTypes[node.kind].label}`} />} /><TooltipContent>Output — connect this to the next node&apos;s input dot.</TooltipContent></Tooltip>
                             </div>)}
                         </div>
                     </div>
