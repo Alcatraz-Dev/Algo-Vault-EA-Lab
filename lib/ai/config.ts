@@ -74,7 +74,25 @@ export const AIConfig = {
     get codecraftBaseUrl(): string {
         return (process.env.CODECRAFT_BASE_URL || "https://www.codecraftapi.com/v1").replace(/\/$/, "");
     },
+    /**
+     * Operator-selected CodeCraft model, sent verbatim. Empty by default on
+     * purpose: the live /models catalog does NOT contain a "codecraft-default",
+     * and fabricating one would produce a silent 404. With no value the
+     * provider resolves a real catalog model, or fails with a configuration
+     * error — it never invents a model id.
+     */
     get codecraftModel(): string {
-        return process.env.CODECRAFT_MODEL || "codecraft-default";
+        return process.env.CODECRAFT_MODEL || "";
+    },
+    /**
+     * CodeCraft bills per token — a live /models check returned non-zero
+     * pricing for all 33 catalog models — so the global AI_FREE_ONLY guard
+     * rejects every one of them. This is a PER-PROVIDER opt-in: when it is
+     * "true" only CodeCraft may use its metered models. AI_FREE_ONLY itself is
+     * never modified, so every other provider keeps its existing protection.
+     * Defaults to off (safe).
+     */
+    get codecraftAllowMetered(): boolean {
+        return process.env.CODECRAFT_ALLOW_METERED === "true";
     },
 };

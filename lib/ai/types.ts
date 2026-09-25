@@ -42,6 +42,15 @@ export interface AIModelCapabilities {
     structuredOutput?: boolean;
 }
 
+/**
+ * Provider-reported pricing. Only ever populated from what the provider's own
+ * catalog actually returned — AlgoVault never infers or hardcodes prices.
+ */
+export interface AIModelPricing {
+    prompt?: string | number;
+    completion?: string | number;
+}
+
 export interface AIModel {
     id: string;
     name: string;
@@ -51,6 +60,8 @@ export interface AIModel {
     enabled: boolean;
     capabilities?: AIModelCapabilities;
     contextLength?: number;
+    /** Absent when the provider does not expose pricing. */
+    pricing?: AIModelPricing;
 }
 
 export type AIErrorCode =

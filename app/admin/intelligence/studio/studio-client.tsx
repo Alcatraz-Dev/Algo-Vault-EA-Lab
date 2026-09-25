@@ -24,7 +24,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { WorkflowAutomation, WorkflowNode, WorkflowEdge } from "@/lib/workflows/types";
 import { getAllNodes, getNodeDefinition, NODE_CATEGORY_ORDER, NODE_CATEGORY_LABELS } from "@/lib/workflows/node-registry";
 import { isConnectionAllowed } from "@/lib/workflows/connection-rules";
-import { autoConnectNodes, autoPositionNodes } from "@/lib/workflows/ai-builder";
+import { autoConnectNodes, autoPositionNodes } from "@/lib/workflows/auto-layout";
 import { instantiateTemplate, WORKFLOW_TEMPLATES, WorkflowTemplate } from "@/lib/workflows/templates";
 import { PortableWorkflow } from "@/lib/workflows/portable";
 import { onSubscriptionChange } from "@/lib/subscription";

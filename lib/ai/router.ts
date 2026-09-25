@@ -94,18 +94,24 @@ export class AIRouter {
 
     /**
      * Executes chat request with automatic provider fallback
-     * (Gemini -> OpenRouter -> OpenCode -> B.AI -> Bytez -> Local Heuristic).
-     * Bytez participates whenever BYTEZ_API_KEY is configured: under
-     * AI_FREE_ONLY=true (the default) only its `*-free` models are served, and
+     * (Gemini -> OpenRouter -> OpenCode -> CodeCraft -> B.AI -> Bytez -> Local Heuristic).
+     * CodeCraft participates whenever CODECRAFT_API_KEY is configured and is
+     * served only from its own discovered model catalog, so it never inherits
+     * another provider's model id. Bytez participates whenever BYTEZ_API_KEY
+     * is configured: under AI_FREE_ONLY=true (the default) only its `*-free`
+     * models are served, and
      * when a paid budget is allowed it may use its full discovered catalog.
      * Each provider resolves the effective model against its own catalog, so a
      * quota failure on one provider no longer cascades into the next provider
      * being handed an unsupported model.
      */
     async chat(request: AIChatRequest): Promise<AIResponse> {
-        // Enforce hard free-only check if model specified
+        // Enforce hard free-only check if model specified. `request.provider` is
+        // passed through so a provider-scoped metered opt-in (e.g.
+        // CODECRAFT_ALLOW_METERED) can relax the guard for that provider ONLY.
+        // A request with no explicit provider is still checked strictly.
         if (request.model) {
-            assertFreeModelAllowed(request.model);
+            assertFreeModelAllowed(request.model, undefined, request.provider);
         }
 
         const candidateOrder = await this.getAvailableCloudProviders(request.provider);
@@ -121,7 +127,13 @@ export class AIRouter {
             try {
                 console.log(`[AI] Attempt ${attempts}/${maxAttempts}: provider=${provider.id}`);
                 const res = await provider.chat(request);
-                return res;
+                // Provider-to-provider fallback must stay observable: without
+                // this, a failed attempt (e.g. CodeCraft 401 -> next provider
+                // succeeds) is only visible in a server log and disappears from
+                // the response the type says carries `fallbackErrors`.
+                return lastErrors.length > 0
+                    ? { ...res, fallbackErrors: [...lastErrors, ...(res.fallbackErrors ?? [])] }
+                    : res;
             } catch (err: unknown) {
                 const isAbort = isAbortError(err);
                 const provErr = isAbort
