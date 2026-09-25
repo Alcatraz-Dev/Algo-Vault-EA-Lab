@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Gauge, Pause, Play, RotateCcw, SkipBack, SkipForward, Scissors, TrendingUp, TrendingDown, RefreshCw } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 import {
     CandlestickSeries,
     createChart,
@@ -184,7 +185,9 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
     const [playing, setPlaying] = useState(false);
     const [speed, setSpeed] = useState(1);
     const [width, setWidth] = useState(800);
+    const [chartHeight, setChartHeight] = useState(540);
     const [isCutoffMode, setIsCutoffMode] = useState(false);
+    const [showHistory, setShowHistory] = useState(false);
 
     // Refs for chart click handler
     const isCutoffModeRef = useRef(isCutoffMode);
@@ -318,7 +321,11 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
 
         function handleResize() {
             const current = containerRef.current;
-            if (current) setWidth(current.clientWidth || 800);
+            if (current) {
+                setWidth(current.clientWidth || 800);
+                const measuredH = current.clientHeight || (window.innerWidth < 640 ? 380 : window.innerWidth < 1024 ? 480 : 560);
+                setChartHeight(measuredH);
+            }
         }
         handleResize();
         const observer = new ResizeObserver(handleResize);
@@ -341,7 +348,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
 
         const chart = createChart(container, {
             width,
-            height: 580,
+            height: chartHeight,
             layout: {
                 background: { color: dark ? "#0a0d14" : "#ffffff" },
                 textColor: dark ? "#94a3b8" : "#475569",
@@ -423,7 +430,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
             chartRef.current = null;
             if (timerRef.current) clearInterval(timerRef.current);
         };
-    }, [width, dark, overlayForStudies]);
+    }, [width, chartHeight, dark, overlayForStudies]);
 
     const drawSlice = useCallback(() => {
         const chart = chartRef.current;
@@ -497,21 +504,21 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
     const floatingPnL = position ? (position.type === "LONG" ? (currentPrice - position.entryPrice) * 10 : (position.entryPrice - currentPrice) * 10) : 0;
 
     return (
-        <div className="mt-4 space-y-3 font-sans">
-            {/* TradingView Bar Replay Floating Control Dock */}
-            <div className="rounded-2xl border border-border/80 bg-card/95 p-3 sm:p-4 shadow-xl backdrop-blur-xl">
-                <div className="flex flex-col gap-3.5 xl:flex-row xl:items-center xl:justify-between">
+        <div className="mt-4 space-y-4 font-sans">
+            {/* TradingView Bar Replay Control Dock */}
+            <div className="rounded-2xl border border-border bg-card p-3 shadow-xs overflow-x-auto">
+                <div className="flex items-center justify-between gap-2 min-w-[760px] whitespace-nowrap">
                     
-                    {/* Left: Replay Status & Symbol Selector */}
-                    <div className="flex flex-wrap items-center gap-2 text-xs">
-                        <span className="inline-flex items-center gap-1.5 rounded-xl bg-violet-500/10 px-3 py-2 font-bold uppercase tracking-wider text-violet-400 border border-violet-500/20 shadow-sm whitespace-nowrap shrink-0">
-                            <Scissors size={14} className="text-violet-400 shrink-0" /> REPLAY
+                    {/* Left: Replay Status & Asset Selectors */}
+                    <div className="flex items-center gap-1.5 text-xs shrink-0">
+                        <span className="inline-flex items-center gap-1 rounded-lg bg-amber-500/10 px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 border border-amber-500/20 shadow-xs shrink-0">
+                            <Scissors size={12} className="text-amber-500 shrink-0" /> REPLAY
                         </span>
 
                         <select
                             value={symbol}
                             onChange={(e) => { setSymbol(e.target.value); setCursor(120); setPlaying(false); setPosition(null); }}
-                            className="h-9 rounded-xl border border-border bg-background px-3 text-xs font-semibold text-foreground outline-none focus:border-violet-500 transition whitespace-nowrap shrink-0"
+                            className="h-8 rounded-lg border border-border bg-background px-2.5 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-amber-500/20 transition shrink-0"
                         >
                             {SYMBOLS.map((s) => <option key={s} value={s}>{s}</option>)}
                         </select>
@@ -519,7 +526,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
                         <select
                             value={interval}
                             onChange={(e) => { setIntervalState(e.target.value); setCursor(120); setPlaying(false); }}
-                            className="h-9 rounded-xl border border-border bg-background px-3 text-xs font-semibold text-foreground outline-none focus:border-violet-500 transition whitespace-nowrap shrink-0"
+                            className="h-8 rounded-lg border border-border bg-background px-2.5 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-amber-500/20 transition shrink-0"
                         >
                             {INTERVALS.map((i) => <option key={i} value={i}>{i}</option>)}
                         </select>
@@ -527,70 +534,77 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
                         <select
                             value={totalBars}
                             onChange={(e) => { setTotalBars(Number(e.target.value)); setCursor(Math.min(cursor, Number(e.target.value))); setPlaying(false); }}
-                            className="h-9 rounded-xl border border-border bg-background px-3 text-xs text-muted-foreground outline-none transition whitespace-nowrap shrink-0"
+                            className="h-8 rounded-lg border border-border bg-background px-2.5 text-xs text-muted-foreground outline-none transition shrink-0"
                         >
                             {BAR_COUNTS.map((count) => <option key={count} value={count}>{count} Bars</option>)}
                         </select>
                     </div>
 
-                    {/* Center: Play / Pause / Step / Cut Controls */}
-                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 self-stretch xl:self-auto">
-                        <button
+                    {/* Center: Play / Pause / Step / Cut Transport Controls */}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        <Button
                             type="button"
+                            size="sm"
+                            variant={isCutoffMode ? "destructive" : "outline"}
                             onClick={() => { setIsCutoffMode(!isCutoffMode); setPlaying(false); }}
-                            className={`h-9 px-3.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition border flex items-center gap-1.5 ${
-                                isCutoffMode 
-                                    ? "bg-rose-500/20 text-rose-400 border-rose-500/50 shadow-sm animate-pulse" 
-                                    : "bg-muted/50 text-muted-foreground border-border hover:text-foreground"
+                            className={`h-8 px-2.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 ${
+                                isCutoffMode ? "animate-pulse" : ""
                             }`}
                             title="Click to activate Cut Mode, then click any candle on the chart below to jump replay cutoff"
                         >
-                            <Scissors size={13} className="shrink-0" /> 
-                            <span>{isCutoffMode ? "Click Bar on Chart..." : "Cut Mode"}</span>
-                        </button>
+                            <Scissors size={13} className="shrink-0 mr-1" />
+                            <span>{isCutoffMode ? "Click Bar..." : "Cut Mode"}</span>
+                        </Button>
 
-                        <div className="flex items-center gap-1 shrink-0">
-                            <button
+                        <div className="flex items-center gap-0.5 shrink-0">
+                            <Button
                                 type="button"
+                                size="sm"
+                                variant="outline"
                                 onClick={() => { setCursor((p) => Math.max(1, p - 1)); setPlaying(false); }}
-                                className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-background hover:bg-muted text-foreground transition active:scale-95 shrink-0"
+                                className="h-8 w-8 p-0 rounded-lg"
                                 title="Step Back (1 Bar)"
                             >
-                                <SkipBack size={15} />
-                            </button>
+                                <SkipBack size={14} />
+                            </Button>
 
-                            <button
+                            <Button
                                 type="button"
+                                size="sm"
                                 onClick={() => setPlaying((p) => !p)}
-                                className="flex h-9 w-11 items-center justify-center rounded-xl bg-violet-600 text-white font-bold hover:bg-violet-500 transition shadow-md shadow-violet-600/20 active:scale-95 shrink-0"
+                                className="h-8 px-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-semibold shadow-xs shrink-0"
                                 title={playing ? "Pause" : "Play Sequential Bars"}
                             >
-                                {playing ? <Pause size={16} /> : <Play size={16} className="ml-0.5" />}
-                            </button>
+                                {playing ? <Pause size={14} /> : <Play size={14} className="ml-0.5" />}
+                            </Button>
 
-                            <button
+                            <Button
                                 type="button"
+                                size="sm"
+                                variant="outline"
                                 onClick={() => { setCursor((p) => Math.min(totalBars, p + 1)); setPlaying(false); }}
-                                className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-background hover:bg-muted text-foreground transition active:scale-95 shrink-0"
+                                className="h-8 w-8 p-0 rounded-lg"
                                 title="Step Forward (1 Bar)"
                             >
-                                <SkipForward size={15} />
-                            </button>
+                                <SkipForward size={14} />
+                            </Button>
 
-                            <button
+                            <Button
                                 type="button"
+                                size="sm"
+                                variant="outline"
                                 onClick={() => { setCursor(10); setPlaying(false); setPosition(null); }}
-                                className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-background hover:bg-muted text-muted-foreground transition active:scale-95 shrink-0"
+                                className="h-8 w-8 p-0 rounded-lg text-muted-foreground"
                                 title="Reset to Start"
                             >
-                                <RotateCcw size={15} />
-                            </button>
+                                <RotateCcw size={14} />
+                            </Button>
                         </div>
 
                         <select
                             value={speed}
                             onChange={(e) => setSpeed(Number(e.target.value))}
-                            className="h-9 rounded-xl border border-border bg-background px-3 text-xs font-mono outline-none transition whitespace-nowrap shrink-0"
+                            className="h-8 rounded-lg border border-border bg-background px-2.5 text-xs font-mono outline-none transition shrink-0"
                         >
                             {SPEEDS.map((s) => (
                                 <option key={s.value} value={s.value}>{s.label}</option>
@@ -598,42 +612,59 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
                         </select>
                     </div>
 
-                    {/* Right: Paper Execution Buttons (Never Wrap Text) */}
-                    <div className="flex items-center gap-2 shrink-0">
+                    {/* Right: Paper Execution Buttons & Trade Log Toggle */}
+                    <div className="flex items-center gap-1.5 shrink-0">
                         {position ? (
-                            <button
+                            <Button
                                 type="button"
+                                size="sm"
+                                variant="outline"
                                 onClick={closePosition}
-                                className="h-9 px-4 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold whitespace-nowrap shrink-0 hover:bg-amber-500/30 transition inline-flex items-center gap-1.5"
+                                className="h-8 border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 font-semibold text-xs px-3 rounded-lg"
                             >
-                                <RefreshCw size={13} className="shrink-0" /> Flat ({floatingPnL >= 0 ? `+$${floatingPnL.toFixed(2)}` : `-$${Math.abs(floatingPnL).toFixed(2)}`})
-                            </button>
+                                <RefreshCw size={12} className="mr-1" /> Flat ({floatingPnL >= 0 ? `+$${floatingPnL.toFixed(2)}` : `-$${Math.abs(floatingPnL).toFixed(2)}`})
+                            </Button>
                         ) : (
-                            <div className="flex items-center gap-2 shrink-0">
-                                <button
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                <Button
                                     type="button"
+                                    size="sm"
                                     onClick={() => openTrade("LONG")}
-                                    className="h-9 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs tracking-wider uppercase whitespace-nowrap shadow-md hover:shadow-emerald-500/20 active:scale-95 transition inline-flex items-center gap-1.5 shrink-0"
+                                    className="h-8 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-[11px] tracking-wider uppercase px-3 rounded-lg shadow-xs shrink-0"
                                 >
-                                    <TrendingUp size={14} className="shrink-0" /> Buy Long
-                                </button>
-                                <button
+                                    <TrendingUp size={13} className="mr-1" /> Buy Long
+                                </Button>
+                                <Button
                                     type="button"
+                                    size="sm"
                                     onClick={() => openTrade("SHORT")}
-                                    className="h-9 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs tracking-wider uppercase whitespace-nowrap shadow-md hover:shadow-rose-500/20 active:scale-95 transition inline-flex items-center gap-1.5 shrink-0"
+                                    className="h-8 bg-red-600 hover:bg-red-500 text-white font-semibold text-[11px] tracking-wider uppercase px-3 rounded-lg shadow-xs shrink-0"
                                 >
-                                    <TrendingDown size={14} className="shrink-0" /> Sell Short
-                                </button>
+                                    <TrendingDown size={13} className="mr-1" /> Sell Short
+                                </Button>
                             </div>
+                        )}
+
+                        {closedTrades.length > 0 && (
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setShowHistory((prev) => !prev)}
+                                className={`h-8 px-2.5 rounded-lg text-xs ${showHistory ? "bg-muted font-bold" : ""}`}
+                                title="Toggle Paper Trade History"
+                            >
+                                Log ({closedTrades.length})
+                            </Button>
                         )}
                     </div>
                 </div>
 
                 {/* Scrubber Range & Cutoff Status Indicator */}
-                <div className="mt-3 pt-2 border-t border-border/40 space-y-1.5">
-                    <div className="flex items-center justify-between text-[11px] font-mono text-muted-foreground">
+                <div className="mt-3 pt-3 border-t border-border/60 space-y-1.5">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-[11px] font-mono text-muted-foreground">
                         <span className="flex items-center gap-1.5">
-                            <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 animate-pulse" /> Replay Scrubber: Bar #{cursor} of {totalBars}
+                            <span className="inline-block h-2 w-2 rounded-full bg-amber-500 animate-pulse" /> Replay Scrubber: Bar #{cursor} of {totalBars}
                         </span>
                         <span className="text-foreground font-bold">
                             Current Price: ${(currentPrice).toFixed(2)}
@@ -646,31 +677,31 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
                         max={totalBars}
                         value={cursor}
                         onChange={(e) => { setCursor(Number(e.target.value)); setPlaying(false); }}
-                        className="w-full accent-violet-500 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer"
+                        className="w-full accent-amber-500 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer"
                     />
                 </div>
             </div>
 
             {/* Live Paper Trading Scoreboard Strip */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
-                <div className="rounded-xl border border-border/60 bg-card/60 p-2.5 flex items-center justify-between">
+                <div className="rounded-2xl border border-border bg-card p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 shadow-xs">
                     <span className="text-muted-foreground">Paper Balance:</span>
-                    <span className="font-bold text-foreground">${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                    <span className="font-semibold text-foreground">${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                 </div>
-                <div className="rounded-xl border border-border/60 bg-card/60 p-2.5 flex items-center justify-between">
+                <div className="rounded-2xl border border-border bg-card p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 shadow-xs">
                     <span className="text-muted-foreground">Net Replay PnL:</span>
-                    <span className={`font-bold ${netPnL >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                    <span className={`font-semibold ${netPnL >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
                         {netPnL >= 0 ? `+$${netPnL.toFixed(2)}` : `-$${Math.abs(netPnL).toFixed(2)}`}
                     </span>
                 </div>
-                <div className="rounded-xl border border-border/60 bg-card/60 p-2.5 flex items-center justify-between">
+                <div className="rounded-2xl border border-border bg-card p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 shadow-xs">
                     <span className="text-muted-foreground">Win Rate:</span>
-                    <span className="font-bold text-violet-400">{winRate}% ({totalWins}/{totalTrades})</span>
+                    <span className="font-semibold text-amber-600 dark:text-amber-400">{winRate}% ({totalWins}/{totalTrades})</span>
                 </div>
-                <div className="rounded-xl border border-border/60 bg-card/60 p-2.5 flex items-center justify-between">
+                <div className="rounded-2xl border border-border bg-card p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 shadow-xs">
                     <span className="text-muted-foreground">Open Position:</span>
                     {position ? (
-                        <span className={`font-bold ${position.type === "LONG" ? "text-emerald-400" : "text-rose-400"}`}>
+                        <span className={`font-semibold ${position.type === "LONG" ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
                             {position.type} @ ${position.entryPrice.toFixed(2)}
                         </span>
                     ) : (
@@ -679,15 +710,50 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
                 </div>
             </div>
 
+            {/* Optional Paper Trade History Panel */}
+            {showHistory && closedTrades.length > 0 && (
+                <div className="rounded-2xl border border-border bg-card p-4 shadow-xs space-y-2">
+                    <div className="flex items-center justify-between pb-2 border-b border-border">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">Closed Paper Trades Log</h4>
+                        <span className="text-[11px] font-mono text-muted-foreground">{closedTrades.length} trades recorded</span>
+                    </div>
+                    <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1 font-mono text-xs">
+                        {closedTrades.map((t) => (
+                            <div key={t.id} className="flex items-center justify-between p-2 rounded-xl bg-background border border-border/60">
+                                <div className="flex items-center gap-2">
+                                    <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${t.type === "LONG" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20"}`}>
+                                        {t.type}
+                                    </span>
+                                    <span className="text-muted-foreground">
+                                        Entry: ${t.entryPrice.toFixed(2)} → Exit: ${t.exitPrice.toFixed(2)}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2 font-semibold">
+                                    <span className={t.result === "WIN" ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}>
+                                        {t.pnl >= 0 ? `+$${t.pnl.toFixed(2)}` : `-$${Math.abs(t.pnl).toFixed(2)}`}
+                                    </span>
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold ${t.result === "WIN" ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400" : "bg-red-500/20 text-red-600 dark:text-red-400"}`}>
+                                        {t.result}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Active Cut Mode Banner Overlay */}
             {isCutoffMode && (
-                <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 p-3 text-center text-xs font-mono font-bold text-rose-300 animate-pulse">
+                <div className="rounded-2xl border border-red-500/40 bg-red-500/10 p-3 text-center text-xs font-mono font-bold text-red-600 dark:text-red-400 animate-pulse shadow-xs">
                     ✂️ CUT MODE ACTIVE: Click any candle on the chart below to set the replay cut-off point.
                 </div>
             )}
 
-            {/* TradingView Lightweight Chart Container */}
-            <div ref={containerRef} className={`relative overflow-hidden rounded-2xl border border-border/80 bg-card/90 shadow-2xl transition-all ${isCutoffMode ? "cursor-crosshair ring-2 ring-rose-500/50" : ""}`} style={{ height: 580 }} />
+            {/* TradingView Lightweight Chart Container with Responsive CSS Sizing */}
+            <div 
+                ref={containerRef} 
+                className={`relative overflow-hidden rounded-2xl border border-border bg-card shadow-xs transition-all h-[380px] sm:h-[480px] lg:h-[560px] ${isCutoffMode ? "cursor-crosshair ring-2 ring-red-500/50" : ""}`} 
+            />
         </div>
     );
 }

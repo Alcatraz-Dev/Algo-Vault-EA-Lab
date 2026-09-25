@@ -140,6 +140,49 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out forwards;
+}
+
+/* ── PWA Safe Area Support ── */
+@supports (padding: max(0px)) {
+  .safe-top { padding-top: max(1rem, env(safe-area-inset-top)); }
+  .safe-bottom { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+  .safe-left { padding-left: max(1rem, env(safe-area-inset-left)); }
+  .safe-right { padding-right: max(1rem, env(safe-area-inset-right)); }
+}
+
+/* ── PWA Offline State ── */
+.pwa-offline-banner {
+  @apply fixed top-0 left-0 right-0 z-50 bg-amber-500/90 text-amber-900 px-4 py-2 text-center text-sm font-medium;
+}
+
+.pwa-offline-content {
+  @apply relative pt-8; /* Space for offline banner */
+}
+
+/* ── Touch Targets ── */
+@media (pointer: coarse) {
+  .touch-target { min-height: 44px; min-width: 44px; }
+  button.touch-target, a.touch-target, [role="button"].touch-target {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+}
+
+/* ── Mobile Scrollbar Hide ── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* ── Gemini-inspired Gradient System ── */
 :root {
   --gemini-gradient: linear-gradient(
@@ -952,9 +995,16 @@ body {
   box-shadow: none;
   outline: none;
 }
-/* ReactFlow canvas dark-mode background grid */
-.react-flow__background {
-  background-color: var(--background);
+/* ReactFlow canvas inverted theme: black in light, white in dark */
+html.light .react-flow__background,
+html.light .react-flow__panel,
+html.light .react-flow__minimap {
+  background-color: #ffffff !important;
+}
+html.dark .react-flow__background,
+html.dark .react-flow__panel,
+html.dark .react-flow__minimap {
+  background-color: #000000 !important;
 }
 /* Handles */
 .react-flow__handle {
@@ -977,18 +1027,21 @@ body {
 }
 /* Controls */
 .react-flow__controls {
-  background: var(--card);
-  border: 1px solid var(--border);
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
   border-radius: var(--radius-md);
   box-shadow: none;
 }
 .react-flow__controls-button {
-  background: var(--card);
-  border-bottom: 1px solid var(--border);
-  color: var(--foreground);
+  background: #ffffff !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  color: #262626 !important;
 }
 .react-flow__controls-button:hover {
-  background: var(--muted);
+  background: #f3f4f6 !important;
+}
+.react-flow__controls-button svg {
+  fill: #262626 !important;
 }
 .react-flow__controls-button svg {
   fill: currentColor;

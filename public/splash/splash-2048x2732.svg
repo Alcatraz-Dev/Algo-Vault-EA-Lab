@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2048" height="2732" viewBox="0 0 2048 2732">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#111111;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00D4AA;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0066FF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="2048" height="2732" fill="url(#bgGrad)"/>
+  <rect x="751" y="820" width="546" height="546" rx="121" fill="url(#iconGrad)"/>
+  <path d="M917 1093 L993 1168 L1130 1017" stroke="white" stroke-width="30" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="1024" cy="1093" r="15" fill="white" opacity="0.8"/>
+  <text x="1024" y="1584" text-anchor="middle" fill="white" opacity="0.6" font-family="system-ui, sans-serif" font-size="71" font-weight="600">AlgoVault</text>
+</svg>

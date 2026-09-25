@@ -1,0 +1,14 @@
+{
+  "name": "@algovault/design-tokens",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "build:tokens": "node scripts/build-tokens.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "style-dictionary": "^4.0.0"
+  }
+}

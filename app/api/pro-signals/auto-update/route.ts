@@ -141,10 +141,21 @@ async function checkAndUpdateProSignal(userId: string, signal: ProSignal): Promi
             else if (!isBuy && currentPrice >= signal.entryMin && currentPrice <= signal.entryMax) newStatus = "ENTRY_TRIGGERED";
         }
 
+        // Force CLOSED if price reversed opposite direction after any TP was hit
+        const anyTpHitBefore = (signal.takeProfits || []).some((t) => t.hit);
+        const entryMid = signal.entry || ((signal.entryMin + signal.entryMax) / 2);
+        const reversedOpposite = isBuy ? (currentPrice <= entryMid) : (currentPrice >= entryMid);
+        if (!hitSl && anyTpHitBefore && reversedOpposite && newStatus !== "CLOSED" && newStatus !== "STOPPED" && signal.status !== "CLOSED" && signal.status !== "STOPPED" && signal.status !== "CANCELLED" && signal.status !== "EXPIRED") {
+            newStatus = "CLOSED";
+        }
+
         if (newStatus && newStatus !== signal.status) {
-            const eventType: "TRIGGER_ENTRY" | "HIT_TP" | "HIT_SL" =
+            // If reversed to CLOSED without a new TP/SL event this check, treat as CLOSE_SIGNAL
+            const eventType: "TRIGGER_ENTRY" | "HIT_TP" | "HIT_SL" | "CLOSE_SIGNAL" =
                 hitSl ? "HIT_SL" : (
-                    tpHitIndex ? "HIT_TP" : "TRIGGER_ENTRY"
+                    tpHitIndex ? "HIT_TP" : (
+                        newStatus === "CLOSED" && !hitSl && !tpHitIndex ? "CLOSE_SIGNAL" : "TRIGGER_ENTRY"
+                    )
                 );
 
             const transition = transitionSignalState(signal, eventType, {

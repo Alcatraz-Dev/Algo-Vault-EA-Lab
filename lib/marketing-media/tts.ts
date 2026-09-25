@@ -23,7 +23,7 @@ export async function generateVoiceoverWithSay(input: GenerateVoiceoverInput): P
   try {
     const tmpDir = path.join("/tmp", `tts_${Date.now().toString(36)}`);
     fs.mkdirSync(tmpDir, { recursive: true });
-    const wavPath = path.join(tmpDir, "tts.wav");
+    const wavPath = path.join(tmpDir, "tts.aiff");
     const outPath = path.join(tmpDir, "tts.mp3");
     const text = input.script?.scenes?.map((s) => s.voiceover).join(". ") || "Hello.";
     await execFile(SAY_BIN, ["-o", wavPath, text], { encoding: "utf8", timeout: 30000 });

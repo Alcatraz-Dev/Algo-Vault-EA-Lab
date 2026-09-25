@@ -76,6 +76,8 @@ function toTradingViewInterval(interval: string): string {
     return map[interval] ?? "60";
 }
 
+const SCRIPT_SRC = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+
 export default function TradingViewChart({
     symbol = "FX:EURUSD",
     interval = "1h",
@@ -83,46 +85,58 @@ export default function TradingViewChart({
     height = 620,
     theme,
 }: TradingViewChartProps) {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const widgetRef = useRef<HTMLDivElement | null>(null);
-    const scriptRef = useRef<HTMLScriptElement | null>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const mountedRef = useRef(true);
+    const instanceIdRef = useRef<string>("");
+
     const dark = useSyncExternalStore(subscribeToTheme, isDarkMode, () => true);
     const effectiveTheme: "dark" | "light" = theme ?? (dark ? "dark" : "light");
 
     useEffect(() => {
+        mountedRef.current = true;
+        if (!instanceIdRef.current) {
+            instanceIdRef.current = `tv-${Math.random().toString(36).slice(2)}-${Date.now()}`;
+        }
         const container = containerRef.current;
         if (!container) return;
 
+        const widgetId = `tradingview-widget-${instanceIdRef.current}`;
+        const ownedScriptId = `tradingview-script-${instanceIdRef.current}`;
+
+        // Prevent duplicate initialization for this instance container
+        if (container.querySelector(`#${widgetId}`)) {
+            return;
+        }
+
         container.replaceChildren();
 
-        const widgetId = `tradingview_${Date.now()}`;
         const widgetDiv = document.createElement("div");
         widgetDiv.id = widgetId;
         widgetDiv.style.width = "100%";
         container.appendChild(widgetDiv);
-        widgetRef.current = widgetDiv;
 
         const activeStudies = studies
             .filter((s) => STUDY_MAP[s])
             .map((s) => STUDY_MAP[s]);
 
-        const dark = effectiveTheme === "dark";
+        const isDark = effectiveTheme === "dark";
 
         const script = document.createElement("script");
-        script.src =
-            "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
-        script.async = true;
+        script.id = ownedScriptId;
+        script.src = SCRIPT_SRC;
         script.type = "text/javascript";
+        // Synchronous execution ensures document.currentScript is available to the embed script
+        script.async = false;
         script.innerHTML = JSON.stringify({
             width: "100%",
             height,
             symbol: toTradingViewSymbol(symbol),
             interval: toTradingViewInterval(interval),
             timezone: "Etc/UTC",
-            theme: dark ? "dark" : "light",
+            theme: isDark ? "dark" : "light",
             style: "1",
             locale: "en",
-            backgroundColor: dark ? "#0b1118" : "#ffffff",
+            backgroundColor: isDark ? "#0b1118" : "#ffffff",
             hide_side_toolbar: false,
             allow_symbol_change: true,
             show_symbol_logo: false,
@@ -135,12 +149,16 @@ export default function TradingViewChart({
             container_id: widgetId,
         });
         container.appendChild(script);
-        scriptRef.current = script;
 
         return () => {
-            container.replaceChildren();
-            widgetRef.current = null;
-            scriptRef.current = null;
+            mountedRef.current = false;
+            // Use the captured container from effect start, not the mutable ref
+            if (container) {
+                const ownedWidget = container.querySelector(`#${widgetId}`);
+                if (ownedWidget) ownedWidget.remove();
+            }
+            const ownedScript = document.getElementById(ownedScriptId);
+            if (ownedScript) ownedScript.remove();
         };
     }, [symbol, interval, studies, height, effectiveTheme]);
 

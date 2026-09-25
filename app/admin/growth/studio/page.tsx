@@ -66,6 +66,14 @@ export default function MarketingStudioPage() {
         </div>
       </div>
 
+      <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
+        <span>AI Image: <strong>BLOCKED</strong> (OpenRouter 402 / Bytez 404)</span>
+        <span>•</span>
+        <span>AI Video: <strong>BLOCKED</strong> (no accessible model)</span>
+        <span>•</span>
+        <span>Fallback: <strong>Market Visual Montage</strong> → TTS → FFmpeg</span>
+      </div>
+
       <div className="grid lg:grid-cols-[320px_1fr] gap-4">
         {/* Campaign List */}
         <div className="border rounded-2xl bg-card p-4 space-y-3 overflow-y-auto max-h-[80vh]">
@@ -145,7 +153,32 @@ export default function MarketingStudioPage() {
           </section>
 
           <section>
-            <h3 className="text-base font-semibold mb-3">Video Preview</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-semibold">Video Preview</h3>
+              <Button size="sm" variant="outline" onClick={async () => {
+                try {
+                  const res = await adminFetch<{ ok?: boolean; video?: { url?: string } }>("/api/admin/growth/marketing/video", {
+                    method: "POST",
+                    body: JSON.stringify({
+                      outputName: `video_${activeCampaignId || "demo"}_${Date.now()}`,
+                      preset: form.aspectRatio,
+                      creativeId: activeCampaignId,
+                      scenes: concepts.slice(0, 4).map((c: any, i: number) => ({
+                        hook: c.hook || "Scene",
+                        durationSec: Math.max(3, Math.min(30, c.durationSec || 5)),
+                        voiceover: c.cta || "Try AlgoVault today.",
+                      })),
+                    }),
+                  });
+                  if (res.ok && res.video?.url) {
+                    alert("Video generated: " + res.video.url);
+                  } else {
+                    alert("Video generation returned non-ok: " + JSON.stringify(res));
+                  }
+                } catch (e) { console.error("Video generation error:", e); alert("Video generation failed."); }
+              }}><Film size={14} /> Generate Video</Button>
+              <span className="text-[10px] text-muted-foreground">Automatic / Market Visual / TTS / FFmpeg</span>
+            </div>
             <div className="rounded-xl overflow-hidden bg-black relative aspect-video">
               <video controls className="w-full h-full" poster="/marketing-video/assets/01-market-hero.png" src="" />
               <div className="absolute bottom-3 left-3 bg-black/70 text-white text-xs px-2 py-0.5 rounded">Marketing Studio — preview only</div>

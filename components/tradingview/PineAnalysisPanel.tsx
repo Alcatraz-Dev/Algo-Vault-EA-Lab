@@ -3,6 +3,8 @@
 import { useMemo } from "react";
 import { Check, X, AlertTriangle, Code, Layers, BarChart3, Bell, PenTool, Settings, Clock, Database } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+
 import type { PineBacktestResult } from "@/lib/pine-runtime/backtest";
 
 type Feature = { name: string; supported: boolean; icon: React.ReactNode };
@@ -236,23 +238,24 @@ export default function PineAnalysisPanel({ source, onApply, onBacktest, onRepla
       )}
 
       <div className="mt-4 flex flex-wrap gap-2" data-guide="alerts">
-        <button onClick={onApply} className="inline-flex items-center gap-1.5 rounded-lg bg-violet-500 px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-violet-400">
-          <Check size={13} /> Apply to Chart
-        </button>
+        <Button size="sm" onClick={onApply} className="bg-amber-500 hover:bg-amber-600 text-white font-medium">
+          <Check size={14} className="mr-1" /> Apply to Chart
+        </Button>
         {analysis.scriptType === "Strategy" && onBacktest && (
-          <button onClick={onBacktest} disabled={isBacktestLoading} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-4 py-2 text-xs font-medium text-foreground transition hover:bg-muted disabled:opacity-50">
-            {isBacktestLoading ? <Loader2 size={13} className="animate-spin" /> : <BarChart3 size={13} />} {isBacktestLoading ? "Backtesting..." : "Backtest"}
-          </button>
+          <Button size="sm" variant="outline" onClick={onBacktest} disabled={isBacktestLoading}>
+            {isBacktestLoading ? <Loader2 size={14} className="animate-spin mr-1" /> : <BarChart3 size={14} className="mr-1" />}
+            {isBacktestLoading ? "Backtesting..." : "Backtest"}
+          </Button>
         )}
         {onReplay && (
-          <button onClick={onReplay} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-4 py-2 text-xs font-medium text-foreground transition hover:bg-muted">
-            <Clock size={13} /> Replay
-          </button>
+          <Button size="sm" variant="outline" onClick={onReplay}>
+            <Clock size={14} className="mr-1" /> Replay
+          </Button>
         )}
         {onAlert && (
-          <button onClick={onAlert} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-4 py-2 text-xs font-medium text-foreground transition hover:bg-muted">
-            <Bell size={13} /> Create Alert
-          </button>
+          <Button size="sm" variant="outline" onClick={onAlert}>
+            <Bell size={14} className="mr-1" /> Create Alert
+          </Button>
         )}
       </div>
     </div>

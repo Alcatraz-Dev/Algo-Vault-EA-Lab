@@ -213,6 +213,22 @@ async function checkAndUpdateSignal(signal: AISignal): Promise<boolean> {
                 }
             }
 
+            // Complete when all TPs hit OR price reversed opposite direction after any TP hit
+            const hadAnyTp = signal.tp1Hit || signal.tp2Hit || signal.tp3Hit || hitTpIndex !== null;
+            const allHit = (signal.tp1Hit || hitTpIndex === 1) && (signal.tp2Hit || hitTpIndex === 2) && (signal.tp3Hit || hitTpIndex === 3);
+            const reversed = isBuy ? (currentPrice <= signal.entry) : (currentPrice >= signal.entry);
+            if (!hitSl && hadAnyTp && (allHit || reversed)) {
+                if (updates.status !== "COMPLETED" && updates.status !== "STOPPED") {
+                    const outcome = calculateSignalResult({ ...signal, ...updates, status: "COMPLETED", tp1Hit: (signal.tp1Hit || updates.tp1Hit || hitTpIndex === 1), tp2Hit: (signal.tp2Hit || updates.tp2Hit || hitTpIndex === 2), tp3Hit: (signal.tp3Hit || updates.tp3Hit || hitTpIndex === 3) });
+                    updates.result = outcome.result;
+                    updates.resultR = outcome.resultR;
+                    updates.profitPoints = outcome.profitPoints;
+                    updates.closedAt = now;
+                    updates.status = "COMPLETED";
+                    newStatus = "COMPLETED";
+                }
+            }
+
             await adminDatabase.ref(`aiSignals/${signal.id}`).update(updates);
 
             // Record event

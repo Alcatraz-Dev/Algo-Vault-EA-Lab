@@ -23,6 +23,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { WorkflowAutomation, WorkflowNode, WorkflowEdge } from "@/lib/workflows/types";
 import { getAllNodes, getNodeDefinition, NODE_CATEGORY_ORDER, NODE_CATEGORY_LABELS } from "@/lib/workflows/node-registry";
+import { isConnectionAllowed } from "@/lib/workflows/connection-rules";
 import { instantiateTemplate, WORKFLOW_TEMPLATES, WorkflowTemplate } from "@/lib/workflows/templates";
 import { PortableWorkflow } from "@/lib/workflows/portable";
 import { onSubscriptionChange } from "@/lib/subscription";
@@ -39,25 +40,26 @@ import { AiBuilderModal } from "./ai-builder-modal";
 import { ImportExportModal } from "./import-export-modal";
 import { WorkflowGuideTour } from "@/components/workflows/WorkflowGuideTour";
 import "@xyflow/react/dist/style.css";
+import { PageHeader } from "@/components/ui/page-header";
 
 // ─── Category styles ──────────────────────────────────────────────────────────
 const CAT_STYLES: Record<string, { dot: string; header: string; badge: string; icon: React.ReactNode }> = {
-  trigger:      { dot: "#8b5cf6", header: "bg-violet-500/10 border-b border-violet-500/30", badge: "bg-violet-100 text-violet-950 dark:bg-violet-900/70 dark:text-violet-100 font-extrabold border border-violet-400/50 shadow-xs", icon: <Zap size={11} /> },
-  market_data:  { dot: "#0ea5e9", header: "bg-sky-500/10 border-b border-sky-500/30",       badge: "bg-sky-100 text-sky-950 dark:bg-sky-900/70 dark:text-sky-100 font-extrabold border border-sky-400/50 shadow-xs",             icon: <BarChart2 size={11} /> },
-  technical:    { dot: "#f59e0b", header: "bg-amber-500/10 border-b border-amber-500/30",   badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs",     icon: <TrendingUp size={11} /> },
-  filter:       { dot: "#f97316", header: "bg-orange-500/10 border-b border-orange-500/30", badge: "bg-orange-100 text-orange-950 dark:bg-orange-900/70 dark:text-orange-100 font-extrabold border border-orange-400/50 shadow-xs", icon: <Filter size={11} /> },
-  signal:       { dot: "#22c55e", header: "bg-emerald-500/10 border-b border-emerald-500/30",badge: "bg-emerald-100 text-emerald-950 dark:bg-emerald-900/70 dark:text-emerald-100 font-extrabold border border-emerald-400/50 shadow-xs",icon: <Bell size={11} /> },
-  execution:    { dot: "#3b82f6", header: "bg-blue-500/10 border-b border-blue-500/30",     badge: "bg-blue-100 text-blue-950 dark:bg-blue-900/70 dark:text-blue-100 font-extrabold border border-blue-400/50 shadow-xs",           icon: <Play size={11} /> },
-  ai:           { dot: "#ec4899", header: "bg-pink-500/10 border-b border-pink-500/30",     badge: "bg-pink-100 text-pink-950 dark:bg-pink-900/70 dark:text-pink-100 font-extrabold border border-pink-400/50 shadow-xs",           icon: <BrainCircuit size={11} /> },
-  notification: { dot: "#14b8a6", header: "bg-teal-500/10 border-b border-teal-500/30",    badge: "bg-teal-100 text-teal-950 dark:bg-teal-900/70 dark:text-teal-100 font-extrabold border border-teal-400/50 shadow-xs",          icon: <Bell size={11} /> },
-  logic:        { dot: "#6366f1", header: "bg-indigo-500/10 border-b border-indigo-500/30", badge: "bg-indigo-100 text-indigo-950 dark:bg-indigo-900/70 dark:text-indigo-100 font-extrabold border border-indigo-400/50 shadow-xs",     icon: <FlaskConical size={11} /> },
-  risk:         { dot: "#ef4444", header: "bg-red-500/10 border-b border-red-500/30",       badge: "bg-red-100 text-red-950 dark:bg-red-900/70 dark:text-red-100 font-extrabold border border-red-400/50 shadow-xs",                 icon: <Shield size={11} /> },
-  integration:  { dot: "#8b5cf6", header: "bg-purple-500/10 border-b border-purple-500/30", badge: "bg-purple-100 text-purple-950 dark:bg-purple-900/70 dark:text-purple-100 font-extrabold border border-purple-400/50 shadow-xs",   icon: <GitBranch size={11} /> },
-  storage:      { dot: "#64748b", header: "bg-slate-500/10 border-b border-slate-500/30",   badge: "bg-slate-200 text-slate-950 dark:bg-slate-800 dark:text-slate-100 font-extrabold border border-slate-400/50 shadow-xs",       icon: <Boxes size={11} /> },
-  http:         { dot: "#0284c7", header: "bg-cyan-500/10 border-b border-cyan-500/30",     badge: "bg-cyan-100 text-cyan-950 dark:bg-cyan-900/70 dark:text-cyan-100 font-extrabold border border-cyan-400/50 shadow-xs",           icon: <Globe size={11} /> },
-  transform:    { dot: "#d97706", header: "bg-yellow-500/10 border-b border-yellow-500/30", badge: "bg-yellow-100 text-yellow-950 dark:bg-yellow-900/70 dark:text-yellow-100 font-extrabold border border-yellow-400/50 shadow-xs", icon: <SlidersHorizontal size={11} /> },
-  simulation:   { dot: "#059669", header: "bg-emerald-500/10 border-b border-emerald-500/30",badge: "bg-emerald-100 text-emerald-950 dark:bg-emerald-900/70 dark:text-emerald-100 font-extrabold border border-emerald-400/50 shadow-xs",icon: <Layers size={11} /> },
-  reports:      { dot: "#4f46e5", header: "bg-indigo-500/10 border-b border-indigo-500/30", badge: "bg-indigo-100 text-indigo-950 dark:bg-indigo-900/70 dark:text-indigo-100 font-extrabold border border-indigo-400/50 shadow-xs",     icon: <FileText size={11} /> },
+  trigger: { dot: "#8b5cf6", header: "bg-violet-500/10 border-b border-violet-500/30", badge: "bg-violet-100 text-violet-950 dark:bg-violet-900/70 dark:text-violet-100 font-extrabold border border-violet-400/50 shadow-xs", icon: <Zap size={11} /> },
+  market_data: { dot: "#0ea5e9", header: "bg-sky-500/10 border-b border-sky-500/30", badge: "bg-sky-100 text-sky-950 dark:bg-sky-900/70 dark:text-sky-100 font-extrabold border border-sky-400/50 shadow-xs", icon: <BarChart2 size={11} /> },
+  technical: { dot: "#f59e0b", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", icon: <TrendingUp size={11} /> },
+  filter: { dot: "#f97316", header: "bg-orange-500/10 border-b border-orange-500/30", badge: "bg-orange-100 text-orange-950 dark:bg-orange-900/70 dark:text-orange-100 font-extrabold border border-orange-400/50 shadow-xs", icon: <Filter size={11} /> },
+  signal: { dot: "#22c55e", header: "bg-emerald-500/10 border-b border-emerald-500/30", badge: "bg-emerald-100 text-emerald-950 dark:bg-emerald-900/70 dark:text-emerald-100 font-extrabold border border-emerald-400/50 shadow-xs", icon: <Bell size={11} /> },
+  execution: { dot: "#3b82f6", header: "bg-blue-500/10 border-b border-blue-500/30", badge: "bg-blue-100 text-blue-950 dark:bg-blue-900/70 dark:text-blue-100 font-extrabold border border-blue-400/50 shadow-xs", icon: <Play size={11} /> },
+  ai: { dot: "#ec4899", header: "bg-pink-500/10 border-b border-pink-500/30", badge: "bg-pink-100 text-pink-950 dark:bg-pink-900/70 dark:text-pink-100 font-extrabold border border-pink-400/50 shadow-xs", icon: <BrainCircuit size={11} /> },
+  notification: { dot: "#14b8a6", header: "bg-teal-500/10 border-b border-teal-500/30", badge: "bg-teal-100 text-teal-950 dark:bg-teal-900/70 dark:text-teal-100 font-extrabold border border-teal-400/50 shadow-xs", icon: <Bell size={11} /> },
+  logic: { dot: "#6366f1", header: "bg-indigo-500/10 border-b border-indigo-500/30", badge: "bg-indigo-100 text-indigo-950 dark:bg-indigo-900/70 dark:text-indigo-100 font-extrabold border border-indigo-400/50 shadow-xs", icon: <FlaskConical size={11} /> },
+  risk: { dot: "#ef4444", header: "bg-red-500/10 border-b border-red-500/30", badge: "bg-red-100 text-red-950 dark:bg-red-900/70 dark:text-red-100 font-extrabold border border-red-400/50 shadow-xs", icon: <Shield size={11} /> },
+  integration: { dot: "#8b5cf6", header: "bg-purple-500/10 border-b border-purple-500/30", badge: "bg-purple-100 text-purple-950 dark:bg-purple-900/70 dark:text-purple-100 font-extrabold border border-purple-400/50 shadow-xs", icon: <GitBranch size={11} /> },
+  storage: { dot: "#64748b", header: "bg-slate-500/10 border-b border-slate-500/30", badge: "bg-slate-200 text-slate-950 dark:bg-slate-800 dark:text-slate-100 font-extrabold border border-slate-400/50 shadow-xs", icon: <Boxes size={11} /> },
+  http: { dot: "#0284c7", header: "bg-cyan-500/10 border-b border-cyan-500/30", badge: "bg-cyan-100 text-cyan-950 dark:bg-cyan-900/70 dark:text-cyan-100 font-extrabold border border-cyan-400/50 shadow-xs", icon: <Globe size={11} /> },
+  transform: { dot: "#d97706", header: "bg-yellow-500/10 border-b border-yellow-500/30", badge: "bg-yellow-100 text-yellow-950 dark:bg-yellow-900/70 dark:text-yellow-100 font-extrabold border border-yellow-400/50 shadow-xs", icon: <SlidersHorizontal size={11} /> },
+  simulation: { dot: "#059669", header: "bg-emerald-500/10 border-b border-emerald-500/30", badge: "bg-emerald-100 text-emerald-950 dark:bg-emerald-900/70 dark:text-emerald-100 font-extrabold border border-emerald-400/50 shadow-xs", icon: <Layers size={11} /> },
+  reports: { dot: "#4f46e5", header: "bg-indigo-500/10 border-b border-indigo-500/30", badge: "bg-indigo-100 text-indigo-950 dark:bg-indigo-900/70 dark:text-indigo-100 font-extrabold border border-indigo-400/50 shadow-xs", icon: <FileText size={11} /> },
 };
 const DEF_CAT = { dot: "#64748b", header: "bg-slate-500/10 border-b border-slate-500/30", badge: "bg-slate-200 text-slate-950 dark:bg-slate-800 dark:text-slate-100 font-extrabold border border-slate-400/50 shadow-xs", icon: <GitBranch size={11} /> };
 const getCat = (c?: string) => CAT_STYLES[c ?? ""] ?? DEF_CAT;
@@ -74,24 +76,26 @@ function WfNode({ data, selected }: { data: any; selected?: boolean }) {
 
   const summary = useMemo(() => {
     const p: string[] = [];
-    if (node.config?.symbol)    p.push(String(node.config.symbol));
+    if (node.config?.symbol) p.push(String(node.config.symbol));
     if (node.config?.timeframe) p.push(String(node.config.timeframe));
-    if (node.config?.period)    p.push(`P:${node.config.period}`);
-    if (node.config?.prompt)    p.push("AI");
+    if (node.config?.period) p.push(`P:${node.config.period}`);
+    if (node.config?.prompt) p.push("AI");
     return p.slice(0, 2).join(" · ");
   }, [node.config]);
 
   const ring = runState === "success" ? "ring-2 ring-emerald-500/50"
-    : runState === "failed"  ? "ring-2 ring-red-500/50"
-    : runState === "running" ? "ring-2 ring-blue-500/50 animate-pulse"
-    : selected ? "ring-2 ring-primary/60"
-    : hasErrors ? "ring-1 ring-red-500/40" : "";
+    : runState === "failed" ? "ring-2 ring-red-500/50"
+      : runState === "running" ? "ring-2 ring-blue-500/50 animate-pulse"
+        : selected ? "ring-2 ring-primary/60"
+          : hasErrors ? "ring-1 ring-red-500/40" : "";
 
   return (
-    <div className={`relative rounded-xl border border-border bg-card text-card-foreground shadow-sm min-w-[168px] max-w-[208px] select-none transition-all duration-150 ${ring}`}>
-      {/* target handle */}
-      <Handle type="target" position={Position.Top}
-        style={{ width: 10, height: 10, background: cs.dot, border: "2.5px solid var(--background)", top: -5, zIndex: 10 }} />
+    <div className={`relative rounded-xl border-2 ${selected ? "border-primary shadow-md" : "border-border"} bg-card text-card-foreground shadow-sm min-w-[168px] max-w-[208px] select-none transition-all duration-150 ${ring}`}>
+      {/* target port — clearly visible input */}
+      <div className="absolute -top-2 left-1/2 -translate-x-1/2 flex flex-col items-center z-20">
+        <Handle type="target" id="in" position={Position.Top}
+          style={{ width: 16, height: 16, background: cs.dot, border: "3px solid #fff", boxShadow: "0 0 0 2px #cbd5e1", top: 4, zIndex: 10, borderRadius: "50%" }} />
+      </div>
 
       {/* header */}
       <div className={`flex items-center gap-1.5 px-2.5 pt-2 pb-1.5 rounded-t-xl ${cs.header}`}>
@@ -101,7 +105,7 @@ function WfNode({ data, selected }: { data: any; selected?: boolean }) {
         </span>
         {runState === "running" && <Loader2 size={9} className="shrink-0 animate-spin" style={{ color: cs.dot }} />}
         {runState === "success" && <CheckCircle2 size={9} className="text-emerald-500 shrink-0" />}
-        {runState === "failed"  && <XCircle size={9} className="text-red-500 shrink-0" />}
+        {runState === "failed" && <XCircle size={9} className="text-red-500 shrink-0" />}
       </div>
 
       {/* body */}
@@ -117,9 +121,11 @@ function WfNode({ data, selected }: { data: any; selected?: boolean }) {
         )}
       </div>
 
-      {/* source handle */}
-      <Handle type="source" position={Position.Bottom}
-        style={{ width: 10, height: 10, background: "#22c55e", border: "2.5px solid var(--background)", bottom: -5, zIndex: 10 }} />
+      {/* source port — clearly visible output */}
+      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex flex-col items-center z-20">
+        <Handle type="source" id="out" position={Position.Bottom}
+          style={{ width: 16, height: 16, background: "#22c55e", border: "3px solid #fff", boxShadow: "0 0 0 2px #cbd5e1", bottom: 4, zIndex: 10, borderRadius: "50%" }} />
+      </div>
     </div>
   );
 }
@@ -140,7 +146,7 @@ function WfEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, target
 
 const nodeTypes: NodeTypes = { wfNode: WfNode };
 const edgeTypes: EdgeTypes = { wfEdge: WfEdge };
-const EDGE_DEF = { type: "wfEdge", markerEnd: { type: MarkerType.ArrowClosed, width: 13, height: 13 } };
+const EDGE_DEF = { type: "wfEdge", markerEnd: { type: MarkerType.ArrowClosed, width: 13, height: 13 }, selectable: true, deletable: true };
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function StudioClient() {
@@ -148,40 +154,40 @@ export default function StudioClient() {
   const searchParams = useSearchParams();
   const workflowIdParam = useMemo(() => searchParams?.get("workflow") ?? null, [searchParams]);
 
-  const [user,      setUser]      = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [workflows, setWorkflows] = useState<WorkflowAutomation[]>([]);
-  const [selected,  setSelected]  = useState<WorkflowAutomation | null>(null);
-  const [loading,   setLoading]   = useState(true);
-  const [pro,       setPro]       = useState(false);
-  const [view,      setView]      = useState<"list" | "builder">("list");
-  const [toast,     setToast]     = useState<{ msg: string; kind: "ok" | "err" | "info" } | null>(null);
+  const [selected, setSelected] = useState<WorkflowAutomation | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [pro, setPro] = useState(false);
+  const [view, setView] = useState<"list" | "builder">("list");
+  const [toast, setToast] = useState<{ msg: string; kind: "ok" | "err" | "info" } | null>(null);
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { fitView } = useReactFlow();
 
-  const [selectedId,    setSelectedId]    = useState<string | null>(null);
-  const [libraryOpen,   setLibraryOpen]   = useState(true);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [libraryOpen, setLibraryOpen] = useState(true);
   const [inspectorOpen, setInspectorOpen] = useState(true);
-  const [searchQuery,   setSearchQuery]   = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [collapsedCats, setCollapsedCats] = useState<Set<string>>(new Set());
-  const [showGuide,     setShowGuide]     = useState(true);
+  const [showGuide, setShowGuide] = useState(true);
 
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
-  const [showAiBuilder,      setShowAiBuilder]      = useState(false);
-  const [showImportExport,   setShowImportExport]   = useState(false);
+  const [showAiBuilder, setShowAiBuilder] = useState(false);
+  const [showImportExport, setShowImportExport] = useState(false);
 
-  const [isDirty,           setIsDirty]           = useState(false);
-  const [showUnsavedDialog, setShowUnsavedDialog]  = useState(false);
-  const [pendingAction,     setPendingAction]      = useState<(() => void) | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
   const [wfName, setWfName] = useState("");
   const [wfDesc, setWfDesc] = useState("");
 
-  const [validState,    setValidState]    = useState<{ valid: boolean; errors: string[]; warnings: string[] } | null>(null);
-  const [saving,        setSaving]        = useState(false);
+  const [validState, setValidState] = useState<{ valid: boolean; errors: string[]; warnings: string[] } | null>(null);
+  const [saving, setSaving] = useState(false);
   const [processingRun, setProcessingRun] = useState(false);
-  const [runOutcome,    setRunOutcome]    = useState<any | null>(null);
+  const [runOutcome, setRunOutcome] = useState<any | null>(null);
 
   const initialLoadRef = useRef(true);
 
@@ -225,7 +231,7 @@ export default function StudioClient() {
       const tok = await getToken();
       const r = await fetch(`/api/workflows/${id}`, { headers: tok ? { Authorization: `Bearer ${tok}` } : {} });
       if (r.ok) openInBuilder(await r.json());
-    } catch {}
+    } catch { }
   };
 
   const openInBuilder = (w: WorkflowAutomation) => {
@@ -261,12 +267,12 @@ export default function StudioClient() {
         body: JSON.stringify({
           name: wfName.trim() || selected.name, description: wfDesc.trim(),
           nodes: nodes.map(n => ({ id: n.id, type: (n.data as any).node.type, label: (n.data as any).node.label, description: (n.data as any).node.description, enabled: (n.data as any).node.enabled, position: { x: n.position.x, y: n.position.y }, config: (n.data as any).node.config })),
-          edges: edges.map(e => ({ id: e.id, source: e.source, target: e.target })),
+          edges: edges.map(e => ({ id: e.id, source: e.source, target: e.target, sourceHandle: e.sourceHandle ?? "out", targetHandle: e.targetHandle ?? "in", enabled: (e as any).enabled !== false })),
           settings: selected.settings, schedule: selected.schedule,
         }),
       });
       if (r.ok) { setSelected(await r.json()); setIsDirty(false); notify("Saved ✓"); fetchWorkflows(); }
-      else { let e: any = {}; try { e = await r.json(); } catch {} notify(e.error || "Save failed", "err"); }
+      else { let e: any = {}; try { e = await r.json(); } catch { } notify(e.error || "Save failed", "err"); }
     } catch { notify("Save error", "err"); }
     finally { setSaving(false); }
   };
@@ -276,7 +282,7 @@ export default function StudioClient() {
     try {
       const tok = await getToken();
       const r = await fetch(`/api/workflows/${selected.id}/validate`, { headers: { Authorization: `Bearer ${tok}` } });
-      let d: any = {}; try { d = await r.json(); } catch {}
+      let d: any = {}; try { d = await r.json(); } catch { }
       if (r.ok) {
         const vs = { valid: d.valid ?? true, errors: d.errors ?? [], warnings: d.warnings ?? [] };
         setValidState(vs);
@@ -296,7 +302,7 @@ export default function StudioClient() {
         headers: { Authorization: `Bearer ${tok}`, "Content-Type": "application/json" },
         body: JSON.stringify({ testMode }),
       });
-      let d: any = {}; try { d = await r.json(); } catch {}
+      let d: any = {}; try { d = await r.json(); } catch { }
       if (r.ok) {
         setRunOutcome({ ...d, testMode, success: d.success ?? true });
         notify(testMode ? "Test completed — see results" : "Workflow triggered ✓");
@@ -403,11 +409,23 @@ export default function StudioClient() {
     setSelectedId(id);
   };
   const onDragOver = (e: React.DragEvent) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; };
-  const onConnect  = useCallback((p: Connection) => setEdges(eds => addEdge({ ...p, ...EDGE_DEF }, eds)), [setEdges]);
+  const onConnect = useCallback((p: Connection) => {
+    // Find source/target nodes for validation
+    const sourceNodeData = nodes.find((n) => n.id === p.source)?.data?.node as WorkflowNode | undefined;
+    const targetNodeData = nodes.find((n) => n.id === p.target)?.data?.node as WorkflowNode | undefined;
+    if (sourceNodeData && targetNodeData) {
+      const result = isConnectionAllowed(sourceNodeData, targetNodeData);
+      if (!result.allowed) {
+        notify(`Connection blocked: ${result.reason || "Not allowed by workflow rules"}`, "err");
+        return;
+      }
+    }
+    setEdges(eds => addEdge({ ...p, ...EDGE_DEF, sourceHandle: p.sourceHandle || "out", targetHandle: p.targetHandle || "in" }, eds));
+  }, [nodes, setEdges, notify]);
 
   const selectedNode = useMemo(() => nodes.find(n => n.id === selectedId) ?? null, [nodes, selectedId]);
-  const selectedDef  = selectedNode ? getNodeDefinition((selectedNode.data as any).node.type) : null;
-  const deleteNode   = () => { if (!selectedId) return; setNodes(n => n.filter(x => x.id !== selectedId)); setEdges(e => e.filter(x => x.source !== selectedId && x.target !== selectedId)); setSelectedId(null); };
+  const selectedDef = selectedNode ? getNodeDefinition((selectedNode.data as any).node.type) : null;
+  const deleteNode = () => { if (!selectedId) return; setNodes(n => n.filter(x => x.id !== selectedId)); setEdges(e => e.filter(x => x.source !== selectedId && x.target !== selectedId)); setSelectedId(null); };
 
   const toggleCat = (cat: string) => {
     setCollapsedCats(prev => {
@@ -416,7 +434,7 @@ export default function StudioClient() {
       return next;
     });
   };
-  const expandAllCats   = () => setCollapsedCats(new Set());
+  const expandAllCats = () => setCollapsedCats(new Set());
   const collapseAllCats = () => setCollapsedCats(new Set(NODE_CATEGORY_ORDER));
 
   if (loading || !user) return <LoadingState />;
@@ -438,59 +456,57 @@ export default function StudioClient() {
       {/* ─── LIST VIEW ─────────────────────────────────────────────────────────── */}
       {view === "list" && (
         <div className="space-y-6">
-          <div className="flex items-start justify-between flex-wrap gap-4 border-b border-border pb-5" data-guide="page-header">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">Intelligence Studio</h1>
-              <p className="text-sm text-muted-foreground mt-1">Build, test, and deploy automated trading workflows with a visual node editor.</p>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap" data-guide="studio-actions">
-              <Button size="sm" onClick={() => checkUnsaved(createBlank)}>
-                <Plus size={14} className="mr-1.5" /> New Workflow
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => setShowTemplatePicker(true)} data-guide="templates">
-                <Sparkles size={14} className="mr-1.5 text-blue-500" /> Templates
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => setShowAiBuilder(true)} data-guide="ai-builder">
-                <BrainCircuit size={14} className="mr-1.5 text-pink-500" /> AI Builder
-              </Button>
-            </div>
-          </div>
-
-
+          <PageHeader
+            title="Intelligence Studio"
+            subtitle="Build, test, and deploy automated trading workflows with a visual node editor."
+            actions={
+              <div className="flex items-center gap-2 flex-wrap" data-guide="studio-actions">
+                <Button size="sm" onClick={() => checkUnsaved(createBlank)}>
+                  <Plus size={14} className="mr-1.5" /> New Workflow
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setShowTemplatePicker(true)} data-guide="templates">
+                  <Sparkles size={14} className="mr-1.5 text-blue-500" /> Templates
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setShowAiBuilder(true)} data-guide="ai-builder">
+                  <BrainCircuit size={14} className="mr-1.5 text-pink-500" /> AI Builder
+                </Button>
+              </div>
+            }
+            className="border-b border-border pb-5"
+          />
 
           {/* Workflow grid */}
           {workflows.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center space-y-6">
-              <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto">
-                <GitBranch size={28} className="text-blue-500" />
-              </div>
-              <div className="max-w-md mx-auto space-y-2">
-                <h3 className="text-lg font-bold text-foreground">No Workflows Yet</h3>
-                <p className="text-sm text-muted-foreground">Create a blank canvas, pick a template, or describe your strategy for AI to generate the workflow.</p>
-              </div>
-              <div className="flex justify-center gap-2 flex-wrap">
-                <Button size="sm" onClick={createBlank}><Plus size={14} className="mr-1.5" /> Blank Workflow</Button>
-                <Button size="sm" variant="outline" onClick={() => setShowTemplatePicker(true)}><Sparkles size={14} className="mr-1.5 text-blue-500" /> Templates</Button>
-                <Button size="sm" variant="outline" onClick={() => setShowAiBuilder(true)}><BrainCircuit size={14} className="mr-1.5 text-pink-500" /> AI Builder</Button>
-              </div>
-            </div>
+            <EmptyState
+              title="No Workflows Yet"
+              description="Create a blank canvas, pick a template, or describe your strategy for AI to generate the workflow."
+              action={
+                <div className="flex justify-center gap-2 flex-wrap mt-4">
+                  <Button size="sm" onClick={createBlank}><Plus size={14} className="mr-1.5" /> Blank Workflow</Button>
+                  <Button size="sm" variant="outline" onClick={() => setShowTemplatePicker(true)}><Sparkles size={14} className="mr-1.5 text-blue-500" /> Templates</Button>
+                  <Button size="sm" variant="outline" onClick={() => setShowAiBuilder(true)}><BrainCircuit size={14} className="mr-1.5 text-pink-500" /> AI Builder</Button>
+                </div>
+              }
+            />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {workflows.map(wf => (
-                <div key={wf.id} className="group flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <h3 className="font-bold text-sm truncate text-foreground group-hover:text-blue-500 transition-colors">{wf.name}</h3>
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{wf.description || "No description."}</p>
+                <div key={wf.id} className="group flex flex-col justify-between gap-4 rounded-2xl border border-border bg-card p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5">
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-semibold text-sm truncate text-foreground group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">{wf.name}</h3>
+                      <StatusBadge tone={wf.status === "active" ? "positive" : wf.status === "paused" ? "warning" : "neutral"} label={wf.status} />
                     </div>
-                    <StatusBadge tone={wf.status === "active" ? "active" : "neutral"} label={wf.status} />
+                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{wf.description || "No description."}</p>
                   </div>
-                  <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-                    <span className="flex items-center gap-1"><GitBranch size={10} />{wf.nodes?.length ?? 0} nodes</span>
-                    <span className="flex items-center gap-1"><Clock size={10} />{wf.updatedAt ? new Date(wf.updatedAt).toLocaleDateString() : "—"}</span>
-                    <span className="ml-auto text-[10px]">v{wf.version}</span>
+                  <div className="space-y-3 pt-2 border-t border-border/50">
+                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                      <span className="inline-flex items-center gap-1"><GitBranch size={11} />{wf.nodes?.length ?? 0} nodes</span>
+                      <span className="inline-flex items-center gap-1"><Clock size={11} />{wf.updatedAt ? new Date(wf.updatedAt).toLocaleDateString() : "—"}</span>
+                      <span className="ml-auto text-[10px] font-mono text-muted-foreground/70">v{wf.version}</span>
+                    </div>
+                    <Button size="sm" variant="outline" className="w-full justify-center" onClick={() => checkUnsaved(() => openInBuilder(wf))}>Open Studio</Button>
                   </div>
-                  <Button size="xs" className="w-full" onClick={() => checkUnsaved(() => openInBuilder(wf))}>Open Studio</Button>
                 </div>
               ))}
             </div>
@@ -503,49 +519,49 @@ export default function StudioClient() {
         <div className="flex flex-col gap-3" style={{ minHeight: "calc(100vh - 160px)" }}>
 
           {/* Toolbar */}
-          <div className="flex items-center justify-between gap-2 flex-wrap rounded-xl border border-border bg-card px-4 py-2.5 shadow-sm">
+          <div className="flex items-center justify-between gap-2 flex-wrap rounded-2xl border border-border bg-card px-4 py-2.5 shadow-xs">
             <div className="flex items-center gap-3 min-w-0">
               <button onClick={() => checkUnsaved(() => { setView("list"); setSelected(null); })}
-                className="text-muted-foreground hover:text-foreground transition-colors shrink-0" title="Back to list">
-                <ChevronLeft size={16} />
+                className="text-muted-foreground hover:text-foreground transition-colors shrink-0 p-1 rounded-md hover:bg-muted" title="Back to list">
+                <ChevronLeft size={18} />
               </button>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold truncate max-w-[160px] sm:max-w-[240px] text-foreground">{wfName}</span>
+                  <span className="text-sm font-semibold truncate max-w-[160px] sm:max-w-[240px] text-foreground">{wfName}</span>
                   {isDirty && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" title="Unsaved changes" />}
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">v{selected.version}</Badge>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0 font-mono">v{selected.version}</Badge>
                 </div>
                 <p className="text-[11px] text-muted-foreground">{nodes.length} nodes · {edges.length} edges</p>
               </div>
             </div>
-            <div className="flex items-center gap-1 flex-wrap" data-guide="actions">
-              <Button size="xs" variant={isDirty ? "default" : "outline"} onClick={saveDraft} disabled={saving}>
-                <Save size={12} className="mr-1" />{saving ? "Saving…" : "Save"}
+            <div className="flex items-center gap-1.5 flex-wrap" data-guide="actions">
+              <Button size="sm" variant={isDirty ? "default" : "outline"} onClick={saveDraft} disabled={saving}>
+                <Save size={14} className="mr-1" />{saving ? "Saving…" : "Save"}
               </Button>
-              <Button size="xs" variant="outline" onClick={validate}>
-                <CheckCircle2 size={12} className="mr-1 text-emerald-500" /> Validate
+              <Button size="sm" variant="outline" onClick={validate}>
+                <CheckCircle2 size={14} className="mr-1 text-emerald-500" /> Validate
               </Button>
-              <Button size="xs" variant="outline" onClick={() => runWorkflow(true)} disabled={processingRun}>
-                {processingRun ? <Loader2 size={12} className="mr-1 animate-spin" /> : <Play size={12} className="mr-1 text-blue-500" />}
+              <Button size="sm" variant="outline" onClick={() => runWorkflow(true)} disabled={processingRun}>
+                {processingRun ? <Loader2 size={14} className="mr-1 animate-spin" /> : <Play size={14} className="mr-1 text-blue-500" />}
                 Test
               </Button>
-              <Button size="xs" variant="outline" onClick={() => runWorkflow(false)} disabled={processingRun}>
-                <Zap size={12} className="mr-1 text-amber-500" /> Run
+              <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-white" onClick={() => runWorkflow(false)} disabled={processingRun}>
+                <Zap size={14} className="mr-1" /> Run
               </Button>
-              <div className="w-px h-4 bg-border mx-0.5" />
-              <Button size="xs" variant="outline" onClick={() => setShowTemplatePicker(true)} title="Templates">
-                <Sparkles size={12} className="text-blue-500" />
+              <div className="w-px h-4 bg-border mx-1" />
+              <Button size="sm" variant="outline" onClick={() => setShowTemplatePicker(true)} title="Templates">
+                <Sparkles size={14} className="text-blue-500" />
                 <span className="hidden sm:inline ml-1">Templates</span>
               </Button>
-              <Button size="xs" variant="outline" onClick={() => setShowAiBuilder(true)} title="AI Builder">
-                <BrainCircuit size={12} className="text-pink-500" />
+              <Button size="sm" variant="outline" onClick={() => setShowAiBuilder(true)} title="AI Builder">
+                <BrainCircuit size={14} className="text-pink-500" />
                 <span className="hidden sm:inline ml-1">AI</span>
               </Button>
-              <Button size="xs" variant="outline" onClick={() => setShowImportExport(true)} title="Import/Export">
-                <Download size={12} />
+              <Button size="sm" variant="outline" onClick={() => setShowImportExport(true)} title="Import/Export">
+                <Download size={14} />
               </Button>
-              <Button size="xs" variant="outline" onClick={duplicate} title="Duplicate">
-                <Copy size={12} />
+              <Button size="sm" variant="outline" onClick={duplicate} title="Duplicate">
+                <Copy size={14} />
               </Button>
               <WorkflowGuideTour pageKey="studio_builder" title="Guide" />
             </div>
@@ -573,7 +589,7 @@ export default function StudioClient() {
               ${runOutcome.success ? "border-emerald-500/30 bg-emerald-500/5" : "border-red-500/30 bg-red-500/5"}`}>
               {runOutcome.success
                 ? <CheckCircle2 size={14} className="text-emerald-500 shrink-0 mt-0.5" />
-                : <AlertCircle  size={14} className="text-red-500 shrink-0 mt-0.5" />}
+                : <AlertCircle size={14} className="text-red-500 shrink-0 mt-0.5" />}
               <div className="flex-1 space-y-1.5">
                 <p className={`font-semibold text-sm ${runOutcome.success ? "text-emerald-500" : "text-red-500"}`}>
                   {runOutcome.testMode ? "Test Run" : "Live Run"} — {runOutcome.success ? "Completed Successfully" : "Failed"}
@@ -591,7 +607,7 @@ export default function StudioClient() {
                       <div key={nid} className={`flex items-center gap-1.5 rounded-lg border px-2 py-1 bg-background ${(res as any).status === "success" ? "border-emerald-500/30" : "border-red-500/30"}`}>
                         {(res as any).status === "success"
                           ? <CheckCircle2 size={9} className="text-emerald-500 shrink-0" />
-                          : <AlertCircle  size={9} className="text-red-500 shrink-0" />}
+                          : <AlertCircle size={9} className="text-red-500 shrink-0" />}
                         <span className="truncate font-medium text-foreground">{nid}</span>
                       </div>
                     ))}
@@ -603,7 +619,7 @@ export default function StudioClient() {
           )}
 
           {/* Canvas */}
-          <div className="flex-1 flex overflow-hidden rounded-xl border border-border bg-background shadow-inner relative"
+          <div className="flex-1 flex overflow-hidden rounded-xl border border-border bg-transparent shadow-inner relative"
             style={{ minHeight: 520 }}>
 
             {/* Library panel */}
@@ -678,13 +694,14 @@ export default function StudioClient() {
                 onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}
                 nodeTypes={nodeTypes} edgeTypes={edgeTypes}
                 onNodeClick={(_e, n) => setSelectedId(n.id)} onPaneClick={() => setSelectedId(null)}
+                onEdgeClick={(_e, e) => setSelectedId((e as any).id || null)}
                 fitView deleteKeyCode="Delete" snapToGrid snapGrid={[16, 16]}
                 minZoom={0.15} maxZoom={2.5}
                 defaultEdgeOptions={EDGE_DEF}
                 connectionLineStyle={{ stroke: "#6366f1", strokeWidth: 2, strokeDasharray: "6 3" }}
-                proOptions={{ hideAttribution: true }}
+                proOptions={{ hideAttribution: false }}
               >
-                <Background gap={24} size={1} color="var(--border)" />
+                <Background gap={24} size={1} color="#9ca3af" />
                 <Controls showZoom showFitView showInteractive />
                 <MiniMap nodeStrokeWidth={3} zoomable pannable />
                 {nodes.length === 0 && (
