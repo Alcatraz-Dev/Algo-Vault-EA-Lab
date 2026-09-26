@@ -10,6 +10,7 @@ import { calculateMarketScore } from "@/lib/analytics/market-score";
 import {
     AnalysisPeriod,
     AnalysisResult,
+    DataBundle,
     DataCoverage,
     DayOfWeekStat,
     HourOfDayStat,
@@ -314,9 +315,12 @@ export function analyzeTimeframe(
 export async function analyzeMarket(
     symbol: SupportedSymbol,
     period: AnalysisPeriod,
-    hierarchy: TimeframeHierarchy
+    hierarchy: TimeframeHierarchy,
+    preloaded?: DataBundle
 ): Promise<MarketAnalysisSet> {
-    const bundle = await loadDataBundle(symbol, period, hierarchy);
+    // Reuse the caller's bundle when provided (routes usually load it once to
+    // gate on data availability) — avoids a second round of upstream fetches.
+    const bundle = preloaded ?? (await loadDataBundle(symbol, period, hierarchy));
     const timeframes = Array.from(new Set([hierarchy.macro, hierarchy.structure, hierarchy.setup, hierarchy.entry]));
 
     const byTimeframe: Partial<Record<Timeframe, AnalysisResult>> = {};

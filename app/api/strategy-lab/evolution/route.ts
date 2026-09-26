@@ -139,10 +139,15 @@ export async function POST(request: NextRequest) {
 
         const bundle = await loadDataBundle(symbol as SupportedSymbol, period, hierarchy);
 
-        if (!bundle.overallCoversRequest) {
+        // Feed caps per timeframe make full-window coverage impossible for
+        // intraday TFs (see market-data.ts); run on whatever real data loaded.
+        const hasAnyData = Object.values(bundle.candles).some(
+            (c) => Array.isArray(c) && c.length > 0
+        );
+        if (!hasAnyData) {
             return NextResponse.json(
                 {
-                    error: "Insufficient historical data for the requested window.",
+                    error: "No historical data available from the market data feed. Try again shortly or seed a local export.",
                     coverage: bundle.coverage,
                     requestedFrom: from,
                     requestedTo: to,

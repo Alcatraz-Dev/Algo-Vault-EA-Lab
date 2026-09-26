@@ -361,6 +361,7 @@ export function ProScalpingTerminal() {
                         analysis={analysis.data?.analysis ?? null}
                         token={token}
                         height={520}
+                        signals={signals.data?.signals ?? []}
                     />
 
                     <RegimeStrip analysis={analysis.data?.analysis ?? null} loading={analysis.loading} />

@@ -22,6 +22,7 @@ export type AnalysisApiResponse = {
     symbol: SupportedSymbol;
     period: AnalysisPeriod;
     coverage: import("@/lib/strategy-lab/types").DataCoverage[];
+    error?: string;
 };
 
 export type PatternsApiResponse = {
@@ -44,6 +45,19 @@ export type OptimizeApiResponse = {
     savedId: string;
     symbol: SupportedSymbol;
     strategyId: string;
+};
+
+export type DeleteStrategyApiResponse = { ok: boolean; id: string };
+
+export type BacktestConfigPayload = {
+    initialBalance?: number;
+    riskPercent?: number;
+    spreadPips?: number;
+    commissionPerLot?: number;
+    slippagePips?: number;
+    dailyLossLimitPct?: number;
+    maxDrawdownPct?: number;
+    maxPositions?: number;
 };
 
 export type ValidateApiResponse = {
@@ -106,19 +120,38 @@ export const strategyLabApi = {
             body: JSON.stringify(patch),
         }),
 
-    backtest: (token: string, payload: { symbol: SupportedSymbol; strategyId?: string; strategy?: Strategy }) =>
+    deleteStrategy: (token: string, id: string) =>
+        callApi<DeleteStrategyApiResponse>(`/api/strategy-lab/strategies/${id}`, token, { method: "DELETE" }),
+
+    backtest: (
+        token: string,
+        payload: { symbol: SupportedSymbol; strategyId?: string; strategy?: Strategy; config?: BacktestConfigPayload }
+    ) =>
         callApi<BacktestApiResponse>("/api/strategy-lab/backtest", token, {
             method: "POST",
             body: JSON.stringify(payload),
         }),
 
-    optimize: (token: string, payload: { symbol: SupportedSymbol; strategyId?: string; strategy?: Strategy }) =>
+    optimize: (
+        token: string,
+        payload: {
+            symbol: SupportedSymbol;
+            strategyId?: string;
+            strategy?: Strategy;
+            config?: BacktestConfigPayload;
+            ranges?: Array<{ param: "slAtr" | "tp1R" | "tp2R" | "tp3R" | "riskPercent"; values: number[] }>;
+            maxRuns?: number;
+        }
+    ) =>
         callApi<OptimizeApiResponse>("/api/strategy-lab/optimize", token, {
             method: "POST",
             body: JSON.stringify(payload),
         }),
 
-    validate: (token: string, payload: { symbol: SupportedSymbol; strategyId?: string; strategy?: Strategy }) =>
+    validate: (
+        token: string,
+        payload: { symbol: SupportedSymbol; strategyId?: string; strategy?: Strategy; config?: BacktestConfigPayload }
+    ) =>
         callApi<ValidateApiResponse>("/api/strategy-lab/validate", token, {
             method: "POST",
             body: JSON.stringify(payload),

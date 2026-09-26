@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { authenticate } from "@/lib/admin-auth";
+import { authenticate, isAdminUid } from "@/lib/admin-auth";
 import { checkAccess } from "@/lib/strategy-lab/license";
 import { getCandlesForTimeframe } from "@/lib/strategy-lab/market-data";
 import { validateSymbol, validateTimeframe } from "@/lib/market-data/validation";
@@ -38,8 +38,11 @@ export async function GET(request: NextRequest) {
         const uid = token.uid;
 
         // Match the existing Strategy Lab gating so the analysis workspace and
-        // the lab never disagree about who can see deep analysis.
-        const access = await checkAccess(uid);
+        // the lab never disagree about who can see deep analysis. Platform
+        // admins bypass the product gate.
+        const access = (await isAdminUid(uid))
+            ? { accessible: true as const }
+            : await checkAccess(uid);
         if (!access.accessible) {
             return NextResponse.json(
                 {

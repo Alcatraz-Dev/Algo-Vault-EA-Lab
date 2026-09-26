@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import {
     BarChart3,
     ChevronDown,
@@ -23,6 +23,8 @@ import {
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
+import { ProTerminalChart } from "@/components/pro-scalping-terminal/ProTerminalChart";
+import type { ChartLayerId } from "@/components/pro-scalping-terminal/chart-layers";
 
 import MarketHeader from "@/components/analytics/MarketHeader";
 import MarketStructurePanel from "@/components/analytics/MarketStructurePanel";
@@ -164,6 +166,8 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
     const [symbol, setSymbol] = useState<SupportedSymbol>("XAUUSD");
     const [timeframe, setTimeframe] = useState<Timeframe>("H1");
     const [data, setData] = useState<AnalyticsData | null>(null);
+    // Kept for the candle-count readout; candles themselves are fetched by
+    // ProTerminalChart against the same endpoint.
     const [ohlcData, setOhlcData] = useState<OHLCData | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -171,27 +175,29 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
     const [selectedAccount, setSelectedAccount] = useState<MT5Account | null>(null);
     const [positions, setPositions] = useState<MT5Position[]>([]);
     const [positionsLoading, setPositionsLoading] = useState(false);
-    const [isLightTheme, setIsLightTheme] = useState(false);
+    const [layersOpen, setLayersOpen] = useState(false);
+    const [chartLayers, setChartLayers] = useState<Record<ChartLayerId, boolean>>({
+        volume: true,
+        vwap: true,
+        sessionLevels: false,
+        prevDayHighLow: false,
+        supportResistance: false,
+        fvg: true,
+        orderBlocks: false,
+        bosChoch: false,
+        liquidityLevels: false,
+        equalHighsLows: false,
+    });
+    const [intelligence, setIntelligence] = useState<import("@/lib/ai/analysis/intelligence").AdvancedAnalysisResult | null>(null);
     const [openPanels, setOpenPanels] = useState<Record<string, boolean>>(() => {
         const initial: Record<string, boolean> = {};
         PANELS.forEach((p) => { initial[p.id] = p.defaultOpen; });
         return initial;
     });
-    const chartRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
         const unsub = onAuthStateChanged(auth, (u) => { setUser(u); setAuthLoading(false); });
         return () => unsub();
-    }, []);
-
-    // Track theme so the canvas chart re-renders with the right palette
-    useEffect(() => {
-        const el = document.documentElement;
-        const update = () => setIsLightTheme(el.classList.contains("light"));
-        update();
-        const observer = new MutationObserver(update);
-        observer.observe(el, { attributes: true, attributeFilter: ["class"] });
-        return () => observer.disconnect();
     }, []);
 
     useEffect(() => {
@@ -201,17 +207,20 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                 setError(null);
                 try {
                     const token = await user.getIdToken();
-                    const [marketRes, ohlcRes, accountsRes] = await Promise.all([
+                    const [marketRes, ohlcRes, accountsRes, intelRes] = await Promise.all([
                         fetch(`/api/analytics/market?symbol=${symbol}&timeframe=${timeframe}`, { headers: { Authorization: `Bearer ${token}` } }),
                         fetch(`/api/analytics/ohlc?symbol=${symbol}&timeframe=${timeframe}&limit=200`, { headers: { Authorization: `Bearer ${token}` } }),
                         fetch("/api/analytics/accounts", { headers: { Authorization: `Bearer ${token}` } }),
+                        fetch(`/api/analysis/intelligence?symbol=${symbol}&timeframe=${timeframe}`, { headers: { Authorization: `Bearer ${token}` } }),
                     ]);
                     const marketJson = await marketRes.json();
                     const ohlcJson = await ohlcRes.json();
                     const accountsJson = await accountsRes.json();
+                    const intelJson = intelRes.ok ? await intelRes.json() : null;
                     if (!marketRes.ok) throw new Error(marketJson.error || "Failed to load analytics");
                     setData(marketJson);
                     if (ohlcRes.ok) setOhlcData(ohlcJson);
+                    setIntelligence(intelJson?.analysis ?? null);
                     if (accountsJson.success && accountsJson.accounts) {
                         setAccounts(accountsJson.accounts);
                         if (accountsJson.accounts.length > 0) setSelectedAccount(accountsJson.accounts[0]);
@@ -248,15 +257,18 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
         setError(null);
         try {
             const token = await user.getIdToken();
-            const [marketRes, ohlcRes] = await Promise.all([
+            const [marketRes, ohlcRes, intelRes] = await Promise.all([
                 fetch(`/api/analytics/market?symbol=${symbol}&timeframe=${timeframe}`, { headers: { Authorization: `Bearer ${token}` } }),
                 fetch(`/api/analytics/ohlc?symbol=${symbol}&timeframe=${timeframe}&limit=200`, { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(`/api/analysis/intelligence?symbol=${symbol}&timeframe=${timeframe}`, { headers: { Authorization: `Bearer ${token}` } }),
             ]);
             const marketJson = await marketRes.json();
             const ohlcJson = await ohlcRes.json();
+            const intelJson = intelRes.ok ? await intelRes.json() : null;
             if (!marketRes.ok) throw new Error(marketJson.error || "Failed to load analytics");
             setData(marketJson);
             if (ohlcRes.ok) setOhlcData(ohlcJson);
+            setIntelligence(intelJson?.analysis ?? null);
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Failed to load market intelligence");
         } finally {
@@ -264,116 +276,6 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
         }
     };
     const togglePanel = (id: string) => { setOpenPanels((prev) => ({ ...prev, [id]: !prev[id] })); };
-
-    useEffect(() => {
-        if (!ohlcData?.candles?.length || !chartRef.current) return;
-        const canvas = chartRef.current;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-
-        const dpr = window.devicePixelRatio || 1;
-        const rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
-        ctx.scale(dpr, dpr);
-
-        const w = rect.width;
-        const h = rect.height;
-        const candles = ohlcData.candles;
-        const padding = { top: 20, right: 60, bottom: 30, left: 10 };
-        const chartW = w - padding.left - padding.right;
-        const chartH = h - padding.top - padding.bottom;
-
-        const allHighs = candles.map((c) => c.high);
-        const allLows = candles.map((c) => c.low);
-        const maxPrice = Math.max(...allHighs);
-        const minPrice = Math.min(...allLows);
-        const priceRange = maxPrice - minPrice || 1;
-
-        const candleWidth = Math.max(1, (chartW / candles.length) * 0.7);
-        const gapWidth = chartW / candles.length;
-
-        const isLight = isLightTheme;
-        ctx.fillStyle = isLight ? "#ffffff" : "#111111";
-        ctx.fillRect(0, 0, w, h);
-
-        ctx.strokeStyle = isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.05)";
-        ctx.lineWidth = 0.5;
-        for (let i = 0; i <= 5; i++) {
-            const y = padding.top + (chartH / 5) * i;
-            ctx.beginPath();
-            ctx.moveTo(padding.left, y);
-            ctx.lineTo(w - padding.right, y);
-            ctx.stroke();
-            const price = maxPrice - (priceRange / 5) * i;
-            ctx.fillStyle = isLight ? "#8a8a8a" : "#5b5b66";
-            ctx.font = "10px monospace";
-            ctx.textAlign = "left";
-            ctx.fillText(price.toFixed(price >= 100 ? 2 : 5), w - padding.right + 4, y + 3);
-        }
-
-        candles.forEach((candle, i) => {
-            const x = padding.left + i * gapWidth + gapWidth / 2;
-            const openY = padding.top + ((maxPrice - candle.open) / priceRange) * chartH;
-            const closeY = padding.top + ((maxPrice - candle.close) / priceRange) * chartH;
-            const highY = padding.top + ((maxPrice - candle.high) / priceRange) * chartH;
-            const lowY = padding.top + ((maxPrice - candle.low) / priceRange) * chartH;
-
-            const isBull = candle.close >= candle.open;
-            const color = isBull ? "#10b981" : "#f43f5e";
-
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(x, highY);
-            ctx.lineTo(x, lowY);
-            ctx.stroke();
-
-            ctx.fillStyle = color;
-            const bodyTop = Math.min(openY, closeY);
-            const bodyH = Math.max(1, Math.abs(closeY - openY));
-            ctx.fillRect(x - candleWidth / 2, bodyTop, candleWidth, bodyH);
-        });
-
-        if (data?.vwap?.vwap) {
-            const vwapY = padding.top + ((maxPrice - data.vwap.vwap) / priceRange) * chartH;
-            ctx.strokeStyle = "rgba(255,77,0,0.55)";
-            ctx.lineWidth = 1;
-            ctx.setLineDash([4, 3]);
-            ctx.beginPath();
-            ctx.moveTo(padding.left, vwapY);
-            ctx.lineTo(w - padding.right, vwapY);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            ctx.fillStyle = "#ff4d00";
-            ctx.font = "9px monospace";
-            ctx.fillText(`VWAP ${data.vwap.vwap.toFixed(data.vwap.vwap >= 100 ? 2 : 5)}`, w - padding.right + 4, vwapY + 3);
-        }
-
-        if (data?.liquidity) {
-            data.liquidity.slice(0, 5).forEach((level) => {
-                const y = padding.top + ((maxPrice - level.price) / priceRange) * chartH;
-                if (y < padding.top || y > padding.top + chartH) return;
-                ctx.strokeStyle = level.type.includes("high") ? "rgba(244,63,94,0.3)" : "rgba(16,185,129,0.3)";
-                ctx.lineWidth = 0.5;
-                ctx.setLineDash([2, 2]);
-                ctx.beginPath();
-                ctx.moveTo(padding.left, y);
-                ctx.lineTo(w - padding.right, y);
-                ctx.stroke();
-                ctx.setLineDash([]);
-            });
-        }
-
-        if (data?.zones) {
-            data.zones.filter((z) => z.status === "active").slice(0, 3).forEach((zone) => {
-                const highY = padding.top + ((maxPrice - zone.high) / priceRange) * chartH;
-                const lowY = padding.top + ((maxPrice - zone.low) / priceRange) * chartH;
-                ctx.fillStyle = zone.direction === "bullish" ? "rgba(16,185,129,0.07)" : "rgba(244,63,94,0.07)";
-                ctx.fillRect(padding.left, highY, chartW, lowY - highY);
-            });
-        }
-    }, [ohlcData, data, isLightTheme]);
 
     if (authLoading) {
         return (
@@ -531,22 +433,50 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                                 </div>
                             )}
 
-                            {/* Real OHLC Chart */}
-                            <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-                                <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
-                                            <BarChart3 size={13} className="text-primary" />
+                            {/* Real OHLC chart with engine-backed overlays (shared with the Pro Scalping Terminal) */}
+                            <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                    <button
+                                        type="button"
+                                        onClick={() => setLayersOpen((o) => !o)}
+                                        aria-expanded={layersOpen}
+                                        className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                                    >
+                                        <Layers size={13} />
+                                        Overlays
+                                        <span className="font-mono text-[10px]">{Object.values(chartLayers).filter(Boolean).length}</span>
+                                    </button>
+                                    <span className="rounded-full bg-muted px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
+                                        {ohlcData?.candleCount ?? 0} candles
+                                    </span>
+                                    {layersOpen ? (
+                                        <div className="flex flex-wrap gap-1.5 rounded-lg border border-border bg-card p-2">
+                                            {(Object.keys(chartLayers) as ChartLayerId[]).map((id) => (
+                                                <button
+                                                    key={id}
+                                                    type="button"
+                                                    onClick={() => setChartLayers((prev) => ({ ...prev, [id]: !prev[id] }))}
+                                                    aria-pressed={chartLayers[id]}
+                                                    className={cn(
+                                                        "rounded-md border px-2 py-0.5 text-xs transition",
+                                                        chartLayers[id]
+                                                            ? "border-primary/40 bg-primary/10 text-primary"
+                                                            : "border-border bg-background text-muted-foreground hover:text-foreground"
+                                                    )}
+                                                >
+                                                    {id.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase())}
+                                                </button>
+                                            ))}
                                         </div>
-                                        <span className="font-mono text-xs font-semibold text-foreground">{symbol} · {timeframe}</span>
-                                        <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">{ohlcData?.candleCount || 0} candles</span>
-                                    </div>
-                                    <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-                                        {data.timestamp > 0 && <span>Updated {new Date(data.timestamp).toLocaleTimeString()}</span>}
-                                        <span className="hidden sm:inline">Biquote.io OHLC</span>
-                                    </div>
+                                    ) : null}
                                 </div>
-                                <canvas ref={chartRef} className="w-full" style={{ height: "400px" }} />
+                                <ProTerminalChart
+                                    symbol={symbol}
+                                    timeframe={timeframe}
+                                    layers={chartLayers}
+                                    analysis={intelligence}
+                                    height={440}
+                                />
                             </div>
 
                             {/* Open positions from MT5 */}

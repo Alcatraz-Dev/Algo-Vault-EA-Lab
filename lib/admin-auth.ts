@@ -45,6 +45,20 @@ export async function authenticate(request: NextRequest) {
 }
 
 /**
+ * Server-side role check: true when the user record marks them as admin.
+ * Used alongside product gates so admins are never locked out of internal
+ * intelligence surfaces (radar, signals, advanced analysis).
+ */
+export async function isAdminUid(uid: string): Promise<boolean> {
+    try {
+        const snap = await adminDatabase.ref(`users/${uid}/role`).get();
+        return snap.exists() && snap.val() === "admin";
+    } catch {
+        return false;
+    }
+}
+
+/**
  * Allows an admin, or the owner of the given product (bots/{productId}/ownerUid),
  * to perform the operation. Returns the verified token or null.
  */

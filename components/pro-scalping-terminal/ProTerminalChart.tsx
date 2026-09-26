@@ -25,15 +25,22 @@ import {
     CandlestickSeries,
     HistogramSeries,
     LineSeries,
+    createSeriesMarkers,
     type IChartApi,
     type ISeriesApi,
     type IPriceLine,
+    type ISeriesMarkersPluginApi,
+    type SeriesMarker,
+    type LineData,
+    type Time,
     type UTCTimestamp,
 } from "lightweight-charts";
 import { cn } from "@/lib/utils";
 import type { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 import type { AdvancedAnalysisResult } from "@/lib/ai/analysis/intelligence";
 import type { ChartLayerId } from "./chart-layers";
+import type { PineStudyOverlay } from "./pine-overlays";
+import type { TerminalSignal } from "@/lib/ai/scalping/radar";
 import { fmtPrice } from "./terminal-utils";
 
 type Candle = {
@@ -259,20 +266,32 @@ function computeEqualLevels(candles: Candle[]): Array<{ price: number; kind: "eq
 
 // ── component ───────────────────────────────────────────────────────────────
 
+const PINE_PANE_STRETCH = 0.35;
+
 export function ProTerminalChart({
     symbol,
     timeframe,
     layers,
     analysis,
-    token,
+    token = null,
     height,
+    studyOverlay = null,
+    signals = [],
+    onCandlesChange,
 }: {
     symbol: SupportedSymbol;
     timeframe: Timeframe;
     layers: Record<ChartLayerId, boolean>;
     analysis: AdvancedAnalysisResult | null;
-    token: string | null;
+    /** Optional auth token; the OHLC feed works without one. */
+    token?: string | null;
     height: number;
+    /** Pine script overlays (plots / hlines / plotshapes) computed from the same candles. */
+    studyOverlay?: PineStudyOverlay | null;
+    /** Live deterministic scanner signals for the active symbol. */
+    signals?: TerminalSignal[];
+    /** Notified with the fetched candles so callers can compute overlays on the same data. */
+    onCandlesChange?: (candles: Candle[]) => void;
 }) {
     const containerRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<IChartApi | null>(null);
@@ -282,6 +301,13 @@ export function ProTerminalChart({
     const ema9Ref = useRef<ISeriesApi<"Line"> | null>(null);
     const ema20Ref = useRef<ISeriesApi<"Line"> | null>(null);
     const priceLinesRef = useRef<IPriceLine[]>([]);
+    // Pine study overlays: line series (overlay pane) + a stacked pane for
+    // non-overlay scripts, rebuilt whenever the applied script changes.
+    const studySeriesRef = useRef<Array<ISeriesApi<"Line">>>([]);
+    const studyPaneRef = useRef<number | null>(null);
+    const studyMarkersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
+    const signalMarkersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
+    const studyHlineLinesRef = useRef<IPriceLine[]>([]);
 
     const [state, setState] = useState<ChartState>({ key: "", candles: [], error: null });
     const [hover, setHover] = useState<{ o: number; h: number; l: number; c: number; time: number } | null>(null);
@@ -291,16 +317,21 @@ export function ProTerminalChart({
     const requestKey = `${symbol}|${timeframe}`;
     const loading = state.key !== requestKey;
 
-    // Fetch candles.
+    const onCandlesChangeRef = useRef(onCandlesChange);
     useEffect(() => {
-        if (!token) return;
+        onCandlesChangeRef.current = onCandlesChange;
+    }, [onCandlesChange]);
+
+    // Fetch candles. The OHLC endpoint is public, so an absent token only
+    // means the request goes out without an Authorization header.
+    useEffect(() => {
         let cancelled = false;
         (async () => {
             try {
                 const params = new URLSearchParams({ symbol, timeframe, limit: "300" });
                 const res = await fetch(`/api/analytics/ohlc?${params.toString()}`, {
                     cache: "no-store",
-                    headers: { Authorization: `Bearer ${token}` },
+                    ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
                 });
                 const body = (await res.json().catch(() => null)) as
                     | { candles?: Candle[]; error?: string }
@@ -318,6 +349,7 @@ export function ProTerminalChart({
                     .filter((c) => Number.isFinite(c.open) && Number.isFinite(c.high) && Number.isFinite(c.low) && Number.isFinite(c.close))
                     .sort((a, b) => a.timestamp - b.timestamp);
                 setState({ key: requestKey, candles, error: null });
+                onCandlesChangeRef.current?.(candles);
             } catch {
                 if (cancelled) return;
                 setState({ key: requestKey, candles: [], error: "Failed to load market data." });
@@ -423,6 +455,11 @@ export function ProTerminalChart({
             ema9Ref.current = null;
             ema20Ref.current = null;
             priceLinesRef.current = [];
+            studySeriesRef.current = [];
+            studyPaneRef.current = null;
+            studyMarkersRef.current = null;
+            signalMarkersRef.current = null;
+            studyHlineLinesRef.current = [];
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -479,6 +516,183 @@ export function ProTerminalChart({
 
         chartRef.current?.timeScale().fitContent();
     }, [candles, symbol]);
+
+    // ── Pine study overlays ─────────────────────────────────────────────
+    // Recreate the study series whenever the applied script (or its pane
+    // layout) changes, then feed it the plot values from the same candles.
+    useEffect(() => {
+        const chart = chartRef.current;
+        if (!chart) return;
+
+        for (const s of studySeriesRef.current) {
+            try {
+                chart.removeSeries(s);
+            } catch {
+                // series already gone with the chart
+            }
+        }
+        studySeriesRef.current = [];
+        if (studyPaneRef.current !== null) {
+            try {
+                chart.removePane(studyPaneRef.current);
+            } catch {
+                // pane already gone with the chart
+            }
+            studyPaneRef.current = null;
+        }
+
+        if (!studyOverlay || studyOverlay.lines.length === 0) return;
+
+        const mainIndex = 0;
+        let paneIndex = mainIndex;
+        if (!studyOverlay.overlay) {
+            try {
+                // addPane appends to the end, so the new pane's index equals
+                // the pane count before it was added.
+                paneIndex = chart.panes().length;
+                chart.addPane();
+            } catch {
+                paneIndex = mainIndex; // fall back to the main pane rather than not drawing
+            }
+            studyPaneRef.current = paneIndex;
+        }
+        try {
+            chart.panes()[mainIndex]?.setStretchFactor(1);
+            if (paneIndex !== mainIndex) chart.panes()[paneIndex]?.setStretchFactor(PINE_PANE_STRETCH);
+        } catch {
+            // stretch factors are a nicety; the default split is still usable
+        }
+
+        studySeriesRef.current = studyOverlay.lines.map((line) =>
+            chart.addSeries(
+                LineSeries,
+                {
+                    color: line.color,
+                    lineWidth: line.lineWidth as 1 | 2 | 3 | 4,
+                    priceLineVisible: false,
+                    lastValueVisible: false,
+                    crosshairMarkerVisible: false,
+                },
+                paneIndex
+            )
+        );
+    }, [studyOverlay]);
+
+    // Feed the study plot values (aligned 1:1 with the candle array).
+    useEffect(() => {
+        if (!studyOverlay || studySeriesRef.current.length === 0) return;
+        studyOverlay.lines.forEach((line, i) => {
+            const series = studySeriesRef.current[i];
+            if (!series) return;
+            const data: LineData<UTCTimestamp>[] = [];
+            candles.forEach((c, idx) => {
+                const v = line.values[idx];
+                if (v !== null && v !== undefined && Number.isFinite(v)) {
+                    data.push({ time: Math.floor(c.timestamp / 1000) as UTCTimestamp, value: v });
+                }
+            });
+            series.setData(data);
+        });
+    }, [candles, studyOverlay]);
+
+    // Plotshape markers from the applied script, drawn on the candle series.
+    useEffect(() => {
+        const cs = candleSeriesRef.current;
+        if (!cs) return;
+        if (!studyOverlay || studyOverlay.shapes.length === 0) {
+            studyMarkersRef.current?.setMarkers([]);
+            return;
+        }
+        const markers: SeriesMarker<Time>[] = studyOverlay.shapes
+            .filter((s) => s.index >= 0 && s.index < candles.length)
+            .map((s) => ({
+                time: Math.floor(candles[s.index].timestamp / 1000) as UTCTimestamp,
+                position: s.bullish ? ("belowBar" as const) : ("aboveBar" as const),
+                shape: s.bullish ? ("arrowUp" as const) : ("arrowDown" as const),
+                color: s.color,
+                size: 1,
+                ...(s.text ? { text: s.text } : {}),
+            }))
+            .sort((a, b) => (a.time as number) - (b.time as number));                if (studyMarkersRef.current) {
+            studyMarkersRef.current.setMarkers(markers);
+        } else {
+            studyMarkersRef.current = createSeriesMarkers(cs, markers);
+        }
+    }, [candles, studyOverlay]);
+
+    // Live deterministic signals: entry / stop / target markers on the active symbol.
+    useEffect(() => {
+        const cs = candleSeriesRef.current;
+        if (!cs) return;
+        if (!signals || signals.length === 0) {
+            signalMarkersRef.current?.setMarkers([]);
+            return;
+        }
+        const lastTime = candles.length > 0 ? (Math.floor(candles[candles.length - 1].timestamp / 1000) as UTCTimestamp) : null;
+        if (lastTime === null) {
+            signalMarkersRef.current?.setMarkers([]);
+            return;
+        }
+        const markers: SeriesMarker<Time>[] = [];
+        for (const sig of signals) {
+            if (sig.symbol !== symbol) continue;
+            const long = sig.direction === "long";
+            const entry: SeriesMarker<Time> = {
+                time: lastTime,
+                position: long ? "belowBar" : "aboveBar",
+                shape: long ? "arrowUp" : "arrowDown",
+                color: long ? "#34d399" : "#fb7185",
+                size: 2,
+                text: `${long ? "BUY" : "SELL"} ${fmtPrice(sig.entry, symbol)}`,
+            };
+            const level = (price: number, label: string, color: string): SeriesMarker<Time> => ({
+                time: lastTime,
+                position: "atPriceBottom",
+                shape: "circle",
+                color,
+                size: 1,
+                price,
+                text: label,
+            });
+            markers.push(entry);
+            markers.push(level(sig.stop, `SL ${fmtPrice(sig.stop, symbol)}`, "#ef4444"));
+            markers.push(level(sig.target, `TP ${fmtPrice(sig.target, symbol)}`, "#22c55e"));
+        }
+        if (signalMarkersRef.current) {
+            signalMarkersRef.current.setMarkers(markers);
+        } else {
+            signalMarkersRef.current = createSeriesMarkers(cs, markers);
+        }
+    }, [signals, candles, symbol]);
+
+    // Pine hlines from the applied script — dashed price lines like TradingView's hline().
+    // Tracked separately from the static layers so both effects can clear
+    // their own lines without deleting each other's.
+    useEffect(() => {
+        const cs = candleSeriesRef.current;
+        if (!cs) return;
+        for (const l of studyHlineLinesRef.current) {
+            try {
+                cs.removePriceLine(l);
+            } catch {
+                // line already gone with the series
+            }
+        }
+        studyHlineLinesRef.current = [];
+        if (!studyOverlay || studyOverlay.levels.length === 0) return;
+        for (const level of studyOverlay.levels) {
+            studyHlineLinesRef.current.push(
+                cs.createPriceLine({
+                    price: level.value,
+                    color: level.color,
+                    lineWidth: 1,
+                    lineStyle: LineStyle.Dashed,
+                    axisLabelVisible: false,
+                    title: level.title,
+                })
+            );
+        }
+    }, [candles, studyOverlay]);
 
     // Static price-line overlays (session, prev day, S/R, equal H/L, liquidity).
     useEffect(() => {
@@ -597,6 +811,34 @@ export function ProTerminalChart({
                     {loading ? "loading…" : `${candles.length} bars · /api/analytics/ohlc`}
                 </span>
             </div>
+
+            {/* Applied Pine study readout — mirrors what is actually drawn below. */}
+            {studyOverlay && (studyOverlay.lines.length > 0 || studyOverlay.levels.length > 0 || studyOverlay.shapes.length > 0) ? (
+                <div className="flex flex-wrap items-center gap-1.5 border-b border-border px-3 py-1.5 text-[11px]">
+                    <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Pine study</span>
+                    {studyOverlay.lines.map((l) => (
+                        <span key={l.id} className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                            <span className="h-1.5 w-1.5 rounded-full" style={{ background: l.color }} />
+                            {l.title}
+                        </span>
+                    ))}
+                    {studyOverlay.shapes.length > 0 ? (
+                        <span className="rounded-full border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                            {studyOverlay.shapes.length} marker{studyOverlay.shapes.length !== 1 ? "s" : ""}
+                        </span>
+                    ) : null}
+                    {studyOverlay.levels.length > 0 ? (
+                        <span className="rounded-full border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                            {studyOverlay.levels.length} hline{studyOverlay.levels.length !== 1 ? "s" : ""}
+                        </span>
+                    ) : null}
+                    {!studyOverlay.overlay ? (
+                        <span className="rounded-full border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                            separate pane
+                        </span>
+                    ) : null}
+                </div>
+            ) : null}
 
             <div className="relative" style={{ height }}>
                 <div ref={containerRef} className="absolute inset-0" />

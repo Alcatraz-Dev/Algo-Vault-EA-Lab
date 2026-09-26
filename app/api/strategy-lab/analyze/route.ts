@@ -4,7 +4,7 @@ import { loadDataBundle } from "@/lib/strategy-lab/market-data";
 import { analyzeMarket } from "@/lib/strategy-lab/analysis";
 import { summarizeAnalysisWithFallback } from "@/lib/ai";
 import { saveAnalysisSummary } from "@/lib/strategy-lab/storage";
-import { SupportedSymbol } from "@/lib/market-data/types";
+import { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 import { AnalyzeRequest, TimeframeHierarchy } from "@/lib/strategy-lab/types";
 
 export const runtime = "nodejs";
@@ -40,16 +40,23 @@ export async function POST(request: NextRequest) {
 
         const bundle = await loadDataBundle(symbol, period, hierarchy);
 
-        if (!bundle.overallCoversRequest) {
+        // The biquote feed caps history per timeframe (M15 ≈ 2 days, H1 ≈ 9 days,
+        // H4 ≈ 39 days, D1 ≈ 1.6y — see market-data.ts), so "full coverage" of a
+        // 1M/3M/1Y window is impossible for intraday TFs. Gate on "any real data"
+        // instead and let the client show the honest coverage per timeframe.
+        const loadedTfs = Object.keys(bundle.candles).filter(
+            (tf) => (bundle.candles[tf as Timeframe]?.length ?? 0) > 0
+        );
+        if (loadedTfs.length === 0) {
             return NextResponse.json({
-                error: "Insufficient historical data for the selected timeframe.",
+                error: "No historical data available from the market data feed. Try again shortly or seed a local export.",
                 coverage: bundle.coverage,
                 requestedFrom: bundle.requestedFrom,
                 requestedTo: bundle.requestedTo,
             }, { status: 200, headers: corsHeaders });
         }
 
-        const result = await analyzeMarket(symbol, period, hierarchy);
+        const result = await analyzeMarket(symbol, period, hierarchy, bundle);
 
         let summary = null;
         try {

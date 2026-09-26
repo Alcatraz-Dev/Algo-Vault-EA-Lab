@@ -1,52 +1,99 @@
 "use client";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { Zap, ArrowUpRight, ShieldCheck, RefreshCcw } from "lucide-react";
 
-type SignalItem = { sym: string; dir: string; val: string; time: string; color: string; bg: string };
+/**
+ * Marketing / account-shell Scalping Terminal card.
+ *
+ * Renders the real deterministic scanner output from /api/scalping/signals —
+ * the same engine the Pro Scalping Terminal uses. Nothing is fabricated: when
+ * the scanner has no qualifying setup, the card says so instead of showing
+ * placeholder rows, and status labels always reflect the actual fetch state.
+ */
+
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { Zap, ArrowUpRight, ShieldCheck, RefreshCcw, WifiOff } from "lucide-react";
+import { auth } from "@/lib/firebase";
+import type { TerminalSignal } from "@/lib/ai/scalping/radar";
+
+const SIGNAL_SYMBOLS = "XAUUSD,NAS100,EURUSD,BTCUSD,GBPUSD,US500";
+const POLL_MS = 30_000;
 
 export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
-  const [signals, setSignals] = useState<SignalItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [signals, setSignals] = useState<TerminalSignal[]>([]);
+  const [rejectedCount, setRejectedCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [signedIn, setSignedIn] = useState(false);
 
   useEffect(() => {
-    if (!pro) return;
-    let cancelled = false;
+    const unsub = onAuthStateChanged(auth, (user) => setSignedIn(Boolean(user)));
+    return () => unsub();
+  }, []);
+
+  const load = useCallback(async (cancelledRef: { current: boolean }) => {
+    // Yield a microtask first so no state is set synchronously inside effects.
+    await Promise.resolve();
+    if (!signedIn) {
+      setSignals([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
-    fetch("/api/scalping/signals?symbols=XAUUSD,NAS100,EURUSD,BTCUSD,GBPUSD,US500")
-      .then((r) => (r.ok ? r.json() : { signals: [] }))
-      .then((data: any) => {
-        if (cancelled) return;
-        const s = (data?.signals ?? []).slice(0, 6).map((sig: any) => ({
-          sym: sig.symbol ?? "—",
-          dir: sig.direction === "long" ? "BUY" : sig.direction === "short" ? "SELL" : "—",
-          val: sig.profit ? (sig.profit > 0 ? `+$${sig.profit}` : `-$${Math.abs(sig.profit)}`) : "—",
-          time: sig.timeframe ?? "—",
-          color: sig.direction === "long" ? "text-amber-300" : "text-rose-400",
-          bg: sig.direction === "long" ? "bg-amber-500/10" : "bg-rose-500/10",
-        }));
-        setSignals(s.length ? s : [
-          { sym: "XAUUSD", dir: "BUY", val: "+$12.4", time: "0.4s", color: "text-amber-300", bg: "bg-amber-500/10" },
-          { sym: "NAS100", dir: "SELL", val: "-$8.1", time: "1.2s", color: "text-rose-400", bg: "bg-rose-500/10" },
-          { sym: "EURUSD", dir: "BUY", val: "+$5.2", time: "0.8s", color: "text-amber-300", bg: "bg-amber-500/10" },
-          { sym: "BTCUSD", dir: "BUY", val: "+$34.7", time: "2.1s", color: "text-amber-300", bg: "bg-amber-500/10" },
-          { sym: "GBPUSD", dir: "SELL", val: "-$3.9", time: "0.6s", color: "text-rose-400", bg: "bg-rose-500/10" },
-          { sym: "US500", dir: "BUY", val: "+$15.2", time: "1.5s", color: "text-amber-300", bg: "bg-amber-500/10" },
-        ]);
-      })
-      .catch(() => {
-        if (!cancelled) setSignals([
-          { sym: "XAUUSD", dir: "BUY", val: "+$12.4", time: "0.4s", color: "text-amber-300", bg: "bg-amber-500/10" },
-          { sym: "NAS100", dir: "SELL", val: "-$8.1", time: "1.2s", color: "text-rose-400", bg: "bg-rose-500/10" },
-          { sym: "EURUSD", dir: "BUY", val: "+$5.2", time: "0.8s", color: "text-amber-300", bg: "bg-amber-500/10" },
-          { sym: "BTCUSD", dir: "BUY", val: "+$34.7", time: "2.1s", color: "text-amber-300", bg: "bg-amber-500/10" },
-          { sym: "GBPUSD", dir: "SELL", val: "-$3.9", time: "0.6s", color: "text-rose-400", bg: "bg-rose-500/10" },
-          { sym: "US500", dir: "BUY", val: "+$15.2", time: "1.5s", color: "text-amber-300", bg: "bg-amber-500/10" },
-        ]);
-      })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, [pro]);
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      const res = await fetch(`/api/scalping/signals?symbols=${SIGNAL_SYMBOLS}`, {
+        cache: "no-store",
+        ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
+      });
+      const data = (await res.json().catch(() => null)) as
+        | { signals?: TerminalSignal[]; rejected?: unknown[]; error?: string }
+        | null;
+      if (cancelledRef.current) return;
+      if (!res.ok) {
+        setError(data?.error ?? `Signal scan failed (${res.status}).`);
+        setSignals([]);
+        setRejectedCount(0);
+      } else {
+        setError(null);
+        setSignals(data?.signals ?? []);
+        setRejectedCount(data?.rejected?.length ?? 0);
+      }
+    } catch {
+      if (!cancelledRef.current) {
+        setError("Could not reach the signal scanner.");
+        setSignals([]);
+        setRejectedCount(0);
+      }
+    } finally {
+      if (!cancelledRef.current) setLoading(false);
+    }
+  }, [signedIn]);
+
+  useEffect(() => {
+    const cancelledRef = { current: false };
+    const run = () => void load(cancelledRef);
+    // First tick + poll both run from timers so no state is set synchronously
+    // inside the effect body.
+    const initial = setTimeout(run, 0);
+    const id = signedIn ? setInterval(run, POLL_MS) : null;
+    return () => {
+      cancelledRef.current = true;
+      clearTimeout(initial);
+      if (id) clearInterval(id);
+    };
+  }, [load, signedIn]);
+
+  const statusLabel = !signedIn
+    ? "SIGN IN"
+    : loading && signals.length === 0
+      ? "SYNCING"
+      : error
+        ? "OFFLINE"
+        : signals.length > 0
+          ? `${signals.length} ACTIVE`
+          : "NO SETUPS";
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-border bg-card/70 backdrop-blur-xl shadow-[0_0_40px_-12px_rgba(255,77,0,0.15)]">
@@ -75,8 +122,8 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
                 UPGRADE
               </span>
             )}
-            <Link href="/admin/livemap" className="inline-flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1.5 text-[10px] font-semibold text-foreground hover:bg-muted/80 hover:text-primary transition">
-              MAP <ArrowUpRight size={10} />
+            <Link href="/account/scalping" className="inline-flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1.5 text-[10px] font-semibold text-foreground hover:bg-muted/80 hover:text-primary transition">
+              TERMINAL <ArrowUpRight size={10} />
             </Link>
           </div>
         </div>
@@ -96,39 +143,64 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
           <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-2">
             <span>Live Signals</span>
             <span className="h-px flex-1 bg-border" />
-            <span className="text-emerald-400">{loading ? "LOADING" : "6/6 ACTIVE"}</span>
+            <span className={error ? "text-rose-400" : "text-emerald-400"}>{statusLabel}</span>
             {loading && <RefreshCcw size={12} className="animate-spin text-muted-foreground" />}
           </div>
 
-          {(signals.length ? signals : [
-            { sym: "XAUUSD", dir: "BUY", val: "+$12.4", time: "0.4s", color: "text-amber-300", bg: "bg-amber-500/10" },
-            { sym: "NAS100", dir: "SELL", val: "-$8.1", time: "1.2s", color: "text-rose-400", bg: "bg-rose-500/10" },
-            { sym: "EURUSD", dir: "BUY", val: "+$5.2", time: "0.8s", color: "text-amber-300", bg: "bg-amber-500/10" },
-            { sym: "BTCUSD", dir: "BUY", val: "+$34.7", time: "2.1s", color: "text-amber-300", bg: "bg-amber-500/10" },
-            { sym: "GBPUSD", dir: "SELL", val: "-$3.9", time: "0.6s", color: "text-rose-400", bg: "bg-rose-500/10" },
-            { sym: "US500", dir: "BUY", val: "+$15.2", time: "1.5s", color: "text-amber-300", bg: "bg-amber-500/10" },
-          ]).map((s) => (
-            <div key={s.sym} className="flex items-center justify-between rounded-lg bg-muted/60 px-3 py-2.5 hover:bg-muted transition border border-transparent hover:border-border/50">
-              <div className="flex items-center gap-3">
-                <span className={`inline-flex h-6 w-6 items-center justify-center rounded-md text-[10px] font-extrabold ${s.bg} ${s.color}`}>{s.dir}</span>
-                <span className="text-xs font-semibold text-foreground">{s.sym}</span>
-              </div>
-              <div className="flex items-center gap-3 text-xs font-mono">
-                <span className="text-muted-foreground">{s.time}</span>
-                <span className={`font-bold ${s.color}`}>{s.val}</span>
-              </div>
+          {!signedIn ? (
+            <div className="rounded-lg border border-dashed border-border px-3 py-4 text-center">
+              <p className="text-xs font-medium text-foreground">Sign in for live scanner output</p>
+              <p className="text-[10px] text-muted-foreground mt-1">Signals are produced per account by the deterministic scanner.</p>
+              <Link href="/login?redirect=/account/scalping" className="mt-2 inline-flex items-center gap-1 rounded-lg bg-foreground px-3 py-1.5 text-[10px] font-semibold text-background transition hover:opacity-90">
+                SIGN IN <ArrowUpRight size={10} />
+              </Link>
             </div>
-          ))}
+          ) : error ? (
+            <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-3">
+              <WifiOff size={13} className="mt-0.5 shrink-0 text-amber-400" />
+              <p className="text-[11px] leading-relaxed text-amber-200">{error}</p>
+            </div>
+          ) : signals.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border px-3 py-4 text-center">
+              <p className="text-xs font-medium text-foreground">No qualifying setups right now</p>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                The scanner publishes a signal only when its confidence and R:R gates pass
+                {rejectedCount > 0 ? ` — ${rejectedCount} symbol${rejectedCount !== 1 ? "s" : ""} scanned below the gates.` : "."}
+              </p>
+            </div>
+          ) : (
+            signals.slice(0, 6).map((s) => {
+              const long = s.direction === "long";
+              const color = long ? "text-amber-300" : "text-rose-400";
+              const bg = long ? "bg-amber-500/10" : "bg-rose-500/10";
+              return (
+                <div key={s.id} className="flex items-center justify-between rounded-lg bg-muted/60 px-3 py-2.5 hover:bg-muted transition border border-transparent hover:border-border/50" title={`Entry ${s.entry} · SL ${s.stop} · TP ${s.target}`}>
+                  <div className="flex items-center gap-3">
+                    <span className={`inline-flex h-6 w-9 items-center justify-center rounded-md text-[10px] font-extrabold ${bg} ${color}`}>{long ? "BUY" : "SELL"}</span>
+                    <span className="text-xs font-semibold text-foreground">{s.symbol}</span>
+                    <span className="rounded border border-border px-1 py-0.5 font-mono text-[9px] text-muted-foreground">{s.timeframe}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs font-mono">
+                    <span className="text-muted-foreground">R:R {s.riskReward.toFixed(1)}</span>
+                    <span className={`font-bold ${color}`}>{Math.round(s.confidence)}%</span>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
 
         {/* Bottom status bar */}
         <div className="mt-4 h-1 rounded-full bg-gradient-to-r from-amber-500 via-emerald-400 to-blue-500 animate-pulse opacity-80" />
         <div className="mt-3 flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground font-medium">
-          <span className="inline-flex items-center gap-1 text-emerald-400"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" /> Smart Money: ACTIVE</span>
+          <span className="inline-flex items-center gap-1 text-emerald-400">
+            <span className={`h-1.5 w-1.5 rounded-full ${!signedIn || error ? "bg-amber-400" : "bg-emerald-400 animate-pulse"}`} />
+            Scanner: {!signedIn ? "IDLE" : error ? "UNREACHABLE" : "DETERMINISTIC"}
+          </span>
           <span>•</span>
-          <span>AI Signals: 6/6</span>
+          <span>Signals: {signedIn && !error ? `${signals.length}/6` : "—"}</span>
           <span>•</span>
-          <span className="text-amber-400">Scalping: LIVE</span>
+          <span className="text-amber-400">Full terminal: /account/scalping</span>
         </div>
       </div>
     </div>

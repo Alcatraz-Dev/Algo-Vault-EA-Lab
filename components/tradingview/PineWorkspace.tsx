@@ -6,11 +6,17 @@ import { auth } from "@/lib/firebase";
 import ProGate from "@/components/subscription/ProGate";
 import TradingViewChart from "@/components/tradingview/TradingViewChart";
 import MarketReplay from "@/components/tradingview/MarketReplay";
+import { ProTerminalChart } from "@/components/pro-scalping-terminal/ProTerminalChart";
+import { ProTerminalReplay } from "@/components/pro-scalping-terminal/ProTerminalReplay";
+import { CHART_LAYERS, defaultLayerState, type ChartLayerId } from "@/components/pro-scalping-terminal/chart-layers";
+import { SUPPORTED_SYMBOLS, type SupportedSymbol } from "@/lib/market-data/types";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { executePine } from "@/lib/pine-runtime";
 import type { PineExecutionResult } from "@/lib/pine-runtime";
+import { buildPineStudyOverlay, type PineStudyOverlay } from "@/components/pro-scalping-terminal/pine-overlays";
+import { toPineCandles } from "@/lib/pine-runtime/backtest";
 import type { PineBacktestResult } from "@/lib/pine-runtime/backtest";
 import PineAnalysisPanel from "@/components/tradingview/PineAnalysisPanel";
 import CreateAlertDialog from "@/components/tradingview/CreateAlertDialog";
@@ -726,6 +732,36 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
 
     const [chartKey, setChartKey] = useState(0);
     const [appliedStudies, setAppliedStudies] = useState<string[]>([]);
+    // Real-candle chart state: symbol/timeframe selection + overlay layers
+    // shared with the Pro Scalping Terminal chart engine.
+    const [chartSymbol, setChartSymbol] = useState<SupportedSymbol>("XAUUSD");
+    const [chartTimeframe, setChartTimeframe] = useState<"M1" | "M5" | "M15" | "M30" | "H1" | "H4" | "D1">("M15");
+    const [chartLayers, setChartLayers] = useState<Record<ChartLayerId, boolean>>(defaultLayerState);
+    // Pine study overlays computed from the real chart candles (plots, hlines,
+    // plotshapes) — rendered by the Pro Terminal chart engine.
+    const [studyOverlay, setStudyOverlay] = useState<PineStudyOverlay | null>(null);
+    // Candles the chart fetched from /api/analytics/ohlc — the Pine runtime
+    // runs against these same bars so overlays align 1:1 with what is drawn.
+    const chartCandlesRef = useRef<Array<{ timestamp: number; open: number; high: number; low: number; close: number; volume?: number }>>([]);
+    const [chartCandlesVersion, setChartCandlesVersion] = useState(0);
+    const [layersOpen, setLayersOpen] = useState(false);
+    const [useRealChart, setUseRealChart] = useState(true);
+    const [authToken, setAuthToken] = useState<string | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            const user = auth.currentUser;
+            if (!user) return;
+            try {
+                const t = await user.getIdToken();
+                if (!cancelled) setAuthToken(t);
+            } catch { /* anonymous use of the public OHLC feed still works */ }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     const analyzeScript = useCallback(() => {
         setIsAnalyzing(true);
@@ -742,9 +778,37 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
 
     function applyToChart() {
         setAppliedStudies(chartStudies);
+        // Execute the generated script against the chart's real candles via
+        // the shared runtime, then draw its plots/hlines/shapes on the
+        // terminal chart. The projection is what the chart renders — no
+        // separate indicator re-implementation on the UI side.
+        const candles = chartCandlesRef.current;
+        const overlay = buildPineStudyOverlay(
+            executePine(generatedSource, toPineCandles(candles.map((c) => ({ ...c, volume: c.volume ?? 0 })))),
+            candles.length
+        );
+        setStudyOverlay(overlay);
         setChartKey((k) => k + 1);
-        setNotice(`Applied ${chartStudies.length} indicator${chartStudies.length !== 1 ? "s" : ""} to chart.`);
+        const applied = overlay.lines.length + overlay.levels.length + overlay.shapes.length > 0
+            ? `${overlay.lines.length} plot${overlay.lines.length !== 1 ? "s" : ""}, ${overlay.levels.length} hline${overlay.levels.length !== 1 ? "s" : ""}, ${overlay.shapes.length} shape${overlay.shapes.length !== 1 ? "s" : ""}`
+            : "no drawable output";
+        setNotice(`Applied to chart — ${applied}.`);
     }
+
+    // Re-apply the study overlay automatically when the applied script or the
+    // chart's candles change, so overlays always run on the displayed bars.
+    // Runs once the script has been applied at least once (studyOverlay set).
+    useEffect(() => {
+        if (!studyOverlay) return;
+        const candles = chartCandlesRef.current;
+        if (candles.length === 0) return;
+        const overlay = buildPineStudyOverlay(
+            executePine(generatedSource, toPineCandles(candles.map((c) => ({ ...c, volume: c.volume ?? 0 })))),
+            candles.length
+        );
+        setStudyOverlay(overlay);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [chartCandlesVersion, appliedStudies]);
 
     async function handleBacktest() {
         const user = auth.currentUser;
@@ -1639,8 +1703,96 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                     </div>
                 )}
                 <div className="mt-4 rounded-2xl border border-border bg-card overflow-hidden shadow-xs p-1" data-guide="chart">
-                    {mode === "replay" ? (
-                        <MarketReplay studies={chartStudies} strategyType={generatedSource.includes("strategy(") ? "strategy" : "indicator"} />
+                    {/* Real-candle chart toolbar: symbol, timeframe, overlays, engine */}
+                    <div className="flex flex-wrap items-center gap-1.5 border-b border-border px-2 py-2">
+                        <select
+                            value={chartSymbol}
+                            onChange={(e) => setChartSymbol(e.target.value as SupportedSymbol)}
+                            className="rounded-md border border-border bg-background px-1.5 py-1 font-mono text-xs outline-none focus:border-primary/50"
+                            aria-label="Chart symbol"
+                        >
+                            {SUPPORTED_SYMBOLS.map((s) => (
+                                <option key={s} value={s}>{s}</option>
+                            ))}
+                        </select>
+                        <div className="flex gap-0.5 rounded-md border border-border bg-background p-0.5">
+                            {(["M1", "M5", "M15", "M30", "H1", "H4", "D1"] as const).map((t) => (
+                                <button
+                                    key={t}
+                                    type="button"
+                                    onClick={() => setChartTimeframe(t)}
+                                    aria-pressed={chartTimeframe === t}
+                                    className={`rounded px-1.5 py-0.5 font-mono text-[11px] transition ${chartTimeframe === t ? "bg-primary/10 font-bold text-primary" : "text-muted-foreground hover:bg-muted"}`}
+                                >
+                                    {t}
+                                </button>
+                            ))}
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setLayersOpen((o) => !o)}
+                            aria-expanded={layersOpen}
+                            className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                        >
+                            <Layers size={12} />
+                            Overlays
+                            <span className="font-mono text-[10px]">{Object.values(chartLayers).filter(Boolean).length}</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setUseRealChart((v) => !v)}
+                            className="rounded-md border border-border bg-background px-2 py-1 text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                            title="Toggle between the real candle chart and the TradingView embed"
+                        >
+                            {useRealChart ? "TradingView embed" : "Real candles"}
+                        </button>
+                        {layersOpen ? (
+                            <div className="flex flex-wrap gap-1.5 rounded-md border border-border bg-background p-1.5">
+                                {CHART_LAYERS.map((l) => (
+                                    <button
+                                        key={l.id}
+                                        type="button"
+                                        disabled={!l.available}
+                                        onClick={() => l.available && setChartLayers((prev) => ({ ...prev, [l.id]: !prev[l.id] }))}
+                                        aria-pressed={chartLayers[l.id]}
+                                        className={`rounded border px-1.5 py-0.5 text-[11px] transition ${
+                                            !l.available
+                                                ? "cursor-not-allowed border-border/50 text-muted-foreground/40"
+                                                : chartLayers[l.id]
+                                                  ? "border-primary/40 bg-primary/10 text-primary"
+                                                  : "border-border text-muted-foreground hover:text-foreground"
+                                        }`}
+                                    >
+                                        {l.label}
+                                    </button>
+                                ))}
+                            </div>
+                        ) : null}
+                    </div>
+                    {mode === "replay" && useRealChart ? (
+                        <div className="p-2">
+                            <ProTerminalReplay token={authToken} />
+                        </div>
+                    ) : mode === "replay" ? (
+                        <div className="p-1">
+                            <MarketReplay studies={chartStudies} strategyType={generatedSource.includes("strategy(") ? "strategy" : "indicator"} />
+                        </div>
+                    ) : useRealChart ? (
+                        <div className="p-2">
+                            <ProTerminalChart
+                                symbol={chartSymbol}
+                                timeframe={chartTimeframe}
+                                layers={chartLayers}
+                                analysis={null}
+                                token={authToken}
+                                height={480}
+                                studyOverlay={studyOverlay}
+                                onCandlesChange={(candles) => {
+                                    chartCandlesRef.current = candles;
+                                    setChartCandlesVersion((v) => v + 1);
+                                }}
+                            />
+                        </div>
                     ) : (
                         <TradingViewChart key={chartKey} studies={chartStudies} />
                     )}
@@ -1654,6 +1806,21 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                     </div>
                     <pre className="max-h-48 overflow-auto rounded-xl border border-border/60 bg-background p-3.5 font-mono text-xs leading-relaxed text-foreground">{generatedSource}</pre>
                 </div>
+                {studyOverlay && studyOverlay.errors.length > 0 && (
+                    <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-4 shadow-xs">
+                        <div className="flex items-start gap-2.5">
+                            <AlertTriangle size={15} className="mt-0.5 shrink-0 text-red-500" />
+                            <div>
+                                <p className="text-xs font-semibold text-red-600 dark:text-red-400">Pine chart overlay errors</p>
+                                <div className="mt-1 space-y-1">
+                                    {studyOverlay.errors.map((err, i) => (
+                                        <p key={i} className="text-[11px] leading-relaxed text-muted-foreground font-mono">{err}</p>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {notice && (
                     <div className="mt-3 rounded-xl border border-border bg-muted/30 px-3.5 py-2 text-xs text-muted-foreground flex items-center justify-between">
                         <span>{notice}</span>

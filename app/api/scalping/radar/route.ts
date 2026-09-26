@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { authenticate } from "@/lib/admin-auth";
+import { authenticate, isAdminUid } from "@/lib/admin-auth";
 import { checkAccess } from "@/lib/strategy-lab/license";
 import { getCandlesForTimeframe } from "@/lib/strategy-lab/market-data";
 import { validateSymbol, validateTimeframe } from "@/lib/market-data/validation";
@@ -37,8 +37,11 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: corsHeaders });
         }
 
-        // Match the existing AI-signals / Strategy Lab gating.
-        const access = await checkAccess(token.uid);
+        // Match the existing AI-signals / Strategy Lab gating. Platform
+        // admins bypass the product gate (they administer these surfaces).
+        const access = (await isAdminUid(token.uid))
+            ? { accessible: true as const }
+            : await checkAccess(token.uid);
         if (!access.accessible) {
             return NextResponse.json(
                 {

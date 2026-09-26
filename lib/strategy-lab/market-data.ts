@@ -7,15 +7,18 @@ import { AnalysisPeriod, DataBundle, DataCoverage, DataSourceKind, PERIOD_DAYS, 
 // The platform's historical market data arrives from biquote.io (a broker-style
 // OHLC feed, no API key required). Biquote caps the number of bars it returns per
 // timeframe, and it does NOT expose M3 / M30 intervals, nor multi-year history.
+// Real observed caps (probed live):
+//   M1≈301 (~5h) · M5≈289 (~1d) · M15≈193 (~2d) · M30≈193 (~4d)
+//   H1≈169 (~9d) · H4≈181 (~39d) · D1≈501 (~1.6y)
+// Because the caps differ per timeframe, one requested period can never be fully
+// covered by every timeframe in a hierarchy. The lab therefore works with the
+// LARGEST window the feed provides per timeframe and reports honest coverage —
+// analysis/validation run on whatever real data exists. No data is synthesized.
 //
-// To support longer histories (3Y / 5Y) and timeframes the feed lacks, an optional
-// local export provider can be seeded with real broker data files placed at:
-//
+// An optional local export provider can be seeded with real broker data files at:
 //   private-files/market-data/{SYMBOL}.{TIMEFRAME}.json
-//
 // The file must contain an array of { timestamp, open, high, low, close, volume? }.
-// When present and covering the requested window, the local export wins. No data
-// is ever synthesized.
+// When present, the local export wins. No data is ever synthesized.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BIQUOTE_BASE = "https://biquote.io/api";
@@ -256,6 +259,11 @@ export async function loadDataBundle(
     for (const tf of timeframes) {
         let fetched: { candles: MarketCandle[]; source: DataSourceKind; maxBars: number };
         try {
+            // Do NOT pass the requested window down as a hard filter: the feed's
+            // per-timeframe caps are much shorter than most periods, so filtering
+            // to the window would throw away the majority of real bars and make
+            // every analysis impossible. We fetch the feed's full available
+            // history and report the coverage honestly.
             fetched = await getCandlesForTimeframe(symbol, tf);
         } catch (err) {
             const msg = err instanceof Error ? err.message : "data provider error";
@@ -275,15 +283,20 @@ export async function loadDataBundle(
             requestedTo,
             availableFrom,
             availableTo,
-            fullyCoversRequest: availableFrom <= requestedFrom,
+            // "partial" is expected: the feed caps history per timeframe. True
+            // when the available window starts at or before the requested start.
+            fullyCoversRequest: availableBars > 0 && availableFrom <= requestedFrom,
             spanDays: availableBars > 0 ? (availableTo - availableFrom) / 86_400_000 : 0,
             source: fetched.source,
             maxSourceBars: fetched.maxBars,
         });
     }
 
-    const overallCoversRequest = timeframes.every(
-        (tf) => coverage.find((c) => c.timeframe === tf)?.fullyCoversRequest
+    // A bundle is usable when AT LEAST ONE timeframe returned real candles.
+    // Requiring every timeframe to cover the full requested window made the
+    // whole lab dead-on-arrival (see header note on per-timeframe caps).
+    const overallCoversRequest = timeframes.some(
+        (tf) => (candles[tf]?.length ?? 0) > 0
     );
 
     return {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { authenticate } from "@/lib/admin-auth";
+import { authenticate, isAdminUid } from "@/lib/admin-auth";
 import { checkAccess } from "@/lib/strategy-lab/license";
 import { validateSymbol } from "@/lib/market-data/validation";
 import type { SupportedSymbol } from "@/lib/market-data/types";
@@ -41,7 +41,9 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: corsHeaders });
         }
 
-        const access = await checkAccess(token.uid);
+        const access = (await isAdminUid(token.uid))
+            ? { accessible: true as const }
+            : await checkAccess(token.uid);
         if (!access.accessible) {
             return NextResponse.json(
                 {

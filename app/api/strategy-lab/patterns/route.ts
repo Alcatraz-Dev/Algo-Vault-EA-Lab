@@ -44,7 +44,9 @@ export async function POST(request: NextRequest) {
                 symbol,
                 period,
                 timeframe,
-                message: "Insufficient candles for pattern discovery.",
+                message: candles.length === 0
+                    ? `No historical data available for ${symbol} ${timeframe} from the market data feed right now.`
+                    : `Only ${candles.length} candles available for ${symbol} ${timeframe} — at least 30 are needed for pattern discovery. Try the D1 timeframe or a local export.`,
             }, { status: 200, headers: corsHeaders });
         }
 
