@@ -25,11 +25,13 @@ import {
     Radio,
     RotateCcw,
     Settings,
+    Shield,
     ShoppingCart,
     Sparkles,
     Target,
     Users,
     X,
+    Brain,
     Gauge,
 } from "lucide-react";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
@@ -46,6 +48,8 @@ const NAV_ITEMS = [
     { icon: Radio, label: "Telegram Signals", href: "/admin/telegram" },
     { icon: Bot, label: "Bots / Products", href: "/admin/bots" },
     { icon: Activity, label: "Live Accounts", href: "/admin/live" },
+    { icon: Shield, label: "Account Health", href: "/admin/intelligence/account-health" },
+    { icon: Brain, label: "Intelligence", href: "/admin/intelligence" },
     { icon: HeartPulse, label: "AI Provider Health", href: "/admin/intelligence/ai-health" },
     { icon: Gauge, label: "AI Usage & Budgets", href: "/admin/intelligence/ai-usage" },
     { icon: Download, label: "Backtests", href: "/admin/backtests" },

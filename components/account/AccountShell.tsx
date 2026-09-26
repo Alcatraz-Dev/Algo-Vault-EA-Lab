@@ -56,6 +56,7 @@ const ACCOUNT_NAV: NavGroup[] = [
       { icon: Gift, label: "Affiliates", href: "/account/affiliate" },
       { icon: Zap, label: "Upgrade", href: "/pricing" },
       { icon: Settings, label: "Settings", href: "/account/settings" },
+      { icon: Activity, label: "Account Health", href: "/account/account-health" },
     ],
   },
   {

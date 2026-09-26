@@ -54,6 +54,7 @@ export const APP_NAV: NavGroup[] = [
     items: [
       { href: "/scanner", label: "Market Scanner", icon: Activity },
       { href: "/analysis", label: "Market Analysis", icon: BarChart3 },
+      { href: "/advanced-analysis", label: "Advanced Analysis", icon: Layers },
       { href: "/charts", label: "Charts", icon: CandlestickChart },
       { href: "/economic-calendar", label: "Economic Calendar", icon: Newspaper },
       { href: "/risk", label: "Risk Analysis", icon: Shield },
@@ -74,11 +75,22 @@ export const APP_NAV: NavGroup[] = [
     label: "Intelligence",
     items: [
       { href: "/ai-copilot", label: "AI Copilot", icon: Brain },
+      { href: "/scalping-terminal", label: "Scalping Terminal", icon: Terminal },
       { href: "/signals", label: "AI Signals", icon: Radio },
       { href: "/signals/pro", label: "Pro Signals", icon: Zap },
       { href: "/alert-center", label: "Alert Center", icon: AlertTriangle },
       { href: "/signal-transparency", label: "Signal Transparency", icon: FileText },
       { href: "/insights", label: "AI Insights", icon: Sparkles },
+    ],
+  },
+  {
+    label: "Market Intelligence",
+    items: [
+      { href: "/market-intelligence/terminal", label: "Terminal", icon: Terminal },
+      { href: "/market-intelligence/analysis", label: "Advanced Analysis", icon: Layers },
+      { href: "/market-intelligence/smart-money", label: "Smart Money", icon: Zap },
+      { href: "/market-intelligence/backtest", label: "Backtesting", icon: MonitorPlay },
+      { href: "/market-intelligence/strategy-lab", label: "Strategy Lab", icon: FlaskConical },
     ],
   },
   {

@@ -1,58 +1,31 @@
 "use client";
 
+/**
+ * Self-service account health.
+ *
+ * Renders the shared `AccountHealthReportView`, so the numbers here are produced
+ * by exactly the same scorer the admin console uses and can never disagree.
+ *
+ * A failed request is shown as a failure. The previous version swallowed it with
+ * `catch {}` and rendered an all-zero dashboard, which made a rejected session
+ * look identical to a real reading of a blown account.
+ */
+
 import { useCallback, useEffect, useState } from "react";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, type User } from "firebase/auth";
+import { RefreshCw, Shield } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import { pluginFetch } from "@/lib/plugins/ui";
 import AccountShell from "@/components/account/AccountShell";
-import {
-    Shield, Activity, Wallet, TrendingDown, AlertTriangle,
-    Loader2, RefreshCw, BarChart3,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-
-type RiskLevel = "LOW" | "MODERATE" | "HIGH";
-type HealthStatus = "SAFE" | "WARNING" | "DANGER";
-type ExposureStatus = "LOW" | "MODERATE" | "HIGH";
-
-interface AccountHealth {
-    score: number;
-    riskLevel: RiskLevel;
-    drawdownStatus: HealthStatus;
-    marginStatus: HealthStatus;
-    exposureStatus: ExposureStatus;
-    metrics: {
-        balance: number;
-        equity: number;
-        floatingPnl: number;
-        floatingPnlPct: number;
-        drawdown: number;
-        maxDrawdown: number;
-        marginLevel: number;
-        marginUtilization: number;
-        totalPositions: number;
-        positionsAtRisk: number;
-        openRisk: number;
-    };
-    trading: {
-        totalSignals: number;
-        winRate: string;
-        averageR: string;
-    };
-    breakdown: {
-        drawdown: number;
-        margin: number;
-        exposure: number;
-        pnl: number;
-        signalQuality: number;
-    };
-}
+import { AccountHealthReportView } from "@/components/account-health/report-view";
+import type { AccountHealthReport } from "@/lib/account-health/types";
 
 export default function AccountHealthPage() {
     const [user, setUser] = useState<User | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
-    const [health, setHealth] = useState<AccountHealth | null>(null);
+    const [health, setHealth] = useState<AccountHealthReport | null>(null);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const unsub = onAuthStateChanged(auth, (u) => { setUser(u); setAuthLoading(false); });
@@ -62,12 +35,29 @@ export default function AccountHealthPage() {
     const fetchHealth = useCallback(async () => {
         if (!user) return;
         setLoading(true);
+        setError(null);
         try {
             const res = await pluginFetch("/api/account-health", { method: "GET" });
-            const data = (await res.json()) as { success: boolean; health: AccountHealth };
-            if (data.success) setHealth(data.health);
-        } catch {}
-        finally { setLoading(false); }
+            const data = (await res.json().catch(() => null)) as
+                ({ success: boolean; health: AccountHealthReport } & { error?: string }) | null;
+
+            if (!res.ok) {
+                // A 401 here means the ID token was rejected, not that the
+                // account is unhealthy. Say so instead of drawing zeroes.
+                setError(
+                    res.status === 401 || res.status === 403
+                        ? "Your session was rejected. Sign in again to load your health report."
+                        : data?.error || `Could not load account health (${res.status}).`,
+                );
+                setHealth(null);
+                return;
+            }
+            if (data?.success && data.health) setHealth(data.health);
+            else setError("The server returned an unexpected response.");
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Could not load account health.");
+            setHealth(null);
+        } finally { setLoading(false); }
     }, [user]);
 
     useEffect(() => {
@@ -75,106 +65,77 @@ export default function AccountHealthPage() {
         if (!authLoading && user) fetchHealth();
     }, [authLoading, user, fetchHealth]);
 
-    if (authLoading) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Account Health"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div></AccountShell></div>);
-    }
-    if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Account Health"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1></div></AccountShell></div>);
-    }
-
-    const score = health?.score || 0;
-    const scoreColor = score >= 80 ? "text-emerald-400" : score >= 60 ? "text-amber-400" : "text-rose-400";
-    const scoreBg = score >= 80 ? "bg-emerald-500" : score >= 60 ? "bg-amber-500" : "bg-rose-500";
-
-    return (
+    const shell = (children: React.ReactNode) => (
         <div className="min-h-screen bg-background text-foreground" data-guide="account-health">
             <AccountShell title="Account Health" subtitle="Real-time risk assessment and account monitoring">
-                <div className="space-y-6" data-guide="content">
-                    {/* Score Ring */}
-                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                        <div className="rounded-xl border border-border/30 bg-muted/50 p-8" data-guide="score-ring">
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-lg font-bold text-foreground">Health Score</h2>
-                                <button type="button" onClick={fetchHealth} disabled={loading} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/20 transition"><RefreshCw size={14} className={loading ? "animate-spin" : ""} /></button>
-                            </div>
-                            <div className="flex items-center gap-6">
-                                <div className="relative h-32 w-32">
-                                    <div className="h-full w-full rounded-full border-4 border-border/60" />
-                                    <div className={cn("absolute inset-0 rounded-full border-4 border-t-transparent", scoreBg)} style={{ transform: `rotate(${score * 3.6}deg)`, transition: "transform 1s ease" }} />
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                        <span className={cn("text-4xl font-bold font-mono", scoreColor)}>{score}</span>
-                                        <span className="text-[10px] text-muted-foreground">/ 100</span>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <div className={cn("flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium", health?.riskLevel === "LOW" ? "bg-emerald-500/10 text-emerald-400" : health?.riskLevel === "MODERATE" ? "bg-amber-500/10 text-amber-400" : "bg-rose-500/10 text-rose-400")}>
-                                        <Shield size={14} /> Risk: {health?.riskLevel}
-                                    </div>
-                                    <div className={cn("rounded-lg px-3 py-1.5 text-xs font-medium", health?.drawdownStatus === "SAFE" ? "bg-emerald-500/10 text-emerald-400" : health?.drawdownStatus === "WARNING" ? "bg-amber-500/10 text-amber-400" : "bg-rose-500/10 text-rose-400")}>
-                                        <TrendingDown size={14} /> DD: {health?.drawdownStatus}
-                                    </div>
-                                    <div className={cn("rounded-lg px-3 py-1.5 text-xs font-medium", health?.marginStatus === "SAFE" ? "bg-emerald-500/10 text-emerald-400" : health?.marginStatus === "WARNING" ? "bg-amber-500/10 text-amber-400" : "bg-rose-500/10 text-rose-400")}>
-                                        <Wallet size={14} /> Margin: {health?.marginStatus}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Breakdown */}
-                        <div className="rounded-xl border border-border/30 bg-muted/50 p-5">
-                            <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><BarChart3 size={16} className="text-violet-400" />Score Breakdown</h3>
-                            <div className="space-y-3">
-                                {[
-                                    { label: "Drawdown", value: health?.breakdown?.drawdown || 0, max: 30, color: "bg-rose-500" },
-                                    { label: "Margin Usage", value: health?.breakdown?.margin || 0, max: 20, color: "bg-amber-500" },
-                                    { label: "Exposure", value: health?.breakdown?.exposure || 0, max: 25, color: "bg-blue-500" },
-                                    { label: "P/L", value: health?.breakdown?.pnl || 0, max: 10, color: "bg-emerald-500" },
-                                    { label: "Signal Quality", value: health?.breakdown?.signalQuality || 0, max: 15, color: "bg-violet-500" },
-                                ].map((item) => (
-                                    <div key={item.label}>
-                                        <div className="flex items-center justify-between text-xs"><span className="text-muted-foreground">{item.label}</span><span className="font-mono text-foreground">{item.value}/{item.max}</span></div>
-                                        <div className="mt-1 h-2 rounded-full bg-muted/20"><div className={cn("h-full rounded-full transition-all", item.color)} style={{ width: `${Math.min(100, (item.value / item.max) * 100)}%` }} /></div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Metrics Grid */}
-                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
-                        {[
-                            { label: "Balance", value: `$${(health?.metrics?.balance || 0).toLocaleString()}`, icon: Wallet },
-                            { label: "Equity", value: `$${(health?.metrics?.equity || 0).toLocaleString()}`, icon: Activity },
-                            { label: "P/L", value: `${(health?.metrics?.floatingPnl || 0) >= 0 ? "+" : ""}${(health?.metrics?.floatingPnl || 0).toFixed(2)}`, icon: TrendingDown },
-                            { label: "Positions", value: String(health?.metrics?.totalPositions || 0), icon: Activity },
-                            { label: "Risk", value: `$${(health?.metrics?.openRisk || 0).toFixed(0)}`, icon: AlertTriangle },
-                            { label: "Margin Level", value: `${health?.metrics?.marginLevel?.toFixed(0) || 0}%`, icon: Shield },
-                        ].map((m) => (
-                            <div key={m.label} className="rounded-xl border border-border/30 bg-muted/50 p-4">
-                                <div className="flex items-center gap-2"><m.icon size={14} className="text-violet-400" /><span className="text-[10px] font-semibold uppercase text-muted-foreground">{m.label}</span></div>
-                                <p className="mt-2 font-mono text-sm font-bold text-foreground">{m.value}</p>
-                            </div>
-                        ))}
-                    </div>
-
-                    {health?.trading && (
-                        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                            <div className="rounded-xl border border-border/30 bg-muted/50 p-4">
-                                <span className="text-[10px] font-semibold uppercase text-muted-foreground">Recent Win Rate</span>
-                                <p className="mt-1 font-mono text-xl font-bold text-foreground">{health.trading.winRate}%</p>
-                            </div>
-                            <div className="rounded-xl border border-border/30 bg-muted/50 p-4">
-                                <span className="text-[10px] font-semibold uppercase text-muted-foreground">Average R</span>
-                                <p className="mt-1 font-mono text-xl font-bold text-foreground">{health.trading.averageR}R</p>
-                            </div>
-                            <div className="rounded-xl border border-border/30 bg-muted/50 p-4">
-                                <span className="text-[10px] font-semibold uppercase text-muted-foreground">Total Signals</span>
-                                <p className="mt-1 font-mono text-xl font-bold text-foreground">{health.trading.totalSignals}</p>
-                            </div>
-                        </div>
-                    )}
-                </div>
+                <div data-guide="content">{children}</div>
             </AccountShell>
         </div>
+    );
+
+    if (authLoading) {
+        return (
+            <div className="flex min-h-screen flex-col bg-background text-foreground">
+                <AccountShell title="Account Health">
+                    <div className="flex flex-1 items-center justify-center">
+                        <RefreshCw size={20} className="animate-spin text-muted-foreground" />
+                    </div>
+                </AccountShell>
+            </div>
+        );
+    }
+
+    if (!user) {
+        return (
+            <div className="flex min-h-screen flex-col bg-background text-foreground">
+                <AccountShell title="Account Health">
+                    <div className="flex flex-1 flex-col items-center justify-center gap-3">
+                        <Shield size={32} className="text-muted-foreground" />
+                        <h1 className="text-sm font-semibold text-foreground">Sign in required</h1>
+                        <p className="text-[11px] text-muted-foreground">Your health report is tied to your account.</p>
+                    </div>
+                </AccountShell>
+            </div>
+        );
+    }
+
+    // Never render the score ring off a missing payload: an all-zero reading is
+    // indistinguishable from a real "your account is blown" verdict.
+    if (error || !health) {
+        return shell(
+            <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border/30 bg-muted/50 px-6 py-12 text-center" data-guide="score-ring">
+                <Shield size={28} className={error ? "text-rose-400" : "text-muted-foreground"} />
+                <h2 className="text-sm font-semibold text-foreground">
+                    {error ? "Health report unavailable" : "No trading activity yet"}
+                </h2>
+                <p className="max-w-sm text-[11px] leading-5 text-muted-foreground">
+                    {error || "Once you have a balance or an open position, your risk score, drawdown and exposure appear here."}
+                </p>
+                <button
+                    type="button"
+                    onClick={fetchHealth}
+                    disabled={loading}
+                    className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/50 px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                >
+                    <RefreshCw size={12} className={loading ? "animate-spin" : ""} /> Retry
+                </button>
+            </div>,
+        );
+    }
+
+    return shell(
+        <>
+            <div className="mb-3 flex items-center justify-end">
+                <button
+                    type="button"
+                    onClick={fetchHealth}
+                    disabled={loading}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/50 px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                >
+                    <RefreshCw size={12} className={loading ? "animate-spin" : ""} /> Refresh
+                </button>
+            </div>
+            <AccountHealthReportView health={health} />
+        </>,
     );
 }

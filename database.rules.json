@@ -307,7 +307,10 @@
     "strategyLab": {
       "$userId": {
         ".read": "auth != null && auth.uid === $userId",
-        ".write": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        ".write": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        "evolutionRuns": {
+          ".indexOn": ["asOf"]
+        }
       }
     },
 

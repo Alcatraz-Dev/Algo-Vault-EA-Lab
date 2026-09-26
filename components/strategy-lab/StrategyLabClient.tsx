@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { useThrottledAuthedFetch } from "@/lib/scalping/client";
 import {
     ArrowDownRight,
     ArrowUpRight,
@@ -10,6 +11,7 @@ import {
     CheckCircle2,
     CircleAlert,
     Cpu,
+    Dna,
     Download,
     FileCode2,
     FileSearch,
@@ -40,6 +42,14 @@ import {
 
 import { strategyLabApi } from "@/lib/strategy-lab/client-api";
 import type { AnalysisApiResponse } from "@/lib/strategy-lab/client-api";
+import type { EvolutionRun } from "@/lib/ai/strategy-lab/evolution";
+import {
+    DnaInspector,
+    EvolutionRulesPanel,
+    PipelineView,
+    StrategyEvolution,
+    StrategyEvolutionDetail,
+} from "@/components/strategy-lab/StrategyDnaPanel";
 import { SUPPORTED_SYMBOLS, Timeframe } from "@/lib/market-data/types";
 import {
     DEFAULT_HIERARCHY,
@@ -223,7 +233,7 @@ export function StrategyLabClient() {
     const [token, setToken] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [running, setRunning] = useState(false);
-    const [tab, setTab] = useState<"market" | "patterns" | "strategy" | "backtest" | "optimize" | "validate" | "deploy" | "ea">("market");
+    const [tab, setTab] = useState<"market" | "patterns" | "strategy" | "backtest" | "optimize" | "validate" | "deploy" | "ea" | "dna">("market");
 
     const [symbol, setSymbol] = useState<(typeof SYMBOLS)[number]>("XAUUSD");
     const [period, setPeriod] = useState<AnalysisPeriod>("1M");
@@ -376,6 +386,7 @@ export function StrategyLabClient() {
                         <TabBtn active={tab === "validate"} icon={ShieldCheck} label="6 · Validate" onClick={() => setTab("validate")} />
                         <TabBtn active={tab === "deploy"} icon={Rocket} label="7 · Deploy" onClick={() => setTab("deploy")} />
                         <TabBtn active={tab === "ea"} icon={Cpu} label="8 · MT5 EA" onClick={() => setTab("ea")} />
+                        <TabBtn active={tab === "dna"} icon={Dna} label="9 · DNA &amp; Evolution" onClick={() => setTab("dna")} />
                     </div>
 
                     <div className="mt-6">
@@ -406,6 +417,7 @@ export function StrategyLabClient() {
                         {tab === "validate" && <ValidateTab lab={lab} run={run} setValidation={setValidation} setRobustness={setRobustness} setValidateBusy={setValidateBusy} />}
                         {tab === "deploy" && <DeployTab lab={lab} run={run} setDeployments={setDeployments} setDeployBusy={setDeployBusy} />}
                         {tab === "ea" && <EATab lab={lab} run={run} setEAs={setEAs} setEAsBusy={setEAsBusy} setStrategies={setStrategies} />}
+                        {tab === "dna" && <DnaEvolutionTab token={token} symbol={symbol} period={period} run={run} />}
                     </div>
                 </>
             )}
@@ -1731,6 +1743,187 @@ function EATab({
                     </div>
                 </div>
             )}
+        </div>
+    );
+}
+
+// ────────────────────────── 9 · DNA & Evolution ────────────────────────────
+
+/**
+ * Strategy DNA & evolution tab.
+ *
+ * Runs the real generation pipeline on the server: the browser only posts the
+ * requested shape (symbol, period, generations, seed size) and renders what
+ * comes back. Every count in the funnel is a real count of candidates that were
+ * generated, backtested and survived — nothing is simulated in the client.
+ */
+function DnaEvolutionTab({
+    token,
+    symbol,
+    period,
+    run,
+}: {
+    token: string | null;
+    symbol: (typeof SYMBOLS)[number];
+    period: AnalysisPeriod;
+    run: (fn: () => Promise<void>) => Promise<void>;
+}) {
+    const [evolution, setEvolution] = useState<EvolutionRun | null>(null);
+    const [generations, setGenerations] = useState(4);
+    const [seedPopulation, setSeedPopulation] = useState(12);
+    const [busy, setBusy] = useState(false);
+    const [generation, setGeneration] = useState(1);
+    const [selectedDnaId, setSelectedDnaId] = useState<string | null>(null);
+    const [localError, setLocalError] = useState<string | null>(null);
+
+    // Run history is read through the shared authed/throttled fetch hook rather
+    // than a bespoke effect, so it inherits the same token handling, request
+    // abortion and cache policy as the rest of the module.
+    const runsUrl = token ? `/api/strategy-lab/evolution?limit=10` : null;
+    const { data: runsData, refresh: refreshRuns } = useThrottledAuthedFetch<{
+        runs?: EvolutionRun[];
+    }>(runsUrl, { enabled: !!token });
+
+    const runs = runsData?.runs ?? [];
+
+    const selectedDna = useMemo(() => {
+        const newest = evolution?.generationReports[evolution.generationReports.length - 1];
+        const details = newest?.details ?? [];
+        if (selectedDnaId) {
+            const found = details.find((d) => d.dna.id === selectedDnaId);
+            if (found) return found.dna;
+        }
+        return details[0]?.dna ?? null;
+    }, [evolution, selectedDnaId]);
+
+    const doRun = () =>
+        run(async () => {
+            if (!token) return;
+            setBusy(true);
+            setLocalError(null);
+            try {
+                const res = await strategyLabApi.runEvolution(token, {
+                    symbol,
+                    period,
+                    generations,
+                    seedPopulation,
+                });
+                if (res.unavailable) {
+                    setLocalError(res.unavailable);
+                    setEvolution(res.run ?? null);
+                } else if (res.run) {
+                    setEvolution(res.run);
+                    setGeneration(res.run.generations);
+                    setSelectedDnaId(null);
+                }
+                refreshRuns();
+            } finally {
+                setBusy(false);
+            }
+        });
+
+    return (
+        <div className="space-y-4">
+            <div className="rounded-2xl border border-border/20 bg-card p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="min-w-0">
+                        <h3 className="text-sm font-semibold">Strategy DNA &amp; Evolution</h3>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                            Generates candidate genomes from a seed template, converts each one into a
+                            runnable strategy, backtests it on real candles, validates it
+                            out-of-sample, then breeds the survivors. Every number below is a real
+                            count from that pipeline.
+                        </p>
+                    </div>
+                    <div className="flex flex-wrap items-end gap-2">
+                        <Field label="Generations">
+                            <select
+                                value={generations}
+                                onChange={(e) => setGenerations(Number(e.target.value))}
+                                className={selCls}
+                            >
+                                {[1, 2, 3, 4, 5, 6].map((g) => (
+                                    <option key={g} value={g}>
+                                        {g}
+                                    </option>
+                                ))}
+                            </select>
+                        </Field>
+                        <Field label="Seeds">
+                            <select
+                                value={seedPopulation}
+                                onChange={(e) => setSeedPopulation(Number(e.target.value))}
+                                className={selCls}
+                            >
+                                {[4, 8, 12, 16, 24].map((s) => (
+                                    <option key={s} value={s}>
+                                        {s}
+                                    </option>
+                                ))}
+                            </select>
+                        </Field>
+                        <button
+                            onClick={doRun}
+                            disabled={busy}
+                            className="inline-flex items-center gap-2 rounded-xl border border-amber-500/50 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-300 transition hover:bg-amber-500/20 disabled:opacity-50"
+                        >
+                            <Play className="h-4 w-4" />
+                            {busy ? "Evolving…" : "Run evolution"}
+                        </button>
+                    </div>
+                </div>
+
+                {localError ? <p className="mt-3 text-xs text-amber-300">{localError}</p> : null}
+
+                {runs.length > 0 ? (
+                    <div className="mt-4 border-t border-border/20 pt-3">
+                        <p className="text-xs font-semibold uppercase tracking-widest text-foreground/70">
+                            Previous runs
+                        </p>
+                        <ul className="mt-2 space-y-1">
+                            {runs.map((r) => (
+                                <li
+                                    key={r.id}
+                                    className="flex flex-wrap items-baseline gap-x-2 text-xs text-muted-foreground"
+                                >
+                                    <span className="font-mono text-foreground">{r.id}</span>
+                                    <span>
+                                        {r.symbol} {r.timeframe} · {r.generations} gen
+                                    </span>
+                                    <span className="font-mono tabular-nums">
+                                        {r.totals.candidates} cand · {r.totals.evaluated} eval ·{" "}
+                                        {r.totals.survivors} surv
+                                    </span>
+                                    <span>{new Date(r.asOf).toLocaleString()}</span>
+                                    {r.unavailable ? (
+                                        <span className="text-amber-300">unavailable</span>
+                                    ) : null}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                ) : null}
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+                <div className="space-y-4">
+                    <StrategyEvolution run={evolution} loading={busy} onRun={doRun} running={busy} />
+                    <PipelineView
+                        run={evolution}
+                        generation={generation}
+                        onSelectGeneration={setGeneration}
+                    />
+                </div>
+                <div className="space-y-4">
+                    <StrategyEvolutionDetail
+                        run={evolution}
+                        selectedId={selectedDna?.id ?? null}
+                        onSelect={setSelectedDnaId}
+                    />
+                    <DnaInspector dna={selectedDna} />
+                    <EvolutionRulesPanel />
+                </div>
+            </div>
         </div>
     );
 }

@@ -1,4 +1,5 @@
 import { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
+import type { EvolutionRun } from "@/lib/ai/strategy-lab/evolution";
 import {
     AnalysisPeriod,
     BacktestResult,
@@ -216,6 +217,31 @@ export const strategyLabApi = {
             method: "POST",
             body: JSON.stringify(payload ?? {}),
         }),
+
+    // ── Strategy DNA / evolution ────────────────────────────────────────────
+    // Reuses `callApi`, so auth, error propagation and cache policy match the
+    // rest of the lab rather than introducing a parallel fetch path.
+
+    listEvolutionRuns: (token: string, limit = 10) =>
+        callApi<{ runs: EvolutionRun[]; count: number }>(
+            `/api/strategy-lab/evolution?limit=${limit}`,
+            token
+        ),
+
+    runEvolution: (
+        token: string,
+        payload: { symbol: SupportedSymbol; timeframe?: Timeframe; period?: AnalysisPeriod; generations?: number; seedPopulation?: number }
+    ) =>
+        callApi<{
+            run?: EvolutionRun;
+            unavailable?: string;
+            persistedSurvivors?: number;
+            error?: string;
+        }>("/api/strategy-lab/evolution", token, {
+            method: "POST",
+            body: JSON.stringify(payload),
+        }),
 };
 
 export type { AnalysisPeriod, DeployMode, Pattern, Strategy, TimeframeHierarchy } from "@/lib/strategy-lab/types";
+export type { EvolutionRun } from "@/lib/ai/strategy-lab/evolution";

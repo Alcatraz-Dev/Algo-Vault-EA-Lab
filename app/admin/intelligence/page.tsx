@@ -86,7 +86,33 @@ export default function AdminIntelligencePage() {
                 </div>
             )}
 
-            {activeTab !== "overview" && (
+            {activeTab === "sandbox" && (
+                <div className="space-y-4">
+                    <div className="rounded-2xl border border-border/30 bg-muted/50 p-5">
+                        <h3 className="text-sm font-semibold mb-2">Sandbox Tests</h3>
+                        <p className="text-xs text-muted-foreground mb-3">Validate agent outputs and plugin specs in isolated environments before publishing.</p>
+                        <div className="flex gap-2">
+                            <Link href="/admin/plugins/ai-studio" className="rounded-xl border border-border/30 bg-muted px-3 py-2 text-xs font-medium">Plugin Sandbox</Link>
+                            <Link href="/api/agents" className="rounded-xl border border-border/30 bg-muted px-3 py-2 text-xs font-medium">Agents API</Link>
+                        </div>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+                        {[{ icon: Bot, label: "Agents", v: "11", d: "Schema / Security / Workflow" },
+                          { icon: GitBranch, label: "Workflows", v: "3", d: "Opportunity / Anomaly / Risk" },
+                          { icon: Plug, label: "Plugins", v: "10", d: "Strategy / Correlation / Setup" },
+                          { icon: Puzzle, label: "Extensions", v: "5", d: "Webhook / Telegram / Discord" }].map((c) => (
+                            <div key={c.label} className="rounded-2xl border border-border/30 bg-muted/50 p-4">
+                                <c.icon size={18} className="text-violet-400 mb-2" />
+                                <p className="text-xl font-semibold">{c.v}</p>
+                                <p className="text-xs text-muted-foreground">{c.label}</p>
+                                <p className="text-[10px] text-muted-foreground/70 mt-1">{c.d}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {activeTab !== "overview" && activeTab !== "sandbox" && (
                 <div className="rounded-2xl border border-border/30 bg-muted/50 p-8 text-center">
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
                         <LayoutDashboard size={32} className="text-muted-foreground" />

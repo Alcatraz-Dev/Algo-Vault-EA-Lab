@@ -12,6 +12,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:ai": "JITI_TSCONFIG_PATHS=1 jiti lib/ai/__tests__/run-ai-tests.ts",
+    "test:account-health": "JITI_TSCONFIG_PATHS=1 jiti lib/account-health/__tests__/run-tests.ts",
     "test:ea": "jiti lib/strategy-lab/ea/tests/run-tests.ts",
     "test:growth": "JITI_TSCONFIG_PATHS=1 jiti lib/growth/__tests__/run-growth-tests.ts",
     "test:marketing": "JITI_TSCONFIG_PATHS=1 jiti lib/marketing-media/__tests__/run-marketing-tests.ts"

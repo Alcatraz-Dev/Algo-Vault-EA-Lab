@@ -1,0 +1,24 @@
+users: 2
+admin uid: I7VmRZFHPMcDUyav5TAa8UpwOsh1
+  I7VmRZFHPMcDUyav5TAa8UpwOsh1  role=admin  email=haythemdh47@gmail.com
+  WcOnCW0uZmg6mKNVc6syU5HfObN2  role=developer  email=alcatarz3019@gmail.com
+
+--- trading_accounts / trading_positions shape (first 3 users) ---
+  I7VmRZFHPMcDUyav5TAa8UpwOsh1: accountIds = [gateway_5054775401]
+     gateway_5054775401: {"accountId":"gateway_5054775401","balance":66.06,"broker":"","connectedAt":1789393421071,"currency":"USD","equity":66.06,"freeMargin":66.06,"gatewayVersion":"1.2.0","lastHeartbeatAt":1790086906102,"leverage":"","magicNumber":"999888","margin":0,"marginLevel":0,"mt5Account":"5054775401","pendingOrde
+     positions grouped by accountId: []
+  WcOnCW0uZmg6mKNVc6syU5HfObN2: accountIds = []
+     positions grouped by accountId: []
+
+users/{uid} scalar fields:
+  I7VmRZFHPMcDUyav5TAa8UpwOsh1: balance=- equity=- maxDrawdown=-
+  WcOnCW0uZmg6mKNVc6syU5HfObN2: balance=- equity=- maxDrawdown=-
+
+minted ID token OK  aud=algovault-4c564  exp=1790433932
+verifyIdToken OK -> uid I7VmRZFHPMcDUyav5TAa8UpwOsh1
+
+/api/account-health -> 200
+  {"success":true,"health":{"score":100,"riskLevel":"LOW","drawdownStatus":"SAFE","marginStatus":"DANGER","exposureStatus":"LOW","hasData":true,"metrics":{"balance":0,"equity":0,"floatingPnl":0,"floatingPnlPct":0,"drawdown":0,"maxDrawdown":0,"marginLevel":0,"marginUtilization":0,"totalPositions":0,"positionsAtRisk":0,"openRisk":0},"trading":{"totalSignals":32,"winRate":"0.0","averageR":"0.00"},"breakdown":{"drawdown":0,"margin":0,"exposure":0,"pnl":10,"signalQuality":0},"positions":[]}}
+
+/api/admin/account-health -> 200
+  {"success":true,"directory":{"accounts":[{"uid":"I7VmRZFHPMcDUyav5TAa8UpwOsh1","email":"haythemdh47@gmail.com","displayName":"Haythem Dhahri","score":100,"riskLevel":"LOW","drawdownStatus":"SAFE","marginStatus":"DANGER","exposureStatus":"LOW","hasData":true,"balance":0,"equity":0,"marginLevel":0,"openRisk":0,"totalPositions":0,"positionsAtRisk":0},{"uid":"WcOnCW0uZmg6mKNVc6syU5HfObN2","email":"alcatarz3019@gmail.com","displayName":"Alcatraz","score":100,"riskLevel":"LOW","drawdownStatus":"SAFE","marginStatus":"DANGER","exposureStatus":"LOW","hasData":true,"balance":0,"equity":0,"marginLevel":0,"openRisk":0,"totalPositions":0,"positionsAtRisk":0}],"totals":{"accounts":2,"active":2,"highRisk":0,"moderateRisk":0,"lowRisk":2,"allImpaired":false},"distribution":{"HIGH":0,"MODERATE":0,"LOW":100}}}

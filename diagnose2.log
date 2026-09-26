@@ -1,0 +1,50 @@
+
+=== FULL trading_accounts ===
+{
+  "I7VmRZFHPMcDUyav5TAa8UpwOsh1": {
+    "gateway_5054775401": {
+      "accountId": "gateway_5054775401",
+      "balance": 66.06,
+      "broker": "",
+      "connectedAt": 1789393421071,
+      "currency": "USD",
+      "equity": 66.06,
+      "freeMargin": 66.06,
+      "gatewayVersion": "1.2.0",
+      "lastHeartbeatAt": 1790086906102,
+      "leverage": "",
+      "magicNumber": "999888",
+      "margin": 0,
+      "marginLevel": 0,
+      "mt5Account": "5054775401",
+      "pendingOrdersCount": 0,
+      "positionsCount": 0,
+      "server": "",
+      "status": "connected",
+      "updatedAt": 1790086906102,
+      "userId": "I7VmRZFHPMcDUyav5TAa8UpwOsh1"
+    }
+  }
+}
+
+=== FULL trading_positions ===
+{}
+
+=== live_accounts (peakEquity / drawdown source) ===
+keys: [-P17J7QqLBw0SJ5nNymg_5054775401, gateway_5054775401]
+  -P17J7QqLBw0SJ5nNymg_5054775401: balance=66.06 equity=66.06 peakEquity=165.5 drawdown=60.08 mt5Account=5054775401
+  gateway_5054775401: balance=66.06 equity=66.06 peakEquity=66.06 drawdown=0 mt5Account=5054775401
+
+=== users/{uid} full keys ===
+  I7VmRZFHPMcDUyav5TAa8UpwOsh1: {"autoCutoff":false,"bio":"","country":"Other","createdAt":1788995965055,"discordConnectedAt":1789169585181,"discordUserId":"592873810676416522","discordUsername":"ＡＬＣＡＴＲＡＺ","discordWebhook":"","displayName":"Haythem Dhahri","email":"haythemdh47@gmail.com","emailSecurityAlerts":true,"emailTradeAlerts":true,"emailWeeklyDigest":true,"experience":"Intermediate","followedProSignals":{"sig_179000201124
+  WcOnCW0uZmg6mKNVc6syU5HfObN2: {"approvedAt":1789950853968,"createdAt":1789950787851,"developerApproved":true,"developerPlan":"dev_pro","developerStatus":"approved","developerSubscription":{"createdAt":1789951865448,"orderId":"sub_dev_pro_1789951842310","plan":"dev_pro","status":"active","stripeCustomerId":"cus_VIWUwRuhGfnPpG","stripeSessionId":"cs_test_a1TFSzMzjveucvMGRZyNHnrtNhak2BqN2FWHH05gfnEgPXjKQCzPBVttVQ","stripeSubscrip
+
+=== aiSignals shape (sample) ===
+count=32
+with result: 32
+  sig_btcusd_1789757595861: {"analysis":{"higherTimeframe":"H1 bullish","liquidity":"10 sweeps, 114 levels","momentum":"Score 92, VWAP above","orderFlow":"Data unavailable","regime":"TRENDING_BULLISH","structure":"bullish","trend":"bullish / bullish","volume":"Normal"},"analysisVersion":"1.1.0","category":"crypto","closedAt":1
+  sig_btcusd_1789825543352: {"analysis":{"higherTimeframe":"M5 bearish","liquidity":"10 sweeps, 79 levels","momentum":"Score 36, VWAP below","orderFlow":"Data unavailable","regime":"TRENDING_BEARISH","structure":"bearish","trend":"bearish / bearish","volume":"Normal"},"analysisVersion":"1.1.0","category":"crypto","closedAt":17
+  sig_btcusd_1789845882408: {"analysis":{"higherTimeframe":"M5 bearish","liquidity":"10 sweeps, 67 levels","momentum":"Score 36, VWAP below","orderFlow":"Data unavailable","regime":"TRENDING_BEARISH","structure":"bearish","trend":"bearish / bearish","volume":"Normal"},"analysisVersion":"1.1.0","category":"crypto","closedAt":17
+  sig_btcusd_1789849210409: {"analysis":{"higherTimeframe":"H4 bearish","liquidity":"10 sweeps, 90 levels","momentum":"Score 41, VWAP above","orderFlow":"Data unavailable","regime":"TRENDING_BEARISH","structure":"bearish","trend":"bearish / bearish","volume":"Normal"},"analysisVersion":"1.1.0","category":"crypto","closedAt":17
+  sig_btcusd_1790091342418: {"analysis":{"higherTimeframe":"M5 bullish","liquidity":"10 sweeps, 68 levels","momentum":"Score 88, VWAP above","orderFlow":"Data unavailable","regime":"TRENDING_BULLISH","structure":"bullish","trend":"bullish / bullish","volume":"Normal"},"analysisVersion":"1.1.0","category":"crypto","closedAt":17
+result distribution: {"pending":32}
