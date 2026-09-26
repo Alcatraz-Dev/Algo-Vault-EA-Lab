@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from "react";
 import {
     BarChart3,
     ChevronDown,
-    ChevronRight,
     Layers,
     Loader2,
     Lock,
@@ -19,11 +18,12 @@ import {
     Monitor,
     Wallet,
     RefreshCw,
+    AlertTriangle,
 } from "lucide-react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
-import SiteNavbar from "@/components/navbar/SiteNavbar";
+
 import MarketHeader from "@/components/analytics/MarketHeader";
 import MarketStructurePanel from "@/components/analytics/MarketStructurePanel";
 import LiquidityMap from "@/components/analytics/LiquidityMap";
@@ -126,21 +126,39 @@ const PANELS: PanelConfig[] = [
     { id: "zones", label: "Zones", icon: Layers, defaultOpen: true },
 ];
 
+function regimeColor(regime?: string): string {
+    if (!regime) return "text-muted-foreground";
+    if (regime.includes("bullish")) return "text-emerald-400";
+    if (regime.includes("bearish")) return "text-rose-400";
+    if (regime.includes("breakout")) return "text-primary";
+    return "text-amber-400";
+}
+
 function CollapsiblePanel({ panel, isOpen, onToggle, children }: { panel: PanelConfig; isOpen: boolean; onToggle: () => void; children: React.ReactNode }) {
     const Icon = panel.icon;
     return (
-        <div className="border-b border-border/20">
-            <button type="button" onClick={onToggle} className="flex w-full items-center gap-2 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:bg-muted/50 hover:text-muted-foreground transition">
-                {isOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-                <Icon size={13} />
+        <div className="border-b border-border/60 last:border-b-0">
+            <button
+                type="button"
+                onClick={onToggle}
+                aria-expanded={isOpen}
+                className="flex w-full items-center gap-2 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+            >
+                <Icon size={13} className={cn("transition-colors", isOpen ? "text-primary" : "text-muted-foreground")} />
                 {panel.label}
+                <ChevronDown size={13} className={cn("ml-auto transition-transform duration-200", isOpen ? "" : "-rotate-90")} />
             </button>
-            {isOpen && <div className="px-4 pb-3">{children}</div>}
+            {isOpen && <div className="px-4 pb-4">{children}</div>}
         </div>
     );
 }
 
-export default function AnalysisPage() {
+/**
+ * AnalysisWorkspace — the full market analysis experience (header, MT5 account,
+ * chart, positions, analytics panels). Rendered inside any shell (AppShell or
+ * AdminShell) via the /analysis and /admin/analysis routes.
+ */
+export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?: string }) {
     const [user, setUser] = useState<User | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
     const [symbol, setSymbol] = useState<SupportedSymbol>("XAUUSD");
@@ -153,6 +171,7 @@ export default function AnalysisPage() {
     const [selectedAccount, setSelectedAccount] = useState<MT5Account | null>(null);
     const [positions, setPositions] = useState<MT5Position[]>([]);
     const [positionsLoading, setPositionsLoading] = useState(false);
+    const [isLightTheme, setIsLightTheme] = useState(false);
     const [openPanels, setOpenPanels] = useState<Record<string, boolean>>(() => {
         const initial: Record<string, boolean> = {};
         PANELS.forEach((p) => { initial[p.id] = p.defaultOpen; });
@@ -163,6 +182,16 @@ export default function AnalysisPage() {
     useEffect(() => {
         const unsub = onAuthStateChanged(auth, (u) => { setUser(u); setAuthLoading(false); });
         return () => unsub();
+    }, []);
+
+    // Track theme so the canvas chart re-renders with the right palette
+    useEffect(() => {
+        const el = document.documentElement;
+        const update = () => setIsLightTheme(el.classList.contains("light"));
+        update();
+        const observer = new MutationObserver(update);
+        observer.observe(el, { attributes: true, attributeFilter: ["class"] });
+        return () => observer.disconnect();
     }, []);
 
     useEffect(() => {
@@ -264,10 +293,11 @@ export default function AnalysisPage() {
         const candleWidth = Math.max(1, (chartW / candles.length) * 0.7);
         const gapWidth = chartW / candles.length;
 
-        ctx.fillStyle = "#080c13";
+        const isLight = isLightTheme;
+        ctx.fillStyle = isLight ? "#ffffff" : "#111111";
         ctx.fillRect(0, 0, w, h);
 
-        ctx.strokeStyle = "rgba(255,255,255,0.04)";
+        ctx.strokeStyle = isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.05)";
         ctx.lineWidth = 0.5;
         for (let i = 0; i <= 5; i++) {
             const y = padding.top + (chartH / 5) * i;
@@ -276,7 +306,7 @@ export default function AnalysisPage() {
             ctx.lineTo(w - padding.right, y);
             ctx.stroke();
             const price = maxPrice - (priceRange / 5) * i;
-            ctx.fillStyle = "#52525b";
+            ctx.fillStyle = isLight ? "#8a8a8a" : "#5b5b66";
             ctx.font = "10px monospace";
             ctx.textAlign = "left";
             ctx.fillText(price.toFixed(price >= 100 ? 2 : 5), w - padding.right + 4, y + 3);
@@ -307,7 +337,7 @@ export default function AnalysisPage() {
 
         if (data?.vwap?.vwap) {
             const vwapY = padding.top + ((maxPrice - data.vwap.vwap) / priceRange) * chartH;
-            ctx.strokeStyle = "rgba(139,92,246,0.5)";
+            ctx.strokeStyle = "rgba(255,77,0,0.55)";
             ctx.lineWidth = 1;
             ctx.setLineDash([4, 3]);
             ctx.beginPath();
@@ -315,7 +345,7 @@ export default function AnalysisPage() {
             ctx.lineTo(w - padding.right, vwapY);
             ctx.stroke();
             ctx.setLineDash([]);
-            ctx.fillStyle = "#8b5cf6";
+            ctx.fillStyle = "#ff4d00";
             ctx.font = "9px monospace";
             ctx.fillText(`VWAP ${data.vwap.vwap.toFixed(data.vwap.vwap >= 100 ? 2 : 5)}`, w - padding.right + 4, vwapY + 3);
         }
@@ -339,26 +369,29 @@ export default function AnalysisPage() {
             data.zones.filter((z) => z.status === "active").slice(0, 3).forEach((zone) => {
                 const highY = padding.top + ((maxPrice - zone.high) / priceRange) * chartH;
                 const lowY = padding.top + ((maxPrice - zone.low) / priceRange) * chartH;
-                ctx.fillStyle = zone.direction === "bullish" ? "rgba(16,185,129,0.06)" : "rgba(244,63,94,0.06)";
+                ctx.fillStyle = zone.direction === "bullish" ? "rgba(16,185,129,0.07)" : "rgba(244,63,94,0.07)";
                 ctx.fillRect(padding.left, highY, chartW, lowY - highY);
             });
         }
-    }, [ohlcData, data]);
+    }, [ohlcData, data, isLightTheme]);
 
     if (authLoading) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><SiteNavbar /><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div></div>);
+        return (
+            <div className="flex h-[60vh] items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
     }
 
     if (!user) {
         return (
-            <div className="flex min-h-screen flex-col bg-background text-foreground">
-                <SiteNavbar />
-                <div className="flex flex-1 flex-col items-center justify-center gap-4">
-                    <Lock size={40} className="text-muted-foreground" />
-                    <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
-                    <p className="text-sm text-muted-foreground">Sign in to access Market Intelligence</p>
-                    <a href="/login" className="rounded-xl bg-violet-600 px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-violet-500 transition">Sign In</a>
+            <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-border bg-card">
+                    <Lock size={28} className="text-muted-foreground" />
                 </div>
+                <h2 className="text-xl font-semibold text-foreground">Sign in required</h2>
+                <p className="text-sm text-muted-foreground">Sign in to access Market Analysis</p>
+                <a href="/login" className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Sign In</a>
             </div>
         );
     }
@@ -366,46 +399,86 @@ export default function AnalysisPage() {
     const totalFloatingPnl = positions.reduce((sum, p) => sum + p.profit, 0);
 
     return (
-        <div className="flex min-h-screen flex-col bg-background text-foreground">
-            <SiteNavbar />
-            <MarketHeader symbol={symbol} timeframe={timeframe} quote={data?.quote} session={data?.session} volatility={data?.volatility} regime={data?.regime} onSymbolChange={setSymbol} onTimeframeChange={setTimeframe} isLoading={loading} isConnected={!!data} onRefresh={handleRefresh} />
+        <>
+            <MarketHeader
+                symbol={symbol}
+                timeframe={timeframe}
+                quote={data?.quote}
+                session={data?.session}
+                volatility={data?.volatility}
+                regime={data?.regime}
+                onSymbolChange={setSymbol}
+                onTimeframeChange={setTimeframe}
+                isLoading={loading}
+                isConnected={!!data}
+                onRefresh={handleRefresh}
+                stickyTop={stickyTop}
+            />
 
-            <div className="flex flex-1 overflow-hidden">
-                <div className="flex-1 overflow-y-auto">
-                    {loading && !data && (<div className="flex h-96 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div>)}
+            <div className="flex flex-col xl:flex-row">
+                {/* Main content */}
+                <div className="min-w-0 flex-1 space-y-4 p-4 sm:p-6">
+                    {loading && !data && (
+                        <div className="space-y-4" aria-busy="true">
+                            <div className="h-24 animate-pulse rounded-xl bg-muted/40" />
+                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                                {Array.from({ length: 6 }).map((_, i) => (
+                                    <div key={i} className="h-16 animate-pulse rounded-xl bg-muted/40" />
+                                ))}
+                            </div>
+                            <div className="h-[440px] animate-pulse rounded-xl bg-muted/40" />
+                        </div>
+                    )}
+
                     {error && !data && (
-                        <div className="flex h-96 flex-col items-center justify-center gap-3">
-                            <p className="text-sm text-rose-400">{error}</p>
-                            <button type="button" onClick={handleRefresh} className="rounded-lg bg-muted/20 px-4 py-2 text-xs text-muted-foreground hover:bg-muted/40 transition">Retry</button>
+                        <div className="flex h-80 flex-col items-center justify-center gap-3 rounded-xl border border-destructive/20 bg-destructive/5">
+                            <AlertTriangle size={28} className="text-destructive" />
+                            <p className="text-sm text-destructive">{error}</p>
+                            <button type="button" onClick={handleRefresh} className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-xs font-medium text-foreground hover:bg-muted transition">
+                                <RefreshCw size={12} /> Retry
+                            </button>
                         </div>
                     )}
 
                     {data && (
-                        <div className="p-4" data-guide="page-header">
-                            {/* Account selector + stats */}
+                        <>
+                            {/* MT5 account selector + stats */}
                             {accounts.length > 0 && (
-                                <div className="mb-4 rounded-xl border border-border/30 bg-muted/50 p-3">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <Monitor size={14} className="text-violet-400" />
-                                            <span className="text-xs font-semibold text-muted-foreground">MT5 Account</span>
+                                <div className="rounded-xl border border-border bg-card p-4 shadow-sm" data-guide="page-header">
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                        <div className="flex flex-wrap items-center gap-3">
+                                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                                                <Monitor size={14} className="text-primary" />
+                                            </div>
+                                            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">MT5 Account</span>
                                             <select
                                                 value={selectedAccount?.id || ""}
                                                 onChange={(e) => { const acc = accounts.find((a) => a.id === e.target.value); if (acc) setSelectedAccount(acc); }}
-                                                className="rounded-lg border border-border/40 bg-muted px-2 py-1 text-xs text-foreground focus:border-violet-500 focus:outline-none"
+                                                className="rounded-lg border border-border bg-muted px-2 py-1.5 text-xs font-medium text-foreground transition focus:border-primary focus:outline-none"
                                             >
                                                 {accounts.map((acc) => (
                                                     <option key={acc.id} value={acc.id}>{acc.broker} — {acc.mt5Account} ({acc.currency})</option>
                                                 ))}
                                             </select>
                                             {selectedAccount && (
-                                                <span className={cn("flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium", selectedAccount.status === "connected" ? "bg-emerald-500/10 text-emerald-400" : "bg-muted/10 text-muted-foreground")}>
-                                                    <span className={cn("h-1.5 w-1.5 rounded-full", selectedAccount.status === "connected" ? "bg-emerald-400" : "bg-muted")} />
+                                                <span className={cn(
+                                                    "flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-medium",
+                                                    selectedAccount.status === "connected"
+                                                        ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
+                                                        : "border-border bg-muted text-muted-foreground"
+                                                )}>
+                                                    <span className={cn("h-1.5 w-1.5 rounded-full", selectedAccount.status === "connected" ? "bg-emerald-400" : "bg-muted-foreground")} />
                                                     {selectedAccount.status}
                                                 </span>
                                             )}
                                         </div>
-                                        <button type="button" onClick={handleRefresh} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/20 transition"><RefreshCw size={13} /></button>
+                                        <button
+                                            type="button"
+                                            onClick={handleRefresh}
+                                            className="flex items-center gap-1.5 rounded-lg border border-border bg-muted px-2.5 py-1.5 text-xs text-muted-foreground transition hover:bg-muted/70 hover:text-foreground"
+                                        >
+                                            <RefreshCw size={12} className={cn(loading && "animate-spin")} /> Refresh
+                                        </button>
                                     </div>
                                     {selectedAccount && (
                                         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
@@ -413,101 +486,122 @@ export default function AnalysisPage() {
                                             <MiniStat label="Equity" value={`$${selectedAccount.equity.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} />
                                             <MiniStat label="Margin" value={`$${selectedAccount.margin.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} />
                                             <MiniStat label="Free Margin" value={`$${selectedAccount.freeMargin.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} />
-                                            <MiniStat label="Margin Level" value={`${selectedAccount.marginLevel.toFixed(0)}%`} color={selectedAccount.marginLevel < 200 ? "text-rose-400" : "text-muted-foreground"} />
+                                            <MiniStat label="Margin Level" value={`${selectedAccount.marginLevel.toFixed(0)}%`} color={selectedAccount.marginLevel < 200 ? "text-rose-400" : "text-foreground"} />
                                         </div>
                                     )}
                                 </div>
                             )}
 
                             {/* Price summary */}
-                            <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6" data-guide="stats">
+                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6" data-guide="stats">
                                 <StatCard label="Bid" value={data.quote?.bid?.toFixed(data.quote.bid >= 100 ? 2 : 5) || "—"} />
                                 <StatCard label="Ask" value={data.quote?.ask?.toFixed(data.quote.ask >= 100 ? 2 : 5) || "—"} />
                                 <StatCard label="Spread" value={data.quote?.spread?.toFixed(data.quote.spread >= 1 ? 2 : 5) || "—"} />
-                                <StatCard label="Change" value={`${(data.quote?.changePercent || 0) >= 0 ? "+" : ""}${(data.quote?.changePercent || 0).toFixed(2)}%`} color={(data.quote?.changePercent || 0) >= 0 ? "text-emerald-400" : "text-rose-400"} />
+                                <StatCard
+                                    label="Change"
+                                    value={`${(data.quote?.changePercent || 0) >= 0 ? "+" : ""}${(data.quote?.changePercent || 0).toFixed(2)}%`}
+                                    color={(data.quote?.changePercent || 0) >= 0 ? "text-emerald-400" : "text-rose-400"}
+                                />
                                 <StatCard label="ATR" value={data.volatility?.atr?.toFixed(data.volatility.atr >= 100 ? 2 : 5) || "—"} />
-                                <StatCard label="Regime" value={data.regime?.regime?.replace(/_/g, " ") || "—"} />
+                                <StatCard label="Regime" value={data.regime?.regime?.replace(/_/g, " ") || "—"} color={regimeColor(data.regime?.regime)} />
                             </div>
 
-                            {/* Multi-timeframe */}
+                            {/* Multi-timeframe bias */}
                             {data.multiTimeframe && data.multiTimeframe.length > 0 && (
-                                <div className="mb-4 rounded-xl border border-border/30 bg-muted/50 p-3">
-                                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Multi-Timeframe Bias</p>
-                                    <div className="flex gap-3">
+                                <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+                                    <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Multi-Timeframe Bias</p>
+                                    <div className="flex flex-wrap gap-2">
                                         {data.multiTimeframe.map((mtf) => (
-                                            <div key={mtf.timeframe} className="flex items-center gap-1.5 text-xs">
-                                                <span className="text-muted-foreground">{mtf.timeframe}:</span>
-                                                <span className={cn("font-medium", mtf.bias === "bullish" ? "text-emerald-400" : mtf.bias === "bearish" ? "text-rose-400" : "text-muted-foreground")}>{mtf.bias}</span>
-                                            </div>
+                                            <span
+                                                key={mtf.timeframe}
+                                                className={cn(
+                                                    "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium",
+                                                    mtf.bias === "bullish"
+                                                        ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
+                                                        : mtf.bias === "bearish"
+                                                            ? "border-rose-500/20 bg-rose-500/10 text-rose-400"
+                                                            : "border-border bg-muted text-muted-foreground"
+                                                )}
+                                            >
+                                                <span className="font-mono">{mtf.timeframe}</span>
+                                                {mtf.bias}
+                                            </span>
                                         ))}
                                     </div>
                                 </div>
                             )}
 
                             {/* Real OHLC Chart */}
-                            <div className="mb-4 rounded-xl border border-border/30 bg-muted/50 overflow-hidden">
-                                <div className="flex items-center justify-between border-b border-border/20 px-3 py-2">
+                            <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+                                <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
                                     <div className="flex items-center gap-2">
-                                        <BarChart3 size={14} className="text-violet-400" />
-                                        <span className="text-xs font-semibold text-muted-foreground">{symbol} — {timeframe}</span>
-                                        <span className="text-[10px] text-muted-foreground">{ohlcData?.candleCount || 0} candles</span>
+                                        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+                                            <BarChart3 size={13} className="text-primary" />
+                                        </div>
+                                        <span className="font-mono text-xs font-semibold text-foreground">{symbol} · {timeframe}</span>
+                                        <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">{ohlcData?.candleCount || 0} candles</span>
                                     </div>
-                                    <span className="text-[10px] text-muted-foreground">Biquote.io OHLC</span>
+                                    <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                                        {data.timestamp > 0 && <span>Updated {new Date(data.timestamp).toLocaleTimeString()}</span>}
+                                        <span className="hidden sm:inline">Biquote.io OHLC</span>
+                                    </div>
                                 </div>
                                 <canvas ref={chartRef} className="w-full" style={{ height: "400px" }} />
                             </div>
 
                             {/* Open positions from MT5 */}
                             {selectedAccount && (
-                                <div className="mb-4 rounded-xl border border-border/30 bg-muted/50">
-                                    <div className="flex items-center justify-between border-b border-border/20 px-4 py-2.5">
+                                <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+                                    <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
                                         <div className="flex items-center gap-2">
-                                            <Wallet size={14} className="text-violet-400" />
-                                            <span className="text-xs font-semibold text-muted-foreground">Open Positions</span>
-                                            <span className="rounded-full bg-muted/30 px-2 py-0.5 text-[10px] text-muted-foreground">{positions.length}</span>
+                                            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+                                                <Wallet size={13} className="text-primary" />
+                                            </div>
+                                            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Open Positions</span>
+                                            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">{positions.length}</span>
                                         </div>
                                         {totalFloatingPnl !== 0 && (
-                                            <span className={cn("font-mono text-xs font-bold", totalFloatingPnl >= 0 ? "text-emerald-400" : "text-rose-400")}>
+                                            <span className={cn("font-mono text-xs font-bold tabular-nums", totalFloatingPnl >= 0 ? "text-emerald-400" : "text-rose-400")}>
                                                 {totalFloatingPnl >= 0 ? "+" : ""}${totalFloatingPnl.toFixed(2)}
                                             </span>
                                         )}
                                     </div>
-                                    {positionsLoading ? (
-                                        <div className="flex items-center justify-center py-6"><Loader2 size={16} className="animate-spin text-muted-foreground" /></div>
+                                    {positionsLoading && positions.length === 0 ? (
+                                        <div className="flex items-center justify-center py-8"><Loader2 size={16} className="animate-spin text-muted-foreground" /></div>
                                     ) : positions.length === 0 ? (
-                                        <div className="py-6 text-center text-xs text-muted-foreground">No open positions</div>
+                                        <div className="py-8 text-center text-xs text-muted-foreground">No open positions</div>
                                     ) : (
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-xs">
                                                 <thead>
-                                                    <tr className="border-b border-border/20 text-[10px] uppercase text-muted-foreground">
-                                                        <th className="px-4 py-2 text-left">Symbol</th>
-                                                        <th className="px-4 py-2 text-left">Type</th>
-                                                        <th className="px-4 py-2 text-right">Volume</th>
-                                                        <th className="px-4 py-2 text-right">Open</th>
-                                                        <th className="px-4 py-2 text-right">Current</th>
-                                                        <th className="px-4 py-2 text-right">SL</th>
-                                                        <th className="px-4 py-2 text-right">TP</th>
-                                                        <th className="px-4 py-2 text-right">P/L</th>
+                                                    <tr className="border-b border-border text-[10px] uppercase tracking-wider text-muted-foreground">
+                                                        <th className="px-4 py-2.5 text-left font-semibold">Symbol</th>
+                                                        <th className="px-4 py-2.5 text-left font-semibold">Type</th>
+                                                        <th className="px-4 py-2.5 text-right font-semibold">Volume</th>
+                                                        <th className="px-4 py-2.5 text-right font-semibold">Open</th>
+                                                        <th className="px-4 py-2.5 text-right font-semibold">Current</th>
+                                                        <th className="px-4 py-2.5 text-right font-semibold">SL</th>
+                                                        <th className="px-4 py-2.5 text-right font-semibold">TP</th>
+                                                        <th className="px-4 py-2.5 text-right font-semibold">P/L</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {positions.map((pos) => (
-                                                        <tr key={pos.ticket} className="border-b border-border/10 hover:bg-muted/50">
-                                                            <td className="px-4 py-2 font-mono font-medium text-foreground">{pos.symbol}</td>
-                                                            <td className={cn("px-4 py-2 font-medium", pos.type === "BUY" ? "text-emerald-400" : "text-rose-400")}>{pos.type}</td>
-                                                            <td className="px-4 py-2 text-right font-mono text-muted-foreground">{pos.volume.toFixed(2)}</td>
-                                                            <td className="px-4 py-2 text-right font-mono text-muted-foreground">{pos.openPrice.toFixed(pos.openPrice >= 100 ? 2 : 5)}</td>
-                                                            <td className="px-4 py-2 text-right font-mono text-muted-foreground">{pos.currentPrice.toFixed(pos.currentPrice >= 100 ? 2 : 5)}</td>
-                                                            <td className="px-4 py-2 text-right">
+                                                        <tr key={pos.ticket} className="border-b border-border/50 last:border-b-0 transition-colors hover:bg-muted/50">
+                                                            <td className="px-4 py-2.5 font-mono font-semibold text-foreground">{pos.symbol}</td>
+                                                            <td className={cn("px-4 py-2.5 font-medium", pos.type === "BUY" ? "text-emerald-400" : "text-rose-400")}>{pos.type}</td>
+                                                            <td className="px-4 py-2.5 text-right font-mono text-muted-foreground tabular-nums">{pos.volume.toFixed(2)}</td>
+                                                            <td className="px-4 py-2.5 text-right font-mono text-muted-foreground tabular-nums">{pos.openPrice.toFixed(pos.openPrice >= 100 ? 2 : 5)}</td>
+                                                            <td className="px-4 py-2.5 text-right font-mono text-muted-foreground tabular-nums">{pos.currentPrice.toFixed(pos.currentPrice >= 100 ? 2 : 5)}</td>
+                                                            <td className="px-4 py-2.5 text-right">
                                                                 {pos.sl > 0 ? (
-                                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-red-500/25 bg-red-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-red-400">
+                                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-rose-500/25 bg-rose-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-rose-400">
                                                                         <Shield size={8} className="opacity-60" />
                                                                         {pos.sl.toFixed(pos.sl >= 100 ? 2 : 5)}
                                                                     </span>
                                                                 ) : <span className="font-mono text-muted-foreground">—</span>}
                                                             </td>
-                                                            <td className="px-4 py-2 text-right">
+                                                            <td className="px-4 py-2.5 text-right">
                                                                 {pos.tp > 0 ? (
                                                                     <span className="inline-flex items-center gap-0.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-emerald-400">
                                                                         <Target size={8} className="opacity-60" />
@@ -515,7 +609,7 @@ export default function AnalysisPage() {
                                                                     </span>
                                                                 ) : <span className="font-mono text-muted-foreground">—</span>}
                                                             </td>
-                                                            <td className={cn("px-4 py-2 text-right font-mono font-medium", pos.profit >= 0 ? "text-emerald-400" : "text-rose-400")}>{pos.profit >= 0 ? "+" : ""}${pos.profit.toFixed(2)}</td>
+                                                            <td className={cn("px-4 py-2.5 text-right font-mono font-semibold tabular-nums", pos.profit >= 0 ? "text-emerald-400" : "text-rose-400")}>{pos.profit >= 0 ? "+" : ""}${pos.profit.toFixed(2)}</td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
@@ -526,15 +620,16 @@ export default function AnalysisPage() {
                             )}
 
                             {/* Risk disclaimer */}
-                            <div className="rounded-xl border border-amber-500/10 bg-amber-500/[0.03] p-3 text-[11px] text-amber-400/60">
+                            <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.03] p-3 text-[11px] text-amber-400/70">
                                 <Shield size={12} className="mr-1 inline" />
                                 Analytical tool — not financial advice. Scores and indicators are model-based estimates. Data from Biquote.io and your connected MT5 account.
                             </div>
-                        </div>
+                        </>
                     )}
                 </div>
 
-                <aside className="w-72 shrink-0 overflow-y-auto border-l border-border/30 bg-background xl:w-80">
+                {/* Analytics panels sidebar */}
+                <aside className="w-full shrink-0 border-t border-border bg-card/40 xl:sticky xl:top-14 xl:max-h-[calc(100vh-3.5rem)] xl:w-80 xl:self-start xl:overflow-y-auto xl:border-l xl:border-t-0">
                     {data ? (
                         <div>
                             {PANELS.map((panel) => (
@@ -552,28 +647,30 @@ export default function AnalysisPage() {
                             ))}
                         </div>
                     ) : (
-                        <div className="flex h-full items-center justify-center"><p className="text-xs text-muted-foreground">Sign in to view analytics</p></div>
+                        <div className="flex h-full items-center justify-center p-8">
+                            <p className="text-xs text-muted-foreground">{error ? "Analytics unavailable" : "Loading analytics…"}</p>
+                        </div>
                     )}
                 </aside>
             </div>
-        </div>
+        </>
     );
 }
 
 function StatCard({ label, value, color }: { label: string; value: string; color?: string }) {
     return (
-        <div className="rounded-lg border border-border/30 bg-muted/50 px-3 py-2">
-            <p className="text-[10px] font-semibold uppercase text-muted-foreground">{label}</p>
-            <p className={cn("mt-0.5 font-mono text-sm font-medium", color || "text-muted-foreground")}>{value}</p>
+        <div className="rounded-xl border border-border bg-card px-3.5 py-3 shadow-sm transition-colors hover:border-primary/30">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+            <p className={cn("mt-1 font-mono text-sm font-semibold tabular-nums capitalize", color || "text-foreground")}>{value}</p>
         </div>
     );
 }
 
 function MiniStat({ label, value, color }: { label: string; value: string; color?: string }) {
     return (
-        <div className="rounded-lg bg-muted/50 px-2.5 py-1.5">
-            <p className="text-[9px] font-semibold uppercase text-muted-foreground">{label}</p>
-            <p className={cn("mt-0.5 font-mono text-xs font-medium", color || "text-muted-foreground")}>{value}</p>
+        <div className="rounded-lg bg-muted/60 px-2.5 py-1.5">
+            <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+            <p className={cn("mt-0.5 font-mono text-xs font-medium tabular-nums", color || "text-foreground")}>{value}</p>
         </div>
     );
 }

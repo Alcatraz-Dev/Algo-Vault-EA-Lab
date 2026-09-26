@@ -50,7 +50,7 @@ const NAV_ITEMS = [
   { icon: CreditCard, label: "Purchases", href: "/account/purchases" },
   { icon: FileKey2, label: "Licenses", href: "/account/licenses" },
   { icon: Sparkles, label: "TradingView", href: "/account/tradingview" },
-  { icon: LineChart, label: "Live", href: "/live" },
+  { icon: LineChart, label: "Live", href: "/live", badge: "●" },
   { icon: BarChart3, label: "Backtests", href: "/backtests" },
   { icon: Copy, label: "Copy Trading", href: "/copy-trading" },
   { icon: Radio, label: "Sessions", href: "/tools/sessions" },
@@ -133,7 +133,7 @@ export default function SiteNavbar() {
 
         {/* Desktop Nav */}
         <div className="hidden items-center gap-1 md:flex">
-          {NAV_ITEMS.map(({ icon: Icon, label, href }) => (
+          {NAV_ITEMS.map(({ icon: Icon, label, href, badge }) => (
             <Link
               key={href}
               href={href}
@@ -144,7 +144,10 @@ export default function SiteNavbar() {
               }`}
             >
               <Icon size={14} />
-              {label}
+              <span className="inline-flex items-center gap-1.5">
+                {label}
+                {badge && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
+              </span>
             </Link>
           ))}
           {PRO_NAV_ITEMS.map(({ icon: Icon, label, href }) => (

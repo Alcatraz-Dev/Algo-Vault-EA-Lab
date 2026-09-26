@@ -1,0 +1,4 @@
+export type KnowledgeNodeType = "market_event" | "smart_money_event" | "setup" | "setup_lifecycle" | "pattern" | "pattern_occurrence" | "validation_candidate" | "backtest" | "oos" | "walk_forward" | "robustness" | "monte_carlo" | "evidence_report" | "strategy_candidate" | "trade";
+export interface KnowledgeNodeRef { type: KnowledgeNodeType; id: string; symbol?: string; timeframe?: string; timestamp?: number; datasetId?: string; workspaceId?: string; }
+export interface KnowledgeEdge { id: string; from: KnowledgeNodeRef; to: KnowledgeNodeRef; type: string; createdAt?: string; workspaceContext?: Record<string, unknown>; evidenceIds?: string[]; source?: string; }
+export interface KnowledgeGraphValidationResult { valid: boolean; orphanEdges: KnowledgeEdge[]; duplicateEdges: string[]; invalidEdges: KnowledgeEdge[]; missingNodes: string[]; warnings: string[]; }

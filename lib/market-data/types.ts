@@ -258,3 +258,32 @@ export const SUPPORTED_SYMBOLS = [
 ] as const;
 
 export type SupportedSymbol = (typeof SUPPORTED_SYMBOLS)[number];
+
+export type AnalyticsData = {
+  [key: string]: any;
+};
+
+export type OHLCData = {
+  candles?: Array<{
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    timestamp?: number;
+  }>;
+  [key: string]: any;
+};
+
+export type MT5Account = {
+  id: string | number;
+  name?: string;
+  login?: string | number;
+  [key: string]: any;
+};
+
+export type MT5Position = {
+  id?: string | number;
+  symbol?: string;
+  ticket?: number;
+  [key: string]: any;
+};

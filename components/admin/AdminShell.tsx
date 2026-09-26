@@ -7,6 +7,7 @@ import {
     HeartPulse,
     Activity,
     ArrowLeft,
+    BarChart3,
     Bot,
     Code2,
     Copy,
@@ -23,6 +24,7 @@ import {
     Plug,
     Puzzle,
     Radio,
+    Zap,
     RotateCcw,
     Settings,
     Shield,
@@ -33,6 +35,9 @@ import {
     X,
     Brain,
     Gauge,
+    ShieldCheck,
+    Database,
+    Server,
 } from "lucide-react";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { auth, database } from "@/lib/firebase";
@@ -43,11 +48,14 @@ import { NotificationsMenu } from "@/components/layout/NotificationsMenu";
 
 const NAV_ITEMS = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
+    { icon: BarChart3, label: "Market Analysis", href: "/admin/analysis" },
     { icon: Target, label: "Growth", href: "/admin/growth" },
     { icon: DollarSign, label: "Monetization", href: "/admin/monetization" },
     { icon: Radio, label: "Telegram Signals", href: "/admin/telegram" },
     { icon: Bot, label: "Bots / Products", href: "/admin/bots" },
     { icon: Activity, label: "Live Accounts", href: "/admin/live" },
+    { icon: Sparkles, label: "Live Map", href: "/admin/livemap" },
+    { icon: Zap, label: "Scalping Terminal", href: "/admin/scalping" },
     { icon: Shield, label: "Account Health", href: "/admin/intelligence/account-health" },
     { icon: Brain, label: "Intelligence", href: "/admin/intelligence" },
     { icon: HeartPulse, label: "AI Provider Health", href: "/admin/intelligence/ai-health" },
@@ -68,6 +76,10 @@ const NAV_ITEMS = [
     { icon: LineChart, label: "Trading Studio", href: "/admin/tradingview" },
     { icon: RotateCcw, label: "Trade Replay", href: "/trade-replay" },
     { icon: DollarSign, label: "Affiliates", href: "/admin/affiliates" },
+    { icon: Activity, label: "Business Operations", href: "/admin/business-operations" },
+    { icon: ShieldCheck, label: "Business Events", href: "/admin/business-events" },
+    { icon: Database, label: "Financial Overview", href: "/admin/business-operations/financial" },
+    { icon: Server, label: "ERPNext", href: "/admin/erpnext" },
     { icon: MessageSquare, label: "Reviews", href: "/admin/reviews" },
     { icon: Target, label: "Goals", href: "/goals" },
     { icon: Settings, label: "Settings", href: "/admin/settings" },

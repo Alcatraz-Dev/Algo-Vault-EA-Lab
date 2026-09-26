@@ -9,7 +9,7 @@ import { BacktestConfig, BacktestResult, BacktestTrade } from "../types";
  * Look-ahead protection: context only includes candles with timestamp <= current.
  * Smart Money events only include events with timestamp <= current.
  */
- *
+/*
  * Principles:
  * - No future-data leakage.
  * - Deterministic entry/exit rules only.

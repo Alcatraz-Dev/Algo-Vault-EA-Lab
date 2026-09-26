@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import ScalpingTerminal from "@/components/live/ScalpingTerminal";
 import {
    Activity,
    AlertTriangle,
@@ -55,6 +56,8 @@ const ACCOUNT_NAV: NavGroup[] = [
       { icon: Globe, label: "Trading Access", href: "/account/trading-access" },
       { icon: Gift, label: "Affiliates", href: "/account/affiliate" },
       { icon: Zap, label: "Upgrade", href: "/pricing" },
+      { icon: Zap, label: "Scalping Terminal", href: "/account/scalping" },
+      { icon: Zap, label: "Pro Scalping Terminal", href: "/account/scalping-terminal" },
       { icon: Settings, label: "Settings", href: "/account/settings" },
       { icon: Activity, label: "Account Health", href: "/account/account-health" },
     ],
@@ -85,6 +88,8 @@ const ACCOUNT_NAV: NavGroup[] = [
     items: [
       { icon: Plug, label: "My Plugins", href: "/account/plugins" },
       { icon: Cpu, label: "Active Agents", href: "/account/agents" },
+      { icon: BarChart3, label: "Analysis", href: "/account/analysis" },
+      { icon: BarChart3, label: "Market Intelligence", href: "/account/market-intelligence" },
     ],
   },
   {
@@ -113,7 +118,7 @@ const ACCOUNT_NAV: NavGroup[] = [
           { icon: Target, label: "Smart Management", href: "/trade-management" },
           { icon: Bell, label: "Alert Center", href: "/alert-center" },
           { icon: BarChart3, label: "Backtests", href: "/backtests" },
-          { icon: Activity, label: "Live Accounts", href: "/account/live" },
+          { icon: Activity, label: "Live Intelligence", href: "/account/live" },
           { icon: Copy, label: "Copy Trading", href: "/copy-trading" },
           { icon: Wallet, label: "Compare Brokers", href: "/compare" },
           { icon: Activity, label: "Scanner", href: "/scanner" },

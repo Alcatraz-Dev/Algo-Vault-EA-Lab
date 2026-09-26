@@ -282,6 +282,12 @@
         ".write": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
     },
+    "proTerminal": {
+      "$userId": {
+        ".read": "auth != null && auth.uid === $userId",
+        ".write": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
 
     "tradeTags": {
       "$userId": {

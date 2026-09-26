@@ -57,6 +57,7 @@ type MarketHeaderProps = {
     isLoading: boolean;
     isConnected: boolean;
     onRefresh: () => void;
+    stickyTop?: string;
 };
 
 const TIMEFRAMES: Timeframe[] = ["M1", "M5", "M15", "M30", "H1", "H4", "D1"];
@@ -65,16 +66,16 @@ function getRegimeColor(regime: string): string {
     if (regime.includes("bullish")) return "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
     if (regime.includes("bearish")) return "text-rose-400 bg-rose-500/10 border-rose-500/20";
     if (regime.includes("range")) return "text-amber-400 bg-amber-500/10 border-amber-500/20";
-    if (regime.includes("breakout")) return "text-violet-400 bg-violet-500/10 border-violet-500/20";
+    if (regime.includes("breakout")) return "text-primary bg-primary/10 border-primary/20";
     if (regime.includes("high")) return "text-orange-400 bg-orange-500/10 border-orange-500/20";
-    if (regime.includes("low")) return "text-blue-400 bg-blue-500/10 border-blue-500/20";
+    if (regime.includes("low")) return "text-sky-400 bg-sky-500/10 border-sky-500/20";
     return "text-muted-foreground bg-muted/10 border-border/30";
 }
 
 function getVolatilityColor(state: string): string {
     if (state === "extreme") return "text-rose-400";
     if (state === "high") return "text-orange-400";
-    if (state === "low") return "text-blue-400";
+    if (state === "low") return "text-sky-400";
     return "text-muted-foreground";
 }
 
@@ -98,34 +99,35 @@ export default function MarketHeader({
     isLoading,
     isConnected,
     onRefresh,
+    stickyTop = "top-14",
 }: MarketHeaderProps) {
     const [showSymbolDropdown, setShowSymbolDropdown] = useState(false);
 
     const isPositive = (quote?.changePercent || 0) >= 0;
 
     return (
-        <div className="border-b border-border/12 bg-foreground/80 backdrop-blur-md">
-            <div className="flex items-center gap-4 px-4 py-2.5">
+        <div className={cn("sticky z-30 border-b border-border bg-background/95 backdrop-blur-md", stickyTop)}>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 sm:px-6">
                 {/* Symbol selector */}
                 <div className="relative">
                     <button
                         type="button"
                         onClick={() => setShowSymbolDropdown(!showSymbolDropdown)}
-                        className="flex items-center gap-2 rounded-lg bg-foreground/8 px-3 py-1.5 text-sm font-semibold text-foreground hover:bg-background/14 transition"
+                        className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-1.5 font-mono text-sm font-semibold text-foreground transition hover:border-primary/40 hover:text-primary"
                     >
                         {symbol}
-                        <ChevronDown size={14} className="text-foreground/70" />
+                        <ChevronDown size={14} className={cn("text-muted-foreground transition-transform", showSymbolDropdown && "rotate-180")} />
                     </button>
                     {showSymbolDropdown && (
-                        <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-xl border border-border/15 bg-background p-1 shadow-2xl">
+                        <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-xl border border-border bg-popover p-1 shadow-2xl">
                             {SUPPORTED_SYMBOLS.map((s) => (
                                 <button
                                     key={s}
                                     type="button"
                                     onClick={() => { onSymbolChange(s); setShowSymbolDropdown(false); }}
                                     className={cn(
-                                        "flex w-full items-center rounded-lg px-3 py-2 text-sm transition",
-                                        s === symbol ? "bg-violet-500/15 text-violet-400" : "text-muted-foreground hover:bg-foreground/10 hover:text-foreground"
+                                        "flex w-full items-center rounded-lg px-3 py-2 font-mono text-sm transition",
+                                        s === symbol ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                     )}
                                 >
                                     {s}
@@ -150,10 +152,10 @@ export default function MarketHeader({
 
                 {/* Bid/Ask */}
                 {quote && (
-                    <div className="flex items-center gap-3 text-xs text-foreground/70">
-                        <span>Bid <span className="font-mono text-foreground/70">{quote.bid.toFixed(quote.bid >= 100 ? 2 : 5)}</span></span>
-                        <span>Ask <span className="font-mono text-foreground/70">{quote.ask.toFixed(quote.ask >= 100 ? 2 : 5)}</span></span>
-                        <span>Spread <span className="font-mono text-foreground/70">{quote.spread.toFixed(quote.spread >= 1 ? 2 : 5)}</span></span>
+                    <div className="hidden items-center gap-3 text-xs text-muted-foreground md:flex">
+                        <span>Bid <span className="font-mono tabular-nums text-foreground/80">{quote.bid.toFixed(quote.bid >= 100 ? 2 : 5)}</span></span>
+                        <span>Ask <span className="font-mono tabular-nums text-foreground/80">{quote.ask.toFixed(quote.ask >= 100 ? 2 : 5)}</span></span>
+                        <span>Spread <span className="font-mono tabular-nums text-foreground/80">{quote.spread.toFixed(quote.spread >= 1 ? 2 : 5)}</span></span>
                     </div>
                 )}
 
@@ -161,20 +163,20 @@ export default function MarketHeader({
 
                 {/* Session */}
                 {session && (
-                    <div className="flex items-center gap-1.5 rounded-lg border border-border/12 bg-foreground/6 px-2.5 py-1.5 text-xs">
-                        <Clock size={12} className="text-foreground/70" />
+                    <div className="hidden items-center gap-1.5 rounded-lg border border-border bg-muted px-2.5 py-1.5 text-xs sm:flex">
+                        <Clock size={12} className="text-muted-foreground" />
                         <span className="text-muted-foreground">{getSessionIcon(session.name)} {session.name}</span>
                     </div>
                 )}
 
                 {/* Volatility */}
                 {volatility && (
-                    <div className="flex items-center gap-1.5 rounded-lg border border-border/12 bg-foreground/6 px-2.5 py-1.5 text-xs">
+                    <div className="hidden items-center gap-1.5 rounded-lg border border-border bg-muted px-2.5 py-1.5 text-xs md:flex">
                         <Zap size={12} className={getVolatilityColor(volatility.state)} />
                         <span className="text-muted-foreground">
-                            Vol: <span className={cn("font-medium", getVolatilityColor(volatility.state))}>{volatility.state}</span>
+                            Vol: <span className={cn("font-medium capitalize", getVolatilityColor(volatility.state))}>{volatility.state}</span>
                         </span>
-                        <span className="font-mono text-foreground/70">{volatility.atrPercent.toFixed(2)}%</span>
+                        <span className="font-mono tabular-nums text-muted-foreground">{volatility.atrPercent.toFixed(2)}%</span>
                     </div>
                 )}
 
@@ -188,11 +190,11 @@ export default function MarketHeader({
                 )}
 
                 {/* Connection status */}
-                <div className="flex items-center gap-1.5 text-xs text-foreground/70">
+                <div className="flex items-center gap-1.5 text-xs">
                     {isConnected ? (
-                        <><Wifi size={12} className="text-emerald-400" /> <span className="text-emerald-400">Live</span></>
+                        <><span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" /><span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" /></span> <span className="font-medium text-emerald-400">Live</span></>
                     ) : (
-                        <><WifiOff size={12} /> <span>Offline</span></>
+                        <><WifiOff size={12} className="text-muted-foreground" /> <span className="text-muted-foreground">Offline</span></>
                     )}
                 </div>
 
@@ -201,24 +203,25 @@ export default function MarketHeader({
                     type="button"
                     onClick={onRefresh}
                     disabled={isLoading}
-                    className="rounded-lg p-1.5 text-foreground/70 hover:text-foreground hover:bg-foreground/10 transition disabled:opacity-50"
+                    aria-label="Refresh analytics"
+                    className="rounded-lg border border-border bg-muted p-1.5 text-muted-foreground transition hover:border-primary/40 hover:text-primary disabled:opacity-50"
                 >
-                    {isLoading ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />}
+                    {isLoading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
                 </button>
             </div>
 
             {/* Timeframe bar */}
-            <div className="flex items-center gap-1 px-4 pb-2">
+            <div className="flex items-center gap-1 overflow-x-auto px-4 pb-2 sm:px-6">
                 {TIMEFRAMES.map((tf) => (
                     <button
                         key={tf}
                         type="button"
                         onClick={() => onTimeframeChange(tf)}
                         className={cn(
-                            "rounded-md px-2.5 py-1 text-xs font-medium transition",
+                            "rounded-md px-2.5 py-1 font-mono text-xs font-medium transition",
                             tf === timeframe
-                                ? "bg-violet-500/15 text-violet-400"
-                                : "text-foreground/70 hover:text-foreground/70 hover:bg-foreground/8"
+                                ? "bg-primary/15 text-primary"
+                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
                         )}
                     >
                         {tf}

@@ -161,7 +161,18 @@ export default function TradingChart({
         setRedoStack((prev) => prev.slice(0, -1));
     }, [redoStack]);
 
-    const layout = { symbol: chartSymbol, interval: chartInterval, chartType, studies: activeStudies, theme: "dark" as const };
+    const [theme, setTheme] = useState<"dark" | "light">(() => (typeof document !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "light"));
+
+    useEffect(() => {
+        const observer = new MutationObserver(() => {
+            const isDark = document.documentElement.classList.contains("dark");
+            setTheme(isDark ? "dark" : "light");
+        });
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+        return () => observer.disconnect();
+    }, []);
+
+    const layout = { symbol: chartSymbol, interval: chartInterval, chartType, studies: activeStudies, theme };
 
     const showEmptyState = !marketLoading && marketError !== null;
 

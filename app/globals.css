@@ -825,6 +825,128 @@ body {
   );
 }
 
+/* ── Trigger.dev-style hero light system (brand orange) ── */
+@keyframes av-beam-sweep {
+  0%   { transform: translateX(-140%) skewX(-10deg); opacity: 0; }
+  6%   { opacity: 1; }
+  86%  { opacity: 1; }
+  100% { transform: translateX(260%) skewX(-10deg); opacity: 0; }
+}
+
+.av-beam {
+  position: absolute;
+  top: -12%;
+  bottom: -12%;
+  left: 0;
+  width: 38%;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    color-mix(in oklch, var(--primary) 6%, transparent) 28%,
+    color-mix(in oklch, var(--primary) 15%, transparent) 50%,
+    color-mix(in oklch, var(--primary) 6%, transparent) 72%,
+    transparent 100%
+  );
+  filter: blur(10px);
+  animation: av-beam-sweep 11s cubic-bezier(0.45, 0.05, 0.35, 0.95) infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes av-aurora-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.8; }
+  50%      { transform: translate3d(1.5%, -2%, 0) scale(1.06); opacity: 1; }
+}
+
+.av-aurora {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  filter: blur(90px);
+  will-change: transform, opacity;
+}
+
+.av-aurora-a {
+  background: radial-gradient(closest-side, color-mix(in oklch, var(--primary) 13%, transparent), transparent 72%);
+  animation: av-aurora-drift 15s ease-in-out infinite;
+}
+
+.av-aurora-b {
+  background: radial-gradient(closest-side, color-mix(in oklch, var(--primary) 8%, transparent), transparent 72%);
+  animation: av-aurora-drift 19s ease-in-out infinite reverse;
+}
+
+/* Console panel: periodic light sweep across the surface */
+.av-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.av-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    115deg,
+    transparent 40%,
+    color-mix(in oklch, var(--primary) 8%, transparent) 50%,
+    transparent 60%
+  );
+  transform: translateX(-130%);
+  animation: av-panel-sweep 8s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes av-panel-sweep {
+  0%, 52%  { transform: translateX(-130%); opacity: 0; }
+  58%      { opacity: 1; }
+  94%      { opacity: 1; }
+  100%     { transform: translateX(130%); opacity: 0; }
+}
+
+/* Console panel: breathing light line along the top edge */
+.av-edge::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklch, var(--primary) 70%, transparent),
+    transparent
+  );
+  animation: av-edge-glow 6.5s ease-in-out infinite;
+}
+
+@keyframes av-edge-glow {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 1; }
+}
+
+.light .av-beam { filter: blur(14px); }
+.light .av-aurora-a { opacity: 0.75; }
+.light .av-aurora-b { opacity: 0.75; }
+
+@media (prefers-reduced-motion: reduce) {
+  .av-beam,
+  .av-panel::after,
+  .av-edge::before,
+  .av-aurora-a,
+  .av-aurora-b {
+    animation: none !important;
+  }
+  .av-beam,
+  .av-panel::after { opacity: 0 !important; }
+}
+
 /* ── Ecosystem connection effect (energy flow between nodes) ── */
 @keyframes dash-flow {
   from { stroke-dashoffset: 0; }

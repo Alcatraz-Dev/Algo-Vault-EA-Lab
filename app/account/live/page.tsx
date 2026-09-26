@@ -1,247 +1,141 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-    Activity,
-    Bot,
-    DollarSign,
-    RefreshCw,
-    TrendingDown,
-    Wifi,
-    WifiOff,
-} from "lucide-react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import AccountShell from "@/components/account/AccountShell";
+import { useState, useMemo, useEffect } from "react";
+import { ArrowLeft, Sparkles, Globe } from "lucide-react";
+import Link from "next/link";
+import { generateDemoActivities } from "@/lib/live/live-aggregator";
+import LiveWorldMap from "@/components/live/LiveWorldMap";
+import LiveStatsRow from "@/components/live/LiveStatsRow";
+import LiveActivityFeed from "@/components/live/LiveActivityFeed";
+import GlobalActivity from "@/components/live/GlobalActivity";
+import MarketActivity from "@/components/live/MarketActivity";
 import BarCompareChart from "@/components/charts/BarCompareChart";
-
-function formatMoney(v: number, currency = "USD") {
-    try {
-        return new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 2 }).format(v);
-    } catch { return `$${v.toFixed(2)}`; }
-}
-
-function timeAgo(ms?: number | null, now = 0) {
-    if (!ms) return "Never";
-    const diff = Math.floor((now - ms) / 1000);
-    if (diff < 60) return `${diff}s ago`;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return `${Math.floor(diff / 86400)}d ago`;
-}
-
-type LiveAccount = {
-    id: string;
-    productId: string;
-    productName?: string;
-    mt5Account: string;
-    broker?: string;
-    server?: string;
-    currency?: string;
-    balance?: number;
-    equity?: number;
-    floatingProfit?: number;
-    peakEquity?: number;
-    drawdown?: number;
-    status?: string;
-    lastHeartbeatAt?: number;
-    userId?: string;
-    licenseId?: string;
-};
+import ScalpingTerminal from "@/components/live/ScalpingTerminal";
 
 export default function AccountLivePage() {
-    const [accounts, setAccounts] = useState<LiveAccount[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [authOk, setAuthOk] = useState(false);
-    const [error, setError] = useState("");
-    const [now, setNow] = useState(0);
+  const [hoveredCountry, setHoveredCountry] = useState<string | undefined>(undefined);
+  const [dark, setDark] = useState(false);
+  const activities = useMemo(() => generateDemoActivities(60), []);
 
-    useEffect(() => {
-        return onAuthStateChanged(auth, async (user) => {
-            if (!user) { setLoading(false); return; }
-            setAuthOk(true);
-        });
-    }, []);
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    setDark(document.documentElement.classList.contains("dark"));
+    return () => observer.disconnect();
+  }, []);
 
-    useEffect(() => {
-        if (!authOk) return;
+  useEffect(() => {
+    const mql = window.matchMedia("(prefers-color-scheme: dark)");
+    const update = () => setDark(mql.matches);
+    update();
+    mql.addEventListener("change", update);
+    return () => mql.removeEventListener("change", update);
+  }, []);
 
-        const fetchAccounts = async () => {
-            try {
-                const token = await auth.currentUser?.getIdToken();
-                if (!token) return;
-                const res = await fetch("/api/account/live", {
-                    headers: { Authorization: `Bearer ${token}` },
-                    cache: "no-store",
-                });
-                if (!res.ok) {
-                    setError((await res.json())?.error ?? "Failed to load accounts.");
-                    setLoading(false);
-                    return;
-                }
-                const data = await res.json();
-                setAccounts(Array.isArray(data?.accounts) ? data.accounts : []);
-                setNow(Date.now());
-                setError("");
-            } catch (err) {
-                console.error("Error loading live accounts:", err);
-                setError("Failed to load accounts.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchAccounts();
-        const interval = setInterval(fetchAccounts, 30_000);
-        return () => clearInterval(interval);
-    }, [authOk]);
-
-    const online = accounts.filter(a => a.lastHeartbeatAt && (now - a.lastHeartbeatAt) < 90_000);
-    const offline = accounts.filter(a => !a.lastHeartbeatAt || (now - a.lastHeartbeatAt) >= 90_000);
-    const totalBalance = accounts.reduce((s, a) => s + (a.balance || 0), 0);
-    const totalFloating = accounts.reduce((s, a) => s + (a.floatingProfit || 0), 0);
-
-    return (
-        <AccountShell title="Live Accounts" subtitle="Real-time heartbeat monitoring & MT5 account statistics">
-            <div className="mb-6 flex items-center justify-end gap-3">
-                <span className="flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-sm text-emerald-600">
-                    <span className="relative flex h-2 w-2">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                    </span>
-                    {online.length} Live
-                </span>
-                <span className="rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground">
-                    {offline.length} Offline
-                </span>
+  return (
+    <div className="min-h-screen bg-background text-foreground font-sans">
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/40">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center gap-4">
+          <Link href="/account" className="inline-flex items-center gap-2 rounded-lg p-2 hover:bg-muted transition text-muted-foreground hover:text-foreground" aria-label="Back to account">
+            <ArrowLeft size={18} />
+          </Link>
+          <div className="w-px h-6 bg-border" />
+          <a href="/" className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-lg bg-[#ff4d00] flex items-center justify-center shadow-lg shadow-[#ff4d00]/20">
+              <Sparkles className="w-4 h-4 text-white" />
             </div>
-            {/* Summary */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-                {[
-                    { label: "Total Accounts", value: String(accounts.length), icon: Bot },
-                    { label: "Online Now", value: String(online.length), icon: Wifi },
-                    { label: "Total Balance", value: formatMoney(totalBalance), icon: DollarSign },
-                    { label: "Floating P/L", value: (totalFloating >= 0 ? "+" : "") + formatMoney(totalFloating), icon: TrendingDown },
-                ].map(({ label, value, icon: Icon }) => (
-                    <div key={label} className="rounded-2xl border border-border bg-muted/40 p-5">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-muted-foreground">{label}</p>
-                                <p className="mt-2 text-2xl font-bold">{value}</p>
-                            </div>
-                            <div className="rounded-xl border border-border bg-muted/50 p-2.5">
-                                <Icon className="h-5 w-5 text-foreground" />
-                            </div>
-                        </div>
-                    </div>
-                ))}
+            <div className="leading-none">
+              <div className="text-sm font-extrabold tracking-tight text-foreground group-hover:text-[#ff4d00] transition">AlgoVault</div>
+              <div className="text-[10px] font-medium text-muted-foreground tracking-widest uppercase">Live Intelligence</div>
             </div>
+          </a>
+          <div className="ml-auto flex items-center gap-3 text-xs font-medium text-muted-foreground">
+            <span className="hidden sm:inline">Real-time trading intelligence</span>
+            <span className="hidden md:inline">•</span>
+            <span className="hidden md:inline">Privacy-safe aggregation</span>
+          </div>
+        </div>
+      </header>
 
-            {error && (
-                <div className="mb-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-600">
-                    {error}
-                </div>
-            )}
+      <main className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-10 space-y-8">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-foreground leading-[1.1]">
+              AlgoVault <span className="text-[#2563eb]">Live</span>
+            </h1>
+            <p className="mt-3 text-sm md:text-base text-muted-foreground max-w-2xl leading-relaxed">
+              Real-time trading intelligence around the world. Aggregated safely at country level.
+            </p>
+          </div>
+          <div className="shrink-0 flex items-center gap-2 text-xs font-medium text-muted-foreground bg-muted border border-border rounded-full px-3 py-1.5">
+            <Globe className="w-3.5 h-3.5 text-[#ff4d00]" />
+            Interactive world view
+          </div>
+        </div>
 
-            {!loading && accounts.length > 0 && (
-                <div className="mb-8 rounded-2xl border border-border bg-muted/40 p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="font-semibold">Balance by Account</h2>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                Live balances across connected MT5 accounts
-                            </p>
-                        </div>
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted/50">
-                            <DollarSign className="h-5 w-5 text-foreground" />
-                        </div>
-                    </div>
-                    <div className="mt-6">
-                        <BarCompareChart
-                            data={accounts.map((acct) => ({
-                                label: acct.mt5Account ? `#${acct.mt5Account}` : acct.productName || acct.id,
-                                value: acct.balance || 0,
-                            }))}
-                            xKey="label"
-                            valueKey="value"
-                            height={220}
-                            colorVar="var(--chart-2)"
-                            formatValue={(value) => formatMoney(value)}
-                        />
-                    </div>
-                </div>
-            )}
+        <LiveStatsRow />
 
-            {loading ? (
-                <div className="rounded-2xl border border-border bg-muted/30 p-16 text-center">
-                    <RefreshCw className="mx-auto h-8 w-8 animate-spin text-muted-foreground mb-3" />
-                    <p className="text-sm text-muted-foreground">Loading accounts...</p>
-                </div>
-            ) : accounts.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-border p-16 text-center">
-                    <Activity className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
-                    <h3 className="font-semibold">No accounts yet</h3>
-                    <p className="mt-2 text-sm text-muted-foreground">Accounts appear here when an EA connects via heartbeat.</p>
-                </div>
-            ) : (
-                <div className="rounded-2xl border border-border bg-muted/30 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full min-w-[900px] text-sm">
-                            <thead>
-                                <tr className="border-b border-border text-xs uppercase tracking-wider text-muted-foreground">
-                                    <th className="px-5 py-4 text-left">Status</th>
-                                    <th className="px-5 py-4 text-left">Product / Account</th>
-                                    <th className="px-5 py-4 text-left">Broker</th>
-                                    <th className="px-5 py-4 text-left">Balance</th>
-                                    <th className="px-5 py-4 text-left">Equity</th>
-                                    <th className="px-5 py-4 text-left">Floating P/L</th>
-                                    <th className="px-5 py-4 text-left">Drawdown</th>
-                                    <th className="px-5 py-4 text-left">Last Heartbeat</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {accounts.map((acct) => {
-                                    const isOnline = acct.lastHeartbeatAt && (now - acct.lastHeartbeatAt) < 90_000;
-                                    const fl = acct.floatingProfit || 0;
-                                    return (
-                                        <tr key={acct.id} className="border-b border-border/60 last:border-0 hover:bg-muted/30">
-                                            <td className="px-5 py-4">
-                                                <span className={`flex items-center gap-1.5 text-xs font-medium ${isOnline ? "text-emerald-600" : "text-muted-foreground"}`}>
-                                                    {isOnline ? <Wifi size={12} /> : <WifiOff size={12} />}
-                                                    {isOnline ? "LIVE" : "Offline"}
-                                                </span>
-                                            </td>
-                                            <td className="px-5 py-4">
-                                                <p className="font-semibold text-foreground">{acct.productName || acct.productId}</p>
-                                                <p className="text-xs text-muted-foreground font-mono mt-0.5">MT5 #{acct.mt5Account}</p>
-                                            </td>
-                                            <td className="px-5 py-4 text-muted-foreground">
-                                                <p>{acct.broker || "—"}</p>
-                                                {acct.server && <p className="text-xs text-muted-foreground">{acct.server}</p>}
-                                            </td>
-                                            <td className="px-5 py-4 font-semibold text-foreground tabular-nums">
-                                                {acct.balance != null ? formatMoney(acct.balance, acct.currency) : "—"}
-                                            </td>
-                                            <td className="px-5 py-4 text-foreground tabular-nums">
-                                                {acct.equity != null ? formatMoney(acct.equity, acct.currency) : "—"}
-                                            </td>
-                                            <td className={`px-5 py-4 font-semibold tabular-nums ${fl >= 0 ? "text-emerald-600" : "text-red-500"}`}>
-                                                {fl >= 0 ? "+" : ""}{formatMoney(fl, acct.currency)}
-                                            </td>
-                                            <td className={`px-5 py-4 tabular-nums ${(acct.drawdown || 0) > 20 ? "text-red-500" : "text-muted-foreground"}`}>
-                                                {acct.drawdown != null ? `${acct.drawdown.toFixed(2)}%` : "—"}
-                                            </td>
-                                            <td className="px-5 py-4 text-xs text-muted-foreground">
-                                                {timeAgo(acct.lastHeartbeatAt, now)}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
-        </AccountShell >
-    );
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <section className="lg:col-span-8 relative" aria-label="World activity map">
+            <LiveWorldMap activities={activities} hoveredCountry={hoveredCountry} onHoverCountry={setHoveredCountry} light={!dark} />
+          </section>
+          <aside className="lg:col-span-4 grid grid-cols-1 gap-4">
+            <LiveActivityFeed />
+            <GlobalActivity />
+            <MarketActivity />
+          </aside>
+        </div>
+
+        <ScalpingTerminal />
+
+        {/* Theme / Data cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-2xl border border-border bg-card/60 p-5 min-h-[150px] flex flex-col">
+            <h3 className="text-sm font-bold text-foreground mb-3">Market Coverage</h3>
+            <div className="space-y-2">
+              {[{label:"XAUUSD",v:42},{label:"BTCUSD",v:31},{label:"EURUSD",v:14},{label:"NAS100",v:8}].map(m=>(
+                <div key={m.label} className="flex items-center gap-2 text-xs"><span className="w-10 font-mono text-muted-foreground">{m.label}</span><div className="flex-1 h-2 bg-muted rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-amber-500 to-orange-400 rounded-full" style={{width:`${m.v}%`}}/></div><span className="w-6 text-right font-mono text-foreground">{m.v}%</span></div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-border bg-card/60 p-5 min-h-[150px] flex flex-col">
+            <h3 className="text-sm font-bold text-foreground mb-3">Global Activity</h3>
+            <div className="space-y-2">
+              {[{label:"US",v:28},{label:"UK",v:14},{label:"DE",v:9},{label:"SE",v:6}].map(m=>(
+                <div key={m.label} className="flex items-center gap-2 text-xs"><span className="w-10 font-mono text-muted-foreground">{m.label}</span><div className="flex-1 h-2 bg-muted rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full" style={{width:`${m.v}%`}}/></div><span className="w-6 text-right font-mono text-foreground">{m.v}%</span></div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-border bg-card/60 p-5 min-h-[150px] flex flex-col">
+            <h3 className="text-sm font-bold text-foreground mb-3">AI Analyses</h3>
+            <div className="space-y-2">
+              {[{label:"Smart Money",v:55},{label:"Signals",v:20},{label:"Scalping",v:15},{label:"Analysis",v:10}].map(m=>(
+                <div key={m.label} className="flex items-center gap-2 text-xs"><span className="w-16 font-mono text-muted-foreground">{m.label}</span><div className="flex-1 h-2 bg-muted rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full" style={{width:`${m.v}%`}}/></div><span className="w-6 text-right font-mono text-foreground">{m.v}%</span></div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-border bg-card/60 p-5 min-h-[150px] flex flex-col">
+            <h3 className="text-sm font-bold text-foreground mb-3">Live Status</h3>
+            <div className="flex items-baseline gap-2 text-2xl font-extrabold text-foreground"><span>Live</span><span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"/></div>
+            <p className="text-xs text-muted-foreground mt-1">Aggregated • Real-time • Privacy-safe</p>
+          </div>
+        </div>
+
+        <section className="rounded-2xl border border-border bg-gradient-to-r from-muted/40 to-muted/30 p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div>
+            <h2 className="text-lg font-extrabold tracking-tight text-foreground mb-1">AlgoVault Live Intelligence</h2>
+            <p className="text-sm text-muted-foreground max-w-xl leading-relaxed">
+              All activity is aggregated by country and market. No individual user data exposed.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <Link href="/market-intelligence" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#ff4d00] text-white text-sm font-bold hover:bg-[#e64400] transition shadow-lg shadow-[#ff4d00]/20">Market Intelligence</Link>
+            <Link href="/analysis" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-muted text-foreground border border-border text-sm font-bold hover:bg-muted/60 transition">AI Analysis</Link>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
 }

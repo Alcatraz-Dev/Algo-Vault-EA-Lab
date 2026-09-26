@@ -30,7 +30,7 @@ type SiteSettings = {
 const publicLinks = [
     { href: "/marketplace", label: "Marketplace" },
     { href: "/backtests", label: "Backtests" },
-    { href: "/live", label: "Live" },
+    { href: "/live", label: "Live", badge: "●" },
     { href: "/copy-trading", label: "Copy Trading" },
     { href: "/compare", label: "Compare Brokers" },
     { href: "/affiliates", label: "Affiliates" },
@@ -115,9 +115,12 @@ export default function SiteHeader() {
                         <Link
                             key={link.href}
                             href={link.href}
-                            className={`transition hover:text-foreground ${isActive(link.href) ? "text-foreground font-medium" : ""}`}
+                            className={`transition hover:text-foreground ${isActive(link.href) ? "text-foreground font-medium" : ""} inline-flex items-center gap-1`}
                         >
                             {link.label}
+                            {(link as any).badge && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            )}
                         </Link>
                     ))}
                 </nav>
@@ -172,9 +175,12 @@ export default function SiteHeader() {
                                 key={link.href}
                                 href={link.href}
                                 onClick={() => setOpen(false)}
-                                className={`rounded-md px-3 py-2.5 text-sm transition-colors hover:bg-muted hover:text-foreground ${isActive(link.href) ? "bg-accent-muted text-primary font-medium" : "text-muted-foreground"}`}
+                                className={`rounded-md px-3 py-2.5 text-sm transition-colors hover:bg-muted hover:text-foreground ${isActive(link.href) ? "bg-accent-muted text-primary font-medium" : "text-muted-foreground"} inline-flex items-center gap-1.5`}
                             >
                                 {link.label}
+                                {(link as any).badge && (
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                )}
                             </Link>
                         ))}
                         {user && (

@@ -112,33 +112,41 @@ export default function HomePage({ data }: { data: HomeData }) {
     const dataOnline = stats.strategies > 0 || stats.backtests > 0;
 
     return (
-        <div className="min-h-screen overflow-x-clip bg-background font-mono text-foreground selection:bg-primary selection:text-primary-foreground">
+        <div className="min-h-screen overflow-x-clip bg-background font-sans text-foreground selection:bg-primary selection:text-primary-foreground">
             <SiteHeader />
             <main>
                 <TickerStrip />
 
-                {/* ── Hero ── */}
+                {/* ── Hero (trigger.dev-style: centered copy above a light-lit full-width console) ── */}
                 <section className="relative overflow-hidden border-b border-border bg-background">
+                    {/* Ambient light rig — brand-orange auroras, masked grid, twin sweep beams */}
                     <div aria-hidden="true" className="absolute inset-0">
-                        <div className="hero-radial -top-40 left-[-10%] h-[520px] w-[520px]" />
-                        <div className="hero-radial-positive -bottom-48 right-[-8%] h-[460px] w-[460px]" />
-                        <div className="absolute inset-0 bg-grid-pattern opacity-40" />
+                        <div className="av-aurora av-aurora-a left-1/2 top-[-340px] h-[640px] w-[1150px] -translate-x-1/2" />
+                        <div className="av-aurora av-aurora-b right-[-280px] top-[-200px] h-[540px] w-[720px]" />
+                        <div className="absolute inset-0 bg-grid-pattern opacity-40 [mask-image:radial-gradient(ellipse_75%_70%_at_50%_30%,black,transparent)]" />
+                        <div className="av-beam left-[4%]" />
+                        <div className="av-beam left-[60%]" style={{ animationDelay: "-5.5s" }} />
                     </div>
-                    <div className="page-container relative grid gap-12 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-24">
-                        <Reveal>
+
+                    <div className="page-container relative">
+                        <Reveal className="pt-16 text-center md:pt-24">
                             <div>
-                                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />Real market infrastructure
+                                <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                                    <span className="relative flex h-1.5 w-1.5">
+                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" />
+                                        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
+                                    </span>
+                                    Real market infrastructure
                                 </div>
-                                <h1 className="max-w-4xl text-4xl font-semibold leading-[1.05] tracking-[-0.04em] text-foreground sm:text-6xl lg:text-7xl">Build conviction before you place the trade.</h1>
-                                <p className="mt-6 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
+                                <h1 className="mx-auto mt-6 max-w-4xl text-4xl font-semibold leading-[1.04] tracking-[-0.04em] text-foreground sm:text-6xl lg:text-7xl">Build conviction before you place the trade.</h1>
+                                <p className="mx-auto mt-6 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
                                     {siteName} connects market data, deterministic analysis, strategy research, risk controls, and MT5 execution in one calm operating surface. What you see is what was recorded — no fabricated numbers.
                                 </p>
-                                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                                <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                                     <Link href="/register" className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/85">Start building <ArrowRight size={16} /></Link>
                                     <Link href="/strategy-lab" className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-border px-5 text-sm font-semibold text-foreground transition-colors hover:bg-muted">Open Strategy Lab</Link>
                                 </div>
-                                <div className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-xs text-muted-foreground">
+                                <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-xs text-muted-foreground">
                                     <span className="flex items-center gap-2"><ShieldCheck size={14} className="text-positive" />Deterministic first</span>
                                     <span className="flex items-center gap-2"><Database size={14} className="text-info" />Provider-backed data</span>
                                     <span className="flex items-center gap-2"><CircleAlert size={14} className="text-warning" />Honest stale states</span>
@@ -146,42 +154,44 @@ export default function HomePage({ data }: { data: HomeData }) {
                             </div>
                         </Reveal>
 
-                        <Reveal delay={140}>
-                            <div className="rounded-lg border border-border bg-card shadow-sm">
-                                <div className="flex items-center justify-between border-b border-border px-4 py-3 text-xs text-muted-foreground">
-                                    <span className="flex items-center gap-2"><Terminal size={14} className="text-primary" />Operating console</span>
-                                    <span className="flex items-center gap-2">
-                                        <span className={`relative flex h-1.5 w-1.5`}>
-                                            <span className={`absolute inline-flex h-full w-full rounded-full ${dataOnline ? "animate-ping bg-positive/60" : ""}`} />
-                                            <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${dataOnline ? "bg-positive" : "bg-muted-foreground"}`} />
+                        <Reveal delay={140} className="pb-16 md:pb-24">
+                            <div className="mt-14">
+                                <div className="av-panel av-edge rounded-lg border border-border bg-card/90 shadow-[0_0_120px_-40px_color-mix(in_oklch,var(--primary)_55%,transparent)]">
+                                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3 text-xs text-muted-foreground">
+                                        <span className="flex items-center gap-2"><Terminal size={14} className="text-primary" />Operating console</span>
+                                        <span className="flex items-center gap-2">
+                                            <span className="relative flex h-1.5 w-1.5">
+                                                <span className={`absolute inline-flex h-full w-full rounded-full ${dataOnline ? "animate-ping bg-positive/60" : ""}`} />
+                                                <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${dataOnline ? "bg-positive" : "bg-muted-foreground"}`} />
+                                            </span>
+                                            {dataOnline ? "Data feed online" : "Awaiting data"}
                                         </span>
-                                        {dataOnline ? "Data feed online" : "Awaiting data"}
-                                    </span>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-px bg-border md:grid-cols-4">
+                                        <div className="bg-card p-5">
+                                            <p className="text-xs text-muted-foreground">Strategies</p>
+                                            <p className="mt-3 text-3xl font-semibold text-foreground"><CountUp value={stats.strategies} format={formatNumber} /></p>
+                                            <p className="mt-2 text-xs text-muted-foreground">Marketplace records</p>
+                                        </div>
+                                        <div className="bg-card p-5">
+                                            <p className="text-xs text-muted-foreground">Backtests</p>
+                                            <p className="mt-3 text-3xl font-semibold text-foreground"><CountUp value={stats.backtests} format={formatNumber} /></p>
+                                            <p className="mt-2 text-xs text-muted-foreground">Recorded runs</p>
+                                        </div>
+                                        <div className="bg-card p-5">
+                                            <p className="text-xs text-muted-foreground">Deterministic engines</p>
+                                            <p className="mt-3 text-3xl font-semibold text-foreground"><CountUp value={ENGINES.length} format={formatNumber} /></p>
+                                            <p className="mt-2 text-xs text-muted-foreground">Computed from candles</p>
+                                        </div>
+                                        <div className="bg-card p-5">
+                                            <p className="text-xs text-muted-foreground">Rated strategies</p>
+                                            <p className="mt-3 text-3xl font-semibold text-foreground"><CountUp value={stats.reviewCount} format={formatNumber} /></p>
+                                            <p className="mt-2 text-xs text-muted-foreground">Average {stats.averageRating > 0 ? `${stats.averageRating}/5` : "unavailable"}</p>
+                                        </div>
+                                    </div>
+                                    <HeroConsoleChart />
+                                    <div className="border-t border-border px-4 py-3 text-xs text-muted-foreground">Aggregate statistics only — no account numbers or user details on this page. {previewBacktests ? "Backtest figures shown are sample previews until recorded runs are published." : ""}</div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-px bg-border">
-                                    <div className="bg-card p-5">
-                                        <p className="text-xs text-muted-foreground">Strategies</p>
-                                        <p className="mt-3 text-3xl font-semibold text-foreground"><CountUp value={stats.strategies} format={formatNumber} /></p>
-                                        <p className="mt-2 text-xs text-muted-foreground">Marketplace records</p>
-                                    </div>
-                                    <div className="bg-card p-5">
-                                        <p className="text-xs text-muted-foreground">Backtests</p>
-                                        <p className="mt-3 text-3xl font-semibold text-foreground"><CountUp value={stats.backtests} format={formatNumber} /></p>
-                                        <p className="mt-2 text-xs text-muted-foreground">Recorded runs</p>
-                                    </div>
-                                    <div className="bg-card p-5">
-                                        <p className="text-xs text-muted-foreground">Deterministic engines</p>
-                                        <p className="mt-3 text-3xl font-semibold text-foreground"><CountUp value={ENGINES.length} format={formatNumber} /></p>
-                                        <p className="mt-2 text-xs text-muted-foreground">Computed from candles</p>
-                                    </div>
-                                    <div className="bg-card p-5">
-                                        <p className="text-xs text-muted-foreground">Rated strategies</p>
-                                        <p className="mt-3 text-3xl font-semibold text-foreground"><CountUp value={stats.reviewCount} format={formatNumber} /></p>
-                                        <p className="mt-2 text-xs text-muted-foreground">Average {stats.averageRating > 0 ? `${stats.averageRating}/5` : "unavailable"}</p>
-                                    </div>
-                                </div>
-                                <HeroConsoleChart />
-                                <div className="border-t border-border px-4 py-3 text-xs text-muted-foreground">Aggregate statistics only — no account numbers or user details on this page. {previewBacktests ? "Backtest figures shown are sample previews until recorded runs are published." : ""}</div>
                             </div>
                         </Reveal>
                     </div>
@@ -191,12 +201,10 @@ export default function HomePage({ data }: { data: HomeData }) {
                 <section className="border-b border-border bg-muted/30">
                     <div className="page-container py-14 md:py-20">
                         <Reveal>
-                            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-                                <div>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">One operating loop</p>
-                                    <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-foreground md:text-5xl">From observation to execution.</h2>
-                                </div>
-                                <p className="max-w-md text-sm leading-6 text-muted-foreground">Every stage stays connected to the same symbol, timeframe, data age, and risk context.</p>
+                            <div className="mx-auto max-w-2xl text-center">
+                                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">One operating loop</p>
+                                <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-foreground md:text-5xl">From observation to execution.</h2>
+                                <p className="mt-4 text-sm leading-6 text-muted-foreground">Every stage stays connected to the same symbol, timeframe, data age, and risk context.</p>
                             </div>
                         </Reveal>
                         <Reveal delay={100}>
@@ -228,12 +236,10 @@ export default function HomePage({ data }: { data: HomeData }) {
                 <section className="border-b border-border bg-background">
                     <div className="page-container py-14 md:py-20">
                         <Reveal>
-                            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-                                <div>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Platform map</p>
-                                    <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-foreground md:text-5xl">The whole workflow, in one place.</h2>
-                                </div>
-                                <p className="max-w-md text-sm leading-6 text-muted-foreground">Research, validation, signals, execution, and monitoring are separate modules sharing one vocabulary.</p>
+                            <div className="mx-auto max-w-2xl text-center">
+                                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Platform map</p>
+                                <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-foreground md:text-5xl">The whole workflow, in one place.</h2>
+                                <p className="mt-4 text-sm leading-6 text-muted-foreground">Research, validation, signals, execution, and monitoring are separate modules sharing one vocabulary.</p>
                             </div>
                         </Reveal>
                         <Reveal delay={120}>
@@ -258,12 +264,10 @@ export default function HomePage({ data }: { data: HomeData }) {
                 <section className="border-b border-border bg-muted/30">
                     <div className="page-container py-14 md:py-20">
                         <Reveal>
-                            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-                                <div>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Deterministic first</p>
-                                    <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-foreground md:text-5xl">Computed facts, then AI on top.</h2>
-                                </div>
-                                <p className="max-w-md text-sm leading-6 text-muted-foreground">The deterministic layer is reproducible from the same candles; the AI layer explains — it never fabricates what the engines did not produce.</p>
+                            <div className="mx-auto max-w-2xl text-center">
+                                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Deterministic first</p>
+                                <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-foreground md:text-5xl">Computed facts, then AI on top.</h2>
+                                <p className="mt-4 text-sm leading-6 text-muted-foreground">The deterministic layer is reproducible from the same candles; the AI layer explains — it never fabricates what the engines did not produce.</p>
                             </div>
                         </Reveal>
                         <div className="mt-10 grid gap-6 lg:grid-cols-2">
@@ -387,12 +391,10 @@ export default function HomePage({ data }: { data: HomeData }) {
                 <section className="border-b border-border bg-muted/30">
                     <div className="page-container py-14 md:py-20">
                         <Reveal>
-                            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-                                <div>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Marketplace</p>
-                                    <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-foreground md:text-5xl">Strategies with the evidence beside them.</h2>
-                                </div>
-                                <Link href="/marketplace" className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline">Browse marketplace <ArrowRight size={15} /></Link>
+                            <div className="mx-auto max-w-2xl text-center">
+                                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Marketplace</p>
+                                <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-foreground md:text-5xl">Strategies with the evidence beside them.</h2>
+                                <Link href="/marketplace" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline">Browse marketplace <ArrowRight size={15} /></Link>
                             </div>
                         </Reveal>
                         <Reveal delay={100}>
@@ -407,12 +409,10 @@ export default function HomePage({ data }: { data: HomeData }) {
                 <section className="border-b border-border bg-background">
                     <div className="page-container py-14 md:py-20">
                         <Reveal>
-                            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-                                <div>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Research depth</p>
-                                    <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-foreground md:text-5xl">Validate before you risk anything.</h2>
-                                </div>
-                                <p className="max-w-md text-sm leading-6 text-muted-foreground">The platform ships the validation tooling that normally lives in three separate subscriptions.</p>
+                            <div className="mx-auto max-w-2xl text-center">
+                                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Research depth</p>
+                                <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-foreground md:text-5xl">Validate before you risk anything.</h2>
+                                <p className="mt-4 text-sm leading-6 text-muted-foreground">The platform ships the validation tooling that normally lives in three separate subscriptions.</p>
                             </div>
                         </Reveal>
                         <Reveal delay={120}>
@@ -449,18 +449,19 @@ export default function HomePage({ data }: { data: HomeData }) {
                     </div>
                 </section>
 
-                {/* ── Final CTA ── */}
+                {/* ── Final CTA (trigger.dev-style centered) ── */}
                 <section className="relative overflow-hidden bg-background">
                     <div aria-hidden="true" className="absolute inset-0">
-                        <div className="hero-radial left-1/2 top-1/2 h-[560px] w-[700px] -translate-x-1/2 -translate-y-1/2" />
-                        <div className="absolute inset-0 bg-grid-pattern opacity-30" />
+                        <div className="av-aurora av-aurora-a left-1/2 top-1/2 h-[520px] w-[820px] -translate-x-1/2 -translate-y-1/2" />
+                        <div className="absolute inset-0 bg-grid-pattern opacity-30 [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,black,transparent)]" />
                     </div>
                     <div className="page-container relative py-20 md:py-28">
                         <Reveal>
-                            <div className="max-w-3xl">
+                            <div className="mx-auto max-w-3xl text-center">
                                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Make the next decision legible.</p>
-                                <h2 className="mt-4 text-4xl font-semibold leading-tight tracking-[-0.04em] text-foreground md:text-6xl">A calmer terminal for serious research.</h2>
-                                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                                <h2 className="mt-4 text-4xl font-semibold leading-[1.06] tracking-[-0.04em] text-foreground md:text-6xl">Ready to research with conviction?</h2>
+                                <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">Create a workspace and run your first deterministic backtest in minutes — no fabricated numbers, no forced subscriptions.</p>
+                                <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                                     <Link href="/register" className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/85">Create workspace <ArrowRight size={16} /></Link>
                                     <Link href="/pricing" className="inline-flex h-11 items-center justify-center rounded-md border border-border px-5 text-sm font-semibold text-foreground transition-colors hover:bg-muted">See plans</Link>
                                 </div>

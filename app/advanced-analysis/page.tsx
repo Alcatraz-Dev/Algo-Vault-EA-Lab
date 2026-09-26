@@ -3,13 +3,9 @@
 import { useMemo } from "react";
 import { AppShell, type NavGroup } from "@/components/layout/AppShell";
 import { APP_NAV } from "@/components/layout/app-nav";
-import { Badge } from "@/components/ui/badge";
-import { ChartAdapter } from "@/components/market-intelligence/backtest/ChartAdapter";
-import { SmartMoneyPanel } from "@/components/market-intelligence/backtest/SmartMoneyPanel";
-import { PerformanceOverview, buildPerformanceCards } from "@/components/market-intelligence/backtest/PerformanceOverview";
-import { LimitationsPanel, buildLimitationsString } from "@/components/market-intelligence/backtest/LimitationsPanel";
-import { ReplayAdapter } from "@/components/market-intelligence/backtest/ReplayAdapter";
-import { TradeJournalAdapter, formatTradeRow } from "@/components/market-intelligence/backtest/TradeJournalAdapter";
+
+import {  buildPerformanceCards } from "@/components/market-intelligence/backtest/PerformanceOverview";
+import {  buildLimitationsString } from "@/components/market-intelligence/backtest/LimitationsPanel";
 
 export default function AdvancedAnalysisPage() {
   const nav = useMemo(() => APP_NAV.map((g) => ({ ...g })), []);
@@ -91,9 +87,7 @@ export default function AdvancedAnalysisPage() {
           <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-bold text-sm">Historical Replay</h3>
-              <div className="flex gap-1 text-[10px]">
-                <ReplayAdapter />
-              </div>
+              <span className="rounded-md border border-border/30 px-1.5 py-0.5 text-[10px] text-muted-foreground">Replay Engine</span>
             </div>
             <div className="rounded-xl border border-border/20 bg-background/20 p-4 min-h-[120px] flex items-center justify-center text-xs text-muted-foreground">
               Replay workspace — future candles hidden · Smart Money events incrementally calculated · no future leakage (existing ReplayEngine reused)
@@ -101,7 +95,18 @@ export default function AdvancedAnalysisPage() {
           </div>
           <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
             <h3 className="font-bold text-sm mb-3">Limitations</h3>
-            <LimitationsPanel />
+            <ul className="space-y-1.5 text-xs text-muted-foreground">
+              {limitations.length === 0 ? (
+                <li>Run a backtest to surface actual engine limitations.</li>
+              ) : (
+                limitations.map((l) => (
+                  <li key={l} className="flex gap-2">
+                    <span className="text-amber-400">•</span>
+                    <span>{l}</span>
+                  </li>
+                ))
+              )}
+            </ul>
           </div>
         </div>
 

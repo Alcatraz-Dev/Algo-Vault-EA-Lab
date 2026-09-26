@@ -212,3 +212,37 @@ Unified entry: app/market-intelligence/page.tsx
 Components: components/market-intelligence/command-center/ (EvidencePanel, QuickActionsAdapter)
 No new engines. Reuses Workspace / SmartMoney / Backtest / Replay / AI / Strategy / Trading Studio / Chart / Workspace adapters.
 Cross-page links preserved. Replay safe. AI advisory only. Security preserved. Limitations exposed.
+
+## Phase 9 — Live Monitoring & Setup Monitoring (Completed)
+
+Monitoring orchestration layer only (no replacement engine).
+Files: lib/market-intelligence/monitoring/types, event-normalizer, setup-evaluator, alert-adapter
+UI: components/market-intelligence/monitoring/LiveEventFeed, ActiveSetups, Watchlist, MonitoringStatus
+Page: app/market-intelligence/page.tsx updated with Live Monitor / Watchlist / Active Setups / Event Feed / Monitoring Status
+Event normalization: uses existing Smart Money/indicator/session outputs only (no new calculation)
+Setup evaluation: deterministic condition matching from real events (no predictions)
+Replay safe: future data excluded (ReplayEngine unchanged)
+Security: no secrets; workspace context validated; Firebase RTDB unchanged
+AI advisory: no predictive confidence / probability / score / auto-trading / deployment
+Known limitations: monitoring depends on existing market-data feed / engine outputs; setup evaluation does not imply future profitability
+
+## Phase 12 — Pattern Validation & Evidence Lab (Completed)
+
+Orchestration layer only (no new analytics/research/backtest/replay/AI/workspace/strategy engine)
+Evidence Definition separates historical observation from validation conditions.
+Candidate builder uses existing strategy adapter (no duplicate compiler).
+Pipeline uses existing Backtest / OOS / Walk-Forward / Robustness / Monte Carlo (no duplicated algorithms).
+Evidence report is factual only (no predictions / scores / confidence / ranking / recommendations).
+All stages require user confirmation before execution.
+No automatic trading / deployment / strategy selection / optimization.
+Replay future-data safe. Backtest next_bar_open preserved. AI advisory only. Security preserved.
+
+## Phase 13 — Intelligence Knowledge Graph (Completed)
+
+Relationship layer on existing evidence only.
+No duplicate engines.
+Nodes: market_event, smart_money_event, setup, pattern, validation_candidate, backtest, oos, walk_forward, robustness, monte_carlo, evidence_report, trade (references only, not copies).
+Edges: deterministic IDs (buildEdgeId); duplicate prevention; bidirectional traversal; lineage resolver with cycle/depth protection; replay-safe (future nodes hidden); workspace continuity preserved; security (real IDs only, no secrets).
+UI: app/market-intelligence/knowledge/page.tsx + KnowledgePanel component.
+Tests: graph-relationships (determinism, duplication, lineage, replay, workspace).
+Documentation: PHASE13_INTELLIGENCE_KNOWLEDGE_GRAPH.md + architecture update.

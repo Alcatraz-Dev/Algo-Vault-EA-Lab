@@ -1,7 +1,10 @@
+"use client";
+
 import { AppShell, type NavGroup } from "@/components/layout/AppShell";
 import { APP_NAV } from "@/components/layout/app-nav";
 import { Badge } from "@/components/ui/badge";
 import { useMemo } from "react";
+import { Circle } from "lucide-react";
 
 export default function MarketIntelligenceCommandCenterPage() {
   const nav = useMemo(() => APP_NAV.map((g) => ({ ...g })), []);
@@ -94,8 +97,29 @@ export default function MarketIntelligenceCommandCenterPage() {
           </div>
         </div>
 
+        <div className="grid lg:grid-cols-3 gap-4">
+          <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+            <div className="flex items-center justify-between mb-3 text-xs font-mono uppercase tracking-wider text-muted-foreground">
+              <span>Live Monitor</span>
+              <span>Existing data + Smart Money + Indicators + MTF</span>
+            </div>
+            <div className="rounded-xl border border-border/20 bg-background/20 p-4 min-h-[100px] text-xs text-muted-foreground">Monitoring uses existing analytics. No new engine.</div>
+          </div>
+          <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+            <h3 className="font-bold text-sm mb-2">Watchlist (Live)</h3>
+            <table className="w-full text-[10px] text-left border-collapse"><thead className="text-[9px] uppercase tracking-wider text-muted-foreground border-b border-border/20"><tr><th>Symbol</th><th>TF</th><th>Data</th><th>Setup</th></tr></thead><tbody className="divide-y divide-white/5"><tr><td>XAUUSD</td><td>M5</td><td>LIVE</td><td>—</td></tr><tr><td>EURUSD</td><td>M15</td><td>LIVE</td><td>—</td></tr></tbody></table>
+          </div>
+          <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+            <h3 className="font-bold text-sm mb-2">Active Setups</h3>
+            <div className="text-xs text-muted-foreground">No setups configured. Create from existing conditions.</div>
+          </div>
+          <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+            <h3 className="font-bold text-sm mb-2">Setup Memory (Phase 10)</h3>
+            <div className="text-xs text-muted-foreground">Persistent lifecycle of monitored setups. Real evidence only. No fabricated predictions or scores.</div>
+          </div>
+        </div>
         <div className="rounded-xl border border-border/20 bg-background/30 p-4 text-xs text-muted-foreground">
-          <strong>Command Center</strong> — existing engine integration only. No replacement Smart Money / Backtest / Replay / Research / Strategy / Chart / AI / Workspace engine created. All data from real analytics. Replay future-data safe. AI advisory only. No predictive claims.
+          <strong>Market Intelligence Command Center — Phase 9 Live Monitor</strong> — continuous monitoring uses existing Smart Money / Indicators / MTF / Sessions / Replay / Backtest / Intelligence / Workspace adapters. No replacement analytics or backtest engine. Event normalization and setup evaluation deterministic only. No predictive confidence or auto-trading.
         </div>
       </div>
     </AppShell>

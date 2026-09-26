@@ -392,13 +392,13 @@ export default function AccountPage() {
                         title="Trader Tools"
                         text="Notebook, journal & calculators."
                     />
-                    <QuickCard
+                    {/* <QuickCard
                         href="/ai-copilot"
                         icon={<Brain className="h-5 w-5 text-violet-400" />}
                         iconClass="bg-violet-500/10"
                         title="AI Copilot"
                         text="Get AI-powered market analysis & insights."
-                    />
+                    /> */}
                     <QuickCard
                         href="/scanner"
                         icon={<Activity className="h-5 w-5 text-emerald-400" />}

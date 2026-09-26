@@ -26,6 +26,8 @@ import {
   BarChart3,
   Database,
   Server,
+  ShieldCheck,
+  Zap,
 } from "lucide-react";
 import type { NavGroup } from "@/components/layout/AppShell";
 
@@ -47,12 +49,21 @@ export const ADMIN_NAV: NavGroup[] = [
     ],
   },
   {
+    label: "Business Operations",
+    items: [
+      { href: "/admin/business-operations", label: "Overview", icon: Activity },
+      { href: "/admin/business-operations/orders", label: "Orders", icon: ShieldCheck },
+      { href: "/admin/business-operations/payments", label: "Payments", icon: Database },
+      { href: "/admin/business-operations/licenses", label: "Licenses", icon: ShieldCheck },
+      { href: "/admin/business-operations/financial", label: "Financial Overview", icon: Database },
+    ],
+  },
+  {
     label: "Commerce",
     items: [
       { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
       { href: "/admin/licenses", label: "Licenses", icon: FileKey2 },
       { href: "/admin/affiliates", label: "Affiliates", icon: DollarSign },
-      { href: "/admin/business-operations", label: "Business Operations", icon: Activity },
       { href: "/admin/business-events", label: "Business Events", icon: Database },
       { href: "/admin/erpnext", label: "ERPNext", icon: Server },
     ],
@@ -60,6 +71,7 @@ export const ADMIN_NAV: NavGroup[] = [
   {
     label: "Trading",
     items: [
+      { href: "/admin/analysis", label: "Market Analysis", icon: BarChart3 },
       { href: "/admin/live", label: "Live Accounts", icon: Activity },
       { href: "/admin/trading-accounts", label: "Trading Accounts", icon: LineChart },
       { href: "/admin/copy-trading", label: "Copy Trading", icon: Copy },
@@ -73,6 +85,10 @@ export const ADMIN_NAV: NavGroup[] = [
       { href: "/admin/workflows", label: "Workflow Automation", icon: GitBranch },
       { href: "/admin/telegram", label: "Telegram Signals", icon: Radio },
       { href: "/admin/backtests", label: "Backtests", icon: MonitorPlay },
+      { href: "/admin/analysis", label: "Analysis", icon: BarChart3 },
+      { href: "/market-intelligence/scalping", label: "AI Scalping Terminal", icon: Zap },
+      { href: "/account/scalping-terminal", label: "Pro Scalping Terminal", icon: Zap },
+      { href: "/market-intelligence/advanced", label: "Advanced Analysis", icon: ShieldCheck },
     ],
   },
   {

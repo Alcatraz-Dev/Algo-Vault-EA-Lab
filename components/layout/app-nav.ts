@@ -26,6 +26,7 @@ import {
   Rocket,
   ScrollText,
   Shield,
+  ShieldCheck,
   Sparkles,
   Target,
   Terminal,
@@ -33,6 +34,8 @@ import {
   UserRound,
   Wallet,
   Zap,
+  Database,
+  Server,
 } from "lucide-react";
 import type { NavGroup } from "@/components/layout/AppShell";
 
@@ -53,8 +56,6 @@ export const APP_NAV: NavGroup[] = [
     label: "Markets",
     items: [
       { href: "/scanner", label: "Market Scanner", icon: Activity },
-      { href: "/analysis", label: "Market Analysis", icon: BarChart3 },
-      { href: "/advanced-analysis", label: "Advanced Analysis", icon: Layers },
       { href: "/charts", label: "Charts", icon: CandlestickChart },
       { href: "/economic-calendar", label: "Economic Calendar", icon: Newspaper },
       { href: "/risk", label: "Risk Analysis", icon: Shield },
@@ -75,7 +76,6 @@ export const APP_NAV: NavGroup[] = [
     label: "Intelligence",
     items: [
       { href: "/ai-copilot", label: "AI Copilot", icon: Brain },
-      { href: "/scalping-terminal", label: "Scalping Terminal", icon: Terminal },
       { href: "/signals", label: "AI Signals", icon: Radio },
       { href: "/signals/pro", label: "Pro Signals", icon: Zap },
       { href: "/alert-center", label: "Alert Center", icon: AlertTriangle },
@@ -87,8 +87,10 @@ export const APP_NAV: NavGroup[] = [
     label: "Market Intelligence",
     items: [
       { href: "/market-intelligence/terminal", label: "Terminal", icon: Terminal },
-      { href: "/market-intelligence/analysis", label: "Advanced Analysis", icon: Layers },
+      { href: "/market-intelligence/scalping", label: "AI Scalping Terminal", icon: Zap },
+      { href: "/market-intelligence/advanced", label: "Advanced Analysis", icon: Shield },
       { href: "/market-intelligence/smart-money", label: "Smart Money", icon: Zap },
+      { href: "/market-intelligence/investigation", label: "Investigation", icon: ShieldCheck },
       { href: "/market-intelligence/backtest", label: "Backtesting", icon: MonitorPlay },
       { href: "/market-intelligence/research", label: "Research", icon: FlaskConical },
       { href: "/market-intelligence/oos", label: "OOS Validation", icon: Target },
@@ -166,6 +168,13 @@ export const ADMIN_NAV: NavGroup[] = [
       { href: "/admin/trading-licenses", label: "Trading Licenses", icon: Shield },
       { href: "/admin/whitelabel", label: "White Label", icon: Sparkles },
       { href: "/admin/settings", label: "Settings", icon: Gauge },
+      { href: "/admin/business-operations", label: "Business Operations", icon: Activity },
+      { href: "/admin/business-operations/orders", label: "Business Orders", icon: ShieldCheck },
+      { href: "/admin/business-operations/payments", label: "Business Payments", icon: Receipt },
+      { href: "/admin/business-operations/licenses", label: "Business Licenses", icon: ShieldCheck },
+      { href: "/admin/business-operations/financial", label: "Financial Overview", icon: Database },
+      { href: "/admin/business-events", label: "Business Events", icon: Database },
+      { href: "/admin/erpnext", label: "ERPNext", icon: Server },
     ],
   },
 ];
