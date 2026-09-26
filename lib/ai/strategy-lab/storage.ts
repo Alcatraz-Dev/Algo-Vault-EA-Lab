@@ -44,19 +44,21 @@ export async function listEvolutionRuns(
 ): Promise<EvolutionRun[]> {
     const limit = Math.max(1, Math.min(options?.limit ?? 10, MAX_RUNS_PER_READ));
 
-    let ref = adminDatabase.ref(`strategyLab/${uid}/${EVOLUTION_RUNS_PATH}`).orderByChild("asOf").limitToLast(limit);
-    if (options?.symbol) {
-        ref = ref.orderByChild("symbol").equalTo(options.symbol) as typeof ref;
-    }
-
-    const snap = await ref.get();
+    const ref = adminDatabase.ref(`strategyLab/${uid}/${EVOLUTION_RUNS_PATH}`);
+    const snap = await (options?.symbol
+        ? ref.orderByChild("asOf").limitToLast(Math.max(limit * 3, 30)).get()
+        : ref.orderByChild("asOf").limitToLast(limit).get());
     if (!snap.exists()) return [];
 
     const raw = snap.val() as Record<string, EvolutionRun>;
-    return Object.keys(raw)
+    let runs = Object.keys(raw)
         .map((k) => raw[k])
-        .sort((a, b) => b.asOf - a.asOf)
-        .map((run, index) => (index === 0 ? run : stripDetails(run)));
+        .sort((a, b) => b.asOf - a.asOf);
+    if (options?.symbol) {
+        runs = runs.filter((r) => r.symbol === options.symbol);
+    }
+    runs = runs.slice(0, limit);
+    return runs.map((run, index) => (index === 0 ? run : stripDetails(run)));
 }
 
 /** Drop per-candidate detail from an older run. Counts are left untouched. */

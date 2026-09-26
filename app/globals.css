@@ -832,11 +832,23 @@ body {
 }
 .flow-line {
   stroke-dasharray: 5 9;
-  animation: dash-flow 2.6s linear infinite;
+  animation: dash-flow 1.4s linear infinite;
+}
+.flow-line.flow-active {
+  stroke-width: 3;
+  stroke-opacity: 1;
+  animation-duration: 0.6s;
+  filter: drop-shadow(0 0 6px var(--primary));
+}
+.flow-line-accent.flow-active {
+  stroke-width: 2.5;
+  stroke-opacity: 1;
+  animation-duration: 0.4s;
+  filter: drop-shadow(0 0 8px var(--primary));
 }
 .flow-line-accent {
   stroke-dasharray: 2 12;
-  animation: dash-flow 1.1s linear infinite;
+  animation: dash-flow 0.8s linear infinite;
 }
 
 @keyframes eco-pulse {
@@ -850,7 +862,7 @@ body {
   border-radius: 9999px;
   background: var(--primary);
   box-shadow: 0 0 14px color-mix(in oklch, var(--primary) 75%, transparent);
-  animation: eco-pulse 2.6s ease-in-out infinite;
+  animation: eco-pulse 1.2s ease-in-out infinite;
 }
 .eco-node.eco-node-positive {
   background: var(--positive);
@@ -869,7 +881,7 @@ body {
 .eco-orbit-spin {
   position: absolute;
   inset: -5px;
-  animation: eco-orbit-spin 3.6s linear infinite;
+  animation: none;
   will-change: transform;
 }
 .eco-orbit-ring {
@@ -930,7 +942,16 @@ body {
 
 /* Ecosystem — inspecting a stage card quickens the orbit and the flow */
 .eco-stage-wrap:has(.eco-card:hover) .eco-orbit-spin {
-  animation-duration: 1.3s;
+  animation: none;
+}
+.eco-stage-wrap:has(.eco-card:hover) .flow-line,
+.eco-stage-wrap:has(.eco-card:hover) .flow-line-accent {
+  animation-duration: 0.4s;
+  stroke-opacity: 1;
+}
+.eco-stage-wrap:has(.eco-card:hover) .eco-node {
+  animation-duration: 0.6s;
+  box-shadow: 0 0 24px color-mix(in oklch, var(--primary) 100%, transparent);
 }
 .eco-stage-wrap:has(.eco-card:hover) .flow-line,
 .eco-stage-wrap:has(.eco-card:hover) .flow-line-accent {

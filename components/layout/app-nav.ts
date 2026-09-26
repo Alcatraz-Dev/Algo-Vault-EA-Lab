@@ -90,6 +90,8 @@ export const APP_NAV: NavGroup[] = [
       { href: "/market-intelligence/analysis", label: "Advanced Analysis", icon: Layers },
       { href: "/market-intelligence/smart-money", label: "Smart Money", icon: Zap },
       { href: "/market-intelligence/backtest", label: "Backtesting", icon: MonitorPlay },
+      { href: "/market-intelligence/research", label: "Research", icon: FlaskConical },
+      { href: "/market-intelligence/oos", label: "OOS Validation", icon: Target },
       { href: "/market-intelligence/strategy-lab", label: "Strategy Lab", icon: FlaskConical },
     ],
   },

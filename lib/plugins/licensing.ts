@@ -74,6 +74,11 @@ export async function grantPluginLicense(input: {
         pluginId: input.plugin.id,
         detail: { orderId: input.orderId, pricingType: pricing.type },
     });
+    try {
+      const { createEvent } = await import("@/lib/business-events/events");
+      const { dispatcher } = await import("@/lib/business-events/dispatcher");
+      await dispatcher.dispatch(createEvent("license.activated", "license", input.plugin.id || "unknown", { userId: input.userId, productId: input.plugin.id, status: "active" }, input.userId));
+    } catch { /* event must not break licensing */ }
     return license;
 }
 

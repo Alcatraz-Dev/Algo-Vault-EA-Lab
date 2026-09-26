@@ -1,7 +1,14 @@
 import { BacktestConfig, BacktestResult, BacktestTrade } from "../types";
 
 /**
- * Backtesting Engine — real architecture, honest limitations.
+ * Execution Model — documented
+ * Candle N closes → indicators/Smart Money evaluated → strategy evaluated
+ * Earliest allowed execution = Candle N+1 open (next_bar_open)
+ * Same-bar close is documented if supported; currently only bar_close available.
+ *
+ * Look-ahead protection: context only includes candles with timestamp <= current.
+ * Smart Money events only include events with timestamp <= current.
+ */
  *
  * Principles:
  * - No future-data leakage.

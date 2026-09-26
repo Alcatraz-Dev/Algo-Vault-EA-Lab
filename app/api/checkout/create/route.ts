@@ -716,6 +716,16 @@ export async function POST(
          * --------------------------------------------------
          */
 
+        // Phase 6: Emit canonical business event for successful checkout/order creation
+        try {
+          const { createEvent } = await import("@/lib/business-events/events");
+          const event = createEvent("order.created", "order", orderId, { amount: session.amount_total || 0, currency: "usd" });
+          const { dispatcher } = await import("@/lib/business-events/dispatcher");
+          await dispatcher.dispatch(event);
+        } catch {
+          // Business event emission must never break checkout
+        }
+
         return NextResponse.json({
             success: true,
 

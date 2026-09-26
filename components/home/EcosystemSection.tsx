@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import {
     Activity,
     ArrowUpRight,
@@ -154,7 +155,7 @@ const CONNECTOR_PATHS = [
     "M 765 60 C 790 150, 810 150, 835 60",
 ];
 
-function ConnectorLayer() {
+function ConnectorLayer({ active }: { active: number | null }) {
     return (
         <div className="pointer-events-none absolute inset-x-0 top-1/2 z-0 hidden -translate-y-1/2 lg:block" aria-hidden="true">
             <div className="hero-radial left-1/2 top-1/2 h-[420px] w-[720px] -translate-x-1/2 -translate-y-1/2" />
@@ -167,8 +168,8 @@ function ConnectorLayer() {
                 {CONNECTOR_PATHS.map((d, i) => (
                     <g key={i}>
                         <path d={d} stroke="var(--border)" strokeOpacity={0.55} strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
-                        <path d={d} className="flow-line" stroke="var(--primary)" strokeOpacity={0.65} strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
-                        <path d={d} className="flow-line-accent" stroke="var(--primary)" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
+                        <path d={d} className={`flow-line ${active !== null && i >= active ? "flow-active" : ""}`} stroke="var(--primary)" strokeOpacity={0.65} strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
+                        <path d={d} className={`flow-line-accent ${active !== null && i >= active ? "flow-active" : ""}`} stroke="var(--primary)" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
                     </g>
                 ))}
             </svg>
@@ -179,17 +180,38 @@ function ConnectorLayer() {
                     style={{ left: `${left}%`, animationDelay: `${i * 420}ms` }}
                 />
             ))}
+            {/* Traveling pipeline packet — shows multi-platform agents working together */}
+            <svg
+                className="pointer-events-none absolute inset-0 h-full w-full"
+                viewBox="0 0 1000 160"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+            >
+                <circle r="4.5" fill="var(--primary)" filter="url(#packet-glow)">
+                    <animateMotion dur="3.5s" repeatCount="indefinite" calcMode="linear">
+                        <mpath href="#packet-path" />
+                    </animateMotion>
+                    <animate attributeName="opacity" values="0.6;1;0.6" dur="1.4s" repeatCount="indefinite" />
+                </circle>
+                <filter id="packet-glow">
+                    <feDropShadow dx="0" dy="0" stdDeviation="5" floodColor="var(--primary)" floodOpacity="0.9" />
+                </filter>
+                <path id="packet-path" d="M 165 60 C 190 150, 210 150, 235 60" fill="none" />
+            </svg>
         </div>
     );
 }
 
-function StageCard({ stage, index }: { stage: Stage; index: number }) {
+function StageCard({ stage, index, isActive, onSelect }: { stage: Stage; index: number; isActive: boolean; onSelect: (i: number) => void }) {
     const Icon = stage.icon;
     return (
         <Link
             href={stage.href}
-            className="eco-card group relative z-10 block rounded-lg border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_0_28px_-10px_color-mix(in_oklch,var(--primary)_55%,transparent)]"
+            onClick={() => onSelect(index)}
+            className={isActive ? "eco-card group relative z-10 block overflow-hidden rounded-lg border p-5 border-primary/80 bg-card/80 shadow-[0_0_48px_-14px_color-mix(in_oklch,var(--primary)_50%,transparent)] transition-all duration-300 hover:-translate-y-1" : "eco-card group relative z-10 block overflow-hidden rounded-lg border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-[0_0_36px_-12px_color-mix(in_oklch,var(--primary)_65%,transparent)]"}
         >
+            {/* Agent status glow bar */}
+            <span className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             <div className="flex items-start justify-between">
                 <span className="relative">
                     <span className="eco-orbit transition-transform duration-300 group-hover:scale-105">
@@ -230,6 +252,7 @@ function StageCard({ stage, index }: { stage: Stage; index: number }) {
 }
 
 export default function EcosystemSection() {
+    const [active, setActive] = useState<number | null>(null);
     return (
         <section className="border-b border-border bg-background">
             <div className="page-container overflow-hidden py-14 md:py-20">
@@ -247,10 +270,10 @@ export default function EcosystemSection() {
 
                 <Reveal delay={100}>
                     <div className="eco-stage-wrap relative mt-10">
-                        <ConnectorLayer />
+                        <ConnectorLayer active={active} />
                         <div className="relative grid gap-3 lg:grid-cols-5 lg:gap-3">
                             {STAGES.map((stage, index) => (
-                                <StageCard key={stage.name} stage={stage} index={index} />
+                                <StageCard key={stage.name} stage={stage} index={index} isActive={active === index} onSelect={(i) => setActive(i === active ? null : i)} />
                             ))}
                         </div>
                     </div>

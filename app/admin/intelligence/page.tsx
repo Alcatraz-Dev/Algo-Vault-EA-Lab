@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
     Bot,
     GitBranch,
@@ -33,6 +34,7 @@ const tabs = [
 ];
 
 export default function AdminIntelligencePage() {
+    const router = useRouter();
     const [activeTab, setActiveTab] = useState("overview");
 
     return (
@@ -44,7 +46,13 @@ export default function AdminIntelligencePage() {
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
+                        onClick={() => {
+                            if (tab.href) {
+                                router.push(tab.href);
+                            } else {
+                                setActiveTab(tab.id);
+                            }
+                        }}
                         className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-medium transition ${
                             activeTab === tab.id
                                 ? "border-border/50 bg-background text-foreground"

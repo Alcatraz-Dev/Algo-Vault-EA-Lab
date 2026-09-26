@@ -453,6 +453,19 @@ export async function POST(request: NextRequest) {
 
     console.log("STRIPE WEBHOOK:", event.type);
 
+    // Phase 6: Emit canonical business event for verified server-side Stripe events
+    try {
+      const { createEvent } = await import("@/lib/business-events/events");
+      const { dispatcher } = await import("@/lib/business-events/dispatcher");
+      if (["payment_intent.succeeded", "checkout.session.completed"].includes(event.type)) {
+        await dispatcher.dispatch(createEvent("payment.succeeded", "payment", event.id || event.data.object?.id || "unknown", { stripeEventId: event.id, amount: (event.data.object as any)?.amount_total || 0 }));
+      } else if (event.type === "payment_intent.payment_failed") {
+        await dispatcher.dispatch(createEvent("payment.failed", "payment", event.id || event.data.object?.id || "unknown", { stripeEventId: event.id }));
+      } else if (event.type === "charge.refunded") {
+        await dispatcher.dispatch(createEvent("payment.refunded", "payment", event.id || event.data.object?.id || "unknown", { stripeEventId: event.id }));
+      }
+    } catch { /* event must never break webhook */ }
+
     const eventKey = event.id;
 
     if (!(await tryClaimEvent(eventKey))) {

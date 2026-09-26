@@ -23,6 +23,7 @@ import { onValue, ref } from "firebase/database";
 import { database } from "@/lib/firebase";
 import { useEffect } from "react";
 import { AgentContract, AgentRole, AgentStatus } from "@/lib/agents/types";
+import { BUILT_IN_AGENTS } from "@/lib/agents/catalog";
 
 const ROLE_LABELS: Record<AgentRole, string> = {
     scout: "Market Scout",
@@ -64,7 +65,8 @@ export default function AdminAgentsPage() {
             (snapshot) => {
                 const data = snapshot.val() as Record<string, AgentContract> | null;
                 if (!data) {
-                    setAgents([]);
+                    // The RTDB "agents" node is empty. Fall back to the built-in agent contracts so the interface never shows an empty list.
+                    setAgents(BUILT_IN_AGENTS.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)));
                     setLoading(false);
                     return;
                 }
@@ -105,6 +107,9 @@ export default function AdminAgentsPage() {
                     />
                 </div>
                 <div className="flex items-center gap-2">
+                    <Link href="/admin/intelligence/agents/create" className="inline-flex items-center gap-1.5 rounded-xl border border-blue-500/40 bg-blue-500/15 px-3 py-2.5 text-xs font-bold text-blue-200 transition hover:text-white hover:bg-blue-500/25 shadow-[0_0_12px_rgba(59,130,246,0.12)]">
+                        <Bot size={14} /> Create New Agent
+                    </Link>
                     <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
@@ -173,21 +178,21 @@ function AgentCard({
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-4">
                         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
-                            <Bot size={20} className="text-violet-300" />
+                            <Bot size={20} className="text-blue-300/60" />
                         </div>
                         <div className="min-w-0">
                             <div className="flex items-center gap-2">
                                 <Link
                                     href={`/admin/intelligence/agents/${agent.id}`}
-                                    className="text-sm font-semibold text-foreground transition hover:text-violet-300 truncate"
+                                    className="text-sm font-semibold text-foreground transition hover:text-blue-300 truncate"
                                 >
                                     {agent.name}
                                 </Link>
-                                <span className="text-[10px] font-semibold uppercase tracking-wider text-violet-400">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-300">
                                     {ROLE_LABELS[agent.role] || agent.role}
                                 </span>
                                 {isBuiltIn && (
-                                    <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium text-violet-300">
+                                    <span className="rounded-full bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-300">
                                         Built-in
                                     </span>
                                 )}

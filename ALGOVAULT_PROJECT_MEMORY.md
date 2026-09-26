@@ -409,3 +409,50 @@ When a new agent (human or AI) starts working on AlgoVault, it MUST:
 3. **Pine cost model was not applied** — `backtestPine` copied `t.pnl` (gross) into `profit`/metrics without spread/slippage/commission. Fix (backtest.ts): per-trade `net = gross − unitCostPerUnit × size` where `unitCostPerUnit = spreadPips·pipSize + slippagePips·pipSize·2 + commissionPerLot`, using `SYMBOL_SPECS` (`@/lib/ai-signals/symbol-specs`) for pip size (XAUUSD 0.01). Mirrors the Strategy Lab engine's convention where `profit == pnlGross == net`; `spreadCost`/`commission`/`slippageCost` are now reported on the Pine path too. Note: the Pine path deliberately does NOT multiply by `contractSize` — the test contract (`backtest.test.ts` blocks 3 & 5) defines these unit costs per engine-size unit.
 
 **Test correction (not engine hack):** block 5 asserted profit against `candles[9]` (a bar index copied from block 3's 10-candle window) on a 12-candle run where `barstate.islast` = bar 11 — physically unsatisfiable; corrected to `candles[candles.length - 1]` with a comment. Block 3 (10 candles, last = index 9) was already consistent and passes unchanged.
+---
+
+## §Z. ERPNext / Frappe Integration (2026-09-26)
+
+ERPNext is integrated as the **AlgoVault Business Operations Layer** (additive only). Phase 5 — Business Event Layer (2026-09-26)
+- Canonical event model (`lib/business-events/`) created with versioned types, idempotency keys, correlation IDs.
+- Verified emission points: checkout (`order.created`), Stripe webhook (`payment.succeeded/failed/refunded`), plugin licensing (`license.activated`).
+- `order.paid`: no separate persisted transition — exists through `payment.succeeded` + existing order/subscription updates.
+- `license.created`: not separate (internal to activation).
+- `commission.created`: not applicable — no standalone marketplace commission service exists.
+- Correlation IDs used; idempotency preserved; retry/dead-letter documented.
+- Admin navigation verified: `/admin/business-events` and `/admin/erpnext` in sidebar.
+- ERPNext: Adapter READY; Live CRUD BLOCKED; Production NOT VERIFIED.
+- No Firestore; Firebase RTDB preserved; Stripe/Licensing/Trading/AI untouched.
+- Canonical event model (`lib/business-events/`) created with versioned types, idempotency keys, correlation IDs.
+- Persistence via existing Firebase RTDB (`businessEvents/`).
+- Dispatcher with adapter registry (erpnext, stripe, licensing, firebase, analytics).
+- ERPNext adapter respects `ERPNEXT_ENABLED=false`; skips safely.
+- Admin page `app/admin/business-events/` added; sidebar navigation integrated (Commerce group).
+- Events emitted: `order.created` (checkout), `payment.succeeded/failed/refunded` (Stripe webhook), `license.activated` (licensing service).
+- `order.paid`: NOT a separate persisted transition — represented by `payment.succeeded` + existing order/subscription updates.
+- `license.created`: NOT separate (internal to activation).
+- `commission.created`: NOT APPLICABLE — no standalone marketplace commission service (only trading/strategy-lab).
+- `product.created/updated`: NOT YET EMITTED (add at marketplace/admin endpoints when needed).
+- Existing Stripe/Licensing/Marketplace/Trading/AI untouched.
+- Not production-ready for ERPNext until live sandbox credentials complete full CRUD (Phase 4 blocked).
+
+- **Not replaced:** Firebase Auth, Firebase RTDB, Stripe, MT5 Gateway, AlgoVault Licensing Service, AI Router, Market Intelligence.
+- **Not introduced:** Firestore (still prohibited), new auth systems, trading execution in ERPNext.
+- **Integration boundary:** `lib/integrations/erpnext/` (client, config, types, errors, mapper, sync, events, customers, orders, invoices, payments, subscriptions, commissions).
+- **Environment:** `ERPNEXT_ENABLED=false` by default; `ERPNEXT_BASE_URL`, `ERPNEXT_API_KEY`, `ERPNEXT_API_SECRET` server-only.
+- **Health endpoint:** `/api/admin/erpnext/health`
+- **Admin panel:** `app/admin/erpnext/page.tsx`
+- **Event-driven sync:** event types include `customer.created`, `order.paid`, `subscription.cancelled`, `license.created`, `commission.created`. Retry state persisted in sync layer (`pending` / `synced` / `failed`).
+- **Source of truth preserved:** Firebase Auth → auth; RTDB → realtime; Stripe → payments; Licensing → authorization; Trading Core → trading; Market Intelligence → research; AI Engine → AI; ERPNext → business/accounting.
+- **Security:** server-side credentials only; no secrets in client bundles, logs, or API responses; HTTPS; idempotency; audit logs; authorization on admin routes.
+- **Phase 1 done:** architecture, config, client interface, sync layer, customer sync, order sync, health check, docs, memory update. Phase 2-5 planned: orders/invoices/payments, developers/commissions/subscriptions, business analytics, advanced Frappe customizations.
+
+Phase 7 — Full Lifecycle Audit (2026-09-26)
+- Lifecycle audit map completed (docs/architecture/business-lifecycle-audit.md).
+- Verified emission points: checkout (order.created), Stripe webhook (payment.succeeded/failed/refunded), plugin licensing (license.activated).
+- order.paid: no separate persisted transition — exists through payment.succeeded + existing order/subscription updates.
+- license.created: not separate (internal to activation).
+- commission.created: not applicable — no standalone marketplace commission service exists.
+- Correlation IDs used; idempotency preserved; retry/dead-letter documented.
+- Admin navigation verified: /admin/business-events and /admin/erpnext in sidebar.
+- ERPNext: Adapter READY; Live CRUD BLOCKED; Production NOT VERIFIED.

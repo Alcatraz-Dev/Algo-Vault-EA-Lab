@@ -24,6 +24,8 @@ import {
   Users,
   Megaphone,
   BarChart3,
+  Database,
+  Server,
 } from "lucide-react";
 import type { NavGroup } from "@/components/layout/AppShell";
 
@@ -50,6 +52,9 @@ export const ADMIN_NAV: NavGroup[] = [
       { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
       { href: "/admin/licenses", label: "Licenses", icon: FileKey2 },
       { href: "/admin/affiliates", label: "Affiliates", icon: DollarSign },
+      { href: "/admin/business-operations", label: "Business Operations", icon: Activity },
+      { href: "/admin/business-events", label: "Business Events", icon: Database },
+      { href: "/admin/erpnext", label: "ERPNext", icon: Server },
     ],
   },
   {
