@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+    HeartPulse,
     Activity,
     ArrowLeft,
     Bot,
@@ -29,6 +30,7 @@ import {
     Target,
     Users,
     X,
+    Gauge,
 } from "lucide-react";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { auth, database } from "@/lib/firebase";
@@ -44,6 +46,8 @@ const NAV_ITEMS = [
     { icon: Radio, label: "Telegram Signals", href: "/admin/telegram" },
     { icon: Bot, label: "Bots / Products", href: "/admin/bots" },
     { icon: Activity, label: "Live Accounts", href: "/admin/live" },
+    { icon: HeartPulse, label: "AI Provider Health", href: "/admin/intelligence/ai-health" },
+    { icon: Gauge, label: "AI Usage & Budgets", href: "/admin/intelligence/ai-usage" },
     { icon: Download, label: "Backtests", href: "/admin/backtests" },
     { icon: GitBranch, label: "Workflow Automation", href: "/admin/workflows" },
     { icon: Plug, label: "Plugins", href: "/admin/plugins" },
@@ -114,11 +118,10 @@ export default function AdminShell({
                         key={href}
                         href={href}
                         onClick={() => setMobileOpen(false)}
-                        className={`flex items-center gap-3 rounded-md px-3 py-2 text-xs transition-colors ${
-                            isActive
+                        className={`flex items-center gap-3 rounded-md px-3 py-2 text-xs transition-colors ${isActive
                                 ? "bg-accent-muted font-semibold text-primary"
                                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                        }`}
+                            }`}
                     >
                         <Icon
                             size={16}

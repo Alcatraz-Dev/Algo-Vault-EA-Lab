@@ -32,6 +32,13 @@ export interface AIResponse {
     truncated?: boolean;
     /** Provider failures observed before a fallback response was returned. */
     fallbackErrors?: AIProviderError[];
+    /**
+     * Set when the AI budget guard refused every candidate provider, so the
+     * response came from the local heuristic rather than from any provider.
+     * `providers` lists which ones were budget-blocked and `reason` explains
+     * the limit that stopped them. Model selection is unaffected by this.
+     */
+    budgetBlocked?: { reason: string; providers: string[] };
     raw?: unknown;
 }
 
@@ -73,6 +80,7 @@ export type AIErrorCode =
     | "INVALID_API_KEY"
     | "INVALID_REQUEST"
     | "PAID_MODEL_BLOCKED"
+    | "AI_BUDGET_EXCEEDED"
     | "NO_FREE_PROVIDER"
     | "UNKNOWN_ERROR";
 

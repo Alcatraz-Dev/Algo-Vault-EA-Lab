@@ -49,6 +49,13 @@ export async function POST(req: NextRequest) {
             temperature,
             maxTokens: typeof maxTokens === "number" && maxTokens > 0 ? maxTokens : 8000,
             model,
+        }, {
+            // Accounting context only, passed separately from the request so it
+            // can never be forwarded to a provider upstream. This endpoint is
+            // unauthenticated, so `userId` is deliberately left absent rather
+            // than invented: a made-up id would funnel every anonymous caller
+            // into one shared per-user budget bucket.
+            source: "chat",
         });
 
         return NextResponse.json(

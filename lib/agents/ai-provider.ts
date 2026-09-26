@@ -10,7 +10,7 @@ export async function callAgentAI(
     agent: AgentContract,
     prompt: string,
     systemPrompt: string,
-    opts?: { maxTokens?: number; temperature?: number }
+    opts?: { maxTokens?: number; temperature?: number; userId?: string }
 ): Promise<{ ok: boolean; text: string; provider?: string; model?: string; error?: string }> {
     try {
         if (agent.modelConfiguration.poweredBy === "deterministic") {
@@ -24,6 +24,12 @@ export async function callAgentAI(
             temperature: opts?.temperature || agent.modelConfiguration.temperature || 0.1,
             model: agent.modelConfiguration.model,
             provider: agent.modelConfiguration.provider,
+        }, {
+            // Accounting context only. Passed as a separate argument to the
+            // router so it can never be forwarded to a provider upstream.
+            source: "agent",
+            sourceId: agent.id,
+            userId: opts?.userId,
         });
         if (!response.success) {
             return { ok: false, text: "", error: "AI gateway returned no content." };

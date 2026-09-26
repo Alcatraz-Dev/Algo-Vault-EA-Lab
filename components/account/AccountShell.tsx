@@ -100,24 +100,24 @@ const ACCOUNT_NAV: NavGroup[] = [
       { icon: Activity, label: "Equity Curve", href: "/equity-curve" },
     ],
   },
-   {
-     label: "Trading",
-     items: [
-       { icon: Bot, label: "My Bots", href: "/account/bots" },
-       { icon: GitBranch, label: "Workflow Automation", href: "/account/workflows" },
-       { icon: Zap, label: "AI Signals", href: "/signals" },
-      { icon: LineChart, label: "Trading Studio", href: "/account/tradingview" },
-      { icon: RotateCcw, label: "Trade Replay", href: "/trade-replay" },
-      { icon: FlaskConical, label: "Strategy Lab", href: "/strategy-lab" },
-      { icon: Target, label: "Smart Management", href: "/trade-management" },
-      { icon: Bell, label: "Alert Center", href: "/alert-center" },
-      { icon: BarChart3, label: "Backtests", href: "/backtests" },
-      { icon: LineChart, label: "Live", href: "/live" },
-      { icon: Copy, label: "Copy Trading", href: "/copy-trading" },
-      { icon: Wallet, label: "Compare Brokers", href: "/compare" },
-      { icon: Activity, label: "Scanner", href: "/scanner" },
-    ],
-  },
+{
+        label: "Trading",
+        items: [
+          { icon: Bot, label: "My Bots", href: "/account/bots" },
+          { icon: GitBranch, label: "Workflow Automation", href: "/account/workflows" },
+          { icon: Zap, label: "AI Signals", href: "/signals" },
+          { icon: LineChart, label: "Trading Studio", href: "/account/tradingview" },
+          { icon: RotateCcw, label: "Trade Replay", href: "/trade-replay" },
+          { icon: FlaskConical, label: "Strategy Lab", href: "/strategy-lab" },
+          { icon: Target, label: "Smart Management", href: "/trade-management" },
+          { icon: Bell, label: "Alert Center", href: "/alert-center" },
+          { icon: BarChart3, label: "Backtests", href: "/backtests" },
+          { icon: Activity, label: "Live Accounts", href: "/account/live" },
+          { icon: Copy, label: "Copy Trading", href: "/copy-trading" },
+          { icon: Wallet, label: "Compare Brokers", href: "/compare" },
+          { icon: Activity, label: "Scanner", href: "/scanner" },
+        ],
+      },
 ];
 
 export default function AccountShell({

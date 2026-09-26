@@ -190,6 +190,26 @@ export function isProviderMeteredAllowed(providerId: string): boolean {
 }
 
 /**
+ * Whether a provider is even capable of putting the account on the meter.
+ *
+ * Derived from the EXISTING cost policy rather than from a new, parallel one:
+ *  - AI_FREE_ONLY on (the default) and no provider-scoped metered opt-in
+ *    -> that provider can only ever serve confirmed-free models, so its traffic
+ *       is free by construction and an accounting outage is not a money risk.
+ *  - AI_FREE_ONLY off -> metered models are permitted, so it is a money risk.
+ *  - A provider-scoped metered opt-in (CODECRAFT_ALLOW_METERED=true) -> metered
+ *    models are permitted for that provider only, so it is a money risk.
+ *
+ * This is what lets the budget guard fail closed for paid traffic without
+ * taking down free traffic during a Firebase outage. It never widens what a
+ * provider may do; it only reports the risk the existing policy already allows.
+ */
+export function providerHasMeteredRisk(providerId: string): boolean {
+    if (!AIConfig.freeOnly) return true;
+    return isProviderMeteredAllowed(providerId);
+}
+
+/**
  * Global cost guard. Throws when a metered model is requested while
  * AI_FREE_ONLY is on, unless `providerId` names a provider that has explicitly
  * opted into metered usage.

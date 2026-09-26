@@ -365,6 +365,22 @@
       ".read": "auth != null",
       ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
     },
+    "aiUsageEvents": {
+      ".read": false,
+      ".write": false
+    },
+    "aiUsageDaily": {
+      ".read": false,
+      ".write": false
+    },
+    "aiUsageMonthly": {
+      ".read": false,
+      ".write": false
+    },
+    "aiBudgets": {
+      ".read": false,
+      ".write": false
+    },
 
     "signalEvents": {
       ".read": "auth != null",

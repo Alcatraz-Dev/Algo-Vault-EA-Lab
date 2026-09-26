@@ -10,6 +10,7 @@ import {
     Play,
     Settings,
     Sparkles,
+    Gauge,
     LayoutDashboard,
     ChevronRight,
     Plus,
@@ -27,6 +28,7 @@ const tabs = [
     { id: "extensions", label: "Extensions", icon: Puzzle, href: "/admin/intelligence/extensions" },
     { id: "executions", label: "Executions", icon: Play, href: "/admin/intelligence/executions" },
     { id: "studio", label: "AI Studio", icon: Sparkles, href: "/admin/intelligence/studio" },
+    { id: "usage", label: "AI Usage & Budgets", icon: Gauge, href: "/admin/intelligence/ai-usage" },
     { id: "sandbox", label: "Sandbox", icon: Settings, href: "/admin/intelligence/sandbox" },
 ];
 

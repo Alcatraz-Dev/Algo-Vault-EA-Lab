@@ -1,12 +1,17 @@
 import { defaultRouter } from "./router";
 import { AIChatRequest, AIResponse, StrategyNarrativeInput, StrategyNarrative, AnalysisSummaryInput, AnalysisSummary, ChatMessageInput } from "./types";
+import { AIRequestContext } from "./usage-events";
 
 export const ai = {
     /**
      * Central chat completion via Free Multi-Provider AI Gateway
+     *
+     * `context` is accounting metadata (which surface called, which user, which
+     * plugin/agent/workflow). It is passed separately from the request so it can
+     * never be forwarded upstream to a provider.
      */
-    chat(request: AIChatRequest): Promise<AIResponse> {
-        return defaultRouter.chat(request);
+    chat(request: AIChatRequest, context?: AIRequestContext): Promise<AIResponse> {
+        return defaultRouter.chat(request, context);
     },
 
     /**

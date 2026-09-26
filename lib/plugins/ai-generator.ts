@@ -187,6 +187,13 @@ async function generateSpecFromModel(userPrompt: string): Promise<SpecFromModel>
         messages: [{ role: "user", content: userPrompt }],
         systemPrompt: SYSTEM_PROMPT,
         responseFormat: "json_object",
+    }, {
+        // Accounting context only, passed separately from the request so it can
+        // never reach a provider upstream. `sourceId` is left unset: the
+        // generator runs before a draft (and therefore a plugin id) exists, so
+        // the spend is attributed to the `plugin` source but cannot yet be
+        // charged to a specific plugin budget.
+        source: "plugin",
     });
 
     if (res.provider === "local-heuristic" || res.provider === "local") {
