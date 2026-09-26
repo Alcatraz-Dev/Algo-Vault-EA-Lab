@@ -4,6 +4,9 @@ import { useState, useMemo, useEffect } from "react";
 import { ArrowLeft, Sparkles, Globe } from "lucide-react";
 import Link from "next/link";
 import { generateDemoActivities } from "@/lib/live/live-aggregator";
+import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { onSubscriptionChange } from "@/lib/subscription";
 import LiveWorldMap from "@/components/live/LiveWorldMap";
 import LiveStatsRow from "@/components/live/LiveStatsRow";
 import LiveActivityFeed from "@/components/live/LiveActivityFeed";
@@ -15,6 +18,9 @@ import ScalpingTerminal from "@/components/live/ScalpingTerminal";
 export default function LivePage() {
   const [hoveredCountry, setHoveredCountry] = useState<string | undefined>(undefined);
   const [dark, setDark] = useState(false);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [hasPro, setHasPro] = useState(false);
+  const [loadingPro, setLoadingPro] = useState(true);
   const activities = useMemo(() => generateDemoActivities(60), []);
 
   useEffect(() => {
@@ -25,6 +31,18 @@ export default function LivePage() {
     setDark(document.documentElement.classList.contains("dark"));
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => { setUser(u); });
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    if (!user) { setHasPro(false); setLoadingPro(false); return; }
+    (async () => {
+      try { const { hasSubscription } = await onSubscriptionChange(user.uid); setHasPro(hasSubscription); } catch { setHasPro(false); } finally { setLoadingPro(false); }
+    })();
+  }, [user]);
 
   // Real-time refresh
   useEffect(() => {
@@ -92,7 +110,7 @@ export default function LivePage() {
           </aside>
         </div>
 
-        <ScalpingTerminal />
+        <ScalpingTerminal pro={hasPro} />
 
         {/* Info cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

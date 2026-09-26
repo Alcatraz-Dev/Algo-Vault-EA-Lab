@@ -31,14 +31,9 @@ export default function ChartContextMenu({
     return (
         <DropdownMenu open={open} onOpenChange={setOpen}>
             <DropdownMenuTrigger>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-2 top-2 z-10 opacity-0 hover:opacity-100 transition-opacity"
-                    aria-label="Chart options"
-                >
+                <span className="absolute right-2 top-2 z-10 opacity-0 hover:opacity-100 transition-opacity inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background/80 text-foreground hover:bg-muted cursor-pointer" aria-label="Chart options">
                     <Copy size={14} />
-                </Button>
+                </span>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-background border-border/20">
                 {onCopy && <DropdownMenuItem onSelect={onCopy}><Copy size={14} className="mr-2" />Copy chart</DropdownMenuItem>}

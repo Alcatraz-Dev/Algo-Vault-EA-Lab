@@ -38,7 +38,7 @@ export default function AlertManager({ alerts, onChange }: AlertManagerProps) {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger>
-                <Button variant="ghost" size="sm" className="gap-1.5">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background/80 text-foreground hover:bg-muted cursor-pointer transition gap-1.5" aria-label="Alert options">
                     <Bell size={14} />
                     <span className="hidden sm:inline">Alert</span>
                     {alerts.length > 0 && (
@@ -46,7 +46,7 @@ export default function AlertManager({ alerts, onChange }: AlertManagerProps) {
                             {alerts.length}
                         </span>
                     )}
-                </Button>
+                </span>
             </DialogTrigger>
             <DialogContent className="bg-background border-border/20">
                 <DialogHeader>

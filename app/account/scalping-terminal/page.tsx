@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { ArrowLeft, Lock, Terminal, Zap, RefreshCcw, Clock, Eye, Sparkles, Award, BarChart3, CalendarDays, Play, Pause, ChevronRight, ShieldCheck } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Lock, Terminal, Zap, RefreshCcw, ShieldCheck } from "lucide-react";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { onSubscriptionChange } from "@/lib/subscription";
@@ -81,10 +81,7 @@ export default function ScalpTerminalPage() {
                             <div className="min-w-0 leading-none">
                                 <h1 className="text-sm font-semibold truncate">AlgoVault Pro</h1>
                                 <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-0.5 truncate">
-                                    <span className="font-mono">XAUUSD</span>
-                                    <span>M5</span>
-                                    <span className="text-emerald-400">LIVE</span>
-                                    <span>NY Session</span>
+                                    <span>Scalping Terminal</span>
                                 </div>
                             </div>
                         </div>

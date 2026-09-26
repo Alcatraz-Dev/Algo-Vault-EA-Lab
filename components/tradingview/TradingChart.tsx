@@ -59,9 +59,18 @@ async function fetchRealCandles(symbol: string, timeframe: string): Promise<{ ca
         if (!res.ok || !data?.candles?.length) {
             return { candles: [], providerError: data?.error ?? "No market data available" };
         }
+        const sorted = data.candles
+            .map((c) => ({ ...c, time: Math.floor(c.timestamp / 1000) }))
+            .sort((a, b) => a.time - b.time);
+        const seen = new Set<number>();
+        const uniqueCandles = sorted.filter((c) => {
+            if (seen.has(c.time)) return false;
+            seen.add(c.time);
+            return true;
+        });
         return {
-            candles: data.candles.map((c) => ({
-                time: Math.floor(c.timestamp / 1000),
+            candles: uniqueCandles.map((c) => ({
+                time: c.time,
                 open: c.open,
                 high: c.high,
                 low: c.low,

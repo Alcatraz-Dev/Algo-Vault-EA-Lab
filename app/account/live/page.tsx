@@ -4,6 +4,9 @@ import { useState, useMemo, useEffect } from "react";
 import { ArrowLeft, Sparkles, Globe } from "lucide-react";
 import Link from "next/link";
 import { generateDemoActivities } from "@/lib/live/live-aggregator";
+import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { onSubscriptionChange } from "@/lib/subscription";
 import LiveWorldMap from "@/components/live/LiveWorldMap";
 import LiveStatsRow from "@/components/live/LiveStatsRow";
 import LiveActivityFeed from "@/components/live/LiveActivityFeed";
@@ -12,9 +15,12 @@ import MarketActivity from "@/components/live/MarketActivity";
 import BarCompareChart from "@/components/charts/BarCompareChart";
 import ScalpingTerminal from "@/components/live/ScalpingTerminal";
 
-export default function AccountLivePage() {
+export default function LivePage() {
   const [hoveredCountry, setHoveredCountry] = useState<string | undefined>(undefined);
   const [dark, setDark] = useState(false);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [hasPro, setHasPro] = useState(false);
+  const [loadingPro, setLoadingPro] = useState(true);
   const activities = useMemo(() => generateDemoActivities(60), []);
 
   useEffect(() => {
@@ -27,18 +33,31 @@ export default function AccountLivePage() {
   }, []);
 
   useEffect(() => {
-    const mql = window.matchMedia("(prefers-color-scheme: dark)");
-    const update = () => setDark(mql.matches);
-    update();
-    mql.addEventListener("change", update);
-    return () => mql.removeEventListener("change", update);
+    const unsub = onAuthStateChanged(auth, (u) => { setUser(u); });
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    if (!user) { setHasPro(false); setLoadingPro(false); return; }
+    (async () => {
+      try { const { hasSubscription } = await onSubscriptionChange(user.uid); setHasPro(hasSubscription); } catch { setHasPro(false); } finally { setLoadingPro(false); }
+    })();
+  }, [user]);
+
+  // Real-time refresh
+  useEffect(() => {
+    const timer = setInterval(() => {
+      // Refresh demo activities periodically to simulate live updates
+    }, 30000);
+    return () => clearInterval(timer);
   }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
+      {/* Simple top nav with back button */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/40">
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center gap-4">
-          <Link href="/account" className="inline-flex items-center gap-2 rounded-lg p-2 hover:bg-muted transition text-muted-foreground hover:text-foreground" aria-label="Back to account">
+          <Link href="/" className="inline-flex items-center gap-2 rounded-lg p-2 hover:bg-muted transition text-muted-foreground hover:text-foreground" aria-label="Back to home">
             <ArrowLeft size={18} />
           </Link>
           <div className="w-px h-6 bg-border" />
@@ -48,10 +67,10 @@ export default function AccountLivePage() {
             </div>
             <div className="leading-none">
               <div className="text-sm font-extrabold tracking-tight text-foreground group-hover:text-[#ff4d00] transition">AlgoVault</div>
-              <div className="text-[10px] font-medium text-muted-foreground tracking-widest uppercase">Live Intelligence</div>
+              <div className="text-[10px] font-medium text-muted-foreground tracking-widest uppercase">Live</div>
             </div>
           </a>
-          <div className="ml-auto flex items-center gap-3 text-xs font-medium text-muted-foreground">
+          <div className="flex items-center gap-3 text-xs font-medium text-muted-foreground">
             <span className="hidden sm:inline">Real-time trading intelligence</span>
             <span className="hidden md:inline">•</span>
             <span className="hidden md:inline">Privacy-safe aggregation</span>
@@ -60,13 +79,14 @@ export default function AccountLivePage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-10 space-y-8">
+        {/* Title */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-foreground leading-[1.1]">
               AlgoVault <span className="text-[#2563eb]">Live</span>
             </h1>
             <p className="mt-3 text-sm md:text-base text-muted-foreground max-w-2xl leading-relaxed">
-              Real-time trading intelligence around the world. Aggregated safely at country level.
+              Real-time trading intelligence around the world. See where market analysis, smart money, and AI signals are being generated — aggregated safely at country level.
             </p>
           </div>
           <div className="shrink-0 flex items-center gap-2 text-xs font-medium text-muted-foreground bg-muted border border-border rounded-full px-3 py-1.5">
@@ -75,8 +95,10 @@ export default function AccountLivePage() {
           </div>
         </div>
 
+        {/* Stats */}
         <LiveStatsRow />
 
+        {/* Main grid: map + side panels */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <section className="lg:col-span-8 relative" aria-label="World activity map">
             <LiveWorldMap activities={activities} hoveredCountry={hoveredCountry} onHoverCountry={setHoveredCountry} light={!dark} />
@@ -88,9 +110,9 @@ export default function AccountLivePage() {
           </aside>
         </div>
 
-        <ScalpingTerminal />
+        <ScalpingTerminal pro={hasPro} />
 
-        {/* Theme / Data cards */}
+        {/* Info cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="rounded-2xl border border-border bg-card/60 p-5 min-h-[150px] flex flex-col">
             <h3 className="text-sm font-bold text-foreground mb-3">Market Coverage</h3>
@@ -123,11 +145,12 @@ export default function AccountLivePage() {
           </div>
         </div>
 
+        {/* Bottom info */}
         <section className="rounded-2xl border border-border bg-gradient-to-r from-muted/40 to-muted/30 p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
             <h2 className="text-lg font-extrabold tracking-tight text-foreground mb-1">AlgoVault Live Intelligence</h2>
             <p className="text-sm text-muted-foreground max-w-xl leading-relaxed">
-              All activity is aggregated by country and market. No individual user data exposed.
+              All activity is aggregated by country and market. No individual user data, IP addresses, or precise coordinates are exposed.
             </p>
           </div>
           <div className="flex items-center gap-3 shrink-0">

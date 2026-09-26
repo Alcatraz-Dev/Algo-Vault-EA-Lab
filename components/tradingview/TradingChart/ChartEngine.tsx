@@ -111,8 +111,9 @@ export default function ChartEngine({
                 break;
         }
 
-        if (candles.length > 0) {
-            series.setData(candles);
+        const clean = candles.filter((c: any) => c && typeof c.open === "number" && typeof c.high === "number" && typeof c.low === "number" && typeof c.close === "number");
+        if (clean.length > 0) {
+            series.setData(clean);
         }
 
         if (chartType === "candlestick" || chartType === "bar") {
