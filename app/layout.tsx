@@ -61,7 +61,7 @@ export const metadata: Metadata = {
       { rel: "mask-icon", url: "/icons/icon-192x192.svg", color: "#ff4d00" },
     ],
   },
-  manifest: "/manifest.json",
+  manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

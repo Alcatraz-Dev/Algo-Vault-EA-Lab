@@ -1,20 +1,36 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { Zap } from "lucide-react";
 import { checkHealth, getGatewayStatus, openStrategyLab, runBacktestFromExtension } from "@/api/algovault";
 import { getAuthToken, getCachedContext, getUser } from "@/storage/storage";
 import type { TradingViewContext, ViewMode } from "@/types";
 import type { EnrichedChartContext } from "@/services/chart-intelligence";
 import { resolveMarketSymbol, classifyMarket } from "@/utils/symbols";
 import { Header } from "./components/Header";
+import { TabBar, type TabId } from "./components/TabBar";
 import { MainView } from "./components/MainView";
 import { AnalysisView } from "./components/AnalysisView";
 import { AICopilotView } from "./components/AICopilotView";
 import { RiskView } from "./components/RiskView";
 import { SignalView } from "./components/SignalView";
 import { ExecuteView } from "./components/ExecuteView";
-import { QuickOrderView } from "./components/QuickOrderView";
 import { SignalsListView } from "./components/SignalsListView";
+import { AISignalsView } from "./components/AISignalsView";
 import { SettingsView } from "./components/SettingsView";
 import { LoginView } from "./components/LoginView";
+
+const TAB_VIEWS: Record<TabId, ViewMode> = {
+  home: "main",
+  analysis: "analysis",
+  copilot: "ai-copilot",
+  settings: "settings",
+};
+
+function tabForView(view: ViewMode): TabId {
+  if (view === "analysis") return "analysis";
+  if (view === "ai-copilot") return "copilot";
+  if (view === "settings" || view === "diagnostics") return "settings";
+  return "home";
+}
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -170,6 +186,12 @@ export default function App() {
     handleContextChange(manual);
   }, [context, handleContextChange]);
 
+  /** Timeframe switch — keeps the symbol identity, re-enriches market data. */
+  const handleSelectTimeframe = useCallback((tf: string) => {
+    if (!context?.symbol) return;
+    handleContextChange({ ...context, timeframe: tf, rawTimeframe: tf, timeframeSource: "manual", timestamp: Date.now() });
+  }, [context, handleContextChange]);
+
   const symbolForAction = activeSymbol;
 
   const handleStrategyLab = useCallback(async () => {
@@ -184,10 +206,10 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex h-screen items-center justify-center bg-base">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
-          <p className="text-xs text-[#8888aa]">Loading AlgoVault...</p>
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
+          <p className="text-xs text-ink-mute">Loading AlgoVault…</p>
         </div>
       </div>
     );
@@ -210,13 +232,20 @@ export default function App() {
       case "signal":
         return <SignalView symbol={sym} context={ctx} onBack={() => setView("main")} />;
       case "execute":
-        return <ExecuteView symbol={sym} context={ctx} onBack={() => setView("main")} />;
       case "quick-order":
-        return <QuickOrderView symbol={sym} context={ctx} onBack={() => setView("main")} />;
+        return <ExecuteView symbol={sym} context={ctx} onBack={() => setView("main")} />;
       case "signals-list":
         return <SignalsListView onBack={() => setView("main")} />;
+      case "ai-signals":
+        return (
+          <AISignalsView
+            symbol={sym}
+            context={ctx}
+            enriched={enriched}
+            onBack={() => setView("main")}
+          />
+        );
       case "settings":
-        return <SettingsView onBack={() => setView("main")} onLogout={handleLogout} />;
       case "diagnostics":
         return <SettingsView onBack={() => setView("main")} onLogout={handleLogout} />;
       default:
@@ -225,10 +254,12 @@ export default function App() {
             symbol={sym}
             context={ctx}
             marketContext={enriched?.market ?? null}
+            enriched={enriched}
             isHealthy={isHealthy}
             gatewayConnected={gatewayConnected}
             onNavigate={setView}
             onSelectSymbol={handleSelectSymbol}
+            onSelectTimeframe={handleSelectTimeframe}
             onStrategyLab={handleStrategyLab}
             onBacktest={handleBacktest}
           />
@@ -236,20 +267,25 @@ export default function App() {
     }
   };
 
+  const isTab = view === "main" || view === "analysis" || view === "ai-copilot" || view === "settings" || view === "diagnostics";
+  const activeTab = tabForView(view);
+
   return (
-    <div className="h-full flex flex-col bg-[#0a0a0f] text-[#f0f0f5]">
+    <div className="flex h-full flex-col bg-base text-ink">
       <Header
         isHealthy={isHealthy}
         gatewayConnected={gatewayConnected}
         userEmail={user ? (user.email as string || null) : null}
-        onBack={view !== "main" ? () => setView("main") : undefined}
+        onBack={!isTab ? () => setView("main") : undefined}
+        onSettings={view === "main" ? () => setView("settings") : undefined}
       />
       {offlineNotice && (
-        <div className="px-3 py-2 bg-amber-500/10 border-b border-amber-500/20">
-          <p className="text-[10px] text-amber-400">AlgoVault server is unreachable (offline mode). Some features may not work.</p>
+        <div className="border-b border-amber-500/20 bg-amber-500/10 px-3 py-1.5">
+          <p className="text-[10px] text-amber-400">AlgoVault server unreachable — offline mode. Some features may not work.</p>
         </div>
       )}
-      <div className="animate-fade-in flex-1 min-h-0 overflow-y-auto">{renderView()}</div>
+      <div className="animate-fade-in min-h-0 flex-1 overflow-y-auto">{renderView()}</div>
+      {isTab && <TabBar active={activeTab} onChange={(tab) => setView(TAB_VIEWS[tab])} />}
     </div>
   );
 }

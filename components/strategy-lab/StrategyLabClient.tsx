@@ -18,6 +18,7 @@ import {
     FileSearch,
     FlaskConical,
     Gauge,
+    Settings2,
     Layers,
     LineChart as LineChartIcon,
     Loader2,
@@ -655,7 +656,11 @@ function StrategyPill({ strategy, onOpen, mismatch }: { strategy: Strategy; onOp
                 <span className="block truncate text-sm font-semibold text-amber-300">{strategy.name}</span>
                 <span className="block truncate text-[11px] text-muted-foreground">
                     {strategy.asset} · {strategy.direction} · {strategy.timeframes.setup}
-                    {mismatch ? " · ⚠ different symbol" : ""}
+                    {mismatch && (
+                        <span className="inline-flex items-center gap-0.5">
+                            · <CircleAlert size={10} className="inline-block" aria-hidden /> different symbol
+                        </span>
+                    )}
                 </span>
             </span>
             <ChevronRight className="h-4 w-4 shrink-0 text-amber-400" />
@@ -1302,7 +1307,7 @@ function BacktestTab({
                     : "Select a strategy in step 3 to backtest."}
                 action={
                     <div className="flex items-center gap-2">
-                        <Btn onClick={() => setShowCfg((v) => !v)} variant="ghost">⚙ Cost &amp; risk</Btn>
+                        <Btn onClick={() => setShowCfg((v) => !v)} variant="ghost"><Settings2 size={14} /> Cost &amp; risk</Btn>
                         <Btn onClick={launch} busy={busy || running} disabled={!selectedStrategy}>
                             <Play className="h-4 w-4" /> Run Backtest
                         </Btn>
@@ -1409,7 +1414,7 @@ function BacktestTab({
                 <EmptyState
                     icon={BarChart3}
                     title={`Ready to backtest ${selectedStrategy.name}`}
-                    body="The engine replays every closed bar with realistic spread, commission and slippage. Tune the cost model via ⚙ Cost & risk."
+                    body="The engine replays every closed bar with realistic spread, commission and slippage. Tune the cost model via Cost & risk."
                     cta={<Btn onClick={launch}><Play className="h-4 w-4" /> Run Backtest</Btn>}
                 />
             )}

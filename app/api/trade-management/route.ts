@@ -8,6 +8,9 @@ import {
     transitionState,
     generateRecommendations,
     getTradeEvents,
+    queueModifySl,
+    queueFullClose,
+    queuePartialClose,
 } from "@/lib/trade-management/service";
 import {
     TradeManagementConfig,
@@ -188,9 +191,9 @@ export async function PUT(request: NextRequest) {
 
         if (action === "updateSl" && body.newSl !== undefined) {
             const oldSl = state.currentSl;
-            const newSl = body.newSl;
+            const newSl = Number(body.newSl);
 
-            // Safety: never worsen SL
+            // Safety: never worsen SL (ratchet-only)
             if (state.direction === "BUY" && newSl < oldSl) {
                 return NextResponse.json({ error: "Cannot move BUY SL downward" }, { status: 400 });
             }
@@ -198,19 +201,96 @@ export async function PUT(request: NextRequest) {
                 return NextResponse.json({ error: "Cannot move SELL SL upward" }, { status: 400 });
             }
 
+            // Queue the MODIFY through the gateway execution path.
+            const queued = await queueModifySl(user.uid, accountId, ticket, state, newSl, reason || "Manual SL update", "MANUAL");
+            if (!queued) {
+                return NextResponse.json({ error: "Failed to queue SL modification" }, { status: 500 });
+            }
+
             state.currentSl = newSl;
             state.lastUpdated = Date.now();
             await saveTradeState(state);
 
-            // Audit log
-            const { logAudit } = await import("@/lib/trade-management/service");
-            await logAudit(user.uid, accountId, ticket, "MOVE_SL", {
-                oldSL: oldSl,
-                newSL: newSl,
-                reason: reason || "Manual SL update",
-                mode: "MANUAL",
-                status: "SUCCESS",
+            return NextResponse.json({ success: true, trade: state });
+        }
+
+        if (action === "closeAtMarket") {
+            if (["CLOSED", "STOPPED", "CANCELLED"].includes(state.state)) {
+                return NextResponse.json({ error: "Trade already closed" }, { status: 400 });
+            }
+
+            const orderId = await queueFullClose(user.uid, accountId, ticket, state, reason || "Manual close at market");
+            if (!orderId) {
+                return NextResponse.json({ error: "Failed to queue close order" }, { status: 500 });
+            }
+
+            // Mark managed state closed; the monitor reconciles the actual
+            // position removal from trading_positions.
+            state.manualOverride = true;
+            state.overrideReason = "Manual close queued";
+            state.lastUpdated = Date.now();
+            await saveTradeState(state);
+            await transitionState(user.uid, accountId, ticket, "CLOSED", "Manual close queued");
+
+            return NextResponse.json({ success: true, orderId });
+        }
+
+        if (action === "closePartial" && body.closeVolume !== undefined) {
+            const closeVolume = Number(body.closeVolume);
+            const available = state.remainingVolume || state.volume;
+
+            if (!(closeVolume > 0) || closeVolume > available + 1e-8) {
+                return NextResponse.json({ error: `Invalid volume. Available: ${available.toFixed(2)} lots` }, { status: 400 });
+            }
+            if (closeVolume >= available - 1e-8) {
+                // Full close via the partial path — treat as closeAtMarket.
+                const orderId = await queueFullClose(user.uid, accountId, ticket, state, reason || "Manual close (full) via partial");
+                if (!orderId) return NextResponse.json({ error: "Failed to queue close order" }, { status: 500 });
+                state.manualOverride = true;
+                state.overrideReason = "Manual close queued";
+                await saveTradeState(state);
+                await transitionState(user.uid, accountId, ticket, "CLOSED", "Manual close queued");
+                return NextResponse.json({ success: true, orderId, full: true });
+            }
+
+            const orderId = await queuePartialClose(user.uid, accountId, ticket, state, closeVolume, reason || "Manual partial close");
+            if (!orderId) {
+                return NextResponse.json({ error: "Failed to queue partial close" }, { status: 500 });
+            }
+
+            state.remainingVolume = Math.round((available - closeVolume) * 100) / 100;
+            state.closeHistory.push({
+                target: "MANUAL",
+                volume: closeVolume,
+                price: state.currentPrice,
+                timestamp: Date.now(),
             });
+            state.lastUpdated = Date.now();
+            await saveTradeState(state);
+
+            return NextResponse.json({ success: true, orderId, trade: state });
+        }
+
+        if (action === "setTp" && body.tp !== undefined && body.target) {
+            // Adjust an individual target price (tp1 | tp2 | tp3)
+            const key = String(body.target);
+            if (!["tp1", "tp2", "tp3"].includes(key)) {
+                return NextResponse.json({ error: "Invalid target key" }, { status: 400 });
+            }
+            const tp = Number(body.tp);
+            if (!(tp > 0)) {
+                return NextResponse.json({ error: "Invalid TP price" }, { status: 400 });
+            }
+            if (state.config[key as "tp1" | "tp2" | "tp3"].hit) {
+                return NextResponse.json({ error: "Target already hit" }, { status: 400 });
+            }
+
+            state.config[key as "tp1" | "tp2" | "tp3"].price = tp;
+            state.currentTp = tp; // broker TP follows the nearest unfilled target
+            state.lastUpdated = Date.now();
+            await saveTradeState(state);
+
+            await queueOrderRequestForTp(user.uid, accountId, ticket, state, reason || "Manual TP update");
 
             return NextResponse.json({ success: true, trade: state });
         }
@@ -227,6 +307,25 @@ export async function PUT(request: NextRequest) {
     } catch (err) {
         console.error("Trade management PUT error:", err);
         return NextResponse.json({ error: "Failed" }, { status: 500 });
+    }
+}
+
+// ============================================
+// HELPERS
+// ============================================
+
+// Push the updated broker TP to MT5 whenever a target is edited.
+async function queueOrderRequestForTp(
+    uid: string,
+    accountId: string,
+    ticket: string,
+    state: TradeManagementState,
+    reason: string
+): Promise<void> {
+    try {
+        await queueModifySl(uid, accountId, ticket, state, state.currentSl, reason, "MANUAL");
+    } catch (err) {
+        console.error("TP modify queue failed:", err);
     }
 }
 

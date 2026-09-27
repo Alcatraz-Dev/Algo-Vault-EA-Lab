@@ -21,6 +21,7 @@ export default defineConfig({
       input: {
         popup: resolve(__dirname, "src/popup/index.html"),
         options: resolve(__dirname, "src/options/index.html"),
+        sidepanel: resolve(__dirname, "src/sidepanel/index.html"),
         "background/service-worker": resolve(__dirname, "src/background/service-worker.ts"),
         // NOTE: content scripts are NOT built here — MV3 content scripts are
         // classic scripts and cannot use static ESM imports. They are bundled

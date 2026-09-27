@@ -1,12 +1,12 @@
 // Service Worker for AlgoVault PWA
 // Caches only static assets - NEVER caches sensitive trading/account data
 
-const CACHE_NAME = "algovault-static-v1";
+const CACHE_NAME = "algovault-static-v2";
 const STATIC_ASSETS = [
   "/",
-  "/manifest.json",
-  "/icons/icon-192x192.png",
-  "/icons/icon-512x512.png",
+  "/manifest.webmanifest",
+  "/icons/icon-192x192.svg",
+  "/icons/icon-512x512.svg",
 ];
 
 // Assets that should never be cached
@@ -44,9 +44,14 @@ function shouldNeverCache(url) {
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
+    caches.open(CACHE_NAME).then((cache) =>
+      // Precache entries individually: addAll is atomic and one missing file
+      // (e.g. a renamed icon) used to abort the whole install, leaving the SW
+      // unactivated and every offline fallback broken.
+      Promise.allSettled(
+        STATIC_ASSETS.map((asset) => cache.add(new Request(asset, { cache: "reload" })))
+      )
+    )
   );
   self.skipWaiting();
 });
@@ -123,8 +128,7 @@ self.addEventListener("push", (event) => {
   const data = event.data.json();
   const options = {
     body: data.message,
-    icon: "/icons/icon-192x192.png",
-    badge: "/icons/badge-72x72.png",
+    icon: "/icons/icon-192x192.svg",
     vibrate: [200, 100, 200],
     tag: data.tag || "algovault-notification",
     data: data.data || {},

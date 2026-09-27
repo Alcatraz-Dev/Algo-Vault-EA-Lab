@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, SlidersHorizontal, BarChart3, LineChart, AreaChart, BarChart as BarIcon, Activity, Undo2, Redo2 } from "lucide-react";
+import { Search, SlidersHorizontal, BarChart3, LineChart, AreaChart, BarChart as BarIcon, Activity, Undo2, Redo2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { ChartType, Candle } from "./types";
@@ -170,7 +170,7 @@ export default function ChartToolbar({
                                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: study.color }} />
                                 {study.name}
                             </span>
-                            {studies.includes(study.id) && <span className="text-cyan-400">✓</span>}
+                            {studies.includes(study.id) && <Check size={14} className="text-cyan-400" aria-hidden />}
                         </button>
                     ))}
                 </div>

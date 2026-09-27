@@ -54,14 +54,10 @@ async function apiPost<T>(path: string, body: Record<string, unknown>): Promise<
 export async function checkHealth(): Promise<boolean> {
   try {
     const base = await getBaseUrl();
-    const token = await getAuthToken();
-    // `/api/account-health` is a protected endpoint: probing it without a
-    // token returns 401. Only probe it when signed in; otherwise probe the
-    // app root for reachability.
-    const target = token ? "/api/account-health" : "/";
-    const headers = await authHeaders();
-    console.log(`${EXT_PREFIX} checkHealth -> ${base}${target}`);
-    const res = await fetch(`${base}${target}`, { method: "GET", headers });
+    // Probe the unauthenticated liveness endpoint. Checking authenticated
+    // routes here (e.g. /api/account-health) produced 401 noise whenever the
+    // stored token was missing or expired — reachability needs no session.
+    const res = await fetch(`${base}/api/health`, { method: "GET" });
     return res.ok || res.status === 401;
   } catch {
     return false;
@@ -171,6 +167,7 @@ export async function chatWithAI(
   systemPrompt?: string,
   maxTokens?: number,
   context?: unknown,
+  model?: string | null,
 ): Promise<ChatWithAIResult> {
   console.log(`${EXT_PREFIX} Copilot request`, messages);
   const data = await apiPost<{
@@ -186,6 +183,7 @@ export async function chatWithAI(
     systemPrompt: systemPrompt || "You are AlgoVault AI, an expert trading assistant. Provide thorough, detailed analysis based on the provided market context. Never fabricate prices or levels. Explain actual chart evidence with full detail.",
     ...(maxTokens != null ? { maxTokens } : {}),
     ...(context !== undefined ? { context } : {}),
+    ...(model ? { model } : {}),
   });
   return {
     content: data.content,

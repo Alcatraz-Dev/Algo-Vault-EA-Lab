@@ -29,21 +29,21 @@ export function LoginView({ onAuth }: LoginViewProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center p-6">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-base p-6">
       <div className="w-full max-w-[300px] space-y-6">
         <div className="flex flex-col items-center gap-2">
-          <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center">
-            <Zap size={20} className="text-violet-400" />
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-500/15">
+            <Zap size={22} className="text-brand-500" />
           </div>
-          <h1 className="text-base font-semibold text-[#f0f0f5]">AlgoVault</h1>
-          <p className="text-[11px] text-[#8888aa] text-center">
+          <h1 className="text-base font-semibold text-ink">AlgoVault</h1>
+          <p className="text-center text-[11px] text-ink-mute">
             Sign in to access your trading dashboard
           </p>
         </div>
 
         <form onSubmit={handleSignIn} className="space-y-3">
           <div>
-            <label className="text-[10px] text-[#8888aa] uppercase tracking-wider mb-1 block">
+            <label className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-ink-mute">
               Email
             </label>
             <input
@@ -51,12 +51,12 @@ export function LoginView({ onAuth }: LoginViewProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-[#f0f0f5] placeholder:text-[#55556a] outline-none focus:border-violet-500/30"
+              className="w-full rounded-lg border border-edge bg-raised px-3 py-2 text-xs text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-brand-500/60"
               required
             />
           </div>
           <div>
-            <label className="text-[10px] text-[#8888aa] uppercase tracking-wider mb-1 block">
+            <label className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-ink-mute">
               Password
             </label>
             <input
@@ -64,13 +64,13 @@ export function LoginView({ onAuth }: LoginViewProps) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-[#f0f0f5] placeholder:text-[#55556a] outline-none focus:border-violet-500/30"
+              className="w-full rounded-lg border border-edge bg-raised px-3 py-2 text-xs text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-brand-500/60"
               required
             />
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-rose-500/10 text-rose-400 text-[11px] border border-rose-500/20">
+            <div className="flex items-center gap-2 rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-[11px] text-rose-400">
               <AlertCircle size={12} />
               {error}
             </div>
@@ -79,10 +79,10 @@ export function LoginView({ onAuth }: LoginViewProps) {
           <button
             type="submit"
             disabled={loading || !email || !password}
-            className="w-full py-2.5 rounded-lg bg-violet-500 text-white text-xs font-semibold hover:bg-violet-600 disabled:opacity-40 transition-all flex items-center justify-center gap-2"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-500 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-brand-400 disabled:opacity-40"
           >
             {loading ? <Loader2 size={14} className="animate-spin" /> : null}
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? "Signing in…" : "Sign In"}
           </button>
         </form>
 
@@ -90,7 +90,7 @@ export function LoginView({ onAuth }: LoginViewProps) {
           href={`${getAlgoVaultUrl()}/login`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1.5 text-[11px] text-[#8888aa] hover:text-violet-400 transition-colors"
+          className="flex items-center justify-center gap-1.5 text-[11px] text-ink-mute transition-colors hover:text-brand-400"
         >
           Sign in on AlgoVault website
           <ExternalLink size={10} />

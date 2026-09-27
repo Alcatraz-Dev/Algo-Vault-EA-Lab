@@ -11,11 +11,13 @@ import {
     type UTCTimestamp,
 } from "lightweight-charts";
 import { BarChart3, Layers } from "lucide-react";
+import type { LastPushedBar } from "@/lib/market-data/live-feed";
 import { cn } from "@/lib/utils";
 import { SUPPORTED_SYMBOLS, type MarketCandle, type Timeframe } from "@/lib/market-data/types";
 import type { PriceLevel } from "@/lib/ai/analysis/intelligence";
 import { AwaitingState, TerminalPanel } from "@/components/scalping/TerminalPrimitives";
 import { useAuthToken } from "@/lib/scalping/client";
+import { useLiveCandles } from "@/hooks/useLiveCandles";
 
 /**
  * AdvancedChart — candles plus structure overlays.
@@ -53,6 +55,7 @@ type OhlcResponse = {
     error?: string;
 };
 
+
 export function AdvancedChart({
     symbol,
     timeframe,
@@ -72,78 +75,28 @@ export function AdvancedChart({
     const priceLinesRef = useRef<ReturnType<ISeriesApi<"Candlestick">["createPriceLine"]>[]>([]);
     /** Guards against re-creating the chart when only props change. */
     const createdForRef = useRef<string | null>(null);
+    /** Last bar pushed to the series — enables incremental live-tail updates. */
+    const lastPushedRef = useRef<LastPushedBar>(null);
+    /** Candle count the series was last fully seeded with. */
+    const trackedCountRef = useRef(0);
 
     /**
-     * Fetch result is stored against the key it was requested for, and the
-     * visible state is *derived* by comparing that key with the current request.
-     *
-     * This is what stops the chart from displaying the previous symbol's candles
-     * underneath a loading overlay: a mismatched key renders nothing rather than
-     * stale data. It also avoids setting state synchronously in the effect body.
+     * Live feed shared with every chart in the app: history loads once, live
+     * quotes merge into the forming candle, and the feed reconciles against
+     * the provider periodically. Nothing is synthesised: if the feed fails
+     * the chart shows an explicit unavailable state.
      */
-    const [result, setResult] = useState<{
-        key: string;
-        candles: MarketCandle[] | null;
-        error: string | null;
-    } | null>(null);
+    const {
+        candles: liveCandles,
+        error: liveError,
+        isLoading: liveLoading,
+    } = useLiveCandles(symbol, timeframe, { limit: MAX_CANDLES });
     const token = useAuthToken();
 
-    const requestKey = `${symbol}:${timeframe}:${token ? "auth" : "anon"}`;
-    const isCurrent = result?.key === requestKey;
-    const candles = isCurrent ? result.candles : null;
-    const error = isCurrent ? result.error : null;
-    const loading = !isCurrent;
-
-    // ── data ────────────────────────────────────────────────────────────────
-    useEffect(() => {
-        let cancelled = false;
-
-        (async () => {
-            try {
-                const res = await fetch(
-                    `/api/analytics/ohlc?symbol=${encodeURIComponent(symbol)}&timeframe=${timeframe}&limit=${MAX_CANDLES}`,
-                    {
-                        cache: "no-store",
-                        ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
-                    }
-                );
-                const body = (await res.json()) as OhlcResponse;
-
-                if (cancelled) return;
-
-                if (!res.ok) {
-                    setResult({
-                        key: requestKey,
-                        candles: null,
-                        error: body?.error ?? `Chart data request failed (${res.status}).`,
-                    });
-                    return;
-                }
-                const data = body.candles ?? [];
-                if (data.length === 0) {
-                    setResult({
-                        key: requestKey,
-                        candles: null,
-                        error:
-                            "The market data provider returned no candles for this symbol and timeframe."
-                    });
-                    return;
-                }
-                setResult({ key: requestKey, candles: data, error: null });
-            } catch (err) {
-                if (cancelled) return;
-                setResult({
-                    key: requestKey,
-                    candles: null,
-                    error: err instanceof Error ? err.message : "Chart data request failed.",
-                });
-            }
-        })();
-
-        return () => {
-            cancelled = true;
-        };
-    }, [symbol, timeframe, token, requestKey]);
+    const requestKey = `${symbol}:${timeframe}`;
+    const candles = liveCandles.length > 0 ? liveCandles : null;
+    const error = liveError;
+    const loading = liveLoading;
 
     // ── chart lifecycle: create once per symbol+timeframe ──────────────────
     useEffect(() => {
@@ -233,15 +186,60 @@ export function AdvancedChart({
 
     // ── data feed ──────────────────────────────────────────────────────────
     //
-    // A full `setData` is used rather than a per-candle `update()`: each poll
-    // replaces the whole ≤500-bar window (and the forming bar's close may have
-    // changed), so there is no single bar to patch. This is the path
-    // lightweight-charts recommends for a bounded window, and it keeps the
-    // chart correct when a provider revises an earlier bar.
+    // First load does a full `setData`; afterwards the live quote poller only
+    // changes the forming bar, so the tail is pushed incrementally with
+    // `series.update()`. This makes the last candle move in place (like a
+    // regular market chart) instead of repainting the whole window on every
+    // poll. A reconcile that changes the bar count falls back to a full
+    // `setData` so revised history is picked up.
     useEffect(() => {
         const candleSeries = candleSeriesRef.current;
         const volumeSeries = volumeSeriesRef.current;
         if (!candleSeries || !volumeSeries || !candles) return;
+
+        const lastPushed = lastPushedRef.current;
+        if (trackedCountRef.current === candles.length && lastPushed) {
+            // Tail update: only the forming bar can differ between live
+            // polls; a new appended bar falls through to the reseed below.
+            const last = candles[candles.length - 1];
+            const lastTime = Math.floor(last.timestamp / 1000);
+            if (lastTime === lastPushed.time) {
+                if (
+                    last.open !== lastPushed.open ||
+                    last.high !== lastPushed.high ||
+                    last.low !== lastPushed.low ||
+                    last.close !== lastPushed.close
+                ) {
+                    try {
+                        candleSeries.update({
+                            time: lastTime as unknown as UTCTimestamp,
+                            open: last.open,
+                            high: last.high,
+                            low: last.low,
+                            close: last.close,
+                        });
+                        volumeSeries.update({
+                            time: lastTime as unknown as UTCTimestamp,
+                            value: last.volume ?? 0,
+                            color: last.close >= last.open ? "rgba(oklch(0.55 0.18 142) / 0.4)" : "rgba(oklch(0.577 0.245 27.32) / 0.4)",
+                        });
+                        lastPushedRef.current = {
+                            time: lastTime,
+                            open: last.open,
+                            high: last.high,
+                            low: last.low,
+                            close: last.close,
+                        };
+                        return;
+                    } catch {
+                        // Bar-ordering violation — fall through to a full reseed.
+                    }
+                } else {
+                    return; // no visible change
+                }
+            }
+            // A new bar appeared (or ordering broke) → full reseed below.
+        }
 
         candleSeries.setData(
             candles.map((c) => ({
@@ -259,6 +257,19 @@ export function AdvancedChart({
                 color: c.close >= c.open ? "rgba(oklch(0.55 0.18 142) / 0.4)" : "rgba(oklch(0.577 0.245 27.32) / 0.4)",
             }))
         );
+        trackedCountRef.current = candles.length;
+        if (candles.length > 0) {
+            const last = candles[candles.length - 1];
+            lastPushedRef.current = {
+                time: Math.floor(last.timestamp / 1000),
+                open: last.open,
+                high: last.high,
+                low: last.low,
+                close: last.close,
+            };
+        } else {
+            lastPushedRef.current = null;
+        }
     }, [candles]);
 
     // ── overlays ───────────────────────────────────────────────────────────
@@ -328,7 +339,7 @@ export function AdvancedChart({
         <TerminalPanel
             title="Price & Structure"
             icon={<BarChart3 className="size-3.5" />}
-            meta={`${symbol} · ${timeframe}${candles ? ` · ${candles.length} bars` : ""}`}
+            meta={`${symbol} · ${timeframe}${candles ? ` · ${candles.length} bars · live` : ""}`}
             dense
             className={className}
             action={
@@ -355,7 +366,7 @@ export function AdvancedChart({
                     {loading && candles === null ? (
                         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                             <span className="rounded-md border border-border bg-card px-2 py-1 text-xs text-muted-foreground">
-                                Loading candles…
+                                Loading live candles…
                             </span>
                         </div>
                     ) : null}

@@ -124,6 +124,7 @@ export const ADMIN_NAV: NavGroup[] = [
   {
     label: "System",
     items: [
+      { href: "/agent", label: "Agent IDE", icon: Sparkles },
       { href: "/goals", label: "Goals", icon: Target },
       { href: "/admin/whitelabel", label: "Whitelabel", icon: Palette },
       { href: "/admin/settings", label: "Settings", icon: Settings },

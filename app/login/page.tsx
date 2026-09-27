@@ -1,7 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { FormEvent, Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
     browserLocalPersistence,
     browserSessionPersistence,
@@ -15,9 +15,21 @@ import { auth, database } from "@/lib/firebase";
 import { ArrowRight, Eye, EyeOff, Lock, Mail, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import SiteLogo from "@/components/ui/site-logo";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { FormError } from "@/components/ui/form-field";
 
 export default function LoginPage() {
+    return (
+        <Suspense fallback={null}>
+            <LoginForm />
+        </Suspense>
+    );
+}
+
+function LoginForm() {
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -66,11 +78,16 @@ export default function LoginPage() {
 
             // Firebase now keeps the session according to the
             // persistence selected above.
-            router.replace("/account");
-        } catch (err: any) {
+            const redirect = (searchParams.get("redirect") || "").trim();
+            router.replace(redirect.startsWith("/") ? redirect : "/account");
+        } catch (err: unknown) {
             console.error("LOGIN ERROR:", err);
+            const code =
+                typeof err === "object" && err !== null && "code" in err
+                    ? String((err as { code?: unknown }).code)
+                    : "";
 
-            switch (err?.code) {
+            switch (code) {
                 case "auth/invalid-credential":
                 case "auth/wrong-password":
                 case "auth/user-not-found":
@@ -95,8 +112,8 @@ export default function LoginPage() {
 
                 default:
                     setError(
-                        `Unable to sign in. ${err?.message || "Please try again."
-                        }`
+                        (err instanceof Error ? err.message : null) ||
+                        "Unable to sign in. Please try again."
                     );
             }
         } finally {
@@ -125,12 +142,14 @@ export default function LoginPage() {
             setMessage(
                 "Password reset email sent. Please check your inbox and spam folder."
             );
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("PASSWORD RESET ERROR:", err);
-            console.error("Firebase error code:", err?.code);
-            console.error("Firebase error message:", err?.message);
+            const code =
+                typeof err === "object" && err !== null && "code" in err
+                    ? String((err as { code?: unknown }).code)
+                    : "";
 
-            switch (err?.code) {
+            switch (code) {
                 case "auth/invalid-email":
                     setError("Please enter a valid email address.");
                     break;
@@ -159,7 +178,7 @@ export default function LoginPage() {
 
                 default:
                     setError(
-                        `Password reset failed. Firebase error: ${err?.code || "unknown"
+                        `Password reset failed. Firebase error: ${code || "unknown"
                         }`
                     );
             }
@@ -170,62 +189,70 @@ export default function LoginPage() {
 
     return (
         <main className="min-h-screen bg-background text-foreground">
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute left-1/2 top-[-300px] h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-violet-500/10 blur-[120px]" />
-                <div className="absolute bottom-[-200px] right-[-100px] h-[400px] w-[400px] rounded-full bg-purple-500/10 blur-[120px]" />
+            {/* Ambient background, brand-toned like the home hero */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                <div className="hero-radial left-1/2 top-[-320px] h-[560px] w-[820px] -translate-x-1/2" />
+                <div className="hero-radial hero-radial-positive bottom-[-260px] right-[-160px] h-[420px] w-[420px]" />
             </div>
 
             <div className="relative flex min-h-screen items-center justify-center px-4 py-12">
-                <div className="w-full max-w-md">
+                <div className="w-full max-w-md animate-page-enter">
                     {/* Logo */}
                     <div className="mb-8 text-center">
                         <Link
                             href="/"
-                            className="inline-flex items-center gap-3"
+                            className="inline-flex items-center gap-2.5"
                         >
-                            <SiteLogo size={22} />
-                            <span className="text-2xl font-bold tracking-tight">
+                            <SiteLogo size={20} />
+                            <span className="text-lg font-semibold tracking-tight">
                                 {siteName}
                             </span>
                         </Link>
 
-                        <h1 className="mt-8 text-3xl font-bold">
+                        <h1 className="mt-8 text-2xl font-semibold tracking-tight">
                             Welcome back
                         </h1>
 
-                        <p className="mt-2 text-sm text-muted-foreground">
+                        <p className="mt-1.5 text-sm text-muted-foreground">
                             Sign in to manage your products, licenses and account.
                         </p>
                     </div>
 
                     {/* Card */}
-                    <div className="rounded-2xl border border-border/30 bg-muted p-6 shadow-2xl backdrop-blur-xl sm:p-8">
+                    <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
                         <form onSubmit={handleLogin} className="space-y-5">
                             {/* Email */}
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-foreground">
+                            <div className="space-y-1.5">
+                                <label
+                                    htmlFor="login-email"
+                                    className="block text-xs font-medium text-foreground"
+                                >
                                     Email
                                 </label>
 
                                 <div className="relative">
-                                    <Mail className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                                    <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
-                                    <input
+                                    <Input
+                                        id="login-email"
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         placeholder="you@example.com"
                                         autoComplete="email"
                                         suppressHydrationWarning
-                                        className="h-12 w-full rounded-xl border border-border/30 bg-background/70 pl-11 pr-4 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20"
+                                        className="h-11 pl-9"
                                     />
                                 </div>
                             </div>
 
                             {/* Password */}
-                            <div>
-                                <div className="mb-2 flex items-center justify-between">
-                                    <label className="block text-sm font-medium text-foreground">
+                            <div className="space-y-1.5">
+                                <div className="flex items-center justify-between">
+                                    <label
+                                        htmlFor="login-password"
+                                        className="block text-xs font-medium text-foreground"
+                                    >
                                         Password
                                     </label>
 
@@ -242,9 +269,10 @@ export default function LoginPage() {
                                 </div>
 
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                                    <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
-                                    <input
+                                    <Input
+                                        id="login-password"
                                         type={
                                             showPassword
                                                 ? "text"
@@ -256,7 +284,7 @@ export default function LoginPage() {
                                         }
                                         placeholder="••••••••"
                                         autoComplete="current-password"
-                                        className="h-12 w-full rounded-xl border border-border/30 bg-background/70 pl-11 pr-12 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20"
+                                        className="h-11 pl-9 pr-10"
                                     />
 
                                     <button
@@ -272,61 +300,61 @@ export default function LoginPage() {
                                         }
                                     >
                                         {showPassword ? (
-                                            <EyeOff className="h-5 w-5" />
+                                            <EyeOff className="h-4 w-4" />
                                         ) : (
-                                            <Eye className="h-5 w-5" />
+                                            <Eye className="h-4 w-4" />
                                         )}
                                     </button>
                                 </div>
                             </div>
 
                             {/* Remember */}
-                            <label className="flex cursor-pointer items-center gap-3 text-sm text-muted-foreground">
+                            <label className="flex cursor-pointer items-center gap-2.5 text-xs text-muted-foreground">
                                 <input
                                     type="checkbox"
                                     checked={rememberMe}
                                     onChange={(e) =>
                                         setRememberMe(e.target.checked)
                                     }
-                                    className="h-4 w-4 rounded border-border/50 bg-background/70"
+                                    className="h-3.5 w-3.5 rounded accent-primary"
                                 />
 
-                                <span>Remember me</span>
+                                <span>Remember me on this device</span>
                             </label>
 
                             {/* Error */}
-                            {error && (
-                                <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-                                    {error}
-                                </div>
-                            )}
+                            {error && <FormError>{error}</FormError>}
 
                             {/* Success */}
                             {message && (
-                                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+                                <div
+                                    role="status"
+                                    className="rounded-md border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-400"
+                                >
                                     {message}
                                 </div>
                             )}
 
                             {/* Login */}
-                            <button
+                            <Button
                                 type="submit"
+                                size="lg"
                                 disabled={loading}
-                                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 text-sm font-semibold text-foreground transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="h-11 w-full"
                             >
                                 {loading ? (
                                     "Signing in..."
                                 ) : (
                                     <>
                                         Sign in
-                                        <ArrowRight className="h-4 w-4" />
+                                        <ArrowRight data-icon="inline-end" />
                                     </>
                                 )}
-                            </button>
+                            </Button>
                         </form>
 
                         {/* Register */}
-                        <div className="mt-6 text-center text-sm text-muted-foreground">
+                        <div className="mt-6 border-t border-border pt-5 text-center text-xs text-muted-foreground">
                             Don&apos;t have an account?{" "}
                             <Link
                                 href="/register"
@@ -338,12 +366,12 @@ export default function LoginPage() {
                     </div>
 
                     {/* Security */}
-                    <div className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                        <ShieldCheck className="h-4 w-4" />
+                    <div className="mt-6 flex items-center justify-center gap-2 text-micro text-muted-foreground">
+                        <ShieldCheck className="h-3.5 w-3.5" />
                         <span>Secure authentication powered by Firebase</span>
                     </div>
 
-                    <p className="mt-4 text-center text-xs leading-5 text-muted-foreground">
+                    <p className="mt-4 text-center text-micro leading-5 text-muted-foreground">
                         Trading involves significant risk. Past performance,
                         backtests and simulated results do not guarantee future
                         results.

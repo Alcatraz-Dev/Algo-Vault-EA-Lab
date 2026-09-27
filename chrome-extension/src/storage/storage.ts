@@ -119,6 +119,83 @@ export async function clearMarketCache(): Promise<void> {
   });
 }
 
+/* ── copilot threads, memory & preferences (v3) ─────────────────────── */
+
+import type {
+  CopilotThread,
+  CopilotMemory,
+  CopilotPreferences,
+  ResearchNote,
+} from "@/types/copilot";
+import { DEFAULT_COPILOT_PREFS } from "@/types/copilot";
+
+const COPILOT_THREADS_KEY = "copilotThreads";
+const COPILOT_MEMORY_KEY = "copilotMemory";
+const COPILOT_PREFS_KEY = "copilotPrefs";
+const RESEARCH_CACHE_KEY = "researchCache";
+
+export async function getCopilotThreads(): Promise<CopilotThread[]> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(COPILOT_THREADS_KEY, (result) => {
+      resolve(Array.isArray(result[COPILOT_THREADS_KEY]) ? result[COPILOT_THREADS_KEY] : []);
+    });
+  });
+}
+
+export async function saveCopilotThreads(threads: CopilotThread[]): Promise<void> {
+  // Cap stored history: 60 threads / 200 messages per thread keeps chrome.storage.local
+  // well below its 10 MB limit even with heavy daily use.
+  const trimmed = threads.slice(0, 60).map((t) => ({ ...t, messages: t.messages.slice(-200) }));
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ [COPILOT_THREADS_KEY]: trimmed }, resolve);
+  });
+}
+
+export async function getCopilotMemory(): Promise<Record<string, CopilotMemory>> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(COPILOT_MEMORY_KEY, (result) => {
+      resolve((result[COPILOT_MEMORY_KEY] as Record<string, CopilotMemory>) || {});
+    });
+  });
+}
+
+export async function saveCopilotMemory(memory: Record<string, CopilotMemory>): Promise<void> {
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ [COPILOT_MEMORY_KEY]: memory }, resolve);
+  });
+}
+
+export async function getCopilotPrefs(): Promise<CopilotPreferences> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(COPILOT_PREFS_KEY, (result) => {
+      resolve({ ...DEFAULT_COPILOT_PREFS, ...(result[COPILOT_PREFS_KEY] || {}) });
+    });
+  });
+}
+
+export async function saveCopilotPrefs(prefs: Partial<CopilotPreferences>): Promise<void> {
+  const current = await getCopilotPrefs();
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ [COPILOT_PREFS_KEY]: { ...current, ...prefs } }, resolve);
+  });
+}
+
+/* ── research notes cache ────────────────────────────────────────────── */
+
+export async function getResearchCache(): Promise<Record<string, ResearchNote>> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(RESEARCH_CACHE_KEY, (result) => {
+      resolve((result[RESEARCH_CACHE_KEY] as Record<string, ResearchNote>) || {});
+    });
+  });
+}
+
+export async function setResearchCache(cache: Record<string, ResearchNote>): Promise<void> {
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ [RESEARCH_CACHE_KEY]: cache }, resolve);
+  });
+}
+
 /* ── overlay persistence ─────────────────────────────────────────────── */
 
 export interface OverlayState {
@@ -145,5 +222,41 @@ export async function setOverlayState(state: Partial<OverlayState>): Promise<voi
   const current = await getOverlayState();
   return new Promise((resolve) => {
     chrome.storage.local.set({ overlayState: { ...current, ...state } }, resolve);
+  });
+}
+
+/* ── daily AI signals ─────────────────────────────────────────────── */
+
+export interface DailySignalsState {
+  day: string;
+  used: number;
+}
+
+export async function getDailySignalsState(): Promise<DailySignalsState> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get("dailySignals", (result) => {
+      resolve(result.dailySignals ?? { day: "", used: 0 });
+    });
+  });
+}
+
+export async function saveDailySignalsState(state: DailySignalsState): Promise<void> {
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ dailySignals: state }, resolve);
+  });
+}
+
+export async function getSelectedSignalSymbols(): Promise<string[]> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get("signalSymbols", (result) => {
+      const list = Array.isArray(result.signalSymbols) ? (result.signalSymbols as string[]) : [];
+      resolve(list.map((s) => String(s).toUpperCase()));
+    });
+  });
+}
+
+export async function saveSelectedSignalSymbols(symbols: string[]): Promise<void> {
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ signalSymbols: symbols }, resolve);
   });
 }

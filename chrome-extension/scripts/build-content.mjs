@@ -22,6 +22,8 @@ const distContent = resolve(root, "dist", "content");
 const ENTRIES = [
   { name: "tradingview", file: "src/content/tradingview.ts", global: "AlgoVaultTradingView" },
   { name: "overlay", file: "src/content/overlay.tsx", global: "AlgoVaultOverlay" },
+  { name: "chart-commands", file: "src/content/chart-commands.ts", global: "AlgoVaultChartCommands" },
+  { name: "chart-drawings", file: "src/content/chart-drawings.ts", global: "AlgoVaultChartDrawings" },
 ];
 
 for (const entry of ENTRIES) {

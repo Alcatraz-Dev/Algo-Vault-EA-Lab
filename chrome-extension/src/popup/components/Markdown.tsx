@@ -46,7 +46,7 @@ function renderInline(text: string, keyPrefix: string): React.ReactNode[] {
     boldParts.forEach((boldPart, boldIdx) => {
       if (boldIdx % 2 === 1) {
         out.push(
-          <strong key={`${keyPrefix}-b${idx}-${boldIdx}`} style={{ fontWeight: 700, color: "#f0f0f5" }}>
+          <strong key={`${keyPrefix}-b${idx}-${boldIdx}`} style={{ fontWeight: 700, color: "#f9f9f9" }}>
             {boldPart}
           </strong>
         );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Check } from "lucide-react";
 
 type GoChartingProps = {
     symbol?: string;
@@ -606,7 +607,7 @@ export default function GoCharting({
                                     }`}
                                 >
                                     {label}
-                                    {appliedStudies.includes(type) && " ✓"}
+                                    {appliedStudies.includes(type) && <Check size={12} className="ml-1 inline-block" aria-hidden />}
                                 </button>
                             ))}
                         </div>

@@ -22,7 +22,17 @@ export type ChartLayerId =
     | "orderBlocks"
     | "bosChoch"
     | "liquidityLevels"
-    | "equalHighsLows";
+    | "equalHighsLows"
+    // Math-grounded indicator overlays — each has a deterministic renderer in
+    // ProTerminalChart that derives it from the displayed candles.
+    | "bollingerBands"
+    | "keltnerChannels"
+    | "donchianChannels"
+    | "supertrend"
+    | "heikinAshi"
+    | "dailyPivots"
+    | "rsiPane"
+    | "macdPane";
 
 export type ChartLayerDef = {
     id: ChartLayerId;
@@ -43,6 +53,15 @@ export const CHART_LAYERS: ChartLayerDef[] = [
     { id: "bosChoch", label: "BOS / CHoCH", defaultOn: true, available: true },
     { id: "liquidityLevels", label: "Liquidity", defaultOn: false, available: true },
     { id: "equalHighsLows", label: "Equal H/L", defaultOn: false, available: true },
+    // Indicator overlays (off by default so default charts stay uncluttered).
+    { id: "bollingerBands", label: "Bollinger", defaultOn: false, available: true },
+    { id: "keltnerChannels", label: "Keltner", defaultOn: false, available: true },
+    { id: "donchianChannels", label: "Donchian", defaultOn: false, available: true },
+    { id: "supertrend", label: "Supertrend", defaultOn: false, available: true },
+    { id: "heikinAshi", label: "Heikin-Ashi", defaultOn: false, available: true },
+    { id: "dailyPivots", label: "Pivots", defaultOn: false, available: true },
+    { id: "rsiPane", label: "RSI pane", defaultOn: false, available: true },
+    { id: "macdPane", label: "MACD pane", defaultOn: false, available: true },
 ];
 
 export const CHART_LAYER_IDS = CHART_LAYERS.map((l) => l.id);

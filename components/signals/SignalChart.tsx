@@ -1,14 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import {
     createChart,
     type IChartApi,
     type ISeriesApi,
+    type IPriceLine,
+    type UTCTimestamp,
     CandlestickSeries,
     HistogramSeries,
+    ColorType,
+    CrosshairMode,
 } from "lightweight-charts";
 import type { AISignal } from "@/lib/ai-signals/types";
+import { useLiveCandles } from "@/hooks/useLiveCandles";
 
 interface SignalChartProps {
     signal: AISignal;
@@ -21,15 +26,6 @@ interface PriceLine {
     title: string;
     lineStyle?: 0 | 1 | 2;
     lineWidth?: 1 | 2 | 3 | 4;
-}
-
-interface CandlePoint {
-    time: number;
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-    volume: number;
 }
 
 // Map the signal's timeframe label onto the timeframe enum used by the
@@ -78,100 +74,37 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
     const containerRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<IChartApi | null>(null);
     const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
-    const [width, setWidth] = useState(800);
-    // Real market data from the canonical OHLC API — never fabricated candles.
-    // Keyed by symbol|timeframe so a symbol change immediately shows the
-    // loading state (derived from the key mismatch) instead of stale candles.
-    const [market, setMarket] = useState<{
-        key: string;
-        candles: CandlePoint[] | null;
-        error: string | null;
-    }>({ key: "", candles: null, error: null });
-    const requestKey = `${signal.symbol}|${timeframeParam(signal.timeframe)}`;
-    const candles = market.key === requestKey ? market.candles : null;
-    const marketError = market.key === requestKey ? market.error : null;
+    const volumeSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
+    const priceLinesRef = useRef<IPriceLine[]>([]);
+    const seededRef = useRef(false);
 
-    useEffect(() => {
-        if (!containerRef.current) return;
-        setWidth(containerRef.current.clientWidth);
-        const observer = new ResizeObserver((entries) => {
-            for (const entry of entries) {
-                setWidth(entry.contentRect.width);
-            }
-        });
-        observer.observe(containerRef.current);
-        return () => observer.disconnect();
-    }, []);
+    // Live candles: initial history + real-time tick merge + periodic
+    // reconciliation, shared with every other chart in the app.
+    const { candles: liveCandles, error: marketError, isLoading: loading } = useLiveCandles(
+        signal.symbol,
+        timeframeParam(signal.timeframe),
+        { limit: 150 }
+    );
 
-    useEffect(() => {
-        const ctrl = new AbortController();
-        const key = requestKey;
+    /** Support/resistance price lines, recreated when the signal's levels change. */
+    const priceLines = useMemo(() => buildPriceLines(signal), [signal]);
+    const priceLineKey = useMemo(
+        () => priceLines.map((l) => `${l.price}:${l.title}`).join("|"),
+        [priceLines]
+    );
 
-        (async () => {
-            try {
-                const params = new URLSearchParams({
-                    symbol: signal.symbol,
-                    timeframe: timeframeParam(signal.timeframe),
-                    limit: "150",
-                });
-                const res = await fetch(`/api/analytics/ohlc?${params.toString()}`, {
-                    signal: ctrl.signal,
-                    cache: "no-store",
-                });
-                const data = (await res.json().catch(() => ({}))) as {
-                    candles?: Array<{
-                        timestamp: number;
-                        open: number;
-                        high: number;
-                        low: number;
-                        close: number;
-                        volume?: number;
-                    }>;
-                    error?: string;
-                };
-                if (!res.ok || !data?.candles?.length) {
-                    setMarket({ key, candles: null, error: data?.error ?? "No market data available for this symbol/timeframe" });
-                    return;
-                }
-                setMarket({
-                    key,
-                    candles: data.candles.map((c) => ({
-                        time: Math.floor(c.timestamp / 1000),
-                        open: c.open,
-                        high: c.high,
-                        low: c.low,
-                        close: c.close,
-                        volume: c.volume ?? 0,
-                    })),
-                    error: null,
-                });
-            } catch (err) {
-                if ((err as Error)?.name !== "AbortError") {
-                    setMarket({ key, candles: null, error: "Failed to load market data" });
-                }
-            }
-        })();
-
-        return () => ctrl.abort();
-    }, [signal.symbol, signal.timeframe, requestKey]);
-
+    // ── chart lifecycle: create once ────────────────────────────────────
     useEffect(() => {
         const container = containerRef.current;
         if (!container) return;
-        if (!candles || candles.length < 2) return;
-
-        if (chartRef.current) {
-            chartRef.current.remove();
-            chartRef.current = null;
-        }
 
         const chart = createChart(container, {
-            width,
             height,
             layout: {
-                background: { color: "#0b1118" },
+                background: { type: ColorType.Solid, color: "#0b1118" },
                 textColor: "#94a3b8",
                 fontFamily: "Inter, -apple-system, sans-serif",
+                attributionLogo: false,
             },
             grid: {
                 vertLines: { color: "rgba(148,163,184,0.05)" },
@@ -189,15 +122,15 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
                 barSpacing: 6,
             },
             crosshair: {
-                mode: 0,
+                mode: CrosshairMode.Normal,
                 vertLine: { color: "rgba(234,123,74,0.4)", width: 1, style: 1 },
                 horzLine: { color: "rgba(234,123,74,0.4)", width: 1, style: 1 },
             },
+            autoSize: true,
         });
-
         chartRef.current = chart;
 
-        const series = chart.addSeries(CandlestickSeries, {
+        seriesRef.current = chart.addSeries(CandlestickSeries, {
             upColor: "#26a69a",
             downColor: "#ef5350",
             borderDownColor: "#ef5350",
@@ -205,23 +138,8 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
             wickDownColor: "#ef5350",
             wickUpColor: "#26a69a",
         });
-        seriesRef.current = series;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        series.setData(candles as any);
-
-        for (const line of buildPriceLines(signal)) {
-            series.createPriceLine({
-                price: line.price,
-                color: line.color,
-                title: line.title,
-                lineWidth: line.lineWidth ?? 1,
-                lineStyle: line.lineStyle ?? 0,
-                axisLabelVisible: true,
-            });
-        }
-
-        const volSeries = chart.addSeries(HistogramSeries, {
+        volumeSeriesRef.current = chart.addSeries(HistogramSeries, {
             color: "#26a69a",
             priceFormat: { type: "volume" },
             priceScaleId: "vol",
@@ -229,30 +147,81 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
         chart.priceScale("vol").applyOptions({
             scaleMargins: { top: 0.85, bottom: 0 },
         });
-        volSeries.setData(
-            candles.map((c) => ({
-                time: c.time as unknown as import("lightweight-charts").Time,
-                value: c.volume,
-                color: c.close >= c.open ? "rgba(38,166,154,0.4)" : "rgba(239,83,80,0.4)",
-            }))
-        );
-
-        chart.timeScale().fitContent();
-        chart.timeScale().scrollToRealTime();
-
-        const handleResize = () => {
-            if (!containerRef.current) return;
-            chart.resize(containerRef.current.clientWidth, height);
-        };
-        window.addEventListener("resize", handleResize);
 
         return () => {
-            window.removeEventListener("resize", handleResize);
             chart.remove();
             chartRef.current = null;
             seriesRef.current = null;
+            volumeSeriesRef.current = null;
+            priceLinesRef.current = [];
+            seededRef.current = false;
         };
-    }, [width, height, candles, signal, requestKey]);
+    }, [height]);
+
+    // ── data feed: seed once, then incremental tail updates ─────────────
+    useEffect(() => {
+        const series = seriesRef.current;
+        const volSeries = volumeSeriesRef.current;
+        if (!series || !volSeries || liveCandles.length === 0) return;
+
+        const bars = liveCandles.map((c) => ({
+            time: (Math.floor(c.timestamp / 1000) as number) as UTCTimestamp,
+            open: c.open,
+            high: c.high,
+            low: c.low,
+            close: c.close,
+        }));
+        const volumes = liveCandles.map((c) => ({
+            time: (Math.floor(c.timestamp / 1000) as number) as UTCTimestamp,
+            value: c.volume ?? 0,
+            color: c.close >= c.open ? "rgba(38,166,154,0.4)" : "rgba(239,83,80,0.4)",
+        }));
+
+        if (!seededRef.current) {
+            series.setData(bars);
+            volSeries.setData(volumes);
+            chartRef.current?.timeScale().fitContent();
+            chartRef.current?.timeScale().scrollToRealTime();
+            seededRef.current = true;
+            return;
+        }
+
+        // Tail update: only the last bar can change between renders.
+        const last = bars[bars.length - 1];
+        try {
+            series.update(last);
+            volSeries.update(volumes[volumes.length - 1]);
+        } catch {
+            // Ordering violation after a history replace — reseed once.
+            series.setData(bars);
+            volSeries.setData(volumes);
+            chartRef.current?.timeScale().fitContent();
+        }
+    }, [liveCandles]);
+
+    // ── entry/SL/TP price lines — recreated only when their values change ──
+    useEffect(() => {
+        const series = seriesRef.current;
+        if (!series) return;
+
+        for (const line of priceLinesRef.current) {
+            try {
+                series.removePriceLine(line);
+            } catch {
+                // line already gone with the series
+            }
+        }
+        priceLinesRef.current = priceLines.map((line) =>
+            series.createPriceLine({
+                price: line.price,
+                color: line.color,
+                title: line.title,
+                lineWidth: line.lineWidth ?? 1,
+                lineStyle: line.lineStyle ?? 0,
+                axisLabelVisible: true,
+            })
+        );
+    }, [priceLines, priceLineKey, liveCandles]);
 
     const timeframeLabel = timeframeToSeconds(signal.timeframe) >= 86400 ? "D1" : signal.timeframe;
 
@@ -291,9 +260,14 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
                             </p>
                         </div>
                     </div>
-                ) : candles === null ? (
+                ) : loading && liveCandles.length === 0 ? (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <span className="text-xs text-muted-foreground">Loading market data…</span>
+                    </div>
+                ) : liveCandles.length > 0 ? (
+                    <div className="absolute bottom-2 right-2 flex items-center gap-1.5 rounded-full border border-border/40 bg-background/80 px-2 py-0.5 text-[10px] text-muted-foreground backdrop-blur-sm">
+                        <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
+                        Live
                     </div>
                 ) : null}
             </div>

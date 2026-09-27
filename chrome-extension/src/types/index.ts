@@ -19,6 +19,8 @@ export interface ExtensionSettings {
   defaultTimeframe: string;
   confirmBeforeExecution: boolean;
   theme: "dark" | "light";
+  /** Trading account size in USD — persisted trader default for risk sizing. */
+  accountSize?: number;
 }
 
 export type TradingViewContext = ChartContext;
@@ -108,6 +110,23 @@ export interface AISignal {
   createdAt: number;
 }
 
+/** Client-generated daily free AI signal (popup AI Signals feature). */
+export interface DailySignal {
+  id: string;
+  symbol: string;
+  direction: "BUY" | "SELL";
+  timeframe: string;
+  entry: number;
+  stopLoss: number;
+  takeProfit1: number;
+  takeProfit2: number;
+  takeProfit3: number;
+  confidence: number;
+  setup: string;
+  reasoning: string;
+  createdAt: number;
+}
+
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
@@ -123,6 +142,7 @@ export type ViewMode =
   | "execute"
   | "quick-order"
   | "signals-list"
+  | "ai-signals"
   | "settings"
   | "strategy-intelligence"
   | "optimization-intelligence"

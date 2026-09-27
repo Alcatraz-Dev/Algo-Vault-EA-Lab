@@ -21,6 +21,9 @@ import {
     User,
 } from "lucide-react";
 import SiteLogo from "@/components/ui/site-logo";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { FormError } from "@/components/ui/form-field";
 
 export default function RegisterPage() {
     return (
@@ -188,32 +191,31 @@ function RegisterForm() {
 
     return (
         <main className="min-h-screen bg-background text-foreground">
-            {/* Background effects */}
+            {/* Ambient background, brand-toned like the home hero */}
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                <div className="absolute left-1/2 top-[-300px] h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-violet-500/10 blur-[120px]" />
-
-                <div className="absolute bottom-[-200px] right-[-100px] h-[400px] w-[400px] rounded-full bg-purple-500/10 blur-[120px]" />
+                <div className="hero-radial left-1/2 top-[-320px] h-[560px] w-[820px] -translate-x-1/2" />
+                <div className="hero-radial hero-radial-positive bottom-[-260px] right-[-160px] h-[420px] w-[420px]" />
             </div>
 
             <div className="relative flex min-h-screen items-center justify-center px-4 py-12">
-                <div className="w-full max-w-md">
+                <div className="w-full max-w-md animate-page-enter">
                     {/* Logo */}
                     <div className="mb-8 text-center">
                         <Link
                             href="/"
-                            className="inline-flex items-center gap-3"
+                            className="inline-flex items-center gap-2.5"
                         >
-                            <SiteLogo size={22} />
-                            <span className="text-2xl font-bold tracking-tight">
+                            <SiteLogo size={20} />
+                            <span className="text-lg font-semibold tracking-tight">
                                 {siteName}
                             </span>
                         </Link>
 
-                        <h1 className="mt-8 text-3xl font-bold">
+                        <h1 className="mt-8 text-2xl font-semibold tracking-tight">
                             Create your account
                         </h1>
 
-                        <p className="mt-2 text-sm text-muted-foreground">
+                        <p className="mt-1.5 text-sm text-muted-foreground">
                             Join {siteName} and manage your trading products,
                             licenses and purchases.
                         </p>
@@ -221,7 +223,7 @@ function RegisterForm() {
 
                     {/* Register Card */}
                     {referralCode && (
-                        <div className="mb-4 flex items-center gap-3 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3">
+                        <div className="mb-4 flex items-center gap-3 rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-4 py-3">
                             <Gift className="h-4 w-4 shrink-0 text-emerald-400" />
                             <p className="text-xs text-emerald-200/90">
                                 You were invited by a friend. Creating your account will credit them with a referral.
@@ -229,21 +231,25 @@ function RegisterForm() {
                         </div>
                     )}
 
-                    <div className="rounded-2xl border border-border/30 bg-muted p-6 shadow-2xl backdrop-blur-xl sm:p-8">
+                    <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
                         <form
                             onSubmit={handleRegister}
                             className="space-y-5"
                         >
                             {/* Name */}
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-foreground">
+                            <div className="space-y-1.5">
+                                <label
+                                    htmlFor="register-name"
+                                    className="block text-xs font-medium text-foreground"
+                                >
                                     Full name
                                 </label>
 
                                 <div className="relative">
-                                    <User className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                                    <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
-                                    <input
+                                    <Input
+                                        id="register-name"
                                         type="text"
                                         value={displayName}
                                         onChange={(e) =>
@@ -251,44 +257,50 @@ function RegisterForm() {
                                         }
                                         placeholder="Your name"
                                         autoComplete="name"
-                                        className="h-12 w-full rounded-xl border border-border/30 bg-background/70 pl-11 pr-4 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20"
+                                        className="h-11 pl-9"
                                     />
                                 </div>
                             </div>
 
                             {/* Email */}
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-foreground">
+                            <div className="space-y-1.5">
+                                <label
+                                    htmlFor="register-email"
+                                    className="block text-xs font-medium text-foreground"
+                                >
                                     Email
                                 </label>
 
                                 <div className="relative">
-                                    <Mail className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                                    <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
-                                    <input
+                                    <Input
+                                        id="register-email"
                                         type="email"
                                         value={email}
-                                        onChange={(e) =>
-                                            setEmail(e.target.value)
-                                        }
+                                        onChange={(e) => setEmail(e.target.value)}
                                         placeholder="you@example.com"
                                         autoComplete="email"
                                         suppressHydrationWarning
-                                        className="h-12 w-full rounded-xl border border-border/30 bg-background/70 pl-11 pr-4 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20"
+                                        className="h-11 pl-9"
                                     />
                                 </div>
                             </div>
 
                             {/* Password */}
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-foreground">
+                            <div className="space-y-1.5">
+                                <label
+                                    htmlFor="register-password"
+                                    className="block text-xs font-medium text-foreground"
+                                >
                                     Password
                                 </label>
 
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                                    <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
-                                    <input
+                                    <Input
+                                        id="register-password"
                                         type={
                                             showPassword
                                                 ? "text"
@@ -300,7 +312,7 @@ function RegisterForm() {
                                         }
                                         placeholder="At least 6 characters"
                                         autoComplete="new-password"
-                                        className="h-12 w-full rounded-xl border border-border/30 bg-background/70 pl-11 pr-12 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20"
+                                        className="h-11 pl-9 pr-10"
                                     />
 
                                     <button
@@ -309,26 +321,35 @@ function RegisterForm() {
                                             setShowPassword(!showPassword)
                                         }
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
+                                        aria-label={
+                                            showPassword
+                                                ? "Hide password"
+                                                : "Show password"
+                                        }
                                     >
                                         {showPassword ? (
-                                            <EyeOff className="h-5 w-5" />
+                                            <EyeOff className="h-4 w-4" />
                                         ) : (
-                                            <Eye className="h-5 w-5" />
+                                            <Eye className="h-4 w-4" />
                                         )}
                                     </button>
                                 </div>
                             </div>
 
                             {/* Confirm Password */}
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-foreground">
+                            <div className="space-y-1.5">
+                                <label
+                                    htmlFor="register-confirm-password"
+                                    className="block text-xs font-medium text-foreground"
+                                >
                                     Confirm password
                                 </label>
 
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                                    <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
-                                    <input
+                                    <Input
+                                        id="register-confirm-password"
                                         type={
                                             showConfirmPassword
                                                 ? "text"
@@ -342,7 +363,7 @@ function RegisterForm() {
                                         }
                                         placeholder="Repeat your password"
                                         autoComplete="new-password"
-                                        className="h-12 w-full rounded-xl border border-border/30 bg-background/70 pl-11 pr-12 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20"
+                                        className="h-11 pl-9 pr-10"
                                     />
 
                                     <button
@@ -353,63 +374,70 @@ function RegisterForm() {
                                             )
                                         }
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
+                                        aria-label={
+                                            showConfirmPassword
+                                                ? "Hide password confirmation"
+                                                : "Show password confirmation"
+                                        }
                                     >
                                         {showConfirmPassword ? (
-                                            <EyeOff className="h-5 w-5" />
+                                            <EyeOff className="h-4 w-4" />
                                         ) : (
-                                            <Eye className="h-5 w-5" />
+                                            <Eye className="h-4 w-4" />
                                         )}
                                     </button>
                                 </div>
                             </div>
 
                             {/* Referral Code */}
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-foreground">
-                                    Referral code <span className="text-muted-foreground">(optional)</span>
+                            <div className="space-y-1.5">
+                                <label
+                                    htmlFor="register-referral"
+                                    className="block text-xs font-medium text-foreground"
+                                >
+                                    Referral code{" "}
+                                    <span className="font-normal text-muted-foreground">(optional)</span>
                                 </label>
 
                                 <div className="relative">
-                                    <LinkIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                                    <LinkIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
-                                    <input
+                                    <Input
+                                        id="register-referral"
                                         type="text"
                                         value={referralCode}
                                         onChange={(e) =>
                                             setReferralCode(e.target.value.toUpperCase())
                                         }
                                         placeholder="ALGV-XXXXXX"
-                                        className="h-12 w-full rounded-xl border border-border/30 bg-background/70 pl-11 pr-4 text-sm font-mono text-foreground outline-none transition placeholder:text-muted-foreground focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20"
+                                        className="h-11 pl-9 font-mono"
                                     />
                                 </div>
                             </div>
 
                             {/* Error */}
-                            {error && (
-                                <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-                                    {error}
-                                </div>
-                            )}
+                            {error && <FormError>{error}</FormError>}
 
                             {/* Submit */}
-                            <button
+                            <Button
                                 type="submit"
+                                size="lg"
                                 disabled={loading}
-                                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 text-sm font-semibold text-foreground transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="h-11 w-full"
                             >
                                 {loading ? (
                                     "Creating account..."
                                 ) : (
                                     <>
                                         Create account
-                                        <ArrowRight className="h-4 w-4" />
+                                        <ArrowRight data-icon="inline-end" />
                                     </>
                                 )}
-                            </button>
+                            </Button>
                         </form>
 
                         {/* Login */}
-                        <div className="mt-6 text-center text-sm text-muted-foreground">
+                        <div className="mt-6 border-t border-border pt-5 text-center text-xs text-muted-foreground">
                             Already have an account?{" "}
                             <Link
                                 href="/login"
@@ -421,14 +449,14 @@ function RegisterForm() {
                     </div>
 
                     {/* Security */}
-                    <div className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                        <ShieldCheck className="h-4 w-4" />
+                    <div className="mt-6 flex items-center justify-center gap-2 text-micro text-muted-foreground">
+                        <ShieldCheck className="h-3.5 w-3.5" />
                         <span>
                             Secure authentication powered by Firebase
                         </span>
                     </div>
 
-                    <p className="mt-4 text-center text-xs leading-5 text-muted-foreground">
+                    <p className="mt-4 text-center text-micro leading-5 text-muted-foreground">
                         Trading involves significant risk. Past performance,
                         backtests and simulated results do not guarantee future
                         results.

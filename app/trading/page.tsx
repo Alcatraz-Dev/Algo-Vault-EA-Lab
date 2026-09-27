@@ -12,8 +12,9 @@ import OrderPanel from "@/components/trading/OrderPanel";
 import OpenPositions, { Position } from "@/components/trading/OpenPositions";
 import PendingOrders, { PendingOrder } from "@/components/trading/PendingOrders";
 import ExecutionLog, { ExecutionLogEntry } from "@/components/trading/ExecutionLog";
+import TradingChart from "@/components/tradingview/TradingChart";
 import { cn } from "@/lib/utils";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Lock } from "lucide-react";
 
 type Tab = "positions" | "orders" | "history";
 
@@ -246,7 +247,7 @@ export default function TradingTerminalPage() {
             <div className="flex min-h-screen items-center justify-center bg-background">
                 <div className="mx-4 w-full max-w-md rounded-2xl border border-border bg-card p-8 text-center">
                     <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-muted">
-                        <span className="text-2xl">🔒</span>
+                        <Lock size={24} className="text-muted-foreground" aria-hidden />
                     </div>
                     <h1 className="mt-5 text-xl font-bold">Trading Access Required</h1>
                     <p className="mt-2 text-sm text-muted-foreground">
@@ -314,31 +315,13 @@ export default function TradingTerminalPage() {
 
                 {/* Chart Area - Center */}
                 <div className="flex flex-1 flex-col overflow-hidden" data-guide="chart">
-                    {/* Chart placeholder */}
-                    <div className="flex flex-1 items-center justify-center border-b border-border">
-                        <div className="text-center">
-                            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
-                                <svg
-                                    className="h-8 w-8 text-muted-foreground"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={1.5}
-                                        d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
-                                    />
-                                </svg>
-                            </div>
-                            <p className="mt-3 text-sm font-medium text-foreground">
-                                {selectedSymbol}
-                            </p>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                                TradingView chart integration coming soon
-                            </p>
-                        </div>
+                    {/* Live market chart */}
+                    <div className="min-h-[320px] flex-1 border-b border-border">
+                        <TradingChart
+                            symbol={selectedSymbol}
+                            interval="1h"
+                            height={520}
+                        />
                     </div>
 
                     {/* Bottom Tabs */}

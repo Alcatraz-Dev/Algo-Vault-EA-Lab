@@ -368,6 +368,270 @@ function vwma(values: number[], volumes: number[], period: number): number[] {
   return out;
 }
 
+/**
+ * Keltner Channels — exponential midline (EMA of typical price) with ATR-scaled
+ * bands. Classic volatility envelope: mid = EMA(hlc3, len), bands ± mult·ATR(len).
+ */
+function keltner(highs: number[], lows: number[], closes: number[], period: number, mult: number): [number[], number[], number[]] {
+  const tp = closes.map((c, i) => (highs[i] + lows[i] + c) / 3);
+  const mid = ema(tp, period);
+  const range = atr(highs, lows, closes, period);
+  const upper = mid.map((m, i) => (isNaN(m) || isNaN(range[i]) ? NaN : m + mult * range[i]));
+  const lower = mid.map((m, i) => (isNaN(m) || isNaN(range[i]) ? NaN : m - mult * range[i]));
+  return [mid, upper, lower];
+}
+
+/**
+ * Donchian Channels — N-bar highest high / lowest low envelope (the mechanical
+ * basis of the Turtle breakout system). Returns [upper, lower, mid].
+ */
+function donchian(highs: number[], lows: number[], period: number): [number[], number[], number[]] {
+  const upper = highest(highs, period);
+  const lower = lowest(lows, period);
+  const mid = upper.map((u, i) => (isNaN(u) || isNaN(lower[i]) ? NaN : (u + lower[i]) / 2));
+  return [upper, lower, mid];
+}
+
+/**
+ * Supertrend — ATR trailing band that flips under price in uptrends and above
+ * price in downtrends. Deterministic recurrence:
+ *   basicUpper = hl2 + factor·ATR, basicLower = hl2 − factor·ATR
+ *   finalUpper[i] = (basicUpper[i] < finalUpper[i−1] || close[i−1] > finalUpper[i−1]) ? basicUpper[i] : finalUpper[i−1]
+ *   finalLower mirrored; trend flips when close crosses the opposite band.
+ * Returns [line, direction] with direction +1 (long) / −1 (short) per bar.
+ */
+function supertrend(highs: number[], lows: number[], closes: number[], period: number, factor: number): [number[], number[]] {
+  const len = closes.length;
+  const line: number[] = new Array(len).fill(NaN);
+  const dir: number[] = new Array(len).fill(1);
+  if (len === 0) return [line, dir];
+  const atrVals = atr(highs, lows, closes, period);
+  let trend = 1;
+  let finalUpper = NaN;
+  let finalLower = NaN;
+  for (let i = 0; i < len; i++) {
+    const hl2v = (highs[i] + lows[i]) / 2;
+    if (isNaN(atrVals[i])) {
+      line[i] = NaN;
+      dir[i] = 1;
+      continue;
+    }
+    const basicUpper = hl2v + factor * atrVals[i];
+    const basicLower = hl2v - factor * atrVals[i];
+    const prevClose = closes[i - 1];
+    finalUpper = isNaN(finalUpper) || (basicUpper < finalUpper || (prevClose !== undefined && prevClose > finalUpper)) ? basicUpper : finalUpper;
+    finalLower = isNaN(finalLower) || (basicLower > finalLower || (prevClose !== undefined && prevClose < finalLower)) ? basicLower : finalLower;
+    if (trend === 1 && closes[i] < finalLower) {
+      trend = -1;
+    } else if (trend === -1 && closes[i] > finalUpper) {
+      trend = 1;
+    }
+    line[i] = trend === 1 ? finalLower : finalUpper;
+    dir[i] = trend;
+  }
+  return [line, dir];
+}
+
+/**
+ * Williams %R — stochastic-style position of close within the N-bar high/low
+ * range, inverted to [−100, 0]: %R = −100·(HH − close)/(HH − LL).
+ */
+function willr(highs: number[], lows: number[], closes: number[], period: number): number[] {
+  const hh = highest(highs, period);
+  const ll = lowest(lows, period);
+  const out: number[] = new Array(closes.length).fill(NaN);
+  for (let i = 0; i < closes.length; i++) {
+    const range = hh[i] - ll[i];
+    out[i] = range === 0 || isNaN(range) ? NaN : (-100 * (hh[i] - closes[i])) / range;
+  }
+  return out;
+}
+
+/**
+ * Linear regression value — least-squares fit over the last `period` bars,
+ * evaluated at the bar `offset` back from the current bar (Pine's ta.linreg
+ * with offset=0 returns the fitted value at the current bar).
+ */
+function linreg(values: number[], period: number, offset = 0): number[] {
+  const out: number[] = new Array(values.length).fill(NaN);
+  for (let i = period - 1; i < values.length; i++) {
+    let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+    for (let j = 0; j < period; j++) {
+      const x = j;
+      const y = values[i - period + 1 + j];
+      sumX += x; sumY += y; sumXY += x * y; sumXX += x * x;
+    }
+    const denom = period * sumXX - sumX * sumX;
+    const slope = denom === 0 ? 0 : (period * sumXY - sumX * sumY) / denom;
+    const intercept = (sumY - slope * sumX) / period;
+    const xEval = period - 1 - offset;
+    out[i] = intercept + slope * xEval;
+  }
+  return out;
+}
+
+/**
+ * Heikin-Ashi candles — smoothed OHLC built from a recurring open:
+ *   haClose = (o+h+l+c)/4, haOpen = (prevHaOpen + prevHaClose)/2
+ * Returns [haOpen, haHigh, haLow, haClose].
+ */
+function heikinashi(opens: number[], highs: number[], lows: number[], closes: number[]): [number[], number[], number[], number[]] {
+  const len = closes.length;
+  const haO: number[] = new Array(len).fill(NaN);
+  const haH: number[] = new Array(len).fill(NaN);
+  const haL: number[] = new Array(len).fill(NaN);
+  const haC: number[] = new Array(len).fill(NaN);
+  for (let i = 0; i < len; i++) {
+    haC[i] = (opens[i] + highs[i] + lows[i] + closes[i]) / 4;
+    haO[i] = i === 0 ? (opens[0] + closes[0]) / 2 : (haO[i - 1] + haC[i - 1]) / 2;
+    haH[i] = Math.max(highs[i], haO[i], haC[i]);
+    haL[i] = Math.min(lows[i], haO[i], haC[i]);
+  }
+  return [haO, haH, haL, haC];
+}
+
+/**
+ * VWAP with standard-deviation bands over the cumulative session volume —
+ * the volume-weighted analogue of Bollinger Bands.
+ */
+function vwapBands(highs: number[], lows: number[], closes: number[], volumes: number[], mult: number): [number[], number[], number[]] {
+  const tp = closes.map((c, i) => (highs[i] + lows[i] + c) / 3);
+  const out: number[] = new Array(closes.length).fill(NaN);
+  const upper: number[] = new Array(closes.length).fill(NaN);
+  const lower: number[] = new Array(closes.length).fill(NaN);
+  let cumV = 0, cumPV = 0, cumP2V = 0;
+  for (let i = 0; i < closes.length; i++) {
+    const v = volumes[i] > 0 ? volumes[i] : 1;
+    cumV += v; cumPV += tp[i] * v; cumP2V += tp[i] * tp[i] * v;
+    const mean = cumPV / cumV;
+    const variance = Math.max(0, cumP2V / cumV - mean * mean);
+    out[i] = mean;
+    const sd = Math.sqrt(variance);
+    upper[i] = mean + mult * sd;
+    lower[i] = mean - mult * sd;
+  }
+  return [out, upper, lower];
+}
+
+/**
+ * Classic floor-trader pivots from the previous UTC day:
+ *   P = (H+L+C)/3, R1 = 2P−L, S1 = 2P−H, R2 = P+(H−L), S2 = P−(H−L)
+ * Current-day bars carry the previous day's levels forward; no prior day → NaN.
+ */
+function classicPivotsFrom(highs: number[], lows: number[], closes: number[], times: number[], variant: "classic" | "fibonacci"): [number[], number[], number[], number[], number[]] {
+  const len = closes.length;
+  const P: number[] = new Array(len).fill(NaN);
+  const R1: number[] = new Array(len).fill(NaN);
+  const R2: number[] = new Array(len).fill(NaN);
+  const S1: number[] = new Array(len).fill(NaN);
+  const S2: number[] = new Array(len).fill(NaN);
+  let day = "";
+  let prevH = NaN, prevL = NaN, prevC = NaN;
+  for (let i = 0; i < len; i++) {
+    const d = new Date(times[i]).toISOString().slice(0, 10);
+    if (d !== day) {
+      if (!isNaN(prevH) && !isNaN(prevL) && !isNaN(prevC)) {
+        const range = prevH - prevL;
+        P[i] = (prevH + prevL + prevC) / 3;
+        R1[i] = variant === "classic" ? 2 * (P[i] as number) - prevL : (P[i] as number) + 0.382 * range;
+        R2[i] = variant === "classic" ? (P[i] as number) + range : (P[i] as number) + 0.618 * range;
+        S1[i] = variant === "classic" ? 2 * (P[i] as number) - prevH : (P[i] as number) - 0.382 * range;
+        S2[i] = variant === "classic" ? (P[i] as number) - range : (P[i] as number) - 0.6 * range;
+      }
+      day = d;
+    } else if (!isNaN(P[i - 1] ?? NaN)) {
+      P[i] = P[i - 1]; R1[i] = R1[i - 1]; R2[i] = R2[i - 1]; S1[i] = S1[i - 1]; S2[i] = S2[i - 1];
+    }
+    prevH = highs[i]; prevL = lows[i]; prevC = closes[i];
+  }
+  return [P, R1, R2, S1, S2];
+}
+
+function classicPivots(highs: number[], lows: number[], closes: number[], times: number[] = []): [number[], number[], number[], number[], number[]] {
+  return classicPivotsFrom(highs, lows, closes, times, "classic");
+}
+
+function fibPivots(highs: number[], lows: number[], closes: number[], times: number[] = []): [number[], number[], number[], number[], number[]] {
+  return classicPivotsFrom(highs, lows, closes, times, "fibonacci");
+}
+
+/**
+ * Fisher Transform — Gaussian-normalises price position via
+ * x = 2·((value − minN)/(maxN − minN) − 0.5) then y = ½·ln((1+x)/(1−x)),
+ * y1 smoothed. Turns price into a near-Gaussian oscillator with sharp turns
+ * at extremes. Clamped to |x| ≤ 0.999 to keep the log finite.
+ */
+function fisherTransform(highs: number[], lows: number[], period: number): [number[], number[]] {
+  const len = highs.length;
+  const fisher: number[] = new Array(len).fill(NaN);
+  const trigger: number[] = new Array(len).fill(NaN);
+  const mid = highs.map((h, i) => (h + lows[i]) / 2);
+  let value1Prev = 0;
+  let fishPrev = 0;
+  for (let i = 0; i < len; i++) {
+    if (i < period - 1) continue;
+    let maxH = -Infinity;
+    let minL = Infinity;
+    for (let j = i - period + 1; j <= i; j++) {
+      if (mid[j] > maxH) maxH = mid[j];
+      if (mid[j] < minL) minL = mid[j];
+    }
+    const range = maxH - minL;
+    const ratio = range <= 0 ? 0.5 : (mid[i] - minL) / range;
+    // Ehlers' smoothing: 0.33·2·(ratio − 0.5) + 0.67·prev, clamped to ±0.999
+    // so the log stays finite; then fish = ½·ln((1+v)/(1−v)) + ½·prevFish.
+    let v = 0.66 * (ratio - 0.5) + 0.67 * value1Prev;
+    v = Math.max(-0.999, Math.min(0.999, v));
+    value1Prev = v;
+    const fish = 0.5 * Math.log((1 + v) / (1 - v)) + 0.5 * fishPrev;
+    trigger[i] = fishPrev;
+    fisher[i] = fish;
+    fishPrev = fish;
+  }
+  return [fisher, trigger];
+}
+
+/**
+ * Chaikin Money Flow — accumulation/distribution volume over a window:
+ * CMF = Σ(((C−L)−(H−C))/(H−L)·V) / ΣV. Zero-line crosses mark flow regime
+ * changes; ±0.25 is the classic strong-flow threshold.
+ */
+function cmf(highs: number[], lows: number[], closes: number[], volumes: number[], period: number): number[] {
+  const out: number[] = new Array(closes.length).fill(NaN);
+  const mfm = closes.map((c, i) => {
+    const range = highs[i] - lows[i];
+    return range === 0 ? 0 : ((c - lows[i]) - (highs[i] - c)) / range;
+  });
+  const mfv = mfm.map((m, i) => m * volumes[i]);
+  for (let i = period - 1; i < closes.length; i++) {
+    let sumMfv = 0;
+    let sumV = 0;
+    for (let j = i - period + 1; j <= i; j++) {
+      sumMfv += mfv[j];
+      sumV += volumes[j];
+    }
+    out[i] = sumV === 0 ? 0 : sumMfv / sumV;
+  }
+  return out;
+}
+
+/**
+ * Population standard deviation over a rolling window (the basis of
+ * Bollinger's σ bands).
+ */
+function stdev(values: number[], period: number): number[] {
+  const out: number[] = new Array(values.length).fill(NaN);
+  for (let i = period - 1; i < values.length; i++) {
+    let sum = 0;
+    for (let j = i - period + 1; j <= i; j++) sum += values[j];
+    const mean = sum / period;
+    let acc = 0;
+    for (let j = i - period + 1; j <= i; j++) acc += (values[j] - mean) ** 2;
+    out[i] = Math.sqrt(acc / period);
+  }
+  return out;
+}
+
 function hma(values: number[], period: number): number[] {
   const halfWma = wma(values, Math.floor(period / 2));
   const fullWma = wma(values, period);
@@ -451,6 +715,8 @@ export const TA = {
   highest, lowest, crossover, crossunder,
   change, barssince, valuewhen, pivothigh, pivotlow,
   bb, cci, psar, vwap, obv, mfi, roc, momentum, vwma, hma,
+  keltner, donchian, supertrend, willr, linreg,
+  heikinashi, vwapBands, classicPivots, fibPivots, fisherTransform, stdev, cmf,
 };
 
 export const MATH = {

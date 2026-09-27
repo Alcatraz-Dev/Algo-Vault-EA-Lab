@@ -23,6 +23,12 @@ const API_ID = process.env.TELEGRAM_API_ID ? parseInt(process.env.TELEGRAM_API_I
 const API_HASH = process.env.TELEGRAM_API_HASH || "";
 
 /**
+ * Interval (ms) between watchdog ticks that verify the monitoring handler is still
+ * attached and restore it after server restarts, network drops, or dead sessions.
+ */
+const WATCHDOG_INTERVAL_MS = 30_000;
+
+/**
  * Extract a safe message from an unknown caught value. GramJS surfaces errors with
  * both `errorMessage` (RPC error code) and `message`; prefer the RPC code when present.
  */
@@ -44,8 +50,77 @@ class TelegramUserClientManager {
     private monitoringStartPromise: Promise<{ success: boolean; error?: string }> | null = null;
     private monitoringHandler: ((event: NewMessageEvent) => Promise<void>) | null = null;
     private monitoringEvent: NewMessage | null = null;
+    private monitoringLastTickAt: number | null = null;
+    private watchdogTimer: NodeJS.Timeout | null = null;
+    private watchdogRunning: boolean = false;
     private qrClient: TelegramClient | null = null;
     private qrLoginRunning: boolean = false;
+
+    /**
+     * Ensure the watchdog interval exists. The watchdog restores monitoring after
+     * server restarts, reconnects, or dropped event handlers — required so Pro users
+     * receive Telegram signals 24/7 without an admin pressing Start.
+     */
+    private ensureWatchdog(): void {
+        if (this.watchdogTimer || !API_ID || !API_HASH) return;
+        this.watchdogTimer = setInterval(() => {
+            void this.runWatchdogTick();
+        }, WATCHDOG_INTERVAL_MS);
+        // Never keep the Node event loop alive just for the watchdog.
+        this.watchdogTimer.unref?.();
+    }
+
+    /**
+     * One watchdog pass: when the listener is down (or the socket dropped) while
+     * enabled sources and a stored session exist, (re)start monitoring.
+     * startMonitoring() is fully idempotent — healthy/attached states early-return —
+     * so this is safe to run every WATCHDOG_INTERVAL_MS with zero churn.
+     */
+    private async runWatchdogTick(): Promise<void> {
+        if (this.watchdogRunning || this.qrLoginRunning) return;
+        this.watchdogRunning = true;
+        try {
+            // Healthy: attached handler + live MTProto socket — nothing to restore.
+            if (
+                this.isMonitoringActive &&
+                this.client?.connected === true &&
+                this.monitoringHandler &&
+                this.monitoringEvent
+            ) {
+                this.monitoringLastTickAt = Date.now();
+                return;
+            }
+
+            const sourcesSnap = await adminDatabase.ref("telegramSources").once("value");
+            const sources: Record<string, TelegramSource> = sourcesSnap.exists() ? sourcesSnap.val() : {};
+            const hasEnabledSources = Object.values(sources).some(
+                (source) => source.enabled && source.parsingEnabled
+            );
+            if (!hasEnabledSources) {
+                this.monitoringLastTickAt = Date.now();
+                return;
+            }
+
+            const sessionSnap = await adminDatabase.ref("telegramAdminConfig/sessionSecret").once("value");
+            if (!sessionSnap.exists() || !sessionSnap.val()) {
+                // No session stored — nothing to restore until the admin reconnects.
+                this.monitoringLastTickAt = Date.now();
+                return;
+            }
+
+            const result = await this.startMonitoring();
+            if (result.success) {
+                await this.addLog("success", "Watchdog restored Telegram channel monitoring");
+            } else if (result.error && !/not connected/i.test(result.error)) {
+                await this.addLog("warning", "Watchdog monitoring restore failed", result.error);
+            }
+        } catch (err) {
+            await this.addLog("error", "Watchdog tick failed", err instanceof Error ? err.message : String(err));
+        } finally {
+            this.watchdogRunning = false;
+            this.monitoringLastTickAt = Date.now();
+        }
+    }
 
     /**
      * Helper to log messages to RTDB (telegramLogs) with secret redaction
@@ -127,6 +202,7 @@ class TelegramUserClientManager {
         this.monitoringEvent = null;
         this.isMonitoringActive = false;
         this.monitoringStartedAt = null;
+        this.monitoringLastTickAt = null;
 
         try {
             await this.updateAdminConfig({
@@ -148,6 +224,10 @@ class TelegramUserClientManager {
 
     public async shutdown(): Promise<void> {
         await this.stopMonitoring();
+        if (this.watchdogTimer) {
+            clearInterval(this.watchdogTimer);
+            this.watchdogTimer = null;
+        }
         const clients = [this.client, this.qrClient].filter((client): client is TelegramClient => Boolean(client));
         for (const client of clients) {
             try {
@@ -193,21 +273,23 @@ class TelegramUserClientManager {
         this.client = new TelegramClient(this.stringSession, API_ID, API_HASH, {
             connectionRetries: 5,
             autoReconnect: true,
-        });
+        });            try {
+                await this.client.connect();
+                const checkAuth = await this.client.isUserAuthorized();
 
-        try {
-            await this.client.connect();
-            const checkAuth = await this.client.isUserAuthorized();
-
-            if (checkAuth) {
-                this.isConnected = true;
-                await this.updateAdminConfig({
-                    connected: true,
-                    connectionStatus: "connected",
-                    lastConnectedAt: Date.now(),
-                });
-                await this.fetchAndStoreAccountDetails();
-            } else {
+                if (checkAuth) {
+                    this.isConnected = true;
+                    await this.updateAdminConfig({
+                        connected: true,
+                        connectionStatus: "connected",
+                        lastConnectedAt: Date.now(),
+                    });
+                    await this.fetchAndStoreAccountDetails();
+                    // Self-heal: make sure the message listener is (re)attached after a
+                    // reconnect, so channel signals keep flowing without admin action.
+                    this.ensureWatchdog();
+                    void this.runWatchdogTick();
+                } else {
                 this.isConnected = false;
                 await this.updateAdminConfig({
                     connected: false,
@@ -249,6 +331,27 @@ class TelegramUserClientManager {
                 (this.client?.connected === true ? "connected" : "disconnected"),
             monitoringActive: this.isMonitoringActive,
             monitoringStartedAt: this.monitoringStartedAt ?? stored.monitoringStartedAt,
+        };
+    }
+
+    /**
+     * Lightweight runtime diagnostics for the admin dashboard: is the MTProto socket
+     * actually open, is the monitoring handler attached, and when did the watchdog
+     * last verify the pipeline. Used to surface "listening" vs "paused" in realtime.
+     */
+    public getRuntimeDiagnostics(): {
+        socketConnected: boolean;
+        clientInitialized: boolean;
+        isMonitoringActive: boolean;
+        monitoringStartedAt: number | null;
+        monitoringLastTickAt: number | null;
+    } {
+        return {
+            socketConnected: this.client?.connected === true,
+            clientInitialized: this.client !== null,
+            isMonitoringActive: this.isMonitoringActive,
+            monitoringStartedAt: this.monitoringStartedAt,
+            monitoringLastTickAt: this.monitoringLastTickAt,
         };
     }
 
@@ -839,14 +942,21 @@ class TelegramUserClientManager {
         if (!client || !this.isConnected) {
             return { success: false, error: "Telegram account not connected" };
         }
+        // Armed from the first successful start: restores monitoring 24/7 after any
+        // server restart or connection drop without admin intervention.
+        this.ensureWatchdog();
 
         try {
+            // Already actively listening with the CURRENT client instance — nothing to do.
+            // Note: the flags are in-memory only; after a server restart they are false even
+            // when publicStatus says monitoringActive, so restart is always attempted.
             if (
                 this.isMonitoringActive &&
                 this.client === client &&
                 this.monitoringHandler &&
                 this.monitoringEvent
             ) {
+                this.ensureWatchdog();
                 return { success: true };
             }
 
@@ -943,6 +1053,8 @@ class TelegramUserClientManager {
             this.monitoringHandler = handler;
             this.isMonitoringActive = true;
             this.monitoringStartedAt = Date.now();
+            this.monitoringLastTickAt = Date.now();
+            this.ensureWatchdog();
             await this.updateAdminConfig({
                 monitoringActive: true,
                 monitoringStartedAt: this.monitoringStartedAt,

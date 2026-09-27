@@ -17,6 +17,33 @@ import {
     type TerminalTrade,
 } from "../components/pro-scalping-terminal/terminal-utils";
 import { CHART_LAYERS, defaultLayerState } from "../components/pro-scalping-terminal/chart-layers";
+import { executePine } from "../lib/pine-runtime/runtime";
+import type { PineExecutionResult } from "../lib/pine-runtime/runtime";
+import { TA } from "../lib/pine-runtime/builtins";
+import {
+    createPineSource as buildPineFromVisual,
+    CONDITION_PREREQUISITES,
+    DEFAULT_VISUAL_EDGES,
+    DEFAULT_VISUAL_NODES,
+    VISUAL_NODE_LIBRARY,
+    type VisualEdge,
+    type VisualNode,
+} from "../components/tradingview/visual-builder";
+
+/** Deterministic synthetic series: ramp up, then dump — exercises trend flips. */
+const CANDLES = Array.from({ length: 120 }, (_, i) => {
+    const drift = i < 80 ? i * 0.5 : 40 - (i - 80) * 1.2;
+    const wave = Math.sin(i / 3) * 1.5;
+    const close = 100 + drift + wave;
+    return {
+        time: 1_700_000_000 + i * 900,
+        open: close - 0.4,
+        high: close + 1.2,
+        low: close - 1.2,
+        close,
+        volume: 1000 + (i % 7) * 120,
+    };
+});
 
 let passed = 0;
 let failed = 0;
@@ -140,6 +167,169 @@ check("refuses degenerate inputs instead of returning a size", () => {
     assertEqual(positionSize(10_000, 0, 100, 90, "EURUSD"), null);
     assertEqual(positionSize(10_000, 1, 100, 100, "EURUSD"), null);
     assertEqual(positionSize(Number.NaN, 1, 100, 90, "EURUSD"), null);
+});
+
+console.log("Pine runtime — new TA math + apply-to-chart chain");
+check("tuple destructuring binds ta.macd outputs (regression: was silently dropped)", () => {
+    const r = executePine(
+        `//@version=6\nindicator("t", overlay=false)\n[macdLine, signalLine, histLine] = ta.macd(close, 12, 26, 9)\nplot(macdLine, title="macd")\nplot(signalLine, title="signal")`,
+        CANDLES
+    );
+    assertEqual(r.errors, []);
+    const macd = r.plots.find((p) => p.title === "macd");
+    const signal = r.plots.find((p) => p.title === "signal");
+    assert(macd && macd.values.some((v) => v !== null && v !== 0), "macd plot should carry real MACD values");
+    assert(signal && signal.values.some((v) => v !== null), "signal plot should carry values");
+    assert(macd && signal && !macd.values.every((v, i) => v === signal.values[i]), "macd and signal must differ (was close-fallback before)");
+});
+check("ta.supertrend flips direction and hugs the trailing band", () => {
+    const [line, dir] = TA.supertrend(
+        CANDLES.map((c) => c.high),
+        CANDLES.map((c) => c.low),
+        CANDLES.map((c) => c.close),
+        10,
+        3
+    );
+    assert(line.length === CANDLES.length && dir.length === CANDLES.length, "outputs align 1:1 with candles");
+    assert(dir.some((d) => d === 1) && dir.some((d) => d === -1), "trend should flip on the synthetic ramp+dump");
+    const last = CANDLES.length - 1;
+    assert(Number.isFinite(line[last]), "last supertrend value is finite");
+    if (dir[last] === 1) assert(line[last] <= CANDLES[last].high, "in an uptrend the line trails below price");
+    if (dir[last] === -1) assert(line[last] >= CANDLES[last].low, "in a downtrend the line trails above price");
+});
+check("ta.keltner / ta.donchian / ta.willr produce aligned, bounded series", () => {
+    const [kcMid, kcUp, kcLow] = TA.keltner(
+        CANDLES.map((c) => c.high),
+        CANDLES.map((c) => c.low),
+        CANDLES.map((c) => c.close),
+        20,
+        2
+    );
+    const idx = 100;
+    assert(kcUp[idx] > kcMid[idx] && kcMid[idx] > kcLow[idx], "Keltner bands must bracket the midline");
+    const [dcUp, dcLow, dcMid] = TA.donchian(
+        CANDLES.map((c) => c.high),
+        CANDLES.map((c) => c.low),
+        20
+    );
+    assert(dcUp[idx] >= dcMid[idx] && dcMid[idx] >= dcLow[idx], "Donchian upper ≥ mid ≥ lower");
+    const wr = TA.willr(
+        CANDLES.map((c) => c.high),
+        CANDLES.map((c) => c.low),
+        CANDLES.map((c) => c.close),
+        14
+    );
+    assert(wr[idx] <= 0 && wr[idx] >= -100, `Williams %R ${wr[idx]} must sit in [−100, 0]`);
+});
+check("ta.fisher stays finite and ta.cmf is bounded (−1, 1)", () => {
+    const [fisher] = TA.fisherTransform(
+        CANDLES.map((c) => c.high),
+        CANDLES.map((c) => c.low),
+        9
+    );
+    assert(fisher.slice(9).every((v) => Number.isFinite(v)), "Fisher values are finite (clamp works)");
+    const cmfVals = TA.cmf(
+        CANDLES.map((c) => c.high),
+        CANDLES.map((c) => c.low),
+        CANDLES.map((c) => c.close),
+        CANDLES.map((c) => c.volume),
+        20
+    );
+    assert(cmfVals[100] > -1 && cmfVals[100] < 1, "CMF must stay within (−1, 1)");
+});
+check("history index resolves one bar back (dcUpper[1] semantics)", () => {
+    const r = executePine(
+        `//@version=6\nindicator("t", overlay=false)\nprevClose = close\nprev = prevClose[1]\nplot(prev, title="prev")`,
+        CANDLES
+    );
+    const prev = r.plots.find((p) => p.title === "prev");
+    assert(prev && prev.values[10] === CANDLES[9].close, "close[1] at bar 10 equals bar 9 close");
+});
+check("apply-to-chart chain: generated visual Pine executes with real plots", () => {
+    const source = buildPineFromVisual(DEFAULT_VISUAL_NODES, DEFAULT_VISUAL_EDGES);
+    assert(source.includes("ta.ema(close, 20)"), "generator emits the EMA study");
+    assert(source.includes("ta.crossover(fastMa, slowMa)"), "generator emits the crossover condition");
+    const r = executePine(source, CANDLES);
+    assertEqual(r.errors, []);
+    assert(r.plots.length >= 2, `default graph should plot both MAs, got ${r.plots.length}`);
+    const fast = r.plots.find((p) => p.title === "Fast MA");
+    assert(fast && fast.values.some((v) => v !== null && Number.isFinite(v)), "Fast MA plot has finite values");
+});
+check("every library node kind emits runtime-executable Pine", () => {
+    for (const entry of VISUAL_NODE_LIBRARY) {
+        const node: VisualNode = { id: `n_${entry.kind}`, kind: entry.kind, x: 0, y: 0 };
+        const edges: VisualEdge[] = [
+            { from: "price", to: `n_${entry.kind}` },
+            { from: `n_${entry.kind}`, to: "entry" },
+        ];
+        const nodes: VisualNode[] = [
+            { id: "price", kind: "price", x: 0, y: 0 },
+            node,
+            { id: "entry", kind: "long_entry", x: 0, y: 0 },
+        ];
+        // Condition nodes bring their prerequisite studies into the graph so
+        // the generated condition references declared series only.
+        for (const req of CONDITION_PREREQUISITES[entry.kind] ?? []) {
+            nodes.push({ id: `req_${req}`, kind: req, x: 0, y: 0 });
+            edges.push({ from: "price", to: `req_${req}` });
+            edges.push({ from: `req_${req}`, to: `n_${entry.kind}` });
+        }
+        const source = buildPineFromVisual(nodes, edges);
+        const r = executePine(source, CANDLES);
+        assertEqual(r.errors, []);
+        // "Real" means either a declared study series, an inline ta.* condition,
+        // or a pure logic/execution node that intentionally has no series.
+        const declaresStudy = /\w+\s*=\s*[^\n]*\bta\./.test(source) || /=\s*volume\b/.test(source) || (source.includes("[") && source.includes("] = ta."));
+        const inlineTaCondition = /if [^\n]*\bta\./.test(source);
+        assert(
+            r.plots.length > 0 || declaresStudy || inlineTaCondition || entry.category === "Market Data" || entry.category === "Execution" || entry.category === "Risk" || entry.kind === "and",
+            `node ${entry.kind} should introduce drawable output or declare a real study`
+        );
+    }
+});
+check("strategy graph emits strategy.entry and a risk-managed exit", () => {
+    const source = buildPineFromVisual(
+        [
+            { id: "p", kind: "price", x: 0, y: 0 },
+            { id: "ma", kind: "moving_average", x: 0, y: 0 },
+            { id: "x", kind: "crossover", x: 0, y: 0 },
+            { id: "e", kind: "long_entry", x: 0, y: 0 },
+            { id: "r", kind: "risk_manager", x: 0, y: 0 },
+        ],
+        [
+            { from: "p", to: "ma" },
+            { from: "ma", to: "x" },
+            { from: "x", to: "e" },
+            { from: "e", to: "r" },
+        ]
+    );
+    assert(source.includes("strategy.entry"), "long entry is emitted");
+    assert(source.includes("strategy.exit"), "risk manager is emitted");
+    const r = executePine(source, CANDLES);
+    assertEqual(r.errors, []);
+    assert(r.strategy !== null, "runtime recognises the strategy");
+});
+check("keltner squeeze condition compiles through the full chain", () => {
+    const nodes: VisualNode[] = [
+        { id: "p", kind: "price", x: 0, y: 0 },
+        { id: "bb", kind: "bollinger", x: 0, y: 0 },
+        { id: "kc", kind: "keltner", x: 0, y: 0 },
+        { id: "sq", kind: "kc_squeeze", x: 0, y: 0 },
+        { id: "e", kind: "long_entry", x: 0, y: 0 },
+        { id: "pl", kind: "plot", x: 0, y: 0 },
+    ];
+    const edges: VisualEdge[] = [
+        { from: "p", to: "bb" },
+        { from: "p", to: "kc" },
+        { from: "bb", to: "sq" },
+        { from: "kc", to: "sq" },
+        { from: "sq", to: "e" },
+    ];
+    const source = buildPineFromVisual(nodes, edges);
+    assert(source.includes("bbUpper < kcUpper"), "squeeze condition emitted");
+    const r = executePine(source, CANDLES);
+    assertEqual(r.errors, []);
+    assert(r.plots.length >= 4, "BB + KC studies are plotted");
 });
 
 console.log("Chart layer vocabulary");

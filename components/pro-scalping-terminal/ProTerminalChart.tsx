@@ -16,7 +16,7 @@
  * TradingChart component.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import {
     createChart,
     ColorType,
@@ -36,12 +36,14 @@ import {
     type UTCTimestamp,
 } from "lightweight-charts";
 import { cn } from "@/lib/utils";
+import { useLiveCandles } from "@/hooks/useLiveCandles";
 import type { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 import type { AdvancedAnalysisResult } from "@/lib/ai/analysis/intelligence";
 import type { ChartLayerId } from "./chart-layers";
 import type { PineStudyOverlay } from "./pine-overlays";
 import type { TerminalSignal } from "@/lib/ai/scalping/radar";
 import { fmtPrice } from "./terminal-utils";
+import { TA } from "@/lib/pine-runtime/builtins";
 
 type Candle = {
     timestamp: number;
@@ -52,11 +54,6 @@ type Candle = {
     volume?: number;
 };
 
-type ChartState = {
-    key: string;
-    candles: Candle[];
-    error: string | null;
-};
 
 // ── overlay computation (same rules as the server engines) ──────────────────
 
@@ -268,6 +265,56 @@ function computeEqualLevels(candles: Candle[]): Array<{ price: number; kind: "eq
 
 const PINE_PANE_STRETCH = 0.35;
 
+/** Push a series of values (NaN → skipped) onto the chart, aligned 1:1 with candles. */
+function feedSeries(series: ISeriesApi<"Line">, candles: Candle[], values: Array<number | null>): void {
+    const data: Array<{ time: UTCTimestamp; value: number }> = [];
+    candles.forEach((c, i) => {
+        const v = values[i];
+        if (v !== null && v !== undefined && Number.isFinite(v)) {
+            data.push({ time: Math.floor(c.timestamp / 1000) as UTCTimestamp, value: v });
+        }
+    });
+    series.setData(data);
+}
+
+/** Instantiate a hidden line series in the given pane. */
+function addHiddenLine(chart: IChartApi, paneIndex = 0, color = "#94a3b8", width: 1 | 2 = 1): ISeriesApi<"Line"> {
+    return chart.addSeries(
+        LineSeries,
+        {
+            color,
+            lineWidth: width,
+            priceLineVisible: false,
+            lastValueVisible: false,
+            crosshairMarkerVisible: false,
+        },
+        paneIndex
+    );
+}
+
+/**
+ * Classic floor-trader daily pivots from the previous UTC day, computed on
+ * the displayed candles (last day with data = the day pivots are held for).
+ */
+function computeDailyPivotLines(candles: Candle[]): Array<{ price: number; label: string; color: string }> {
+    if (candles.length < 3) return [];
+    const lastDay = new Date(candles[candles.length - 1].timestamp).toISOString().slice(0, 10);
+    const prev = candles.filter((c) => new Date(c.timestamp).toISOString().slice(0, 10) !== lastDay);
+    if (prev.length < 3) return [];
+    const H = Math.max(...prev.map((c) => c.high));
+    const L = Math.min(...prev.map((c) => c.low));
+    const C = prev[prev.length - 1].close;
+    const p = (H + L + C) / 3;
+    const range = H - L;
+    return [
+        { price: p, label: "P", color: "#eab308" },
+        { price: 2 * p - L, label: "R1", color: "#fb7185" },
+        { price: p + range, label: "R2", color: "#fb7185" },
+        { price: 2 * p - H, label: "S1", color: "#34d399" },
+        { price: p - range, label: "S2", color: "#34d399" },
+    ];
+}
+
 export function ProTerminalChart({
     symbol,
     timeframe,
@@ -301,6 +348,24 @@ export function ProTerminalChart({
     const ema9Ref = useRef<ISeriesApi<"Line"> | null>(null);
     const ema20Ref = useRef<ISeriesApi<"Line"> | null>(null);
     const priceLinesRef = useRef<IPriceLine[]>([]);
+    // Math-indicator layers: recreated when their layer flag flips.
+    const bbSeriesRef = useRef<{ basis: ISeriesApi<"Line">; upper: ISeriesApi<"Line">; lower: ISeriesApi<"Line"> } | null>(null);
+    const kcSeriesRef = useRef<{ mid: ISeriesApi<"Line">; upper: ISeriesApi<"Line">; lower: ISeriesApi<"Line"> } | null>(null);
+    const dcSeriesRef = useRef<{ upper: ISeriesApi<"Line">; lower: ISeriesApi<"Line">; mid: ISeriesApi<"Line"> } | null>(null);
+    const stSeriesRef = useRef<{ line: ISeriesApi<"Line">; pane: number | null } | null>(null);
+    // Viewport guard: keeps the user's zoom/scroll position while live ticks
+    // move the forming bar, only auto-fitting when the symbol/timeframe or
+    // history length actually changes (like a regular market chart).
+    const lastBarCountRef = useRef(0);
+    const lastKeyRef = useRef("");
+    const haSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+    const rsiSeriesRef = useRef<{ rsi: ISeriesApi<"Line">; pane: number | null; lines: IPriceLine[] } | null>(null);
+    const macdSeriesRef = useRef<{ macd: ISeriesApi<"Line">; signal: ISeriesApi<"Line">; pane: number | null } | null>(null);
+    // Panes created by these layers — remembered so the pane can be removed
+    // again when the layer is switched off.
+    const stPaneOwnedRef = useRef<number | null>(null);
+    const rsiPaneOwnedRef = useRef<number | null>(null);
+    const macdPaneOwnedRef = useRef<number | null>(null);
     // Pine study overlays: line series (overlay pane) + a stacked pane for
     // non-overlay scripts, rebuilt whenever the applied script changes.
     const studySeriesRef = useRef<Array<ISeriesApi<"Line">>>([]);
@@ -309,63 +374,47 @@ export function ProTerminalChart({
     const signalMarkersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
     const studyHlineLinesRef = useRef<IPriceLine[]>([]);
 
-    const [state, setState] = useState<ChartState>({ key: "", candles: [], error: null });
     const [hover, setHover] = useState<{ o: number; h: number; l: number; c: number; time: number } | null>(null);
 
-    // Loading derives from a key mismatch: a symbol/TF switch reads as loading
-    // immediately without any synchronous setState inside the effect.
-    const requestKey = `${symbol}|${timeframe}`;
-    const loading = state.key !== requestKey;
+    // Live feed shared with every chart in the app: history, tick merge into
+    // the forming bar, and periodic reconciliation against the provider.
+    const { candles: liveCandles, error: feedError, isLoading: feedLoading } = useLiveCandles(
+        symbol,
+        timeframe,
+        { limit: 300 }
+    );
 
     const onCandlesChangeRef = useRef(onCandlesChange);
     useEffect(() => {
         onCandlesChangeRef.current = onCandlesChange;
     }, [onCandlesChange]);
 
-    // Fetch candles. The OHLC endpoint is public, so an absent token only
-    // means the request goes out without an Authorization header.
+    // Notify callers (overlay engines) with the current candle list. Kept in
+    // an effect so the callback is not invoked during render.
+    const candlesChangedRef = useRef(false);
     useEffect(() => {
-        let cancelled = false;
-        (async () => {
-            try {
-                const params = new URLSearchParams({ symbol, timeframe, limit: "300" });
-                const res = await fetch(`/api/analytics/ohlc?${params.toString()}`, {
-                    cache: "no-store",
-                    ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
-                });
-                const body = (await res.json().catch(() => null)) as
-                    | { candles?: Candle[]; error?: string }
-                    | null;
-                if (cancelled) return;
-                if (!res.ok || !body?.candles?.length) {
-                    setState({
-                        key: requestKey,
-                        candles: [],
-                        error: body?.error ?? `No ${timeframe} candles returned for ${symbol}.`,
-                    });
-                    return;
-                }
-                const candles = body.candles
-                    .filter((c) => Number.isFinite(c.open) && Number.isFinite(c.high) && Number.isFinite(c.low) && Number.isFinite(c.close))
-                    .sort((a, b) => a.timestamp - b.timestamp);
-                setState({ key: requestKey, candles, error: null });
-                onCandlesChangeRef.current?.(candles);
-            } catch {
-                if (cancelled) return;
-                setState({ key: requestKey, candles: [], error: "Failed to load market data." });
-            }
-        })();
-        return () => {
-            cancelled = true;
-        };
-    }, [symbol, timeframe, token, requestKey]);
+        if (liveCandles.length === 0) return;
+        if (candlesChangedRef.current) {
+            onCandlesChangeRef.current?.(liveCandles);
+        } else {
+            candlesChangedRef.current = true;
+            onCandlesChangeRef.current?.(liveCandles);
+        }
+    }, [liveCandles]);
 
-    const candles = state.candles;
+    const candles = liveCandles;
+    const requestKey = `${symbol}|${timeframe}`;
+    const loading = feedLoading;
+    void requestKey;
+    void token;
+    void feedError;
 
     // Create chart once.
     useEffect(() => {
         const container = containerRef.current;
         if (!container) return;
+        lastBarCountRef.current = 0;
+        lastKeyRef.current = "";
 
         const chart = createChart(container, {
             autoSize: true,
@@ -460,6 +509,18 @@ export function ProTerminalChart({
             studyMarkersRef.current = null;
             signalMarkersRef.current = null;
             studyHlineLinesRef.current = [];
+            bbSeriesRef.current = null;
+            kcSeriesRef.current = null;
+            dcSeriesRef.current = null;
+            stSeriesRef.current = null;
+            haSeriesRef.current = null;
+            rsiSeriesRef.current = null;
+            macdSeriesRef.current = null;
+            stPaneOwnedRef.current = null;
+            rsiPaneOwnedRef.current = null;
+            macdPaneOwnedRef.current = null;
+            signalMarkersRef.current = null;
+            studyHlineLinesRef.current = [];
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -514,8 +575,18 @@ export function ProTerminalChart({
         pushEma(e9, 9);
         pushEma(e20, 20);
 
-        chartRef.current?.timeScale().fitContent();
-    }, [candles, symbol]);
+        // Only auto-fit when the dataset itself changed (symbol/timeframe
+        // switch or a reconcile that added closed bars). Live tick updates to
+        // the forming bar keep the current viewport so the last candle moves
+        // in place instead of the chart re-zooming every 2 seconds.
+        const key = `${symbol}|${timeframe}`;
+        const barCountChanged = bars.length !== lastBarCountRef.current;
+        if (key !== lastKeyRef.current || barCountChanged) {
+            chartRef.current?.timeScale().fitContent();
+            lastKeyRef.current = key;
+        }
+        lastBarCountRef.current = bars.length;
+    }, [candles, symbol, timeframe]);
 
     // ── Pine study overlays ─────────────────────────────────────────────
     // Recreate the study series whenever the applied script (or its pane
@@ -714,6 +785,7 @@ export function ProTerminalChart({
         const lines: Array<{ price: number; label: string; color: string }> = [];
         if (layers.sessionLevels) lines.push(...computeSessionLevels(candles));
         if (layers.prevDayHighLow) lines.push(...computePrevDay(candles));
+        if (layers.dailyPivots) lines.push(...computeDailyPivotLines(candles));
         if (layers.supportResistance) {
             for (const l of computeSrLevels(candles)) {
                 lines.push({
@@ -787,6 +859,280 @@ export function ProTerminalChart({
 
     const showZones = zones.fvg.length > 0 || zones.ob.length > 0;
 
+    // ── Math-indicator layers ────────────────────────────────────────
+    // Every layer is computed with the same deterministic TA the Pine
+    // runtime exposes (lib/pine-runtime/builtins.ts), so a plotted layer
+    // matches what a Pine script over the same candles would produce.
+    useEffect(() => {
+        const chart = chartRef.current;
+        if (!chart) return;
+
+        const removeIf = (ref: RefObject<Record<string, ISeriesApi<"Line"> | ISeriesApi<"Candlestick">> | null>) => {
+            const group = ref.current;
+            if (!group) return;
+            for (const key of Object.keys(group)) {
+                const s = group[key];
+                if (s && typeof s === "object" && "applyOptions" in s) {
+                    try {
+                        chart.removeSeries(s);
+                    } catch {
+                        // already gone with the chart
+                    }
+                }
+            }
+            ref.current = null;
+        };
+
+        // ── Bollinger bands (SMA ± 2σ, 20) ──
+        if (!layers.bollingerBands) {
+            removeIf(bbSeriesRef as RefObject<Record<string, ISeriesApi<"Line"> | ISeriesApi<"Candlestick">> | null>);
+        } else if (!bbSeriesRef.current) {
+            const basis = addHiddenLine(chart, 0, "#94a3b8");
+            const upper = addHiddenLine(chart, 0, "#60a5fa");
+            const lower = addHiddenLine(chart, 0, "#60a5fa");
+            bbSeriesRef.current = { basis, upper, lower };
+        }
+
+        // ── Keltner channels (EMA ± ATR, 20/2) ──
+        if (!layers.keltnerChannels) {
+            removeIf(kcSeriesRef as RefObject<Record<string, ISeriesApi<"Line"> | ISeriesApi<"Candlestick">> | null>);
+        } else if (!kcSeriesRef.current) {
+            const mid = addHiddenLine(chart, 0, "#f97316");
+            const upper = addHiddenLine(chart, 0, "rgba(249, 115, 22, 0.55)");
+            const lower = addHiddenLine(chart, 0, "rgba(249, 115, 22, 0.55)");
+            kcSeriesRef.current = { mid, upper, lower };
+        }
+
+        // ── Donchian channels (20-bar high/low envelope) ──
+        if (!layers.donchianChannels) {
+            removeIf(dcSeriesRef as RefObject<Record<string, ISeriesApi<"Line"> | ISeriesApi<"Candlestick">> | null>);
+        } else if (!dcSeriesRef.current) {
+            const upper = addHiddenLine(chart, 0, "#22d3ee");
+            const lower = addHiddenLine(chart, 0, "#22d3ee");
+            const mid = addHiddenLine(chart, 0, "rgba(34, 211, 238, 0.5)");
+            dcSeriesRef.current = { upper, lower, mid };
+        }
+
+        // ── Supertrend (ATR trailing stop line, own pane) ──
+        if (!layers.supertrend) {
+            if (stSeriesRef.current) {
+                try {
+                    chart.removeSeries(stSeriesRef.current.line);
+                } catch {
+                    // already gone
+                }
+                stSeriesRef.current = null;
+            }
+            if (stSeriesRef.current === null && stPaneOwnedRef.current !== null) {
+                try {
+                    chart.removePane(stPaneOwnedRef.current);
+                } catch {
+                    // pane may hold other series
+                }
+                stPaneOwnedRef.current = null;
+            }
+        } else if (!stSeriesRef.current) {
+            const [stLine, stDir] = TA.supertrend(
+                candles.map((c) => c.high),
+                candles.map((c) => c.low),
+                candles.map((c) => c.close),
+                10,
+                3
+            );
+            void stDir;
+            let paneIndex = 0;
+            try {
+                paneIndex = chart.panes().length;
+                chart.addPane();
+                stPaneOwnedRef.current = paneIndex;
+                chart.panes()[paneIndex]?.setStretchFactor(0.25);
+            } catch {
+                paneIndex = 0;
+                stPaneOwnedRef.current = null;
+            }
+            const line = addHiddenLine(chart, paneIndex, "#f472b6", 2);
+            stSeriesRef.current = { line, pane: paneIndex };
+        }
+
+        // ── Heikin-Ashi candles (main pane) ──
+        if (!layers.heikinAshi) {
+            if (haSeriesRef.current) {
+                try {
+                    chart.removeSeries(haSeriesRef.current);
+                } catch {
+                    // already gone
+                }
+                haSeriesRef.current = null;
+            }
+        } else if (!haSeriesRef.current) {
+            haSeriesRef.current = chart.addSeries(CandlestickSeries, {
+                upColor: "#26a69a",
+                downColor: "#ef5350",
+                borderUpColor: "#26a69a",
+                borderDownColor: "#ef5350",
+                wickUpColor: "#26a69a",
+                wickDownColor: "#ef5350",
+                priceLineVisible: false,
+                lastValueVisible: false,
+                priceFormat: { type: "price", precision: symbolPrecision(symbol), minMove: 10 ** -symbolPrecision(symbol) },
+            });
+        }
+
+        // ── RSI pane (14, 30/70 guides) ──
+        if (!layers.rsiPane) {
+            if (rsiSeriesRef.current) {
+                try {
+                    chart.removeSeries(rsiSeriesRef.current.rsi);
+                } catch {
+                    // already gone
+                }
+                for (const l of rsiSeriesRef.current.lines) {
+                    try {
+                        rsiSeriesRef.current.rsi.removePriceLine(l);
+                    } catch {
+                        // already gone
+                    }
+                }
+                rsiSeriesRef.current = null;
+            }
+            if (rsiSeriesRef.current === null && rsiPaneOwnedRef.current !== null) {
+                try {
+                    chart.removePane(rsiPaneOwnedRef.current);
+                } catch {
+                    // pane may hold other series
+                }
+                rsiPaneOwnedRef.current = null;
+            }
+        } else if (!rsiSeriesRef.current) {
+            let paneIndex = 0;
+            try {
+                paneIndex = chart.panes().length;
+                chart.addPane();
+                rsiPaneOwnedRef.current = paneIndex;
+                chart.panes()[paneIndex]?.setStretchFactor(0.3);
+            } catch {
+                paneIndex = 0;
+                rsiPaneOwnedRef.current = null;
+            }
+            const rsi = addHiddenLine(chart, paneIndex, "#c084fc");
+            rsiSeriesRef.current = { rsi, pane: paneIndex, lines: [] };
+        }
+
+        // ── MACD pane (12/26/9 histogram-less lines + zero guide) ──
+        if (!layers.macdPane) {
+            if (macdSeriesRef.current) {
+                try {
+                    chart.removeSeries(macdSeriesRef.current.macd);
+                    chart.removeSeries(macdSeriesRef.current.signal);
+                } catch {
+                    // already gone
+                }
+                macdSeriesRef.current = null;
+            }
+            if (macdSeriesRef.current === null && macdPaneOwnedRef.current !== null) {
+                try {
+                    chart.removePane(macdPaneOwnedRef.current);
+                } catch {
+                    // pane may hold other series
+                }
+                macdPaneOwnedRef.current = null;
+            }
+        } else if (!macdSeriesRef.current) {
+            let paneIndex = 0;
+            try {
+                paneIndex = chart.panes().length;
+                chart.addPane();
+                macdPaneOwnedRef.current = paneIndex;
+            } catch {
+                paneIndex = 0;
+                macdPaneOwnedRef.current = null;
+            }
+            chart.panes()[paneIndex]?.setStretchFactor(0.3);
+            const macd = addHiddenLine(chart, paneIndex, "#38bdf8");
+            const signal = addHiddenLine(chart, paneIndex, "#f59e0b");
+            macdSeriesRef.current = { macd, signal, pane: paneIndex };
+        }
+    }, [layers.bollingerBands, layers.keltnerChannels, layers.donchianChannels, layers.supertrend, layers.heikinAshi, layers.rsiPane, layers.macdPane, symbol]);
+
+    // Data feed for the indicator layers — recomputed only when candles change.
+    useEffect(() => {
+        if (candles.length === 0) return;
+        const closes = candles.map((c) => c.close);
+        const highs = candles.map((c) => c.high);
+        const lows = candles.map((c) => c.low);
+
+        if (bbSeriesRef.current) {
+            const [basis, upper, lower] = TA.bb(closes, 20, 2);
+            feedSeries(bbSeriesRef.current.basis, candles, basis);
+            feedSeries(bbSeriesRef.current.upper, candles, upper);
+            feedSeries(bbSeriesRef.current.lower, candles, lower);
+        }
+        if (kcSeriesRef.current) {
+            const [mid, upper, lower] = TA.keltner(highs, lows, closes, 20, 2);
+            feedSeries(kcSeriesRef.current.mid, candles, mid);
+            feedSeries(kcSeriesRef.current.upper, candles, upper);
+            feedSeries(kcSeriesRef.current.lower, candles, lower);
+        }
+        if (dcSeriesRef.current) {
+            const [upper, lower, mid] = TA.donchian(highs, lows, 20);
+            feedSeries(dcSeriesRef.current.upper, candles, upper);
+            feedSeries(dcSeriesRef.current.lower, candles, lower);
+            feedSeries(dcSeriesRef.current.mid, candles, mid);
+        }
+        if (stSeriesRef.current) {
+            const [line] = TA.supertrend(highs, lows, closes, 10, 3);
+            feedSeries(stSeriesRef.current.line, candles, line);
+        }
+        if (haSeriesRef.current) {
+            const [ho, hh, hl, hc] = TA.heikinashi(
+                candles.map((c) => c.open),
+                highs,
+                lows,
+                closes
+            );
+            haSeriesRef.current.setData(
+                candles
+                    .map((c, i) => ({
+                        time: Math.floor(c.timestamp / 1000) as UTCTimestamp,
+                        open: ho[i],
+                        high: hh[i],
+                        low: hl[i],
+                        close: hc[i],
+                    }))
+                    .filter((d) => Number.isFinite(d.open) && Number.isFinite(d.close))
+            );
+        }
+        if (rsiSeriesRef.current) {
+            const rsiVals = TA.rsi(closes, 14);
+            feedSeries(rsiSeriesRef.current.rsi, candles, rsiVals);
+            const paneApi = rsiSeriesRef.current.pane !== null ? chartRef.current?.panes()[rsiSeriesRef.current.pane] : undefined;
+            if (paneApi) {
+                for (const l of rsiSeriesRef.current.lines) {
+                    try {
+                        rsiSeriesRef.current.rsi.removePriceLine(l);
+                    } catch {
+                        // already gone
+                    }
+                }
+                rsiSeriesRef.current.lines = [30, 70].map((v) =>
+                    rsiSeriesRef.current!.rsi.createPriceLine({
+                        price: v,
+                        color: "rgba(148, 163, 184, 0.6)",
+                        lineWidth: 1,
+                        lineStyle: LineStyle.Dashed,
+                        axisLabelVisible: false,
+                        title: `RSI ${v}`,
+                    })
+                );
+            }
+        }
+        if (macdSeriesRef.current) {
+            const [macdLine, signalLine] = TA.macd(closes, 12, 26, 9);
+            feedSeries(macdSeriesRef.current.macd, candles, macdLine);
+            feedSeries(macdSeriesRef.current.signal, candles, signalLine);
+        }
+    }, [candles]);
+
     return (
         <div className="relative min-w-0 overflow-hidden rounded-lg border border-border bg-card" data-chart-container>
             {/* HUD */}
@@ -807,8 +1153,18 @@ export function ProTerminalChart({
                         last <span className="text-foreground">{fmtPrice(candles[candles.length - 1].close, symbol)}</span>
                     </span>
                 ) : null}
-                <span className="ml-auto font-mono text-[10px] text-muted-foreground">
-                    {loading ? "loading…" : `${candles.length} bars · /api/analytics/ohlc`}
+                <span className="ml-auto flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground">
+                    {loading ? (
+                        "loading…"
+                    ) : (
+                        <>
+                            {candles.length} bars · /api/analytics/ohlc
+                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-emerald-500">
+                                <span className="inline-block h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />
+                                live
+                            </span>
+                        </>
+                    )}
                 </span>
             </div>
 
@@ -881,11 +1237,11 @@ export function ProTerminalChart({
                 ) : null}
 
                 {/* Empty / error states */}
-                {state.error ? (
+                {feedError ? (
                     <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 p-4 backdrop-blur-[2px]">
                         <div className="max-w-sm text-center">
                             <p className="text-xs font-medium text-foreground">Chart unavailable</p>
-                            <p className="mt-1 text-[11px] leading-4 text-muted-foreground">{state.error}</p>
+                            <p className="mt-1 text-[11px] leading-4 text-muted-foreground">{feedError}</p>
                         </div>
                     </div>
                 ) : loading && candles.length === 0 ? (

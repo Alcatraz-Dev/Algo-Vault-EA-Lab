@@ -362,6 +362,178 @@ export async function getAuditLog(
 }
 
 // ============================================
+// ORDER REQUEST QUEUE (gateway execution bridge)
+// ============================================
+// The MT5 gateway EA polls trading_order_requests/{uid} for `queued` commands
+// matching its accountId and reports back via /api/trading/gateway/execution.
+// All trade-management executions (SL moves, partial closes, full closes)
+// go through this queue so both the monitor cron and manual UI actions
+// share one execution path.
+
+export type QueuedOrderRequest = {
+    action: string;
+    symbol: string;
+    volume?: number;
+    sl?: number | null;
+    tp?: number | null;
+    closeTicket?: number | null;
+    closeVolume?: number | null;
+    reason?: string;
+    source?: string;
+};
+
+export async function queueOrderRequest(
+    uid: string,
+    accountId: string,
+    req: QueuedOrderRequest,
+    prefix = "mgmt"
+): Promise<string> {
+    const clientOrderId = `${prefix}_${accountId}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const now = Date.now();
+
+    await adminDatabase.ref(`trading_order_requests/${uid}/${clientOrderId}`).set({
+        clientOrderId,
+        accountId,
+        ...req,
+        status: "queued",
+        userId: uid,
+        source: req.source || "trade_management",
+        createdAt: now,
+        updatedAt: now,
+    });
+
+    return clientOrderId;
+}
+
+/**
+ * Queue a MODIFY command that moves the SL of a managed position.
+ * Returns false (and logs a FAILED audit entry) when queueing fails.
+ */
+export async function queueModifySl(
+    uid: string,
+    accountId: string,
+    ticket: string,
+    state: TradeManagementState,
+    newSl: number,
+    reason: string,
+    mode: "AUTO" | "MANUAL"
+): Promise<boolean> {
+    try {
+        await queueOrderRequest(uid, accountId, {
+            action: "MODIFY",
+            symbol: state.symbol,
+            volume: 0,
+            sl: newSl,
+            tp: state.currentTp,
+            closeTicket: Number(ticket),
+            reason,
+        });
+
+        await logAudit(uid, accountId, ticket, "MOVE_SL", {
+            oldSL: state.currentSl,
+            newSL: newSl,
+            reason,
+            mode,
+            status: "SUCCESS",
+        });
+
+        return true;
+    } catch (err) {
+        console.error("SL move queueing failed:", err);
+        await logAudit(uid, accountId, ticket, "MOVE_SL", {
+            oldSL: state.currentSl,
+            newSL: newSl,
+            reason,
+            mode,
+            status: "FAILED",
+            errorMessage: String(err),
+        });
+        return false;
+    }
+}
+
+/**
+ * Queue a PARTIAL_CLOSE command for a managed position.
+ * Returns the queued clientOrderId, or null when queueing failed.
+ */
+export async function queuePartialClose(
+    uid: string,
+    accountId: string,
+    ticket: string,
+    state: TradeManagementState,
+    volume: number,
+    reason: string
+): Promise<string | null> {
+    try {
+        const clientOrderId = await queueOrderRequest(uid, accountId, {
+            action: "PARTIAL_CLOSE",
+            symbol: state.symbol,
+            closeTicket: Number(ticket),
+            closeVolume: volume,
+            reason,
+        });
+
+        await logAudit(uid, accountId, ticket, "CLOSE_PARTIAL", {
+            volume,
+            reason,
+            mode: state.config.autoManagement ? "AUTO" : "MANUAL",
+            status: "SUCCESS",
+        });
+
+        return clientOrderId;
+    } catch (err) {
+        console.error("Partial close queueing failed:", err);
+        await logAudit(uid, accountId, ticket, "CLOSE_PARTIAL", {
+            volume,
+            reason,
+            mode: state.config.autoManagement ? "AUTO" : "MANUAL",
+            status: "FAILED",
+            errorMessage: String(err),
+        });
+        return null;
+    }
+}
+
+/**
+ * Queue a full CLOSE command for a managed position.
+ * Returns the queued clientOrderId, or null when queueing failed.
+ */
+export async function queueFullClose(
+    uid: string,
+    accountId: string,
+    ticket: string,
+    state: TradeManagementState,
+    reason: string
+): Promise<string | null> {
+    try {
+        const clientOrderId = await queueOrderRequest(uid, accountId, {
+            action: "CLOSE",
+            symbol: state.symbol,
+            closeTicket: Number(ticket),
+            reason,
+        });
+
+        await logAudit(uid, accountId, ticket, "CLOSE_POSITION", {
+            volume: state.remainingVolume || state.volume,
+            reason,
+            mode: state.config.autoManagement ? "AUTO" : "MANUAL",
+            status: "SUCCESS",
+        });
+
+        return clientOrderId;
+    } catch (err) {
+        console.error("Full close queueing failed:", err);
+        await logAudit(uid, accountId, ticket, "CLOSE_POSITION", {
+            reason,
+            mode: state.config.autoManagement ? "AUTO" : "MANUAL",
+            status: "FAILED",
+            errorMessage: String(err),
+        });
+        return null;
+    }
+}
+
+// ============================================
 // HELPERS
 // ============================================
 

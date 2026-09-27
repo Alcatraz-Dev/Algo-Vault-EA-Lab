@@ -17,6 +17,10 @@ import type { Candle } from "./TradingChart/types";
 type MarketReplayProps = {
     studies?: string[];
     strategyType?: "strategy" | "indicator";
+    /** Optional TradingView-style symbol override, e.g. "FX:EURUSD" or "OANDA:XAUUSD". */
+    symbol?: string;
+    /** Optional interval override, e.g. "1m", "15m", "1h", "4h", "1D". */
+    interval?: string;
 };
 
 type TradePosition = {
@@ -38,7 +42,35 @@ type ClosedTrade = {
     result: "WIN" | "LOSS";
 };
 
-const SYMBOLS = ["FX:EURUSD", "FX:GBPUSD", "FX:USDJPY", "XAU:USD", "XAG:USD", "BTCUSD", "ETHUSD", "INDU", "NAS100", "SPX500"];
+const SYMBOLS = ["XAUUSD", "EURUSD", "GBPUSD", "USDJPY", "BTCUSD", "ETHUSD", "US30", "NAS100", "SPX500"];
+
+/** Map a replay UI symbol onto the canonical feed symbol (identity here, kept for callers). */
+export function resolveReplaySymbol(rawSymbol: string): string | null {
+    if (!rawSymbol) return null;
+    const raw = rawSymbol.toUpperCase().replace(/^(FX|OANDA|COINBASE|TVC|INDEX):/, "").replace(/^XAU:USD$/, "XAUUSD").replace(/^XAG:USD$/, "XAGUSD");
+    if (SYMBOLS.includes(raw)) return raw;
+    if (raw.includes("XAU")) return "XAUUSD";
+    if (raw.includes("XAG")) return "XAGUSD";
+    if (raw.includes("BTC")) return "BTCUSD";
+    if (raw.includes("ETH")) return "ETHUSD";
+    if (raw.includes("NAS")) return "NAS100";
+    if (raw.includes("SPX")) return "SPX500";
+    if (raw.includes("DOW") || raw.includes("INDU")) return "US30";
+    if (raw.includes("JPY")) return "USDJPY";
+    if (raw.includes("GBP")) return "GBPUSD";
+    if (raw.includes("EUR")) return "EURUSD";
+    return null;
+}
+
+/** Map raw signal timeframes ("M1", "H1", "D1"…) onto replay intervals. */
+export function resolveReplayInterval(rawTimeframe: string): string | null {
+    const tf = String(rawTimeframe || "").toUpperCase();
+    if (/^M(\d+)$/.test(tf)) return `${tf.slice(1)}m`;
+    if (/^H(\d+)$/.test(tf)) return `${tf.slice(1)}h`;
+    if (/^D(\d+)$/.test(tf)) return "1D";
+    if (/^(\d+)(m|h|D)$/.test(tf)) return tf;
+    return null;
+}
 const INTERVALS = ["1m", "5m", "15m", "30m", "1h", "4h", "1D"];
 const BAR_COUNTS = [120, 240, 500, 1000];
 const SPEEDS = [
@@ -57,55 +89,6 @@ function subscribeToTheme(callback: () => void) {
 
 function isDarkMode() {
     return document.documentElement.classList.contains("dark");
-}
-
-function hashCode(value: string) {
-    let hash = 0;
-    for (let i = 0; i < value.length; i += 1) {
-        hash = (Math.imul(31, hash) + value.charCodeAt(i)) | 0;
-    }
-    return hash >>> 0;
-}
-
-function mulberry32(seed: number) {
-    return () => {
-        let next = (seed += 0x6d2b79f5);
-        next = Math.imul(next ^ (next >>> 15), next | 1);
-        next ^= next + Math.imul(next ^ (next >>> 7), next | 61);
-        return ((next ^ (next >>> 14)) >>> 0) / 4294967296;
-    };
-}
-
-function intervalToSeconds(intv: string): number {
-    if (intv.endsWith("m")) return parseInt(intv, 10) * 60;
-    if (intv.endsWith("h")) return parseInt(intv, 10) * 3600;
-    if (intv.endsWith("D")) return parseInt(intv, 10) * 86400;
-    return 3600;
-}
-
-function generateReplayCandles(symbol: string, interval: string, count: number): Candle[] {
-    const seconds = intervalToSeconds(interval);
-    const seed = hashCode(`${symbol}|${interval}|${count}`);
-    const random = mulberry32(seed);
-    const basePrice = symbol.includes("BTC") ? 45000 : symbol.includes("ETH") ? 2600 : symbol.includes("XAU") ? 2650 : symbol.includes("XAG") ? 31 : symbol === "INDU" ? 43000 : symbol === "NAS100" ? 20200 : symbol === "SPX500" ? 5600 : symbol.includes("JPY") ? 152 : 1.0850;
-    const volBase = symbol.includes("BTC") ? 18 : symbol.includes("ETH") ? 12 : symbol.includes("XAU") || symbol.includes("XAG") ? 240 : symbol === "INDU" || symbol === "NAS100" || symbol === "SPX500" ? 400 : symbol.includes("JPY") ? 1400 : 1200;
-    const alignedNow = Math.floor(Date.now() / 1000 / seconds) * seconds;
-    const data: Candle[] = [];
-    let current = basePrice;
-    for (let i = count - 1; i >= 0; i -= 1) {
-        const timestamp = alignedNow - i * seconds;
-        const volatility = basePrice * 0.008;
-        const open = current;
-        const wick = (random() - 0.48) * volatility;
-        const body = (random() - 0.48) * volatility * 0.75;
-        const close = Math.max(open * 0.985, open + body);
-        const high = Math.max(open, close) + Math.abs(wick);
-        const low = Math.min(open, close) - Math.abs(wick);
-        const volume = Math.floor(volBase * (0.4 + random()));
-        data.push({ time: timestamp, open, high, low, close, volume });
-        current = close;
-    }
-    return data;
 }
 
 function computeEma(values: number[], period: number) {
@@ -169,7 +152,7 @@ const STUDY_TO_OVERLAY: Record<string, { kind: "ma" | "bb" | "rsi"; label: strin
     "RSI@tv-basicstudies": { kind: "rsi", label: "RSI", color: "#f59e0b" },
 };
 
-export default function MarketReplay({ studies = [], strategyType = "indicator" }: MarketReplayProps) {
+export default function MarketReplay({ studies = [], strategyType = "indicator", symbol: symbolProp, interval: intervalProp }: MarketReplayProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<IChartApi | null>(null);
     const candleSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -178,8 +161,20 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
     const rsiSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    const [symbol, setSymbol] = useState(SYMBOLS[3]); // XAU:USD
-    const [interval, setIntervalState] = useState("1h");
+    const [symbol, setSymbol] = useState(() => resolveReplaySymbol(symbolProp ?? "") ?? SYMBOLS[3]); // XAU:USD fallback
+    const [interval, setIntervalState] = useState(() => resolveReplayInterval(intervalProp ?? "") ?? "1h");
+
+    // Keep internal selectors in sync when a parent passes a new signal
+    // symbol/interval — using the React "adjust state during render" pattern
+    // (setState during render is allowed for derived resets).
+    const [lastProp, setLastProp] = useState({ symbol: symbolProp, interval: intervalProp });
+    if (lastProp.symbol !== symbolProp || lastProp.interval !== intervalProp) {
+        setLastProp({ symbol: symbolProp, interval: intervalProp });
+        const resolvedSymbol = resolveReplaySymbol(symbolProp ?? "");
+        if (resolvedSymbol && resolvedSymbol !== symbol) setSymbol(resolvedSymbol);
+        const resolvedInterval = resolveReplayInterval(intervalProp ?? "");
+        if (resolvedInterval && resolvedInterval !== interval) setIntervalState(resolvedInterval);
+    }
     const [totalBars, setTotalBars] = useState(240);
     const [cursor, setCursor] = useState(120);
     const [playing, setPlaying] = useState(false);
@@ -201,14 +196,92 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
     const [balance, setBalance] = useState(10000);
 
     const dark = useSyncExternalStore(subscribeToTheme, isDarkMode, () => true);
-    const candles = useMemo(() => generateReplayCandles(symbol, interval, totalBars), [symbol, interval, totalBars]);
-    
+
+    // ── Real market data: replay actual provider candles ──────────────────
+    // The replay scrubs through REAL historical candles fetched from the
+    // canonical feed — no synthetic/random candles are generated.
+    const timeframe = useMemo(() => {
+        const intv = interval;
+        if (intv.endsWith("m")) return `M${parseInt(intv, 10)}`;
+        if (intv.endsWith("h")) return `H${parseInt(intv, 10)}`;
+        return "D1";
+    }, [interval]);
+
+    const [realCandles, setRealCandles] = useState<Candle[]>([]);
+    const [loadError, setLoadError] = useState<string | null>(null);
+    const [isLoadingData, setIsLoadingData] = useState(true);
+    // Tracks the last requested key so a key change can flip the loading flag
+    // during render (derived state) instead of inside the effect body.
+    const [loadedKey, setLoadedKey] = useState("");
+    const requestKey = `${symbol}|${timeframe}|${totalBars}`;
+    if (loadedKey !== requestKey && isLoadingData === false && realCandles.length >= 0) {
+        // Key changed: show loading state for the new request immediately.
+        setIsLoadingData(true);
+        setLoadedKey(requestKey);
+    }
+
+    useEffect(() => {
+        const ctrl = new AbortController();
+        let cancelled = false;
+
+        (async () => {
+            try {
+                const res = await fetch(
+                    `/api/replay-data?symbol=${encodeURIComponent(symbol)}&timeframe=${encodeURIComponent(timeframe)}&limit=${totalBars}`,
+                    { signal: ctrl.signal, cache: "no-store" }
+                );
+                const body = (await res.json().catch(() => null)) as
+                    | { candles?: Array<{ timestamp: number; open: number; high: number; low: number; close: number; volume?: number }>; error?: string }
+                    | null;
+                if (cancelled) return;
+                if (!res.ok || !body?.candles?.length) {
+                    setLoadError(body?.error ?? `No ${timeframe} candles returned for ${symbol}.`);
+                    setIsLoadingData(false);
+                    setLoadedKey(requestKey);
+                    return;
+                }
+                const mapped: Candle[] = body.candles
+                    .map((c) => ({
+                        time: Math.floor(c.timestamp / 1000),
+                        open: c.open,
+                        high: c.high,
+                        low: c.low,
+                        close: c.close,
+                        volume: c.volume ?? 0,
+                    }))
+                    .sort((a, b) => a.time - b.time);
+                setLoadError(null);
+                setRealCandles(mapped);
+                setIsLoadingData(false);
+                setLoadedKey(requestKey);
+            } catch (err) {
+                if (cancelled || (err as Error)?.name === "AbortError") return;
+                setLoadError("Failed to load market data.");
+                setIsLoadingData(false);
+                setLoadedKey(requestKey);
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+            ctrl.abort();
+        };
+    }, [symbol, timeframe, totalBars, requestKey]);
+
+    const candles = realCandles;
+
+    // Clamp the playhead to the actual candle count once real data lands
+    // (adjust-during-render pattern; no effect needed).
+    if (candles.length > 0 && cursor > candles.length) {
+        setCursor(candles.length);
+    }
+
     const candlesRef = useRef(candles);
     useEffect(() => {
         candlesRef.current = candles;
     }, [candles]);
 
-    const visible = useMemo(() => candles.slice(0, Math.max(1, cursor)), [candles, cursor]);
+    const visible = useMemo(() => candles.slice(0, Math.max(1, Math.min(cursor, candles.length))), [candles, cursor]);
     const currentPrice = visible.length > 0 ? visible[visible.length - 1].close : 0;
 
     const overlayForStudies = useMemo(() => {
@@ -378,7 +451,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
         // Register Cut Mode Chart Click Handler
         chart.subscribeClick((param) => {
             if (!isCutoffModeRef.current || !param.time) return;
-            const targetTime = typeof param.time === "number" ? param.time : (param.time as any).timestamp || param.time;
+            const targetTime = typeof param.time === "number" ? param.time : ((param.time as { timestamp?: number }).timestamp ?? param.time);
             const foundIndex = candlesRef.current.findIndex((c) => c.time === targetTime);
             if (foundIndex !== -1) {
                 setCursor(foundIndex + 1);
@@ -480,7 +553,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
         if (!playing) return;
         timerRef.current = setInterval(() => {
             setCursor((prev) => {
-                if (prev >= totalBars) {
+                if (prev >= candles.length) {
                     setPlaying(false);
                     return prev;
                 }
@@ -490,7 +563,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
-    }, [playing, speed, totalBars]);
+    }, [playing, speed, candles.length]);
 
     useEffect(() => () => {
         if (timerRef.current) clearInterval(timerRef.current);
@@ -517,7 +590,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
 
                         <select
                             value={symbol}
-                            onChange={(e) => { setSymbol(e.target.value); setCursor(120); setPlaying(false); setPosition(null); }}
+                            onChange={(e) => { setSymbol(e.target.value); setCursor(120); setPlaying(false); setPosition(null); setClosedTrades([]); setBalance(10000); }}
                             className="h-8 rounded-lg border border-border bg-background px-2.5 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-amber-500/20 transition shrink-0"
                         >
                             {SYMBOLS.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -525,7 +598,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
 
                         <select
                             value={interval}
-                            onChange={(e) => { setIntervalState(e.target.value); setCursor(120); setPlaying(false); }}
+                            onChange={(e) => { setIntervalState(e.target.value); setCursor(120); setPlaying(false); setPosition(null); setClosedTrades([]); setBalance(10000); }}
                             className="h-8 rounded-lg border border-border bg-background px-2.5 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-amber-500/20 transition shrink-0"
                         >
                             {INTERVALS.map((i) => <option key={i} value={i}>{i}</option>)}
@@ -533,11 +606,22 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
 
                         <select
                             value={totalBars}
-                            onChange={(e) => { setTotalBars(Number(e.target.value)); setCursor(Math.min(cursor, Number(e.target.value))); setPlaying(false); }}
+                            onChange={(e) => { setTotalBars(Number(e.target.value)); setCursor(Math.min(cursor, Number(e.target.value))); setPlaying(false); setPosition(null); }}
                             className="h-8 rounded-lg border border-border bg-background px-2.5 text-xs text-muted-foreground outline-none transition shrink-0"
                         >
                             {BAR_COUNTS.map((count) => <option key={count} value={count}>{count} Bars</option>)}
                         </select>
+
+                        {isLoadingData && (
+                            <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+                                <RefreshCw size={11} className="animate-spin" /> loading real candles…
+                            </span>
+                        )}
+                        {loadError && !isLoadingData && (
+                            <span className="inline-flex items-center gap-1 text-[10px] text-rose-500" title={loadError}>
+                                feed unavailable
+                            </span>
+                        )}
                     </div>
 
                     {/* Center: Play / Pause / Step / Cut Transport Controls */}
@@ -582,7 +666,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
                                 type="button"
                                 size="sm"
                                 variant="outline"
-                                onClick={() => { setCursor((p) => Math.min(totalBars, p + 1)); setPlaying(false); }}
+                                onClick={() => { setCursor((p) => Math.min(candles.length, p + 1)); setPlaying(false); }}
                                 className="h-8 w-8 p-0 rounded-lg"
                                 title="Step Forward (1 Bar)"
                             >
@@ -593,7 +677,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
                                 type="button"
                                 size="sm"
                                 variant="outline"
-                                onClick={() => { setCursor(10); setPlaying(false); setPosition(null); }}
+                                onClick={() => { setCursor(10); setPlaying(false); setPosition(null); setClosedTrades([]); setBalance(10000); }}
                                 className="h-8 w-8 p-0 rounded-lg text-muted-foreground"
                                 title="Reset to Start"
                             >
@@ -664,18 +748,18 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
                 <div className="mt-3 pt-3 border-t border-border/60 space-y-1.5">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-[11px] font-mono text-muted-foreground">
                         <span className="flex items-center gap-1.5">
-                            <span className="inline-block h-2 w-2 rounded-full bg-amber-500 animate-pulse" /> Replay Scrubber: Bar #{cursor} of {totalBars}
+                            <span className="inline-block h-2 w-2 rounded-full bg-amber-500 animate-pulse" /> Replay Scrubber: Bar #{cursor} of {candles.length}
                         </span>
                         <span className="text-foreground font-bold">
-                            Current Price: ${(currentPrice).toFixed(2)}
+                            Current Price: ${currentPrice > 0 ? currentPrice.toFixed(2) : "—"}
                         </span>
                     </div>
 
                     <input
                         type="range"
                         min={1}
-                        max={totalBars}
-                        value={cursor}
+                        max={Math.max(1, candles.length)}
+                        value={Math.min(cursor, Math.max(1, candles.length))}
                         onChange={(e) => { setCursor(Number(e.target.value)); setPlaying(false); }}
                         className="w-full accent-amber-500 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer"
                     />
@@ -744,8 +828,9 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
 
             {/* Active Cut Mode Banner Overlay */}
             {isCutoffMode && (
-                <div className="rounded-2xl border border-red-500/40 bg-red-500/10 p-3 text-center text-xs font-mono font-bold text-red-600 dark:text-red-400 animate-pulse shadow-xs">
-                    ✂️ CUT MODE ACTIVE: Click any candle on the chart below to set the replay cut-off point.
+                <div className="flex items-center justify-center gap-2 rounded-2xl border border-red-500/40 bg-red-500/10 p-3 text-center text-xs font-mono font-bold text-red-600 dark:text-red-400 animate-pulse shadow-xs">
+                    <Scissors size={12} className="shrink-0" aria-hidden />
+                    CUT MODE ACTIVE: Click any candle on the chart below to set the replay cut-off point.
                 </div>
             )}
 
@@ -753,7 +838,24 @@ export default function MarketReplay({ studies = [], strategyType = "indicator" 
             <div 
                 ref={containerRef} 
                 className={`relative overflow-hidden rounded-2xl border border-border bg-card shadow-xs transition-all h-[380px] sm:h-[480px] lg:h-[560px] ${isCutoffMode ? "cursor-crosshair ring-2 ring-red-500/50" : ""}`} 
-            />
+            >
+                {(isLoadingData || loadError) && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-[2px]">
+                        <div className="max-w-sm px-4 text-center">
+                            {loadError ? (
+                                <>
+                                    <p className="text-xs font-medium text-foreground">Replay data unavailable</p>
+                                    <p className="mt-1 text-[11px] leading-4 text-muted-foreground">{loadError}</p>
+                                </>
+                            ) : (
+                                <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+                                    <RefreshCw size={12} className="animate-spin" /> Loading real market candles…
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

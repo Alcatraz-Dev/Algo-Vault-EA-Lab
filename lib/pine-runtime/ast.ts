@@ -1,4 +1,6 @@
 export type NodeType =
+  | "TupleDeclaration"
+  | "Program"
   | "Program"
   | "VersionDirective"
   | "FunctionCall"
@@ -65,6 +67,7 @@ export interface ScriptMetadata {
 
 export type Statement =
   | VariableDeclaration
+  | TupleDeclaration
   | Reassignment
   | IfStatement
   | ForLoop
@@ -81,6 +84,17 @@ export interface VariableDeclaration extends BaseNode {
   typeName?: string;
   value: Expression;
   isConstant?: boolean;
+}
+
+/**
+ * Pine's tuple destructuring: `[macdLine, signal, hist] = ta.macd(...)`.
+ * Without this statement kind the parser dropped the whole declaration and
+ * every destructured variable stayed undefined downstream.
+ */
+export interface TupleDeclaration extends BaseNode {
+  type: "TupleDeclaration";
+  names: string[];
+  value: Expression;
 }
 
 export interface Reassignment extends BaseNode {

@@ -81,6 +81,7 @@ const NAV_ITEMS = [
     { icon: Database, label: "Financial Overview", href: "/admin/business-operations/financial" },
     { icon: Server, label: "ERPNext", href: "/admin/erpnext" },
     { icon: MessageSquare, label: "Reviews", href: "/admin/reviews" },
+    { icon: Sparkles, label: "Agent IDE", href: "/agent" },
     { icon: Target, label: "Goals", href: "/goals" },
     { icon: Settings, label: "Settings", href: "/admin/settings" },
 ];
@@ -89,10 +90,12 @@ export default function AdminShell({
     children,
     title,
     subtitle,
+    onBack,
 }: {
     children: React.ReactNode;
     title: string;
     subtitle?: string;
+    onBack?: () => void;
 }) {
     const pathname = usePathname();
     const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -218,6 +221,16 @@ export default function AdminShell({
                         >
                             <Menu size={17} />
                         </button>
+                        {onBack ? (
+                            <button
+                                type="button"
+                                onClick={onBack}
+                                className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                                aria-label="Go back"
+                            >
+                                <ArrowLeft size={17} />
+                            </button>
+                        ) : null}
                         <div data-guide="page-header">
                             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                                 Administration

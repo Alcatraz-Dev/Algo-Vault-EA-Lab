@@ -164,6 +164,19 @@ function resolveExpr(expr: Expression, ctx: RuntimeContext, scope: VarScope, res
     case "Identifier": {
       const val = scopeGet(scope, expr.name);
       if (val !== undefined) return val;
+      // Builtin series identifiers resolve to whole-series arrays so they can
+      // be captured into variables (`p = close`) and history-indexed
+      // (`close[1]`) exactly like any other series expression.
+      const lower = expr.name.toLowerCase();
+      const { candles } = ctx;
+      if (lower === "close") return candles.map(c => c.close);
+      if (lower === "open") return candles.map(c => c.open);
+      if (lower === "high") return candles.map(c => c.high);
+      if (lower === "low") return candles.map(c => c.low);
+      if (lower === "volume") return candles.map(c => c.volume);
+      if (lower === "hl2") return candles.map(c => (c.high + c.low) / 2);
+      if (lower === "hlc3") return candles.map(c => (c.high + c.low + c.close) / 3);
+      if (lower === "ohlc4") return candles.map(c => (c.open + c.high + c.low + c.close) / 4);
       return undefined;
     }
     case "BinaryExpression": {
@@ -232,6 +245,24 @@ function resolveExpr(expr: Expression, ctx: RuntimeContext, scope: VarScope, res
     }
     case "ArrayLiteral": {
       return expr.elements.map(e => resolveExpr(e, ctx, scope, result));
+    }
+    case "IndexAccess": {
+      // Series history access, Pine semantics: series[n] evaluated at bar k
+      // equals series[k − n]. The runtime evaluates whole-series expressions,
+      // so the result is the input series shifted forward by n bars (leading
+      // bars are NaN). Elementwise consumers (plots, binary ops, if-conditions
+      // indexed by barIndex) then see the correct per-bar values.
+      const base = resolveExpr(expr.object, ctx, scope, result);
+      const idx = resolveExpr(expr.index, ctx, scope, result);
+      if (!Array.isArray(base)) return undefined;
+      const i = Number(idx);
+      if (!Number.isFinite(i)) return base.map(() => NaN);
+      if (i === 0) return base;
+      if (i < 0) {
+        // Negative offsets look ahead; bars beyond the series end stay NaN.
+        return base.map((_, k) => (k - i < base.length ? base[k - i] : NaN));
+      }
+      return base.map((_, k) => (k - i >= 0 ? base[k - i] : NaN));
     }
     case "TupleExpression": {
       return expr.elements.map(e => resolveExpr(e, ctx, scope, result));
@@ -312,6 +343,7 @@ function callFunction(namespace: string | undefined, name: string, args: { name?
   const highs = candles.map(c => c.high);
   const lows = candles.map(c => c.low);
   const volumes = candles.map(c => c.volume);
+  const times = candles.map(c => c.time);
 
   // Helper to resolve source argument to a series
   function resolveSource(arg: unknown): number[] {
@@ -370,12 +402,45 @@ function callFunction(namespace: string | undefined, name: string, args: { name?
     if (fn === "psar") return TA.psar(highs, lows, resolvedArgs[0] as number, resolvedArgs[1] as number, resolvedArgs[2] as number);
     if (fn === "vwap") return TA.vwap(highs, lows, closes, volumes);
     if (fn === "obv") return TA.obv(closes, volumes);
+    if (fn === "cmf") return TA.cmf(highs, lows, closes, volumes, resolvedArgs[0] as number ?? 20);
+    if (fn === "fisher" || fn === "fishertransform") return TA.fisherTransform(highs, lows, resolvedArgs[0] as number ?? 9);
     if (fn === "mfi") return TA.mfi(highs, lows, closes, volumes, resolvedArgs[0] as number);
     if (fn === "roc") return TA.roc(resolveSource(resolvedArgs[0]), resolvedArgs[1] as number);
     if (fn === "mom") return TA.momentum(resolveSource(resolvedArgs[0]), resolvedArgs[1] as number);
     if (fn === "vwma") return TA.vwma(resolveSource(resolvedArgs[0]), volumes, resolvedArgs[1] as number);
     if (fn === "hma") return TA.hma(resolveSource(resolvedArgs[0]), resolvedArgs[1] as number);
     if (fn === "tr") return tr(highs, lows, closes);
+    if (fn === "keltner") {
+      const [mid, upper, lower] = TA.keltner(highs, lows, closes, resolvedArgs[0] as number, resolvedArgs[1] as number);
+      return [mid, upper, lower];
+    }
+    if (fn === "donchian") {
+      const [upper, lower, mid] = TA.donchian(highs, lows, resolvedArgs[0] as number);
+      return [upper, lower, mid];
+    }
+    if (fn === "supertrend") {
+      const [line, dir] = TA.supertrend(highs, lows, closes, resolvedArgs[0] as number, resolvedArgs[1] as number);
+      return [line, dir];
+    }
+    if (fn === "willr") return TA.willr(highs, lows, closes, resolvedArgs[0] as number);
+    if (fn === "stdev") return TA.stdev(resolveSource(resolvedArgs[0]), resolvedArgs[1] as number);
+    if (fn === "linreg") return TA.linreg(resolveSource(resolvedArgs[0]), resolvedArgs[1] as number, resolvedArgs[2] as number ?? 0);
+    if (fn === "heikinashi") {
+      const [ho, hh, hl, hc] = TA.heikinashi(opens, highs, lows, closes);
+      return [ho, hh, hl, hc];
+    }
+    if (fn === "vwapbands") {
+      const [vwap, upper, lower] = TA.vwapBands(highs, lows, closes, volumes, resolvedArgs[0] as number);
+      return [vwap, upper, lower];
+    }
+    if (fn === "pivots" || fn === "classicpivots") {
+      const [p, r1, r2, s1, s2] = TA.classicPivots(highs, lows, closes, times);
+      return [p, r1, r2, s1, s2];
+    }
+    if (fn === "fibpivots") {
+      const [p, r1, r2, s1, s2] = TA.fibPivots(highs, lows, closes, times);
+      return [p, r1, r2, s1, s2];
+    }
   }
 
   // ── math.* ──
@@ -813,6 +878,17 @@ function runStatement(stmt: Statement, ctx: RuntimeContext, scope: VarScope, res
     case "VariableDeclaration": {
       const val = resolveExpr(stmt.value, ctx, scope, result);
       scopeSet(scope, stmt.name, val);
+      break;
+    }
+    case "TupleDeclaration": {
+      // `[a, b, _] = ta.macd(...)` — bind each tuple element to its name.
+      // Unnamed slots ("_") are skipped; missing elements bind undefined.
+      const tuple = resolveExpr(stmt.value, ctx, scope, result);
+      if (Array.isArray(tuple)) {
+        stmt.names.forEach((name, i) => scopeSet(scope, name, tuple[i]));
+      } else {
+        stmt.names.forEach((name) => scopeSet(scope, name, tuple));
+      }
       break;
     }
     case "Reassignment": {

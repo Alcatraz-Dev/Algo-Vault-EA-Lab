@@ -43,3 +43,58 @@ export interface MarketShare {
   market: string;
   share: number;
 }
+
+/** Aggregated per-country cluster used by the LiveWorldMap + hover cards. */
+export interface CountryCluster {
+  country: string;
+  countryCode: string;
+  lat: number;
+  lng: number;
+  activeUsers: number;
+  analyses: number;
+  signals: number;
+  topMarket: string;
+  /** ISO-3166 alpha-2 code -> emoji flag, resolved lazily. */
+  flag?: string;
+}
+
+/** Minimal MT5 account snapshot used by the account live page. */
+export interface LiveAccountSnapshot {
+  id: string;
+  productId: string;
+  productName?: string;
+  mt5Account: string;
+  broker?: string;
+  server?: string;
+  currency?: string;
+  balance?: number;
+  equity?: number;
+  floatingProfit?: number;
+  peakEquity?: number;
+  drawdown?: number;
+  status?: string;
+  lastHeartbeatAt?: number;
+  userId?: string;
+  licenseId?: string;
+}
+
+export const MARKET_UNIVERSE = [
+  "XAUUSD",
+  "BTCUSD",
+  "EURUSD",
+  "NAS100",
+  "GBPUSD",
+  "US500",
+] as const;
+
+export type MarketUniverse = (typeof MARKET_UNIVERSE)[number];
+
+export function flagFromCountryCode(code: string): string {
+  if (!code || code.length !== 2) return "🌐";
+  return String.fromCodePoint(
+    ...code
+      .toUpperCase()
+      .split("")
+      .map((c) => 127397 + c.charCodeAt(0))
+  );
+}

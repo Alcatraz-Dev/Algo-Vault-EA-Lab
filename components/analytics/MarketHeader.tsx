@@ -12,6 +12,9 @@ import {
     RefreshCw,
     Wifi,
     WifiOff,
+    Globe,
+    Globe2,
+    PauseCircle,
 } from "lucide-react";
 import { SupportedSymbol, Timeframe, SUPPORTED_SYMBOLS } from "@/lib/market-data/types";
 import { cn } from "@/lib/utils";
@@ -79,12 +82,12 @@ function getVolatilityColor(state: string): string {
     return "text-muted-foreground";
 }
 
-function getSessionIcon(name: string): string {
-    if (name === "London") return "🇬🇧";
-    if (name === "New York") return "🇺🇸";
-    if (name === "Asian") return "🇯🇵";
-    if (name.includes("Overlap")) return "🌐";
-    return "⏸️";
+function getSessionIcon(name: string): React.ReactNode {
+    if (name === "London") return <Globe size={12} className="text-sky-400" />;
+    if (name === "New York") return <Globe size={12} className="text-amber-400" />;
+    if (name === "Asian") return <Globe size={12} className="text-violet-400" />;
+    if (name.includes("Overlap")) return <Globe2 size={12} className="text-primary" />;
+    return <PauseCircle size={12} className="text-muted-foreground" />;
 }
 
 export default function MarketHeader({
@@ -165,7 +168,10 @@ export default function MarketHeader({
                 {session && (
                     <div className="hidden items-center gap-1.5 rounded-lg border border-border bg-muted px-2.5 py-1.5 text-xs sm:flex">
                         <Clock size={12} className="text-muted-foreground" />
-                        <span className="text-muted-foreground">{getSessionIcon(session.name)} {session.name}</span>
+                        <span className="flex items-center gap-1.5 text-muted-foreground">
+                            {getSessionIcon(session.name)}
+                            {session.name}
+                        </span>
                     </div>
                 )}
 

@@ -6,6 +6,7 @@ import type {
   LogicalExpression, TernaryExpression, FieldAccess, IndexAccess,
   Identifier, NumberLiteral, StringLiteral, BoolLiteral, ColorLiteral,
   NaLiteral, ArrayLiteral, TupleExpression, ReturnStatement, TypeDeclaration,
+  TupleDeclaration,
 } from "./ast";
 
 class ParseError extends Error {
@@ -134,6 +135,29 @@ class Parser {
       if (lower === "var" || lower === "varip") return this.parseVarDecl();
     }
 
+    // Tuple destructuring: `[macdLine, signal, hist] = ta.macd(...)`.
+    // This is the canonical Pine way to bind multi-return builtins; without
+    // this arm the statement parsed as a bare ArrayLiteral and was silently
+    // dropped, leaving every destructured variable undefined downstream.
+    if (token.type === "LBRACKET") {
+      const lookahead = this.peek(1);
+      if (lookahead.type === "IDENT" || lookahead.type === "COMMA") {
+        let cursor = 1;
+        let sawComma = false;
+        let onlyIdentifiers = true;
+        while (cursor < this.tokens.length) {
+          const t = this.peek(cursor);
+          if (t.type === "RBRACKET" || t.type === "EOF") break;
+          if (t.type === "COMMA") { sawComma = true; }
+          else if (t.type !== "IDENT") { onlyIdentifiers = false; break; }
+          cursor += 1;
+        }
+        if (sawComma && onlyIdentifiers) {
+          return this.parseTupleDeclaration();
+        }
+      }
+    }
+
     // Check for type annotation: name = expression
     if (token.type === "IDENT" && this.peek(1).type === "IDENT") {
       // Could be "float x = ..." or just "x = ..."
@@ -141,6 +165,21 @@ class Parser {
     }
 
     return this.parseExpressionStatement();
+  }
+
+  /** `[a, b, _] = expr` — binds each element of a tuple result to a name. */
+  private parseTupleDeclaration(): TupleDeclaration {
+    const startToken = this.expect("LBRACKET");
+    const names: string[] = [];
+    while (this.peek().type !== "RBRACKET" && this.peek().type !== "EOF") {
+      const t = this.advance();
+      if (t.type === "IDENT" && t.value !== "_") names.push(t.value);
+      if (this.peek().type === "COMMA") this.advance();
+    }
+    this.expect("RBRACKET");
+    this.expect("ASSIGN");
+    const value = this.parseExpression();
+    return { type: "TupleDeclaration", names, value, loc: startToken ? { line: startToken.line, column: startToken.column } : undefined };
   }
 
   private parseVarDecl(): Statement {

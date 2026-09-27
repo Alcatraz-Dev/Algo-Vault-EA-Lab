@@ -6,6 +6,19 @@ const BIQUOTE_BASE = "https://biquote.io/api";
 const DEFAULT_REQUEST_TIMEOUT_MS = 8000;
 const DEFAULT_RETRIES = 1;
 
+// One warning per failing URL per window, so provider outages log once instead
+// of flooding the console on every poll (ticks arrive every few seconds).
+const LOG_COOLDOWN_MS = 60_000;
+const logCooldowns = new Map<string, number>();
+
+export function logOncePerWindow(key: string, message: string, detail?: unknown): void {
+    const now = Date.now();
+    const last = logCooldowns.get(key) ?? 0;
+    if (now - last < LOG_COOLDOWN_MS) return;
+    logCooldowns.set(key, now);
+    console.warn(message, detail);
+}
+
 function delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -39,7 +52,11 @@ export async function fetchJsonWithRetry<T>(url: string, init?: RequestInit, ret
         }
     }
 
-    console.warn("[market-data] Request failed", { url, error: lastError });
+    logOncePerWindow(
+        `market-data:${url}`,
+        "[market-data] Request failed",
+        { url, error: lastError instanceof Error ? lastError.message : String(lastError) }
+    );
     return null;
 }
 

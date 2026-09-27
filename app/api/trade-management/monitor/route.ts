@@ -1,23 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDatabase } from "@/lib/firebase-admin";
 import {
-    getTradeState,
-    saveTradeState,
     transitionState,
     createTradeEvent,
-    logAudit,
+    saveTradeState,
+    queueModifySl,
+    queuePartialClose,
 } from "@/lib/trade-management/service";
 import { sendNotification } from "@/lib/trade-management/notifications";
 import {
     TradeManagementState,
-    TradeDirection,
+    TradeState,
     TradeEventType,
 } from "@/lib/trade-management/types";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 // ============================================
-// POST: Monitor all open managed trades
-// Called by cron or heartbeat
+// MONITOR: watch every open managed trade
+// Called by cron (x-cron-secret) or heartbeat.
+// For each trade:
+//   1. sync live price from trading_positions
+//   2. detect closed positions on MT5
+//   3. check SL hit (direction-aware)
+//   4. check TP hits (direction-aware) -> event + notification
+//   5. when autoManagement:
+//        - partial close at each TP
+//        - break-even after the configured trigger TP
+//        - profit lock after the configured trigger TP
+//        - trailing stop on the runner
 // ============================================
+
+const TERMINAL_STATES = ["CLOSED", "STOPPED", "CANCELLED"];
+const CHECK_INTERVAL_MS = 30000;
 
 export async function POST(request: NextRequest) {
     try {
@@ -34,18 +50,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json().catch(() => ({}));
         const { accountId, userId } = body as { accountId?: string; userId?: string };
 
-        // Get all managed trades that are active (not CLOSED/STOPPED)
-        let tradesRef;
-        if (userId && accountId) {
-            tradesRef = adminDatabase.ref(`tradeManagement/${userId}/${accountId}`);
-        } else if (userId) {
-            tradesRef = adminDatabase.ref(`tradeManagement/${userId}`);
-        } else {
-            // Scan all users - for cron
-            tradesRef = adminDatabase.ref("tradeManagement");
-        }
-
-        const snapshot = await tradesRef.get();
+        const snapshot = await adminDatabase.ref("tradeManagement").get();
         if (!snapshot.exists()) {
             return NextResponse.json({ success: true, monitored: 0, actions: 0 });
         }
@@ -53,81 +58,28 @@ export async function POST(request: NextRequest) {
         let monitored = 0;
         let actions = 0;
 
-        const processTrade = async (uid: string, accountId: string, ticket: string, state: TradeManagementState) => {
-            // Skip closed/stopped trades
-            if (["CLOSED", "STOPPED"].includes(state.state)) return;
+        const allUsers = snapshot.val() as Record<string, Record<string, Record<string, TradeManagementState>>>;
 
-            // Skip if manual override
-            if (state.manualOverride) return;
+        for (const [uid, accountsRaw] of Object.entries(allUsers)) {
+            if (userId && uid !== userId) continue;
+            if (!accountsRaw || typeof accountsRaw !== "object") continue;
 
-            // Skip if recently checked (within 30 seconds)
-            if (Date.now() - state.lastCheckedAt < 30000) return;
+            for (const [accId, tradesRaw] of Object.entries(accountsRaw)) {
+                if (accountId && accId !== accountId) continue;
+                if (!tradesRaw || typeof tradesRaw !== "object") continue;
 
-            monitored++;
+                // Load the account's live positions once per account.
+                const positionsSnap = await adminDatabase.ref(`trading_positions/${uid}/${accId}`).get();
+                const positions = (positionsSnap.val() || {}) as Record<string, Record<string, unknown>>;
 
-            // Get current price from MT5 positions
-            const positionsSnap = await adminDatabase.ref(`trading_positions/${uid}/${accountId}`).get();
-            if (!positionsSnap.exists()) return;
-
-            const positions = positionsSnap.val();
-            const position = positions[ticket];
-
-            if (!position) {
-                // Position not found - might be closed
-                await transitionState(uid, accountId, ticket, "CLOSED", "Position no longer exists on MT5");
-                return;
-            }
-
-            const currentPrice = position.currentPrice || position.price || 0;
-            if (!currentPrice) return;
-
-            // Update price
-            state.currentPrice = currentPrice;
-            state.lastCheckedAt = Date.now();
-
-            // Calculate PnL
-            const contractSize = getContractSize(state.symbol);
-            const pointValue = contractSize * (state.symbol.includes("JPY") ? 0.01 : 0.0001);
-
-            if (state.direction === "BUY") {
-                state.currentPnl = (currentPrice - state.entry) * contractSize;
-            } else {
-                state.currentPnl = (state.entry - currentPrice) * contractSize;
-            }
-
-            // Calculate R-multiple
-            const riskAmount = Math.abs(state.entry - state.currentSl) * contractSize;
-            state.currentR = riskAmount > 0 ? state.currentPnl / riskAmount : 0;
-
-            // Update remaining volume
-            state.remainingVolume = position.volume || state.volume;
-
-            // Check targets
-            const checkResult = await checkTargets(uid, accountId, ticket, state, currentPrice);
-
-            if (checkResult.actionTaken) {
-                actions++;
-            }
-
-            await saveTradeState(state);
-        };
-
-        // Process all trades
-        if (userId && accountId) {
-            // Single account
-            const tradesSnap = await adminDatabase.ref(`tradeManagement/${userId}/${accountId}`).get();
-            if (tradesSnap.exists()) {
-                for (const [ticket, tradeRaw] of Object.entries(tradesSnap.val())) {
-                    await processTrade(userId, accountId, ticket, tradeRaw as TradeManagementState);
-                }
-            }
-        } else {
-            // All users
-            const usersSnap = await snapshot;
-            for (const [uid, accountsRaw] of Object.entries(usersSnap.val() as Record<string, Record<string, Record<string, TradeManagementState>>>)) {
-                for (const [accId, tradesRaw] of Object.entries(accountsRaw)) {
-                    for (const [ticket, tradeRaw] of Object.entries(tradesRaw)) {
-                        await processTrade(uid, accId, ticket, tradeRaw as TradeManagementState);
+                for (const [ticket, tradeRaw] of Object.entries(tradesRaw)) {
+                    if (!tradeRaw || typeof tradeRaw !== "object") continue;
+                    try {
+                        const res = await processTrade(uid, accId, ticket, tradeRaw as TradeManagementState, positions);
+                        if (res.monitored) monitored++;
+                        if (res.actions) actions += res.actions;
+                    } catch (tradeErr) {
+                        console.error(`[trade-management/monitor] trade ${ticket} failed:`, tradeErr);
                     }
                 }
             }
@@ -141,336 +93,391 @@ export async function POST(request: NextRequest) {
 }
 
 // ============================================
-// TARGET CHECKING
+// PER-TRADE PROCESSING
 // ============================================
 
-async function checkTargets(
+async function processTrade(
     uid: string,
     accountId: string,
     ticket: string,
     state: TradeManagementState,
-    currentPrice: number
-): Promise<{ actionTaken: boolean }> {
-    let actionTaken = false;
-    const { direction, config } = state;
-    const isBuy = direction === "BUY";
+    positions: Record<string, Record<string, unknown>>
+): Promise<{ monitored: boolean; actions: number }> {
+    if (TERMINAL_STATES.includes(state.state)) return { monitored: false, actions: 0 };
+    if (state.manualOverride) return { monitored: false, actions: 0 };
+    if (Date.now() - (state.lastCheckedAt || 0) < CHECK_INTERVAL_MS) return { monitored: false, actions: 0 };
 
-    // Helper: check if price reached target
-    const reached = (target: number) => isBuy ? currentPrice >= target : currentPrice <= target;
-    const approaching = (target: number, threshold: number) => {
-        const dist = Math.abs(target - currentPrice);
-        return dist <= threshold && !reached(target);
+    const position = positions[ticket];
+
+    if (!position) {
+        // Position gone from MT5 -> trade is fully closed.
+        await transitionState(uid, accountId, ticket, "CLOSED", "Position no longer exists on MT5");
+        return { monitored: true, actions: 0 };
+    }
+
+    const currentPrice = Number(position.currentPrice || position.price || 0);
+    if (!currentPrice) return { monitored: false, actions: 0 };
+
+    const liveVolume = Number(position.volume || 0);
+    const isBuy = state.direction === "BUY";
+
+    // ---- Price & PnL sync (per-lot PnL, matching MT5 semantics) ----
+    state.currentPrice = currentPrice;
+    state.lastCheckedAt = Date.now();
+
+    const priceDelta = isBuy ? currentPrice - state.entry : state.entry - currentPrice;
+    state.currentPnl = priceDelta * state.volume * getContractSize(state.symbol);
+
+    // R-multiple measured against the ORIGINAL risk (entry - initial SL),
+    // so it stays comparable as the SL ratchets toward profit.
+    const originalRisk = state.riskPoints > 0 ? state.riskPoints : Math.abs(state.entry - state.currentSl);
+    state.currentR = originalRisk > 0 ? priceDelta / originalRisk : 0;
+
+    // ---- Volume sync from the live position ----
+    const previousVolume = state.remainingVolume;
+    if (liveVolume > 0) state.remainingVolume = liveVolume;
+
+    // Position volume dropped on MT5 but we didn't record a close ourselves:
+    // the trader partially closed manually -> reconcile our ledger.
+    const expectedRemaining = state.volume - closeHistoryVolume(state);
+    if (liveVolume > 0 && liveVolume < previousVolume - 1e-8 && liveVolume < expectedRemaining - 1e-8) {
+        const reconciledVolume = round2(previousVolume - liveVolume);
+        state.closeHistory.push({
+            target: "MANUAL",
+            volume: reconciledVolume,
+            price: currentPrice,
+            timestamp: Date.now(),
+        });
+        await createTradeEvent(uid, accountId, ticket, "POSITION_RECONCILED", state, {
+            reconciledVolume,
+            liveVolume,
+            previousVolume,
+        });
+    }
+
+    let actions = 0;
+
+    // ---- Trailing stop (runner) — before TP checks so an extreme move is handled ----
+    const trailed = maybeTrailRunner(state, currentPrice);
+    if (trailed) {
+        const ok = await queueModifySl(uid, accountId, ticket, state, state.currentSl, "RUNNER_TRAILING", state.config.autoManagement ? "AUTO" : "MANUAL");
+        if (ok) {
+            actions++;
+            await createTradeEvent(uid, accountId, ticket, "TRAILING_UPDATED", state, {
+                newSl: state.currentSl,
+                trailingType: state.config.trailingType,
+            });
+        }
+    }
+
+    // ---- STOP LOSS CHECK (direction-aware) ----
+    const slReached = isBuy ? currentPrice <= state.currentSl : currentPrice >= state.currentSl;
+    if (slReached && !TERMINAL_STATES.includes(state.state)) {
+        // Persist synced price first so the transition event carries fresh data,
+        // then run the validated transition (saves + event + audit log).
+        await saveTradeState(state);
+        await transitionState(uid, accountId, ticket, "STOPPED", `Stop loss hit at ${fmtPrice(currentPrice, state.symbol)}`);
+        await sendNotification({
+            userId: uid,
+            event: "STOP_LOSS_HIT",
+            title: `🛑 Stop Loss Hit — ${state.symbol} ${state.direction}`,
+            message: `SL hit at ${fmtPrice(currentPrice, state.symbol)}.\nEntry: ${fmtPrice(state.entry, state.symbol)}\nPnL: ${state.currentPnl >= 0 ? "+" : ""}${state.currentPnl.toFixed(2)} USD`,
+            severity: "error",
+            symbol: state.symbol,
+            direction: state.direction,
+            channels: ["in_app", "discord", "telegram"],
+        });
+        return { monitored: true, actions: actions + 1 };
+    }
+
+    // ---- TARGET CHECKS (direction-aware; each TP hit once) ----
+    const targets: Array<{ key: "tp1" | "tp2" | "tp3"; label: "TP1" | "TP2" | "TP3" }> = [
+        { key: "tp1", label: "TP1" },
+        { key: "tp2", label: "TP2" },
+        { key: "tp3", label: "TP3" },
+    ];
+
+    const tpEventMap: Record<string, TradeState> = {
+        TP1: "TP1_HIT",
+        TP2: "TP2_HIT",
+        TP3: "TP3_HIT",
     };
 
-    // Get approaching threshold from admin defaults
-    const defaultsSnap = await adminDatabase.ref("settings/tradeManagementDefaults").get();
-    const defaults = defaultsSnap.val();
-    const approachThreshold = defaults?.approachingAlerts?.distanceThreshold || getDefaultThreshold(state.symbol);
-    const cooldownMs = defaults?.approachingAlerts?.cooldownMs || 300000; // 5 min
+    let beApplied = false; // break-even applied during this pass
 
-    // ---- TP1 ----
-    if (state.state === "OPEN" || state.state === "TP1_APPROACHING") {
-        if (reached(config.tp1.price) && !config.tp1.hit) {
-            // TP1 HIT
-            config.tp1.hit = true;
-            config.tp1.hitAt = Date.now();
-            config.tp1.hitPrice = currentPrice;
-            state.state = "TP1_HIT";
+    for (const { key, label } of targets) {
+        const target = state.config[key];
+        if (target.hit) continue;
+        // BUY: price must reach up to the target; SELL: price must fall to it.
+        if (!reachedTarget(isBuy, currentPrice, target.price)) continue;
 
-            await createTradeEvent(uid, accountId, ticket, "TP1_HIT", state, {
-                targetPrice: config.tp1.price,
-                hitPrice: currentPrice,
-                closePercent: config.tp1.closePercent,
-            });
+        // ---- TP hit ----
+        target.hit = true;
+        target.hitAt = Date.now();
+        target.hitPrice = currentPrice;
 
-            await sendNotification({
-                userId: uid,
-                event: "TP1_HIT",
-                title: `🎯 TP1 HIT — ${state.symbol} ${direction}`,
-                message: `TP1 reached at ${formatPrice(currentPrice, state.symbol)}.\n\nSuggested: Move SL to Break Even.\n\nEntry: ${formatPrice(state.entry, state.symbol)}\nCurrent: ${formatPrice(currentPrice, state.symbol)}\nTP2: ${formatPrice(config.tp2.price, state.symbol)}`,
-                severity: "success",
-                symbol: state.symbol,
-                direction,
-                channels: ["in_app", "discord", "telegram"],
-            });
-
-            actionTaken = true;
-
-            // Auto-break even if enabled
-            if (config.autoManagement && config.breakEvenEnabled && config.breakEvenTrigger === "TP1") {
-                const newSl = calculateBreakEven(state);
-                if (newSl !== state.currentSl) {
-                    const success = await executeSlMove(uid, accountId, ticket, state, newSl, "TP1_HIT_BE");
-                    if (success) {
-                        state.state = "BE_APPLIED";
-                        state.currentSl = newSl;
-
-                        await createTradeEvent(uid, accountId, ticket, "BREAK_EVEN_APPLIED", state, {
-                            oldSl: state.currentSl,
-                            newSl,
-                        });
-
-                        await sendNotification({
-                            userId: uid,
-                            event: "BREAK_EVEN_APPLIED",
-                            title: `🔒 Break Even Applied — ${state.symbol} ${direction}`,
-                            message: `SL moved to ${formatPrice(newSl, state.symbol)}.\n\nTrade is now risk-free.`,
-                            severity: "success",
-                            symbol: state.symbol,
-                            direction,
-                            channels: ["in_app"],
-                        });
-                    }
-                }
-            }
-        } else if (approaching(config.tp1.price, approachThreshold) && state.state === "OPEN") {
-            // TP1 APPROACHING
-            state.state = "TP1_APPROACHING";
-            const lastApproaching = config.tp1.eventIds.find((id) => id.includes("approach"));
-            if (!lastApproaching || Date.now() - cooldownMs > 0) {
-                await createTradeEvent(uid, accountId, ticket, "TP1_APPROACHING", state, {
-                    targetPrice: config.tp1.price,
-                    distance: Math.abs(config.tp1.price - currentPrice),
+        // Auto partial close at this target
+        const closeVolume = computeCloseVolume(state, target.closePercent);
+        let closeQueued = false;
+        if (state.config.autoManagement && closeVolume > 0 && state.remainingVolume > 0) {
+            const orderId = await queuePartialClose(uid, accountId, ticket, state, closeVolume, `${label}_PARTIAL`);
+            if (orderId) {
+                closeQueued = true;
+                state.closeHistory.push({
+                    target: label,
+                    volume: closeVolume,
+                    price: currentPrice,
+                    timestamp: Date.now(),
                 });
-                config.tp1.eventIds.push(`approach_${Date.now()}`);
+                state.remainingVolume = round2(Math.max(0, state.remainingVolume - closeVolume));
             }
         }
-    }
 
-    // ---- TP2 ----
-    if (state.state === "TP2_APPROACHING" || state.state === "BE_APPLIED" || state.state === "TP1_HIT") {
-        if (reached(config.tp2.price) && !config.tp2.hit) {
-            config.tp2.hit = true;
-            config.tp2.hitAt = Date.now();
-            config.tp2.hitPrice = currentPrice;
-            state.state = "TP2_HIT";
-
-            await createTradeEvent(uid, accountId, ticket, "TP2_HIT", state, {
-                targetPrice: config.tp2.price,
-                hitPrice: currentPrice,
-                closePercent: config.tp2.closePercent,
-            });
-
-            await sendNotification({
-                userId: uid,
-                event: "TP2_HIT",
-                title: `🎯 TP2 HIT — ${state.symbol} ${direction}`,
-                message: `TP2 reached at ${formatPrice(currentPrice, state.symbol)}.\n\nConsider locking profit.\n\nLocked: ${formatPrice(config.tp1.price, state.symbol)}\nTP3: ${formatPrice(config.tp3.price, state.symbol)}`,
-                severity: "success",
-                symbol: state.symbol,
-                direction,
-                channels: ["in_app", "discord", "telegram"],
-            });
-
-            actionTaken = true;
-
-            // Auto profit lock
-            if (config.autoManagement && config.profitLockEnabled && config.profitLockTrigger === "TP2") {
-                const newSl = config.tp1.price; // Lock at TP1
-                if (newSl !== state.currentSl) {
-                    const success = await executeSlMove(uid, accountId, ticket, state, newSl, "TP2_HIT_PROFIT_LOCK");
-                    if (success) {
-                        state.state = "PROFIT_LOCKED";
-                        state.currentSl = newSl;
-                        state.lockedProfit = Math.abs(newSl - state.entry) * getContractSize(state.symbol);
-
-                        await createTradeEvent(uid, accountId, ticket, "PROFIT_LOCK_APPLIED", state, {
-                            oldSl: state.currentSl,
-                            newSl,
-                            lockedProfit: state.lockedProfit,
-                        });
-
-                        await sendNotification({
-                            userId: uid,
-                            event: "PROFIT_LOCK_APPLIED",
-                            title: `🔒 Profit Locked — ${state.symbol} ${direction}`,
-                            message: `Profit locked at ${formatPrice(newSl, state.symbol)}.\n\nLocked: +${formatPoints(Math.abs(newSl - state.entry), state.symbol)}\nTP3: ${formatPrice(config.tp3.price, state.symbol)}`,
-                            severity: "success",
-                            symbol: state.symbol,
-                            direction,
-                            channels: ["in_app"],
-                        });
-                    }
-                }
-            }
-        } else if (approaching(config.tp2.price, approachThreshold) && state.state !== "TP2_APPROACHING" && !config.tp2.hit) {
-            state.state = "TP2_APPROACHING";
-            await createTradeEvent(uid, accountId, ticket, "TP2_APPROACHING", state, {
-                targetPrice: config.tp2.price,
-                distance: Math.abs(config.tp2.price - currentPrice),
-            });
-        }
-    }
-
-    // ---- TP3 ----
-    if (state.state === "TP3_APPROACHING" || state.state === "PROFIT_LOCKED" || state.state === "TP2_HIT") {
-        if (reached(config.tp3.price) && !config.tp3.hit) {
-            config.tp3.hit = true;
-            config.tp3.hitAt = Date.now();
-            config.tp3.hitPrice = currentPrice;
-            state.state = "TP3_HIT";
-
-            await createTradeEvent(uid, accountId, ticket, "TP3_HIT", state, {
-                targetPrice: config.tp3.price,
-                hitPrice: currentPrice,
-                closePercent: config.tp3.closePercent,
-                runnerPercent: config.runnerPercent,
-            });
-
-            await sendNotification({
-                userId: uid,
-                event: "TP3_HIT",
-                title: `🎯 TP3 HIT — ${state.symbol} ${direction}`,
-                message: `All targets achieved!\nRunner: ${config.runnerPercent}% remaining.`,
-                severity: "success",
-                symbol: state.symbol,
-                direction,
-                channels: ["in_app", "discord", "telegram"],
-            });
-
-            actionTaken = true;
-
-            // Activate runner
-            if (config.runnerPercent > 0) {
-                state.state = "RUNNER_ACTIVE";
-                await createTradeEvent(uid, accountId, ticket, "RUNNER_ACTIVE", state, {
-                    runnerVolume: state.volume * (config.runnerPercent / 100),
-                    trailingType: config.trailingType,
-                });
-
-                await sendNotification({
-                    userId: uid,
-                    event: "RUNNER_ACTIVE",
-                    title: `🏃 Runner Active — ${state.symbol} ${direction}`,
-                    message: `Runner: ${formatVolume(state.volume * (config.runnerPercent / 100))} lots\nTrailing: ${config.trailingType}`,
-                    severity: "info",
-                    symbol: state.symbol,
-                    direction,
-                    channels: ["in_app"],
-                });
-            }
-        } else if (approaching(config.tp3.price, approachThreshold) && state.state !== "TP3_APPROACHING" && !config.tp3.hit) {
-            state.state = "TP3_APPROACHING";
-            await createTradeEvent(uid, accountId, ticket, "TP3_APPROACHING", state, {
-                targetPrice: config.tp3.price,
-                distance: Math.abs(config.tp3.price - currentPrice),
-            });
-        }
-    }
-
-    // ---- STOP LOSS CHECK ----
-    if (reached(state.currentSl) && !["CLOSED", "STOPPED"].includes(state.state)) {
-        state.state = "STOPPED";
-
-        await createTradeEvent(uid, accountId, ticket, "STOP_LOSS_HIT", state, {
-            slPrice: state.currentSl,
+        await createTradeEvent(uid, accountId, ticket, `${label}_HIT` as TradeEventType, state, {
+            targetPrice: target.price,
             hitPrice: currentPrice,
+            closePercent: target.closePercent,
+            closeVolume,
+            closeQueued,
         });
 
         await sendNotification({
             userId: uid,
-            event: "STOP_LOSS_HIT",
-            title: `🛑 Stop Loss Hit — ${state.symbol} ${direction}`,
-            message: `SL hit at ${formatPrice(currentPrice, state.symbol)}.\nEntry: ${formatPrice(state.entry, state.symbol)}`,
-            severity: "error",
+            event: `${label}_HIT`,
+            title: `🎯 ${label} HIT — ${state.symbol} ${state.direction}`,
+            message: `${label} reached at ${fmtPrice(currentPrice, state.symbol)}.\nEntry: ${fmtPrice(state.entry, state.symbol)}\nClose: ${closeVolume.toFixed(2)} lots (${target.closePercent}%)\nRemaining: ${state.remainingVolume.toFixed(2)} lots`,
+            severity: "success",
             symbol: state.symbol,
-            direction,
+            direction: state.direction,
             channels: ["in_app", "discord", "telegram"],
         });
+
+        actions++;
+        state.state = tpEventMap[label] as TradeState;
+
+        // ---- Post-hit management ----
+        if (state.config.autoManagement) {
+            // Break-even after the configured trigger TP
+            if (
+                state.config.breakEvenEnabled &&
+                state.config.breakEvenTrigger === label &&
+                state.state !== "BE_APPLIED"
+            ) {
+                const bePrice = breakEvenPrice(state);
+                const improves = isBuy ? bePrice > state.currentSl : bePrice < state.currentSl;
+                if (improves) {
+                    beApplied = true;
+                    const ok = await queueModifySl(uid, accountId, ticket, state, bePrice, `${label}_BREAK_EVEN`, "AUTO");
+                    if (ok) {
+                        state.currentSl = bePrice;
+                        state.state = "BE_APPLIED";
+                        actions++;
+                        await createTradeEvent(uid, accountId, ticket, "BREAK_EVEN_APPLIED", state, {
+                            newSl: bePrice,
+                        });
+                        await sendNotification({
+                            userId: uid,
+                            event: "BREAK_EVEN_APPLIED",
+                            title: `🔒 Break Even Applied — ${state.symbol} ${state.direction}`,
+                            message: `SL moved to ${fmtPrice(bePrice, state.symbol)}.\nTrade is now risk-free.`,
+                            severity: "success",
+                            symbol: state.symbol,
+                            direction: state.direction,
+                            channels: ["in_app"],
+                        });
+                    }
+                }
+            }
+
+            // Profit lock after the configured trigger TP
+            // (skipped when break-even already handled this same TP transition)
+            if (
+                state.config.profitLockEnabled &&
+                state.config.profitLockTrigger === label &&
+                !beApplied
+            ) {
+                const lockSl = profitLockPrice(state, label);
+                const improves = isBuy ? lockSl > state.currentSl : lockSl < state.currentSl;
+                if (improves) {
+                    const ok = await queueModifySl(uid, accountId, ticket, state, lockSl, `${label}_PROFIT_LOCK`, "AUTO");
+                    if (ok) {
+                        state.currentSl = lockSl;
+                        state.state = "PROFIT_LOCKED";
+                        state.lockedProfit = Math.abs(lockSl - state.entry) * state.remainingVolume * getContractSize(state.symbol);
+                        actions++;
+                        await createTradeEvent(uid, accountId, ticket, "PROFIT_LOCK_APPLIED", state, {
+                            newSl: lockSl,
+                            lockedProfit: state.lockedProfit,
+                        });
+                        await sendNotification({
+                            userId: uid,
+                            event: "PROFIT_LOCK_APPLIED",
+                            title: `🔒 Profit Locked — ${state.symbol} ${state.direction}`,
+                            message: `SL locked at ${fmtPrice(lockSl, state.symbol)}.\nLocked: ${fmtPoints(Math.abs(lockSl - state.entry), state.symbol)}\nRemaining: ${state.remainingVolume.toFixed(2)} lots`,
+                            severity: "success",
+                            symbol: state.symbol,
+                            direction: state.direction,
+                            channels: ["in_app"],
+                        });
+                    }
+                }
+            }
+        }
     }
 
-    return { actionTaken };
-}
-
-// ============================================
-// BREAK EVEN CALCULATION
-// ============================================
-
-function calculateBreakEven(state: TradeManagementState): number {
-    const { direction, entry, config } = state;
-    const offset = config.breakEvenOffset || 0;
-
-    if (direction === "BUY") {
-        return entry + offset; // SL moves UP to entry + buffer
-    } else {
-        return entry - offset; // SL moves DOWN to entry - buffer
-    }
-}
-
-// ============================================
-// SL MOVE EXECUTION
-// ============================================
-
-async function executeSlMove(
-    uid: string,
-    accountId: string,
-    ticket: string,
-    state: TradeManagementState,
-    newSl: number,
-    reason: string
-): Promise<boolean> {
-    try {
-        // Create modify order
-        const clientOrderId = `mgmt_${accountId}_${ticket}_${reason}_${Date.now()}`;
-        const accountNumber = accountId.replace("gateway_", "");
-
-        await adminDatabase.ref(`trading_order_requests/${uid}/${clientOrderId}`).set({
-            clientOrderId,
-            accountId,
-            symbol: state.symbol,
-            action: "MODIFY",
-            volume: 0,
-            sl: newSl,
-            tp: state.currentTp,
-            closeTicket: Number(ticket),
-            status: "queued",
+    // ---- Runner activation ----
+    if (state.config.tp3.hit && !state.config.runnerActivated && state.config.runnerPercent > 0) {
+        state.state = "RUNNER_ACTIVE";
+        state.config.runnerActivated = true;
+        await createTradeEvent(uid, accountId, ticket, "RUNNER_ACTIVE", state, {
+            runnerVolume: state.remainingVolume,
+            trailingType: state.config.trailingType,
+        });
+        await sendNotification({
             userId: uid,
-            source: "trade_management",
-            reason,
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
+            event: "RUNNER_ACTIVE",
+            title: `🏃 Runner Active — ${state.symbol} ${state.direction}`,
+            message: `Runner: ${state.remainingVolume.toFixed(2)} lots\nTrailing: ${state.config.trailingType} ${state.config.trailingType === "atr" ? `(x${state.config.trailingAtrMultiplier})` : ""}`,
+            severity: "info",
+            symbol: state.symbol,
+            direction: state.direction,
+            channels: ["in_app"],
         });
-
-        // Audit
-        await logAudit(uid, accountId, ticket, "MOVE_SL", {
-            oldSL: state.currentSl,
-            newSL: newSl,
-            reason,
-            mode: state.config.autoManagement ? "AUTO" : "MANUAL",
-            status: "SUCCESS",
-        });
-
-        return true;
-    } catch (err) {
-        console.error("SL move execution failed:", err);
-        await logAudit(uid, accountId, ticket, "MOVE_SL", {
-            oldSL: state.currentSl,
-            newSL: newSl,
-            reason,
-            mode: state.config.autoManagement ? "AUTO" : "MANUAL",
-            status: "FAILED",
-            errorMessage: String(err),
-        });
-        return false;
+        actions++;
     }
+
+    // ---- Approaching alerts (cooldown-guarded) ----
+    const approachThreshold = await approachingThreshold(state.symbol);
+    for (const { key, label } of targets) {
+        const target = state.config[key];
+        if (target.hit) continue;
+        const dist = Math.abs(target.price - currentPrice);
+        if (dist <= approachThreshold && !reachedTarget(isBuy, currentPrice, target.price)) {
+            if (Date.now() - (target.lastApproachAt || 0) > APPROACH_COOLDOWN_MS) {
+                state.state = state.state === "RUNNER_ACTIVE" || state.state === "TRAILING"
+                    ? state.state
+                    : (`${label}_APPROACHING` as TradeState);
+                target.lastApproachAt = Date.now();
+                await createTradeEvent(uid, accountId, ticket, `${label}_APPROACHING` as TradeEventType, state, {
+                    targetPrice: target.price,
+                    distance: dist,
+                });
+            }
+            break; // only alert for the nearest unfilled target
+        }
+    }
+
+    try {
+        await saveTradeState(state);
+    } catch (err) {
+        console.error(`[trade-management/monitor] save failed for ${ticket}:`, err);
+    }
+    return { monitored: true, actions };
 }
 
 // ============================================
-// HELPERS
+// TRAILING STOP
 // ============================================
 
-function formatPrice(price: number, symbol: string): string {
+function maybeTrailRunner(state: TradeManagementState, currentPrice: number): boolean {
+    const { config, direction } = state;
+    if (!config.trailingEnabled) return false;
+    const active = state.state === "RUNNER_ACTIVE" || state.state === "TRAILING";
+    if (!active) return false;
+
+    const isBuy = direction === "BUY";
+    let candidate: number | null = null;
+
+    if (config.trailingType === "atr") {
+        const atr = Number(state.config.trailingAtrValue || 0);
+        if (atr > 0) {
+            candidate = isBuy ? currentPrice - atr * config.trailingAtrMultiplier : currentPrice + atr * config.trailingAtrMultiplier;
+        }
+    } else if (config.trailingType === "percent") {
+        const pct = Math.abs(config.trailingDistance) > 0 ? config.trailingDistance / 10000 : 0.001;
+        candidate = isBuy ? currentPrice * (1 - pct) : currentPrice * (1 + pct);
+    } else {
+        // fixed distance (points)
+        const dist = config.trailingDistance || 0;
+        if (dist > 0) {
+            candidate = isBuy ? currentPrice - dist : currentPrice + dist;
+        }
+    }
+
+    if (candidate === null) return false;
+    // Only tighten (ratchet): never loosen the stop.
+    const improves = isBuy ? candidate > state.currentSl : candidate < state.currentSl;
+    if (!improves) return false;
+
+    state.currentSl = roundDigits(candidate, state.symbol);
+    state.state = "TRAILING";
+    return true;
+}
+
+// ============================================
+// MGMT HELPERS
+// ============================================
+
+const APPROACH_COOLDOWN_MS = 5 * 60 * 1000;
+
+function reachedTarget(isBuy: boolean, currentPrice: number, targetPrice: number): boolean {
+    return isBuy ? currentPrice >= targetPrice : currentPrice <= targetPrice;
+}
+
+function isBuyState(state: TradeManagementState): boolean {
+    return state.direction === "BUY";
+}
+
+function closeHistoryVolume(state: TradeManagementState): number {
+    return state.closeHistory.reduce((sum, ch) => sum + (ch.volume || 0), 0);
+}
+
+function computeCloseVolume(state: TradeManagementState, closePercent: number): number {
+    const raw = (state.volume * closePercent) / 100;
+    // Snap to 0.01 lot grid, never exceed what remains.
+    return Math.min(round2(raw), round2(state.remainingVolume));
+}
+
+function breakEvenPrice(state: TradeManagementState): number {
+    const offset = state.config.breakEvenOffset || 0;
+    return isBuyState(state) ? state.entry + offset : state.entry - offset;
+}
+
+function profitLockPrice(state: TradeManagementState, triggerLabel: string): number {
+    // Lock at the previous TP price (TP2 hit -> lock at TP1, TP3 hit -> lock at TP2).
+    const prev = triggerLabel === "TP2" ? state.config.tp1.price : triggerLabel === "TP3" ? state.config.tp2.price : state.entry;
+    return prev;
+}
+
+function approachingThreshold(symbol: string): Promise<number> {
+    // Per-symbol fallback when admin defaults are not configured.
+    return adminDatabase
+        .ref("settings/tradeManagementDefaults/approachingAlerts")
+        .get()
+        .then((snap) => {
+            const v = snap.val();
+            return Number(v?.distanceThreshold) > 0 ? Number(v.distanceThreshold) : getDefaultThreshold(symbol);
+        })
+        .catch(() => getDefaultThreshold(symbol));
+}
+
+function round2(n: number): number {
+    return Math.round(n * 100) / 100;
+}
+
+function roundDigits(price: number, symbol: string): number {
+    const digits = symbol.includes("JPY") ? 3 : symbol.includes("XAU") || symbol.includes("BTC") ? 2 : 5;
+    return Number(price.toFixed(digits));
+}
+
+function fmtPrice(price: number, symbol: string): string {
     const digits = symbol.includes("JPY") ? 3 : symbol.includes("XAU") || symbol.includes("BTC") ? 2 : 5;
     return price.toFixed(digits);
 }
 
-function formatPoints(points: number, symbol: string): string {
+function fmtPoints(points: number, symbol: string): string {
     const digits = symbol.includes("JPY") ? 1 : symbol.includes("XAU") || symbol.includes("BTC") ? 1 : 3;
     return points.toFixed(digits) + " pts";
-}
-
-function formatVolume(vol: number): string {
-    return vol.toFixed(2);
 }
 
 function getContractSize(symbol: string): number {
@@ -481,9 +488,8 @@ function getContractSize(symbol: string): number {
 }
 
 function getDefaultThreshold(symbol: string): number {
-    // Default approaching threshold in price points
-    if (symbol.includes("XAU")) return 2; // 2 points for gold
-    if (symbol.includes("BTC")) return 50; // 50 points for BTC
+    if (symbol.includes("XAU")) return 2;
+    if (symbol.includes("BTC")) return 50;
     if (symbol.includes("US30") || symbol.includes("NAS")) return 5;
     return 0.0005; // 5 pips for forex
 }

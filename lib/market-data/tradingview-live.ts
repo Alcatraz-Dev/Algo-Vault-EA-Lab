@@ -1,9 +1,11 @@
-import { fetchJsonWithRetry } from "./normalizer";
+import { fetchJsonWithRetry, logOncePerWindow } from "./normalizer";
 import type { SupportedSymbol } from "./types";
 
 const TRADINGVIEW_SCANNER_BASE = "https://scanner.tradingview.com";
 const TRADINGVIEW_SCANNER_ENDPOINTS = ["/global/scan", "/cfd/scan"] as const;
 const DEFAULT_RETRIES = 1;
+/** A Biquote M1 bar older than this is not treated as a live tick. */
+const BIQUOTE_FRESH_MS = 120_000;
 
 const TRADINGVIEW_SYMBOL_CANDIDATES: Partial<Record<SupportedSymbol, readonly string[]>> = {
     EURUSD: ["OANDA:EURUSD", "FX_IDC:EURUSD", "FX:EURUSD"],
@@ -132,7 +134,6 @@ function parseScannerRow(row: ScannerRow | undefined, symbol: string): TradingVi
 
     const bid = positiveNumber(values?.[9]) ?? close;
     const ask = positiveNumber(values?.[10]) ?? close;
-    const price = bid !== null && ask !== null ? (bid + ask) / 2 : close;
     const exchange = typeof values?.[2] === "string" ? values[2] : undefined;
     const updateMode = typeof values?.[7] === "string" ? values[7] : undefined;
     const sourceTimestamp = timestampFromValue(values?.[16]) ?? timestampFromValue(values?.[17]) ?? Date.now();
@@ -162,6 +163,8 @@ async function fetchScannerLivePrice(symbol: string): Promise<TradingViewLivePri
     const uniqueCandidates = Array.from(new Set(candidates));
 
     for (const endpoint of TRADINGVIEW_SCANNER_ENDPOINTS) {
+        // POST with a tickers+columns body is the scanner API contract for
+        // every namespace; unauthenticated GET requests are rejected (403).
         const body = {
             symbols: {
                 query: { types: [] },
@@ -227,13 +230,28 @@ export async function fetchTradingViewLivePrice(
     symbol: string
 ): Promise<TradingViewLivePrice | null> {
     const upper = symbol.trim().toUpperCase();
+
+    // Prefer the Biquote forming candle when it is genuinely fresh: the
+    // scanner's `close` can lag by minutes (it is not tick-level despite
+    // update_mode "streaming"), while the M1 forming bar streams every few
+    // seconds. Symbols Biquote does not cover (e.g. US equities) fall through
+    // to the scanner below.
+    const biquotePrice = await fetchBiquoteLivePrice(upper);
+    if (biquotePrice && Date.now() - biquotePrice.timestamp < BIQUOTE_FRESH_MS) {
+        return biquotePrice;
+    }
+
     const scannerPrice = await fetchScannerLivePrice(upper);
     if (scannerPrice) return scannerPrice;
 
-    console.warn(
-        `[fetchTradingViewLivePrice] TradingView scanner unavailable for ${symbol}; falling back to Biquote.`
-    );
-    return fetchBiquoteLivePrice(upper);
+    if (!biquotePrice) {
+        logOncePerWindow(
+            `tv-scanner:${upper}`,
+            `[fetchTradingViewLivePrice] No live price available for ${symbol}.`
+        );
+    }
+    // A stale-but-real Biquote bar beats nothing.
+    return biquotePrice;
 }
 
 class TradingViewLivePriceCache {

@@ -1,7 +1,7 @@
 {
   "name": "AlgoVault Trading Intelligence",
-  "description": "Intelligent browser companion for AlgoVault and TradingView",
-  "version": "1.0.0",
+  "description": "AI chart copilot for TradingView: side-panel chat with per-symbol memory, on-chart AI research, smart drawings, price alerts, chart automation and live market intelligence.",
+  "version": "3.0.0",
   "private": true,
   "type": "module",
   "scripts": {

@@ -188,9 +188,9 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-3 py-2 border-b border-white/5">
+      <div className="px-3 py-2 border-b border-edge">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-[#f0f0f5]">
+          <span className="text-xs font-medium text-ink">
             AI Copilot — {chartDisplayLabel(addressContext(effectiveContext, enriched))}
           </span>
           <div className="flex items-center gap-2">
@@ -201,12 +201,12 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
               className="p-0.5 rounded hover:bg-white/5 transition-colors"
               title="Refresh chart context"
             >
-              <RefreshCw size={11} className={`text-[#8888aa] ${loading ? "animate-spin" : ""}`} />
+              <RefreshCw size={11} className={`text-ink-mute ${loading ? "animate-spin" : ""}`} />
             </button>
           </div>
         </div>
         {enriched && (
-          <div className="flex items-center gap-2 mt-1 text-[9px] text-[#55556a]">
+          <div className="flex items-center gap-2 mt-1 text-[9px] text-ink-faint">
             <span>Sync: {enriched.marketSync}</span>
             <span>·</span>
             <span>Price check: {enriched.priceValidation.state}</span>
@@ -224,12 +224,12 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
         {contextStatus === "unavailable" && (
           <div className="text-center py-4">
             <AlertCircle size={20} className="mx-auto text-amber-400 mb-2" />
-            <p className="text-[11px] text-[#8888aa]">No active chart detected.</p>
-            <p className="text-[10px] text-[#55556a] mt-1">Open a chart on TradingView or enter a symbol manually.</p>
+            <p className="text-[11px] text-ink-mute">No active chart detected.</p>
+            <p className="text-[10px] text-ink-faint mt-1">Open a chart on TradingView or enter a symbol manually.</p>
             {!showManual ? (
               <button
                 onClick={() => setShowManual(true)}
-                className="mt-2 text-[10px] text-violet-400 hover:text-violet-300"
+                className="mt-2 text-[10px] text-brand-400 hover:text-violet-300"
               >
                 Enter symbol manually
               </button>
@@ -239,15 +239,15 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
                   value={manualSymbol}
                   onChange={(e) => setManualSymbol(e.target.value)}
                   placeholder="Symbol"
-                  className="w-20 bg-white/5 border border-white/10 rounded px-2 py-0.5 text-[10px] text-[#f0f0f5] placeholder:text-[#55556a] outline-none"
+                  className="w-20 bg-white/5 border border-white/10 rounded px-2 py-0.5 text-[10px] text-ink placeholder:text-ink-faint outline-none"
                 />
                 <input
                   value={manualTimeframe}
                   onChange={(e) => setManualTimeframe(e.target.value)}
                   placeholder="TF"
-                  className="w-12 bg-white/5 border border-white/10 rounded px-2 py-0.5 text-[10px] text-[#f0f0f5] placeholder:text-[#55556a] outline-none"
+                  className="w-12 bg-white/5 border border-white/10 rounded px-2 py-0.5 text-[10px] text-ink placeholder:text-ink-faint outline-none"
                 />
-                <button onClick={handleManualSubmit} className="px-2 py-0.5 text-[10px] bg-violet-500/20 text-violet-400 rounded">Go</button>
+                <button onClick={handleManualSubmit} className="px-2 py-0.5 text-[10px] bg-brand-500/20 text-brand-400 rounded">Go</button>
               </div>
             )}
           </div>
@@ -255,14 +255,14 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
 
         {messages.length === 0 && contextStatus !== "unavailable" && (
           <div className="flex flex-col gap-2 pt-4">
-            <p className="text-[11px] text-[#8888aa] text-center mb-2">
+            <p className="text-[11px] text-ink-mute text-center mb-2">
               Ask anything about {chartDisplayLabel(addressContext(effectiveContext, enriched))}
             </p>
             {suggestions.map((s) => (
               <button
                 key={s}
                 onClick={() => send(s)}
-                className="text-left text-[11px] px-3 py-2 rounded-lg border border-white/5 bg-white/[0.02] text-[#8888aa] hover:bg-violet-500/10 hover:border-violet-500/20 hover:text-violet-400 transition-all"
+                className="text-left text-[11px] px-3 py-2 rounded-lg border border-edge bg-white/[0.02] text-ink-mute hover:bg-brand-500/10 hover:border-brand-500/20 hover:text-brand-400 transition-all"
               >
                 {s}
               </button>
@@ -272,7 +272,7 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
 
         {messages.map((msg, i) => (
           <div key={`${i}-${msg.timestamp}`} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[92%] rounded-lg px-3 py-2 text-[11px] leading-relaxed ${msg.role === "user" ? "bg-violet-500/20 text-violet-200" : "bg-white/5 text-[#f0f0f5]"}`}>
+            <div className={`max-w-[92%] rounded-lg px-3 py-2 text-[11px] leading-relaxed ${msg.role === "user" ? "bg-brand-500/20 text-brand-100" : "bg-white/5 text-ink"}`}>
               {msg.role === "assistant" ? <Markdown content={msg.content} /> : msg.content}
               {msg.truncated && (
                 <div className="mt-2 pt-2 border-t border-amber-500/20 flex items-center gap-1">
@@ -289,8 +289,8 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
         {loading && (
           <div className="flex justify-start">
             <div className="bg-white/5 rounded-lg px-3 py-2 flex items-center gap-2">
-              <Loader2 size={12} className="animate-spin text-violet-400" />
-              <span className="text-[11px] text-[#8888aa]">Thinking...</span>
+              <Loader2 size={12} className="animate-spin text-brand-400" />
+              <span className="text-[11px] text-ink-mute">Thinking...</span>
             </div>
           </div>
         )}
@@ -298,7 +298,7 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
         <div ref={bottomRef} />
       </div>
 
-      <div className="px-3 py-2 border-t border-white/5">
+      <div className="px-3 py-2 border-t border-edge">
         <div className="flex items-center gap-2">
           <input
             value={input}
@@ -307,20 +307,20 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
               if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); }
             }}
             placeholder="Ask the AI..."
-            className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-[11px] text-[#f0f0f5] placeholder:text-[#55556a] outline-none focus:border-violet-500/30"
+            className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-[11px] text-ink placeholder:text-ink-faint outline-none focus:border-brand-500/60"
           />
           <button
             onClick={() => send(input)}
             disabled={!input.trim() || loading}
-            className="p-1.5 rounded-lg bg-violet-500/20 text-violet-400 hover:bg-violet-500/30 disabled:opacity-30 transition-colors"
+            className="p-1.5 rounded-lg bg-brand-500/20 text-brand-400 hover:bg-brand-500/30 disabled:opacity-30 transition-colors"
           >
             <Send size={14} />
           </button>
         </div>
       </div>
 
-      <div className="px-3 py-1.5 border-t border-white/5">
-        <button onClick={onBack} className="w-full text-xs text-[#8888aa] hover:text-[#f0f0f5] transition-colors py-1">Back</button>
+      <div className="px-3 py-1.5 border-t border-edge">
+        <button onClick={onBack} className="w-full text-xs text-ink-mute hover:text-ink transition-colors py-1">Back</button>
       </div>
     </div>
   );

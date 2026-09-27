@@ -16,6 +16,14 @@ import { Input } from "@/components/ui/input";
 import { executePine } from "@/lib/pine-runtime";
 import type { PineExecutionResult } from "@/lib/pine-runtime";
 import { buildPineStudyOverlay, type PineStudyOverlay } from "@/components/pro-scalping-terminal/pine-overlays";
+import {
+  createPineSource as buildPineFromVisual,
+  DEFAULT_VISUAL_EDGES,
+  DEFAULT_VISUAL_NODES,
+  VISUAL_NODE_LIBRARY,
+  VISUAL_NODE_MAP,
+  type VisualNodeKind,
+} from "@/components/tradingview/visual-builder";
 import { toPineCandles } from "@/lib/pine-runtime/backtest";
 import type { PineBacktestResult } from "@/lib/pine-runtime/backtest";
 import PineAnalysisPanel from "@/components/tradingview/PineAnalysisPanel";
@@ -31,78 +39,21 @@ import "@xyflow/react/dist/style.css";
 
 type WorkspaceScope = "account" | "admin";
 type SavedWorkspace = { id: string; name: string; mode: "visual" | "code"; type: "strategy" | "indicator"; createdAt: number };
-type NodeKind = "price" | "moving_average" | "hma" | "rsi" | "macd" | "bollinger" | "keltner" | "donchian" | "supertrend" | "stochastic" | "adx" | "atr" | "cci" | "psar" | "vwap" | "ichimoku" | "mfi" | "williams_r" | "roc" | "ao" | "stddev" | "pivots" | "volume" | "obv" | "cmf" | "crossover" | "rsi_oversold" | "rsi_overbought" | "macd_bullish" | "macd_bearish" | "stoch_oversold" | "stoch_overbought" | "stoch_cross" | "adx_strong" | "cci_oversold" | "cci_overbought" | "psar_bull" | "vwap_bull" | "ichimoku_bull" | "volume_surge" | "and" | "long_entry" | "short_entry" | "close_long" | "close_short" | "risk_manager" | "plot";
+type NodeKind = VisualNodeKind;
 type FlowNode = { id: string; kind: NodeKind; x: number; y: number; label?: string; config?: Record<string, any>; enabled?: boolean };
 type FlowEdge = { from: string; to: string };
 
 type PineWorkspaceProps = { scope: WorkspaceScope };
 
-const nodeTypes: Record<NodeKind, { label: string; color: string }> = {
-    price: { label: "Price Quote", color: "border-sky-400/60 bg-sky-400/10" },
-    moving_average: { label: "EMA Trend", color: "border-amber-400/60 bg-amber-400/10" },
-    hma: { label: "Hull MA (HMA)", color: "border-amber-400/60 bg-amber-400/10" },
-    rsi: { label: "RSI Momentum", color: "border-amber-400/60 bg-amber-400/10" },
-    macd: { label: "MACD Oscillator", color: "border-amber-400/60 bg-amber-400/10" },
-    bollinger: { label: "Bollinger Bands", color: "border-amber-400/60 bg-amber-400/10" },
-    keltner: { label: "Keltner Channels", color: "border-amber-400/60 bg-amber-400/10" },
-    donchian: { label: "Donchian Channels", color: "border-amber-400/60 bg-amber-400/10" },
-    supertrend: { label: "Supertrend", color: "border-amber-400/60 bg-amber-400/10" },
-    stochastic: { label: "Stochastic %K/%D", color: "border-amber-400/60 bg-amber-400/10" },
-    adx: { label: "ADX Trend Strength", color: "border-amber-400/60 bg-amber-400/10" },
-    atr: { label: "ATR Volatility", color: "border-amber-400/60 bg-amber-400/10" },
-    cci: { label: "CCI Momentum", color: "border-amber-400/60 bg-amber-400/10" },
-    psar: { label: "Parabolic SAR", color: "border-amber-400/60 bg-amber-400/10" },
-    vwap: { label: "VWAP Average", color: "border-amber-400/60 bg-amber-400/10" },
-    ichimoku: { label: "Ichimoku Cloud", color: "border-amber-400/60 bg-amber-400/10" },
-    mfi: { label: "Money Flow (MFI)", color: "border-amber-400/60 bg-amber-400/10" },
-    williams_r: { label: "Williams %R", color: "border-amber-400/60 bg-amber-400/10" },
-    roc: { label: "Rate of Change", color: "border-amber-400/60 bg-amber-400/10" },
-    ao: { label: "Awesome Oscillator", color: "border-amber-400/60 bg-amber-400/10" },
-    stddev: { label: "Std Deviation", color: "border-amber-400/60 bg-amber-400/10" },
-    pivots: { label: "Pivot Points", color: "border-amber-400/60 bg-amber-400/10" },
-    volume: { label: "Volume Flow", color: "border-slate-400/60 bg-slate-400/10" },
-    obv: { label: "On Balance Vol", color: "border-slate-400/60 bg-slate-400/10" },
-    cmf: { label: "Chaikin Money Flow", color: "border-slate-400/60 bg-slate-400/10" },
-    crossover: { label: "Cross Over", color: "border-orange-400/60 bg-orange-400/10" },
-    rsi_oversold: { label: "RSI Oversold", color: "border-orange-400/60 bg-orange-400/10" },
-    rsi_overbought: { label: "RSI Overbought", color: "border-orange-400/60 bg-orange-400/10" },
-    macd_bullish: { label: "MACD Bullish", color: "border-emerald-400/60 bg-emerald-400/10" },
-    macd_bearish: { label: "MACD Bearish", color: "border-rose-400/60 bg-rose-400/10" },
-    stoch_oversold: { label: "Stoch Oversold", color: "border-orange-400/60 bg-orange-400/10" },
-    stoch_overbought: { label: "Stoch Overbought", color: "border-orange-400/60 bg-orange-400/10" },
-    stoch_cross: { label: "Stoch Cross", color: "border-orange-400/60 bg-orange-400/10" },
-    adx_strong: { label: "ADX Strong Trend", color: "border-orange-400/60 bg-orange-400/10" },
-    cci_oversold: { label: "CCI Oversold", color: "border-orange-400/60 bg-orange-400/10" },
-    cci_overbought: { label: "CCI Overbought", color: "border-orange-400/60 bg-orange-400/10" },
-    psar_bull: { label: "SAR Uptrend", color: "border-emerald-400/60 bg-emerald-400/10" },
-    vwap_bull: { label: "VWAP Bull Trend", color: "border-sky-400/60 bg-sky-400/10" },
-    ichimoku_bull: { label: "Ichimoku Bullish", color: "border-blue-400/60 bg-blue-400/10" },
-    volume_surge: { label: "Volume Surge", color: "border-lime-400/60 bg-lime-400/10" },
-    and: { label: "Logical AND", color: "border-indigo-400/60 bg-indigo-400/10" },
-    long_entry: { label: "Enter Long", color: "border-blue-400/60 bg-blue-400/10" },
-    short_entry: { label: "Enter Short", color: "border-rose-400/60 bg-rose-400/10" },
-    close_long: { label: "Close Long", color: "border-orange-400/60 bg-orange-400/10" },
-    close_short: { label: "Close Short", color: "border-orange-400/60 bg-orange-400/10" },
-    risk_manager: { label: "Stop Loss & Take Profit", color: "border-red-400/60 bg-red-400/10" },
-    plot: { label: "Draw Study Line", color: "border-cyan-400/60 bg-cyan-400/10" },
-};
+// Node labels/colors derive from the shared visual-builder library so the
+// palette, the AI builder and the canvas stay in sync automatically.
+const nodeTypes: Record<NodeKind, { label: string; color: string }> = Object.fromEntries(
+    VISUAL_NODE_LIBRARY.map((entry) => [entry.kind, { label: entry.label, color: entry.color }])
+) as Record<NodeKind, { label: string; color: string }>;
 
-const initialNodes: FlowNode[] = [
-    { id: "price", kind: "price", x: 300, y: 35 },
-    { id: "average", kind: "moving_average", x: 300, y: 155 },
-    { id: "cross", kind: "crossover", x: 300, y: 275 },
-    { id: "entry", kind: "long_entry", x: 160, y: 395 },
-    { id: "risk", kind: "risk_manager", x: 160, y: 515 },
-    { id: "plot", kind: "plot", x: 440, y: 395 },
-];
+const initialNodes: FlowNode[] = DEFAULT_VISUAL_NODES;
 
-const initialEdges: FlowEdge[] = [
-    { from: "price", to: "average" },
-    { from: "average", to: "cross" },
-    { from: "cross", to: "entry" },
-    { from: "entry", to: "risk" },
-    { from: "average", to: "plot" },
-];
+const initialEdges: FlowEdge[] = DEFAULT_VISUAL_EDGES;
 
 const starterCode = `//@version=6
 strategy("Visual Strategy", overlay=true, pyramiding=0)
@@ -140,206 +91,33 @@ if shortCondition
 strategy.exit("Long Exit", "Long", stop=strategy.position_avg_price * (1 - stopPct / 100), limit=strategy.position_avg_price * (1 + tpPct / 100))
 strategy.exit("Short Exit", "Short", stop=strategy.position_avg_price * (1 + stopPct / 100), limit=strategy.position_avg_price * (1 - tpPct / 100))`;
 
-function createPineSource(nodes: FlowNode[], edges: FlowEdge[]) {
-    const kinds = new Set(nodes.map((node) => node.kind));
-    const byId = new Map(nodes.map((node) => [node.id, node]));
-    const inputs = (id: string) => edges.map((edge) => edge.to === id ? byId.get(edge.from) : undefined).filter((node): node is FlowNode => Boolean(node));
-    const isStrategy = ["long_entry", "short_entry", "close_long", "close_short", "risk_manager"].some((kind) => kinds.has(kind as NodeKind));
-    const lines = ["//@version=6", isStrategy ? "strategy(\"Visual strategy\", overlay=true, pyramiding=0)" : "indicator(\"Visual indicator\", overlay=true)"];
-
-    if (kinds.has("moving_average")) lines.push("fast = ta.ema(close, 20)", "slow = ta.ema(close, 50)");
-    if (kinds.has("rsi")) lines.push("rsiValue = ta.rsi(close, 14)");
-    if (kinds.has("macd")) lines.push("[macdLine, macdSignal, _] = ta.macd(close, 12, 26, 9)");
-    if (kinds.has("bollinger")) lines.push("[bbBasis, bbUpper, bbLower] = ta.bb(close, 20, 2)");
-    if (kinds.has("stochastic")) lines.push("[stochK, stochD] = ta.stoch(close, high, low, 14)");
-    if (kinds.has("adx")) lines.push("adxValue = ta.adx(high, low, close, 14)");
-    if (kinds.has("atr")) lines.push("atrValue = ta.atr(14)");
-    if (kinds.has("cci")) lines.push("cciValue = ta.cci(close, 14)");
-    if (kinds.has("psar")) lines.push("psarValue = ta.psar(0.02, 0.2)");
-    if (kinds.has("vwap")) lines.push("vwapValue = ta.vwap(hl3)");
-    if (kinds.has("ichimoku")) lines.push("ichimokuConv = (ta.highest(high, 9) + ta.lowest(low, 9)) / 2", "ichimokuBase = (ta.highest(high, 26) + ta.lowest(low, 26)) / 2", "ichimokuSpanA = (ichimokuConv + ichimokuBase) / 2", "ichimokuSpanB = (ta.highest(high, 52) + ta.lowest(low, 52)) / 2");
-    if (kinds.has("volume")) lines.push("volumeValue = volume");
-    if (kinds.has("crossover") && kinds.has("moving_average")) lines.push("longCross = ta.crossover(fast, slow)", "shortCross = ta.crossunder(fast, slow)");
-    if (kinds.has("rsi_oversold") && kinds.has("rsi")) lines.push("rsiOversold = rsiValue < 30");
-    if (kinds.has("rsi_overbought") && kinds.has("rsi")) lines.push("rsiOverbought = rsiValue > 70");
-    if (kinds.has("macd_bullish") && kinds.has("macd")) lines.push("macdBullish = ta.crossover(macdLine, macdSignal)");
-    if (kinds.has("macd_bearish") && kinds.has("macd")) lines.push("macdBearish = ta.crossunder(macdLine, macdSignal)");
-    if (kinds.has("stoch_oversold") && kinds.has("stochastic")) lines.push("stochOversold = stochK < 20");
-    if (kinds.has("stoch_overbought") && kinds.has("stochastic")) lines.push("stochOverbought = stochK > 80");
-    if (kinds.has("stoch_cross") && kinds.has("stochastic")) lines.push("stochCross = ta.crossover(stochK, stochD)", "stochCrossUnder = ta.crossunder(stochK, stochD)");
-    if (kinds.has("adx_strong") && kinds.has("adx")) lines.push("adxStrong = adxValue > 25");
-    if (kinds.has("cci_oversold") && kinds.has("cci")) lines.push("cciOversold = cciValue < -100");
-    if (kinds.has("cci_overbought") && kinds.has("cci")) lines.push("cciOverbought = cciValue > 100");
-    if (kinds.has("psar_bull") && kinds.has("psar")) lines.push("sarUptrend = close > psarValue");
-    if (kinds.has("vwap_bull") && kinds.has("vwap")) lines.push("vwapBull = close > vwapValue", "vwapBear = close < vwapValue");
-    if (kinds.has("ichimoku_bull") && kinds.has("ichimoku")) lines.push("ichimokuBull = close > ichimokuSpanA and close > ichimokuSpanB", "ichimokuBear = close < ichimokuSpanA and close < ichimokuSpanB");
-    if (kinds.has("volume_surge") && kinds.has("volume")) lines.push("volumeAvg = ta.sma(volume, 20)", "volumeSurge = volume > volumeAvg * 1.5");
-
-    const condition = (node: FlowNode, direction: "long" | "short", visited = new Set<string>()): string | null => {
-        if (visited.has(node.id)) return null;
-        visited.add(node.id);
-        if (node.kind === "crossover") return direction === "long" ? "longCross" : "shortCross";
-        if (node.kind === "rsi_oversold") return direction === "long" ? "rsiOversold" : null;
-        if (node.kind === "rsi_overbought") return direction === "short" ? "rsiOverbought" : null;
-        if (node.kind === "macd_bullish") return direction === "long" ? "macdBullish" : null;
-        if (node.kind === "macd_bearish") return direction === "short" ? "macdBearish" : null;
-        if (node.kind === "stoch_oversold") return direction === "long" ? "stochOversold" : null;
-        if (node.kind === "stoch_overbought") return direction === "short" ? "stochOverbought" : null;
-        if (node.kind === "stoch_cross") return direction === "long" ? "stochCross" : "stochCrossUnder";
-        if (node.kind === "adx_strong") return "adxStrong";
-        if (node.kind === "cci_oversold") return direction === "long" ? "cciOversold" : null;
-        if (node.kind === "cci_overbought") return direction === "short" ? "cciOverbought" : null;
-        if (node.kind === "psar_bull") return direction === "long" ? "sarUptrend" : "not sarUptrend";
-        if (node.kind === "vwap_bull") return direction === "long" ? "vwapBull" : "vwapBear";
-        if (node.kind === "ichimoku_bull") return direction === "long" ? "ichimokuBull" : "ichimokuBear";
-        if (node.kind === "volume_surge") return "volumeSurge";
-        if (node.kind === "moving_average") return direction === "long" ? "fast > slow" : "fast < slow";
-        if (node.kind === "bollinger") return direction === "long" ? "close < bbLower" : "close > bbUpper";
-        const childConditions = inputs(node.id).map((input) => condition(input, direction, new Set(visited))).filter((value): value is string => Boolean(value));
-        return childConditions.length > 1 ? `(${childConditions.join(" and ")})` : childConditions[0] || null;
-    };
-
-    const addEntry = (kind: "long_entry" | "short_entry", label: "Long" | "Short", direction: "long" | "short") => {
-        nodes.filter((node) => node.kind === kind).forEach((node) => {
-            const value = condition(node, direction);
-            if (value) lines.push(`if ${value}`, `    strategy.entry(\"${label}\", strategy.${direction})`);
-        });
-    };
-    addEntry("long_entry", "Long", "long");
-    addEntry("short_entry", "Short", "short");
-    nodes.filter((node) => node.kind === "close_long").forEach((node) => {
-        const value = condition(node, "short");
-        if (value) lines.push(`if ${value}`, "    strategy.close(\"Long\")");
-    });
-    nodes.filter((node) => node.kind === "close_short").forEach((node) => {
-        const value = condition(node, "long");
-        if (value) lines.push(`if ${value}`, "    strategy.close(\"Short\")");
-    });
-    const hasConnectedRiskManager = nodes.some((node) => node.kind === "risk_manager" && inputs(node.id).some((input) => input.kind === "long_entry" || input.kind === "short_entry"));
-    if (hasConnectedRiskManager && isStrategy) lines.push(
-        "stopPercent = input.float(1.0, \"Stop loss %\", minval=0.1, step=0.1)",
-        "takeProfitPercent = input.float(3.0, \"Take profit %\", minval=0.1, step=0.1)",
-        "strategy.exit(\"Long risk\", \"Long\", stop=strategy.position_avg_price * (1 - stopPercent / 100), limit=strategy.position_avg_price * (1 + takeProfitPercent / 100))",
-        "strategy.exit(\"Short risk\", \"Short\", stop=strategy.position_avg_price * (1 + stopPercent / 100), limit=strategy.position_avg_price * (1 - takeProfitPercent / 100))"
-    );
-    if (kinds.has("plot") && kinds.has("moving_average")) lines.push("plot(fast, color=color.aqua, linewidth=2)", "plot(slow, color=color.orange, linewidth=2)");
-    if (kinds.has("plot") && kinds.has("bollinger")) lines.push("plot(bbUpper, color=color.blue)", "plot(bbBasis, color=color.gray)", "plot(bbLower, color=color.blue)");
-    if (kinds.has("plot") && kinds.has("stochastic")) lines.push("plot(stochK, color=color.aqua)", "plot(stochD, color=color.orange)");
-    if (kinds.has("plot") && kinds.has("adx")) lines.push("plot(adxValue, color=color.purple)", "hline(25, \"Strong trend\", color=color.gray, linestyle=hline.style_dashed)");
-    if (kinds.has("plot") && kinds.has("atr")) lines.push("plot(atrValue, color=color.orange)");
-    if (kinds.has("plot") && kinds.has("cci")) lines.push("plot(cciValue, color=color.lime)", "hline(100, color=color.gray, linestyle=hline.style_dashed)", "hline(-100, color=color.gray, linestyle=hline.style_dashed)");
-    if (kinds.has("plot") && kinds.has("psar")) lines.push("plot(psarValue, style=plot.style_cross, color=color.white)");
-    if (kinds.has("plot") && kinds.has("vwap")) lines.push("plot(vwapValue, color=color.orange, linewidth=2)");
-    if (kinds.has("plot") && kinds.has("ichimoku")) lines.push("plot(ichimokuSpanA, color=color.lime, linewidth=1, title=\"Senkou A\")", "plot(ichimokuSpanB, color=color.red, linewidth=1, title=\"Senkou B\")", "plot(ichimokuConv, color=color.blue, linewidth=1, title=\"Tenkan\")", "plot(ichimokuBase, color=color.orange, linewidth=1, title=\"Kijun\")");
-    if (kinds.has("plot") && kinds.has("volume")) lines.push("plot(volumeValue, style=plot.style_columns, color=color.gray)");
-    const hasNoPlottableIndicator = !["moving_average", "bollinger", "stochastic", "adx", "atr", "cci", "psar", "vwap", "ichimoku", "volume"].some((kind) => kinds.has(kind as NodeKind));
-    if (hasNoPlottableIndicator && kinds.has("plot")) lines.push("plot(close, color=color.aqua, linewidth=2)");
-
-    return lines.join("\n\n");
-}
-
+// The visual→Pine generator lives in components/tradingview/visual-builder.ts
+// (leaf module, shared with the AI strategy builder). Everything it emits is
+// real runtime-executable Pine — every `ta.*` call exists in lib/pine-runtime.
 function nodeHint(kind: NodeKind) {
-    const hints: Record<NodeKind, string> = {
-        price: "Live market price & OHLCV",
-        moving_average: "20 / 50 EMA trend",
-        hma: "9-period Hull moving average",
-        rsi: "14-period momentum oscillator",
-        macd: "12 / 26 / 9 MACD oscillator",
-        bollinger: "20-period volatility bands",
-        keltner: "20-period ATR channels",
-        donchian: "20-period channel breakouts",
-        supertrend: "10 / 3 ATR trend follower",
-        stochastic: "14-period %K / %D momentum",
-        adx: "14-period trend strength",
-        atr: "14-period average true range",
-        cci: "14-period commodity channel",
-        psar: "0.02 / 0.2 trailing stop SAR",
-        vwap: "Volume-weighted average price",
-        ichimoku: "9 / 26 / 52 Ichimoku cloud",
-        mfi: "14-period volume-weighted RSI",
-        williams_r: "14-period Williams %R",
-        roc: "12-period Rate of Change",
-        ao: "Awesome Oscillator momentum",
-        stddev: "20-period standard deviation",
-        pivots: "Pivot highs & lows",
-        volume: "Bar volume flow",
-        obv: "On Balance Volume flow",
-        cmf: "Chaikin Money Flow",
-        crossover: "Trend crossover condition",
-        rsi_oversold: "RSI below oversold 30",
-        rsi_overbought: "RSI above overbought 70",
-        macd_bullish: "MACD line crosses signal",
-        macd_bearish: "MACD line crosses under signal",
-        stoch_oversold: "Stochastic K below 20",
-        stoch_overbought: "Stochastic K above 80",
-        stoch_cross: "Stoch %K crosses %D",
-        adx_strong: "ADX above strong trend 25",
-        cci_oversold: "CCI below -100 oversold",
-        cci_overbought: "CCI above 100 overbought",
-        psar_bull: "Price above Parabolic SAR",
-        vwap_bull: "Price relative to VWAP",
-        ichimoku_bull: "Price above Ichimoku cloud",
-        volume_surge: "Volume 1.5x above average",
-        and: "Both input conditions agree",
-        long_entry: "Open a long position",
-        short_entry: "Open a short position",
-        close_long: "Close active long position",
-        close_short: "Close active short position",
-        risk_manager: "Configurable Stop Loss & TP",
-        plot: "Draw study lines on chart",
-    };
-    return hints[kind];
+    const entry = VISUAL_NODE_MAP[kind];
+    return entry?.hint ?? kind;
 }
 
-const nodeCategoryStyles: Record<NodeKind, { category: string; header: string; badge: string; dot: string }> = {
-    price: { category: "Market Data", header: "bg-sky-500/10 border-b border-sky-500/30", badge: "bg-sky-100 text-sky-950 dark:bg-sky-900/70 dark:text-sky-100 font-extrabold border border-sky-400/50 shadow-xs", dot: "#0ea5e9" },
-    moving_average: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    hma: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    rsi: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    macd: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    bollinger: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    keltner: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    donchian: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    supertrend: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    stochastic: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    adx: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    atr: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    cci: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    psar: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    vwap: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    ichimoku: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    mfi: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    williams_r: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    roc: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    ao: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    stddev: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    pivots: { category: "Technical", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
-    volume: { category: "Volume", header: "bg-slate-500/10 border-b border-slate-500/30", badge: "bg-slate-200 text-slate-950 dark:bg-slate-800 dark:text-slate-100 font-extrabold border border-slate-400/50 shadow-xs", dot: "#64748b" },
-    obv: { category: "Volume", header: "bg-slate-500/10 border-b border-slate-500/30", badge: "bg-slate-200 text-slate-950 dark:bg-slate-800 dark:text-slate-100 font-extrabold border border-slate-400/50 shadow-xs", dot: "#64748b" },
-    cmf: { category: "Volume", header: "bg-slate-500/10 border-b border-slate-500/30", badge: "bg-slate-200 text-slate-950 dark:bg-slate-800 dark:text-slate-100 font-extrabold border border-slate-400/50 shadow-xs", dot: "#64748b" },
-    crossover: { category: "Condition", header: "bg-orange-500/10 border-b border-orange-500/30", badge: "bg-orange-100 text-orange-950 dark:bg-orange-900/70 dark:text-orange-100 font-extrabold border border-orange-400/50 shadow-xs", dot: "#f97316" },
-    rsi_oversold: { category: "Condition", header: "bg-orange-500/10 border-b border-orange-500/30", badge: "bg-orange-100 text-orange-950 dark:bg-orange-900/70 dark:text-orange-100 font-extrabold border border-orange-400/50 shadow-xs", dot: "#f97316" },
-    rsi_overbought: { category: "Condition", header: "bg-orange-500/10 border-b border-orange-500/30", badge: "bg-orange-100 text-orange-950 dark:bg-orange-900/70 dark:text-orange-100 font-extrabold border border-orange-400/50 shadow-xs", dot: "#f97316" },
-    macd_bullish: { category: "Signal", header: "bg-emerald-500/10 border-b border-emerald-500/30", badge: "bg-emerald-100 text-emerald-950 dark:bg-emerald-900/70 dark:text-emerald-100 font-extrabold border border-emerald-400/50 shadow-xs", dot: "#22c55e" },
-    macd_bearish: { category: "Signal", header: "bg-rose-500/10 border-b border-rose-500/30", badge: "bg-rose-100 text-rose-950 dark:bg-rose-900/70 dark:text-rose-100 font-extrabold border border-rose-400/50 shadow-xs", dot: "#f43f5e" },
-    stoch_oversold: { category: "Condition", header: "bg-orange-500/10 border-b border-orange-500/30", badge: "bg-orange-100 text-orange-950 dark:bg-orange-900/70 dark:text-orange-100 font-extrabold border border-orange-400/50 shadow-xs", dot: "#f97316" },
-    stoch_overbought: { category: "Condition", header: "bg-orange-500/10 border-b border-orange-500/30", badge: "bg-orange-100 text-orange-950 dark:bg-orange-900/70 dark:text-orange-100 font-extrabold border border-orange-400/50 shadow-xs", dot: "#f97316" },
-    stoch_cross: { category: "Condition", header: "bg-orange-500/10 border-b border-orange-500/30", badge: "bg-orange-100 text-orange-950 dark:bg-orange-900/70 dark:text-orange-100 font-extrabold border border-orange-400/50 shadow-xs", dot: "#f97316" },
-    adx_strong: { category: "Condition", header: "bg-orange-500/10 border-b border-orange-500/30", badge: "bg-orange-100 text-orange-950 dark:bg-orange-900/70 dark:text-orange-100 font-extrabold border border-orange-400/50 shadow-xs", dot: "#f97316" },
-    cci_oversold: { category: "Condition", header: "bg-orange-500/10 border-b border-orange-500/30", badge: "bg-orange-100 text-orange-950 dark:bg-orange-900/70 dark:text-orange-100 font-extrabold border border-orange-400/50 shadow-xs", dot: "#f97316" },
-    cci_overbought: { category: "Condition", header: "bg-orange-500/10 border-b border-orange-500/30", badge: "bg-orange-100 text-orange-950 dark:bg-orange-900/70 dark:text-orange-100 font-extrabold border border-orange-400/50 shadow-xs", dot: "#f97316" },
-    psar_bull: { category: "Signal", header: "bg-emerald-500/10 border-b border-emerald-500/30", badge: "bg-emerald-100 text-emerald-950 dark:bg-emerald-900/70 dark:text-emerald-100 font-extrabold border border-emerald-400/50 shadow-xs", dot: "#22c55e" },
-    vwap_bull: { category: "Signal", header: "bg-sky-500/10 border-b border-sky-500/30", badge: "bg-sky-100 text-sky-950 dark:bg-sky-900/70 dark:text-sky-100 font-extrabold border border-sky-400/50 shadow-xs", dot: "#0ea5e9" },
-    ichimoku_bull: { category: "Signal", header: "bg-blue-500/10 border-b border-blue-500/30", badge: "bg-blue-100 text-blue-950 dark:bg-blue-900/70 dark:text-blue-100 font-extrabold border border-blue-400/50 shadow-xs", dot: "#3b82f6" },
-    volume_surge: { category: "Condition", header: "bg-orange-500/10 border-b border-orange-500/30", badge: "bg-orange-100 text-orange-950 dark:bg-orange-900/70 dark:text-orange-100 font-extrabold border border-orange-400/50 shadow-xs", dot: "#f97316" },
-    and: { category: "Logic", header: "bg-indigo-500/10 border-b border-indigo-500/30", badge: "bg-indigo-100 text-indigo-950 dark:bg-indigo-900/70 dark:text-indigo-100 font-extrabold border border-indigo-400/50 shadow-xs", dot: "#6366f1" },
-    long_entry: { category: "Execution", header: "bg-blue-500/10 border-b border-blue-500/30", badge: "bg-blue-100 text-blue-950 dark:bg-blue-900/70 dark:text-blue-100 font-extrabold border border-blue-400/50 shadow-xs", dot: "#3b82f6" },
-    short_entry: { category: "Execution", header: "bg-rose-500/10 border-b border-rose-500/30", badge: "bg-rose-100 text-rose-950 dark:bg-rose-900/70 dark:text-rose-100 font-extrabold border border-rose-400/50 shadow-xs", dot: "#f43f5e" },
-    close_long: { category: "Execution", header: "bg-orange-500/10 border-b border-orange-500/30", badge: "bg-orange-100 text-orange-950 dark:bg-orange-900/70 dark:text-orange-100 font-extrabold border border-orange-400/50 shadow-xs", dot: "#f97316" },
-    close_short: { category: "Execution", header: "bg-orange-500/10 border-b border-orange-500/30", badge: "bg-orange-100 text-orange-950 dark:bg-orange-900/70 dark:text-orange-100 font-extrabold border border-orange-400/50 shadow-xs", dot: "#f97316" },
-    risk_manager: { category: "Risk", header: "bg-red-500/10 border-b border-red-500/30", badge: "bg-red-100 text-red-950 dark:bg-red-900/70 dark:text-red-100 font-extrabold border border-red-400/50 shadow-xs", dot: "#ef4444" },
-    plot: { category: "Output", header: "bg-cyan-500/10 border-b border-cyan-500/30", badge: "bg-cyan-100 text-cyan-950 dark:bg-cyan-900/70 dark:text-cyan-100 font-extrabold border border-cyan-400/50 shadow-xs", dot: "#0284c7" },
+
+const VISUAL_CATEGORY_STYLES: Record<string, { header: string; badge: string; dot: string }> = {
+    "Market Data": { header: "bg-sky-500/10 border-b border-sky-500/30", badge: "bg-sky-100 text-sky-950 dark:bg-sky-900/70 dark:text-sky-100 font-extrabold border border-sky-400/50 shadow-xs", dot: "#0ea5e9" },
+    Technical: { header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", dot: "#f59e0b" },
+    Volume: { header: "bg-slate-500/10 border-b border-slate-500/30", badge: "bg-slate-200 text-slate-950 dark:bg-slate-800 dark:text-slate-100 font-extrabold border border-slate-400/50 shadow-xs", dot: "#64748b" },
+    Condition: { header: "bg-orange-500/10 border-b border-orange-500/30", badge: "bg-orange-100 text-orange-950 dark:bg-orange-900/70 dark:text-orange-100 font-extrabold border border-orange-400/50 shadow-xs", dot: "#f97316" },
+    Signal: { header: "bg-emerald-500/10 border-b border-emerald-500/30", badge: "bg-emerald-100 text-emerald-950 dark:bg-emerald-900/70 dark:text-emerald-100 font-extrabold border border-emerald-400/50 shadow-xs", dot: "#22c55e" },
+    Logic: { header: "bg-indigo-500/10 border-b border-indigo-500/30", badge: "bg-indigo-100 text-indigo-950 dark:bg-indigo-900/70 dark:text-indigo-100 font-extrabold border border-indigo-400/50 shadow-xs", dot: "#6366f1" },
+    Execution: { header: "bg-blue-500/10 border-b border-blue-500/30", badge: "bg-blue-100 text-blue-950 dark:bg-blue-900/70 dark:text-blue-100 font-extrabold border border-blue-400/50 shadow-xs", dot: "#3b82f6" },
+    Risk: { header: "bg-red-500/10 border-b border-red-500/30", badge: "bg-red-100 text-red-950 dark:bg-red-900/70 dark:text-red-100 font-extrabold border border-red-400/50 shadow-xs", dot: "#ef4444" },
+    Output: { header: "bg-cyan-500/10 border-b border-cyan-500/30", badge: "bg-cyan-100 text-cyan-950 dark:bg-cyan-900/70 dark:text-cyan-100 font-extrabold border border-cyan-400/50 shadow-xs", dot: "#0284c7" },
 };
+
+const nodeCategoryStyles: Record<NodeKind, { category: string; header: string; badge: string; dot: string }> = Object.fromEntries(
+    VISUAL_NODE_LIBRARY.map((entry) => [
+        entry.kind,
+        { category: entry.category, ...(VISUAL_CATEGORY_STYLES[entry.category] ?? VISUAL_CATEGORY_STYLES.Technical) },
+    ])
+) as Record<NodeKind, { category: string; header: string; badge: string; dot: string }>;
 
 function PineNode({ data, selected }: { data: any; selected?: boolean }) {
     const kind: NodeKind = data.kind;
@@ -572,7 +350,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
         }
     }
 
-    const generatedSource = useMemo(() => mode === "visual" ? createPineSource(flowNodes, flowEdges) : source, [mode, flowNodes, flowEdges, source]);
+    const generatedSource = useMemo(() => mode === "visual" ? buildPineFromVisual(flowNodes, flowEdges) : source, [mode, flowNodes, flowEdges, source]);
 
     const parsePineIndicators = useCallback((pineSource: string): { studies: string[]; detectedNames: string[] } => {
         const detected = new Set<string>();
@@ -1801,7 +1579,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                     <div className="flex items-center justify-between gap-3">
                         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Generated Pine Preview</p>
                         <Button size="xs" variant="ghost" onClick={copyPineSource} className="text-xs font-medium gap-1.5 text-foreground hover:bg-muted">
-                            <Copy size={13} />{copied ? "Copied ✓" : "Copy Pine source"}
+                            <Copy size={13} />{copied ? "Copied" : "Copy Pine source"}
                         </Button>
                     </div>
                     <pre className="max-h-48 overflow-auto rounded-xl border border-border/60 bg-background p-3.5 font-mono text-xs leading-relaxed text-foreground">{generatedSource}</pre>

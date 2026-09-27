@@ -14,6 +14,11 @@ const SESSIONS: SessionConfig[] = [
     { name: "London", key: "london", startHour: 7, startMinute: 0, endHour: 16, endMinute: 0 },
     { name: "New York", key: "new_york", startHour: 12, startMinute: 0, endHour: 21, endMinute: 0 },
     { name: "London/NY Overlap", key: "overlap", startHour: 12, startMinute: 0, endHour: 16, endMinute: 0 },
+    // Sydney/Australia session (21:00 UTC open = 5pm ET forex open). Checked
+    // last so it only fills the 21:00–24:00 UTC window the other sessions do
+    // not cover — without it the market reports "closed" while forex and
+    // metals are actually trading.
+    { name: "Sydney", key: "asian", startHour: 21, startMinute: 0, endHour: 7, endMinute: 0 },
 ];
 
 function getTimeInUTC(date: Date): { hour: number; minute: number } {
@@ -27,10 +32,35 @@ function isTimeInRange(hour: number, minute: number, startHour: number, startMin
     const timeMinutes = hour * 60 + minute;
     const startMinutes = startHour * 60 + startMinute;
     const endMinutes = endHour * 60 + endMinute;
-    return timeMinutes >= startMinutes && timeMinutes < endMinutes;
+    // Support windows that wrap midnight (e.g. Sydney 21:00 → 07:00).
+    if (startMinutes <= endMinutes) {
+        return timeMinutes >= startMinutes && timeMinutes < endMinutes;
+    }
+    return timeMinutes >= startMinutes || timeMinutes < endMinutes;
+}
+
+/**
+ * Whether the forex/CFD market is actually open: the trading week runs from
+ * Sunday 21:00 UTC (5pm ET) to Friday 21:00 UTC. Crypto trades through the
+ * weekend, but this flag reflects the forex/metals/indices session used by
+ * the session engine.
+ */
+export function isMarketOpen(now: Date = new Date()): boolean {
+    const day = now.getUTCDay(); // 0 = Sunday
+    const hours = now.getUTCHours() + now.getUTCMinutes() / 60;
+    if (day === 6) return false; // Saturday
+    if (day === 0) return hours >= 21; // Sunday until 21:00 UTC
+    if (day === 5) return hours < 21; // Friday after 21:00 UTC
+    return true;
 }
 
 export function getCurrentSession(now: Date = new Date()): { current: MarketSession; name: string } {
+    // Outside the Sun 21:00 → Fri 21:00 UTC trading week the market is
+    // genuinely closed — never report a session name.
+    if (!isMarketOpen(now)) {
+        return { current: "closed", name: "Closed" };
+    }
+
     const { hour, minute } = getTimeInUTC(now);
 
     for (const session of SESSIONS) {

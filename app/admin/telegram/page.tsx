@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AdminGuard from "@/components/auth/AdminGuard";
 import AdminShell from "@/components/admin/AdminShell";
 import { auth } from "@/lib/firebase";
@@ -68,6 +68,15 @@ interface TelegramAnalyticsRow {
     lastMessageAt: number | null;
 }
 
+/** Runtime monitoring diagnostics returned by the status & monitor endpoints. */
+interface TelegramRuntimeDiagnostics {
+    socketConnected: boolean;
+    clientInitialized: boolean;
+    isMonitoringActive: boolean;
+    monitoringStartedAt: number | null;
+    monitoringLastTickAt: number | null;
+}
+
 /** Response body of POST /api/admin/telegram/generate-ai-signal. */
 interface AiGenerateResponse {
     success: boolean;
@@ -96,6 +105,8 @@ export default function AdminTelegramPage() {
 function AdminTelegramDashboard() {
     const [activeTab, setActiveTab] = useState<TabType>("sources");
     const [status, setStatus] = useState<TelegramAdminConfig>({ connected: false, connectionStatus: "disconnected" });
+    const [runtime, setRuntime] = useState<TelegramRuntimeDiagnostics | null>(null);
+    const monitorKickAttempted = useRef(false);
 
     // Auth state
     const [phoneNumber, setPhoneNumber] = useState("");
@@ -182,6 +193,21 @@ function AdminTelegramDashboard() {
             const data = await res.json();
             if (data.success && data.status) {
                 setStatus(data.status);
+                if (data.runtime) setRuntime(data.runtime);
+
+                // Self-heal: after a server restart the in-memory monitoring flags are
+                // gone. Ask the server once to restore the listener immediately instead
+                // of waiting for the watchdog tick.
+                if (
+                    data.status.connected &&
+                    data.runtime &&
+                    !data.runtime.isMonitoringActive &&
+                    !monitorKickAttempted.current
+                ) {
+                    monitorKickAttempted.current = true;
+                    void handleStartMonitoring({ silent: true });
+                }
+
                 if (data.status.connected) {
                     setAuthStep("connected");
                 } else if (data.status.connectionStatus === "awaiting_code") {
@@ -282,6 +308,18 @@ function AdminTelegramDashboard() {
             cancelled = true;
         };
     }, []);
+
+    // Realtime-style polling while connected: refresh connection status, runtime
+    // health and the monitored sources list so new signals/metrics appear without
+    // a manual Refresh press.
+    useEffect(() => {
+        if (authStep !== "connected") return;
+        const id = setInterval(() => {
+            void fetchStatus();
+            void fetchSources();
+        }, 8000);
+        return () => clearInterval(id);
+    }, [authStep]);
 
     const fetchChannels = async () => {
         setLoadingChannels(true);
@@ -743,23 +781,26 @@ function AdminTelegramDashboard() {
         }
     };
 
-    const handleStartMonitoring = async () => {
+    const handleStartMonitoring = async (options?: { silent?: boolean }) => {
         setStartingMonitoring(true);
         try {
             const headers = await getAuthHeaders();
-            const res = await fetch("/api/admin/telegram/test", {
+            // Dedicated lightweight endpoint: idempotent (re)start of the server-side
+            // MTProto listener — no diagnostic suite, safe to call anytime.
+            const res = await fetch("/api/admin/telegram/monitor", {
                 method: "POST",
                 headers,
             });
             const data = await res.json();
             if (data.success) {
-                showToast("success", "Monitoring started successfully");
+                if (data.runtime) setRuntime(data.runtime);
+                if (!options?.silent) showToast("success", "Monitoring started successfully");
                 fetchStatus();
-            } else {
+            } else if (!options?.silent) {
                 showToast("error", data.error || "Failed to start monitoring");
             }
         } catch (err) {
-            showToast("error", errMsg(err, "Failed to start monitoring"));
+            if (!options?.silent) showToast("error", errMsg(err, "Failed to start monitoring"));
         } finally {
             setStartingMonitoring(false);
         }
@@ -802,6 +843,22 @@ function AdminTelegramDashboard() {
                                 <span className={`h-1.5 w-1.5 rounded-full ${status.connected ? "bg-emerald-400" : "bg-amber-400"}`} />
                                 {status.connected ? "Account Connected" : "Account Disconnected"}
                             </span>
+                            {status.connected && runtime && (
+                                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                                    runtime.isMonitoringActive && runtime.socketConnected
+                                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                        : "bg-red-500/10 text-red-400 border border-red-500/20"
+                                }`}>
+                                    <span className={`h-1.5 w-1.5 rounded-full ${
+                                        runtime.isMonitoringActive && runtime.socketConnected ? "bg-emerald-400 animate-pulse" : "bg-red-400"
+                                    }`} />
+                                    {runtime.isMonitoringActive && runtime.socketConnected
+                                        ? "Listening 24/7"
+                                        : runtime.isMonitoringActive
+                                        ? "Reconnecting…"
+                                        : "Listener Paused"}
+                                </span>
+                            )}
                         </div>
                         <p className="mt-1 text-xs text-muted-foreground">
                             {status.connected && status.userAccount
@@ -813,6 +870,20 @@ function AdminTelegramDashboard() {
                                     <span className={`font-semibold ${status.monitoringActive ? "text-emerald-400" : "text-amber-400"}`}>
                                         {status.monitoringActive ? "● Monitoring Active" : "○ Monitoring Stopped"}
                                     </span>
+                                    {runtime?.monitoringLastTickAt && (
+                                        <>
+                                            <span className="mx-2 text-muted-foreground">|</span>
+                                            <span className="text-muted-foreground">
+                                                Health check {new Date(runtime.monitoringLastTickAt).toLocaleTimeString()}
+                                            </span>
+                                        </>
+                                    )}
+                                </>
+                            )}
+                            {status.connected && status.lastError && (
+                                <>
+                                    <span className="mx-2 text-muted-foreground">|</span>
+                                    <span className="font-semibold text-red-400">⚠ {status.lastError}</span>
                                 </>
                             )}
                         </p>
@@ -822,16 +893,15 @@ function AdminTelegramDashboard() {
 <div className="flex items-center gap-2">
                         {status.connected ? (
                             <>
-                                {!status.monitoringActive && (
-                                    <button
-                                        onClick={handleStartMonitoring}
-                                        disabled={startingMonitoring}
-                                        className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-xs font-semibold text-black transition hover:bg-emerald-400 disabled:opacity-50"
-                                    >
-                                        {startingMonitoring ? <RefreshCw size={14} className="animate-spin" /> : <Play size={14} />}
-                                        Start Monitoring
-                                    </button>
-                                )}
+                                <button
+                                    onClick={() => handleStartMonitoring()}
+                                    disabled={startingMonitoring}
+                                    title="Restart the server-side Telegram listener (idempotent)"
+                                    className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-xs font-semibold text-black transition hover:bg-emerald-400 disabled:opacity-50"
+                                >
+                                    {startingMonitoring ? <RefreshCw size={14} className="animate-spin" /> : runtime?.isMonitoringActive ? <Activity size={14} /> : <Play size={14} />}
+                                    {runtime?.isMonitoringActive ? "Restart Listener" : "Start Monitoring"}
+                                </button>
                                 <button
                                     onClick={() => { setActiveTab("channels"); fetchChannels(); }}
                                     className="inline-flex items-center gap-2 rounded-xl border border-border bg-muted/20 px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-muted"

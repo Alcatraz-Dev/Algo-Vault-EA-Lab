@@ -63,15 +63,15 @@ export function SignalsListView({ onBack }: SignalsListViewProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-3 py-2 border-b border-white/5">
-        <span className="text-xs font-medium text-[#f0f0f5]">AI Signals</span>
+      <div className="px-3 py-2 border-b border-edge">
+        <span className="text-xs font-medium text-ink">AI Signals</span>
       </div>
 
       <div className="flex-1 overflow-y-auto p-3">
         {loading && (
           <div className="flex flex-col items-center justify-center gap-3 py-12">
-            <Loader2 size={20} className="animate-spin text-violet-400" />
-            <p className="text-[11px] text-[#8888aa]">Loading signals...</p>
+            <Loader2 size={20} className="animate-spin text-brand-400" />
+            <p className="text-[11px] text-ink-mute">Loading signals...</p>
           </div>
         )}
 
@@ -84,7 +84,7 @@ export function SignalsListView({ onBack }: SignalsListViewProps) {
 
         {!loading && !error && signals.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-[11px] text-[#8888aa]">No signals found</p>
+            <p className="text-[11px] text-ink-mute">No signals found</p>
           </div>
         )}
 
@@ -92,11 +92,11 @@ export function SignalsListView({ onBack }: SignalsListViewProps) {
           {signals.map((signal) => (
             <div
               key={signal.id}
-              className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5 space-y-2"
+              className="rounded-lg border border-edge bg-white/[0.02] p-2.5 space-y-2"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono text-[#f0f0f5]">
+                  <span className="text-xs font-mono text-ink">
                     {signal.symbol}
                   </span>
                   <span
@@ -120,40 +120,40 @@ export function SignalsListView({ onBack }: SignalsListViewProps) {
 
               <div className="grid grid-cols-4 gap-1 text-[10px]">
                 <div>
-                  <span className="text-[#8888aa] block">Entry</span>
-                  <span className="text-[#f0f0f5] font-mono">
+                  <span className="text-ink-mute block">Entry</span>
+                  <span className="text-ink font-mono">
                     {signal.entry}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[#8888aa] block">SL</span>
+                  <span className="text-ink-mute block">SL</span>
                   <span className="text-rose-400 font-mono">
                     {signal.stopLoss}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[#8888aa] block">TP1</span>
+                  <span className="text-ink-mute block">TP1</span>
                   <span className="text-emerald-400 font-mono">
                     {signal.takeProfit1}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[#8888aa] block">Conf.</span>
-                  <span className="text-[#f0f0f5] font-mono">
+                  <span className="text-ink-mute block">Conf.</span>
+                  <span className="text-ink font-mono">
                     {signal.confidence}%
                   </span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-[9px] text-[#8888aa]">
+                <span className="text-[9px] text-ink-mute">
                   {timeAgo(signal.createdAt)}
                 </span>
                 {signal.status === "ACTIVE" && (
                   <button
                     onClick={() => handleExecute(signal)}
                     disabled={executingId === signal.id}
-                    className="flex items-center gap-1 text-[10px] text-violet-400 hover:text-violet-300 disabled:opacity-50 transition-colors"
+                    className="flex items-center gap-1 text-[10px] text-brand-400 hover:text-brand-300 disabled:opacity-50 transition-colors"
                   >
                     {executingId === signal.id ? (
                       <Loader2 size={10} className="animate-spin" />
@@ -169,10 +169,10 @@ export function SignalsListView({ onBack }: SignalsListViewProps) {
         </div>
       </div>
 
-      <div className="px-3 py-2 border-t border-white/5">
+      <div className="px-3 py-2 border-t border-edge">
         <button
           onClick={onBack}
-          className="w-full text-xs text-[#8888aa] hover:text-[#f0f0f5] transition-colors py-1"
+          className="w-full text-xs text-ink-mute hover:text-ink transition-colors py-1"
         >
           Back
         </button>

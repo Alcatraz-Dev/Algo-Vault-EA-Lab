@@ -119,6 +119,7 @@ const ACCOUNT_NAV: NavGroup[] = [
           { icon: Bell, label: "Alert Center", href: "/alert-center" },
           { icon: BarChart3, label: "Backtests", href: "/backtests" },
           { icon: Activity, label: "Live Intelligence", href: "/account/live" },
+          { icon: Globe, label: "Live Map", href: "/account/livemap" },
           { icon: Copy, label: "Copy Trading", href: "/copy-trading" },
           { icon: Wallet, label: "Compare Brokers", href: "/compare" },
           { icon: Activity, label: "Scanner", href: "/scanner" },

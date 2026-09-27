@@ -1,7 +1,8 @@
 import { checkHealth, getGatewayStatus } from "@/api/algovault";
-import { getAuthToken, getMarketCache, setMarketCache } from "@/storage/storage";
+import { getAuthToken, getMarketCache, setMarketCache, getCopilotPrefs } from "@/storage/storage";
 import type { ChartContext, TradingViewContext, ViewMode } from "@/types";
 import { buildMarketContext } from "@/services/market-service";
+import { generateResearch } from "@/services/research-service";
 import {
   enrichChartContext,
   buildStructuredContext,
@@ -16,6 +17,7 @@ let healthCheckInterval: ReturnType<typeof setInterval> | null = null;
 let cachedChartContext: ChartContext | null = null;
 let chartContextTimestamp = 0;
 let latestEnriched: EnrichedChartContext | null = null;
+let lastAutoAnalyzedSymbol: string | null = null;
 
 let enrichmentTimer: ReturnType<typeof setTimeout> | null = null;
 let enrichmentInFlight: Promise<void> | null = null;
@@ -24,25 +26,15 @@ let pendingAction: { view: ViewMode; context?: ChartContext | null } | null = nu
 /* ── context menus ───────────────────────────────────────────────────── */
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: "algovault-analyze",
-    title: "Analyze with AlgoVault",
-    contexts: ["page", "selection"],
-  });
-  chrome.contextMenus.create({
-    id: "algovault-strategy-lab",
-    title: "Send to Strategy Lab",
-    contexts: ["page"],
-  });
-  chrome.contextMenus.create({
-    id: "algovault-risk",
-    title: "Calculate Risk",
-    contexts: ["page"],
-  });
-  chrome.contextMenus.create({
-    id: "algovault-backtest",
-    title: "Open in Backtest",
-    contexts: ["page"],
+  // Remove stale entries first — onInstalled also fires on update/reload and
+  // duplicate ids would otherwise log "Cannot create item with same id".
+  chrome.contextMenus.removeAll(() => {
+    const create = (id: string, title: string, contexts: chrome.contextMenus.ContextType[]) =>
+      chrome.contextMenus.create({ id, title, contexts }, () => void chrome.runtime.lastError);
+    create("algovault-analyze", "Analyze with AlgoVault", ["page", "selection"]);
+    create("algovault-strategy-lab", "Send to Strategy Lab", ["page"]);
+    create("algovault-risk", "Calculate Risk", ["page"]);
+    create("algovault-backtest", "Open in Backtest", ["page"]);
   });
 });
 
@@ -173,6 +165,24 @@ async function runEnrichment(): Promise<void> {
   try {
     await broadcastToAll({ type: "MARKET_CONTEXT_READY", payload: enriched });
   } catch { /* no receivers */ }
+
+  // Auto-analysis: pre-generate the quick research note when the chart symbol
+  // changes (only when the user opted in; cached reports are reused).
+  try {
+    const prefs = await getCopilotPrefs();
+    const symbol = enriched.chart.symbol;
+    if (prefs.autoAnalyzeOnSwitch && symbol && symbol !== lastAutoAnalyzedSymbol) {
+      lastAutoAnalyzedSymbol = symbol;
+      void generateResearch({
+        symbol,
+        timeframe: enriched.chart.timeframe || "H1",
+        kind: "quick",
+        structuredContext: buildStructuredContext(enriched),
+        contextObject: enriched,
+        force: false,
+      }).catch(() => { /* research is optional */ });
+    }
+  } catch { /* prefs may be unavailable */ }
 }
 
 async function buildEnrichedFor(chart: ChartContext, force = false): Promise<EnrichedChartContext> {
@@ -209,8 +219,96 @@ async function buildEnrichedFor(chart: ChartContext, force = false): Promise<Enr
 
 /* ── message handling ────────────────────────────────────────────────── */
 
+/* ── side panel ─────────────────────────────────────────────────────── */
+
+// Open the side panel when the toolbar icon is clicked. The popup stays the
+// default action surface (manifest `default_popup`); this listener only runs
+// when the popup is suppressed programmatically below.
+chrome.sidePanel
+  .setPanelBehavior({ openPanelOnActionClick: false })
+  .catch((err: unknown) => console.warn(`${EXT_PREFIX} setPanelBehavior failed:`, err));
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   switch (message.type) {
+    case "OPEN_SIDE_PANEL": {
+      // User-gesture critical: chrome.sidePanel.open() must be called
+      // synchronously in this handler body — awaiting anything first (windows
+      // queries, storage) invalidates the gesture and Chrome rejects the call
+      // with "may only be called in response to a user gesture".
+      const senderWindowId = _sender?.tab?.windowId;
+      const requestedWindowId = message.windowId as number | undefined;
+      const windowId =
+        requestedWindowId != null && requestedWindowId !== chrome.windows.WINDOW_ID_CURRENT
+          ? requestedWindowId
+          : senderWindowId;
+
+      try {
+        if (windowId != null) {
+          chrome.sidePanel.open({ windowId }).catch((err: unknown) => {
+            console.warn(`${EXT_PREFIX} sidePanel.open failed:`, err);
+          });
+        } else {
+          // No window id known — try CURRENT (resolves in the SW context),
+          // then fall back to a last-focused lookup without the gesture.
+          chrome.sidePanel
+            .open({ windowId: chrome.windows.WINDOW_ID_CURRENT })
+            .catch(async () => {
+              try {
+                const win = await chrome.windows.getLastFocused();
+                if (win?.id != null) await chrome.sidePanel.open({ windowId: win.id });
+              } catch (err) {
+                console.warn(`${EXT_PREFIX} sidePanel.open fallback failed:`, err);
+              }
+            });
+        }
+      } catch (err) {
+        console.warn(`${EXT_PREFIX} sidePanel.open failed:`, err);
+      }
+      sendResponse({ ok: true });
+      return false;
+    }
+
+    case "RUN_CHART_COMMAND": {
+      // Relay the command to TradingView tabs — content scripts are only
+      // reachable via chrome.tabs.sendMessage.
+      (async () => {
+        const payload = (message.payload ?? {}) as Record<string, unknown>;
+        const tabs = await chrome.tabs.query({ url: "*://*.tradingview.com/*" });
+        if (tabs.length === 0) {
+          broadcastToAll({
+            type: "CHART_COMMAND_RESULT",
+            payload: { command: payload.command, ok: false, message: "No TradingView tab open", at: Date.now() },
+          });
+          return;
+        }
+        for (const tab of tabs) {
+          if (tab.id == null) continue;
+          chrome.tabs.sendMessage(tab.id, { type: "RUN_CHART_COMMAND", payload }).catch(() => {});
+        }
+      })();
+      sendResponse({ ok: true, message: "Relayed to TradingView" });
+      return false;
+    }
+
+    case "CHART_COMMAND_RESULT":
+      // Rebroadcast results so every extension surface sees them.
+      broadcastToAll({ type: "CHART_COMMAND_RESULT", payload: message.payload });
+      sendResponse({ ok: true });
+      return false;
+
+    case "SET_SMART_DRAWINGS":
+    case "CLEAR_SMART_DRAWINGS":
+      // Relay drawing payloads from extension pages to TradingView tabs.
+      (async () => {
+        const tabs = await chrome.tabs.query({ url: "*://*.tradingview.com/*" });
+        for (const tab of tabs) {
+          if (tab.id == null) continue;
+          chrome.tabs.sendMessage(tab.id, { type: message.type, payload: message.payload }).catch(() => {});
+        }
+      })();
+      sendResponse({ ok: true });
+      return false;
+
     case "GET_HEALTH":
       checkHealth()
         .then((ok) => sendResponse({ healthy: ok }))
@@ -326,6 +424,35 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       }
       sendResponse({ success: true });
       return false;
+
+    case "CREATE_QUICK_ALERT": {
+      // One-tap alert from the overlay: fires at the current price.
+      const p = (message.payload ?? {}) as { symbol?: string; price?: number; timeframe?: string };
+      if (p.symbol && typeof p.price === "number") {
+        void (async () => {
+          try {
+            const { createAlert } = await import("../api/alerts");
+            await createAlert({
+              symbol: p.symbol as string,
+              type: "price_above",
+              targetPrice: p.price,
+              timeframe: p.timeframe || "H1",
+              message: `Quick alert @ ${p.price} (${p.timeframe || "H1"})`,
+            });
+            chrome.notifications.create({
+              type: "basic",
+              iconUrl: chrome.runtime.getURL("icons/icon128.svg"),
+              title: "Alert created",
+              message: `${p.symbol} @ ${p.price} — you'll be notified.`,
+            });
+          } catch (err) {
+            console.warn(`${EXT_PREFIX} quick alert failed:`, err);
+          }
+        })();
+      }
+      sendResponse({ ok: true });
+      return false;
+    }
 
     default:
       return false;

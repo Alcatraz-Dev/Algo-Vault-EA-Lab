@@ -1,6 +1,7 @@
 import { MarketCandle, MarketQuote, Timeframe, SupportedSymbol } from "./types";
 import { fetchCandles } from "./normalizer";
 import { fetchBiquoteLivePrice, tradingViewLivePriceCache } from "@/lib/market-data/tradingview-live";
+import { isMarketOpen } from "@/lib/analytics/sessions";
 
 export type DataProvider = "biquote" | "tradingview";
 
@@ -254,8 +255,8 @@ export async function fetchMarketSnapshot(
         serverTimestamp: now,
         dataAgeMs,
         timeframe,
-        marketSession: "new_york",
-        marketStatus: "open",
+        marketSession: isMarketOpen() ? "new_york" : "closed",
+        marketStatus: isMarketOpen() ? "open" : "closed",
         recentCandles,
         multiTimeframeCandles,
         trend,

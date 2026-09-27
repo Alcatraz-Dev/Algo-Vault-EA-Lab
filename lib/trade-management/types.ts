@@ -38,6 +38,7 @@ export type TargetConfig = {
     hitAt?: number;
     hitPrice?: number;
     eventIds: string[];
+    lastApproachAt?: number; // cooldown guard for approaching alerts
 };
 
 // ============================================
@@ -67,6 +68,10 @@ export type TradeManagementConfig = {
     trailingType: TrailingType;
     trailingDistance: number; // fixed distance in points
     trailingAtrMultiplier: number; // for ATR trailing
+    trailingAtrValue?: number; // latest ATR(14) in price units, fed by the client
+
+    // Internal execution guards (not user-facing)
+    runnerActivated?: boolean; // runner activation event already fired
 
     // Auto Management
     autoManagement: boolean; // true = execute automatically, false = recommendations only

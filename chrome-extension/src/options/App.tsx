@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { getSettings, saveSettings } from "@/storage/storage";
+import { Zap } from "lucide-react";
+import { getSettings, saveSettings, clearMarketCache } from "@/storage/storage";
 import { getAlgoVaultUrl } from "@/config/environment";
 import type { ExtensionSettings } from "@/types";
 
@@ -15,10 +16,15 @@ export default function OptionsApp() {
     theme: "dark",
   });
   const [saved, setSaved] = useState(false);
+  const [cleared, setCleared] = useState(false);
 
   useEffect(() => {
     getSettings().then(setSettings);
   }, []);
+
+  const update = (key: keyof ExtensionSettings, value: boolean | number | string) => {
+    setSettings((prev) => ({ ...prev, [key]: value }));
+  };
 
   const handleSave = async () => {
     await saveSettings(settings);
@@ -26,94 +32,78 @@ export default function OptionsApp() {
     setTimeout(() => setSaved(false), 2000);
   };
 
-  const update = (key: keyof ExtensionSettings, value: boolean | number | string) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
+  const handleClearCache = async () => {
+    await clearMarketCache();
+    setCleared(true);
+    setTimeout(() => setCleared(false), 2000);
   };
 
-  return (
-    <div className="min-h-screen bg-[#0a0a0f] text-[#f0f0f5] p-6">
-      <div className="max-w-lg mx-auto">
-        <h1 className="text-xl font-bold mb-1">AlgoVault Extension Settings</h1>
-        <p className="text-sm text-[#8888aa] mb-6">Configure your trading intelligence companion</p>
+  const inputCls =
+    "w-full rounded-lg border border-edge bg-raised px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-brand-500/60";
 
-        <div className="space-y-4">
+  const Toggle = ({ label, desc, value, onChange }: { label: string; desc: string; value: boolean; onChange: (v: boolean) => void }) => (
+    <div className="flex items-center justify-between gap-4 py-2">
+      <div>
+        <p className="text-sm font-medium text-ink">{label}</p>
+        <p className="text-xs text-ink-mute">{desc}</p>
+      </div>
+      <button
+        type="button"
+        onClick={() => onChange(!value)}
+        className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${value ? "bg-brand-500" : "bg-neutral-700"}`}
+      >
+        <span
+          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${value ? "translate-x-4" : "translate-x-0.5"}`}
+        />
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-base p-6 text-ink">
+      <div className="mx-auto max-w-lg">
+        <div className="mb-6 flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500/15">
+            <Zap size={16} className="text-brand-500" />
+          </div>
           <div>
-            <label className="block text-xs font-medium text-[#8888aa] mb-1">AlgoVault URL</label>
+            <h1 className="text-lg font-bold">AlgoVault Extension Settings</h1>
+            <p className="text-xs text-ink-mute">Configure your trading intelligence companion</p>
+          </div>
+        </div>
+
+        <div className="space-y-4 rounded-xl border border-edge bg-card p-5">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-ink-mute">AlgoVault URL</label>
             <input
               type="url"
               value={settings.algovaultUrl}
               onChange={(e) => update("algovaultUrl", e.target.value)}
-              className="w-full rounded-lg border border-[#2a2a3e] bg-[#1a1a2e] px-3 py-2 text-sm text-[#f0f0f5] focus:border-violet-500 focus:outline-none"
+              className={inputCls}
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Auto-detect TradingView</p>
-              <p className="text-xs text-[#8888aa]">Automatically detect symbols on TradingView</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => update("autoDetectTradingView", !settings.autoDetectTradingView)}
-              className={`relative h-5 w-9 rounded-full transition-colors ${settings.autoDetectTradingView ? "bg-violet-600" : "bg-[#2a2a3e]"}`}
-            >
-              <span
-                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${settings.autoDetectTradingView ? "translate-x-4" : "translate-x-0.5"}`}
-              />
-            </button>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Show overlay on TradingView</p>
-              <p className="text-xs text-[#8888aa]">Floating AlgoVault button</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => update("showOverlay", !settings.showOverlay)}
-              className={`relative h-5 w-9 rounded-full transition-colors ${settings.showOverlay ? "bg-violet-600" : "bg-[#2a2a3e]"}`}
-            >
-              <span
-                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${settings.showOverlay ? "translate-x-4" : "translate-x-0.5"}`}
-              />
-            </button>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Enable chart analysis</p>
-              <p className="text-xs text-[#8888aa]">Allow AI chart analysis features</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => update("enableChartAnalysis", !settings.enableChartAnalysis)}
-              className={`relative h-5 w-9 rounded-full transition-colors ${settings.enableChartAnalysis ? "bg-violet-600" : "bg-[#2a2a3e]"}`}
-            >
-              <span
-                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${settings.enableChartAnalysis ? "translate-x-4" : "translate-x-0.5"}`}
-              />
-            </button>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Confirm before execution</p>
-              <p className="text-xs text-[#8888aa]">Always show confirmation dialog</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => update("confirmBeforeExecution", !settings.confirmBeforeExecution)}
-              className={`relative h-5 w-9 rounded-full transition-colors ${settings.confirmBeforeExecution ? "bg-violet-600" : "bg-[#2a2a3e]"}`}
-            >
-              <span
-                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${settings.confirmBeforeExecution ? "translate-x-4" : "translate-x-0.5"}`}
-              />
-            </button>
+          <div className="divide-y divide-edge border-t border-b border-edge">
+            <Toggle label="Auto-detect TradingView" desc="Automatically detect symbols on TradingView" value={settings.autoDetectTradingView} onChange={(v) => update("autoDetectTradingView", v)} />
+            <Toggle label="Show overlay on TradingView" desc="Floating AlgoVault intelligence panel" value={settings.showOverlay} onChange={(v) => update("showOverlay", v)} />
+            <Toggle label="Enable chart analysis" desc="Allow AI chart analysis features" value={settings.enableChartAnalysis} onChange={(v) => update("enableChartAnalysis", v)} />
+            <Toggle label="Confirm before execution" desc="Always show confirmation dialog" value={settings.confirmBeforeExecution} onChange={(v) => update("confirmBeforeExecution", v)} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-[#8888aa] mb-1">Default Risk %</label>
+              <label className="mb-1 block text-xs font-medium text-ink-mute">Account Size ($)</label>
+              <input
+                type="number"
+                min={100}
+                step={100}
+                value={settings.accountSize ?? 10000}
+                onChange={(e) => update("accountSize", parseFloat(e.target.value) || 10000)}
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-ink-mute">Default Risk %</label>
               <input
                 type="number"
                 min={0.1}
@@ -121,36 +111,44 @@ export default function OptionsApp() {
                 step={0.1}
                 value={settings.defaultRiskPercent}
                 onChange={(e) => update("defaultRiskPercent", parseFloat(e.target.value) || 1)}
-                className="w-full rounded-lg border border-[#2a2a3e] bg-[#1a1a2e] px-3 py-2 text-sm text-[#f0f0f5] focus:border-violet-500 focus:outline-none"
+                className={inputCls}
               />
             </div>
-            <div>
-              <label className="block text-xs font-medium text-[#8888aa] mb-1">Default Timeframe</label>
-              <select
-                value={settings.defaultTimeframe}
-                onChange={(e) => update("defaultTimeframe", e.target.value)}
-                className="w-full rounded-lg border border-[#2a2a3e] bg-[#1a1a2e] px-3 py-2 text-sm text-[#f0f0f5] focus:border-violet-500 focus:outline-none"
-              >
-                {["M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1"].map((tf) => (
-                  <option key={tf} value={tf}>{tf}</option>
-                ))}
-              </select>
-            </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-medium text-ink-mute">Default Timeframe</label>
+            <select
+              value={settings.defaultTimeframe}
+              onChange={(e) => update("defaultTimeframe", e.target.value)}
+              className={inputCls}
+            >
+              {["M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1"].map((tf) => (
+                <option key={tf} value={tf}>{tf}</option>
+              ))}
+            </select>
           </div>
         </div>
 
-        <div className="mt-6 flex gap-3">
+        <div className="mt-5 flex gap-3">
           <button
             type="button"
             onClick={handleSave}
-            className="flex-1 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-500 transition"
+            className="flex-1 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-400"
           >
             {saved ? "Saved!" : "Save Settings"}
           </button>
+          <button
+            type="button"
+            onClick={handleClearCache}
+            className="rounded-lg border border-edge bg-card px-4 py-2.5 text-sm text-ink-mute transition-colors hover:border-rose-500/30 hover:text-rose-400"
+          >
+            {cleared ? "Cache cleared" : "Clear market cache"}
+          </button>
         </div>
 
-        <p className="mt-4 text-center text-[10px] text-[#8888aa]">
-          AlgoVault Trading Intelligence v1.0.0
+        <p className="mt-4 text-center text-[10px] text-ink-faint">
+          AlgoVault Trading Intelligence v2.0.0
         </p>
       </div>
     </div>

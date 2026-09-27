@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { auth } from "@/lib/firebase";
 
 export type LivePrices = Record<string, number>;
 
@@ -48,9 +49,14 @@ export function useLivePrices(
         abortRef.current = new AbortController();
 
         try {
+            // /api/signals/quotes requires a Firebase ID token; attach one when
+            // a session exists so the request is not rejected with 401.
+            const token = await auth.currentUser?.getIdToken().catch(() => null);
+            const headers: Record<string, string> = {};
+            if (token) headers.Authorization = `Bearer ${token}`;
             const res = await fetch(
                 `/api/signals/quotes?symbols=${syms.join(",")}`,
-                { signal: abortRef.current.signal }
+                { signal: abortRef.current.signal, headers }
             );
             if (!res.ok) return;
             const data: { prices?: LivePrices; success?: boolean } = await res.json();

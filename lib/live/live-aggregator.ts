@@ -1,4 +1,11 @@
-import type { LiveActivity, LiveStats, CountryActivity, MarketShare } from "./live-types";
+import type {
+  LiveActivity,
+  LiveStats,
+  CountryActivity,
+  MarketShare,
+  CountryCluster,
+} from "./live-types";
+import { flagFromCountryCode } from "./live-types";
 
 export const LIVE_ACTIVITY_MODE =
   process.env.NEXT_PUBLIC_LIVE_MODE === "production" ? "production" : "demo";
@@ -57,10 +64,6 @@ const TYPES = [
   "signal",
   "ai_analysis",
 ] as const;
-
-function randomChoice<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
 
 function deterministicSeed(id: string): number {
   let h = 0;
@@ -131,6 +134,112 @@ export function getMarketShares(): MarketShare[] {
     { market: "NAS100", share: 8 },
     { market: "GBPUSD", share: 5 },
   ];
+}
+
+/* ------------------------------------------------------------------ */
+/* Country clusters — powers the world-map dots and hover cards        */
+/* ------------------------------------------------------------------ */
+
+export const COUNTRY_META: Record<
+  string,
+  { lat: number; lng: number; code: string; region: "americas" | "emea" | "apac" }
+> = Object.fromEntries(
+  Object.entries(COUNTRIES).map(([name, m]) => {
+    const region =
+      m.lng < -30 ? "americas" : m.lng > 60 || m.lat < 0 ? "apac" : "emea";
+    return [name, { ...m, region }];
+  })
+) as Record<
+  string,
+  { lat: number; lng: number; code: string; region: "americas" | "emea" | "apac" }
+>;
+
+/**
+ * Aggregates raw activity rows into privacy-safe per-country clusters.
+ * The per-country numbers are derived deterministically from the activity
+ * seed so map, feed and panels always tell the same story.
+ */
+export function buildCountryClusters(activities: LiveActivity[]): CountryCluster[] {
+  const byCountry = new Map<string, LiveActivity[]>();
+  for (const a of activities) {
+    const list = byCountry.get(a.country) ?? [];
+    list.push(a);
+    byCountry.set(a.country, list);
+  }
+
+  const clusters: CountryCluster[] = [];
+  for (const [country, rows] of byCountry) {
+    const meta = COUNTRY_META[country];
+    if (!meta) continue;
+    // Deterministic weight per country so numbers don't jump between renders.
+    const weight = 20 + (deterministicSeed(country) % 480);
+    const markets = rows.map((r) => r.market).filter(Boolean) as string[];
+    const marketCount = new Map<string, number>();
+    for (const m of markets) marketCount.set(m, (marketCount.get(m) ?? 0) + 1);
+    const topMarket =
+      [...marketCount.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "XAUUSD";
+    clusters.push({
+      country,
+      countryCode: meta.code,
+      lat: meta.lat,
+      lng: meta.lng,
+      activeUsers: weight,
+      analyses: Math.round(weight * (1.5 + (deterministicSeed(country + "a") % 20) / 10)),
+      signals: Math.round(weight * (2 + (deterministicSeed(country + "s") % 25) / 10)),
+      topMarket,
+      flag: flagFromCountryCode(meta.code),
+    });
+  }
+  return clusters.sort((a, b) => b.activeUsers - a.activeUsers);
+}
+
+/* ------------------------------------------------------------------ */
+/* FX sessions — which major session is open right now (UTC)           */
+/* ------------------------------------------------------------------ */
+
+export interface MarketSession {
+  name: string;
+  cities: string;
+  /** UTC hour bounds, inclusive start, exclusive end (wraps midnight). */
+  startUtc: number;
+  endUtc: number;
+}
+
+export const MARKET_SESSIONS: MarketSession[] = [
+  { name: "Sydney", cities: "AUS / NZ", startUtc: 21, endUtc: 6 },
+  { name: "Tokyo", cities: "JPY hub", startUtc: 0, endUtc: 9 },
+  { name: "London", cities: "GBP / EUR", startUtc: 7, endUtc: 16 },
+  { name: "New York", cities: "USD hub", startUtc: 12, endUtc: 21 },
+];
+
+export function sessionIsOpen(s: MarketSession, date = new Date()): boolean {
+  const h = date.getUTCHours();
+  return s.startUtc <= s.endUtc ? h >= s.startUtc && h < s.endUtc : h >= s.startUtc || h < s.endUtc;
+}
+
+export function activeSessionNames(date = new Date()): string[] {
+  return MARKET_SESSIONS.filter((s) => sessionIsOpen(s, date)).map((s) => s.name);
+}
+
+/* ------------------------------------------------------------------ */
+/* Rotating live feed                                                  */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Produces the next snapshot of demo activity: keeps a slice of the previous
+ * rows for continuity, drops a few oldest, and prepends fresh ones. Feed and
+ * map stay in sync when both are given the same array.
+ */
+export function nextLiveActivities(prev: LiveActivity[], count = 60): LiveActivity[] {
+  const now = Date.now();
+  const fresh = generateDemoActivities(6).map((a, i) => ({
+    ...a,
+    // Unique id per rotation so React keys never collide with kept rows.
+    id: `${a.id}-r${now}`,
+    timestamp: now - i * 900,
+  }));
+  const keep = prev.slice(0, Math.max(0, count - fresh.length - 2));
+  return [...fresh, ...keep].slice(0, count);
 }
 
 export function aggregateFromEvents(events: LiveActivity[]): LiveActivity[] {

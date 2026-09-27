@@ -146,6 +146,19 @@ export async function PUT(request: NextRequest) {
 
         await sourceRef.set(updatedSource);
 
+        // If a source was re-enabled (or parsing turned back on) while monitoring is
+        // paused, make sure the server-side listener is running again so Pro users
+        // receive its signals without a manual Start press.
+        const wasActive = Boolean(current.enabled && current.parsingEnabled);
+        const isActive = Boolean(updatedSource.enabled && updatedSource.parsingEnabled);
+        if (!wasActive && isActive) {
+            try {
+                await telegramUserClientManager.startMonitoring();
+            } catch (err) {
+                console.error("[PUT /api/admin/telegram/sources] monitoring resume failed", err);
+            }
+        }
+
         return NextResponse.json({ success: true, source: updatedSource });
     } catch (err: unknown) {
         console.error("[PUT /api/admin/telegram/sources]", err);

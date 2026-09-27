@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { getSettings, saveSettings } from "@/storage/storage";
+import { Loader2, Trash2, Bot } from "lucide-react";
+import { getSettings, saveSettings, clearMarketCache, getCopilotPrefs, saveCopilotPrefs } from "@/storage/storage";
 import { getAlgoVaultUrl, isDevelopment } from "@/config/environment";
 import { fetchDiagnostics } from "@/api/context";
-import { buildMarketContext } from "@/services/market-service";
 import type { ExtensionSettings } from "@/types";
 import type { DebugInfo, AnalysisStage } from "@/types/market-context";
+import { PERSONAS, type PersonaId } from "@/types/copilot";
+import { openSidePanelFromExtensionPage, primeSidePanelWindowId } from "@/utils/side-panel";
+import { Field, Feedback, GhostButton, inputClass, PrimaryButton, ViewHeader } from "./ui";
 
 interface SettingsViewProps {
   onBack: () => void;
@@ -18,11 +21,25 @@ export function SettingsView({ onBack, onLogout }: SettingsViewProps) {
     confirmBeforeExecution: true, theme: "dark",
   });
   const [saved, setSaved] = useState(false);
+  const [cacheCleared, setCacheCleared] = useState(false);
   const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
   const [debugLoading, setDebugLoading] = useState(false);
   const [devDiagnostic, setDevDiagnostic] = useState(false);
+  const [copilotPersona, setCopilotPersona] = useState<PersonaId>("analyst");
+  const [copilotAuto, setCopilotAuto] = useState(false);
 
-  useEffect(() => { getSettings().then((s) => setSettings(s)); }, []);
+  useEffect(() => {
+    getSettings().then((s) => setSettings(s));
+    getCopilotPrefs().then((p) => {
+      setCopilotPersona(p.personaId);
+      setCopilotAuto(p.autoAnalyzeOnSwitch);
+    });
+    primeSidePanelWindowId();
+  }, []);
+
+  const update = <K extends keyof ExtensionSettings>(key: K, value: ExtensionSettings[K]) => {
+    setSettings((prev) => ({ ...prev, [key]: value }));
+  };
 
   const handleSave = async () => {
     await saveSettings(settings);
@@ -30,15 +47,16 @@ export function SettingsView({ onBack, onLogout }: SettingsViewProps) {
     setTimeout(() => setSaved(false), 2000);
   };
 
-  const update = <K extends keyof ExtensionSettings>(key: K, value: ExtensionSettings[K]) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
+  const handleClearCache = async () => {
+    await clearMarketCache();
+    setCacheCleared(true);
+    setTimeout(() => setCacheCleared(false), 2500);
   };
 
   const handleRefreshDebug = async () => {
     setDebugLoading(true);
     try {
-      const info = await fetchDiagnostics();
-      setDebugInfo(info);
+      setDebugInfo(await fetchDiagnostics());
     } catch {
       setDebugInfo(null);
     } finally {
@@ -46,94 +64,137 @@ export function SettingsView({ onBack, onLogout }: SettingsViewProps) {
     }
   };
 
-  const inputClass = "w-full bg-white/5 border border-white/10 rounded px-2.5 py-1.5 text-xs text-[#f0f0f5] outline-none focus:border-violet-500/30";
-
   return (
-    <div className="flex flex-col h-full">
-      <div className="px-3 py-2 border-b border-white/5 flex items-center justify-between">
-        <span className="text-xs font-medium text-[#f0f0f5]">Settings</span>
-        <div className="flex items-center gap-2">
-          {isDevelopment() && (
-            <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 text-[9px] font-semibold uppercase tracking-wider">DEV</span>
-          )}
-          <button
-            onClick={() => setDevDiagnostic(!devDiagnostic)}
-            className="text-[9px] text-[#8888aa] hover:text-[#f0f0f5] transition-colors px-1.5 py-0.5 rounded border border-white/5"
-          >
-            Diag
-          </button>
-        </div>
-      </div>
+    <div className="flex h-full flex-col">
+      <ViewHeader
+        title="Settings"
+        right={
+          isDevelopment() ? (
+            <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-400">DEV</span>
+          ) : undefined
+        }
+      />
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-3">
-        <div>
-          <label className="text-[10px] text-[#8888aa] uppercase tracking-wider mb-1 block">AlgoVault URL</label>
+      <div className="flex-1 space-y-3 overflow-y-auto p-3">
+        <Field label="AlgoVault URL" hint="Server the extension talks to (restart popup after change).">
           <input type="url" value={settings.algovaultUrl} onChange={(e) => update("algovaultUrl", e.target.value)} className={inputClass} />
+        </Field>
+
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="Account size ($)" hint="Used for risk sizing.">
+            <input
+              type="number"
+              value={settings.accountSize ?? 10000}
+              onChange={(e) => update("accountSize", parseFloat(e.target.value) || 10000)}
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Default risk (%)">
+            <input
+              type="number"
+              step="0.1"
+              value={settings.defaultRiskPercent}
+              onChange={(e) => update("defaultRiskPercent", parseFloat(e.target.value) || 1)}
+              className={inputClass}
+            />
+          </Field>
         </div>
 
-        <div className="space-y-2">
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="Default timeframe">
+            <select value={settings.defaultTimeframe} onChange={(e) => update("defaultTimeframe", e.target.value)} className={inputClass}>
+              {["M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1"].map((tf) => (
+                <option key={tf} value={tf}>{tf}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Theme">
+            <select value={settings.theme} onChange={(e) => update("theme", e.target.value as "dark" | "light")} className={inputClass}>
+              <option value="dark">Dark</option>
+              <option value="light">Light (soon)</option>
+            </select>
+          </Field>
+        </div>
+
+        <div className="space-y-1.5 rounded-lg border border-edge bg-card p-2.5">
           <ToggleRow label="Auto-detect TradingView" checked={settings.autoDetectTradingView} onChange={(v) => update("autoDetectTradingView", v)} />
-          <ToggleRow label="Show overlay" checked={settings.showOverlay} onChange={(v) => update("showOverlay", v)} />
+          <ToggleRow label="Show overlay on TradingView" checked={settings.showOverlay} onChange={(v) => update("showOverlay", v)} />
           <ToggleRow label="Enable chart analysis" checked={settings.enableChartAnalysis} onChange={(v) => update("enableChartAnalysis", v)} />
           <ToggleRow label="Confirm before execution" checked={settings.confirmBeforeExecution} onChange={(v) => update("confirmBeforeExecution", v)} />
         </div>
 
-        <div>
-          <label className="text-[10px] text-[#8888aa] uppercase tracking-wider mb-1 block">Default Risk %</label>
-          <input type="number" value={settings.defaultRiskPercent} onChange={(e) => update("defaultRiskPercent", parseFloat(e.target.value) || 1)} className={inputClass} />
+        {/* ── AI Copilot (v3) ─────────────────────────────────────── */}
+        <div className="space-y-2 rounded-lg border border-brand-500/20 bg-brand-500/[0.04] p-2.5">
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-brand-400">
+              <Bot size={11} /> AI Copilot
+            </span>
+            <button
+              onClick={openSidePanelFromExtensionPage}
+              className="text-[10px] text-brand-400 hover:text-brand-300"
+            >
+              Open →
+            </button>
+          </div>
+          <p className="text-[9px] leading-relaxed text-ink-faint">
+            The side-panel copilot remembers each symbol separately, can draw key levels on your chart, and manages alerts.
+          </p>
+          <Field label="Persona">
+            <select
+              value={copilotPersona}
+              onChange={(e) => { setCopilotPersona(e.target.value as PersonaId); saveCopilotPrefs({ personaId: e.target.value as PersonaId }); }}
+              className={inputClass}
+            >
+              {PERSONAS.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </Field>
+          <ToggleRow
+            label="Auto-analyze on chart switch"
+            checked={copilotAuto}
+            onChange={(v) => { setCopilotAuto(v); saveCopilotPrefs({ autoAnalyzeOnSwitch: v }); }}
+          />
         </div>
 
-        <div>
-          <label className="text-[10px] text-[#8888aa] uppercase tracking-wider mb-1 block">Default Timeframe</label>
-          <select value={settings.defaultTimeframe} onChange={(e) => update("defaultTimeframe", e.target.value)} className={inputClass}>
-            {["M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1"].map((tf) => (
-              <option key={tf} value={tf}>{tf}</option>
-            ))}
-          </select>
+        <div className="flex gap-2">
+          <PrimaryButton onClick={handleSave} className="flex-1">{saved ? "Saved ✓" : "Save Settings"}</PrimaryButton>
+          <button
+            onClick={handleClearCache}
+            title="Clear cached market data"
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-edge bg-card px-3 text-[11px] text-ink-mute transition-colors hover:border-rose-500/30 hover:text-rose-400"
+          >
+            {cacheCleared ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+            {cacheCleared ? "Cleared" : "Cache"}
+          </button>
         </div>
-
-        <div>
-          <label className="text-[10px] text-[#8888aa] uppercase tracking-wider mb-1 block">Theme</label>
-          <select value={settings.theme} onChange={(e) => update("theme", e.target.value as "dark" | "light")} className={inputClass}>
-            <option value="dark">Dark</option>
-            <option value="light">Light</option>
-          </select>
-        </div>
-
-        <button onClick={handleSave} className="w-full py-2 rounded-lg bg-violet-500/20 text-violet-400 text-xs font-medium hover:bg-violet-500/30 transition-all">
-          {saved ? "Saved ✓" : "Save Settings"}
-        </button>
 
         {devDiagnostic && isDevelopment() && (
-          <div className="space-y-2 border-t border-white/5 pt-3">
+          <div className="space-y-2 border-t border-edge pt-3">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] text-[#8888aa] uppercase tracking-wider">Diagnostics</span>
-              <button onClick={handleRefreshDebug} disabled={debugLoading} className="text-[10px] text-violet-400 hover:text-violet-300">
-                {debugLoading ? "Refreshing..." : "Refresh"}
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-mute">Diagnostics</span>
+              <button onClick={handleRefreshDebug} disabled={debugLoading} className="text-[10px] text-brand-400 hover:text-brand-300">
+                {debugLoading ? "Refreshing…" : "Refresh"}
               </button>
             </div>
             {debugInfo && (
-              <div className="space-y-1.5 text-[10px] font-mono bg-white/[0.02] border border-white/5 rounded-lg p-2.5">
-                <div className="text-[#8888aa]">Symbol: {debugInfo.symbolDetected || "null"}</div>
-                <div className="text-[#8888aa]">Timeframe: {debugInfo.timeframeDetected || "null"}</div>
-                <div className="text-[#8888aa]">Market API: {debugInfo.marketApi}</div>
-                <div className="text-[#8888aa]">Market API Status: {debugInfo.marketApiStatus ?? "?"}</div>
-                <div className="text-[#8888aa]">Candle Count: {debugInfo.candleCount}</div>
-                <div className="text-[#8888aa]">Timeframes: {debugInfo.timeframesAvailable.join(", ")}</div>
-                <div className="text-[#8888aa]">Analytics: {debugInfo.analyticsStatus}</div>
-                <div className="text-[#8888aa]">AI Status: {debugInfo.aiStatus}</div>
-                <div className="text-[#8888aa]">Latency: {debugInfo.requestLatency ?? "?"}ms</div>
-                <div className="text-[#8888aa]">Errors: {debugInfo.errors.length}</div>
+              <div className="space-y-1 rounded-lg border border-edge bg-base p-2.5 font-mono text-[10px]">
+                <div className="text-ink-mute">Symbol: {debugInfo.symbolDetected || "null"}</div>
+                <div className="text-ink-mute">Timeframe: {debugInfo.timeframeDetected || "null"}</div>
+                <div className="text-ink-mute">Market API: {debugInfo.marketApi} ({debugInfo.marketApiStatus ?? "?"})</div>
+                <div className="text-ink-mute">Candles: {debugInfo.candleCount} · TFs: {debugInfo.timeframesAvailable.join(", ")}</div>
+                <div className="text-ink-mute">Latency: {debugInfo.requestLatency ?? "?"}ms · Errors: {debugInfo.errors.length}</div>
                 {debugInfo.errors.map((e: string, i: number) => (
                   <div key={i} className="text-rose-400">{e}</div>
                 ))}
                 {debugInfo.stages.length > 0 && (
-                  <div className="mt-1 space-y-0.5 border-t border-white/5 pt-1">
+                  <div className="mt-1 space-y-0.5 border-t border-edge pt-1">
                     {debugInfo.stages.map((s: AnalysisStage, i: number) => (
                       <div key={i} className="text-[9px]">
-                        <span className={s.status === "complete" ? "text-emerald-400" : s.status === "error" ? "text-rose-400" : s.status === "running" ? "text-violet-400" : "text-[#8888aa]"}>
+                        <span className={s.status === "complete" ? "text-emerald-400" : s.status === "error" ? "text-rose-400" : s.status === "running" ? "text-brand-400" : "text-ink-faint"}>
                           {s.status === "running" ? "⏳" : s.status === "complete" ? "✓" : s.status === "error" ? "✗" : "○"}
-                        </span>{" "}{s.name}: {s.message}
+                        </span>{" "}
+                        {s.name}: {s.message}
                         {s.duration ? ` (${s.duration}ms)` : ""}
                       </div>
                     ))}
@@ -145,9 +206,19 @@ export function SettingsView({ onBack, onLogout }: SettingsViewProps) {
         )}
       </div>
 
-      <div className="px-3 py-2 border-t border-white/5 space-y-2">
-        <button onClick={onLogout} className="w-full py-2 rounded-lg bg-rose-500/10 text-rose-400 text-xs font-medium hover:bg-rose-500/20 border border-rose-500/20 transition-all">Logout</button>
-        <button onClick={onBack} className="w-full text-xs text-[#8888aa] hover:text-[#f0f0f5] transition-colors py-1">Back</button>
+      <div className="space-y-2 border-t border-edge px-3 py-2">
+        <button
+          onClick={() => setDevDiagnostic(!devDiagnostic)}
+          className="w-full rounded border border-edge px-1.5 py-1 text-[9px] text-ink-faint transition-colors hover:text-ink-mute"
+        >
+          {devDiagnostic ? "Hide diagnostics" : "Diagnostics"}
+        </button>
+        <button
+          onClick={onLogout}
+          className="w-full rounded-lg border border-rose-500/20 bg-rose-500/10 py-2 text-xs font-medium text-rose-400 transition-colors hover:bg-rose-500/20"
+        >
+          Logout
+        </button>
       </div>
     </div>
   );
@@ -155,11 +226,13 @@ export function SettingsView({ onBack, onLogout }: SettingsViewProps) {
 
 function ToggleRow({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <div className="flex items-center justify-between py-1">
-      <span className="text-[11px] text-[#8888aa]">{label}</span>
-      <button onClick={() => onChange(!checked)}
-        className={`relative w-8 h-4 rounded-full transition-colors ${checked ? "bg-violet-500" : "bg-white/10"}`}>
-        <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform ${checked ? "translate-x-4" : "translate-x-0.5"}`} />
+    <div className="flex items-center justify-between py-0.5">
+      <span className="text-[11px] text-ink-mute">{label}</span>
+      <button
+        onClick={() => onChange(!checked)}
+        className={`relative h-4 w-8 rounded-full transition-colors ${checked ? "bg-brand-500" : "bg-neutral-700"}`}
+      >
+        <div className={`absolute top-0.5 h-3 w-3 rounded-full bg-white transition-transform ${checked ? "translate-x-4" : "translate-x-0.5"}`} />
       </button>
     </div>
   );
