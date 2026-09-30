@@ -374,6 +374,7 @@
     },
 
     "aiSignals": {
+      ".indexOn": ["createdFor"],
       ".read": "auth != null",
       ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
     },

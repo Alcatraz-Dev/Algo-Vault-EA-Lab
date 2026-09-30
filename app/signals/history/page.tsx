@@ -20,8 +20,7 @@ import {
     AlertTriangle,
 } from "lucide-react";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { ref, onValue } from "firebase/database";
-import { auth, database } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
 import { calculateProfitUSD } from "@/lib/ai-signals/calculations";
 import type { AISignal, SignalResult, SignalStats } from "@/lib/ai-signals/types";
 
@@ -320,7 +319,7 @@ export default function SignalHistoryPage() {
     const [statsLoading,  setStatsLoading]  = useState(false);
 
     const [lastRefreshedAt, setLastRefreshedAt] = useState(0);
-    const [liveCount,       setLiveCount]       = useState<number | null>(null); // from Firebase onValue
+    const [totalInDb, setTotalInDb] = useState<number | null>(null); // from /api/signals/history `total`
 
     // Filters
     const [period,          setPeriod]          = useState<PeriodFilter>("all");
@@ -335,7 +334,7 @@ export default function SignalHistoryPage() {
         const unsub = onAuthStateChanged(auth, (u) => {
             setUser(u);
             setAuthLoading(false);
-            if (!u) { setSignals([]); setStats(null); setLiveCount(null); }
+            if (!u) { setSignals([]); setStats(null); setTotalInDb(null); }
         });
         return () => unsub();
     }, []);
@@ -349,17 +348,6 @@ export default function SignalHistoryPage() {
                 .then((d) => setHasPro(Boolean(d.hasSubscription)))
                 .catch(() => setHasPro(false));
         });
-    }, [user]);
-
-    /* ── Firebase onValue — live signal count badge (same pattern as signals/page.tsx) ── */
-    useEffect(() => {
-        if (!user) return;
-        const signalsRef = ref(database, "aiSignals");
-        const unsub = onValue(signalsRef, (snapshot) => {
-            if (!snapshot.exists()) { setLiveCount(0); return; }
-            setLiveCount(snapshot.size);
-        }, () => setLiveCount(null));
-        return () => unsub();
     }, [user]);
 
     /* ── Fetch filtered signals from /api/signals/history ── */
@@ -378,6 +366,12 @@ export default function SignalHistoryPage() {
             });
             const data = await res.json();
             if (data.signals) setSignals(data.signals);
+            // Unfiltered total (all time) powers the "signals in database" badge.
+            if (data.totalAllTime != null) {
+                setTotalInDb(data.totalAllTime);
+            } else if (period === "all" && data.total != null) {
+                setTotalInDb(data.total);
+            }
         } catch (err) {
             console.error("History signals fetch error:", err);
         } finally {
@@ -423,17 +417,6 @@ export default function SignalHistoryPage() {
         }, AUTO_REFRESH_MS);
         return () => clearInterval(interval);
     }, [user, fetchSignals, fetchStats]);
-
-    /* ── Firebase-triggered re-fetch: when live count changes, re-fetch list ── */
-    const prevLiveCount = useRef<number | null>(null);
-    useEffect(() => {
-        if (liveCount === null) return;
-        if (prevLiveCount.current !== null && prevLiveCount.current !== liveCount && user) {
-            // new signal appeared or was removed — refresh the list silently
-            void fetchSignals(user);
-        }
-        prevLiveCount.current = liveCount;
-    }, [liveCount, user, fetchSignals]);
 
     /* ── Client-side search filter ── */
     const filtered = useMemo(() => {
@@ -504,9 +487,9 @@ export default function SignalHistoryPage() {
                                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
                                 Live
                             </span>
-                            {liveCount !== null && (
+                            {totalInDb !== null && (
                                 <span className="text-xs text-muted-foreground">
-                                    {liveCount} signals in database
+                                    {totalInDb} signals in database
                                 </span>
                             )}
                             {hasPro && (

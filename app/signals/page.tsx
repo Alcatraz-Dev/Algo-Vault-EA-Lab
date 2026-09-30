@@ -32,10 +32,11 @@ import SignalFeed from "@/components/signals/SignalFeed";
 import MarketOverview from "@/components/signals/MarketOverview";
 import ProGate from "@/components/subscription/ProGate";
 import { useLivePrices } from "@/hooks/useLivePrices";
+import { formatPrice } from "@/lib/ai-signals/symbol-specs";
 import type { AISignal, MarketSentiment, SignalAnalytics } from "@/lib/ai-signals/types";
 
-const FREE_LIMIT = 3;
-const PRO_LIMIT = 10;
+const FREE_LIMIT = 10;
+const PRO_LIMIT = 20;
 
 export default function AiSignalsPage() {
     const router = useRouter();
@@ -295,8 +296,8 @@ export default function AiSignalsPage() {
 
     // Live prices for top-opportunity cards
     const topSignalSymbols = useMemo(() => topSignals.map((s) => s.symbol), [topSignals]);
-    const { prices: topPrices, isLive: topPricesLive } = useLivePrices(topSignalSymbols, {
-        intervalMs: 10_000,
+    const { prices: topPrices, isLive: topPricesLive, lastUpdatedAt: topPricesUpdatedAt } = useLivePrices(topSignalSymbols, {
+        intervalMs: 5_000,
         enabled: topSignalSymbols.length > 0,
     });
 
@@ -437,7 +438,7 @@ export default function AiSignalsPage() {
                                     <div>
                                         <h3 className="text-sm font-bold text-foreground">Unlock More Signals</h3>
                                         <p className="text-xs text-muted-foreground">
-                                            Upgrade to Pro for {PRO_LIMIT} signals per day, priority alerts, and advanced analytics.
+                                            Upgrade to Pro for {PRO_LIMIT} pro signals per day, priority alerts, and advanced analytics.
                                         </p>
                                     </div>
                                 </div>
@@ -460,7 +461,7 @@ export default function AiSignalsPage() {
                         <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Market Overview</h2>
                     </div>
                     {sentiments.length > 0 ? (
-                        <MarketOverview sentiments={sentiments} />
+                        <MarketOverview sentiments={sentiments} prices={topPrices} />
                     ) : (
                         <div className="rounded-2xl border border-border/30 bg-card/60 p-8 text-center backdrop-blur-xl">
                             <BarChart3 className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
@@ -528,8 +529,35 @@ export default function AiSignalsPage() {
                                             <Sparkles className="h-3.5 w-3.5" />
                                             <span>{signal.confidence}% Confidence</span>
                                         </div>
-                                        <span className="font-mono text-muted-foreground">R:R {signal.riskReward.toFixed(1)}</span>
+                                        <span className="font-mono text-muted-foreground">R:R {(Number(signal.riskReward) || 0).toFixed(1)}</span>
                                     </div>
+
+                                    {/* Live price + delta vs entry (5s polling via useLivePrices) */}
+                                    {(() => {
+                                        const livePrice = topPrices[signal.symbol];
+                                        if (livePrice == null || !Number.isFinite(livePrice) || livePrice <= 0) {
+                                            return (
+                                                <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/10 px-3 py-1.5 text-[11px] text-muted-foreground">
+                                                    <Activity className="h-3 w-3" />
+                                                    <span>Live price connecting…</span>
+                                                </div>
+                                            );
+                                        }
+                                        const delta = livePrice - signal.entry;
+                                        const deltaPct = signal.entry !== 0 ? (delta / signal.entry) * 100 : 0;
+                                        const favorable = signal.direction === "BUY" ? delta >= 0 : delta < 0;
+                                        return (
+                                            <div className="mt-3 flex items-center justify-between rounded-lg border border-border/30 bg-muted/10 px-3 py-1.5">
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+                                                    <span className="font-mono text-sm font-black text-foreground">{formatPrice(livePrice, signal.symbol)}</span>
+                                                </div>
+                                                <span className={`font-mono text-[11px] font-semibold ${favorable ? "text-emerald-400" : "text-rose-400"}`}>
+                                                    {delta >= 0 ? "+" : "-"}{Math.abs(deltaPct).toFixed(3)}% vs entry
+                                                </span>
+                                            </div>
+                                        );
+                                    })()}
 
                                     <div className="mt-3 grid grid-cols-2 gap-2 rounded-xl border border-border/30 p-3 text-xs">
                                         <div>
@@ -561,13 +589,19 @@ export default function AiSignalsPage() {
 
                 {/* SIGNAL FEED — FREE + PRO SECTIONS */}
                 <div className="mt-10">
-                    <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-2">
                             <Radio className="h-4 w-4 text-amber-400" />
                             <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Signal Feed</h2>
                             <span className="rounded-md border border-border/30 bg-muted/5 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
                                 {signals.length} signals
                             </span>
+                            {topPricesLive && (
+                                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+                                    <span className="h-1 w-1 animate-ping rounded-full bg-emerald-400" />
+                                    Prices live
+                                </span>
+                            )}
                         </div>
 
                         {/* TABS */}

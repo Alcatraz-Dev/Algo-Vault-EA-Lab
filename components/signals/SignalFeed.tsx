@@ -111,7 +111,7 @@ export default function SignalFeed({
     // Collect unique symbols from visible signals for live price polling
     const symbols = useMemo(() => [...new Set(signals.map((s) => s.symbol))], [signals]);
     const { prices, lastUpdatedAt, isLive } = useLivePrices(symbols, {
-        intervalMs: 10_000,
+        intervalMs: 5_000,
         enabled: symbols.length > 0,
     });
 

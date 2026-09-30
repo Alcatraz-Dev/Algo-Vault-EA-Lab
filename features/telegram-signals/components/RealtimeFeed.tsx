@@ -229,22 +229,64 @@ export function RealtimeFeed({
         let isUnmounted = false;
         let pollInterval: NodeJS.Timeout | null = null;
 
-        const signalsRef = ref(database, `telegramSignals/${uid}`);
-        const unsubscribe = onValue(
-            signalsRef,
+        // Signals are published to `telegramSignals/system` (broadcasts) or
+        // `telegramSignals/{uid}` (user-scoped). Read both — a feed bound only
+        // to the user's own node never sees broadcast signals.
+        const userRef = ref(database, `telegramSignals/${uid}`);
+        const systemRef = ref(database, "telegramSignals/system");
+        const mergeAndSet = (userData: ProSignal[] | null, systemData: ProSignal[] | null) => {
+            if (isUnmounted || useApiFallback.current) return;
+            // A broadcast can be mirrored into the user's node (e.g. after a
+            // follow/trade). Dedupe by id so React keys stay unique — the
+            // user-scoped copy wins since it carries that user's counters.
+            const byId = new Map<string, ProSignal>();
+            for (const s of [...(systemData ?? []), ...(userData ?? [])]) {
+                if (s && s.id) byId.set(s.id, s);
+            }
+            const list = [...byId.values()]
+                .map(normalizeProSignal)
+                .sort((a, b) => b.createdAt - a.createdAt);
+            setSignalsAndNotify(list);
+            setLoading(false);
+        };
+        // Latest snapshot from each ref, so a change on one side can re-merge
+        // without the other side's value going stale/undefined.
+        let latestUser: ProSignal[] | null = null;
+        let latestSystem: ProSignal[] | null = null;
+        let userLoaded = false;
+        let systemLoaded = false;
+
+        const unsubscribeUser = onValue(
+            userRef,
             (snapshot) => {
                 if (isUnmounted || useApiFallback.current) return;
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    const list = (Object.values(data) as ProSignal[]).map(normalizeProSignal);
-                    list.sort((a, b) => b.createdAt - a.createdAt);
-                    setSignalsAndNotify(list);
-                } else {
-                    setSignalsAndNotify([]);
-                }
-                setLoading(false);
+                latestUser = snapshot.exists() ? (Object.values(snapshot.val()) as ProSignal[]) : [];
+                userLoaded = true;
+                if (systemLoaded) mergeAndSet(latestUser, latestSystem);
+                else setLoading(false);
             },
             () => {
+                if (isUnmounted || useApiFallback.current) return;
+                userLoaded = true;
+                useApiFallback.current = true;
+                void fetchViaApi();
+                pollInterval = setInterval(() => void fetchViaApi(), 5000);
+            }
+        );
+
+        const unsubscribeSystem = onValue(
+            systemRef,
+            (snapshot) => {
+                if (isUnmounted || useApiFallback.current) return;
+                latestSystem = snapshot.exists() ? (Object.values(snapshot.val()) as ProSignal[]) : [];
+                systemLoaded = true;
+                if (userLoaded) mergeAndSet(latestUser, latestSystem);
+            },
+            () => {
+                // No permission for system node (non-Pro session) — fall back
+                // to the API, which enforces entitlement server-side.
+                if (isUnmounted || useApiFallback.current) return;
+                systemLoaded = true;
                 useApiFallback.current = true;
                 void fetchViaApi();
                 pollInterval = setInterval(() => void fetchViaApi(), 5000);
@@ -253,7 +295,8 @@ export function RealtimeFeed({
 
         return () => {
             isUnmounted = true;
-            unsubscribe();
+            unsubscribeUser();
+            unsubscribeSystem();
             if (pollInterval) clearInterval(pollInterval);
         };
     }, [uid]);

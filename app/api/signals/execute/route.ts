@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { authenticate } from "@/lib/admin-auth";
 import { adminDatabase } from "@/lib/firebase-admin";
 import { newClientOrderId } from "@/lib/gateway";
 
@@ -17,6 +18,18 @@ export async function OPTIONS() {
 
 export async function POST(request: NextRequest) {
     try {
+        // Auth-first (§O): this route queues real MT5 orders in mt5_orders/ and
+        // live_positions/ — it must never run unauthenticated. The trading
+        // account is resolved from the caller's connected accounts, never from
+        // the request body.
+        const user = await authenticate(request);
+        if (!user) {
+            return NextResponse.json(
+                { success: false, error: "Unauthorized" },
+                { status: 401, headers: corsHeaders }
+            );
+        }
+
         const body = await request.json().catch(() => ({}));
         const {
             signalId,
@@ -26,20 +39,39 @@ export async function POST(request: NextRequest) {
             entryPrice,
             stopLoss,
             takeProfit,
-            mt5Account,
-            productId,
-            userId,
+            productId: productIdFromBody,
         } = body;
 
-        if (!symbol || !direction || !mt5Account) {
+        if (!symbol || !direction) {
             return NextResponse.json(
-                { success: false, error: "Symbol, Direction, and MT5 Account are required." },
+                { success: false, error: "Symbol and Direction are required." },
                 { status: 400, headers: corsHeaders }
             );
         }
 
-        // Auto-resolve productId if missing from licenses or live_accounts
-        let resolvedProductId = productId;
+        // Resolve the caller's connected MT5 accounts — an attacker can no
+        // longer target an arbitrary account by passing `mt5Account`.
+        const accountsSnap = await adminDatabase.ref(`trading_accounts/${user.uid}`).get();
+        let mt5Account: string | null = null;
+        if (accountsSnap.exists()) {
+            accountsSnap.forEach((child) => {
+                const acct = child.val() as { status?: string; mt5Account?: string; accountId?: string } | null;
+                if (mt5Account) return;
+                if (acct && acct.status === "connected") {
+                    mt5Account = String(acct.mt5Account ?? acct.accountId ?? "");
+                }
+            });
+        }
+        if (!mt5Account) {
+            return NextResponse.json(
+                { success: false, error: "No connected MT5 account found. Connect one via Account → Trading Access first." },
+                { status: 400, headers: corsHeaders }
+            );
+        }
+
+        // Auto-resolve productId from licenses (the caller's own account, so
+        // this only ever scopes the position under a product the caller owns).
+        let resolvedProductId: string | undefined = productIdFromBody;
         if (!resolvedProductId && mt5Account) {
             const licensesSnap = await adminDatabase.ref("licenses").once("value");
             const licensesData = licensesSnap.val() || {};

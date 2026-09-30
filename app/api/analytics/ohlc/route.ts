@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateSymbol, validateTimeframe } from "@/lib/market-data/validation";
 import { fetchCandles } from "@/lib/market-data/normalizer";
+import { fetchTradingViewLivePrice } from "@/lib/market-data/tradingview-live";
 import { SUPPORTED_SYMBOLS } from "@/lib/market-data/types";
 
 export const runtime = "nodejs";
@@ -31,8 +32,14 @@ export async function GET(request: NextRequest) {
 
         const lastCandle = sliced[sliced.length - 1];
         const prevCandle = sliced.length > 1 ? sliced[sliced.length - 2] : lastCandle;
-        const change = lastCandle ? lastCandle.close - (prevCandle?.close || 0) : 0;
-        const changePercent = prevCandle?.close ? (change / prevCandle.close) * 100 : 0;
+
+        // Live quote: resolve the real current price (fresh Biquote forming
+        // M1 candle → TradingView scanner) so the forming bar can tick between
+        // feed refreshes. Falls back to the last candle's close — never a
+        // fabricated number — when no live source is reachable.
+        const livePrice = await fetchTradingViewLivePrice(symbol);
+        const price = livePrice?.price ?? lastCandle?.close ?? 0;
+        const changeFromLive = lastCandle ? price - (prevCandle?.close || 0) : 0;
 
         return NextResponse.json({
             success: true,
@@ -41,12 +48,12 @@ export async function GET(request: NextRequest) {
             candles: sliced,
             quote: lastCandle ? {
                 symbol,
-                bid: lastCandle.close,
-                ask: lastCandle.close,
+                bid: price,
+                ask: price,
                 spread: 0,
-                change: Number(change.toFixed(5)),
-                changePercent: Number(changePercent.toFixed(3)),
-                timestamp: lastCandle.timestamp,
+                change: Number(changeFromLive.toFixed(5)),
+                changePercent: Number((prevCandle?.close ? (changeFromLive / prevCandle.close) * 100 : 0).toFixed(3)),
+                timestamp: livePrice?.timestamp ?? lastCandle.timestamp,
             } : null,
             candleCount: sliced.length,
             timestamp: Date.now(),

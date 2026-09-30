@@ -61,8 +61,8 @@ const DEFAULT_CONFIG: Partial<SignalConfig> = {
     minimumRiskReward: 2.0,
     signalCooldownMinutes: 15,
     signalExpirationHours: 4,
-    freeSignalsPerDay: 3,
-    proSignalsPerDay: 10,
+    freeSignalsPerDay: 10,
+    proSignalsPerDay: 20,
     weights: {
         trendAlignment: 20,
         marketStructure: 20,
@@ -370,7 +370,7 @@ export default function AdminSignalsPage() {
                         <div className="grid gap-6 sm:grid-cols-2">
                             <NumberInput
                                 label="Free Signals / Day"
-                                value={config.freeSignalsPerDay ?? 3}
+                                value={config.freeSignalsPerDay ?? 10}
                                 onChange={(v) => setConfig((prev) => ({ ...prev, freeSignalsPerDay: v }))}
                                 min={0}
                                 max={50}

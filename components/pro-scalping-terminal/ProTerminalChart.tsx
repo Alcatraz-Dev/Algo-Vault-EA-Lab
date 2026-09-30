@@ -358,6 +358,9 @@ export function ProTerminalChart({
     // history length actually changes (like a regular market chart).
     const lastBarCountRef = useRef(0);
     const lastKeyRef = useRef("");
+    // Tail of the bar the candle series currently holds — lets live quote ticks
+    // be pushed with `series.update()` instead of a full `setData` redraw.
+    const lastPushedBarRef = useRef<{ time: number; open: number; high: number; low: number; close: number } | null>(null);
     const haSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
     const rsiSeriesRef = useRef<{ rsi: ISeriesApi<"Line">; pane: number | null; lines: IPriceLine[] } | null>(null);
     const macdSeriesRef = useRef<{ macd: ISeriesApi<"Line">; signal: ISeriesApi<"Line">; pane: number | null } | null>(null);
@@ -415,6 +418,7 @@ export function ProTerminalChart({
         if (!container) return;
         lastBarCountRef.current = 0;
         lastKeyRef.current = "";
+        lastPushedBarRef.current = null;
 
         const chart = createChart(container, {
             autoSize: true,
@@ -525,7 +529,11 @@ export function ProTerminalChart({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Push candle + derived series data.
+    // Push candle + derived series data. Live quote ticks only move the
+    // forming bar, so those updates are pushed incrementally with
+    // `series.update()` — the last candle animates in place like a real
+    // market chart. History rewrites (symbol/timeframe switch, provider
+    // reconcile) fall back to a full `setData`.
     useEffect(() => {
         const cs = candleSeriesRef.current;
         const vs = volumeSeriesRef.current;
@@ -533,29 +541,83 @@ export function ProTerminalChart({
         const e9 = ema9Ref.current;
         const e20 = ema20Ref.current;
         if (!cs || !vs || !vw || !e9 || !e20) return;
+
+        const toSec = (ts: number) => Math.floor(ts / 1000) as UTCTimestamp;
+
         if (candles.length === 0) {
             cs.setData([]);
             vs.setData([]);
             vw.setData([]);
             e9.setData([]);
             e20.setData([]);
+            lastPushedBarRef.current = null;
+            lastBarCountRef.current = 0;
             return;
         }
 
         const seen = new Set<number>();
         const bars = candles
             .filter((c) => {
-                const t = Math.floor(c.timestamp / 1000);
+                const t = toSec(c.timestamp) as number;
                 if (seen.has(t)) return false;
                 seen.add(t);
                 return true;
             })
-            .map((c) => ({ time: Math.floor(c.timestamp / 1000) as UTCTimestamp, open: c.open, high: c.high, low: c.low, close: c.close }));
+            .map((c) => ({ time: toSec(c.timestamp), open: c.open, high: c.high, low: c.low, close: c.close }));
+
+        const key = `${symbol}|${timeframe}`;
+        const pushed = lastPushedBarRef.current;
+        const last = bars[bars.length - 1];
+        const prev = bars.length > 1 ? bars[bars.length - 2] : null;
+
+        // Tick-only path: same instrument/timeframe, history length stable or
+        // grown by exactly one bar, and the visible change is confined to the
+        // forming bar (same time as the last pushed bar) or a single forward
+        // append right after it (bar close). Anything else — provider reconcile
+        // that rewrote history, timeframe switch — takes the full redraw path.
+        const isTailOnly =
+            key === lastKeyRef.current &&
+            pushed !== null &&
+            (bars.length === lastBarCountRef.current || bars.length === lastBarCountRef.current + 1) &&
+            (last.time === pushed.time ||
+                (prev !== null && prev.time === pushed.time && last.time > pushed.time));
+
+        if (isTailOnly) {
+            const tailBars = prev && prev.time === pushed!.time && last.time > pushed!.time ? [prev, last] : [last];
+            const tailCandles = candles.slice(-tailBars.length);
+            for (let i = 0; i < tailBars.length; i++) {
+                const bar = tailBars[i];
+                const c = tailCandles[i];
+                cs.update({ time: bar.time, open: bar.open, high: bar.high, low: bar.low, close: bar.close });
+                vs.update({
+                    time: bar.time,
+                    value: c.volume ?? 0,
+                    color: c.close >= c.open ? "rgba(38, 166, 154, 0.45)" : "rgba(239, 83, 80, 0.45)",
+                });
+            }
+            // Lines: history is unchanged, so only the tail point(s) move.
+            const closes = candles.map((c) => c.close);
+            const vwapVals = computeVwap(candles).map((p) => p.value as number | null);
+            const pushLineTail = (series: ISeriesApi<"Line">, vals: Array<number | null>) => {
+                for (let i = 0; i < tailBars.length; i++) {
+                    const idx = candles.length - tailBars.length + i;
+                    const v = vals[idx];
+                    if (v === null || v === undefined || !Number.isFinite(v)) continue;
+                    series.update({ time: toSec(candles[idx].timestamp), value: v });
+                }
+            };
+            pushLineTail(vw, vwapVals);
+            pushLineTail(e9, ema(closes, 9));
+            pushLineTail(e20, ema(closes, 20));
+            lastPushedBarRef.current = { time: last.time, open: last.open, high: last.high, low: last.low, close: last.close };
+            lastBarCountRef.current = bars.length;
+            return;
+        }
 
         cs.setData(bars);
         vs.setData(
             candles.map((c) => ({
-                time: Math.floor(c.timestamp / 1000) as UTCTimestamp,
+                time: toSec(c.timestamp),
                 value: c.volume ?? 0,
                 color: c.close >= c.open ? "rgba(38, 166, 154, 0.45)" : "rgba(239, 83, 80, 0.45)",
             }))
@@ -568,7 +630,7 @@ export function ProTerminalChart({
             const data: Array<{ time: UTCTimestamp; value: number }> = [];
             candles.forEach((c, i) => {
                 const v = vals[i];
-                if (v !== null) data.push({ time: Math.floor(c.timestamp / 1000) as UTCTimestamp, value: v });
+                if (v !== null) data.push({ time: toSec(c.timestamp), value: v });
             });
             series.setData(data);
         };
@@ -579,13 +641,13 @@ export function ProTerminalChart({
         // switch or a reconcile that added closed bars). Live tick updates to
         // the forming bar keep the current viewport so the last candle moves
         // in place instead of the chart re-zooming every 2 seconds.
-        const key = `${symbol}|${timeframe}`;
         const barCountChanged = bars.length !== lastBarCountRef.current;
         if (key !== lastKeyRef.current || barCountChanged) {
             chartRef.current?.timeScale().fitContent();
             lastKeyRef.current = key;
         }
         lastBarCountRef.current = bars.length;
+        lastPushedBarRef.current = { time: last.time, open: last.open, high: last.high, low: last.low, close: last.close };
     }, [candles, symbol, timeframe]);
 
     // ── Pine study overlays ─────────────────────────────────────────────

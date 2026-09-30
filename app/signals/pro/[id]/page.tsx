@@ -24,7 +24,7 @@ import { ref as dbRef, onValue } from "firebase/database";
 import { auth, database } from "@/lib/firebase";
 import { onSubscriptionChange } from "@/lib/subscription";
 import type { AISignal, SignalTimelineEvent } from "@/lib/ai-signals/types";
-import { formatPrice } from "@/lib/ai-signals/symbol-specs";
+import { formatPrice, getSymbolSpec } from "@/lib/ai-signals/symbol-specs";
 import ConfidenceBreakdown from "@/components/signals/ConfidenceBreakdown";
 import SignalChart from "@/components/signals/SignalChart";
 import SignalTimeline from "@/components/signals/SignalTimeline";
@@ -72,21 +72,26 @@ function LivePricePanel({ signal, lastUpdatedAt, onRefresh }: {
     onRefresh: () => void;
 }) {
     const symbols = signal.symbol ? [signal.symbol] : [];
-    const { prices } = useLivePrices(symbols, { intervalMs: 10_000 });
+    const { prices, lastUpdatedAt: pricesUpdatedAt } = useLivePrices(symbols, { intervalMs: 5_000 });
     const bid = prices[signal.symbol] ?? null;
 
     const slDist  = Math.abs(signal.entry - signal.stopLoss);
     const tp1Dist = signal.tp1 ? Math.abs(signal.tp1 - signal.entry) : 0;
     const isBuy   = signal.direction === "BUY";
 
-    let progress = 50;
-    if (bid !== null && signal.tp1) {
+    // progress along SL→Entry→TP1 track
+    let progress: number;
+    if (bid == null || bid <= 0 || !signal.tp1) {
+        // No live quote yet — park the cursor at entry (its exact position on
+        // the SL→TP track) instead of a fake mid-track guess.
+        progress = slDist + tp1Dist > 0 ? (slDist / (slDist + tp1Dist)) * 100 : 50;
+    } else {
         const totalRange = slDist + tp1Dist;
         const fromSl = isBuy ? bid - signal.stopLoss : signal.stopLoss - bid;
         progress = Math.min(100, Math.max(0, (fromSl / totalRange) * 100));
     }
 
-    const secAgo = lastUpdatedAt > 0 ? Math.round((Date.now() - lastUpdatedAt) / 1000) : null;
+    const secSinceQuote = pricesUpdatedAt > 0 ? Math.round((Date.now() - pricesUpdatedAt) / 1000) : null;
 
     return (
         <div className={cn("mt-6 rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-background/40 to-background/80 backdrop-blur-xl p-5")}>
@@ -94,15 +99,15 @@ function LivePricePanel({ signal, lastUpdatedAt, onRefresh }: {
                 <div className="flex items-center gap-2">
                     <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
                     <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Live Market</span>
-                    {bid !== null && (
+                    {bid !== null && bid > 0 && (
                         <span className={`font-mono text-lg font-black ${isBuy ? "text-emerald-400" : "text-rose-400"}`}>
-                            {bid >= 100 ? bid.toFixed(2) : bid.toFixed(5)}
+                            {formatPrice(bid, signal.symbol)}
                         </span>
                     )}
-                    {bid === null && <span className="text-xs text-muted-foreground">Connecting…</span>}
+                    {(bid === null || bid <= 0) && <span className="text-xs text-muted-foreground">Connecting…</span>}
                 </div>
                 <div className="flex items-center gap-2">
-                    {secAgo !== null && <span className="text-[10px] text-muted-foreground">{secAgo}s ago</span>}
+                    {secSinceQuote !== null && <span className="text-[10px] text-muted-foreground">{secSinceQuote}s ago</span>}
                     <button onClick={onRefresh} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/20 transition">
                         <RefreshCw size={12} />
                     </button>
@@ -145,6 +150,15 @@ function formatTimeAgo(ts: number | undefined): string {
     if (mins < 60) return `${mins}m ago`;
     if (hours < 24) return `${hours}h ago`;
     return `${days}d ago`;
+}
+
+/** Convert a raw price distance into pips using the symbol's pip size. */
+function formatPips(distance: number, symbol: string): string {
+    const spec = getSymbolSpec(symbol);
+    const pipSize = spec?.pipSize ?? 0.0001;
+    if (!Number.isFinite(distance) || distance <= 0) return "0";
+    const pips = distance / pipSize;
+    return pips >= 100 ? pips.toFixed(0) : pips >= 10 ? pips.toFixed(1) : pips.toFixed(2);
 }
 
 export default function ProSignalDetailPage({ params }: { params: Promise<Params> }) {
@@ -572,6 +586,8 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
                     </div>
                 </div>
 
+                <LivePricePanel signal={signal} lastUpdatedAt={lastUpdatedAt} onRefresh={() => void fetchSignal(user)} />
+
                 <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
                     <div className="space-y-6 lg:col-span-2">
                         <SignalChart signal={signal} height={400} />
@@ -709,14 +725,14 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
                                 <div className="flex items-center justify-between">
                                     <span className="text-xs text-muted-foreground">SL Distance</span>
                                     <span className="font-mono text-sm font-bold text-rose-400">
-                                        {Math.abs(signal.entry - signal.stopLoss).toFixed(0)} pips
+                                        {formatPips(Math.abs(signal.entry - signal.stopLoss), signal.symbol)} pips
                                     </span>
                                 </div>
                                 {signal.tp1 && (
                                     <div className="flex items-center justify-between">
                                         <span className="text-xs text-muted-foreground">TP1 Distance</span>
                                         <span className="font-mono text-sm font-bold text-emerald-400">
-                                            {Math.abs(signal.tp1 - signal.entry).toFixed(0)} pips
+                                            {formatPips(Math.abs(signal.tp1 - signal.entry), signal.symbol)} pips
                                         </span>
                                     </div>
                                 )}
@@ -724,7 +740,7 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
                                     <div className="flex items-center justify-between">
                                         <span className="text-xs text-muted-foreground">TP2 Distance</span>
                                         <span className="font-mono text-sm font-bold text-emerald-400">
-                                            {Math.abs(signal.tp2 - signal.entry).toFixed(0)} pips
+                                            {formatPips(Math.abs(signal.tp2 - signal.entry), signal.symbol)} pips
                                         </span>
                                     </div>
                                 )}
@@ -732,7 +748,7 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
                                     <div className="flex items-center justify-between">
                                         <span className="text-xs text-muted-foreground">TP3 Distance</span>
                                         <span className="font-mono text-sm font-bold text-emerald-400">
-                                            {Math.abs(signal.tp3 - signal.entry).toFixed(0)} pips
+                                            {formatPips(Math.abs(signal.tp3 - signal.entry), signal.symbol)} pips
                                         </span>
                                     </div>
                                 )}

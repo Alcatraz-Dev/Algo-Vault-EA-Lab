@@ -5,8 +5,10 @@ import {
     TrendingDown,
     Minus,
     BarChart3,
+    Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatPrice } from "@/lib/ai-signals/symbol-specs";
 
 type SentimentItem = {
     symbol: string;
@@ -17,6 +19,8 @@ type SentimentItem = {
 
 type Props = {
     sentiments: SentimentItem[];
+    /** Live prices keyed by symbol (5s polling); symbols without a quote show nothing rather than fake data. */
+    prices?: Record<string, number>;
 };
 
 function directionConfig(direction: SentimentItem["direction"]) {
@@ -48,7 +52,7 @@ function directionConfig(direction: SentimentItem["direction"]) {
     }
 }
 
-export default function MarketOverview({ sentiments }: Props) {
+export default function MarketOverview({ sentiments, prices }: Props) {
     const sorted = [...sentiments].sort((a, b) => b.confidence - a.confidence);
 
     return (
@@ -97,6 +101,20 @@ export default function MarketOverview({ sentiments }: Props) {
                                         {dir.label}
                                     </span>
                                 </div>
+
+                                {/* Live price (real quote from the shared resolver; hidden when unavailable) */}
+                                {prices && (() => {
+                                    const live = prices[item.symbol];
+                                    if (live == null || !Number.isFinite(live) || live <= 0) return null;
+                                    return (
+                                        <div className="flex items-center gap-1">
+                                            <Activity size={9} className="text-emerald-400" />
+                                            <span className="font-mono text-[11px] font-bold text-foreground tabular-nums">
+                                                {formatPrice(live, item.symbol)}
+                                            </span>
+                                        </div>
+                                    );
+                                })()}
 
                                 {/* Confidence Bar */}
                                 <div className="space-y-1">

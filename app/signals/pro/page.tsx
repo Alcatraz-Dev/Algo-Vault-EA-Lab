@@ -50,7 +50,7 @@ export default function ProSignalsPage() {
 
     // Derive unique symbols from signals visible in the realtime feed
     const liveSymbols = useMemo(() => [...new Set(liveSignals.map((s) => s.symbol))], [liveSignals]);
-    const { prices: livePrices, isLive: pricesLive, lastUpdatedAt: pricesLastUpdatedAt } = useLivePrices(liveSymbols, { intervalMs: 10_000 });
+    const { prices: livePrices, isLive: pricesLive, lastUpdatedAt: pricesLastUpdatedAt } = useLivePrices(liveSymbols, { intervalMs: 5_000 });
 
     useEffect(() => {
         const unsub = onAuthStateChanged(auth, (currentUser) => {

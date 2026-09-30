@@ -3,7 +3,7 @@ import { adminDatabase } from "@/lib/firebase-admin";
 import { saveProSignal } from "@/features/telegram-signals/signals/signal-engine";
 import { transitionSignalState } from "@/features/telegram-signals/lifecycle/state-machine";
 import type { ProSignal } from "@/features/telegram-signals/types";
-import { fetchCandles } from "@/lib/market-data/normalizer";
+import { tradingViewLivePriceCache } from "@/lib/market-data/tradingview-live";
 
 const MAX_SIGNALS_TO_CHECK = 200;
 
@@ -58,16 +58,30 @@ export async function POST(request: NextRequest) {
             const proSnap = await adminDatabase.ref("telegramSignals").get();
             if (proSnap.exists()) {
                 const proData = proSnap.val();
+                const proSignals: Array<{ userId: string; signal: ProSignal }> = [];
                 for (const userId of Object.keys(proData)) {
-                    if (checkedCount >= MAX_SIGNALS_TO_CHECK) break;
+                    if (proSignals.length >= MAX_SIGNALS_TO_CHECK) break;
                     const userSignals = proData[userId];
                     for (const signalId of Object.keys(userSignals)) {
-                        if (checkedCount >= MAX_SIGNALS_TO_CHECK) break;
+                        if (proSignals.length >= MAX_SIGNALS_TO_CHECK) break;
                         const signal = userSignals[signalId];
-                        const updated = await checkAndUpdateProSignal(userId, signal);
-                        if (updated) updatedCount++;
-                        checkedCount++;
+                        if (signal) proSignals.push({ userId, signal });
                     }
+                }
+
+                // Batch: one parallel live-price lookup per symbol instead of a
+                // serial M1-candle round-trip per signal.
+                const priceBySymbol = await fetchPricesForSymbols(
+                    Array.from(new Set(proSignals.map(({ signal }) => signal.symbol)))
+                );
+
+                for (const { userId, signal } of proSignals) {
+                    const currentPrice = priceBySymbol.get(signal.symbol.trim().toUpperCase());
+                    const updated = currentPrice != null
+                        ? await checkAndUpdateProSignal(userId, signal, currentPrice)
+                        : false;
+                    if (updated) updatedCount++;
+                    checkedCount++;
                 }
             }
         }
@@ -87,15 +101,11 @@ export async function POST(request: NextRequest) {
     }
 }
 
-async function checkAndUpdateProSignal(userId: string, signal: ProSignal): Promise<boolean> {
+async function checkAndUpdateProSignal(userId: string, signal: ProSignal, currentPrice: number): Promise<boolean> {
     try {
         const activeStatuses = ["CREATED", "PENDING_ENTRY", "ENTRY_TRIGGERED", "TP1_HIT", "BE_PROFIT_LOCK", "TP2_HIT", "TP3_HIT", "TP4_HIT", "TP5_OPEN_RUNNER"];
         if (!activeStatuses.includes(signal.status)) return false;
 
-        const priceData = await fetchLatestPrice(signal.symbol);
-        if (!priceData) return false;
-
-        const currentPrice = priceData.price;
         let newStatus: string | null = null;
         let tpHitIndex: number | null = null;
         let hitSl = false;
@@ -181,15 +191,30 @@ async function checkAndUpdateProSignal(userId: string, signal: ProSignal): Promi
     }
 }
 
-async function fetchLatestPrice(symbol: string): Promise<{ price: number } | null> {
-    try {
-        const cleanSymbol = symbol.replace("/", "") as unknown as import("@/lib/market-data/types").SupportedSymbol;
-        const candles = await fetchCandles(cleanSymbol, "M1");
-        if (candles && candles.length > 0) {
-            return { price: candles[candles.length - 1].close };
+/**
+ * Resolve the latest real price for each symbol in parallel via the shared
+ * live-price resolver (fresh Biquote forming M1 candle → TradingView
+ * scanner). Symbols without a resolvable live price are simply omitted —
+ * their signals are skipped this sweep, never priced with fabricated data.
+ */
+async function fetchPricesForSymbols(symbols: string[]): Promise<Map<string, number>> {
+    const priceBySymbol = new Map<string, number>();
+    const uniqueSymbols = Array.from(new Set(symbols.map((s) => s.trim().toUpperCase()).filter(Boolean)));
+    if (uniqueSymbols.length === 0) return priceBySymbol;
+
+    const results = await Promise.allSettled(
+        uniqueSymbols.map(async (symbol) => ({
+            symbol,
+            quote: await tradingViewLivePriceCache.get(symbol),
+        }))
+    );
+
+    for (const result of results) {
+        if (result.status !== "fulfilled") continue;
+        const { symbol, quote } = result.value;
+        if (quote && Number.isFinite(quote.price) && quote.price > 0) {
+            priceBySymbol.set(symbol, quote.price);
         }
-        return null;
-    } catch {
-        return null;
     }
+    return priceBySymbol;
 }

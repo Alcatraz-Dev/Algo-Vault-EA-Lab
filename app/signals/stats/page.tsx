@@ -30,10 +30,11 @@ import AreaTrendChart from "@/components/charts/AreaTrendChart";
 import BarCompareChart from "@/components/charts/BarCompareChart";
 import SignalAnalyticsDashboard from "@/components/signals/SignalAnalyticsDashboard";
 import { calculateProfitUSD } from "@/lib/ai-signals/calculations";
+import { useLivePrices } from "@/hooks/useLivePrices";
 import type { AISignal, MarketSentiment, SignalAnalytics, SignalStats } from "@/lib/ai-signals/types";
 
-const FREE_LIMIT = 3;
-const PRO_LIMIT = 10;
+const FREE_LIMIT = 10;
+const PRO_LIMIT = 20;
 
 function getDayKey(timestamp: number) {
     return new Date(timestamp).toISOString().slice(0, 10);
@@ -64,6 +65,12 @@ function formatR(value: number | null | undefined, signed = false) {
     return `${sign}${Math.abs(value).toFixed(2)}R`;
 }
 
+/** Close timestamp with a safe fallback (0 for missing values). */
+function resolveCloseTime(s: AISignal): number {
+    const t = Number(s.completedAt || s.updatedAt || s.createdAt);
+    return Number.isFinite(t) ? t : 0;
+}
+
 type ChartPoint = {
     key: string;
     label: string;
@@ -91,6 +98,13 @@ export default function SignalStatsPage() {
 
     const signalsCountRef = useRef(0);
     const dailyCountRef = useRef(0);
+
+    // Live prices for the market overview sentiment tiles (5s polling).
+    const sentimentSymbols = useMemo(() => [...new Set(sentiments.map((s) => s.symbol))], [sentiments]);
+    const { prices: sentimentPrices } = useLivePrices(sentimentSymbols, {
+        intervalMs: 5_000,
+        enabled: sentimentSymbols.length > 0,
+    });
 
     useEffect(() => {
         const unsub = onAuthStateChanged(auth, (u) => {
@@ -354,13 +368,20 @@ export default function SignalStatsPage() {
         () => [...signals]
             .map((s) => ({ ...s, _resolved: resolveOutcome(s) }))
             .filter(({ _resolved }) => _resolved.result !== "PENDING" && _resolved.result !== "CANCELLED" && _resolved.result !== "EXPIRED")
-            .sort((a, b) => Number(b.completedAt || b.updatedAt || b.createdAt) - Number(a.completedAt || a.updatedAt || a.createdAt))
+            // Guard against NaN timestamps (legacy records with missing dates):
+            // NaN in a comparator poisons Array.sort order randomly.
+            .sort((a, b) => (resolveCloseTime(b) || 0) - (resolveCloseTime(a) || 0))
             .slice(0, 8)
             .map(({ _resolved, ...s }) => ({ ...s, _resolvedResult: _resolved.result, _resolvedR: _resolved.resultR })),
         [signals, resolveOutcome],
     );
 
-    const proFeedSignals = useMemo(() => signals.filter((s) => s.tier === "PRO"), [signals]);
+    // Live feed shows only actionable signals; terminal ones live in history.
+    const TERMINAL_STATUSES = new Set(["STOPPED", "COMPLETED", "CANCELLED", "EXPIRED"]);
+    const proFeedSignals = useMemo(
+        () => signals.filter((s) => s.tier === "PRO" && !TERMINAL_STATUSES.has(s.status)),
+        [signals]
+    );
 
     const dailyLimit = hasPro ? PRO_LIMIT : FREE_LIMIT;
     const limitReached = dailyCount >= dailyLimit;
@@ -536,7 +557,7 @@ export default function SignalStatsPage() {
                                     <div>
                                         <h3 className="text-sm font-bold text-foreground">Unlock More Signals</h3>
                                         <p className="text-xs text-muted-foreground">
-                                            Upgrade to Pro for {PRO_LIMIT} signals per day, priority alerts, and advanced analytics.
+                                            Upgrade to Pro for {PRO_LIMIT} pro signals per day, priority alerts, and advanced analytics.
                                         </p>
                                     </div>
                                 </div>
@@ -561,7 +582,7 @@ export default function SignalStatsPage() {
                                 <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Market Overview</h2>
                             </div>
                             {sentiments.length > 0 ? (
-                                <MarketOverview sentiments={sentiments} />
+                                <MarketOverview sentiments={sentiments} prices={sentimentPrices} />
                             ) : (
                                 <div className="rounded-2xl border border-border/30 bg-card/60 p-8 text-center backdrop-blur-xl">
                                     <BarChart3 className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
@@ -754,7 +775,7 @@ export default function SignalStatsPage() {
                                                             {formatR(resR, resR > 0)}
                                                         </td>
                                                         <td className="py-3 text-right font-mono text-muted-foreground tabular-nums">
-                                                            {formatTimestamp(Number(signal.completedAt || signal.updatedAt || signal.createdAt))}
+                                                            {formatTimestamp(resolveCloseTime(signal))}
                                                         </td>
                                                     </tr>
                                                 );

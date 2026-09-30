@@ -34,6 +34,46 @@ export async function POST(request: NextRequest) {
         }
 
         const now = Date.now();
+
+        // Did the trade ever actually enter? Manually completing a signal that
+        // never triggered is a cancellation, not a trade: the results engine
+        // would otherwise resolve COMPLETED+no-TP-hits as a full +1R WIN and
+        // inflate the win rate.
+        const enteredStatuses = ["ENTRY_TRIGGERED", "ACTIVE", "TP1_HIT", "TP2_HIT", "TP3_HIT", "RUNNER"];
+        const hadEntered = enteredStatuses.includes(signal.status) || signal.tp1Hit === true || signal.tp2Hit === true || signal.tp3Hit === true;
+
+        if (!manualResult && !hadEntered) {
+            const updates: Partial<AISignal> = {
+                status: "CANCELLED",
+                result: "CANCELLED",
+                resultR: 0,
+                profitPoints: 0,
+                completedAt: now,
+                closedAt: now,
+                updatedAt: now,
+            };
+            await adminDatabase.ref(`aiSignals/${signalId}`).update(updates);
+
+            const event = {
+                eventId: `CANCELLED_${now}`,
+                signalId,
+                eventType: "CANCELLED",
+                price: signal.currentPrice || signal.entry,
+                timestamp: now,
+                metadata: { reason: "manual_close_before_entry" },
+            };
+            await adminDatabase.ref(`signalEvents/${signalId}/${event.eventId}`).set(event);
+
+            return NextResponse.json({
+                success: true,
+                signal: { ...signal, ...updates },
+                result: "CANCELLED",
+                resultR: 0,
+                profitPoints: 0,
+                cancelledBeforeEntry: true,
+            });
+        }
+
         const outcome = calculateSignalResult(signal);
 
         const result: SignalResult = manualResult && ["WIN", "LOSS", "BREAKEVEN"].includes(manualResult)

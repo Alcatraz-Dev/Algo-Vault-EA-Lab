@@ -23,6 +23,7 @@ import {
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
+import { useLiveQuote } from "@/hooks/useLiveCandles";
 import { ProTerminalChart } from "@/components/pro-scalping-terminal/ProTerminalChart";
 import type { ChartLayerId } from "@/components/pro-scalping-terminal/chart-layers";
 
@@ -189,6 +190,11 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
         equalHighsLows: false,
     });
     const [intelligence, setIntelligence] = useState<import("@/lib/ai/analysis/intelligence").AdvancedAnalysisResult | null>(null);
+    // Live price for the Bid/Ask cards — polls the shared quote endpoint so
+    // the header numbers tick between full analytics refreshes (which stay on
+    // manual/refresh-button cadence).
+    const { quotes: liveQuotes } = useLiveQuote([symbol], 5000);
+    const livePrice = liveQuotes[symbol]?.price;
     const [openPanels, setOpenPanels] = useState<Record<string, boolean>>(() => {
         const initial: Record<string, boolean> = {};
         PANELS.forEach((p) => { initial[p.id] = p.defaultOpen; });
@@ -305,7 +311,9 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
             <MarketHeader
                 symbol={symbol}
                 timeframe={timeframe}
-                quote={data?.quote}
+                quote={data?.quote && livePrice !== undefined
+                    ? { ...data.quote, bid: livePrice, ask: livePrice }
+                    : data?.quote}
                 session={data?.session}
                 volatility={data?.volatility}
                 regime={data?.regime}
@@ -394,10 +402,10 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                                 </div>
                             )}
 
-                            {/* Price summary */}
+                            {/* Price summary — Bid/Ask/Spread tick live; ATR/Regime refresh with analytics */}
                             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6" data-guide="stats">
-                                <StatCard label="Bid" value={data.quote?.bid?.toFixed(data.quote.bid >= 100 ? 2 : 5) || "—"} />
-                                <StatCard label="Ask" value={data.quote?.ask?.toFixed(data.quote.ask >= 100 ? 2 : 5) || "—"} />
+                                <StatCard label="Bid" value={(livePrice ?? data.quote?.bid)?.toFixed((livePrice ?? data.quote?.bid ?? 0) >= 100 ? 2 : 5) || "—"} />
+                                <StatCard label="Ask" value={(livePrice ?? data.quote?.ask)?.toFixed((livePrice ?? data.quote?.ask ?? 0) >= 100 ? 2 : 5) || "—"} />
                                 <StatCard label="Spread" value={data.quote?.spread?.toFixed(data.quote.spread >= 1 ? 2 : 5) || "—"} />
                                 <StatCard
                                     label="Change"

@@ -90,10 +90,16 @@ export async function GET(request: NextRequest) {
         signals.sort((a, b) => b.createdAt - a.createdAt);
         const page = signals.slice(0, limit);
 
+        // Unfiltered all-time count (after entitlement filtering) — powers the
+        // history page's "signals in database" badge without a client-side
+        // download of the whole collection.
+        const totalAllTime = signals.length;
+
         return NextResponse.json({
             success: true,
             signals: page,
             total: signals.length,
+            totalAllTime,
             hasMore: signals.length > limit,
         });
     } catch (err) {

@@ -5,8 +5,18 @@ import { auth } from "@/lib/firebase";
 
 export type LivePrices = Record<string, number>;
 
+export type LiveQuoteMeta = {
+    price: number;
+    change?: number;
+    changePercent?: number;
+    timestamp: number;
+    provider: string;
+};
+
+export type LiveQuotes = Record<string, LiveQuoteMeta>;
+
 interface UseLivePricesOptions {
-    /** Poll interval in ms. Defaults to 10 000 (10 s). */
+    /** Poll interval in ms. Defaults to 5 000 (5 s). */
     intervalMs?: number;
     /** Set to false to pause polling without unmounting. */
     enabled?: boolean;
@@ -14,6 +24,7 @@ interface UseLivePricesOptions {
 
 interface UseLivePricesResult {
     prices: LivePrices;
+    quotes: LiveQuotes;
     lastUpdatedAt: number;
     isLive: boolean;
     refresh: () => void;
@@ -21,17 +32,25 @@ interface UseLivePricesResult {
 
 /**
  * Polls /api/signals/quotes?symbols=SYM1,SYM2 every `intervalMs` ms and
- * returns the latest bid prices for all requested symbols.
+ * returns the latest prices for all requested symbols (plus change metadata
+ * via `quotes`).
+ *
+ * The server resolves each symbol through the shared live-price resolver
+ * (fresh Biquote forming candle → TradingView scanner) behind a 5 s cache,
+ * so this cadence produces real tick-level updates without hammering the
+ * upstream providers.
  *
  * Gracefully degrades: if the endpoint is unreachable, `prices` remains
  * whatever was last successfully fetched (empty map on first failure).
+ * Polling pauses while the tab is hidden and resumes on focus.
  */
 export function useLivePrices(
     symbols: string[],
     options: UseLivePricesOptions = {}
 ): UseLivePricesResult {
-    const { intervalMs = 10_000, enabled = true } = options;
+    const { intervalMs = 5_000, enabled = true } = options;
     const [prices, setPrices] = useState<LivePrices>({});
+    const [quotes, setQuotes] = useState<LiveQuotes>({});
     const [lastUpdatedAt, setLastUpdatedAt] = useState(0);
     const [isLive, setIsLive] = useState(false);
     const symbolsRef = useRef<string[]>([]);
@@ -59,9 +78,16 @@ export function useLivePrices(
                 { signal: abortRef.current.signal, headers }
             );
             if (!res.ok) return;
-            const data: { prices?: LivePrices; success?: boolean } = await res.json();
+            const data: { prices?: LivePrices; quotes?: LiveQuotes; success?: boolean } = await res.json();
+            let updated = false;
             if (data.prices) {
                 setPrices((prev) => ({ ...prev, ...data.prices }));
+                updated = true;
+            }
+            if (data.quotes) {
+                setQuotes((prev) => ({ ...prev, ...data.quotes }));
+            }
+            if (updated) {
                 setLastUpdatedAt(Date.now());
                 setIsLive(true);
             }
@@ -77,12 +103,23 @@ export function useLivePrices(
         // Immediate first fetch
         void fetchPrices();
 
-        const id = setInterval(() => void fetchPrices(), intervalMs);
+        const id = setInterval(() => {
+            // Pause while the tab is hidden — resume on visibility/focus.
+            if (typeof document !== "undefined" && document.hidden) return;
+            void fetchPrices();
+        }, intervalMs);
+
+        const resume = () => {
+            if (typeof document !== "undefined" && !document.hidden) void fetchPrices();
+        };
+        document.addEventListener("visibilitychange", resume);
+
         return () => {
             clearInterval(id);
+            document.removeEventListener("visibilitychange", resume);
             abortRef.current?.abort();
         };
     }, [enabled, intervalMs, fetchPrices, symbols.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    return { prices, lastUpdatedAt, isLive, refresh: fetchPrices };
+    return { prices, quotes, lastUpdatedAt, isLive, refresh: fetchPrices };
 }

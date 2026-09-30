@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminAuth } from "@/lib/firebase-admin";
 import { getAdminSubscriptionStatus } from "@/lib/subscription-server";
 import { getProSignals, processIncomingTelegramMessage } from "@/features/telegram-signals/signals/signal-engine";
+import type { ProSignal } from "@/features/telegram-signals/types";
 
 export async function GET(request: NextRequest) {
     try {
@@ -22,7 +23,19 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const signals = await getProSignals(uid);
+        // Broadcast signals live in `telegramSignals/system`; a mirrored copy
+        // may also exist in the user's own node (follow/trade lifecycle writes
+        // there). Merge both — user-scoped copy wins — and dedupe by id so the
+        // feed never renders the same signal twice (duplicate React keys).
+        const [ownSignals, systemSignals] = await Promise.all([
+            getProSignals(uid),
+            getProSignals("system"),
+        ]);
+        const byId = new Map<string, ProSignal>();
+        for (const signal of [...systemSignals, ...ownSignals]) {
+            if (signal && signal.id) byId.set(signal.id, signal);
+        }
+        const signals = [...byId.values()];
 
         const normalizedSignals = signals.map((signal) => {
             const tp1 = signal.takeProfits.find((t) => t.index === 1)?.price ?? null;

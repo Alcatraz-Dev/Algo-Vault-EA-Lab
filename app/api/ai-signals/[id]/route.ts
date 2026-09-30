@@ -120,7 +120,11 @@ export async function GET(
         });
         events.sort((a, b) => b.timestamp - a.timestamp);
 
-        return NextResponse.json({ success: true, signal, events });
+        // Follow state so the detail page's Follow/Following button initializes
+        // correctly (mirrors GET /api/pro-signals/[id].isFollowed).
+        const followedSnap = await adminDatabase.ref(`users/${user.uid}/followedSignals/${id}`).get();
+
+        return NextResponse.json({ success: true, signal, events, isFollowed: followedSnap.exists() });
     } catch (err) {
         console.error("AI Signal [id] GET error:", err);
         return NextResponse.json({ error: "Failed to load signal" }, { status: 500 });

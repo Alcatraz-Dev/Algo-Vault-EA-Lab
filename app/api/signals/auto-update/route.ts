@@ -2,33 +2,50 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDatabase } from "@/lib/firebase-admin";
 import { AISignal, SignalStatus, SignalEvent } from "@/lib/ai-signals/types";
 import type { ProSignal } from "@/features/telegram-signals/types";
-import { fetchCandles } from "@/lib/market-data/normalizer";
+import { saveProSignal } from "@/features/telegram-signals/signals/signal-engine";
+import { transitionSignalState } from "@/features/telegram-signals/lifecycle/state-machine";
+import { tradingViewLivePriceCache } from "@/lib/market-data/tradingview-live";
 import { calculateSignalResult } from "@/lib/ai-signals/results";
 import { recordSignalEvent } from "@/lib/ai-signals/events";
 
 const MAX_SIGNALS_TO_CHECK = 200;
 
 /**
- * Signal auto-update sweep — invoked by a cron/worker (vercel.json, every 5 min).
+ * Signal auto-update sweep — invoked by a cron/worker (vercel.json, every 5 min)
+ * OR by an authenticated user from the Signals page ("Scan" button, which sends
+ * `Authorization: Bearer <idToken>`).
  *
- * Auth: requires `x-cron-secret` to match CRON_SECRET (same convention as
- * /api/ai-signals/monitor, /api/alerts/check, /api/trade-management/monitor), OR
- * the request must come from Vercel's cron runner (user-agent "vercel-cron").
- * If CRON_SECRET is unset the endpoint refuses to run instead of running
- * unauthenticated.
+ * Auth: accepts any of —
+ *   - Vercel's cron runner (user-agent "vercel-cron")
+ *   - `x-cron-secret` (or `?secret=`) matching CRON_SECRET
+ *   - a valid Firebase ID token as `Authorization: Bearer <idToken>`
+ * If CRON_SECRET is unset the cron paths are simply not available (the bearer
+ * path still works); nothing runs unauthenticated.
  */
 export async function POST(request: NextRequest) {
     const secret = process.env.CRON_SECRET;
     const headerSecret = request.headers.get("x-cron-secret") || "";
     const querySecret = new URL(request.url).searchParams.get("secret") || "";
     const isVercelCron = (request.headers.get("user-agent") || "").toLowerCase().includes("vercel-cron");
+    const authorization = request.headers.get("Authorization") || "";
+    const isBearer = authorization.startsWith("Bearer ");
 
-    const authorized = isVercelCron || Boolean(secret && (headerSecret === secret || querySecret === secret));
-    if (!authorized) {
+    const cronAuthorized = isVercelCron || Boolean(secret && (headerSecret === secret || querySecret === secret));
+
+    if (!cronAuthorized && !isBearer) {
         return NextResponse.json(
-            { error: "Unauthorized. Set CRON_SECRET and send it as x-cron-secret." },
+            { error: "Unauthorized. Set CRON_SECRET and send it as x-cron-secret, or send a valid Firebase ID token as Authorization: Bearer." },
             { status: 401 }
         );
+    }
+
+    if (!cronAuthorized && isBearer) {
+        const { adminAuth } = await import("@/lib/firebase-admin");
+        try {
+            await adminAuth.verifyIdToken(authorization.slice(7).trim());
+        } catch {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
     }
 
     try {
@@ -54,21 +71,37 @@ export async function POST(request: NextRequest) {
                     ["ACTIVE", "READY", "TP1_HIT", "TP2_HIT", "TP3_HIT", "RUNNER", "PENDING_ENTRY", "ENTRY_TRIGGERED"].includes(s.status)
                 ).slice(0, MAX_SIGNALS_TO_CHECK);
 
+                // Batch: one parallel price lookup per symbol instead of a
+                // serial round-trip per signal — the sweep completes in a
+                // fraction of the time, so SL/TP transitions land sooner.
+                const symbols = Array.from(new Set(activeSignals.map((s) => s.symbol)));
+                const priceBySymbol = await fetchPricesForSymbols(symbols);
+
                 for (const signal of activeSignals) {
-                    const updated = await checkAndUpdateSignal(signal);
+                    const currentPrice = priceBySymbol.get(signal.symbol);
+                    const updated = currentPrice != null
+                        ? await checkAndUpdateSignal(signal, currentPrice)
+                        : false;
                     if (updated) updatedCount++;
                     checkedCount++;
                 }
             }
         } else if (signalIds && Array.isArray(signalIds)) {
-            for (const signalId of signalIds) {
-                const signalSnap = await adminDatabase.ref(`aiSignals/${signalId}`).get();
-                if (signalSnap.exists()) {
-                    const signal = signalSnap.val() as AISignal;
-                    const updated = await checkAndUpdateSignal(signal);
-                    if (updated) updatedCount++;
-                    checkedCount++;
-                }
+            const signalIdsList = signalIds.slice(0, MAX_SIGNALS_TO_CHECK) as string[];
+            const signalSnaps = await Promise.all(
+                signalIdsList.map((signalId) => adminDatabase.ref(`aiSignals/${signalId}`).get())
+            );
+            const loaded: AISignal[] = signalSnaps
+                .filter((snap) => snap.exists())
+                .map((snap) => snap.val() as AISignal);
+            const priceBySymbol = await fetchPricesForSymbols(Array.from(new Set(loaded.map((s) => s.symbol))));
+            for (const signal of loaded) {
+                const currentPrice = priceBySymbol.get(signal.symbol);
+                const updated = currentPrice != null
+                    ? await checkAndUpdateSignal(signal, currentPrice)
+                    : false;
+                if (updated) updatedCount++;
+                checkedCount++;
             }
         }
 
@@ -76,14 +109,26 @@ export async function POST(request: NextRequest) {
         const proSnap = await adminDatabase.ref("telegramSignals").get();
         if (proSnap.exists()) {
             const proData = proSnap.val();
+            const proSignals: Array<{ userId: string; signal: ProSignal }> = [];
             for (const userId of Object.keys(proData)) {
                 for (const signalId of Object.keys(proData[userId])) {
-                    if (checkedCount >= MAX_SIGNALS_TO_CHECK) break;
+                    if (proSignals.length >= MAX_SIGNALS_TO_CHECK) break;
                     const signal = proData[userId][signalId];
-                    const updated = await checkAndUpdateProSignal(userId, signal);
-                    if (updated) updatedCount++;
-                    checkedCount++;
+                    if (signal) proSignals.push({ userId, signal });
                 }
+            }
+
+            const priceBySymbol = await fetchPricesForSymbols(
+                Array.from(new Set(proSignals.map(({ signal }) => signal.symbol)))
+            );
+
+            for (const { userId, signal } of proSignals) {
+                const currentPrice = priceBySymbol.get(signal.symbol);
+                const updated = currentPrice != null
+                    ? await checkAndUpdateProSignal(userId, signal, currentPrice)
+                    : false;
+                if (updated) updatedCount++;
+                checkedCount++;
             }
         }
 
@@ -102,7 +147,7 @@ export async function POST(request: NextRequest) {
     }
 }
 
-async function checkAndUpdateSignal(signal: AISignal): Promise<boolean> {
+async function checkAndUpdateSignal(signal: AISignal, currentPrice: number): Promise<boolean> {
     try {
         const now = Date.now();
 
@@ -120,11 +165,9 @@ async function checkAndUpdateSignal(signal: AISignal): Promise<boolean> {
             }
         }
 
-        // Get current market price for the symbol
-        const priceData = await fetchLatestPrice(signal.symbol);
-        if (!priceData) return false;
-
-        const currentPrice = priceData.price;
+        // Price is resolved once per symbol by the batched sweep (real live
+        // quote — Biquote forming candle or TradingView scanner). No fallback
+        // fabrication: if no price is available the signal is skipped.
         let newStatus: SignalStatus | null = null;
         let hitTpIndex: number | null = null;
         let hitSl = false;
@@ -183,34 +226,68 @@ async function checkAndUpdateSignal(signal: AISignal): Promise<boolean> {
             if (hitTpIndex === 2) updates.tp2Hit = true;
             if (hitTpIndex === 3) updates.tp3Hit = true;
 
-            // If SL hit, calculate result and mark as COMPLETED
+            // Outcomes must be computed against the POST-transition signal
+            // (merged status + tp flags), never the stale pre-update snapshot —
+            // otherwise e.g. a TP3 hit on a signal whose tp1Hit/tp2Hit flags
+            // were set on a previous sweep resolves as PENDING instead of WIN.
+            const computeOutcome = (status: SignalStatus) =>
+                calculateSignalResult({
+                    ...signal,
+                    ...updates,
+                    status,
+                    tp1Hit: signal.tp1Hit || updates.tp1Hit === true,
+                    tp2Hit: signal.tp2Hit || updates.tp2Hit === true,
+                    tp3Hit: signal.tp3Hit || updates.tp3Hit === true,
+                });
+
+            // Did the trade ever actually enter? (READY/PENDING/FORMING signals
+            // swept out to SL never became a position.)
+            const enteredStatuses: SignalStatus[] = ["ENTRY_TRIGGERED", "ACTIVE", "TP1_HIT", "TP2_HIT", "TP3_HIT", "RUNNER"];
+            const hadEntered = enteredStatuses.includes(signal.status) || signal.tp1Hit === true || signal.tp2Hit === true || signal.tp3Hit === true;
+
             if (hitSl) {
-                const outcome = calculateSignalResult(signal);
-                updates.result = outcome.result;
-                updates.resultR = outcome.resultR;
-                updates.profitPoints = outcome.profitPoints;
-                updates.closedAt = now;
-                updates.status = "COMPLETED"; // Mark as completed when SL hit
-            }
-            
-            // If TP3 hit (final TP), mark as COMPLETED
-            if (hitTpIndex === 3) {
-                const outcome = calculateSignalResult(signal);
-                updates.result = outcome.result;
-                updates.resultR = outcome.resultR;
-                updates.profitPoints = outcome.profitPoints;
-                updates.closedAt = now;
-                updates.status = "COMPLETED";
-            }
-            
-            // If TP1 or TP2 hit but not final, keep as TP_HIT status but also update result if we can calculate
-            if (hitTpIndex === 1 || hitTpIndex === 2) {
-                const outcome = calculateSignalResult(signal);
-                if (outcome.result !== "PENDING") {
+                if (hadEntered) {
+                    // Entered, then stopped out: honest STOPPED outcome. With
+                    // no TPs banked the results engine resolves this to -1R
+                    // LOSS; with TP1 banked (SL moved to BE) it resolves to
+                    // +0.3·TP1 — the trade-management close model.
+                    const outcome = computeOutcome("STOPPED");
+                    updates.status = "STOPPED";
+                    newStatus = "STOPPED";
                     updates.result = outcome.result;
                     updates.resultR = outcome.resultR;
                     updates.profitPoints = outcome.profitPoints;
+                    updates.closedAt = now;
+                } else {
+                    // Entry never triggered — no trade happened. Storing a
+                    // COMPLETED/STOPPED record here would resolve as a -1R
+                    // "trade" in statistics and inflate the win rate.
+                    updates.status = "CANCELLED";
+                    newStatus = "CANCELLED";
+                    updates.result = "CANCELLED";
+                    updates.resultR = 0;
+                    updates.profitPoints = 0;
+                    updates.closedAt = now;
                 }
+            } else if (hitTpIndex === 3) {
+                // Final TP hit → completed
+                const outcome = computeOutcome("COMPLETED");
+                updates.status = "COMPLETED";
+                newStatus = "COMPLETED";
+                updates.result = outcome.result;
+                updates.resultR = outcome.resultR;
+                updates.profitPoints = outcome.profitPoints;
+                updates.closedAt = now;
+            } else if (hitTpIndex === 1 || hitTpIndex === 2) {
+                // Interim result — trade still running (remaining TPs pending).
+                const outcome = computeOutcome(updates.status as SignalStatus);
+                updates.result = outcome.result;
+                updates.resultR = outcome.resultR;
+                updates.profitPoints = outcome.profitPoints;
+            } else if (newStatus === "ACTIVE") {
+                // Entry just triggered — nothing resolved yet.
+                updates.result = "PENDING";
+                updates.resultR = 0;
             }
 
             // Complete when all TPs hit OR price reversed opposite direction after any TP hit
@@ -219,7 +296,7 @@ async function checkAndUpdateSignal(signal: AISignal): Promise<boolean> {
             const reversed = isBuy ? (currentPrice <= signal.entry) : (currentPrice >= signal.entry);
             if (!hitSl && hadAnyTp && (allHit || reversed)) {
                 if (updates.status !== "COMPLETED" && updates.status !== "STOPPED") {
-                    const outcome = calculateSignalResult({ ...signal, ...updates, status: "COMPLETED", tp1Hit: (signal.tp1Hit || updates.tp1Hit || hitTpIndex === 1), tp2Hit: (signal.tp2Hit || updates.tp2Hit || hitTpIndex === 2), tp3Hit: (signal.tp3Hit || updates.tp3Hit || hitTpIndex === 3) });
+                    const outcome = computeOutcome("COMPLETED");
                     updates.result = outcome.result;
                     updates.resultR = outcome.resultR;
                     updates.profitPoints = outcome.profitPoints;
@@ -244,16 +321,12 @@ async function checkAndUpdateSignal(signal: AISignal): Promise<boolean> {
     }
 }
 
-async function checkAndUpdateProSignal(userId: string, signal: ProSignal): Promise<boolean> {
+async function checkAndUpdateProSignal(userId: string, signal: ProSignal, currentPrice: number): Promise<boolean> {
     try {
         // Pro signals have different status values
         const activeStatuses = ["CREATED", "PENDING_ENTRY", "ENTRY_TRIGGERED", "TP1_HIT", "BE_PROFIT_LOCK", "TP2_HIT", "TP3_HIT", "TP4_HIT", "TP5_OPEN_RUNNER"];
         if (!activeStatuses.includes(signal.status)) return false;
 
-        const priceData = await fetchLatestPrice(signal.symbol);
-        if (!priceData) return false;
-
-        const currentPrice = priceData.price;
         let newStatus: string | null = null;
         let tpHitIndex: number | null = null;
         let hitSl = false;
@@ -300,8 +373,6 @@ async function checkAndUpdateProSignal(userId: string, signal: ProSignal): Promi
         }
 
         if (newStatus && newStatus !== signal.status) {
-            const { transitionSignalState } = await import("@/features/telegram-signals/lifecycle/state-machine");
-            
             const eventType: "TRIGGER_ENTRY" | "HIT_TP" | "HIT_SL" =
                 hitSl ? "HIT_SL" : (
                     tpHitIndex ? "HIT_TP" : "TRIGGER_ENTRY"
@@ -313,7 +384,9 @@ async function checkAndUpdateProSignal(userId: string, signal: ProSignal): Promi
             });
 
             if (transition.transitioned) {
-                await adminDatabase.ref(`telegramSignals/${userId}/${signal.id}`).set(transition.updatedSignal);
+                // Write via saveProSignal so the payload is sanitized for
+                // Firebase (raw .set() rejects nested undefined values).
+                await saveProSignal(userId, transition.updatedSignal);
                 return true;
             }
         }
@@ -325,16 +398,30 @@ async function checkAndUpdateProSignal(userId: string, signal: ProSignal): Promi
     }
 }
 
-async function fetchLatestPrice(symbol: string): Promise<{ price: number } | null> {
-    try {
-        // Try to get latest price from market data
-        const cleanSymbol = symbol.replace("/", "") as import("@/lib/market-data/types").SupportedSymbol;
-        const candles = await fetchCandles(cleanSymbol, "M1");
-        if (candles && candles.length > 0) {
-            return { price: candles[candles.length - 1].close };
+/**
+ * Resolve the latest real price for each symbol in parallel via the shared
+ * live-price resolver (fresh Biquote forming M1 candle → TradingView
+ * scanner). Symbols without a resolvable live price are simply omitted —
+ * their signals are skipped this sweep, never priced with fabricated data.
+ */
+async function fetchPricesForSymbols(symbols: string[]): Promise<Map<string, number>> {
+    const priceBySymbol = new Map<string, number>();
+    const uniqueSymbols = Array.from(new Set(symbols.map((s) => s.trim().toUpperCase()).filter(Boolean)));
+    if (uniqueSymbols.length === 0) return priceBySymbol;
+
+    const results = await Promise.allSettled(
+        uniqueSymbols.map(async (symbol) => ({
+            symbol,
+            quote: await tradingViewLivePriceCache.get(symbol),
+        }))
+    );
+
+    for (const result of results) {
+        if (result.status !== "fulfilled") continue;
+        const { symbol, quote } = result.value;
+        if (quote && Number.isFinite(quote.price) && quote.price > 0) {
+            priceBySymbol.set(symbol, quote.price);
         }
-        return null;
-    } catch {
-        return null;
     }
+    return priceBySymbol;
 }

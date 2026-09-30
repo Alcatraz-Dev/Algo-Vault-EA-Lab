@@ -147,9 +147,11 @@ export function transitionSignalState(
         metadata: {
             fromStatus: signal.status,
             toStatus: newStatus,
-            tpIndex: eventData?.tpIndex,
+            // Firebase RTDB rejects nested `undefined` — normalize absent
+            // optional fields to null (same convention as `price` above).
+            tpIndex: eventData?.tpIndex ?? null,
             newStopLoss: updatedStopLoss,
-            reason: eventData?.reason,
+            reason: eventData?.reason ?? null,
         },
     };
 

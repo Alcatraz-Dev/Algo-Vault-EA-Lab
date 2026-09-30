@@ -1,24 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticate } from "@/lib/admin-auth";
-import { fetchJsonWithRetry } from "@/lib/market-data/normalizer";
+import { tradingViewLivePriceCache } from "@/lib/market-data/tradingview-live";
+import type { TradingViewLivePrice } from "@/lib/market-data/tradingview-live";
 
-const BIQUOTE_BASE = "https://biquote.io/api";
-
-interface BiquoteTickerItem {
-    symbol: string;
-    bid?: number;
-    ask?: number;
-    last?: number;
-    price?: number;
-    close?: number;
-}
+const MAX_SYMBOLS = 20;
 
 /**
  * GET /api/signals/quotes?symbols=XAUUSD,EURUSD,GBPUSD
  *
- * Returns a map of symbol → current bid price sourced from Biquote.
- * Used by the live price polling hook (useLivePrices) to keep signal
- * cards updated without a full market analytics round-trip.
+ * Authenticated live-price endpoint used by the signals pages (useLivePrices
+ * hook) to keep signal cards, live panels, and the SL→TP tracks moving.
+ *
+ * Each symbol is resolved through the shared market-data resolver:
+ *   1. Biquote forming M1 candle when it is genuinely fresh (< 2 min old) —
+ *      this is the same tick-level feed the OHLC charts use;
+ *   2. TradingView scanner close as fallback (US equities, indices, any
+ *      symbol Biquote does not cover).
+ *
+ * A 5 s server-side cache + in-flight dedupe means 10 clients polling the
+ * same symbol share one upstream call. Per-symbol failures are omitted,
+ * never faked.
  */
 export async function GET(request: NextRequest) {
     try {
@@ -32,62 +33,62 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "symbols parameter required" }, { status: 400 });
         }
 
-        const symbols = symbolsParam
-            .split(",")
-            .map((s) => s.trim().toUpperCase())
-            .filter(Boolean)
-            .slice(0, 20); // hard cap
+        const symbols = Array.from(
+            new Set(
+                symbolsParam
+                    .split(",")
+                    .map((s) => s.trim().toUpperCase())
+                    .filter(Boolean)
+            )
+        ).slice(0, MAX_SYMBOLS);
 
         if (symbols.length === 0) {
-            return NextResponse.json({ prices: {} });
+            return NextResponse.json({ success: true, prices: {}, quotes: {}, timestamp: Date.now() });
         }
 
-        // Fetch each symbol from Biquote in parallel using the lightweight ticker endpoint.
-        // Fall back gracefully: if one symbol fails its price is simply omitted.
         const results = await Promise.allSettled(
-            symbols.map(async (symbol) => {
-                const url = `${BIQUOTE_BASE}/tickers?symbol=${symbol}&limit=1`;
-                const data = await fetchJsonWithRetry<BiquoteTickerItem[] | { tickers?: BiquoteTickerItem[] }>(url);
-
-                let price: number | null = null;
-
-                if (Array.isArray(data) && data.length > 0) {
-                    const item = data[0] as BiquoteTickerItem;
-                    price =
-                        item.bid ??
-                        item.ask ??
-                        item.last ??
-                        item.price ??
-                        item.close ??
-                        null;
-                } else if (data && typeof data === "object" && "tickers" in data && Array.isArray(data.tickers) && data.tickers.length > 0) {
-                    const item = data.tickers[0] as BiquoteTickerItem;
-                    price =
-                        item.bid ??
-                        item.ask ??
-                        item.last ??
-                        item.price ??
-                        item.close ??
-                        null;
-                }
-
-                return { symbol, price };
-            })
+            symbols.map(async (symbol) => ({
+                symbol,
+                quote: await tradingViewLivePriceCache.get(symbol),
+            }))
         );
 
         const prices: Record<string, number> = {};
+        const quotes: Record<
+            string,
+            Pick<TradingViewLivePrice, "price" | "change" | "changePercent" | "timestamp" | "provider">
+        > = {};
+        let oldestTimestamp = Number.POSITIVE_INFINITY;
+
         for (const result of results) {
-            if (result.status === "fulfilled" && result.value.price != null && Number.isFinite(result.value.price)) {
-                prices[result.value.symbol] = result.value.price;
-            }
+            if (result.status !== "fulfilled") continue;
+            const { symbol, quote } = result.value;
+            if (!quote || !Number.isFinite(quote.price) || quote.price <= 0) continue;
+
+            prices[symbol] = quote.price;
+            quotes[symbol] = {
+                price: quote.price,
+                change: quote.change,
+                changePercent: quote.changePercent,
+                timestamp: quote.timestamp,
+                provider: quote.provider,
+            };
+            if (quote.timestamp > 0) oldestTimestamp = Math.min(oldestTimestamp, quote.timestamp);
         }
 
         return NextResponse.json(
-            { success: true, prices, timestamp: Date.now() },
+            {
+                success: true,
+                prices,
+                quotes,
+                timestamp: Date.now(),
+                quoteTimestamp: Number.isFinite(oldestTimestamp) ? oldestTimestamp : Date.now(),
+            },
             {
                 headers: {
-                    // Short cache to avoid hammering the upstream API
-                    "Cache-Control": "public, max-age=5, stale-while-revalidate=10",
+                    // Clients poll this route directly; the freshness contract
+                    // is owned by the server cache, not HTTP caching.
+                    "Cache-Control": "no-store",
                 },
             }
         );

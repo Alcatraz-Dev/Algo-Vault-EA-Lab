@@ -127,6 +127,19 @@ export function toTradingViewSymbol(symbol: string): string {
     return TRADINGVIEW_SYMBOL_CANDIDATES[normalized as SupportedSymbol]?.[0] ?? normalized;
 }
 
+/**
+ * Inverse of `toTradingViewSymbol`: strip an exchange/venue prefix (e.g.
+ * "OANDA:XAUUSD" → "XAUUSD") so Biquote-style plain-symbol APIs can be
+ * queried with a name they actually recognize. Only prefixes that Biquote
+ * does not use are stripped — Biquote symbols are always plain ("XAUUSD",
+ * "EURUSD", ...), so any "VENUE:SYMBOL" form is de-mapped.
+ */
+export function fromTradingViewSymbol(symbol: string): string {
+    const normalized = symbol.trim().toUpperCase();
+    const idx = normalized.indexOf(":");
+    return idx > 0 ? normalized.slice(idx + 1) : normalized;
+}
+
 function parseScannerRow(row: ScannerRow | undefined, symbol: string): TradingViewLivePrice | null {
     const values = row?.d;
     const close = positiveNumber(values?.[3]) ?? positiveNumber(values?.[8]);
@@ -229,7 +242,9 @@ export async function fetchBiquoteLivePrice(symbol: string): Promise<TradingView
 export async function fetchTradingViewLivePrice(
     symbol: string
 ): Promise<TradingViewLivePrice | null> {
-    const upper = symbol.trim().toUpperCase();
+    // Accept both plain symbols ("XAUUSD") and venue-qualified tickers
+    // ("OANDA:XAUUSD"): the Biquote lookup always needs the plain form.
+    const upper = fromTradingViewSymbol(symbol);
 
     // Prefer the Biquote forming candle when it is genuinely fresh: the
     // scanner's `close` can lag by minutes (it is not tick-level despite

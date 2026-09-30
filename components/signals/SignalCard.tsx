@@ -453,6 +453,7 @@ export default function SignalCard({
                             tp2={signal.tp2}
                             currentPrice={livePrice}
                             direction={signal.direction}
+                            symbol={signal.symbol}
                         />
                     )}
                 </div>
@@ -641,9 +642,10 @@ interface RiskTrackProps {
     tp2?: number;
     currentPrice: number;
     direction: SignalDirection;
+    symbol: string;
 }
 
-function RiskTrack({ entry, stopLoss, tp1, currentPrice, direction }: RiskTrackProps) {
+function RiskTrack({ entry, stopLoss, tp1, currentPrice, direction, symbol }: RiskTrackProps) {
     const isBuy = direction === "BUY";
 
     // Determine the full range displayed on the track
@@ -701,7 +703,7 @@ function RiskTrack({ entry, stopLoss, tp1, currentPrice, direction }: RiskTrackP
             <div className="mt-1.5 flex items-center justify-between text-[10px] font-mono text-muted-foreground">
                 <ArrowRight className="h-2.5 w-2.5 rotate-180 text-rose-400/60" />
                 <span className="text-center">
-                    Entry: <span className="text-foreground font-semibold">{formatPrice(entry, "XAUUSD")}</span>
+                    Entry: <span className="text-foreground font-semibold">{formatPrice(entry, symbol)}</span>
                 </span>
                 <ArrowRight className="h-2.5 w-2.5 text-emerald-400/60" />
             </div>
