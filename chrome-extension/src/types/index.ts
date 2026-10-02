@@ -147,6 +147,7 @@ export type ViewMode =
   | "ai-copilot"
   | "risk"
   | "signal"
+  | "alerts"
   | "execute"
   | "quick-order"
   | "signals-list"

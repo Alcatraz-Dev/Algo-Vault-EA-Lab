@@ -108,6 +108,25 @@ export default function PwaRegister() {
         document.addEventListener("visibilitychange", handleVisibility);
 
         const registerSW = async () => {
+            const isDev = process.env.NODE_ENV !== "production" || window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+            if (isDev) {
+                // In development, unregister any service workers and clear cache storage
+                // to prevent stale chunk caching, Turbopack conflicts, and hydration mismatches.
+                navigator.serviceWorker.getRegistrations().then((registrations) => {
+                    for (const registration of registrations) {
+                        registration.unregister();
+                    }
+                });
+                if ("caches" in window) {
+                    caches.keys().then((keys) => {
+                        for (const key of keys) {
+                            caches.delete(key);
+                        }
+                    });
+                }
+                return;
+            }
+
             try {
                 const registration = await navigator.serviceWorker.register("/sw.js", {
                     scope: "/",

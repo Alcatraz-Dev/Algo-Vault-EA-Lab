@@ -27,7 +27,25 @@ interface MainViewProps {
   onBacktest: () => void;
 }
 
-const TIMEFRAMES = ["M5", "M15", "H1", "H4", "D1"];
+// Standard timeframes shown in the switcher. We always append the actively
+// detected timeframe (from TradingView) so e.g. "M3" stays highlighted even
+// if the user's chart is on an unusual resolution.
+const BASE_TIMEFRAMES = ["M1", "M5", "M15", "H1", "H4", "D1"];
+
+function buildTimeframes(active: string | null | undefined): string[] {
+  if (!active || BASE_TIMEFRAMES.includes(active)) return BASE_TIMEFRAMES;
+  // Insert the active TF in the correct position (shortest first).
+  const order = ["M1", "M2", "M3", "M4", "M5", "M10", "M15", "M30", "H1", "H2", "H4", "H8", "H12", "D1", "W1"];
+  const idx = order.indexOf(active);
+  const merged = [...BASE_TIMEFRAMES];
+  if (idx !== -1) {
+    const insertAt = merged.findIndex((t) => order.indexOf(t) > idx);
+    merged.splice(insertAt === -1 ? merged.length : insertAt, 0, active);
+  } else {
+    merged.unshift(active);
+  }
+  return merged;
+}
 
 function fmtPrice(v: number | null | undefined): string {
   if (v == null) return "—";
@@ -144,7 +162,7 @@ export function MainView({
 
           {/* timeframe switcher */}
           <div className="ml-auto flex items-center gap-0.5 rounded-md border border-edge bg-raised p-0.5">
-            {TIMEFRAMES.map((t) => (
+            {buildTimeframes(tf).map((t) => (
               <button
                 key={t}
                 onClick={() => onSelectTimeframe(t)}

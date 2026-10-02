@@ -1,7 +1,7 @@
 // Service Worker for AlgoVault PWA
 // Caches only static assets - NEVER caches sensitive trading/account data
 
-const CACHE_NAME = "algovault-static-v2";
+const CACHE_NAME = "algovault-static-v3";
 const STATIC_ASSETS = [
   "/",
   "/manifest.webmanifest",
@@ -11,6 +11,8 @@ const STATIC_ASSETS = [
 
 // Assets that should never be cached
 const NEVER_CACHE_PATTERNS = [
+  "/_next/",
+  "/__next",
   "/api/",
   "/account/",
   "/admin/",
@@ -39,7 +41,10 @@ const NEVER_CACHE_PATTERNS = [
 ];
 
 function shouldNeverCache(url) {
-  return NEVER_CACHE_PATTERNS.some((pattern) => url.includes(pattern));
+  if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+    return true;
+  }
+  return NEVER_CACHE_PATTERNS.some((pattern) => url.pathname.includes(pattern));
 }
 
 self.addEventListener("install", (event) => {

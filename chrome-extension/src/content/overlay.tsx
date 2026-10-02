@@ -396,15 +396,19 @@ function AlgoVaultOverlay() {
   );
 
   /**
-   * Overlay buttons open tabs INSIDE the extension. They can't open the popup
-   * directly (chrome.action.openPopup() is gesture-gated and silently blocked
-   * from content scripts), so they ask the service worker to park + broadcast
-   * the view; the popup (or side panel) navigates when alive.
+   * Overlay buttons open views INSIDE the extension popup. All actions now
+   * go through the canonical OPEN_EXTENSION_VIEW path which:
+   *   1. Parks the requested view as pendingAction in the SW.
+   *   2. Tries chrome.action.openPopup() (works when the popup is closed).
+   *   3. Broadcasts EXTENSION_VIEW_REQUESTED (works when the popup is open).
+   *
+   * The Alert action additionally auto-creates the alert at the current
+   * price before opening the alerts management view.
    */
   const handleAction = (view: string) => {
     if (view === "quick-alert") {
-      // One-tap alert at the current price + jump to the signals tab where it
-      // appears. The SW creates the alert and broadcasts the result.
+      // One-tap alert: fire-and-forget at the current price, then open the
+      // alerts view so the user can see/edit it.
       const price = intel?.market?.currentPrice ?? chart?.price;
       const symbol = chart?.symbol;
       if (symbol && price != null) {
@@ -412,24 +416,13 @@ function AlgoVaultOverlay() {
           type: "AUTO_CREATE_ALERT",
           payload: { symbol, price, timeframe: chart?.timeframe || "H1" },
         });
-      } else {
-        // No live price yet — still open the extension so the user can pick.
-        chrome.runtime.sendMessage({ type: "OPEN_EXTENSION_VIEW", view: "signals-list" });
       }
+      chrome.runtime.sendMessage({ type: "OPEN_EXTENSION_VIEW", view: "alerts" });
       return;
     }
-    if (view === "ai-copilot") {
-      // Open the Copilot TAB inside the extension (popup), not the side panel.
-      chrome.runtime.sendMessage({ type: "OPEN_EXTENSION_VIEW", view: "ai-copilot" });
-      return;
-    }
-    const legacyMap: Record<string, string> = {
-      analysis: "ANALYZE_CHART",
-      signal: "CREATE_SIGNAL",
-      "strategy-intelligence": "OPEN_STRATEGY_LAB",
-      risk: "CALCULATE_RISK",
-    };
-    chrome.runtime.sendMessage({ type: legacyMap[view] ?? "ANALYZE_CHART", payload: chart });
+    // All other views (analysis, signal, risk, ai-copilot …) use the
+    // same OPEN_EXTENSION_VIEW path so chrome.action.openPopup() is called.
+    chrome.runtime.sendMessage({ type: "OPEN_EXTENSION_VIEW", view });
   };
 
   /** Persist the closed flag and, when re-opening, the last panel visibility. */

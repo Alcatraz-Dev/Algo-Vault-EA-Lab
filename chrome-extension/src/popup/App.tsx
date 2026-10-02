@@ -17,6 +17,7 @@ import { ExecuteView } from "./components/ExecuteView";
 import { DemoTradingView } from "./components/DemoTradingView";
 import { SignalsListView } from "./components/SignalsListView";
 import { AISignalsView } from "./components/AISignalsView";
+import { AlertView } from "./components/AlertView";
 import { SettingsView } from "./components/SettingsView";
 import { LoginView } from "./components/LoginView";
 
@@ -44,6 +45,7 @@ const RESUMABLE_VIEWS: ReadonlySet<ViewMode> = new Set<ViewMode>([
   "ai-copilot",
   "risk",
   "signal",
+  "alerts",
   "execute",
   "quick-order",
   "signals-list",
@@ -59,7 +61,7 @@ function resumableView(raw: string | null): ViewMode | null {
 
 /** Kept in sync with the ViewMode union in @/types — type-level guard. */
 const VIEW_MODE_FALLBACK: readonly ViewMode[] = [
-  "main", "analysis", "ai-copilot", "risk", "signal", "execute", "quick-order",
+  "main", "analysis", "ai-copilot", "risk", "signal", "alerts", "execute", "quick-order",
   "signals-list", "ai-signals", "demo-trades", "settings", "strategy-intelligence", "diagnostics",
 ];
 
@@ -309,6 +311,8 @@ export default function App() {
         return <RiskView symbol={sym} context={ctx} onBack={() => handleSetView("main")} />;
       case "signal":
         return <SignalView symbol={sym} context={ctx} onBack={() => handleSetView("main")} />;
+      case "alerts":
+        return <AlertView symbol={sym} context={ctx} onBack={() => handleSetView("main")} />;
       case "execute":
       case "quick-order":
         return <ExecuteView symbol={sym} context={ctx} contextTimestamp={contextTimestamp} onBack={() => handleSetView("main")} />;

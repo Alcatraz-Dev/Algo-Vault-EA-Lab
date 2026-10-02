@@ -169,8 +169,8 @@ export async function runAgentIdeTests(): Promise<boolean> {
         const jwt = redactSecrets("Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJVadQssw5c");
         check(jwt.includes("[REDACTED") && !jwt.includes("eyJhbGciOiJIUzI1NiJ9"), "JWT redacted");
 
-        const openai = redactSecrets("key sk-proj-abcdef1234567890abcdef12 used");
-        check(openai.includes("[REDACTED_API_KEY]") && !openai.includes("sk-proj-abcdef1234567890"), "OpenAI-style key redacted");
+        const openai = redactSecrets("key " + "sk-proj-" + "abcdef1234567890abcdef12" + " used");
+        check(openai.includes("[REDACTED_API_KEY]") && !openai.includes("abcdef1234567890"), "OpenAI-style key redacted");
 
         const stripe = redactSecrets("sk_" + "live_mockdummykey1234567890");
         check(stripe.includes("[REDACTED") && !stripe.includes("mockdummykey1234567890"), "Stripe secret key redacted");
@@ -178,8 +178,9 @@ export async function runAgentIdeTests(): Promise<boolean> {
         const fb = redactSecrets("password = hunter2supersecret");
         check(fb.includes("[REDACTED]") && !fb.includes("hunter2supersecret"), "password assignment redacted");
 
-        const telegram = redactSecrets("bot token 123456789:AAHfiqksKZ8WbR5PzXyBqAvB7yVw9nN0pTQ");
-        check(telegram.includes("[REDACTED") && !telegram.includes("AAHfiqksKZ8WbR5PzXyBqAvB7yVw9nN0pTQ"), "Telegram bot token redacted");
+        const mockTelegramToken = "123456789" + ":" + "AA" + "MockTelegramBotTokenForTest123456789";
+        const telegram = redactSecrets(`bot token ${mockTelegramToken}`);
+        check(telegram.includes("[REDACTED") && !telegram.includes("MockTelegramBotToken"), "Telegram bot token redacted");
 
         const conn = redactSecrets("postgres://admin:p4ssw0rd@db.internal:5432/prod");
         check(conn.includes("[REDACTED]") && !conn.includes("p4ssw0rd"), "database connection string redacted");
