@@ -137,18 +137,32 @@ function timeframeToLimit(tf: Timeframe): number {
     }
 }
 
+/**
+ * Biquote uses its own symbol names for some instruments that differ from our
+ * canonical SupportedSymbol names. This map translates before every API call.
+ * Verified against the live Biquote API (biquote.io/api/{symbol}/ohlc).
+ */
+const BIQUOTE_SYMBOL_MAP: Partial<Record<SupportedSymbol, string>> = {
+    // Indices — Biquote uses CFD names
+    SPX500: "US500",
+    NAS100: "USTEC",
+    // QQQ, SPY, COIN are US equities not available on Biquote — left unmapped
+    // so the fetch returns null gracefully.
+};
+
 async function fetchFromBiquote(
     symbol: SupportedSymbol,
     timeframe: Timeframe,
     limit: number
 ): Promise<MarketCandle[] | null> {
+    const biquoteSymbol = BIQUOTE_SYMBOL_MAP[symbol] ?? symbol;
     const interval = TIMEFRAME_INTERVALS[timeframe];
     const params = new URLSearchParams({
         interval,
         limit: String(limit),
     });
     const data = await fetchJsonWithRetry<BiquoteResponse>(
-        `${BIQUOTE_BASE}/${encodeURIComponent(symbol)}/ohlc?${params.toString()}`
+        `${BIQUOTE_BASE}/${encodeURIComponent(biquoteSymbol)}/ohlc?${params.toString()}`
     );
     if (!data?.bars?.length) return null;
 

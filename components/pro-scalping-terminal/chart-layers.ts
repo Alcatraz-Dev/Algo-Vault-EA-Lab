@@ -32,7 +32,25 @@ export type ChartLayerId =
     | "heikinAshi"
     | "dailyPivots"
     | "rsiPane"
-    | "macdPane";
+    | "macdPane"
+    // Order Flow & Market Microstructure Intelligence — candle-grade layers
+    // are available now; trade/L2/options-grade layers are declared with
+    // available: false until a provider supplies that data class (honest
+    // disabled states, never fake rendering).
+    | "volumeProfile"
+    | "poc"
+    | "valueArea"
+    | "hvnLvn"
+    | "delta"
+    | "cumulativeDelta"
+    | "footprint"
+    | "imbalances"
+    | "absorption"
+    | "exhaustion"
+    | "largeTrades"
+    | "liquidity"
+    | "heatmap"
+    | "gex";
 
 export type ChartLayerDef = {
     id: ChartLayerId;
@@ -62,7 +80,123 @@ export const CHART_LAYERS: ChartLayerDef[] = [
     { id: "dailyPivots", label: "Pivots", defaultOn: false, available: true },
     { id: "rsiPane", label: "RSI pane", defaultOn: false, available: true },
     { id: "macdPane", label: "MACD pane", defaultOn: false, available: true },
+    // Order Flow layers. Availability mirrors the capability model
+    // (lib/order-flow/capabilities.ts): OHLCV can honestly render the volume
+    // profile, behavioural events, and the ESTIMATED candle-direction delta
+    // (documented proxy model — delta-proxy.ts, clearly labelled, never
+    // presented as bid/ask delta). Footprint/heatmap/L2/options-grade layers
+    // still need data classes no current provider supplies — disabled with an
+    // explanation, never faked.
+    { id: "volumeProfile", label: "Volume Profile", defaultOn: false, available: true },
+    { id: "poc", label: "POC", defaultOn: false, available: true },
+    { id: "valueArea", label: "VAH / VAL", defaultOn: false, available: true },
+    { id: "hvnLvn", label: "HVN / LVN", defaultOn: false, available: true },
+    { id: "absorption", label: "Absorption", defaultOn: false, available: true },
+    { id: "exhaustion", label: "Exhaustion", defaultOn: false, available: true },
+    { id: "delta", label: "Delta (est.)", defaultOn: false, available: true },
+    { id: "cumulativeDelta", label: "Cum. Delta (est.)", defaultOn: false, available: true },
+    { id: "footprint", label: "Footprint", defaultOn: false, available: false },
+    { id: "imbalances", label: "Imbalances", defaultOn: false, available: false },
+    { id: "largeTrades", label: "Large Trades", defaultOn: false, available: false },
+    { id: "liquidity", label: "L2 Liquidity", defaultOn: false, available: false },
+    { id: "heatmap", label: "Heatmap", defaultOn: false, available: false },
+    // GEX renders real call/put walls + gamma flip from a live options chain
+    // (renderer exists), but only for symbols with a wired options source.
+    // Static availability stays false so consumers that never feed the chain
+    // (Pine/Analysis workspaces) keep it disabled; the terminal overrides the
+    // verdict per-symbol via useLayerAvailability/PER_SYMBOL_LAYERS.
+    { id: "gex", label: "GEX", defaultOn: false, available: false },
 ];
+
+/**
+ * Structured explanation for degraded/unavailable layers — surfaced inline in
+ * the layer picker (no hover dependency) so users can see WHY a layer is off
+ * and exactly WHICH data source would unlock it.
+ */
+export interface LayerUnlockInfo {
+    /** Why the layer is degraded or unavailable on the current feed. */
+    reason: string;
+    /** The data class that upgrades/unlocks the layer. */
+    unlock: string;
+    /** Concrete source kinds that supply that data class. */
+    sources: string;
+    /**
+     * True when the layer IS available but only through an estimated proxy
+     * (renders an amber EST chip). Absent for layers that would be HIGH
+     * quality when their data source is present.
+     */
+    estimated?: boolean;
+}
+
+/**
+ * Explanations per layer. Present for unavailable layers (picker shows them
+ * inline on click) and for estimated layers (picker shows them as the chip
+ * tooltip so provenance stays visible).
+ */
+export const LAYER_REQUIREMENTS: Partial<Record<ChartLayerId, LayerUnlockInfo>> = {
+    delta: {
+        reason: "Estimated only: candle volume signed by bar direction (body-direction proxy). The current feed carries no per-trade aggressor side, so this is directional pressure — not bid/ask delta.",
+        unlock: "A trade tape with buyer/seller (aggressor) classification",
+        sources: "Exchange trade streams with side flags (Binance aggTrades, Deribit trades, Bybit tape) or an MT5 bridge publishing tick sides.",
+        estimated: true,
+    },
+    cumulativeDelta: {
+        reason: "Estimated only: running total of candle-direction volume pressure — not true cumulative delta.",
+        unlock: "A trade tape with buyer/seller (aggressor) classification",
+        sources: "Exchange trade streams with side flags (Binance aggTrades, Deribit trades, Bybit tape) or an MT5 bridge publishing tick sides.",
+        estimated: true,
+    },
+    footprint: {
+        reason: "Needs bid × ask volume per price level per bar. The current feed is OHLCV candles — every print inside a bar is aggregated into one number.",
+        unlock: "Bid/ask-classified tick data",
+        sources: "Exchange trade streams with side flags (Binance aggTrades, Deribit trades) or a book-map style tick feed.",
+    },
+    imbalances: {
+        reason: "Needs the same bid × ask price cells footprint uses — imbalances are ratios between dominant and weak sides of those cells. Candles cannot provide them.",
+        unlock: "Bid/ask-classified tick data",
+        sources: "Exchange trade streams with side flags (Binance aggTrades, Deribit trades) or a book-map style tick feed.",
+    },
+    largeTrades: {
+        reason: "Needs the individual trade tape — candles collapse every print into a single bar volume, so outlier prints are invisible.",
+        unlock: "Time-stamped trade prints with size (side classification optional)",
+        sources: "Exchange trade streams (Binance trades, Deribit last_trades) or any raw tape feed.",
+    },
+    liquidity: {
+        reason: "Needs live order-book (Level 2) snapshots — candles carry no resting-order data at all.",
+        unlock: "Depth snapshots or streaming book updates",
+        sources: "Poll or stream exchange depth (Binance /depth, Deribit book) server-side, then feed the L2 pipeline.",
+    },
+    heatmap: {
+        reason: "Needs Level 2 depth tracked over time so walls and stacking are visible historically — the current feed has no book data.",
+        unlock: "A history of depth snapshots (L2 ring buffer)",
+        sources: "Poll or stream exchange depth (Binance /depth, Deribit book) and persist snapshots in the L2 pipeline.",
+    },
+    gex: {
+        reason: "Needs an options chain with open interest and implied volatility. A real chain is already wired — but only for symbols with listed options; forex/metals have none.",
+        unlock: "Switch the chart to BTCUSD, ETHUSD, SPX500, NAS100, US30 or any listed ETF/equity (NVDA, SPY, …) — the chain feeds Deribit (crypto) or CBOE delayed (US listed) automatically.",
+        sources: "Deribit book summaries (BTC/ETH, real-time) · CBOE delayed quotes (~15 min) for SPX/NDX/DJX, ETFs and US equities.",
+    },
+};
+
+/** Static availability from the vocabulary (no per-symbol resolution). */
+export function staticLayerAvailability(): Record<ChartLayerId, boolean> {
+    return Object.fromEntries(CHART_LAYERS.map((l) => [l.id, l.available])) as Record<ChartLayerId, boolean>;
+}
+
+/**
+ * Layers whose availability is resolved per-symbol at render time (data
+ * source is wired, but only for certain symbols). The picker intersects this
+ * with the per-symbol availability map.
+ */
+export const PER_SYMBOL_LAYERS: Partial<Record<ChartLayerId, (symbol: string) => boolean>> = {
+    gex: (symbol) => GEX_SYMBOLS.has(symbol.toUpperCase()),
+};
+
+/** Client-safe symbol set for the GEX layer (mirrors the route's sources). */
+const GEX_SYMBOLS: ReadonlySet<string> = new Set([
+    "BTCUSD", "ETHUSD", "SPX500", "NAS100", "US30", "SPY", "QQQ",
+    "AAPL", "TSLA", "MSFT", "NVDA", "AMZN", "META", "GOOGL", "AMD", "NFLX", "COIN",
+]);
 
 export const CHART_LAYER_IDS = CHART_LAYERS.map((l) => l.id);
 

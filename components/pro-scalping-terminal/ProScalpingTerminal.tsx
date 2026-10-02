@@ -40,7 +40,8 @@ import {
     useNow,
     useThrottledAuthedFetch,
 } from "@/lib/scalping/client";
-import { CHART_LAYERS, TERMINAL_TIMEFRAMES, defaultLayerState, type ChartLayerId } from "./chart-layers";
+import { TERMINAL_TIMEFRAMES, defaultLayerState, type ChartLayerId } from "./chart-layers";
+import { LayerPicker } from "./LayerPicker";
 import { fmtSignedPct, fmtTime } from "./terminal-utils";
 import {
     CalendarPanel,
@@ -55,8 +56,15 @@ import {
     type WatchlistQuote,
 } from "./ProTerminalPanels";
 import { ProTerminalReplay } from "./ProTerminalReplay";
+import { OrderFlowPanel } from "./OrderFlowPanel";
+import { useOrderFlow } from "@/hooks/use-order-flow";
+import { useOrderFlowSettings } from "@/hooks/use-order-flow-settings";
+import { useOptionsChain } from "@/hooks/use-options-chain";
+import { useLayerAvailability } from "@/hooks/use-layer-availability";
+import type { MarketCandle } from "@/lib/market-data/types";
 import { ProTerminalJournal } from "./ProTerminalJournal";
 import { ProTerminalChart } from "./ProTerminalChart";
+import { ProTradingViewContextPanel, type TradingViewContextPayload } from "./ProTradingViewContextPanel";
 import { parseTrades, type TerminalTrade } from "./terminal-utils";
 
 type RadarPayload = { radar: RadarResult; invalid?: string[] };
@@ -108,11 +116,39 @@ export function ProScalpingTerminal() {
     const journalTrades: TerminalTrade[] = useMemo(() => parseTrades(journal.data?.trades ?? []), [journal.data]);
     const calendar = useCalendar();
 
+    // ── TradingView MCP external context (optional, slow-poll, fail-closed) ─
+    // Pure context for the TRADINGVIEW CONTEXT panel. Never feeds the chart,
+    // radar or scanner. A 400 (not connected) simply leaves the panel in its
+    // honest "not loaded" state.
+    // Purity: cache-busting tick comes from the component's clock state
+    // (useNow), never Date.now() during render.
+    const tvCacheTick = Math.floor(now / 120000);
+    const tvContextUrl = token ? `/api/integrations/tradingview/context?symbol=${symbol}&timeframe=${timeframe}&mode=scalping&t=${tvCacheTick}` : null;
+    const tvContext = useThrottledAuthedFetch<{ success: boolean; tradingview: TradingViewContextPayload }>(tvContextUrl, { minIntervalMs: 120000, enabled: !!token });
+    const tvContextPayload = tvContext.data?.success ? tvContext.data.tradingview : null;
+
     const accessError = [radar.error, analysis.error, signals.error].find((e) => e && /license|subscription|plan|access/i.test(e));
 
     const refreshAll = useCallback(() => {
         setTick((t) => t + 1);
     }, []);
+
+    // ── Order Flow: mirror of the chart's candle feed for the panel ────────
+    // The chart fetches its own feed; the panel subscribes to the same
+    // canonical /api/analytics/ohlc endpoint at a low rate so the panel shows
+    // exactly the data the chart layers are computed from.
+    const ofCandlesUrl = `/api/analytics/ohlc?symbol=${symbol}&timeframe=${timeframe}&limit=200`;
+    const ofFeed = useThrottledAuthedFetch<{ candles?: MarketCandle[] }>(ofCandlesUrl, { minIntervalMs: 30_000, enabled: true });
+    const ofCandles: MarketCandle[] = useMemo(() => ofFeed.data?.candles ?? [], [ofFeed.data]);
+    const orderFlowSettings = useOrderFlowSettings();
+    // Real options chain for GEX-capable symbols (polled; silent no-op for
+    // forex/metals which have no wired options source).
+    const optionsChain = useOptionsChain(symbol, token, { pollMs: 120_000 });
+    const orderFlow = useOrderFlow(symbol, timeframe, ofCandles, {
+        settings: orderFlowSettings.settings,
+        optionsChain: optionsChain.available ? optionsChain : null,
+    });
+    const layerAvailability = useLayerAvailability(symbol);
 
     // ⌘K / Ctrl+K focuses symbol search; R refreshes. Small but real keyboard support.
     useEffect(() => {
@@ -147,7 +183,6 @@ export function ProScalpingTerminal() {
         setLayers((prev) => ({ ...prev, [id]: !prev[id] }));
     }, []);
 
-    const unavailableLayers = CHART_LAYERS.filter((l) => !l.available);
 
     if (!token) {
         return (
@@ -323,33 +358,10 @@ export function ProScalpingTerminal() {
                                 <Cpu className="size-3" />
                                 Deterministic · 0 AI spend
                             </span>
-                            {unavailableLayers.length > 0 ? (
-                                <span className="text-[10px] text-muted-foreground">
-                                    {unavailableLayers.map((l) => l.label).join(", ")} — not yet rendered
-                                </span>
-                            ) : null}
                         </div>
                         {layersOpen ? (
-                            <div className="flex flex-wrap gap-1.5 rounded-lg border border-border bg-card p-2.5">
-                                {CHART_LAYERS.map((l) => (
-                                    <button
-                                        key={l.id}
-                                        type="button"
-                                        onClick={() => l.available && toggleLayer(l.id)}
-                                        disabled={!l.available}
-                                        aria-pressed={layers[l.id]}
-                                        className={cn(
-                                            "rounded-md border px-2 py-0.5 text-xs transition",
-                                            !l.available
-                                                ? "cursor-not-allowed border-border/50 text-muted-foreground/40"
-                                                : layers[l.id]
-                                                  ? "border-primary/40 bg-primary/10 text-primary"
-                                                  : "border-border bg-background text-muted-foreground hover:text-foreground"
-                                        )}
-                                    >
-                                        {l.label}
-                                    </button>
-                                ))}
+                            <div className="rounded-lg border border-border bg-card p-2.5">
+                                <LayerPicker layers={layers} availability={layerAvailability} onToggle={toggleLayer} />
                             </div>
                         ) : null}
                     </div>
@@ -362,6 +374,8 @@ export function ProScalpingTerminal() {
                         token={token}
                         height={520}
                         signals={signals.data?.signals ?? []}
+                        orderFlowSettings={orderFlowSettings.settings}
+                        optionsChain={optionsChain.available ? optionsChain : null}
                     />
 
                     <RegimeStrip analysis={analysis.data?.analysis ?? null} loading={analysis.loading} />
@@ -406,6 +420,8 @@ export function ProScalpingTerminal() {
                         now={now}
                     />
 
+                    <ProTradingViewContextPanel context={tvContextPayload} />
+
                     <ProTerminalReplay token={token} />
                 </div>
 
@@ -417,11 +433,13 @@ export function ProScalpingTerminal() {
                         activeSymbol={symbol}
                         onSelectSymbol={setSymbol}
                     />
+                    <OrderFlowPanel orderFlow={orderFlow} symbol={symbol} />
                     <SignalsMiniPanel
                         signals={signals.data?.signals ?? []}
                         rejected={signals.data?.rejected ?? []}
                         loading={signals.loading}
                         now={now}
+                        token={token}
                     />
                     <ProTerminalJournal trades={journalTrades} loading={journal.loading} error={journal.error} now={now} />
 
@@ -444,7 +462,8 @@ export function ProScalpingTerminal() {
             <p className="text-[10px] leading-4 text-muted-foreground">
                 All measurements come from the AlgoVault market-data and analytics engines; the terminal makes no AI model calls.
                 Signals are produced by the deterministic scanner only when its confidence and R:R gates pass. Analytics use only
-                your own journal entries. Nothing here is financial advice.
+                your own journal entries. TradingView context (when connected) is external research context only — it may be
+                delayed and is never used for execution. Nothing here is financial advice.
             </p>
         </div>
     );

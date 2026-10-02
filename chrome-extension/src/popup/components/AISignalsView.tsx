@@ -22,6 +22,7 @@ import {
   generateDailySignals,
   type DailyQuota,
 } from "@/services/daily-signals-service";
+import { BackButton } from "./ui";
 
 function fmt(v: number): string {
   if (v >= 1000) return v.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 2 });
@@ -42,7 +43,7 @@ const SUGGESTED_SYMBOLS = ["XAUUSD", "EURUSD", "GBPUSD", "USDJPY", "BTCUSD", "NA
 export function AISignalsView({ symbol, enriched, onBack }: AISignalsViewProps) {
   const [symbols, setSymbols] = useState<string[]>([]);
   const [input, setInput] = useState("");
-  const [quota, setQuota] = useState<DailyQuota>({ used: 0, limit: FREE_DAILY_SIGNAL_LIMIT, remaining: FREE_DAILY_SIGNAL_LIMIT, day: "" });
+  const [quota, setQuota] = useState<DailyQuota>({ used: 0, limit: FREE_DAILY_SIGNAL_LIMIT, remaining: FREE_DAILY_SIGNAL_LIMIT, day: "", source: "server" });
   const [signals, setSignals] = useState<DailySignal[]>([]);
   const [loading, setLoading] = useState(false);
   const [note, setNote] = useState<string | null>(null);
@@ -53,6 +54,41 @@ export function AISignalsView({ symbol, enriched, onBack }: AISignalsViewProps) 
       const [stored, q] = await Promise.all([loadSelectedSymbols(), getQuota()]);
       setSymbols(stored);
       setQuota(q);
+      // Server-restored signals (survive reinstall) show up until the user
+      // generates a fresh batch this session.
+      try {
+        const { getExtensionDailySignalsState } = await import("@/api/algovault");
+        const serverState = await getExtensionDailySignalsState();
+        if (serverState?.signals?.length) {
+          setSignals((prev) => {
+            if (prev.length > 0) return prev;
+            return serverState.signals
+              .slice()
+              .sort((a, b) => b.createdAt - a.createdAt)
+              .map((s) => ({
+                id: `ds_${String(s.symbol).toLowerCase()}_${s.createdAt}`,
+                symbol: String(s.symbol).toUpperCase(),
+                direction: String(s.direction).toUpperCase() === "SELL" ? "SELL" : "BUY",
+                timeframe: String(s.timeframe || "M15"),
+                entry: Number(s.entry),
+                stopLoss: Number(s.stopLoss),
+                takeProfit1: Number(s.takeProfit1),
+                takeProfit2: Number(s.takeProfit2),
+                takeProfit3: Number(s.takeProfit3),
+                confidence: Number(s.confidence) || 0,
+                setup: String(s.setup ?? ""),
+                reasoning: String(s.reasoning ?? ""),
+                createdAt: Number(s.createdAt) || Date.now(),
+                riskReward: Number.isFinite(Number(s.riskReward)) ? Number(s.riskReward) : undefined,
+                chartEvidence: Array.isArray(s.chartEvidence) ? s.chartEvidence.slice(0, 6) : undefined,
+                chartLevels: Array.isArray(s.chartLevels) ? s.chartLevels.slice(0, 12) : undefined,
+              } as DailySignal));
+          });
+        }
+        if (serverState?.symbols?.length) {
+          setSymbols((prev) => (prev.length > 0 ? prev : serverState.symbols.slice(0, MAX_SIGNAL_SYMBOLS)));
+        }
+      } catch { /* offline — local state is enough */ }
       setHydrated(true);
     })();
   }, []);
@@ -80,7 +116,7 @@ export function AISignalsView({ symbol, enriched, onBack }: AISignalsViewProps) 
       const contexts = new Map<string, EnrichedChartContext | null>();
       if (symbol) contexts.set(symbol.toUpperCase(), enriched);
       const result = await generateDailySignals({ symbols, contexts });
-      setSignals((prev) => [...result.signals, ...prev].slice(0, 9));
+      if (result.signals.length > 0) setSignals((prev) => [...result.signals, ...prev].slice(0, 9));
       setQuota(result.quota);
       setNote(result.note);
     } catch (err) {
@@ -189,8 +225,8 @@ export function AISignalsView({ symbol, enriched, onBack }: AISignalsViewProps) 
         )}
       </div>
 
-      <div className="px-3 py-2 border-t border-edge">
-        <button onClick={onBack} className="w-full py-1 text-xs text-ink-mute transition-colors hover:text-ink">Back</button>
+      <div className="flex items-center border-t border-edge bg-card/60 px-3 py-2">
+        <BackButton onClick={onBack} />
       </div>
     </div>
   );
@@ -232,6 +268,32 @@ function SignalCard({ signal: s }: { signal: DailySignal }) {
           {s.reasoning && <p className="mt-0.5 text-[9px] leading-snug text-ink-faint">{s.reasoning}</p>}
         </div>
       )}
+
+      {/* Chart confluence — the drawn levels that backed the engine's call,
+          mirroring the web signal detail's transparency. */}
+      {(typeof s.riskReward === "number" && s.riskReward > 0) || (s.chartEvidence?.length ?? 0) > 0 ? (
+        <div className="border-t border-white/5 pt-1.5">
+          {typeof s.riskReward === "number" && s.riskReward > 0 && (
+            <p className="font-mono text-[9px] text-ink-faint">
+              R:R <span className="text-ink-mute">{s.riskReward.toFixed(1)}</span>
+            </p>
+          )}
+          {s.chartEvidence && s.chartEvidence.length > 0 && (
+            <ul className="mt-0.5 space-y-0.5">
+              {s.chartEvidence.slice(0, 3).map((e, i) => (
+                <li key={i} className="truncate text-[9px] leading-snug text-ink-faint" title={e}>
+                  · {e}
+                </li>
+              ))}
+            </ul>
+          )}
+          {s.chartLevels && s.chartLevels.length > 0 && (
+            <p className="mt-0.5 truncate text-[8px] uppercase tracking-wider text-ink-faint/70" title={s.chartLevels.map((l) => `${l.label} ${l.price}`).join(" · ")}>
+              {s.chartLevels.slice(0, 4).map((l) => l.label).join(" · ")}
+            </p>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

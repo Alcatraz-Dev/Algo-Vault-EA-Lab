@@ -77,6 +77,7 @@ export const ADMIN_NAV: NavGroup[] = [
       { href: "/admin/copy-trading", label: "Copy Trading", icon: Copy },
       { href: "/trade-replay", label: "Trade Replay", icon: RotateCcw },
       { href: "/admin/tradingview", label: "Trading Studio", icon: LineChart },
+      { href: "/account/ai-execution", label: "AI Execution", icon: Zap },
     ],
   },
   {

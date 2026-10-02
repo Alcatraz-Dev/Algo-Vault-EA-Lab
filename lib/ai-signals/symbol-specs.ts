@@ -171,8 +171,33 @@ export const SYMBOL_SPECS: Record<string, SymbolSpec> = {
     },
 };
 
+/**
+ * Telegram/broker symbol aliases → canonical SYMBOL_SPECS keys. Pro signals
+ * parsed from Telegram often use names like "SP500" or "GOLD"; without this
+ * map they fall back to 5-digit formatting (e.g. "7733.00000").
+ */
+const SYMBOL_ALIASES: Record<string, string> = {
+    SP500: "SPX500",
+    US500: "SPX500",
+    S500: "SPX500",
+    DJIA: "US30",
+    DOW: "US30",
+    DOWJONES: "US30",
+    NDX: "NAS100",
+    NAS: "NAS100",
+    NASDAQ: "NAS100",
+    NASDAQ100: "NAS100",
+    USTEC: "NAS100",
+    GOLD: "XAUUSD",
+    XAU: "XAUUSD",
+    SILVER: "XAGUSD",
+    BTCUSDT: "BTCUSD",
+    ETHUSDT: "ETHUSD",
+};
+
 export function getSymbolSpec(symbol: string): SymbolSpec | null {
-    return SYMBOL_SPECS[symbol.toUpperCase()] || null;
+    const upper = String(symbol || "").toUpperCase();
+    return SYMBOL_SPECS[upper] || SYMBOL_SPECS[SYMBOL_ALIASES[upper] ?? ""] || null;
 }
 
 export function getSymbolCategory(symbol: string): SignalCategory {

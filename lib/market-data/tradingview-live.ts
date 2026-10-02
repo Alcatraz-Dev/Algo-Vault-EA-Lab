@@ -1,6 +1,15 @@
 import { fetchJsonWithRetry, logOncePerWindow } from "./normalizer";
 import type { SupportedSymbol } from "./types";
 
+/**
+ * Biquote live-price symbol aliases — same as in normalizer.ts.
+ * Verified live: SPX500 → US500 (bars), NAS100 → USTEC (bars).
+ */
+const BIQUOTE_LIVE_ALIAS: Record<string, string> = {
+    SPX500: "US500",
+    NAS100: "USTEC",
+};
+
 const TRADINGVIEW_SCANNER_BASE = "https://scanner.tradingview.com";
 const TRADINGVIEW_SCANNER_ENDPOINTS = ["/global/scan", "/cfd/scan"] as const;
 const DEFAULT_RETRIES = 1;
@@ -213,9 +222,11 @@ async function fetchScannerLivePrice(symbol: string): Promise<TradingViewLivePri
 
 export async function fetchBiquoteLivePrice(symbol: string): Promise<TradingViewLivePrice | null> {
     const upper = symbol.trim().toUpperCase();
+    // Translate canonical names to Biquote's own names (e.g. SPX500 → US500).
+    const biquoteSymbol = BIQUOTE_LIVE_ALIAS[upper] ?? upper;
     const params = new URLSearchParams({ interval: "1m", limit: "2" });
     const data = await fetchJsonWithRetry<BiquoteResponse>(
-        `https://biquote.io/api/${encodeURIComponent(upper)}/ohlc?${params.toString()}`,
+        `https://biquote.io/api/${encodeURIComponent(biquoteSymbol)}/ohlc?${params.toString()}`,
         undefined,
         DEFAULT_RETRIES
     );

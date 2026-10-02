@@ -35,7 +35,7 @@ import { useLivePrices } from "@/hooks/useLivePrices";
 import { formatPrice } from "@/lib/ai-signals/symbol-specs";
 import type { AISignal, MarketSentiment, SignalAnalytics } from "@/lib/ai-signals/types";
 
-const FREE_LIMIT = 10;
+const FREE_LIMIT = 3;
 const PRO_LIMIT = 20;
 
 export default function AiSignalsPage() {
@@ -47,6 +47,7 @@ export default function AiSignalsPage() {
     const [sentiments, setSentiments] = useState<MarketSentiment[]>([]);
     const [loading, setLoading] = useState(true);
     const [scanning, setScanning] = useState(false);
+    const [scanResult, setScanResult] = useState<{ generated: number; error?: string; message?: string } | null>(null);
     const [dailyCount, setDailyCount] = useState(0);
     const [activeTab, setActiveTab] = useState<"all" | "active" | "ready" | "forming">("all");
     const [followedIds, setFollowedIds] = useState<Set<string>>(new Set());
@@ -156,31 +157,45 @@ export default function AiSignalsPage() {
     }
 
     async function handleScan() {
+        if (limitReached) return;
         setScanning(true);
+        setScanResult(null);
         try {
+            const headers = await getAuthHeaders();
             const res = await fetch("/api/ai-signals", {
                 method: "POST",
-                headers: await getAuthHeaders(),
+                headers,
             });
             const data = await res.json();
+
             if (data.dailyCount != null) {
                 setDailyCount(data.dailyCount);
                 dailyCountRef.current = data.dailyCount;
             }
-            
-            // Trigger auto-update to check for SL/TP hits
-            await fetch("/api/signals/auto-update", {
+
+            // Show scan result feedback (server returns a human-readable message + diagnostics)
+            if (res.status === 429 || data.error?.includes("limit")) {
+                setScanResult({ generated: 0, error: data.error || "Daily limit reached" });
+            } else {
+                setScanResult({ generated: Number(data.generated ?? 0), message: data.message });
+            }
+
+            // Trigger SL/TP auto-update in the background (non-blocking)
+            void fetch("/api/signals/auto-update", {
                 method: "POST",
-                headers: await getAuthHeaders(),
+                headers,
                 body: JSON.stringify({ checkAllActive: true }),
             });
-            
+
             await fetchSignals();
             await fetchAnalytics();
         } catch (err) {
             console.error("Scan failed:", err);
+            setScanResult({ generated: 0, error: "Scan failed — please try again" });
         } finally {
             setScanning(false);
+            // Auto-clear the result message after 6 seconds
+            setTimeout(() => setScanResult(null), 6000);
         }
     }
 
@@ -253,7 +268,9 @@ export default function AiSignalsPage() {
         if (!user) return;
         const maybeAutoScan = async () => {
             if (signalsCountRef.current > 0) return;
-            if (dailyCountRef.current >= FREE_LIMIT) return;
+            // Never auto-scan once the daily limit is reached
+            const limit = hasPro ? PRO_LIMIT : FREE_LIMIT;
+            if (dailyCountRef.current >= limit) return;
             const key = `signals_autoscan_${user.uid}`;
             if (sessionStorage.getItem(key)) return;
             sessionStorage.setItem(key, "1");
@@ -356,21 +373,28 @@ export default function AiSignalsPage() {
 
                         <button
                             type="button"
-                            onClick={handleScan}
-                            disabled={scanning}
+                            onClick={!limitReached ? handleScan : undefined}
+                            disabled={scanning || limitReached}
                             data-guide="scan"
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
+                            title={limitReached ? `Daily limit reached (${dailyLimit}/${dailyLimit}). Upgrade to Pro for more signals.` : "Scan for new signals"}
+                            className={`inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-xl border px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors ${
+                                limitReached
+                                    ? "border-border/20 bg-muted/5 text-muted-foreground cursor-not-allowed opacity-50"
+                                    : "border-border/30 bg-muted/5 text-foreground hover:bg-muted/10"
+                            }`}
                         >
                             {scanning ? (
                                 <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
+                            ) : limitReached ? (
+                                <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             ) : (
                                 <Radar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             )}
-                            <span>{scanning ? "Scanning..." : "Scan for Signals"}</span>
+                            <span>{scanning ? "Scanning..." : limitReached ? "Limit Reached" : "Scan for Signals"}</span>
                         </button>
 
                         <Link
-                            href="/live"
+                            href="/live-performance"
                             className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
                         >
                             <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400" />
@@ -425,6 +449,25 @@ export default function AiSignalsPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* SCAN RESULT FEEDBACK */}
+                {scanResult && (
+                    <div className={`mt-3 rounded-xl border px-4 py-2.5 text-sm font-medium flex items-center gap-2 transition-all ${
+                        scanResult.error
+                            ? "border-rose-500/20 bg-rose-500/10 text-rose-400"
+                            : scanResult.generated > 0
+                                ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
+                                : "border-amber-500/20 bg-amber-500/10 text-amber-400"
+                    }`}>
+                        {scanResult.error ? (
+                            <><ShieldCheck className="h-4 w-4 shrink-0" />{scanResult.error}</>
+                        ) : scanResult.generated > 0 ? (
+                            <><Sparkles className="h-4 w-4 shrink-0" />{scanResult.message || `${scanResult.generated} new signal${scanResult.generated !== 1 ? "s" : ""} generated successfully`}</>
+                        ) : (
+                            <><Radio className="h-4 w-4 shrink-0" />{scanResult.message || "No qualifying setups right now — try again in a few minutes"}</>
+                        )}
+                    </div>
+                )}
 
                 {/* PRO UPGRADE PROMPT */}
                 {limitReached && (

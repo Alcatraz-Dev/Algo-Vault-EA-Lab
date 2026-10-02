@@ -1,25 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { Loader2, Trash2, Bot } from "lucide-react";
 import { getSettings, saveSettings, clearMarketCache, getCopilotPrefs, saveCopilotPrefs } from "@/storage/storage";
-import { getAlgoVaultUrl, isDevelopment } from "@/config/environment";
 import { fetchDiagnostics } from "@/api/context";
 import type { ExtensionSettings } from "@/types";
 import type { DebugInfo, AnalysisStage } from "@/types/market-context";
 import { PERSONAS, type PersonaId } from "@/types/copilot";
 import { openSidePanelFromExtensionPage, primeSidePanelWindowId } from "@/utils/side-panel";
+import type { ThemeMode } from "@/theme";
+import { setTheme } from "@/theme";
 import { Field, Feedback, GhostButton, inputClass, PrimaryButton, ViewHeader } from "./ui";
 
 interface SettingsViewProps {
   onBack: () => void;
   onLogout: () => void;
+  /** Navigate to the in-extension Copilot tab. */
+  onOpenCopilot?: () => void;
 }
 
-export function SettingsView({ onBack, onLogout }: SettingsViewProps) {
+export function SettingsView({ onBack, onLogout, onOpenCopilot }: SettingsViewProps) {
   const [settings, setSettings] = useState<ExtensionSettings>({
-    algovaultUrl: getAlgoVaultUrl(), autoDetectTradingView: true, showOverlay: true,
+    algovaultUrl: "", autoDetectTradingView: true, showOverlay: true,
     enableChartAnalysis: true, defaultRiskPercent: 1, defaultTimeframe: "H1",
     confirmBeforeExecution: true, theme: "dark",
   });
+  const [accountSizeText, setAccountSizeText] = useState<string>("10000");
   const [saved, setSaved] = useState(false);
   const [cacheCleared, setCacheCleared] = useState(false);
   const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
@@ -29,7 +33,10 @@ export function SettingsView({ onBack, onLogout }: SettingsViewProps) {
   const [copilotAuto, setCopilotAuto] = useState(false);
 
   useEffect(() => {
-    getSettings().then((s) => setSettings(s));
+    getSettings().then((s) => {
+      setSettings(s);
+      setAccountSizeText(s.accountSize != null ? String(s.accountSize) : "10000");
+    });
     getCopilotPrefs().then((p) => {
       setCopilotPersona(p.personaId);
       setCopilotAuto(p.autoAnalyzeOnSwitch);
@@ -39,6 +46,26 @@ export function SettingsView({ onBack, onLogout }: SettingsViewProps) {
 
   const update = <K extends keyof ExtensionSettings>(key: K, value: ExtensionSettings[K]) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
+  };
+
+  /**
+   * Account size as TEXT so the field keeps exactly what the user types
+   * (typing "500" no longer collapses to "1", trailing decimals aren't
+   * eaten mid-edit). It is parsed — and persisted — only when valid.
+   */
+  const handleAccountSizeChange = (raw: string) => {
+    setAccountSizeText(raw);
+    const trimmed = raw.trim();
+    if (!/^\d+(\.\d{0,2})?$/.test(trimmed)) return; // allow "5", "5.", "5.5" while typing
+    const value = parseFloat(trimmed);
+    if (Number.isFinite(value) && value >= 1) {
+      update("accountSize", value);
+    }
+  };
+
+  const handleThemeChange = (mode: ThemeMode) => {
+    update("theme", mode);
+    setTheme(mode); // live-switch the whole popup, persisted for next open
   };
 
   const handleSave = async () => {
@@ -66,26 +93,23 @@ export function SettingsView({ onBack, onLogout }: SettingsViewProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <ViewHeader
-        title="Settings"
-        right={
-          isDevelopment() ? (
-            <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-400">DEV</span>
-          ) : undefined
-        }
-      />
+      <ViewHeader title="Settings" />
 
       <div className="flex-1 space-y-3 overflow-y-auto p-3">
-        <Field label="AlgoVault URL" hint="Server the extension talks to (restart popup after change).">
-          <input type="url" value={settings.algovaultUrl} onChange={(e) => update("algovaultUrl", e.target.value)} className={inputClass} />
-        </Field>
-
         <div className="grid grid-cols-2 gap-2">
           <Field label="Account size ($)" hint="Used for risk sizing.">
             <input
               type="number"
-              value={settings.accountSize ?? 10000}
-              onChange={(e) => update("accountSize", parseFloat(e.target.value) || 10000)}
+              inputMode="decimal"
+              min={1}
+              step="any"
+              value={accountSizeText}
+              onChange={(e) => handleAccountSizeChange(e.target.value)}
+              onBlur={() => {
+                // Normalize on leave: restore last valid value if empty/invalid.
+                const value = parseFloat(accountSizeText);
+                if (!Number.isFinite(value) || value < 1) setAccountSizeText(String(settings.accountSize ?? 10000));
+              }}
               className={inputClass}
             />
           </Field>
@@ -109,9 +133,9 @@ export function SettingsView({ onBack, onLogout }: SettingsViewProps) {
             </select>
           </Field>
           <Field label="Theme">
-            <select value={settings.theme} onChange={(e) => update("theme", e.target.value as "dark" | "light")} className={inputClass}>
+            <select value={settings.theme} onChange={(e) => handleThemeChange(e.target.value as ThemeMode)} className={inputClass}>
               <option value="dark">Dark</option>
-              <option value="light">Light (soon)</option>
+              <option value="light">Light</option>
             </select>
           </Field>
         </div>
@@ -130,14 +154,14 @@ export function SettingsView({ onBack, onLogout }: SettingsViewProps) {
               <Bot size={11} /> AI Copilot
             </span>
             <button
-              onClick={openSidePanelFromExtensionPage}
+              onClick={() => (onOpenCopilot ? onOpenCopilot() : openSidePanelFromExtensionPage())}
               className="text-[10px] text-brand-400 hover:text-brand-300"
             >
               Open →
             </button>
           </div>
           <p className="text-[9px] leading-relaxed text-ink-faint">
-            The side-panel copilot remembers each symbol separately, can draw key levels on your chart, and manages alerts.
+            The copilot remembers each symbol separately, can draw key levels on your chart, and manages alerts.
           </p>
           <Field label="Persona">
             <select
@@ -169,7 +193,7 @@ export function SettingsView({ onBack, onLogout }: SettingsViewProps) {
           </button>
         </div>
 
-        {devDiagnostic && isDevelopment() && (
+        {devDiagnostic && (
           <div className="space-y-2 border-t border-edge pt-3">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-mute">Diagnostics</span>

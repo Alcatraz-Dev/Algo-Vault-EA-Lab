@@ -31,6 +31,10 @@ export async function GET(request: NextRequest) {
             const acc = raw as Record<string, unknown>;
             accounts.push({
                 accountId,
+                // `accountNumber` is what every extension surface renders —
+                // keep it in lockstep with `mt5Account` so the Trade Ticket
+                // account selector shows the real MT5 login number.
+                accountNumber: String(acc.mt5Account || acc.mt5Account_ || ""),
                 mt5Account: acc.mt5Account || acc.mt5Account_,
                 broker: acc.broker || acc.company || "",
                 server: acc.server || "",
@@ -55,7 +59,9 @@ export async function GET(request: NextRequest) {
             success: true,
             accounts,
             accountsCount: accounts.length,
-            license: { pathExists: true },
+            // `valid` is what the extension's GatewayStatus.licenseValid maps
+            // from — without it the UI always showed the license as invalid.
+            license: { valid: Boolean(gatewayToken), pathExists: true },
             token: gatewayToken ? { exists: true } : { exists: false },
         });
     } catch (error) {

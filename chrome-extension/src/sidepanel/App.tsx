@@ -144,9 +144,7 @@ export default function App() {
     <div className="flex h-full flex-col bg-base text-ink">
       {/* header */}
       <div className="flex items-center gap-2 border-b border-edge bg-card px-3 py-2">
-        <div className="flex h-6 w-6 items-center justify-center rounded-md bg-brand-500/15">
-          <Zap size={13} className="text-brand-500" />
-        </div>
+        <img src={chrome.runtime.getURL("icons/icon32.png")} alt="AlgoVault" className="h-5 w-5 object-contain rounded-sm" />
         <span className="text-sm font-semibold tracking-tight">AlgoVault Copilot</span>
         <span className="ml-1 rounded bg-raised px-1.5 py-0.5 font-mono text-[9px] text-ink-mute">
           {activeSymbol ? `${activeSymbol} · ${activeTimeframe}` : "no chart"}
@@ -317,8 +315,8 @@ function SidePanelLogin({ onAuth }: { onAuth: () => void }) {
 function getAlgoVaultUrlSafe(): string {
   try {
     // Lazy import-free access mirrors config/environment's default.
-    return typeof import.meta !== "undefined" && (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_ALGOVAULT_URL || "http://localhost:3000";
+    return typeof import.meta !== "undefined" && (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_ALGOVAULT_URL || "https://algovault.dev";
   } catch {
-    return "http://localhost:3000";
+    return "https://algovault.dev";
   }
 }

@@ -3,19 +3,17 @@
  */
 import React, { useState, useEffect } from "react";
 import { ExternalLink, Trash2 } from "lucide-react";
-import { getCopilotPrefs, saveCopilotPrefs, getCopilotThreads, saveCopilotThreads, getResearchCache, setResearchCache, getCopilotMemory, saveCopilotMemory, getSettings } from "@/storage/storage";
+import { getCopilotPrefs, saveCopilotPrefs, getCopilotThreads, saveCopilotThreads, getResearchCache, setResearchCache, getCopilotMemory, saveCopilotMemory } from "@/storage/storage";
 import { PERSONAS, type CopilotPreferences } from "@/types/copilot";
 import { getAlgoVaultUrl } from "@/config/environment";
 
 export function SetupView() {
   const [prefs, setPrefs] = useState<CopilotPreferences | null>(null);
-  const [serverUrl, setServerUrl] = useState("");
   const [saved, setSaved] = useState(false);
   const [wiped, setWiped] = useState(false);
 
   useEffect(() => {
     getCopilotPrefs().then(setPrefs);
-    getSettings().then((s) => setServerUrl(s.algovaultUrl));
   }, []);
 
   if (!prefs) return null;
@@ -78,12 +76,11 @@ export function SetupView() {
       <section>
         <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-ink-mute">Connection</p>
         <div className="rounded-lg border border-edge bg-card px-2.5 py-2">
-          <p className="font-mono text-[10px] text-ink-mute">{serverUrl || "—"}</p>
           <a
             href={`${getAlgoVaultUrl()}/alerts`}
             target="_blank"
             rel="noreferrer"
-            className="mt-1 inline-flex items-center gap-1 text-[10px] text-brand-400 hover:text-brand-300"
+            className="inline-flex items-center gap-1 text-[10px] text-brand-400 hover:text-brand-300"
           >
             Open Alert Center on the dashboard <ExternalLink size={9} />
           </a>

@@ -18,26 +18,30 @@ interface TradingChartProps {
 }
 
 // Map the toolbar interval label onto the timeframe enum accepted by the
-// canonical OHLC API (M1..D1). Unsupported intervals return undefined so the
-// request is not silently remapped to a different timeframe.
+// canonical OHLC API (M1..H4 for the chart engine). Unsupported intervals
+// return undefined so the request is not silently remapped to a different
+// timeframe.
 const INTERVAL_TO_TIMEFRAME: Record<string, string> = {
     "1m": "M1",
+    "3m": "M3",
     "5m": "M5",
     "15m": "M15",
     "30m": "M30",
     "1h": "H1",
     "4h": "H4",
-    "1D": "D1",
 };
 
 function normalizeSymbol(symbol: string): string {
     return symbol
         .replace(/^FX:/, "")
+        .replace(/^FX_IDC:/, "")
         .replace(/^OANDA:/, "")
         .replace(/^COINBASE:/, "")
+        .replace(/^BINANCE:/, "")
         .replace(/^TVC:/, "")
         .replace(/^NASDAQ:/, "")
-        .replace(/\/USD$/, "USD")
+        .replace(/^INDEX:/, "")
+        .replace(/\//g, "")
         .replace(/^XAU:USD$/, "XAUUSD")
         .replace(/^XAG:USD$/, "XAGUSD")
         .replace(/^INDU$/, "US30")
@@ -138,6 +142,10 @@ export default function TradingChart({
 
     const [theme, setTheme] = useState<"dark" | "light">(() => (typeof document !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "light"));
 
+    // ── live-follow state (Phase 6) ─────────────────────────────────────
+    const [followLive, setFollowLive] = useState(true);
+    const [showGoLive, setShowGoLive] = useState(false);
+
     useEffect(() => {
         const observer = new MutationObserver(() => {
             const isDark = document.documentElement.classList.contains("dark");
@@ -204,6 +212,20 @@ export default function TradingChart({
                         )}
                     </div>
                 )}
+                {showGoLive && candles.length > 0 ? (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setFollowLive(true);
+                            setShowGoLive(false);
+                            chartRef.current?.timeScale().scrollToRealTime();
+                        }}
+                        className="absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/90 px-3 py-1 text-[11px] font-semibold text-primary shadow-sm backdrop-blur-sm transition hover:bg-primary/10"
+                    >
+                        <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-pulse" aria-hidden />
+                        Go to Live →
+                    </button>
+                ) : null}
                 <ChartEngine
                     width={containerWidth}
                     height={height}
@@ -211,6 +233,10 @@ export default function TradingChart({
                     candles={candles}
                     onChartReady={(chart) => { chartRef.current = chart; }}
                     onSeriesReady={() => {}}
+                    onFollowChange={(following) => {
+                        setFollowLive(following);
+                        setShowGoLive(!following);
+                    }}
                 />
                 <ChartContextMenu onReset={() => chartRef.current?.timeScale().fitContent()} />
             </div>

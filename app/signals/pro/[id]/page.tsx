@@ -26,7 +26,7 @@ import { onSubscriptionChange } from "@/lib/subscription";
 import type { AISignal, SignalTimelineEvent } from "@/lib/ai-signals/types";
 import { formatPrice, getSymbolSpec } from "@/lib/ai-signals/symbol-specs";
 import ConfidenceBreakdown from "@/components/signals/ConfidenceBreakdown";
-import SignalChart from "@/components/signals/SignalChart";
+import SignalTerminalChart from "@/components/signals/SignalTerminalChart";
 import SignalTimeline from "@/components/signals/SignalTimeline";
 import { cn } from "@/lib/utils";
 import { useLivePrices } from "@/hooks/useLivePrices";
@@ -73,7 +73,14 @@ function LivePricePanel({ signal, lastUpdatedAt, onRefresh }: {
 }) {
     const symbols = signal.symbol ? [signal.symbol] : [];
     const { prices, lastUpdatedAt: pricesUpdatedAt } = useLivePrices(symbols, { intervalMs: 5_000 });
-    const bid = prices[signal.symbol] ?? null;
+    const liveQuote = prices[signal.symbol] ?? null;
+    const isLive = liveQuote != null && liveQuote > 0;
+
+    // Pro signals have no stored market snapshot — fall back to the entry
+    // price so the panel always shows a meaningful level when no live quote
+    // is available (market closed, provider down).
+    const lastKnown = Number(signal.currentPrice) > 0 ? Number(signal.currentPrice) : (signal.entry > 0 ? signal.entry : null);
+    const displayPrice = isLive ? liveQuote : lastKnown;
 
     const slDist  = Math.abs(signal.entry - signal.stopLoss);
     const tp1Dist = signal.tp1 ? Math.abs(signal.tp1 - signal.entry) : 0;
@@ -81,33 +88,49 @@ function LivePricePanel({ signal, lastUpdatedAt, onRefresh }: {
 
     // progress along SL→Entry→TP1 track
     let progress: number;
-    if (bid == null || bid <= 0 || !signal.tp1) {
-        // No live quote yet — park the cursor at entry (its exact position on
+    if (displayPrice == null || displayPrice <= 0 || !signal.tp1) {
+        // No price at all — park the cursor at entry (its exact position on
         // the SL→TP track) instead of a fake mid-track guess.
         progress = slDist + tp1Dist > 0 ? (slDist / (slDist + tp1Dist)) * 100 : 50;
     } else {
         const totalRange = slDist + tp1Dist;
-        const fromSl = isBuy ? bid - signal.stopLoss : signal.stopLoss - bid;
+        const fromSl = isBuy ? displayPrice - signal.stopLoss : signal.stopLoss - displayPrice;
         progress = Math.min(100, Math.max(0, (fromSl / totalRange) * 100));
     }
 
+    const priceVsEntry = displayPrice != null && signal.entry > 0
+        ? ((displayPrice - signal.entry) / signal.entry) * 100
+        : null;
+    const inFavor = priceVsEntry == null ? true : (isBuy ? priceVsEntry >= 0 : priceVsEntry <= 0);
     const secSinceQuote = pricesUpdatedAt > 0 ? Math.round((Date.now() - pricesUpdatedAt) / 1000) : null;
 
     return (
         <div className={cn("mt-6 rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-background/40 to-background/80 backdrop-blur-xl p-5")}>
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Live Market</span>
-                    {bid !== null && bid > 0 && (
+                    <span className={`h-2 w-2 rounded-full ${isLive ? "animate-pulse bg-emerald-400" : "bg-muted-foreground/40"}`} />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        {isLive ? "Live Market" : "Market Price"}
+                    </span>
+                    {displayPrice != null && displayPrice > 0 && (
                         <span className={`font-mono text-lg font-black ${isBuy ? "text-emerald-400" : "text-rose-400"}`}>
-                            {formatPrice(bid, signal.symbol)}
+                            {formatPrice(displayPrice, signal.symbol)}
                         </span>
                     )}
-                    {(bid === null || bid <= 0) && <span className="text-xs text-muted-foreground">Connecting…</span>}
+                    {displayPrice == null && <span className="text-xs text-muted-foreground">Connecting…</span>}
+                    {!isLive && displayPrice != null && (
+                        <span className="rounded-md border border-border/30 bg-muted/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-muted-foreground">
+                            entry
+                        </span>
+                    )}
+                    {priceVsEntry != null && (
+                        <span className={`font-mono text-[11px] font-semibold ${inFavor ? "text-emerald-400" : "text-rose-400"}`}>
+                            {priceVsEntry >= 0 ? "+" : ""}{priceVsEntry.toFixed(2)}% vs entry
+                        </span>
+                    )}
                 </div>
                 <div className="flex items-center gap-2">
-                    {secSinceQuote !== null && <span className="text-[10px] text-muted-foreground">{secSinceQuote}s ago</span>}
+                    {isLive && secSinceQuote !== null && <span className="text-[10px] text-muted-foreground">{secSinceQuote}s ago</span>}
                     <button onClick={onRefresh} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/20 transition">
                         <RefreshCw size={12} />
                     </button>
@@ -200,6 +223,9 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
             const data = await r.json();
             const raw = data.signal;
             if (!raw) { setError("Signal not found"); return; }
+            // Use the real symbol spec so digits / pip size / spread match the
+            // instrument (e.g. XAUUSD = 2 digits, not the hardcoded 5).
+            const spec = getSymbolSpec(raw.symbol);
             const normalized = {
                 ...({
                     id: raw.id, symbol: raw.symbol, direction: raw.direction,
@@ -233,11 +259,18 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
                     engineVersion: "", strategyVersion: "", analysisVersion: "",
                     generatedBy: "Telegram Signal Engine", lastCheckedAt: Date.now(),
                     followCount: raw.followCount || 0, tradeCount: raw.tradeCount || 0,
-                    suggestedRiskPercent: 1, pipValue: 0.01, contractSize: 100000, typicalSpread: 1, digits: 5,
+                    suggestedRiskPercent: 1,
+                    pipValue: spec?.pipSize ?? 0.01,
+                    contractSize: spec?.contractSize ?? 100000,
+                    typicalSpread: spec?.typicalSpread ?? 1,
+                    digits: spec?.digits ?? 5,
                     timeline: [], sourceMetadata: raw.sourceMetadata, rawMessageId: raw.rawMessageId, style: raw.style,
                 } as unknown as AISignal),
                 tp5: raw.tp5,
             } as AISignal & { tp5?: number };
+            // Never show a broken R:R — coerce to a finite number for display.
+            const rr = Number(normalized.riskReward);
+            normalized.riskReward = Number.isFinite(rr) && rr > 0 ? rr : 0;
             setSignal(normalized);
             setEvents(data.events || []);
             setFollowing(Boolean(data.isFollowed));
@@ -590,7 +623,7 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
 
                 <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
                     <div className="space-y-6 lg:col-span-2">
-                        <SignalChart signal={signal} height={400} />
+                        <SignalTerminalChart signal={signal} height={460} />
 
                         <div className="rounded-2xl border border-border/30 bg-gradient-to-br from-background/80 via-background/40 to-background/80 backdrop-blur-xl p-5">
                             <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">

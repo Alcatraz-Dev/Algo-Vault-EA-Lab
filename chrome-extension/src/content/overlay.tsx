@@ -29,6 +29,7 @@ import type { ChartContext, ViewMode } from "@/types";
 import type { EnrichedChartContext } from "@/services/chart-intelligence";
 import { getOverlayState, setOverlayState, getSettings } from "@/storage/storage";
 import { chartDisplayLabel } from "@/services/chart-intelligence";
+import { OVERLAY_CLOSED_EVENT } from "@/content/quick-launcher";
 
 /* ── theme ───────────────────────────────────────────────────────────── */
 
@@ -73,6 +74,10 @@ interface PanelState {
   collapsed: boolean;
   visible: boolean;
   position: { x: number; y: number };
+  /** Minimized to the tiny quick-open launcher instead of hidden entirely. */
+  closed: boolean;
+  /** Persisted launcher position (-1 = resolve to a corner on first render). */
+  launcher: { x: number; y: number };
 }
 
 function priceString(value: number | null | undefined): string {
@@ -227,6 +232,8 @@ function AlgoVaultOverlay() {
     collapsed: false,
     visible: true,
     position: { x: 24, y: 140 },
+    closed: false,
+    launcher: { x: -1, y: -1 },
   });
   const [chart, setChart] = useState<ChartContext | null>(null);
   const [intel, setIntel] = useState<EnrichedChartContext | null>(null);
@@ -236,6 +243,7 @@ function AlgoVaultOverlay() {
   const dragOffset = useRef({ x: 0, y: 0 });
   const pointerId = useRef<number | null>(null);
   const dragMoved = useRef(false);
+  const closedRef = useRef(false);
 
   /* load persisted state + respect the showOverlay setting */
   useEffect(() => {
@@ -246,11 +254,30 @@ function AlgoVaultOverlay() {
           collapsed: s.collapsed,
           visible: s.visible && settings.showOverlay !== false,
           position: s.position,
+          closed: s.closed ?? false,
+          launcher: s.launcher ?? { x: -1, y: -1 },
         }));
         setHydrated(true);
       })
       .catch(() => setHydrated(true));
   }, []);
+
+  /* the small quick-launcher asks the full panel to come back */
+  useEffect(() => {
+    const onReopen = () => {
+      setState((prev) => (prev.closed || !prev.visible ? { ...prev, closed: false, visible: true } : prev));
+    };
+    window.addEventListener(OVERLAY_CLOSED_EVENT, onReopen);
+    return () => window.removeEventListener(OVERLAY_CLOSED_EVENT, onReopen);
+  }, []);
+
+  /* the mini launcher also lives across full-panel visibility changes */
+  useEffect(() => {
+    const prevClosed = closedRef.current;
+    closedRef.current = state.closed;
+    if (state.closed === prevClosed) return;
+    if (hydrated) setOverlayState({ closed: state.closed }).catch(() => {});
+  }, [state.closed, hydrated]);
 
   /* live-reaction to the settings toggle (options / popup) */
   useEffect(() => {
@@ -368,17 +395,32 @@ function AlgoVaultOverlay() {
     [state.position.x, state.position.y]
   );
 
+  /**
+   * Overlay buttons open tabs INSIDE the extension. They can't open the popup
+   * directly (chrome.action.openPopup() is gesture-gated and silently blocked
+   * from content scripts), so they ask the service worker to park + broadcast
+   * the view; the popup (or side panel) navigates when alive.
+   */
   const handleAction = (view: string) => {
     if (view === "quick-alert") {
-      // One-tap alert at the current price, same pipeline as the dashboard.
+      // One-tap alert at the current price + jump to the signals tab where it
+      // appears. The SW creates the alert and broadcasts the result.
       const price = intel?.market?.currentPrice ?? chart?.price;
       const symbol = chart?.symbol;
       if (symbol && price != null) {
         chrome.runtime.sendMessage({
-          type: "CREATE_QUICK_ALERT",
+          type: "AUTO_CREATE_ALERT",
           payload: { symbol, price, timeframe: chart?.timeframe || "H1" },
         });
+      } else {
+        // No live price yet — still open the extension so the user can pick.
+        chrome.runtime.sendMessage({ type: "OPEN_EXTENSION_VIEW", view: "signals-list" });
       }
+      return;
+    }
+    if (view === "ai-copilot") {
+      // Open the Copilot TAB inside the extension (popup), not the side panel.
+      chrome.runtime.sendMessage({ type: "OPEN_EXTENSION_VIEW", view: "ai-copilot" });
       return;
     }
     const legacyMap: Record<string, string> = {
@@ -386,12 +428,21 @@ function AlgoVaultOverlay() {
       signal: "CREATE_SIGNAL",
       "strategy-intelligence": "OPEN_STRATEGY_LAB",
       risk: "CALCULATE_RISK",
-      "ai-copilot": "OPEN_SIDE_PANEL",
     };
     chrome.runtime.sendMessage({ type: legacyMap[view] ?? "ANALYZE_CHART", payload: chart });
   };
 
-  if (!state.visible) return null;
+  /** Persist the closed flag and, when re-opening, the last panel visibility. */
+  const setClosed = (closed: boolean) => {
+    setState((prev) => ({ ...prev, closed, visible: closed ? prev.visible : true }));
+  };
+
+  /* While minimized, the standalone quick-launcher content script renders the
+     draggable reopen orb (it survives TradingView's SPA navigations); the
+     overlay itself renders nothing. */
+  if (!state.visible && !state.closed) return null;
+
+  if (state.closed) return null;
 
   const setup = intel?.setup;
   const market = intel?.market;
@@ -526,7 +577,10 @@ function AlgoVaultOverlay() {
           >
             <EyeOff size={12} />
           </IconButton>
-          <IconButton title="Close" onClick={() => setState((prev) => ({ ...prev, visible: false }))}>
+          <IconButton
+            title="Minimize to launcher"
+            onClick={() => setClosed(true)}
+          >
             <X size={12} />
           </IconButton>
         </span>

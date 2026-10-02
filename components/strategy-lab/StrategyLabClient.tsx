@@ -1363,10 +1363,35 @@ function BacktestTab({
                         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-foreground/70">
                             <span className="font-semibold text-amber-300">No trades fired.</span>{" "}
                             The strategy entries on {backtest.timeframe}, and the feed only provides{" "}
-                            {backtest.coverage.availableBars} bars (~{fmt(backtest.coverage.spanDays, 1)} days) for that timeframe —
-                            the regime/entry filters may simply not trigger in such a short window. Options: generate a{" "}
-                            <span className="font-semibold text-foreground">D1</span> strategy (deepest history), pick a pattern on a
-                            higher timeframe in step 2, or relax the entry rules.
+                            {backtest.coverage.availableBars} bars (~{fmt(backtest.coverage.spanDays, 1)} days) for that timeframe.
+                            {backtest.diagnostics && backtest.diagnostics.loopBars > 0 && (
+                                <span>
+                                    {" "}Of those {backtest.diagnostics.loopBars} bars, {backtest.diagnostics.sessionBars} passed the
+                                    session/day filters and {backtest.diagnostics.regimeBars} passed the regime filter.
+                                </span>
+                            )}
+                            {backtest.diagnostics && backtest.diagnostics.blockingRuleIds.length > 0 && (
+                                <div className="mt-2 rounded-lg border border-amber-500/20 bg-amber-500/5 p-2">
+                                    <span className="font-semibold text-foreground/80">Rules that never fired in this window:</span>
+                                    <ul className="mt-1 list-disc pl-5">
+                                        {backtest.diagnostics.rules
+                                            .filter((r) => backtest.diagnostics!.blockingRuleIds.includes(r.id))
+                                            .map((r) => (
+                                                <li key={r.id}>
+                                                    “{r.label}” {r.timeframe ? `(${r.group} · ${r.timeframe})` : `(${r.group})`}
+                                                </li>
+                                            ))}
+                                    </ul>
+                                    <p className="mt-1">These rules demand conditions that do not occur in the available data. Edit them in step 3 or regenerate the strategy.</p>
+                                </div>
+                            )}
+                            {backtest.diagnostics && backtest.diagnostics.sessionBars === 0 && backtest.diagnostics.loopBars > 0 && (
+                                <p className="mt-2">The <span className="font-semibold text-foreground">session/day filters</span> eliminated every bar — the available window contains no bars in the allowed sessions. Widen them in step 3.</p>
+                            )}
+                            {backtest.diagnostics && backtest.diagnostics.regimeBars === 0 && backtest.diagnostics.sessionBars > 0 && (
+                                <p className="mt-2">The <span className="font-semibold text-foreground">regime filter</span> eliminated every remaining bar — the strategy only trades in regimes that do not occur in this window. Widen it in step 3.</p>
+                            )}
+                            <p className="mt-2">Options: generate a <span className="font-semibold text-foreground">D1</span> strategy (deepest history), pick a pattern on a higher timeframe in step 2, or relax the entry rules.</p>
                         </div>
                     )}
 

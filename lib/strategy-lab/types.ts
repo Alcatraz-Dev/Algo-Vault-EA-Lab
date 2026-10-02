@@ -531,6 +531,34 @@ export type BacktestMetrics = {
     shortWinRate: number;
 };
 
+export type BacktestRuleDiagnostic = {
+    id: string;
+    label: string;
+    group: string;
+    timeframe: Timeframe | null;
+    /** How many considered bars this rule passed on. */
+    passes: number;
+    /** Bars that reached rule evaluation (passed day/session/volatility/regime gating). */
+    consideredBars: number;
+};
+
+/**
+ * Explains WHY a backtest produced (or nearly produced) zero trades: which
+ * stage eliminated bars and which enabled rules never passed anywhere in the
+ * window. Deterministic — computed from the same evaluation the engine runs.
+ */
+export type BacktestDiagnostics = {
+    /** Bars on the loop (setup) timeframe inside [from, to]. */
+    loopBars: number;
+    /** Bars surviving the day-of-week + session filters. */
+    sessionBars: number;
+    /** Bars additionally surviving the regime filter. */
+    regimeBars: number;
+    rules: BacktestRuleDiagnostic[];
+    /** Enabled entry/confirmation rules with zero passes on considered bars. */
+    blockingRuleIds: string[];
+};
+
 export type BacktestResult = {
     id: string;
     symbol: SupportedSymbol;
@@ -544,6 +572,7 @@ export type BacktestResult = {
     equity: EquityPoint[];
     coverage: DataCoverage;
     symbols: string[];
+    diagnostics?: BacktestDiagnostics;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

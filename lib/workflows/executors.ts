@@ -812,6 +812,236 @@ async function logicCross(args: NodeExecutionArgs): Promise<NodeExecutionResult>
     };
 }
 
+// ─── AI Execution (additive) ────────────────────────────────────────────────
+
+interface WorkflowTradePlanPayload {
+    planId: string;
+    symbol: string;
+    direction: "BUY" | "SELL";
+    timeframe: string;
+    entry: number;
+    stopLoss: number;
+    takeProfits: Array<{ index: number; price: number }>;
+    riskPercent: number;
+    setupId?: string;
+    status: string;
+    evidenceCount: number;
+    executionMode: string;
+}
+
+function coercePlanPayload(raw: unknown): WorkflowTradePlanPayload | null {
+    if (!raw || typeof raw !== "object") return null;
+    const p = raw as Partial<WorkflowTradePlanPayload>;
+    if (typeof p.planId !== "string" || typeof p.symbol !== "string") return null;
+    if (p.direction !== "BUY" && p.direction !== "SELL") return null;
+    return p as WorkflowTradePlanPayload;
+}
+
+async function aiExecutionTradePlan(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const symbol = String(args.config.symbol || "").toUpperCase().replace("/", "");
+    const direction = String(args.config.direction || "BUY").toUpperCase() === "SELL" ? "SELL" : "BUY";
+    const entry = Number(args.config.entry ?? 0);
+    const stopLoss = Number(args.config.stopLoss ?? 0);
+    const riskPercent = Number(args.config.riskPercent) > 0 ? Number(args.config.riskPercent) : 1;
+    const setupId = String(args.config.setupId || "").trim() || undefined;
+    const tpRaw = Number(args.config.takeProfit);
+
+    if (!symbol) return { status: "failed", error: "Symbol is required." };
+    if (!(entry > 0) || !(stopLoss > 0)) return { status: "failed", error: "Entry and stop loss are required." };
+    if (direction === "BUY" && stopLoss >= entry) return { status: "failed", error: "BUY requires stopLoss below entry." };
+    if (direction === "SELL" && stopLoss <= entry) return { status: "failed", error: "SELL requires stopLoss above entry." };
+
+    // Deterministic R-based default target when the caller did not provide one.
+    const takeProfits = [{ index: 1, price: tpRaw > 0 ? tpRaw : entry + (direction === "BUY" ? 1 : -1) * 2 * Math.abs(entry - stopLoss) }];
+
+    const { generateTradePlan } = await import("@/lib/ai-execution/generator");
+    const { getExecutionPolicy } = await import("@/lib/ai-execution/database");
+    const { savePlan } = await import("@/lib/ai-execution/database");
+
+    const policy = await getExecutionPolicy(args.uid);
+    const policyAutomation = policy.automation ?? {};
+    const evidence: Array<{ id: string; evidenceClass: "OBSERVED" | "DERIVED"; sourceId: "agents.pipeline"; label: string; value: number | string; observedAt: number | null }> = [
+        { id: `wf-${args.node.id}-shape`, evidenceClass: "DERIVED", sourceId: "agents.pipeline", label: "Workflow-defined trade shape", value: `${symbol} ${direction}`, observedAt: Date.now() },
+    ];
+
+    const generated = await generateTradePlan(
+        {
+            uid: args.uid,
+            instrument: symbol,
+            direction,
+            timeframe: String(args.config.timeframe || "M5"),
+            entry,
+            stopLoss,
+            takeProfits,
+            riskPercent,
+            executionMode: policy.executionMode,
+            setupId,
+            evidence,
+            marketRegime: "UNCERTAIN",
+            workflowRunId: args.run.id,
+        },
+        policyAutomation as Parameters<typeof generateTradePlan>[1],
+    );
+
+    if (!generated.plan) {
+        return { status: "failed", error: generated.error ?? "Plan generation failed." };
+    }
+    const plan = generated.plan;
+    await savePlan(plan);
+
+    const payload: WorkflowTradePlanPayload = {
+        planId: plan.id,
+        symbol: plan.instrument,
+        direction: plan.direction,
+        timeframe: plan.timeframe,
+        entry: plan.entry,
+        stopLoss: plan.stopLoss,
+        takeProfits: plan.takeProfits,
+        riskPercent: plan.riskPercent,
+        setupId: plan.setupId,
+        status: plan.status,
+        evidenceCount: plan.evidence.filter((e) => e.evidenceClass !== "AI_INTERPRETATION" && e.evidenceClass !== "UNAVAILABLE").length,
+        executionMode: plan.executionMode,
+    };
+    return {
+        status: "success",
+        output: { ...payload, aiUsed: generated.aiUsed },
+    };
+}
+
+async function aiExecutionEligibility(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const plan = coercePlanPayload(args.config.planRef);
+    if (!plan) return { status: "failed", error: "An upstream ai_execution.trade_plan node is required." };
+    const { evidenceCheck, evidenceMeetsMinimum } = await import("@/lib/ai-execution/gate");
+    const { getPlan } = await import("@/lib/ai-execution/database");
+    const full = await getPlan(args.uid, plan.planId);
+    if (!full) return { status: "failed", error: `Plan ${plan.planId} not found.` };
+    const ev = evidenceCheck(full);
+    return {
+        status: "success",
+        output: {
+            planId: plan.planId,
+            eligible: ev.passed && evidenceMeetsMinimum(full.evidence, 1),
+            evidenceCode: ev.code,
+            reason: ev.reason ?? null,
+        },
+    };
+}
+
+async function aiExecutionRiskGate(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const plan = coercePlanPayload(args.config.planRef);
+    if (!plan) return { status: "failed", error: "An upstream ai_execution.trade_plan node is required." };
+    const { getPlan, updatePlan, writeAudit } = await import("@/lib/ai-execution/database");
+    const { runServerGate } = await import("@/lib/ai-execution/runtime");
+    const full = await getPlan(args.uid, plan.planId);
+    if (!full) return { status: "failed", error: `Plan ${plan.planId} not found.` };
+
+    const { result, plan: updated } = await runServerGate(full, { uid: args.uid, isAdmin: false });
+    await updatePlan(args.uid, plan.planId, {
+        status: result.decision === "REJECT" ? "REJECTED" : full.status,
+        rejectionStage: result.decision === "REJECT" ? (result.finalCode as never) : undefined,
+        rejectionReason: result.decision === "REJECT" ? result.reason : undefined,
+        riskValidation: {
+            approved: result.decision !== "REJECT",
+            code: result.finalCode,
+            reason: result.reason,
+            evaluatedAt: Date.now(),
+        },
+    });
+    await writeAudit({
+        userId: args.uid,
+        action: "PLAN_REJECTED",
+        planId: plan.planId,
+        actor: "system",
+        reason: result.decision === "REJECT" ? result.reason ?? result.finalCode : undefined,
+    });
+
+    return {
+        status: result.decision === "REJECT" ? "failed" : "success",
+        output: {
+            planId: plan.planId,
+            decision: result.decision,
+            finalCode: result.finalCode,
+            reason: result.reason ?? null,
+            checks: result.checks.map((c) => ({ stage: c.stage, passed: c.passed, code: c.code })),
+            orderVolume: result.orderVolume ?? null,
+        },
+        error: result.decision === "REJECT" ? `Risk gate rejected: ${result.finalCode} — ${result.reason ?? ""}` : undefined,
+    };
+}
+
+async function aiExecutionApprovalGate(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const plan = coercePlanPayload(args.config.planRef);
+    if (!plan) return { status: "failed", error: "An upstream ai_execution.trade_plan node is required." };
+    const { getPlan, updatePlan } = await import("@/lib/ai-execution/database");
+    const full = await getPlan(args.uid, plan.planId);
+    if (!full) return { status: "failed", error: `Plan ${plan.planId} not found.` };
+    if (full.status !== "VALIDATING" && full.status !== "APPROVED" && full.status !== "PENDING_APPROVAL") {
+        return { status: "failed", error: `Plan status ${full.status} cannot enter approval.` };
+    }
+    await updatePlan(args.uid, plan.planId, { status: "PENDING_APPROVAL" });
+    return { status: "success", output: { planId: plan.planId, status: "PENDING_APPROVAL", approvalUrl: "/account/ai-execution" } };
+}
+
+async function aiExecutionExecute(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const plan = coercePlanPayload(args.config.planRef);
+    if (!plan) return { status: "failed", error: "An upstream ai_execution.trade_plan node is required." };
+    const { getPlan, updatePlan } = await import("@/lib/ai-execution/database");
+    const { runServerGate, submitApprovedPlan } = await import("@/lib/ai-execution/runtime");
+    const full = await getPlan(args.uid, plan.planId);
+    if (!full) return { status: "failed", error: `Plan ${plan.planId} not found.` };
+
+    // The gate decides — the node never submits without a fresh EXECUTE/WAIT_APPROVAL pass.
+    const { result } = await runServerGate(full, { uid: args.uid, isAdmin: false });
+    if (result.decision === "REJECT") {
+        await updatePlan(args.uid, plan.planId, { status: "REJECTED", rejectionStage: result.finalCode as never, rejectionReason: result.reason });
+        return { status: "failed", error: `Execution refused by gate: ${result.finalCode} — ${result.reason ?? ""}` };
+    }
+
+    const volume = result.orderVolume ?? 0.01;
+    const submission = await submitApprovedPlan(full, { uid: args.uid, isAdmin: false }, volume);
+    if (!submission.ok) {
+        return { status: "failed", error: submission.error ?? "Submission failed." };
+    }
+    return {
+        status: "success",
+        output: {
+            planId: plan.planId,
+            clientOrderId: submission.clientOrderId,
+            mt5Account: submission.mt5Account,
+            status: "SUBMITTED",
+            note: "Order queued on the existing gateway path — real MT5 confirmation arrives via gateway sync.",
+        },
+    };
+}
+
+async function aiExecutionPositionMonitor(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const { resolveConnectedAccount } = await import("@/lib/ai-execution/runtime");
+    const accountKey = await resolveConnectedAccount(args.uid);
+    if (!accountKey) return { status: "failed", error: "No connected MT5 account." };
+    const { adminDatabase } = await import("@/lib/firebase-admin");
+    const snap = await adminDatabase.ref(`trading_positions/${args.uid}/${accountKey}`).get();
+    const val = (snap.val() || {}) as Record<string, { symbol?: string; volume?: number; type?: string; profit?: number } | null>;
+    const positions = Object.entries(val).map(([ticket, p]) => ({
+        ticket,
+        symbol: String(p?.symbol ?? ""),
+        type: String(p?.type ?? ""),
+        volume: Number(p?.volume) || 0,
+        profit: typeof p?.profit === "number" ? p.profit : null,
+    }));
+    return { status: "success", output: { accountKey, openPositions: positions.length, positions: positions.slice(0, 25) } };
+}
+
+async function aiExecutionKillSwitchCheck(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const { getKillSwitch } = await import("@/lib/ai-execution/database");
+    const ks = await getKillSwitch();
+    return {
+        status: ks.engaged ? "failed" : "success",
+        output: { engaged: ks.engaged, reason: ks.reason ?? null, engagedAt: ks.engagedAt ?? null },
+        error: ks.engaged ? `Kill switch engaged: ${ks.reason ?? "no reason recorded"}` : undefined,
+    };
+}
+
 // ─── Dispatch ────────────────────────────────────────────────────────────────
 
 export async function executeNodeForType(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
@@ -855,6 +1085,13 @@ export async function executeNodeForType(args: NodeExecutionArgs): Promise<NodeE
         case "logic.switch": return logicSwitch(args);
         case "risk.check": return riskCheck(args);
         case "risk.position_size": return riskPositionSize(args);
+        case "ai_execution.trade_plan": return aiExecutionTradePlan(args);
+        case "ai_execution.eligibility": return aiExecutionEligibility(args);
+        case "ai_execution.risk_gate": return aiExecutionRiskGate(args);
+        case "ai_execution.approval_gate": return aiExecutionApprovalGate(args);
+        case "ai_execution.execute": return aiExecutionExecute(args);
+        case "ai_execution.position_monitor": return aiExecutionPositionMonitor(args);
+        case "ai_execution.kill_switch_check": return aiExecutionKillSwitchCheck(args);
         case "signal.create": return signalCreate(args);
         case "execution.place_order": return executionPlaceOrder(args);
         case "notification.send": return notificationSend(args);

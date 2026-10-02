@@ -119,6 +119,23 @@ export async function hasActiveTradingLicense(userId: string): Promise<boolean> 
         }
     }
 
+    // Custom-bot entitlement also authorizes trading: users who connect their
+    // own EA on an active Pro subscription hold a `custom_bot` license record
+    // with no hard expiry (status-only check). Register/heartbeat already
+    // accept this — order placement must accept it too, or queued orders are
+    // rejected with "No active trading access license" for these users and
+    // never reach the MT5 gateway.
+    const customSnapshot = await adminDatabase.ref(`licenses/${userId}`).get();
+    const customData = customSnapshot.val() || {};
+
+    for (const raw of Object.values(customData)) {
+        if (!raw || typeof raw !== "object") continue;
+        const license = raw as Record<string, unknown>;
+        if (license.type === "custom_bot" && license.status === "active") {
+            return true;
+        }
+    }
+
     return false;
 }
 

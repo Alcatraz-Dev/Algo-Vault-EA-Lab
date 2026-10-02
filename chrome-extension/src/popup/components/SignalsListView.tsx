@@ -3,6 +3,7 @@ import { Loader2, Play, AlertCircle } from "lucide-react";
 import { getAISignals, executeAISignal } from "@/api/algovault";
 import type { AISignal } from "@/types";
 import { timeAgo } from "@/utils/helpers";
+import { BackButton } from "./ui";
 
 interface SignalsListViewProps {
   onBack: () => void;
@@ -169,13 +170,8 @@ export function SignalsListView({ onBack }: SignalsListViewProps) {
         </div>
       </div>
 
-      <div className="px-3 py-2 border-t border-edge">
-        <button
-          onClick={onBack}
-          className="w-full text-xs text-ink-mute hover:text-ink transition-colors py-1"
-        >
-          Back
-        </button>
+      <div className="flex items-center border-t border-edge bg-card/60 px-3 py-2">
+        <BackButton onClick={onBack} />
       </div>
     </div>
   );

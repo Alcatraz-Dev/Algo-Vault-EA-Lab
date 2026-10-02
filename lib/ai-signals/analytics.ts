@@ -239,6 +239,15 @@ function calculateSessionStats(
     return result;
 }
 
+/**
+ * Counts today's AI signals for a user (free daily quota read model).
+ *
+ * Signals created via the extension in anonymous-install mode carry
+ * `createdFor: "ext:<installId>"` — a client-generated random UUID persisted
+ * outside the extension storage (localStorage on the AlgoVault site) — so a
+ * quota tied to it survives extension removal/reinstall. The signal documents
+ * themselves stay resolvable through the same install id.
+ */
 export async function trackDailySignals(uid?: string): Promise<{ date: string; free: number; total: number }> {
     const today = new Date().toISOString().split("T")[0];
     const startOfDay = new Date(`${today}T00:00:00Z`).getTime();

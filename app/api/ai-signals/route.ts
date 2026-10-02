@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticate } from "@/lib/admin-auth";
 import { adminDatabase } from "@/lib/firebase-admin";
-import { scanSymbol, loadSignalConfig } from "@/lib/ai-signals/engine";
+import { scanSymbol, loadSignalConfig, type ScanDiagnostic } from "@/lib/ai-signals/engine";
 import { passesQualityFilter } from "@/lib/ai-signals/quality-filter";
 import { trackDailySignals } from "@/lib/ai-signals/analytics";
 import { getTierForTimeframe, isDuplicateSignal } from "@/lib/ai-signals/tiers";
@@ -84,6 +84,11 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Each scan consumes ONE signal from the daily budget for free users
+        // (3 scans/day) and up to 3 for Pro — so a single click can never burn
+        // the whole day's allowance at once.
+        const scanCap = Math.min(remaining, isPro ? 3 : 1);
+
         // Server-side tier enforcement: PRO timeframes (M1) are only ever
         // generated for active Pro users. The client can never request a tier.
         const allowedTimeframes = isPro
@@ -98,24 +103,35 @@ export async function POST(request: NextRequest) {
 
         const symbols = singleSymbol ? [singleSymbol] : config.symbols;
         const generatedSignals: AISignal[] = [];
+        const diagnostics: ScanDiagnostic[] = [];
 
         for (const symbol of symbols) {
             try {
-                const partials = await scanSymbol(symbol, config, allowedTimeframes);
+                const partials = await scanSymbol(symbol, config, allowedTimeframes, diagnostics);
                 for (const partial of partials) {
-                    const filterResult = passesQualityFilter(partial, config, recentSignals);
-                    if (!filterResult.passed) continue;
-
                     const timeframe = partial.timeframe || config.timeframes[0];
+
+                    const filterResult = passesQualityFilter(partial, config, recentSignals);
+                    if (!filterResult.passed) {
+                        diagnostics.push({ symbol, timeframe, reason: filterResult.reasons.join("; ") });
+                        continue;
+                    }
+
                     const tier: SignalTier = getTierForTimeframe(timeframe, config);
 
                     if (isDuplicateSignal(
                         { symbol, timeframe, direction: partial.direction || "BUY", strategyVersion: partial.strategyVersion || "" },
                         recentSignals
-                    )) continue;
+                    )) {
+                        diagnostics.push({ symbol, timeframe, reason: "Duplicate of an already-active signal" });
+                        continue;
+                    }
 
                     // Timeframe-boundary cooldown (M1/min, M5/5min, M15/15min).
-                    if (!(await withinTimeframeWindow(symbol, timeframe))) continue;
+                    if (!(await withinTimeframeWindow(symbol, timeframe))) {
+                        diagnostics.push({ symbol, timeframe, reason: `Cooldown — a ${timeframe} signal was generated recently (window: ${TF_WINDOW_MS[String(timeframe).toUpperCase()] ? Math.round(TF_WINDOW_MS[String(timeframe).toUpperCase()] / 60000) : "?"} min)` });
+                        continue;
+                    }
 
                     const signal: AISignal = {
                         id: `sig_${symbol.toLowerCase()}_${Date.now()}`,
@@ -192,12 +208,12 @@ await adminDatabase.ref(`aiSignals/${signal.id}`).set(signal);
                         recentSignals.push(signal);
                         generatedSignals.push(signal);
 
-                    if (generatedSignals.length >= remaining) break;
+                    if (generatedSignals.length >= scanCap) break;
                 }
             } catch (err) {
                 console.error(`Error scanning ${symbol}:`, err);
             }
-            if (generatedSignals.length >= remaining) break;
+            if (generatedSignals.length >= scanCap) break;
         }
 
         return NextResponse.json({
@@ -208,11 +224,38 @@ await adminDatabase.ref(`aiSignals/${signal.id}`).set(signal);
             dailyLimit: limit,
             remaining: Math.max(0, remaining - generatedSignals.length),
             tier: isPro ? "pro" : "free",
+            scanned: symbols.length,
+            diagnostics,
+            message: buildScanMessage(generatedSignals.length, diagnostics, symbols.length),
         });
     } catch (err) {
         console.error("AI Signals POST error:", err);
         return NextResponse.json({ error: "Failed to generate signals" }, { status: 500 });
     }
+}
+
+/**
+ * Builds a human-readable summary of a scan so the UI can show the real
+ * outcome instead of a generic "no signals" placeholder.
+ */
+function buildScanMessage(generated: number, diagnostics: ScanDiagnostic[], scannedSymbols: number): string {
+    if (generated > 0) {
+        return `${generated} new signal${generated !== 1 ? "s" : ""} generated`;
+    }
+
+    const reasons = diagnostics.map((d) => d.reason.toLowerCase());
+    const allClosed = reasons.length > 0 && reasons.every((r) => r.includes("market closed"));
+    const allCooldown = reasons.length > 0 && reasons.every((r) => r.includes("cooldown") || r.includes("duplicate"));
+
+    if (allClosed) {
+        return `Markets are closed right now (forex/metals/indices reopen Sun 21:00 UTC). Crypto scans still work 24/7.`;
+    }
+    if (allCooldown) {
+        return `Recent signals still active on scanned symbols — cooldown active. M5 refreshes every 5 min, M15 every 15 min.`;
+    }
+
+    const topReason = diagnostics[0]?.reason;
+    return `Scanned ${scannedSymbols} symbols — no qualifying setups right now${topReason ? ` (e.g. ${topReason})` : ""}. Try again in a few minutes.`;
 }
 
 const TF_WINDOW_MS: Record<string, number> = {

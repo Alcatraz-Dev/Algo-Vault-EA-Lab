@@ -7,6 +7,8 @@ import { ref, onValue } from "firebase/database";
 import { FooterNativeAd } from "@/components/growth/FooterNativeAd";
 import { FooterAffiliateLink } from "@/components/growth/FooterAffiliateLink";
 
+import SiteLogo from "@/components/ui/site-logo";
+
 export default function SiteFooter() {
     const [siteName, setSiteName] = useState("AlgoVault");
 
@@ -30,7 +32,10 @@ export default function SiteFooter() {
             <div className="mx-auto max-w-7xl px-6 py-12 md:px-8">
                 <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
                     <div className="col-span-2 md:col-span-1">
-                        <p className="text-sm font-bold">{siteName}</p>
+                        <div className="flex items-center gap-2">
+                            <SiteLogo size={22} />
+                            <span className="text-sm font-bold">{siteName}</span>
+                        </div>
                         <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
                             Algorithmic trading tools and strategies for MetaTrader 5.
                         </p>
@@ -47,7 +52,7 @@ export default function SiteFooter() {
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/live" className="text-xs text-muted-foreground hover:text-foreground transition">
+                                <Link href="/account/live" className="text-xs text-muted-foreground hover:text-foreground transition">
                                     Live Performance
                                 </Link>
                             </li>

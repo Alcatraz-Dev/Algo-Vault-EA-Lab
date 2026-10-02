@@ -1,5 +1,6 @@
 import { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
-import { AnalysisPeriod, DEFAULT_HIERARCHY, Pattern, PatternKind, Strategy, TimeframeHierarchy } from "./types";
+import { AnalysisPeriod, AnalysisResult, DEFAULT_HIERARCHY, Pattern, PatternKind, Strategy, TimeframeHierarchy, TrendState } from "./types";
+import { backtestStrategy, defaultBacktestConfig } from "./backtest";
 import { getSymbolSpec } from "@/lib/ai-signals/symbol-specs";
 import { describeStrategyWithFallback } from "@/lib/ai";
 import { analyzeMarket } from "./analysis";
@@ -26,13 +27,16 @@ function uid(): string {
 function buildRules(
     kind: PatternKind,
     direction: "long" | "short",
-    hierarchy: TimeframeHierarchy
-): Strategy["entryRules"] {
+    hierarchy: TimeframeHierarchy,
+    trendByTf: Partial<Record<Timeframe, TrendState>> = {}
+): { rules: Strategy["entryRules"]; retargets: string[] } {
     const bullish = direction === "long";
     const d = bullish ? "bullish" : "bearish";
     const notD = bullish ? "bearish" : "bullish";
     const setupTf = hierarchy.structure;
     const macroTf = hierarchy.macro;
+    const loopTf = hierarchy.setup; // timeframe the backtest engine loops on
+    const retargets: string[] = [];
 
     const rules: Strategy["entryRules"] = [];
 
@@ -52,6 +56,29 @@ function buildRules(
         });
     };
 
+    // Measured trend on a timeframe (bullish/bearish only — ranging/transition
+    // are not hard contradictions for an alignment rule).
+    const measuredTrend = (tf: Timeframe): "bullish" | "bearish" | null => {
+        const s = trendByTf[tf];
+        return s === "bullish" || s === "bearish" ? s : null;
+    };
+
+    // Hard "trade WITH the trend on TF X" rules must never contradict the trend
+    // actually measured on that timeframe. The signal direction comes from the
+    // short-window analysis/pattern; if the macro/structure timeframe opposes
+    // it, demanding alignment there makes the strategy mathematically untradeable
+    // (0 trades on every backtest). In that case pin the alignment rule to the
+    // setup timeframe — where the signal was actually measured — instead.
+    const addTrendAlignment = (label: string, tf: Timeframe) => {
+        const m = measuredTrend(tf);
+        if (m && m !== d) {
+            add("trend", `${label} (measured on ${loopTf})`, d, "eq", loopTf);
+            retargets.push(`"${label}" was pinned to ${loopTf}: ${tf} trend measured ${m}, opposing the ${direction} signal — an opposing-trend alignment rule could never fire.`);
+            return;
+        }
+        add("trend", label, d, "eq", tf);
+    };
+
     switch (kind) {
         case "liquidity_sweep_reversal": {
             add("liquidity", `Sweep of ${bullish ? "buy-side" : "sell-side"} liquidity`, d, "eq", setupTf);
@@ -67,7 +94,7 @@ function buildRules(
             break;
         }
         case "trend_continuation": {
-            add("trend", `EMA structure ${d}`, d, "eq", macroTf);
+            addTrendAlignment(`EMA structure ${d}`, macroTf);
             add("confirmation", bullish ? "Positive momentum" : "Negative momentum", bullish ? "momentum_positive" : "momentum_negative", "eq", setupTf);
             add("structure", bullish ? "Higher highs" : "Lower highs", bullish ? "hh" : "lh", "eq", setupTf);
             add("structure", bullish ? "Higher lows" : "Lower lows", bullish ? "hl" : "ll", "eq", setupTf);
@@ -93,17 +120,25 @@ function buildRules(
         case "volatility_expansion": {
             add("volatility", "Minimum ATR expansion", bullish ? "high" : "high", "eq", setupTf);
             add("confirmation", bullish ? "Positive momentum" : "Negative momentum", bullish ? "momentum_positive" : "momentum_negative", "eq", setupTf);
-            add("trend", `Trend aligns with direction`, d, "eq", macroTf);
+            addTrendAlignment(`Trend aligns with direction`, macroTf);
             break;
         }
         case "mean_reversion": {
-            add("trend", "Neutral regime", "neutral", "eq", macroTf);
+            // "Neutral on macro" almost never holds on higher timeframes; pin it
+            // to the loop timeframe when the macro trend is measurably directional.
+            const m = measuredTrend(macroTf);
+            if (m) {
+                add("trend", `Neutral regime (measured on ${loopTf})`, "neutral", "eq", loopTf);
+                retargets.push(`"Neutral regime" was pinned to ${loopTf}: ${macroTf} trend measured ${m}, so a neutral-macro precondition would block every bar.`);
+            } else {
+                add("trend", "Neutral regime", "neutral", "eq", macroTf);
+            }
             add("confirmation", bullish ? "Oversold condition" : "Overbought condition", bullish ? "momentum_negative" : "momentum_positive", "eq", setupTf);
             add("structure", bullish ? "Near swing low" : "Near swing high", bullish ? "hl" : "lh", "eq", setupTf);
             break;
         }
         case "momentum_continuation": {
-            add("trend", `EMA structure ${d}`, d, "eq", macroTf);
+            addTrendAlignment(`EMA structure ${d}`, macroTf);
             add("confirmation", bullish ? "Strong positive momentum" : "Strong negative momentum", bullish ? "momentum_positive" : "momentum_negative", "eq", setupTf);
             add("price_action", "Recent breakout", bullish ? "breakout_high" : "breakout_low", "eq", setupTf);
             add("structure", bullish ? "Higher high" : "Lower low", bullish ? "hh" : "ll", "eq", setupTf);
@@ -111,7 +146,7 @@ function buildRules(
         }
     }
 
-    return rules;
+    return { rules, retargets };
 }
 
 function cooldownForTf(tf: Timeframe): number {
@@ -156,9 +191,23 @@ export async function generateStrategy(
     const volatility = analysis?.byTimeframe[setupTf]?.volatility?.state ?? "normal";
     const bestSession = bestSessionOf(pattern)[0];
 
-    const entryRules = buildRules(pattern?.kind ?? "trend_continuation", direction, hierarchy);
+    // Measured trend per timeframe, used to keep generated rules coherent with
+    // the signal direction (see addTrendAlignment in buildRules).
+    const trendByTf: Partial<Record<Timeframe, TrendState>> = {};
+    for (const [tf, res] of Object.entries(analysis?.byTimeframe ?? {}) as [Timeframe, AnalysisResult | undefined][]) {
+        if (res?.trend?.state) trendByTf[tf] = res.trend.state;
+    }
 
-    const isRangeRegime = regime === "ranging" || regime === "low_volatility" || regime === "transitional";
+    const { rules: entryRules, retargets } = buildRules(pattern?.kind ?? "trend_continuation", direction, hierarchy, trendByTf);
+
+    // The regimeFilter is evaluated by the engine on the SETUP timeframe (the
+    // backtest loop TF), so derive it from the regime measured there — not from
+    // the macro regime, which regularly disagrees and zeroes out every bar.
+    const loopRegime =
+        analysis?.byTimeframe[setupTf]?.trend?.regime?.toLowerCase()
+        ?? analysis?.byTimeframe[hierarchy.structure]?.trend?.regime?.toLowerCase()
+        ?? regime;
+    const isRangeRegime = loopRegime === "ranging" || loopRegime === "low_volatility" || loopRegime === "transitional";
     const regimeFilter = isRangeRegime
         ? (["ranging", "low_volatility", "transitional"] as Strategy["regimeFilter"])
         : direction === "long"
@@ -219,6 +268,55 @@ export async function generateStrategy(
         updated: Date.now(),
     };
 
+    // ── Feasibility pass: prove the strategy can actually fire ──────────────
+    // Rules that each pass individually can still have an AND-conjunction that
+    // never co-occurs in the (short) window the feed provides — the strategy
+    // would then produce 0 trades on every backtest. Run the real engine on the
+    // analysis candles; while nothing fires, disable the most restrictive
+    // enabled entry rule (lowest pass rate on considered bars) and re-run.
+    // Every relaxation is recorded in whyp so the user sees exactly what was
+    // relaxed and why. The engine stays the single source of truth.
+    if (analysis) {
+        try {
+            const candlesByTF: Partial<Record<Timeframe, import("@/lib/market-data/types").MarketCandle[]>> = {};
+            for (const [tf, res] of Object.entries(analysis.byTimeframe) as [Timeframe, AnalysisResult | undefined][]) {
+                if (res?.candleSeries?.length) candlesByTF[tf] = res.candleSeries;
+            }
+            if ((candlesByTF[hierarchy.setup]?.length ?? 0) > 10) {
+                const feasibilityConfig = defaultBacktestConfig();
+                const relaxations: string[] = [];
+                for (let attempt = 0; attempt < 6; attempt++) {
+                    const probe = backtestStrategy(strategy, symbol, candlesByTF, feasibilityConfig, 0, Number.MAX_SAFE_INTEGER);
+                    if (probe.metrics.totalTrades > 0) break;
+
+                    const diag = probe.diagnostics;
+                    const enabled = strategy.entryRules.filter((r) => r.enabled);
+                    if (!diag || enabled.length <= 1) break;
+
+                    // Most restrictive rule first: zero passes is a hard blocker;
+                    // otherwise the rarest-passing rule kills the conjunction.
+                    const rates = diag.rules
+                        .filter((r) => enabled.some((e) => e.id === r.id))
+                        .map((r) => ({ id: r.id, label: r.label, rate: r.consideredBars > 0 ? r.passes / r.consideredBars : 0, passes: r.passes }));
+                    if (rates.length === 0) break;
+                    rates.sort((a, b) => (a.passes - b.passes) || (a.rate - b.rate));
+                    const weakest = strategy.entryRules.find((r) => r.id === rates[0].id);
+                    if (!weakest) break;
+                    weakest.enabled = false;
+                    relaxations.push(`"${weakest.label}" was disabled: over the available ${probe.coverage.availableBars}-bar window the remaining rules never co-occurred, so the strategy could not fire at all.`);
+                }
+                if (relaxations.length > 0) {
+                    retargets.push(...relaxations);
+                }
+            }
+        } catch {
+            // feasibility probing must never block generation
+        }
+    }
+
+    strategy.entryRules = entryRules.filter((r) => r.enabled);
+    strategy.whyp.conditionsSelected = strategy.entryRules.map((r) => r.label).join(", ");
+
     // AI narrative layer (with guaranteed local fallback).
     const narrative = await describeStrategyWithFallback({
         asset: symbol,
@@ -233,7 +331,7 @@ export async function generateStrategy(
         direction,
         patternName,
         patternKind: pattern?.kind ?? "trend_continuation",
-        conditions: entryRules.map((r) => r.label),
+        conditions: strategy.entryRules.map((r) => r.label),
         regime,
         volatility,
         bestSession,
@@ -254,6 +352,11 @@ export async function generateStrategy(
     strategy.whyp.weaknesses = narrative.risks || strategy.whyp.weaknesses;
     strategy.whyp.poorRegimes = narrative.weakRegimes || strategy.whyp.poorRegimes;
     strategy.whyp.generatedByProvider = narrative.generatedBy;
+
+    if (retargets.length > 0) {
+        const note = `Rule coherence pass: ${retargets.join(" ")}`;
+        strategy.whyp.weaknesses = [strategy.whyp.weaknesses, note].filter(Boolean).join(" ");
+    }
 
     return strategy;
 }

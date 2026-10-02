@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { createSignal } from "@/api/algovault";
 import type { TradingViewContext } from "@/types";
-import { Field, Feedback, GhostButton, inputClass, PrimaryButton, ViewHeader } from "./ui";
+import { BackButton, Field, Feedback, inputClass, PrimaryButton, ViewHeader } from "./ui";
 
 interface SignalViewProps {
   symbol: string | null;
@@ -181,8 +181,8 @@ export function SignalView({ symbol, context, onBack }: SignalViewProps) {
         </PrimaryButton>
       </div>
 
-      <div className="border-t border-edge px-3 py-2">
-        <GhostButton onClick={onBack}>Back</GhostButton>
+      <div className="flex items-center border-t border-edge bg-card/60 px-3 py-2">
+        <BackButton onClick={onBack} />
       </div>
     </div>
   );

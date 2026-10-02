@@ -1,7 +1,10 @@
 import React, { useState } from "react";
-import { Zap, Loader2, AlertCircle, ExternalLink } from "lucide-react";
+import { Loader2, AlertCircle, ExternalLink } from "lucide-react";
 import { signInWithEmail } from "@/auth/auth";
 import { getAlgoVaultUrl } from "@/config/environment";
+
+/** The real AlgoVault logo, same asset the website header uses. */
+const LOGO_URL = chrome.runtime.getURL("logos/logo.png");
 
 interface LoginViewProps {
   onAuth: () => void;
@@ -32,9 +35,12 @@ export function LoginView({ onAuth }: LoginViewProps) {
     <div className="flex min-h-screen flex-col items-center justify-center bg-base p-6">
       <div className="w-full max-w-[300px] space-y-6">
         <div className="flex flex-col items-center gap-2">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-500/15">
-            <Zap size={22} className="text-brand-500" />
-          </div>
+          <img
+            src={LOGO_URL}
+            alt="AlgoVault"
+            className="h-14 w-14 rounded-xl object-contain"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+          />
           <h1 className="text-base font-semibold text-ink">AlgoVault</h1>
           <p className="text-center text-[11px] text-ink-mute">
             Sign in to access your trading dashboard

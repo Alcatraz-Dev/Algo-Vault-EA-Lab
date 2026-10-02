@@ -1,7 +1,12 @@
 /**
  * AlgoVault extension design tokens.
  * Mirrors the main platform (app/globals.css): #0f0f0f background, #181818
- * cards, signature orange #ff4d00 as the single brand accent.
+ * cards, signature orange #ff4d00 as the single brand accent. Light mode
+ * mirrors the platform's `.light` palette (#f9f9f9 / #ffffff / #262626).
+ *
+ * Surfaces and text resolve from CSS custom properties declared in
+ * popup/styles.css, so switching the `light` class on <html> re-themes the
+ * whole popup without re-rendering (same mechanism as the website).
  * NOTE: this file extends (not replaces) Tailwind's default palettes, so
  * emerald/rose/amber scales remain available for bullish/bearish semantics.
  */
@@ -11,7 +16,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        // ── brand (aligned with platform globals.css) ──
+        // ── brand (identical in both themes, like the platform) ──
         brand: {
           300: "#ff8a5c",
           400: "#ff6b26",
@@ -20,15 +25,15 @@ export default {
           700: "#c23c00",
           100: "#ffe6db",
         },
-        // ── surfaces ──
-        base: "#0f0f0f",      // app background
-        card: "#181818",      // card surface
-        raised: "#232323",    // secondary surface / inputs
-        edge: "#383838",      // borders
+        // ── surfaces (theme-aware via CSS vars) ──
+        base: "var(--av-base)",
+        card: "var(--av-card)",
+        raised: "var(--av-raised)",
+        edge: "var(--av-edge)",
         ink: {
-          DEFAULT: "#f9f9f9", // primary text
-          mute: "#a3a3a3",    // secondary text
-          faint: "#737373",   // tertiary text
+          DEFAULT: "var(--av-ink)",
+          mute: "var(--av-ink-mute)",
+          faint: "var(--av-ink-faint)",
         },
       },
       fontFamily: {

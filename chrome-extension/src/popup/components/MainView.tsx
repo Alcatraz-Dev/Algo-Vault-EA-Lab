@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Brain, Shield, Target, Play, Layers, ClipboardList, Pencil, AlertCircle, Bot,
-  Sparkles, ChevronRight,
+  Sparkles, ChevronRight, PanelRight, FlaskConical,
 } from "lucide-react";
 import { getAlgoVaultUrl } from "@/config/environment";
-import { openSidePanelFromExtensionPage, primeSidePanelWindowId } from "@/utils/side-panel";
+import { openCopilotFloatingPanel, primeSidePanelWindowId } from "@/utils/side-panel";
 import type { TradingViewContext, ViewMode } from "@/types";
 import type { MarketContext } from "@/types/market-context";
 import type { EnrichedChartContext } from "@/services/chart-intelligence";
@@ -91,22 +91,25 @@ export function MainView({
   };
 
   /**
-   * Open the AI Copilot side panel. chrome.sidePanel.open() must run inside a
-   * LIVE user gesture — calling it inside a windows.getCurrent callback loses
-   * the gesture and Chrome rejects it. openSidePanelFromExtensionPage() calls
-   * it synchronously (with a SW fallback), so this handler stays gesture-safe.
+   * Open the AI Copilot panel: a draggable floating popup on the TradingView
+   * tab when one is open, falling back to Chrome's docked side panel
+   * otherwise (see openCopilotFloatingPanel). Gesture-safe: the SW relay runs
+   * synchronously inside the message hop from this click.
    */
   const openCopilotSidePanel = () => {
-    openSidePanelFromExtensionPage();
+    openCopilotFloatingPanel();
   };
 
   const actions: Array<{ id: string; label: string; icon: React.ReactNode; run: () => void; accent?: boolean }> = [
-    { id: "copilot", label: "Copilot", icon: <Bot size={15} />, run: openCopilotSidePanel },
+    // In-popup Copilot tab — instant, no side-panel gesture constraints.
+    { id: "copilot", label: "Copilot", icon: <Bot size={15} />, run: () => onNavigate("ai-copilot") },
+    { id: "sidepanel", label: "Side Panel", icon: <PanelRight size={15} />, run: openCopilotSidePanel },
     { id: "strategy", label: "Strategy Lab", icon: <Layers size={15} />, run: onStrategyLab },
     { id: "backtest", label: "Backtest", icon: <ClipboardList size={15} />, run: onBacktest },
     { id: "optimize", label: "Optimize", icon: <Brain size={15} />, run: () => openWithSymbol("/strategy-lab") },
     { id: "risk", label: "Risk", icon: <Shield size={15} />, run: () => onNavigate("risk") },
     { id: "signal", label: "Signal", icon: <Target size={15} />, run: () => onNavigate("signal") },
+    { id: "demo", label: "Demo", icon: <FlaskConical size={15} />, run: () => onNavigate("demo-trades") },
     { id: "execute", label: "Trade", icon: <Play size={15} />, run: () => onNavigate("execute"), accent: true },
   ];
 

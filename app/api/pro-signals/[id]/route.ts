@@ -147,9 +147,13 @@ export async function GET(
         const tp4 = signal.takeProfits.find((t) => t.index === 4)?.price ?? null;
         const tp5 = signal.takeProfits.find((t) => t.index === 5)?.price ?? null;
 
-        // Calculate risk:reward
-        const riskReward = signal.stopLoss !== 0 && signal.entry !== 0 && tp1
-            ? Number((Math.abs(signal.entry - signal.stopLoss) / Math.abs(signal.entry - tp1)).toFixed(2))
+        // Calculate risk:reward — reward over risk (|entry→TP1| ÷ |entry→SL|).
+        // The previous formula divided risk by reward, displaying a 2R trade
+        // as "0.5R".
+        const risk = Math.abs(signal.entry - signal.stopLoss);
+        const reward = tp1 != null ? Math.abs(signal.entry - tp1) : 0;
+        const riskReward = risk > 0 && reward > 0
+            ? Number((reward / risk).toFixed(2))
             : 0;
 
         // Map Pro signal status to display-friendly status

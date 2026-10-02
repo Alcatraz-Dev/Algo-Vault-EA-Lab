@@ -24,6 +24,8 @@ const ENTRIES = [
   { name: "overlay", file: "src/content/overlay.tsx", global: "AlgoVaultOverlay" },
   { name: "chart-commands", file: "src/content/chart-commands.ts", global: "AlgoVaultChartCommands" },
   { name: "chart-drawings", file: "src/content/chart-drawings.ts", global: "AlgoVaultChartDrawings" },
+  { name: "quick-launcher", file: "src/content/quick-launcher.ts", global: "AlgoVaultQuickLauncher" },
+  { name: "floating-panel", file: "src/content/floating-panel.ts", global: "AlgoVaultFloatingPanel" },
 ];
 
 for (const entry of ENTRIES) {

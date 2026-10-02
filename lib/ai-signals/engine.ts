@@ -17,7 +17,7 @@ import { getSymbolSpec, formatPrice, getSymbolCategory } from "./symbol-specs";
 import { calculateConfidence, getSignalStrength } from "./confidence";
 import { getTierForTimeframe } from "./tiers";
 import { passesQualityFilter } from "./quality-filter";
-import { isSessionAllowed, getSessionQuality } from "./sessions-filter";
+import { isSymbolMarketOpen, getSessionQuality } from "./sessions-filter";
 import { fetchCandles } from "@/lib/market-data/normalizer";
 import { getMarketTruth, MarketSnapshot, DEFAULT_FRESHNESS_THRESHOLDS } from "@/lib/market-data/market-truth";
 import { defaultFreshnessGuard } from "./freshness-guard";
@@ -35,10 +35,39 @@ import { MarketCandle, Timeframe } from "@/lib/market-data/types";
 import { adminDatabase } from "@/lib/firebase-admin";
 import { recordSignalEvent } from "./events";
 import { ai } from "@/lib/ai";
+import { buildOrderFlowContext } from "@/lib/order-flow/context-builder";
+import { scoreOrderFlowForSignal } from "@/lib/order-flow/intelligence-adapter";
+import { orderFlowGate } from "@/lib/order-flow/settings";
+import {
+    buildChartConfluence,
+    scoreChartConfluence,
+    scoreChartDirection,
+    CHART_CONFLUENCE_MAX_SCORE,
+    type ChartConfluence,
+} from "./chart-confluence";
+import {
+    scoreOrderFlowEvents,
+    orderFlowEventDirectionVote,
+    type OrderFlowEventScore,
+} from "./order-flow-events";
 
-export const ENGINE_VERSION = "1.1.0";
-export const STRATEGY_VERSION = "1.1.0";
-export const ANALYSIS_VERSION = "1.1.0";
+export const ENGINE_VERSION = "1.2.0";
+export const STRATEGY_VERSION = "1.2.0";
+export const ANALYSIS_VERSION = "1.2.0";
+
+/** Weight for the chart-confluence axis inside the confidence pipeline. */
+export const CHART_CONFLUENCE_WEIGHT = 10;
+
+/**
+ * One reason a symbol/timeframe combination did not produce a signal during a
+ * scan. Collected so the scan API can tell the user WHY nothing was generated
+ * instead of a generic "no signals" message.
+ */
+export interface ScanDiagnostic {
+    symbol: string;
+    timeframe: string;
+    reason: string;
+}
 
 const DEFAULT_CONFIG: SignalConfig = {
     id: "default",
@@ -50,6 +79,7 @@ const DEFAULT_CONFIG: SignalConfig = {
     proTimeframes: ["M1"],
     categories: ["forex", "gold", "indices", "crypto"],
     minimumConfidence: 75,
+    scanMinimumConfidence: 60,
     minimumRiskReward: 2.0,
     minimumStrength: "MODERATE",
     signalCooldownMinutes: 15,
@@ -63,12 +93,13 @@ const DEFAULT_CONFIG: SignalConfig = {
         volume: 10,
         orderFlow: 0,
         entryConfirmation: 15,
+        chartConfluence: 10,
     },
     riskDefaults: {
         riskPercent: 1,
         maxPositions: 5,
     },
-    freeSignalsPerDay: 10,
+    freeSignalsPerDay: 3,
     proSignalsPerDay: 20,
     engineVersion: ENGINE_VERSION,
     strategyVersion: STRATEGY_VERSION,
@@ -81,7 +112,13 @@ export async function loadSignalConfig(): Promise<SignalConfig> {
     try {
         const snap = await adminDatabase.ref("signalConfig/default").get();
         if (snap.exists()) {
-            return { ...DEFAULT_CONFIG, ...snap.val() };
+            const merged: SignalConfig = { ...DEFAULT_CONFIG, ...snap.val() };
+            // Always enforce the code-defined free-tier daily limit.
+            // Firebase may hold a stale value from a previous deployment;
+            // pinning here means this file is the single source of truth for
+            // the free-tier policy without requiring a DB migration.
+            merged.freeSignalsPerDay = DEFAULT_CONFIG.freeSignalsPerDay;
+            return merged;
         }
     } catch {}
     return DEFAULT_CONFIG;
@@ -90,19 +127,24 @@ export async function loadSignalConfig(): Promise<SignalConfig> {
 export async function scanSymbol(
     symbol: string,
     config: SignalConfig,
-    timeframes?: string[]
+    timeframes?: string[],
+    diagnostics?: ScanDiagnostic[]
 ): Promise<Partial<AISignal>[]> {
     const spec = getSymbolSpec(symbol);
-    if (!spec) return [];
+    if (!spec) {
+        diagnostics?.push({ symbol, timeframe: "-", reason: "Unknown symbol — no spec" });
+        return [];
+    }
 
     const signals: Partial<AISignal>[] = [];
 
     for (const tf of timeframes ?? config.timeframes) {
         try {
-            const signal = await analyzeTimeframe(symbol, tf, config, spec.category);
+            const signal = await analyzeTimeframe(symbol, tf, config, spec.category, diagnostics);
             if (signal) signals.push(signal);
         } catch (err) {
             console.error(`Error scanning ${symbol} ${tf}:`, err);
+            diagnostics?.push({ symbol, timeframe: tf, reason: `Scan error: ${err instanceof Error ? err.message : "unknown"}` });
         }
     }
 
@@ -113,24 +155,44 @@ async function analyzeTimeframe(
     symbol: string,
     timeframe: string,
     config: SignalConfig,
-    category: SignalCategory
+    category: SignalCategory,
+    diagnostics?: ScanDiagnostic[]
 ): Promise<Partial<AISignal> | null> {
     const now = new Date();
-    const sessionCheck = isSessionAllowed(now, config.sessions as never[]);
-    if (!sessionCheck.allowed) return null;
+
+    // Only a genuinely closed market blocks scanning. Crypto trades 24/7 and
+    // is always scannable; forex/metals/indices follow the trading week.
+    // Asian/Sydney hours are valid trading time and must NOT block scans.
+    if (!isSymbolMarketOpen(symbol, now)) {
+        diagnostics?.push({ symbol, timeframe, reason: "Market closed (reopens Sun 21:00 UTC)" });
+        return null;
+    }
 
     const htfTimeframe = getHigherTimeframe(timeframe);
     const tf = timeframe as Timeframe;
     const htf = htfTimeframe as Timeframe;
     const sym = symbol as "XAUUSD" | "EURUSD" | "GBPUSD" | "USDJPY" | "USDCHF" | "AUDUSD" | "NZDUSD" | "US30" | "NAS100" | "SPX500" | "BTCUSD" | "ETHUSD";
 
-    const [entryCandles, htfCandles] = await Promise.all([
-        fetchCandles(sym, tf),
-        fetchCandles(sym, htf),
-    ]);
+    let entryCandles: MarketCandle[] = [];
+    let htfCandles: MarketCandle[] = [];
+    try {
+        [entryCandles, htfCandles] = await Promise.all([
+            fetchCandles(sym, tf),
+            fetchCandles(sym, htf),
+        ]);
+    } catch (err) {
+        diagnostics?.push({ symbol, timeframe, reason: `Market data unavailable: ${err instanceof Error ? err.message : "fetch failed"}` });
+        return null;
+    }
 
-    if (!entryCandles || entryCandles.length < 30) return null;
-    if (!htfCandles || htfCandles.length < 20) return null;
+    if (!entryCandles || entryCandles.length < 30) {
+        diagnostics?.push({ symbol, timeframe, reason: `Insufficient ${timeframe} candles (${entryCandles?.length ?? 0}/30)` });
+        return null;
+    }
+    if (!htfCandles || htfCandles.length < 20) {
+        diagnostics?.push({ symbol, timeframe, reason: `Insufficient ${htfTimeframe} candles (${htfCandles?.length ?? 0}/20)` });
+        return null;
+    }
 
     const currentPrice = entryCandles[entryCandles.length - 1].close;
 
@@ -151,6 +213,44 @@ async function analyzeTimeframe(
     const fvgs = detectFairValueGaps(entryCandles, tf);
 
     const regimeLabel = String(regime.regime).toUpperCase();
+
+    // ── Chart Confluence (the SAME overlays the Pro Terminal chart draws) ──
+    // Session highs/lows, daily pivots, prev-day H/L, VWAP, EMA 9/20 stack and
+    // EQH/EQL — computed with the chart's exact deterministic routines so a
+    // signal's levels are the ones a user sees when they open the chart.
+    const chartConfluence: ChartConfluence = buildChartConfluence({
+        candles: entryCandles,
+        currentPrice,
+    });
+    const chartDirectionVote = scoreChartDirection(chartConfluence, currentPrice);
+
+    // ── Order Flow & Market Microstructure Intelligence ────────────────────
+    // Structured order-flow evidence from the SAME candles (capability-gated;
+    // no fabricated delta/L2/options). When the provider cannot supply a data
+    // class the context records it as a limitation instead of inventing values.
+    let orderFlowContext: ReturnType<typeof buildOrderFlowContext> | null = null;
+    if (orderFlowGate("orderFlow.enabled")) {
+        try {
+            orderFlowContext = buildOrderFlowContext({
+                symbol,
+                timeframe: tf,
+                mode: "live",
+                asOf: entryCandles[entryCandles.length - 1].timestamp,
+                candles: entryCandles,
+            });
+        } catch {
+            orderFlowContext = null;
+        }
+    }
+    // Order-flow events (the same absorption/exhaustion markers the chart
+    // draws): a signed vote for direction plus per-direction evidence.
+    const ofEventVote = orderFlowContext
+        ? orderFlowEventDirectionVote(
+              orderFlowContext.absorption.recent,
+              orderFlowContext.exhaustion.recent
+          )
+        : 0;
+
     const mapRegime = (r: string): MarketRegime => {
         const upper = r.toUpperCase().replace("TRENDING_BULLISH", "TRENDING_BULLISH").replace("TRENDING_BEARISH", "TRENDING_BEARISH");
         if (upper === "TRENDING_BULLISH" || upper === "TRENDING_BEARISH") return upper as MarketRegime;
@@ -168,7 +268,9 @@ async function analyzeTimeframe(
         liquidity: `${liquidity.sweeps.length} sweeps, ${liquidity.levels.length} levels`,
         momentum: `Score ${marketScore.total}, VWAP ${vwapPos}`,
         volume: volumeAnalysis.relativeVolume > 1.5 ? "Expanding" : "Normal",
-        orderFlow: "Data unavailable",
+        orderFlow: orderFlowContext
+            ? `OF ${orderFlowContext.dataQuality}${orderFlowContext.volumeProfile.poc !== null ? `, POC ${orderFlowContext.volumeProfile.poc}` : ""}${orderFlowContext.delta.available ? `, delta ${orderFlowContext.delta.value}` : " (no trade-side data)"}`
+            : "Data unavailable",
         higherTimeframe: `${htfTimeframe} ${htfBias}`,
         regime: regimeLabel,
     };
@@ -181,10 +283,15 @@ async function analyzeTimeframe(
         currentPrice,
         orderBlocks,
         fvgs,
-        liquidity.sweeps
+        liquidity.sweeps,
+        chartDirectionVote,
+        ofEventVote
     );
 
-    if (!direction) return null;
+    if (!direction) {
+        diagnostics?.push({ symbol, timeframe, reason: `No directional edge (HTF ${htfBias}, structure ${structureBias}, regime ${regimeLabel})` });
+        return null;
+    }
 
     const { entry, sl, tp1, tp2, tp3 } = calculateLevels(
         symbol,
@@ -199,15 +306,37 @@ async function analyzeTimeframe(
     const riskRewardTp2 = calculateRR(entry, sl, tp2);
     const riskRewardTp3 = calculateRR(entry, sl, tp3);
 
-    if (riskReward < config.minimumRiskReward) return null;
+    if (riskReward < config.minimumRiskReward) {
+        diagnostics?.push({ symbol, timeframe, reason: `R:R ${riskReward.toFixed(1)} below minimum ${config.minimumRiskReward}` });
+        return null;
+    }
 
     const trendScore = scoreTrendAlignment(htfBias, structureBias, vwapPos, regimeLabel);
     const structureScore = scoreMarketStructure(structure, direction);
     const liquidityScore = scoreLiquidity(liquidity, direction, currentPrice);
     const momentumScore = scoreMomentum(marketScore.total, direction);
     const volumeScore = scoreVolume(volumeAnalysis);
-    const orderFlowScore = { score: 0, detail: "Order flow data unavailable" };
+    const orderFlowScore = orderFlowContext
+        ? scoreOrderFlowForSignal(orderFlowContext, direction)
+        : { score: 0, detail: "Order flow data unavailable" };
     const entryScore = scoreEntryConfirmation(currentPrice, orderBlocks, fvgs, direction, atrValue);
+    const chartScore = scoreChartConfluence(chartConfluence, direction, currentPrice);
+    // Absorption/exhaustion evidence relative to the chosen direction —
+    // merged into the order-flow confidence detail.
+    const ofEventScore: OrderFlowEventScore = orderFlowContext
+        ? scoreOrderFlowEvents(
+              orderFlowContext.absorption.recent,
+              orderFlowContext.exhaustion.recent,
+              direction
+          )
+        : { vote: 0, score: 0, evidence: [], conflicts: [] };
+    const mergedOrderFlowScore = {
+        score: Math.min(15, orderFlowScore.score + ofEventScore.score),
+        detail: [
+            orderFlowScore.detail,
+            ...(ofEventScore.evidence.length > 0 ? [`events: ${ofEventScore.evidence.join("; ")}`] : []),
+        ].join(" — "),
+    };
 
     const confidenceBreakdown = calculateConfidence({
         trendAlignment: trendScore,
@@ -215,8 +344,9 @@ async function analyzeTimeframe(
         liquidity: liquidityScore,
         momentum: momentumScore,
         volume: volumeScore,
-        orderFlow: orderFlowScore,
+        orderFlow: mergedOrderFlowScore,
         entryConfirmation: entryScore,
+        chartConfluence: { score: chartScore.score, detail: chartScore.detail },
         weights: config.weights,
     });
 
@@ -236,6 +366,9 @@ async function analyzeTimeframe(
         volumeAnalysis,
         confidenceBreakdown,
         sessionQuality: sessionQuality.label,
+        chartEvidence: chartScore.evidence,
+        orderFlowEvidence: ofEventScore.evidence,
+        orderFlowConflicts: ofEventScore.conflicts,
     });
 
     return {
@@ -256,12 +389,19 @@ async function analyzeTimeframe(
         riskRewardTp2,
         riskRewardTp3,
         status: confidenceBreakdown.total >= config.minimumConfidence ? "READY" : "FORMING",
-        analysis,
+        analysis: {
+            ...analysis,
+            chartConfluence: `Score ${chartScore.score}/${CHART_CONFLUENCE_MAX_SCORE} — ${chartScore.detail}`,
+        },
         confidenceBreakdown,
         reasoning,
         currentPrice,
         distanceToEntry: Math.abs(currentPrice - entry),
         distanceToSL: Math.abs(currentPrice - sl),
+        chartLevels: chartConfluence.levels
+            .map((l) => ({ kind: l.kind, label: l.label, price: l.price }))
+            .sort((a, b) => Math.abs(a.price - currentPrice) - Math.abs(b.price - currentPrice))
+            .slice(0, 12),
         createdAt: Date.now(),
         updatedAt: Date.now(),
         expiresAt: Date.now() + (config.signalExpirationHours || 4) * 3600 * 1000,
@@ -301,7 +441,9 @@ function determineDirection(
     currentPrice: number,
     orderBlocks: Array<{ direction: string; high: number; low: number; status: string }>,
     fvgs: Array<{ direction: string; high: number; low: number; status: string }>,
-    sweeps: Array<{ side: string }>
+    sweeps: Array<{ side: string }>,
+    chartDirectionVote = 0,
+    orderFlowEventVote = 0
 ): SignalDirection | null {
     let buyScore = 0;
     let sellScore = 0;
@@ -333,6 +475,16 @@ function determineDirection(
         if (lastSweep.side === "sell_side") buyScore += 2;
         else if (lastSweep.side === "buy_side") sellScore += 2;
     }
+
+    // Chart overlay vote: VWAP side + EMA stack + pivot position + EQH/EQL
+    // magnets — the same evidence a trader reads off the Pro Terminal chart.
+    if (chartDirectionVote > 0) buyScore += Math.min(2, chartDirectionVote);
+    else if (chartDirectionVote < 0) sellScore += Math.min(2, -chartDirectionVote);
+
+    // Order-flow event vote: recent absorption/exhaustion markers (same
+    // events the chart draws as ABSB/ABSS/EXH), bounded to ±2.
+    if (orderFlowEventVote > 0) buyScore += orderFlowEventVote;
+    else if (orderFlowEventVote < 0) sellScore += -orderFlowEventVote;
 
     const diff = buyScore - sellScore;
     if (diff >= 2) return "BUY";
@@ -655,6 +807,12 @@ function generateReasoning(params: {
     volumeAnalysis: ReturnType<typeof analyzeVolume>;
     confidenceBreakdown: ConfidenceBreakdown;
     sessionQuality: string;
+    /** Chart-level evidence strings (session/pivot/VWAP/EMA levels). */
+    chartEvidence?: string[];
+    /** Order-flow absorption evidence relative to the direction. */
+    orderFlowEvidence?: string[];
+    /** Exhaustion conflicts against the direction (caution lines). */
+    orderFlowConflicts?: string[];
 }): string {
     const parts: string[] = [];
 
@@ -675,6 +833,21 @@ function generateReasoning(params: {
     parts.push(
         `Momentum at ${params.momentum.toFixed(0)} with ${params.volumeAnalysis.relativeVolume.toFixed(1)}x average volume.`
     );
+
+    // Chart-evidence lines: the exact drawn levels backing the call, so the
+    // signal and the chart always agree.
+    if (params.chartEvidence && params.chartEvidence.length > 0) {
+        parts.push(`Chart confluence: ${params.chartEvidence.join("; ")}.`);
+    }
+
+    // Order-flow event evidence: same absorption/exhaustion markers the
+    // chart's Order Flow layer draws.
+    if (params.orderFlowEvidence && params.orderFlowEvidence.length > 0) {
+        parts.push(`Order flow: ${params.orderFlowEvidence.join("; ")}.`);
+    }
+    if (params.orderFlowConflicts && params.orderFlowConflicts.length > 0) {
+        parts.push(`Caution: ${params.orderFlowConflicts.join("; ")}.`);
+    }
 
     parts.push(`Session: ${params.sessionQuality}.`);
 

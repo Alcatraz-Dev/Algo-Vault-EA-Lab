@@ -1,5 +1,6 @@
 import { MarketSessionName, SignalConfig } from "./types";
-import { getCurrentSession, getSessionData } from "@/lib/analytics/sessions";
+import { getCurrentSession, getSessionData, isMarketOpen } from "@/lib/analytics/sessions";
+import { getSymbolSpec } from "./symbol-specs";
 import { MarketCandle } from "@/lib/market-data/types";
 
 export interface SessionFilterResult {
@@ -16,6 +17,20 @@ export interface SessionFilterResult {
 
 const DEFAULT_SESSIONS: MarketSessionName[] = ["london", "new_york", "overlap"];
 
+/**
+ * Whether scanning may run for a symbol right now.
+ *
+ * Crypto trades 24/7 and is always scannable. Everything else follows the
+ * forex trading week (Sun 21:00 UTC → Fri 21:00 UTC). Importantly, the Asian
+ * and Sydney sessions ARE valid trading time — they must not block scanning;
+ * only a genuinely closed market does.
+ */
+export function isSymbolMarketOpen(symbol: string, now: Date = new Date()): boolean {
+    const spec = getSymbolSpec(symbol);
+    if (spec?.category === "crypto") return true;
+    return isMarketOpen(now);
+}
+
 export function isSessionAllowed(
     now: Date,
     allowedSessions?: MarketSessionName[]
@@ -30,7 +45,6 @@ export function isSessionAllowed(
             reason: "Market is closed",
         };
     }
-
     if (sessions.length === 0) {
         return {
             allowed: true,

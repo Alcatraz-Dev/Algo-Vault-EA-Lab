@@ -8,7 +8,7 @@
  */
 import type { WorkspaceContext } from "../../../components/market-intelligence/workspace-context";
 
-export type EvidenceSource = "market" | "smart_money" | "indicator" | "mtf" | "session" | "backtest" | "research" | "replay";
+export type EvidenceSource = "market" | "smart_money" | "indicator" | "mtf" | "session" | "backtest" | "research" | "replay" | "order_flow";
 
 export interface IntelligenceEvidence {
   type: "fact" | "interpretation" | "limitation";

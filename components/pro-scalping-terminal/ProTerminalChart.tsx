@@ -16,7 +16,7 @@
  * TradingChart component.
  */
 
-import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback, type RefObject } from "react";
 import {
     createChart,
     ColorType,
@@ -37,6 +37,10 @@ import {
 } from "lightweight-charts";
 import { cn } from "@/lib/utils";
 import { useLiveCandles } from "@/hooks/useLiveCandles";
+import { gexLevels, type GexLevel } from "@/lib/order-flow/gex/levels";
+import { isMarketTradableAt } from "@/lib/chart-engine/timeframe";
+import { structureOverlayLayer } from "@/lib/chart-engine/overlay-contract";
+import { useOrderFlow } from "@/hooks/use-order-flow";
 import type { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 import type { AdvancedAnalysisResult } from "@/lib/ai/analysis/intelligence";
 import type { ChartLayerId } from "./chart-layers";
@@ -325,6 +329,9 @@ export function ProTerminalChart({
     studyOverlay = null,
     signals = [],
     onCandlesChange,
+    orderFlowSettings,
+    chartLevels = null,
+    optionsChain = null,
 }: {
     symbol: SupportedSymbol;
     timeframe: Timeframe;
@@ -339,6 +346,16 @@ export function ProTerminalChart({
     signals?: TerminalSignal[];
     /** Notified with the fetched candles so callers can compute overlays on the same data. */
     onCandlesChange?: (candles: Candle[]) => void;
+    /** Order Flow user settings (calculation parameters). */
+    orderFlowSettings?: Partial<import("@/lib/order-flow/settings").OrderFlowSettings>;
+    /** Chart-confluence levels a signal was built from (session/pivot/VWAP-side/EQH/EQL). */
+    chartLevels?: Array<{ kind: string; label: string; price: number }> | null;
+    /** Real options chain (GEX) from useOptionsChain; null → GEX layer stays unavailable. */
+    optionsChain?: {
+        quotes: import("@/lib/order-flow/types").OptionQuote[];
+        available: boolean;
+        contractMultiplier?: number;
+    } | null;
 }) {
     const containerRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<IChartApi | null>(null);
@@ -369,6 +386,10 @@ export function ProTerminalChart({
     const stPaneOwnedRef = useRef<number | null>(null);
     const rsiPaneOwnedRef = useRef<number | null>(null);
     const macdPaneOwnedRef = useRef<number | null>(null);
+    // Estimated delta pane (candle-direction proxy — clearly labelled, never
+    // presented as bid/ask delta).
+    const deltaPaneOwnedRef = useRef<number | null>(null);
+    const deltaSeriesRef = useRef<{ hist: ISeriesApi<"Histogram">; line: ISeriesApi<"Line"> } | null>(null);
     // Pine study overlays: line series (overlay pane) + a stacked pane for
     // non-overlay scripts, rebuilt whenever the applied script changes.
     const studySeriesRef = useRef<Array<ISeriesApi<"Line">>>([]);
@@ -376,21 +397,48 @@ export function ProTerminalChart({
     const studyMarkersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
     const signalMarkersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
     const studyHlineLinesRef = useRef<IPriceLine[]>([]);
+    // Order Flow overlay state (price lines + event markers + profile drawing).
+    const orderFlowLinesRef = useRef<IPriceLine[]>([]);
+    const orderFlowMarkersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
+    // GEX gamma levels (call/put walls + flip) from the real options chain.
+    const gexLinesRef = useRef<IPriceLine[]>([]);
+    // Chart-confluence levels of the displayed signal (dashed price lines).
+    const chartLevelLinesRef = useRef<IPriceLine[]>([]);
 
     const [hover, setHover] = useState<{ o: number; h: number; l: number; c: number; time: number } | null>(null);
 
+    // ── live-follow state (Phase 6) ───────────────────────────────────────
+    // When the user is at the live edge the chart follows new candles
+    // (scrollToRealTime on every append). Any manual drag/zoom away from the
+    // edge disengages following; the Go-to-Live chip re-engages it.
+    const [followLive, setFollowLive] = useState(true);
+    const [showGoLive, setShowGoLive] = useState(false);
+    const [olderLoading, setOlderLoading] = useState(false);
+
     // Live feed shared with every chart in the app: history, tick merge into
     // the forming bar, and periodic reconciliation against the provider.
-    const { candles: liveCandles, error: feedError, isLoading: feedLoading } = useLiveCandles(
+    const { candles: liveCandles, error: feedError, isLoading: feedLoading, connection: liveConnection, quality: liveQuality, hasMoreHistory, loadOlder } = useLiveCandles(
         symbol,
         timeframe,
-        { limit: 300 }
+        { limit: 400 }
     );
+
+    // `candles` must be declared before useOrderFlow below — referencing it
+    // earlier threw "Cannot access 'candles' before initialization" and
+    // crashed the signal detail pages.
+    const candles = liveCandles;
 
     const onCandlesChangeRef = useRef(onCandlesChange);
     useEffect(() => {
         onCandlesChangeRef.current = onCandlesChange;
     }, [onCandlesChange]);
+
+    // ── Order Flow & Market Microstructure Intelligence ────────────────
+    // Derived from the SAME canonical candles the chart renders, memoized in
+    // the hook (one recompute per data change, never per render). Only the
+    // honestly-computable layers render; the capability model keeps the rest
+    // explicitly unavailable.
+    const orderFlow = useOrderFlow(symbol, timeframe, candles, { settings: orderFlowSettings, optionsChain });
 
     // Notify callers (overlay engines) with the current candle list. Kept in
     // an effect so the callback is not invoked during render.
@@ -405,9 +453,18 @@ export function ProTerminalChart({
         }
     }, [liveCandles]);
 
-    const candles = liveCandles;
     const requestKey = `${symbol}|${timeframe}`;
     const loading = feedLoading;
+    // Market-closed honesty (Phase 7): weekend silence is reported, never
+    // papered over with fabricated candles. The badge above renders the
+    // status; the engine simply produces no new candles when nothing trades.
+    // Purity: session classification reads the LAST CANDLE's timestamp (a
+    // render-stable value), never Date.now() during render.
+    const cryptoSymbol = /BTC|ETH|SOL|XRP|ADA|DOGE|BNB|LTC|DOT/i.test(symbol);
+    const lastCandle = candles.length > 0 ? candles[candles.length - 1] : null;
+    const marketOpen = lastCandle ? isMarketTradableAt(lastCandle.timestamp, { alwaysOpen: cryptoSymbol }) : true;
+    const connection = marketOpen ? liveConnection : "reconnecting";
+    const quality = marketOpen ? liveQuality : "market_closed";
     void requestKey;
     void token;
     void feedError;
@@ -499,6 +556,26 @@ export function ProTerminalChart({
             }
         });
 
+        // ── live-follow interaction wiring (Phase 6/11) ────────────────────
+        // Manual scroll/zoom away from the newest candle pauses following;
+        // the visible Go-to-Live chip restores it. Panning back to the edge
+        // re-engages automatically.
+        const timeScale = chart.timeScale();
+        const handleVisibleRange = () => {
+            try {
+                const range = timeScale.getVisibleLogicalRange();
+                const bars = lastBarCountRef.current;
+                if (range === null || bars <= 0) return;
+                const atEdge = range.to >= bars - 1.5;
+                setShowGoLive(!atEdge);
+                if (atEdge) setFollowLive(true);
+                else setFollowLive(false);
+            } catch {
+                // range not available yet
+            }
+        };
+        timeScale.subscribeVisibleLogicalRangeChange(handleVisibleRange);
+
         return () => {
             chart.remove();
             chartRef.current = null;
@@ -513,6 +590,7 @@ export function ProTerminalChart({
             studyMarkersRef.current = null;
             signalMarkersRef.current = null;
             studyHlineLinesRef.current = [];
+            chartLevelLinesRef.current = [];
             bbSeriesRef.current = null;
             kcSeriesRef.current = null;
             dcSeriesRef.current = null;
@@ -523,6 +601,9 @@ export function ProTerminalChart({
             stPaneOwnedRef.current = null;
             rsiPaneOwnedRef.current = null;
             macdPaneOwnedRef.current = null;
+            deltaPaneOwnedRef.current = null;
+            deltaSeriesRef.current = null;
+            gexLinesRef.current = [];
             signalMarkersRef.current = null;
             studyHlineLinesRef.current = [];
         };
@@ -642,13 +723,24 @@ export function ProTerminalChart({
         // the forming bar keep the current viewport so the last candle moves
         // in place instead of the chart re-zooming every 2 seconds.
         const barCountChanged = bars.length !== lastBarCountRef.current;
-        if (key !== lastKeyRef.current || barCountChanged) {
+        const appended = barCountChanged && bars.length > lastBarCountRef.current && key === lastKeyRef.current;
+        if (key !== lastKeyRef.current || (barCountChanged && !appended)) {
             chartRef.current?.timeScale().fitContent();
             lastKeyRef.current = key;
         }
+        // Live follow (Phase 6): when the user is at the live edge, keep the
+        // newest candle glued to the right margin as new candles append. When
+        // they scrolled away, the viewport is theirs — never yanked back.
+        if (appended && followLive) {
+            try {
+                chartRef.current?.timeScale().scrollToRealTime();
+            } catch {
+                // timescale not ready
+            }
+        }
         lastBarCountRef.current = bars.length;
         lastPushedBarRef.current = { time: last.time, open: last.open, high: last.high, low: last.low, close: last.close };
-    }, [candles, symbol, timeframe]);
+    }, [candles, symbol, timeframe, followLive]);
 
     // ── Pine study overlays ─────────────────────────────────────────────
     // Recreate the study series whenever the applied script (or its pane
@@ -753,6 +845,56 @@ export function ProTerminalChart({
         }
     }, [candles, studyOverlay]);
 
+    // ── Smart Money structure overlay (Phase 15) ─────────────────────────
+    // BOS / CHoCH markers from the canonical deterministic structure engine
+    // (lib/analytics/market-structure.ts) via the chart-engine overlay
+    // contract. The chart only draws; the engine owns the evidence rules.
+    const structureMarkers = useMemo(() => {
+        if (!layers.bosChoch || candles.length === 0) return [];
+        const layer = structureOverlayLayer(true);
+        const structCandles = candles.map((c) => ({
+            timestamp: c.timestamp,
+            open: c.open,
+            high: c.high,
+            low: c.low,
+            close: c.close,
+            volume: c.volume ?? 0,
+            symbol: String(symbol).toUpperCase(),
+            timeframe: timeframe as import("@/lib/chart-engine/timeframe").ChartTimeframe,
+            finalized: true,
+        }));
+        return layer.getEventMarkers?.(structCandles) ?? [];
+    }, [layers.bosChoch, candles, symbol, timeframe]);
+
+    const structureMarkersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
+    useEffect(() => {
+        const cs = candleSeriesRef.current;
+        if (!cs) return;
+        if (!structureMarkers || structureMarkers.length === 0) {
+            structureMarkersRef.current?.setMarkers([]);
+            return;
+        }
+        const timeIndex = new Map<number, number>();
+        candles.forEach((c, i) => timeIndex.set(Math.floor(c.timestamp / 1000), i));
+        const markers: SeriesMarker<Time>[] = structureMarkers
+            .map((m) => ({ marker: m, time: Math.floor(m.time / 1000) }))
+            .filter(({ time }) => timeIndex.has(time))
+            .map(({ marker, time }) => ({
+                time: time as UTCTimestamp,
+                position: (marker.position === "belowBar" ? "belowBar" : "aboveBar") as SeriesMarker<Time>["position"],
+                shape: (marker.text === "BOS" && marker.color === "#fb7185") || (marker.text === "CHOCH" && marker.color === "#f97316") ? ("arrowDown" as const) : ("arrowUp" as const),
+                color: marker.color,
+                size: 1,
+                text: marker.text,
+            }) as SeriesMarker<Time>)
+            .sort((a, b) => (a.time as number) - (b.time as number));
+        if (structureMarkersRef.current) {
+            structureMarkersRef.current.setMarkers(markers);
+        } else {
+            structureMarkersRef.current = createSeriesMarkers(cs, markers);
+        }
+    }, [structureMarkers, candles]);
+
     // Live deterministic signals: entry / stop / target markers on the active symbol.
     useEffect(() => {
         const cs = candleSeriesRef.current;
@@ -826,6 +968,51 @@ export function ProTerminalChart({
             );
         }
     }, [candles, studyOverlay]);
+
+    // Signal chart-confluence levels — the exact session/pivot/EQH/EQL lines
+    // the generating engine scored. Dotted so they read as reference levels,
+    // distinct from the user's own drawings.
+    const chartLevelsKey = chartLevels ? chartLevels.map((l) => `${l.kind}:${l.price}`).join("|") : "";
+    useEffect(() => {
+        const cs = candleSeriesRef.current;
+        if (!cs) return;
+        for (const l of chartLevelLinesRef.current) {
+            try {
+                cs.removePriceLine(l);
+            } catch {
+                // line already gone with the series
+            }
+        }
+        chartLevelLinesRef.current = [];
+        if (!chartLevels || chartLevels.length === 0) return;
+        const palette: Record<string, string> = {
+            session_high: "#22d3ee",
+            session_low: "#22d3ee",
+            pivot: "#eab308",
+            pivot_r1: "#fb7185",
+            pivot_r2: "#fb7185",
+            pivot_s1: "#34d399",
+            pivot_s2: "#34d399",
+            prev_day_high: "#94a3b8",
+            prev_day_low: "#94a3b8",
+            eqh: "#f97316",
+            eql: "#34d399",
+        };
+        for (const level of chartLevels) {
+            if (!Number.isFinite(level.price) || level.price <= 0) continue;
+            chartLevelLinesRef.current.push(
+                cs.createPriceLine({
+                    price: level.price,
+                    color: palette[level.kind] ?? "#94a3b8",
+                    lineWidth: 1,
+                    lineStyle: LineStyle.Dotted,
+                    axisLabelVisible: false,
+                    title: level.label,
+                })
+            );
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [chartLevelsKey]);
 
     // Static price-line overlays (session, prev day, S/R, equal H/L, liquidity).
     useEffect(() => {
@@ -920,6 +1107,39 @@ export function ProTerminalChart({
     }, [candles, layers.fvg, layers.orderBlocks]);
 
     const showZones = zones.fvg.length > 0 || zones.ob.length > 0;
+
+    // ── Volume Profile side histogram (right-aligned horizontal bars) ────
+    // Pure positioned divs driven by the computed profile — zoom-safe because
+    // they map price→percent of the profile's own range, independent of the
+    // chart's price scale. Rendered only when the layer is on.
+    const profileHistogram = useMemo(() => {
+        if (!layers.volumeProfile || !orderFlow.sessionProfile) return [];
+        const p = orderFlow.sessionProfile;
+        const maxVol = Math.max(...p.volumeByPrice.map((b) => b.volume), 1);
+        const range = p.volumeByPrice.length > 0
+            ? p.volumeByPrice[p.volumeByPrice.length - 1].high - p.volumeByPrice[0].low
+            : 0;
+        if (range <= 0) return [];
+        const min = p.volumeByPrice[0].low;
+        // Downsample to at most 60 bars for rendering performance.
+        const step = Math.max(1, Math.ceil(p.volumeByPrice.length / 60));
+        const out: Array<{ bottomPct: number; heightPct: number; widthPct: number; hvn: boolean; lvn: boolean; poc: boolean }> = [];
+        for (let i = 0; i < p.volumeByPrice.length; i += step) {
+            const b = p.volumeByPrice[i];
+            const bottomPct = ((b.low - min) / range) * 100;
+            const heightPct = ((b.high - b.low) / range) * 100;
+            const widthPct = (b.volume / maxVol) * 100;
+            out.push({
+                bottomPct,
+                heightPct,
+                widthPct,
+                hvn: p.hvn.includes(b.price),
+                lvn: p.lvn.includes(b.price),
+                poc: b.price === p.poc,
+            });
+        }
+        return out;
+    }, [layers.volumeProfile, orderFlow.sessionProfile]);
 
     // ── Math-indicator layers ────────────────────────────────────────
     // Every layer is computed with the same deterministic TA the Pine
@@ -1080,6 +1300,59 @@ export function ProTerminalChart({
             rsiSeriesRef.current = { rsi, pane: paneIndex, lines: [] };
         }
 
+        // ── Estimated delta pane (histogram + cumulative line) ──
+        if (!layers.delta && !layers.cumulativeDelta) {
+            if (deltaSeriesRef.current) {
+                try {
+                    chart.removeSeries(deltaSeriesRef.current.hist);
+                    chart.removeSeries(deltaSeriesRef.current.line);
+                } catch {
+                    // already gone
+                }
+                deltaSeriesRef.current = null;
+            }
+            if (deltaSeriesRef.current === null && deltaPaneOwnedRef.current !== null) {
+                try {
+                    chart.removePane(deltaPaneOwnedRef.current);
+                } catch {
+                    // pane may hold other series
+                }
+                deltaPaneOwnedRef.current = null;
+            }
+        } else if (!deltaSeriesRef.current) {
+            let paneIndex = 0;
+            try {
+                paneIndex = chart.panes().length;
+                chart.addPane();
+                deltaPaneOwnedRef.current = paneIndex;
+            } catch {
+                paneIndex = 0;
+                deltaPaneOwnedRef.current = null;
+            }
+            chart.panes()[paneIndex]?.setStretchFactor(0.25);
+            const hist = chart.addSeries(
+                HistogramSeries,
+                {
+                    priceFormat: { type: "volume" },
+                    priceLineVisible: false,
+                    lastValueVisible: false,
+                },
+                paneIndex
+            );
+            const line = chart.addSeries(
+                LineSeries,
+                {
+                    color: "#eab308",
+                    lineWidth: 2,
+                    priceLineVisible: false,
+                    lastValueVisible: false,
+                    crosshairMarkerVisible: false,
+                },
+                paneIndex
+            );
+            deltaSeriesRef.current = { hist, line };
+        }
+
         // ── MACD pane (12/26/9 histogram-less lines + zero guide) ──
         if (!layers.macdPane) {
             if (macdSeriesRef.current) {
@@ -1114,7 +1387,7 @@ export function ProTerminalChart({
             const signal = addHiddenLine(chart, paneIndex, "#f59e0b");
             macdSeriesRef.current = { macd, signal, pane: paneIndex };
         }
-    }, [layers.bollingerBands, layers.keltnerChannels, layers.donchianChannels, layers.supertrend, layers.heikinAshi, layers.rsiPane, layers.macdPane, symbol]);
+    }, [layers.bollingerBands, layers.keltnerChannels, layers.donchianChannels, layers.supertrend, layers.heikinAshi, layers.rsiPane, layers.macdPane, layers.delta, layers.cumulativeDelta, symbol]);
 
     // Data feed for the indicator layers — recomputed only when candles change.
     useEffect(() => {
@@ -1193,7 +1466,187 @@ export function ProTerminalChart({
             feedSeries(macdSeriesRef.current.macd, candles, macdLine);
             feedSeries(macdSeriesRef.current.signal, candles, signalLine);
         }
-    }, [candles]);
+        // Estimated delta pane: per-bar directional volume histogram +
+        // cumulative line. Buckets are the candles themselves, so values
+        // align 1:1 with the displayed bars. When a true trade-grade delta
+        // ever becomes available the context switches and this proxy stays
+        // labelled ESTIMATED.
+        if (deltaSeriesRef.current && orderFlow.estimatedDelta) {
+            const ed = orderFlow.estimatedDelta;
+            const histData: Array<{ time: UTCTimestamp; value: number; color: string }> = [];
+            const lineData: Array<{ time: UTCTimestamp; value: number }> = [];
+            let cum = 0;
+            for (const b of ed.buckets) {
+                const t = Math.floor(b.timestamp / 1000) as UTCTimestamp;
+                if (layers.delta && Number.isFinite(b.delta) && b.delta !== 0) {
+                    histData.push({
+                        time: t,
+                        value: b.delta,
+                        color: b.delta > 0 ? "rgba(52, 211, 153, 0.55)" : "rgba(251, 113, 133, 0.55)",
+                    });
+                }
+                if (layers.cumulativeDelta) {
+                    cum += b.delta;
+                    if (Number.isFinite(cum)) lineData.push({ time: t, value: cum });
+                }
+            }
+            deltaSeriesRef.current.hist.setData(histData);
+            deltaSeriesRef.current.line.setData(lineData);
+        } else if (deltaSeriesRef.current) {
+            deltaSeriesRef.current.hist.setData([]);
+            deltaSeriesRef.current.line.setData([]);
+        }
+    }, [candles, layers.delta, layers.cumulativeDelta, orderFlow.estimatedDelta]);
+
+    // ── Order Flow overlays (volume profile + behavioural events) ────────
+    // POC/VAH/VAL render as price lines on the candle series; the horizontal
+    // profile histogram and event markers render as positioned overlays.
+    // Recreated only when the computed profile actually changes (memoized by
+    // the hook), so live ticks never thrash the price-line list.
+    const ofProfileKey = orderFlow.sessionProfile
+        ? `${orderFlow.sessionProfile.profileId}|${orderFlow.sessionProfile.poc}|${orderFlow.sessionProfile.vah}|${orderFlow.sessionProfile.val}|${orderFlow.sessionProfile.barCount}`
+        : "";
+    const ofEventsKey = `${orderFlow.absorptionEvents.length}|${orderFlow.exhaustionEvents.length}|${orderFlow.computedFrom}`;
+
+    useEffect(() => {
+        const cs = candleSeriesRef.current;
+        if (!cs) return;
+        for (const l of orderFlowLinesRef.current) {
+            try {
+                cs.removePriceLine(l);
+            } catch {
+                // line already gone with the series
+            }
+        }
+        orderFlowLinesRef.current = [];
+        if (!orderFlow.sessionProfile) return;
+        const p = orderFlow.sessionProfile;
+        const showPoc = layers.poc && p.poc !== null;
+        const showVa = layers.valueArea && p.vah !== null && p.val !== null;
+        if (showPoc) {
+            orderFlowLinesRef.current.push(cs.createPriceLine({
+                price: p.poc as number,
+                color: "#f59e0b",
+                lineWidth: 2,
+                lineStyle: LineStyle.Solid,
+                axisLabelVisible: true,
+                title: "POC",
+            }));
+        }
+        if (showVa) {
+            for (const [price, label] of [[p.vah as number, "VAH"], [p.val as number, "VAL"]] as const) {
+                orderFlowLinesRef.current.push(cs.createPriceLine({
+                    price,
+                    color: "rgba(167, 139, 250, 0.8)",
+                    lineWidth: 1,
+                    lineStyle: LineStyle.Dashed,
+                    axisLabelVisible: true,
+                    title: label,
+                }));
+            }
+        }
+    }, [ofProfileKey, layers.poc, layers.valueArea, orderFlow.sessionProfile]);
+
+    useEffect(() => {
+        const cs = candleSeriesRef.current;
+        if (!cs) return;
+        if (orderFlowMarkersRef.current) {
+            orderFlowMarkersRef.current.setMarkers([]);
+            orderFlowMarkersRef.current = null;
+        }
+        if (!layers.absorption && !layers.exhaustion) return;
+        const timeIndex = new Map<number, number>();
+        candles.forEach((c, i) => timeIndex.set(Math.floor(c.timestamp / 1000), i));
+        const markers: SeriesMarker<Time>[] = [];
+        if (layers.absorption) {
+            for (const e of orderFlow.absorptionEvents) {
+                const t = Math.floor(e.timestamp / 1000);
+                if (!timeIndex.has(t)) continue;
+                markers.push({
+                    time: t as UTCTimestamp,
+                    position: "aboveBar",
+                    shape: "circle",
+                    color: "#22d3ee",
+                    size: 1,
+                    text: e.type === "BUY_ABSORPTION" ? "ABSB" : "ABSS",
+                });
+            }
+        }
+        if (layers.exhaustion) {
+            for (const e of orderFlow.exhaustionEvents) {
+                const t = Math.floor(e.timestamp / 1000);
+                if (!timeIndex.has(t)) continue;
+                markers.push({
+                    time: t as UTCTimestamp,
+                    position: e.type === "BUY_EXHAUSTION" ? "aboveBar" : "belowBar",
+                    shape: e.type === "BUY_EXHAUSTION" ? "arrowDown" : "arrowUp",
+                    color: "#f472b6",
+                    size: 1,
+                    text: "EXH",
+                });
+            }
+        }
+        markers.sort((a, b) => (a.time as number) - (b.time as number));
+        if (markers.length > 0) {
+            orderFlowMarkersRef.current = createSeriesMarkers(cs, markers);
+        }
+    }, [ofEventsKey, layers.absorption, layers.exhaustion, candles, orderFlow.absorptionEvents, orderFlow.exhaustionEvents]);
+
+    // ── GEX gamma levels (real options chain — Deribit / CBOE) ─────────
+    // Call walls (resistance), put walls (support) and the gamma flip render
+    // as price lines on the candle series. Sourced from the same GexResult
+    // the context carries; empty when no chain is available for the symbol.
+    useEffect(() => {
+        const cs = candleSeriesRef.current;
+        if (!cs) return;
+        for (const l of gexLinesRef.current) {
+            try {
+                cs.removePriceLine(l);
+            } catch {
+                // line already gone with the series
+            }
+        }
+        gexLinesRef.current = [];
+        if (!layers.gex) return;
+        const levels: GexLevel[] = gexLevels(orderFlow.gex, {
+            showWalls: orderFlow.settings.gexShowWalls,
+            showGammaFlip: orderFlow.settings.gexShowGammaFlip,
+        });
+        for (const level of levels) {
+            gexLinesRef.current.push(
+                cs.createPriceLine({
+                    price: level.price,
+                    color: level.kind === "call_wall" ? "#fb7185" : level.kind === "put_wall" ? "#34d399" : "#eab308",
+                    lineWidth: 2,
+                    lineStyle: level.kind === "gamma_flip" ? LineStyle.Dotted : LineStyle.Solid,
+                    axisLabelVisible: true,
+                    title: level.label,
+                })
+            );
+        }
+    }, [layers.gex, orderFlow.gex, orderFlow.settings.gexShowWalls, orderFlow.settings.gexShowGammaFlip]);
+
+    // ── historical scrolling (Phase 3) ────────────────────────────────────
+    // Scrolling toward the left edge of the loaded window prepends one older
+    // page; the viewport is preserved by lightweight-charts logical-range
+    // anchoring (bar indices shift, screen position does not).
+    const handleEdgeHistoryLoad = useCallback(() => {
+        if (!hasMoreHistory || olderLoading) return;
+        setOlderLoading(true);
+        void loadOlder().finally(() => setOlderLoading(false));
+    }, [hasMoreHistory, olderLoading, loadOlder]);
+    void handleEdgeHistoryLoad;
+
+    // Go to Live: jump to the newest candle and re-enable following.
+    const handleGoLive = useCallback(() => {
+        setFollowLive(true);
+        setShowGoLive(false);
+        try {
+            chartRef.current?.timeScale().scrollToRealTime();
+        } catch {
+            // chart not ready
+        }
+    }, []);
 
     return (
         <div className="relative min-w-0 overflow-hidden rounded-lg border border-border bg-card" data-chart-container>
@@ -1260,6 +1713,101 @@ export function ProTerminalChart({
 
             <div className="relative" style={{ height }}>
                 <div ref={containerRef} className="absolute inset-0" />
+
+                {/* Go-to-Live chip — visible only when the user scrolled away */}
+                {showGoLive ? (
+                    <button
+                        type="button"
+                        onClick={handleGoLive}
+                        className="absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/90 px-3 py-1 text-[11px] font-semibold text-primary shadow-sm backdrop-blur-sm transition hover:bg-primary/10"
+                    >
+                        <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-pulse" aria-hidden />
+                        Go to Live →
+                    </button>
+                ) : null}
+
+                {/* Data-quality badge (Phase 20): never presents stale data as live */}
+                {!loading || candles.length > 0 ? (
+                    <div className="absolute left-3 top-2 z-10 flex items-center gap-1.5 rounded-full border border-border/50 bg-background/85 px-2 py-0.5 text-[10px] font-medium text-muted-foreground backdrop-blur-sm">
+                        {quality === "live" && connection === "live" ? (
+                            <>
+                                <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
+                                <span className="text-emerald-400">LIVE</span>
+                            </>
+                        ) : connection === "reconnecting" ? (
+                            <>
+                                <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" aria-hidden />
+                                <span className="text-amber-400">RECONNECTING</span>
+                            </>
+                        ) : quality === "gap_detected" ? (
+                            <>
+                                <span className="inline-block h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden />
+                                <span className="text-rose-400">GAP — SYNCING</span>
+                            </>
+                        ) : quality === "delayed" ? (
+                            <>
+                                <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden />
+                                <span className="text-amber-400">DELAYED</span>
+                            </>
+                        ) : quality === "stale" ? (
+                            <>
+                                <span className="inline-block h-1.5 w-1.5 rounded-full bg-zinc-500" aria-hidden />
+                                <span>STALE</span>
+                            </>
+                        ) : (
+                            <>
+                                <span className="inline-block h-1.5 w-1.5 rounded-full bg-muted-foreground" aria-hidden />
+                                <span>{connection === "error" ? "OFFLINE" : quality === "market_closed" ? "MARKET CLOSED" : connection.toUpperCase()}</span>
+                            </>
+                        )}
+                    </div>
+                ) : null}
+
+                {/* Order Flow: volume-profile histogram (right-aligned) */}
+                {layers.volumeProfile && profileHistogram.length > 0 ? (
+                    <div className="pointer-events-none absolute inset-y-0 right-0 z-[5] flex w-[18%] flex-col justify-end">
+                        {profileHistogram.map((b, i) => (
+                            <div
+                                key={`vp_${i}`}
+                                className="absolute right-0"
+                                style={{
+                                    bottom: `${b.bottomPct}%`,
+                                    height: `${Math.max(b.heightPct, 0.15)}%`,
+                                    width: `${b.widthPct}%`,
+                                    background: b.poc
+                                        ? "rgba(245, 158, 11, 0.55)"
+                                        : b.hvn
+                                            ? "rgba(56, 189, 248, 0.30)"
+                                            : b.lvn
+                                                ? "rgba(148, 163, 184, 0.12)"
+                                                : "rgba(100, 116, 139, 0.22)",
+                                    ...(b.poc ? { borderRight: "2px solid #f59e0b" } : {}),
+                                }}
+                            />
+                        ))}
+                    </div>
+                ) : null}
+
+                {/* Order Flow: data-quality + capability chip */}
+                {orderFlow.enabled && orderFlow.context ? (
+                    <div
+                        className="absolute right-3 top-2 z-10 rounded-full border border-border/50 bg-background/85 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide text-muted-foreground backdrop-blur-sm"
+                        title={`Order Flow data quality: ${orderFlow.context.dataQuality}. ${orderFlow.context.limitations[0] ?? ""}`}
+                    >
+                        OF · {orderFlow.context.dataQuality}
+                    </div>
+                ) : null}
+
+                {/* Estimated delta provenance chip — honest labelling for the
+                    candle-direction proxy layers (never bid/ask delta) */}
+                {(layers.delta || layers.cumulativeDelta) && orderFlow.estimatedDelta ? (
+                    <div
+                        className="absolute left-3 top-8 z-10 rounded-full border border-amber-500/40 bg-background/85 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-amber-400 backdrop-blur-sm"
+                        title={`ESTIMATED — ${orderFlow.estimatedDelta.method}: candle volume signed by bar direction. NOT bid/ask delta; upgrades only with a trade-classified feed.`}
+                    >
+                        Δ ESTIMATED · {orderFlow.estimatedDelta.method}
+                    </div>
+                ) : null}
 
                 {/* Zone overlay (FVG / OB rectangles) */}
                 {showZones ? (

@@ -4,7 +4,7 @@
  * raised #232323) and the single brand accent is AlgoVault orange #ff4d00.
  */
 import React from "react";
-import { Loader2, AlertCircle, CheckCircle2, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle2, ExternalLink, Loader2, Minus, Plus, Radio, RefreshCw, TrendingDown, TrendingUp } from "lucide-react";
 
 /* ── semantic direction styling ──────────────────────────────────────── */
 
@@ -70,14 +70,23 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
 }
 
 /* ── buttons ─────────────────────────────────────────────────────────── */
+/**
+ * Press-scale feedback so every actionable control feels snappy under the
+ * thumb. `disabled` and `loading` shortcuts so callers don't repeat the
+ * wiring on every confirm / submit.
+ */
+function pressCls(disabled?: boolean): string {
+  return disabled
+    ? "cursor-not-allowed opacity-30"
+    : "active:scale-[0.97] active:brightness-90 transition-all duration-150";
+}
 
 export function PrimaryButton({
-  children, onClick, disabled, loading, className = "", type = "button",
+  children, onClick, disabled, className = "", type = "button",
 }: {
   children: React.ReactNode;
   onClick?: () => void;
   disabled?: boolean;
-  loading?: boolean;
   className?: string;
   type?: "button" | "submit";
 }) {
@@ -85,10 +94,9 @@ export function PrimaryButton({
     <button
       type={type}
       onClick={onClick}
-      disabled={disabled || loading}
-      className={`flex w-full items-center justify-center gap-2 rounded-lg bg-brand-500 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-400 disabled:cursor-not-allowed disabled:opacity-30 ${className}`}
+      disabled={disabled}
+      className={`flex w-full items-center justify-center gap-2 rounded-lg bg-brand-500 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-brand-400 ${pressCls(disabled)} ${className}`}
     >
-      {loading && <Loader2 size={13} className="animate-spin" />}
       {children}
     </button>
   );
@@ -107,11 +115,287 @@ export function GhostButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex w-full items-center justify-center gap-2 rounded-lg border border-edge bg-raised py-2 text-xs font-medium text-ink transition-colors hover:border-neutral-600 hover:bg-[#2a2a2a] disabled:cursor-not-allowed disabled:opacity-30 ${className}`}
+      className={`flex w-full items-center justify-center gap-2 rounded-lg border border-edge bg-raised py-2 text-xs font-medium text-ink transition-colors hover:border-neutral-600 hover:bg-[#2a2a2a] ${pressCls(disabled)} ${className}`}
     >
       {children}
     </button>
   );
+}
+
+export function DangerButton({
+  children, onClick, disabled, className = "",
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`flex w-full items-center justify-center gap-2 rounded-lg bg-rose-600 py-2.5 text-xs font-bold text-white transition-colors hover:bg-rose-500 ${pressCls(disabled)} ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function MiniButton({
+  children, onClick, disabled, variant = "neutral", className = "", title,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  variant?: "neutral" | "danger" | "success" | "brand";
+  className?: string;
+  title?: string;
+}) {
+  const palette = {
+    neutral: "border-edge bg-raised text-ink-mute hover:bg-[#2a2a2a] hover:text-ink",
+    danger: "border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20",
+    success: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20",
+    brand: "border-brand-500/30 bg-brand-500/10 text-brand-400 hover:bg-brand-500/20",
+  }[variant];
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className={`inline-flex items-center justify-center gap-1 rounded border px-1.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${palette} ${pressCls(disabled)} ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+/* ── compact back button ────────────────────────────────────────────── */
+/**
+ * Compact, sleek "back" button used in popup sub-view footers.
+ * Defaults to a clean 32×32 (h-8 w-8) icon button with an arrow micro-interaction
+ * on hover, keeping maximum horizontal space available for action and reset buttons.
+ * Pass `iconOnly={false}` to show a text label when desired.
+ */
+export function BackButton({
+  onClick,
+  label = "Back",
+  iconOnly = true,
+  className = "",
+}: {
+  onClick: () => void;
+  label?: string;
+  iconOnly?: boolean;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      className={`group inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-edge bg-raised/80 ${
+        iconOnly ? "w-8 px-0" : "px-2.5"
+      } text-[11px] font-medium text-ink-mute transition-all duration-150 hover:border-neutral-500 hover:bg-[#252528] hover:text-ink active:scale-95 shadow-xs ${pressCls(false)} ${className}`}
+    >
+      <ArrowLeft size={13} className="shrink-0 transition-transform duration-150 group-hover:-translate-x-0.5" strokeWidth={2.2} />
+      {!iconOnly && <span className="tracking-wide truncate">{label}</span>}
+    </button>
+  );
+}
+
+/* ── confirm action row ─────────────────────────────────────────────── */
+/**
+ * Inline Keep / Confirm action row for the popup footer.
+ * Height is locked to h-8 (32px) to match BackButton and other footer controls.
+ * Fully responsive with min-w-0 and truncation on labels to guarantee fit on any panel width.
+ */
+export function ConfirmActionRow({
+  onCancel,
+  cancelLabel = "Keep",
+  onConfirm,
+  confirmLabel,
+  confirmIcon,
+  destructive,
+  className = "",
+}: {
+  onCancel: () => void;
+  cancelLabel?: string;
+  onConfirm: () => void;
+  confirmLabel: React.ReactNode;
+  confirmIcon?: React.ReactNode;
+  destructive?: boolean;
+  className?: string;
+}) {
+  return (
+    <div className={`flex flex-1 items-center gap-1.5 min-w-0 ${className}`}>
+      <button
+        type="button"
+        onClick={onCancel}
+        className={`flex h-8 flex-1 min-w-0 items-center justify-center rounded-lg border border-edge bg-raised/80 px-2 text-xs font-medium text-ink-mute transition-all duration-150 hover:border-neutral-500 hover:bg-[#252528] hover:text-ink active:scale-95 ${pressCls(false)}`}
+      >
+        <span className="truncate">{cancelLabel}</span>
+      </button>
+      <button
+        type="button"
+        onClick={onConfirm}
+        className={`flex h-8 flex-[1.2] min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-95 shadow-sm ${pressCls(false)} ${
+          destructive ? "bg-rose-600 hover:bg-rose-500 shadow-rose-950/30" : "bg-brand-500 hover:bg-brand-400"
+        }`}
+      >
+        {confirmIcon}
+        <span className="truncate">{confirmLabel}</span>
+      </button>
+    </div>
+  );
+}
+
+/* ── segmented control (order type, sizing mode, …) ─────────────────── */
+
+export function SegmentedControl<T extends string>({
+  value, onChange, options, size = "sm",
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  options: Array<{ value: T; label: React.ReactNode; title?: string }>;
+  size?: "sm" | "md";
+}) {
+  const padding = size === "md" ? "py-2 text-xs" : "py-1.5 text-[10px]";
+  return (
+    <div className="flex w-full gap-1 rounded-lg border border-edge bg-base p-0.5">
+      {options.map((o) => {
+        const active = o.value === value;
+        return (
+          <button
+            key={String(o.value)}
+            type="button"
+            onClick={() => onChange(o.value)}
+            title={o.title}
+            className={`flex-1 select-none rounded-md ${padding} font-semibold uppercase tracking-wider transition-all duration-150 ${pressCls(false)} ${
+              active
+                ? "bg-brand-500/15 text-brand-400 shadow-[inset_0_0_0_1px_rgba(255,77,0,0.3)]"
+                : "text-ink-mute hover:bg-raised hover:text-ink"
+            }`}
+          >
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ── numeric stepper (lots, risk %, …) ──────────────────────────────── */
+
+export function Stepper({
+  value, onChange, step = 0.01, min = 0.01, max, decimals, ariaLabel, className = "",
+}: {
+  value: number;
+  onChange: (next: number) => void;
+  step?: number;
+  min?: number;
+  max?: number;
+  decimals?: number;
+  ariaLabel?: string;
+  className?: string;
+}) {
+  const dec = decimals ?? Math.max(2, (String(step).split(".")[1]?.length ?? 0));
+  const clamp = (n: number) => {
+    if (!Number.isFinite(n)) return min;
+    const r = Math.round(n / step) * step;
+    return Math.max(min, max != null ? Math.min(max, Number(r.toFixed(dec))) : Number(r.toFixed(dec)));
+  };
+  return (
+    <div className={`flex items-stretch overflow-hidden rounded border border-edge bg-raised ${className}`}>
+      <button
+        type="button"
+        aria-label="Decrease"
+        onClick={() => onChange(clamp(value - step))}
+        disabled={value <= min}
+        className={`flex w-6 items-center justify-center text-ink-mute hover:bg-[#2a2a2a] hover:text-ink disabled:opacity-30 ${pressCls(value <= min)}`}
+      >
+        <Minus size={11} />
+      </button>
+      <input
+        type="number"
+        aria-label={ariaLabel}
+        value={Number.isFinite(value) ? value : ""}
+        step={step}
+        min={min}
+        max={max}
+        onChange={(e) => {
+          const raw = parseFloat(e.target.value);
+          onChange(Number.isFinite(raw) ? clamp(raw) : min);
+        }}
+        onBlur={(e) => onChange(clamp(parseFloat(e.target.value) || min))}
+        className="w-full min-w-0 border-x border-edge bg-transparent px-1.5 py-1.5 text-center font-mono text-xs text-ink outline-none focus:bg-[#2a2a2a]"
+      />
+      <button
+        type="button"
+        aria-label="Increase"
+        onClick={() => onChange(clamp(value + step))}
+        disabled={max != null && value >= max}
+        className={`flex w-6 items-center justify-center text-ink-mute hover:bg-[#2a2a2a] hover:text-ink disabled:opacity-30 ${pressCls(max != null && value >= max)}`}
+      >
+        <Plus size={11} />
+      </button>
+    </div>
+  );
+}
+
+/* ── tiny stat (Balance / Equity / Open PnL / Return) ────────────────── */
+
+export function StatPill({
+  label, value, tone = "neutral", sub,
+}: {
+  label: string;
+  value: React.ReactNode;
+  tone?: "neutral" | "bullish" | "bearish";
+  sub?: React.ReactNode;
+}) {
+  const toneCls =
+    tone === "bullish" ? "text-emerald-400"
+    : tone === "bearish" ? "text-rose-400"
+    : "text-ink";
+  return (
+    <div className="text-center">
+      <div className="text-[9px] uppercase tracking-wider text-ink-faint">{label}</div>
+      <div className={`font-mono text-xs font-bold tabular-nums ${toneCls}`}>{value}</div>
+      {sub != null && <div className="text-[8px] text-ink-faint">{sub}</div>}
+    </div>
+  );
+}
+
+/* ── mini progress bar (win-rate, exposure, etc.) ────────────────────── */
+
+export function MiniBar({
+  pct, tone = "bullish", label,
+}: {
+  pct: number; // 0..100
+  tone?: "bullish" | "bearish" | "neutral" | "brand";
+  label?: React.ReactNode;
+}) {
+  const safe = Math.max(0, Math.min(100, pct));
+  const color =
+    tone === "bullish" ? "bg-emerald-400"
+    : tone === "bearish" ? "bg-rose-400"
+    : tone === "brand" ? "bg-brand-400"
+    : "bg-neutral-400";
+  return (
+    <div>
+      {label != null && <div className="mb-0.5 flex items-center justify-between text-[9px] text-ink-faint">{label}</div>}
+      <div className="h-1 w-full overflow-hidden rounded-full bg-neutral-800">
+        <div className={`h-full ${color} transition-all duration-300`} style={{ width: `${safe}%` }} />
+      </div>
+    </div>
+  );
+}
+
+/* ── loading spinner (used in PrimaryButton) ─────────────────────────── */
+
+export function Spinner({ size = 13 }: { size?: number }) {
+  return <Loader2 size={size} className="animate-spin" />;
 }
 
 /* ── feedback banner ─────────────────────────────────────────────────── */
@@ -191,6 +475,146 @@ export function ViewHeader({ title, sub, right }: { title: string; sub?: React.R
         {sub && <span className="block text-[9px] text-ink-faint">{sub}</span>}
       </div>
       {right && <div className="ml-2 flex shrink-0 items-center gap-2">{right}</div>}
+    </div>
+  );
+}
+
+/* ── chart-sync badge ────────────────────────────────────────────────── */
+/**
+ * Compact indicator for the popup that tells the trader where the symbol
+ * and timeframe came from, how fresh the detection is, and offers a one-tap
+ * refresh that re-queries the active TradingView tab through the SW. Used in
+ * the Trade Ticket and Demo Trades headers — these panels ride on the same
+ * chart context the floating panel benefits from, but the popup can't read
+ * the page directly, so the badge surfaces sync liveness explicitly.
+ *
+ * Renders one of three states:
+ *   - `live`     : a heartbeat <15s old, with last-sync age in seconds
+ *   - `stale`    : heartbeat between 15s and 60s, or no heartbeat but recent cache
+ *   - `offline`  : no TradingView tab detected, or last heartbeat > 60s ago
+ *   - `manual`   : symbol was typed in by the user (not auto-detected)
+ */
+export type ChartSyncState = "live" | "stale" | "offline" | "manual";
+
+export interface ChartSyncBadgeProps {
+  state: ChartSyncState;
+  symbol: string | null;
+  timeframe: string | null;
+  ageMs: number | null;
+  refreshing?: boolean;
+  onRefresh: () => void;
+  /** Optional CTA shown when state === "offline" — e.g. "Open TradingView". */
+  onOpenChart?: () => void;
+  /** Optional handler shown next to the badge when state === "manual". */
+  onClearManual?: () => void;
+  /** Compact = single row (header use). Default false = full inline. */
+  compact?: boolean;
+}
+
+const SECOND = 1000;
+const MINUTE = 60 * SECOND;
+
+function formatAge(ageMs: number): string {
+  if (ageMs < 0 || !Number.isFinite(ageMs)) return "—";
+  if (ageMs < SECOND) return "now";
+  if (ageMs < MINUTE) return `${Math.floor(ageMs / SECOND)}s ago`;
+  const mins = Math.floor(ageMs / MINUTE);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  return `${hours}h ago`;
+}
+
+export function ChartSyncBadge({
+  state, symbol, timeframe, ageMs, refreshing, onRefresh, onOpenChart, onClearManual, compact,
+}: ChartSyncBadgeProps) {
+  const palette =
+    state === "live"
+      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+      : state === "stale"
+      ? "border-amber-500/30 bg-amber-500/10 text-amber-400"
+      : state === "manual"
+      ? "border-brand-500/30 bg-brand-500/10 text-brand-400"
+      : "border-edge bg-raised text-ink-faint";
+
+  const dot =
+    state === "live" ? "bg-emerald-400 animate-pulse-dot"
+    : state === "stale" ? "bg-amber-400"
+    : state === "manual" ? "bg-brand-400"
+    : "bg-neutral-600";
+
+  const label =
+    state === "live" ? "Live from chart"
+    : state === "stale" ? "Stale — refresh"
+    : state === "manual" ? "Manual"
+    : "No chart detected";
+
+  const subline = state === "offline"
+    ? "Open a TradingView chart to auto-detect symbol & timeframe"
+    : ageMs != null
+    ? `${symbol ?? "—"} · ${timeframe ?? "—"} · ${formatAge(ageMs)}`
+    : `${symbol ?? "—"} · ${timeframe ?? "—"}`;
+
+  if (compact) {
+    return (
+      <button
+        type="button"
+        onClick={onRefresh}
+        disabled={refreshing}
+        title={subline}
+        className={`flex items-center gap-1.5 rounded-md border px-1.5 py-0.5 font-mono text-[9px] transition-all duration-150 active:scale-95 ${palette} ${pressCls(refreshing)}`}
+      >
+        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dot}`} />
+        <span className="font-sans font-semibold uppercase tracking-wider">{label}</span>
+        <span className="ml-0.5 font-mono normal-case text-ink-faint">{symbol ?? "—"}</span>
+        <span className="font-mono text-ink-faint">·</span>
+        <span className="font-mono text-ink-faint">{timeframe ?? "—"}</span>
+      </button>
+    );
+  }
+
+  return (
+    <div className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 transition-colors duration-150 ${palette}`}>
+      <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider">
+          <Radio size={9} />
+          <span>{label}</span>
+        </div>
+        <div className="truncate font-mono text-[10px] tabular-nums">{subline}</div>
+      </div>
+      <div className="flex shrink-0 items-center gap-1">
+        {state === "manual" && onClearManual && (
+          <button
+            type="button"
+            onClick={onClearManual}
+            className={`rounded border border-edge bg-raised px-1.5 py-1 text-[9px] font-semibold uppercase text-ink-mute ${pressCls(false)}`}
+            title="Re-attach to the active TradingView chart"
+          >
+            Re-sync
+          </button>
+        )}
+        {state === "offline" && onOpenChart && (
+          <button
+            type="button"
+            onClick={onOpenChart}
+            className={`flex items-center gap-1 rounded border border-edge bg-raised px-1.5 py-1 text-[9px] font-semibold uppercase text-ink-mute ${pressCls(false)}`}
+            title="Open TradingView"
+          >
+            <ExternalLink size={9} /> Open
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={refreshing}
+          aria-label="Refresh chart context"
+          title="Re-detect from the active TradingView chart"
+          className={`flex items-center gap-1 rounded border border-edge bg-raised px-1.5 py-1 text-[9px] font-semibold uppercase text-ink-mute ${pressCls(refreshing)}`}
+        >
+          <RefreshCw size={9} className={refreshing ? "animate-spin" : ""} />
+          {refreshing ? "Refreshing" : "Refresh"}
+        </button>
+      </div>
     </div>
   );
 }

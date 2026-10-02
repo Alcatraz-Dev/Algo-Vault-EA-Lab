@@ -29,7 +29,7 @@ import { AIModel, AIModelPricing } from "./types";
 export type AIUsageStatus = "success" | "error";
 
 /** Where a request originated. Used only for aggregation, never for identity. */
-export type AIUsageSource = "chat" | "plugin" | "agent" | "workflow" | "studio" | "system";
+export type AIUsageSource = "chat" | "plugin" | "agent" | "workflow" | "studio" | "extension-daily-signals" | "system";
 
 /**
  * Optional accounting context supplied by the caller.
@@ -402,6 +402,7 @@ const VALID_SOURCES: readonly AIUsageSource[] = [
     "agent",
     "workflow",
     "studio",
+    "extension-daily-signals",
     "system",
 ];
 

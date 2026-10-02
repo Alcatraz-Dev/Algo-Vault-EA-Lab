@@ -1,23 +1,27 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { MarketCandle, SupportedSymbol, Timeframe } from "@/lib/market-data/types";
-import { applyLiveTick } from "@/lib/market-data/live-feed";
+import { ChartDataEngine } from "@/lib/chart-engine/chart-data-engine";
+import { createApiDataSources, quoteToTick } from "@/lib/chart-engine/data-sources";
+import { chartCandleToMarketCandle } from "@/lib/chart-engine/candle";
+import { isChartTimeframe, type ChartTimeframe } from "@/lib/chart-engine/timeframe";
 
 /**
- * useLiveCandles — one hook that keeps a chart's candles genuinely live.
+ * useLiveCandles — canonical live candle feed for every chart in the app.
  *
- *  1. Initial history loads from the canonical `/api/analytics/ohlc` feed.
- *  2. Live quotes poll `/api/market/quotes` (TradingView scanner, Biquote
- *     fallback) every few seconds and are merged into the forming candle, so
- *     the last bar moves between feed refreshes.
- *  3. The full candle history is periodically reconciled against the provider
- *     feed so revised bars and newly closed bars are picked up.
+ * This is now a thin adapter over the native chart engine
+ * (lib/chart-engine): the engine owns the dataset, dedupe, gap detection and
+ * connection quality; this hook adapts it to the historical
+ * MarketCandle[] + isLive contract consumed by TradingChart, ProTerminalChart,
+ * AdvancedChart and SignalChart.
  *
- * State is stored against the request key it was loaded for and the visible
- * values are *derived* by comparing keys — a symbol/timeframe switch shows a
- * loading state immediately without stale candles and without any synchronous
- * setState inside effect bodies.
+ *  1. History loads from the canonical /api/analytics/ohlc feed.
+ *  2. Live quotes poll /api/market/quotes (Biquote forming M1 → TradingView
+ *     scanner) every few seconds and are folded into the forming candle by
+ *     the CandleAggregator (boundary crossing finalizes the previous candle).
+ *  3. Gaps between candles are detected and repaired from the canonical feed;
+ *     market-closed silence is reported as such, never faked.
  *
  * No data is ever fabricated: when the feed fails, the last known state is
  * kept and `error` reflects the failure.
@@ -32,17 +36,48 @@ export interface UseLiveCandlesResult {
     error: string | null;
     lastUpdate: number;
     refetch: () => Promise<void>;
+    /** Prepend one older page (deep history). False when exhausted/unavailable. */
+    loadOlder: () => Promise<boolean>;
+    /** True when the provider has more history beyond the loaded window. */
+    hasMoreHistory: boolean;
+    /** True while an older-page request is in flight. */
+    loadingOlder: boolean;
+    /** Connection state from the engine (live / reconnecting / error / loading). */
+    connection: "idle" | "loading" | "live" | "reconnecting" | "error";
+    /** Data quality (live / delayed / stale / gap_detected / synchronizing / market_closed / pristine). */
+    quality: string;
 }
 
 const QUOTE_POLL_MS = 2000;
-const DEFAULT_RECONCILE_MS = 60_000;
 
-type FeedState = {
+type EngineState = {
     key: string;
-    candles: MarketCandle[];
+    candles: readonly MarketCandle[];
+    isLive: boolean;
     error: string | null;
-    updatedAt: number;
+    lastUpdate: number;
+    connection: "idle" | "loading" | "live" | "reconnecting" | "error";
+    quality: string;
+    hasMoreHistory: boolean;
+    loadingOlder: boolean;
 };
+
+// Per-hook-instance engine wrapper (engine itself is per seriesKey).
+function buildAdapter(engine: ChartDataEngine): EngineState {
+    const candles = engine.getCandles().map(chartCandleToMarketCandle);
+    const status = engine.getStatus();
+    return {
+        key: engine.seriesKey,
+        candles,
+        isLive: status.connection === "live",
+        error: status.error,
+        lastUpdate: Math.max(status.lastTickAt, status.lastHistoryLoadAt),
+        connection: status.connection,
+        quality: status.quality,
+        hasMoreHistory: status.hasMoreHistory,
+        loadingOlder: status.loadingOlder,
+    };
+}
 
 export function useLiveCandles(
     symbol: string,
@@ -50,119 +85,67 @@ export function useLiveCandles(
     options: { limit?: number; reconcileMs?: number; enabled?: boolean } = {}
 ): UseLiveCandlesResult {
     const limit = options.limit ?? 300;
-    const reconcileMs = options.reconcileMs ?? DEFAULT_RECONCILE_MS;
     const enabled = options.enabled ?? true;
 
     const sym = symbol.toUpperCase() as SupportedSymbol;
-    const tf = timeframe.toUpperCase() as Timeframe;
+    const tfRaw = timeframe.toUpperCase() as Timeframe;
+    const tf: ChartTimeframe = isChartTimeframe(tfRaw) ? tfRaw : "H1";
+    const requestKey = enabled ? `${sym}|${tf}` : "";
 
-    const requestKey = enabled ? `${sym}|${tf}|${limit}` : "";
+    const [state, setState] = useState<EngineState | null>(null);
 
-    const [feed, setFeed] = useState<FeedState | null>(null);
-    const [quoteTs, setQuoteTs] = useState<{ key: string; ts: number } | null>(null);
+    // Engine acquisition (per mount, keyed by symbol+timeframe).
+    const engine = useMemo(() => {
+        if (!enabled) return null;
+        const e = new ChartDataEngine(createApiDataSources(false), {
+            symbol: sym,
+            timeframe: tf,
+            pageSize: Math.min(Math.max(limit, 50), 500),
+        });
+        return e;
+    }, [enabled, sym, tf, limit]);
 
-    // ── derived visible state (key comparison, never stale) ──────────────
-    const isCurrent = feed !== null && feed.key === requestKey;
-    const candles = isCurrent ? feed.candles : [];
-    const error = isCurrent ? feed.error : null;
-    const hasData = isCurrent && feed.candles.length > 0;
-    const isLoading = requestKey !== "" && !isCurrent;
-    const isLive = hasData;
-    const quoteAt = quoteTs !== null && quoteTs.key === requestKey ? quoteTs.ts : 0;
-    const lastUpdate = isCurrent ? Math.max(feed.updatedAt, quoteAt) : 0;
-    const currentPrice = candles.length > 0 ? candles[candles.length - 1].close : 0;
-    const previousPrice = candles.length > 1 ? candles[candles.length - 2].close : 0;
-
-    // ── history load + periodic reconciliation ───────────────────────────
-    const loadHistory = useCallback(
-        async (signal?: AbortSignal): Promise<MarketCandle[]> => {
-            const res = await fetch(
-                `/api/analytics/ohlc?symbol=${encodeURIComponent(sym)}&timeframe=${encodeURIComponent(tf)}&limit=${limit}`,
-                { cache: "no-store", signal }
-            );
-            const body = (await res.json().catch(() => null)) as
-                | { candles?: MarketCandle[]; error?: string }
-                | null;
-            if (!res.ok || !body?.candles?.length) {
-                throw new Error(body?.error ?? `No ${tf} candles returned for ${sym}.`);
-            }
-            return body.candles
-                .filter(
-                    (c) =>
-                        Number.isFinite(c.open) &&
-                        Number.isFinite(c.high) &&
-                        Number.isFinite(c.low) &&
-                        Number.isFinite(c.close)
-                )
-                .sort((a, b) => a.timestamp - b.timestamp);
-        },
-        [sym, tf, limit]
-    );
-
+    const candleCount = state?.candles.length ?? 0;
+    const lastEngineKey = state?.key ?? "";
     useEffect(() => {
-        if (!requestKey) return;
-        const ctrl = new AbortController();
-
-        const commit = (candlesOrError: { candles?: MarketCandle[]; error?: string }) => {
-            setFeed((prev) => {
-                // Do not clobber fresher live candles with an older reply.
-                if (prev && prev.key === requestKey && prev.candles.length > 0 && !candlesOrError.error) {
-                    const incoming = candlesOrError.candles ?? [];
-                    if (
-                        incoming.length === 0 ||
-                        prev.candles[prev.candles.length - 1].close !==
-                            incoming[incoming.length - 1]?.close
-                    ) {
-                        // Provider bar differs from the live-merged bar only in
-                        // the forming bar — keep the merged tail but adopt any
-                        // revised history length.
-                        if (incoming.length >= prev.candles.length) {
-                            return { ...prev, candles: incoming, updatedAt: Date.now() };
+        if (!engine) return;
+        // Seed from the engine's snapshot inside the subscription callback
+        // (not synchronously in the effect body) to avoid cascading renders.
+        let queued = false;
+        const emit = () => {
+            if (queued) return;
+            queued = true;
+            queueMicrotask(() => {
+                queued = false;
+                const next = buildAdapter(engine);
+                setState((prev) => {
+                    // Cheap identity checks: skip commits when nothing visible changed.
+                    if (prev && prev.key === next.key && prev.candles.length === next.candles.length) {
+                        const a = prev.candles;
+                        const b = next.candles;
+                        let same = true;
+                        for (let i = 0; i < a.length; i++) {
+                            if (a[i] !== b[i]) {
+                                same = false;
+                                break;
+                            }
                         }
-                        return prev;
+                        if (same && prev.isLive === next.isLive && prev.error === next.error && prev.lastUpdate === next.lastUpdate) {
+                            return prev;
+                        }
                     }
-                }
-                return {
-                    key: requestKey,
-                    candles: candlesOrError.candles ?? [],
-                    error: candlesOrError.error ?? null,
-                    updatedAt: candlesOrError.error ? (prev?.key === requestKey ? prev.updatedAt : 0) : Date.now(),
-                };
+                    return next;
+                });
             });
         };
 
-        (async () => {
-            try {
-                const fresh = await loadHistory(ctrl.signal);
-                commit({ candles: fresh });
-            } catch (err) {
-                if ((err as Error)?.name === "AbortError") return;
-                commit({ error: err instanceof Error ? err.message : "Failed to load market data." });
-            }
-        })();
+        engine.start();
 
-        const reconcile = setInterval(() => {
-            void loadHistory(ctrl.signal)
-                .then((fresh) => commit({ candles: fresh }))
-                .catch(() => {
-                    // keep last known candles on reconcile failure
-                });
-        }, reconcileMs);
-
-        return () => {
-            ctrl.abort();
-            clearInterval(reconcile);
-        };
-    }, [requestKey, reconcileMs, loadHistory]);
-
-    // ── live quote merge (ticks move the forming bar) ────────────────────
-    useEffect(() => {
-        if (!requestKey || !hasData) return;
-        let inFlight = false;
-
+        // Live quote poller (shared cadence with all charts).
+        let busy = false;
         const poll = async () => {
-            if (inFlight) return;
-            inFlight = true;
+            if (busy) return;
+            busy = true;
             try {
                 const res = await fetch(`/api/market/quotes?symbols=${encodeURIComponent(sym)}`, {
                     cache: "no-store",
@@ -170,45 +153,48 @@ export function useLiveCandles(
                 const body = (await res.json().catch(() => null)) as
                     | { quotes?: Record<string, { price: number; timestamp: number }> }
                     | null;
-                if (!body?.quotes) return;
-                const quote = body.quotes[sym];
-                if (!quote || !Number.isFinite(quote.price)) return;
-
-                setFeed((prev) => {
-                    if (!prev || prev.key !== requestKey || prev.candles.length === 0) return prev;
-                    const next = applyLiveTick(
-                        prev.candles,
-                        { price: quote.price, timestamp: quote.timestamp || Date.now() },
-                        tf
-                    );
-                    if (next === prev.candles) return prev;
-                    return { ...prev, candles: next, error: null };
-                });
-                setQuoteTs({ key: requestKey, ts: Date.now() });
+                const tick = quoteToTick(body?.quotes?.[sym], sym);
+                if (tick) engine.ingestTick({ ...tick, source: "quotes-api" });
             } catch {
                 // transient network error — next poll retries
             } finally {
-                inFlight = false;
+                busy = false;
             }
         };
-
-        const id = setInterval(poll, QUOTE_POLL_MS);
         void poll();
+        const pollTimer = setInterval(poll, QUOTE_POLL_MS);
+
+        const unsub = engine.subscribe(emit);
 
         return () => {
-            clearInterval(id);
+            unsub();
+            clearInterval(pollTimer);
+            engine.destroy();
         };
-    }, [requestKey, hasData, sym, tf]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [engine]);
+
+    void candleCount;
+    void lastEngineKey;
+    void requestKey;
 
     const refetch = useCallback(async () => {
-        if (!requestKey) return;
-        try {
-            const fresh = await loadHistory();
-            setFeed({ key: requestKey, candles: fresh, error: null, updatedAt: Date.now() });
-        } catch {
-            // keep last known state
-        }
-    }, [requestKey, loadHistory]);
+        if (!engine) return;
+        await engine.resync();
+    }, [engine]);
+
+    const loadOlder = useCallback(async () => {
+        if (!engine) return false;
+        return engine.loadOlder();
+    }, [engine]);
+
+    const candles = state?.key === requestKey ? (state.candles as MarketCandle[]) : [];
+    const isLive = Boolean(state && state.key === requestKey && state.isLive);
+    const error = state && state.key === requestKey ? state.error : null;
+    const lastUpdate = state && state.key === requestKey ? state.lastUpdate : 0;
+    const isLoading = requestKey !== "" && (state === null || state.key !== requestKey);
+    const currentPrice = candles.length > 0 ? candles[candles.length - 1].close : 0;
+    const previousPrice = candles.length > 1 ? candles[candles.length - 2].close : 0;
 
     return {
         candles,
@@ -219,6 +205,11 @@ export function useLiveCandles(
         error,
         lastUpdate,
         refetch,
+        loadOlder,
+        hasMoreHistory: Boolean(state && state.key === requestKey && state.hasMoreHistory),
+        loadingOlder: Boolean(state && state.key === requestKey && state.loadingOlder),
+        connection: state && state.key === requestKey ? state.connection : "idle",
+        quality: state && state.key === requestKey ? state.quality : "pristine",
     };
 }
 

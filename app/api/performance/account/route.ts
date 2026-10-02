@@ -223,7 +223,8 @@ export async function GET(
             totalProfit: 0,
             grossProfit: 0,
             grossLoss: 0,
-            profitFactor: 0,
+            profitFactor: null as number | null,
+            profitFactorUnbounded: false,
             averageWin: 0,
             averageLoss: 0,
             largestWin: 0,
@@ -392,11 +393,12 @@ export async function GET(
                 ? Number(((winningTrades / totalTrades) * 100).toFixed(2))
                 : 0;
 
+        const profitFactorUnbounded = grossLoss === 0 && grossProfit > 0;
         const profitFactor =
             grossLoss > 0
                 ? Number((grossProfit / grossLoss).toFixed(2))
-                : grossProfit > 0
-                    ? 999.99
+                : profitFactorUnbounded
+                    ? null
                     : 0;
 
         const averageWin =
@@ -425,6 +427,7 @@ export async function GET(
             grossLoss: Number(grossLoss.toFixed(2)),
 
             profitFactor,
+            profitFactorUnbounded,
             averageWin,
             averageLoss,
 

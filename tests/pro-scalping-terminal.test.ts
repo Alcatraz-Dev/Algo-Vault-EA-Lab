@@ -16,7 +16,7 @@ import {
     sessionState,
     type TerminalTrade,
 } from "../components/pro-scalping-terminal/terminal-utils";
-import { CHART_LAYERS, defaultLayerState } from "../components/pro-scalping-terminal/chart-layers";
+import { CHART_LAYERS, LAYER_REQUIREMENTS, defaultLayerState } from "../components/pro-scalping-terminal/chart-layers";
 import { executePine } from "../lib/pine-runtime/runtime";
 import type { PineExecutionResult } from "../lib/pine-runtime/runtime";
 import { TA } from "../lib/pine-runtime/builtins";
@@ -342,6 +342,19 @@ check("exposes every layer id in the default state map", () => {
 check("does not default-on an unavailable layer", () => {
     for (const layer of CHART_LAYERS) {
         if (!layer.available) assertEqual(layer.defaultOn, false);
+    }
+});
+check("every unavailable or estimated layer documents an inline unlock explanation", () => {
+    for (const layer of CHART_LAYERS) {
+        const req = LAYER_REQUIREMENTS[layer.id];
+        if (!layer.available) {
+            assert(req !== undefined, `unavailable layer ${layer.id} missing from LAYER_REQUIREMENTS (picker would show a dead chip)`);
+            assert(req!.reason.length > 20, `${layer.id}: reason must be a real explanation`);
+            assert(req!.unlock.length > 5, `${layer.id}: unlock must name the data class`);
+            assert(req!.sources.length > 5, `${layer.id}: sources must name concrete feeds`);
+        } else if (req !== undefined) {
+            assertEqual(req.estimated, true, `available layer ${layer.id} may only carry an estimated-flag entry`);
+        }
     }
 });
 

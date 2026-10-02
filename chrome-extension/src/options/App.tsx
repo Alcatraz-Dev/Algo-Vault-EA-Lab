@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Zap } from "lucide-react";
 import { getSettings, saveSettings, clearMarketCache } from "@/storage/storage";
-import { getAlgoVaultUrl } from "@/config/environment";
 import type { ExtensionSettings } from "@/types";
 
 export default function OptionsApp() {
   const [settings, setSettings] = useState<ExtensionSettings>({
-    algovaultUrl: getAlgoVaultUrl(),
+    algovaultUrl: "",
     autoDetectTradingView: true,
     showOverlay: true,
     enableChartAnalysis: true,
@@ -15,11 +14,15 @@ export default function OptionsApp() {
     confirmBeforeExecution: true,
     theme: "dark",
   });
+  const [accountSizeText, setAccountSizeText] = useState<string>("10000");
   const [saved, setSaved] = useState(false);
   const [cleared, setCleared] = useState(false);
 
   useEffect(() => {
-    getSettings().then(setSettings);
+    getSettings().then((s) => {
+      setSettings(s);
+      setAccountSizeText(s.accountSize != null ? String(s.accountSize) : "10000");
+    });
   }, []);
 
   const update = (key: keyof ExtensionSettings, value: boolean | number | string) => {
@@ -73,16 +76,6 @@ export default function OptionsApp() {
         </div>
 
         <div className="space-y-4 rounded-xl border border-edge bg-card p-5">
-          <div>
-            <label className="mb-1 block text-xs font-medium text-ink-mute">AlgoVault URL</label>
-            <input
-              type="url"
-              value={settings.algovaultUrl}
-              onChange={(e) => update("algovaultUrl", e.target.value)}
-              className={inputCls}
-            />
-          </div>
-
           <div className="divide-y divide-edge border-t border-b border-edge">
             <Toggle label="Auto-detect TradingView" desc="Automatically detect symbols on TradingView" value={settings.autoDetectTradingView} onChange={(v) => update("autoDetectTradingView", v)} />
             <Toggle label="Show overlay on TradingView" desc="Floating AlgoVault intelligence panel" value={settings.showOverlay} onChange={(v) => update("showOverlay", v)} />
@@ -95,10 +88,20 @@ export default function OptionsApp() {
               <label className="mb-1 block text-xs font-medium text-ink-mute">Account Size ($)</label>
               <input
                 type="number"
-                min={100}
-                step={100}
-                value={settings.accountSize ?? 10000}
-                onChange={(e) => update("accountSize", parseFloat(e.target.value) || 10000)}
+                inputMode="decimal"
+                min={1}
+                step="any"
+                value={accountSizeText}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  setAccountSizeText(raw);
+                  const value = parseFloat(raw);
+                  if (Number.isFinite(value) && value >= 1) update("accountSize", value);
+                }}
+                onBlur={() => {
+                  const value = parseFloat(accountSizeText);
+                  if (!Number.isFinite(value) || value < 1) setAccountSizeText(String(settings.accountSize ?? 10000));
+                }}
                 className={inputCls}
               />
             </div>

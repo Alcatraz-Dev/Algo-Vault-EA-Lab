@@ -29,9 +29,11 @@ import {
    LogOut,
    Menu,
    Plug,
+   Radio,
    Settings,
    Cpu,
    RotateCcw,
+   Shield,
    Target,
    Tag,
    TrendingUp,
@@ -39,6 +41,7 @@ import {
    X,
    Zap,
 } from "lucide-react";
+// Zap is reused for the AI Execution nav entry (no new icon dependency).
 import { signOut, onAuthStateChanged, User } from "firebase/auth";
 import { auth, database } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
@@ -105,11 +108,11 @@ const ACCOUNT_NAV: NavGroup[] = [
       { icon: AlertTriangle, label: "Risk of Ruin", href: "/tools/risk-of-ruin" },
       { icon: Activity, label: "Equity Curve", href: "/equity-curve" },
     ],
-  },
-{
-        label: "Trading",
-        items: [
-          { icon: Bot, label: "My Bots", href: "/account/bots" },
+  },  {
+    label: "Trading",
+    items: [
+      { icon: Zap, label: "AI Execution", href: "/account/ai-execution" },
+      { icon: Bot, label: "My Bots", href: "/account/bots" },
           { icon: GitBranch, label: "Workflow Automation", href: "/account/workflows" },
           { icon: Zap, label: "AI Signals", href: "/signals" },
           { icon: LineChart, label: "Trading Studio", href: "/account/tradingview" },
@@ -118,6 +121,8 @@ const ACCOUNT_NAV: NavGroup[] = [
           { icon: Target, label: "Smart Management", href: "/trade-management" },
           { icon: Bell, label: "Alert Center", href: "/alert-center" },
           { icon: BarChart3, label: "Backtests", href: "/backtests" },
+          { icon: Radio, label: "Live Performance", href: "/live-performance" },
+          { icon: Shield, label: "Verified Performance", href: "/verified-performance" },
           { icon: Activity, label: "Live Intelligence", href: "/account/live" },
           { icon: Globe, label: "Live Map", href: "/account/livemap" },
           { icon: Copy, label: "Copy Trading", href: "/copy-trading" },

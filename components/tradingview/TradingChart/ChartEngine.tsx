@@ -23,6 +23,8 @@ interface ChartEngineProps {
     candles: Candle[];
     onChartReady: (chart: IChartApi) => void;
     onSeriesReady?: (series: unknown) => void;
+    /** Live-follow toggled by viewport position (user at live edge or not). */
+    onFollowChange?: (following: boolean) => void;
 }
 
 type ChartSeries = ISeriesApi<"Candlestick"> | ISeriesApi<"Line"> | ISeriesApi<"Area"> | ISeriesApi<"Bar">;
@@ -41,6 +43,7 @@ export default function ChartEngine({
     candles,
     onChartReady,
     onSeriesReady,
+    onFollowChange,
 }: ChartEngineProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<IChartApi | null>(null);
@@ -48,6 +51,10 @@ export default function ChartEngine({
     const volumeSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
     const createdForRef = useRef<string | null>(null);
     const pushedCountRef = useRef(0);
+    const onFollowChangeRef = useRef(onFollowChange);
+    useEffect(() => {
+        onFollowChangeRef.current = onFollowChange;
+    }, [onFollowChange]);
 
     useEffect(() => {
         const container = containerRef.current;
@@ -150,6 +157,22 @@ export default function ChartEngine({
         }
 
         pushedCountRef.current = 0;
+
+        // Live-follow wiring (Phase 6): report viewport position so the
+        // parent can show the Go-to-Live control and stop auto-scrolling
+        // while the user inspects history.
+        const timeScale = chart.timeScale();
+        const handleRange = () => {
+            try {
+                const range = timeScale.getVisibleLogicalRange();
+                const bars = pushedCountRef.current;
+                if (range === null || bars <= 0) return;
+                onFollowChangeRef.current?.(range.to >= bars - 1.5);
+            } catch {
+                // range not available yet
+            }
+        };
+        timeScale.subscribeVisibleLogicalRangeChange(handleRange);
 
         const handleResize = () => {
             if (!containerRef.current) return;

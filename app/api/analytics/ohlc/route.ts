@@ -2,16 +2,51 @@ import { NextRequest, NextResponse } from "next/server";
 import { validateSymbol, validateTimeframe } from "@/lib/market-data/validation";
 import { fetchCandles } from "@/lib/market-data/normalizer";
 import { fetchTradingViewLivePrice } from "@/lib/market-data/tradingview-live";
-import { SUPPORTED_SYMBOLS } from "@/lib/market-data/types";
+import { hasTwelveDataApiKey } from "@/lib/market-data/twelvedata/config";
+import { fetchDeepHistoryPage } from "@/lib/market-data/twelvedata/candle-bridge";
+import { SUPPORTED_SYMBOLS, type MarketCandle } from "@/lib/market-data/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const MAX_LIMIT = 2000;
+
+/**
+ * GET /api/analytics/ohlc — canonical chart history endpoint.
+ *
+ * Modes:
+ *  default           → newest page (Biquote, shallow window capped by the
+ *                      provider itself at ~300 bars)
+ *  before=<ms>       → one page strictly older than the boundary (deep history
+ *                      via Twelve Data when configured; otherwise an empty
+ *                      success payload — the client treats that as the
+ *                      provider's history boundary, never an error)
+ *  from=&to=<ms>     → explicit range fill used by gap repair
+ *
+ * `hasDeepHistory` tells the client which of the first two modes can deliver
+ * more data. No candles are ever synthesized: an empty page is an honest
+ * empty page.
+ */
 export async function GET(request: NextRequest) {
     try {
-        const symbolParam = request.nextUrl.searchParams.get("symbol") || "XAUUSD";
+        // ── alias normalisation ──────────────────────────────────────────────
+        // Signals may be stored with legacy names (SP500, GOLD, BTCUSDT, etc.).
+        // Resolve to the canonical SupportedSymbol before validation so every
+        // consumer gets data without needing client-side mapping.
+        const ALIASES: Record<string, string> = {
+            SP500: "SPX500", S500: "SPX500", US500: "SPX500", SPXUSD: "SPX500", SPX: "SPX500",
+            DJIA: "US30", DOW: "US30", DOW30: "US30", DOWJONES: "US30",
+            NDX: "NAS100", NAS: "NAS100", NASDAQ: "NAS100", NASDAQ100: "NAS100",
+            GOLD: "XAUUSD", SILVER: "XAGUSD",
+            BTCUSDT: "BTCUSD", ETHUSDT: "ETHUSD",
+        };
+        const rawSymbol = (request.nextUrl.searchParams.get("symbol") || "XAUUSD").toUpperCase();
+        const symbolParam = ALIASES[rawSymbol] ?? rawSymbol;
         const timeframeParam = request.nextUrl.searchParams.get("timeframe") || "H1";
-        const limitParam = request.nextUrl.searchParams.get("limit") || "200";
+        const limitParam = Number(request.nextUrl.searchParams.get("limit")) || 400;
+        const beforeParam = request.nextUrl.searchParams.get("before");
+        const fromParam = request.nextUrl.searchParams.get("from");
+        const toParam = request.nextUrl.searchParams.get("to");
 
         const symbol = validateSymbol(symbolParam);
         const timeframe = validateTimeframe(timeframeParam);
@@ -20,42 +55,82 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: `Invalid symbol. Supported: ${SUPPORTED_SYMBOLS.join(", ")}` }, { status: 400 });
         }
         if (!timeframe) {
-            return NextResponse.json({ error: `Invalid timeframe` }, { status: 400 });
+            return NextResponse.json({ error: "Invalid timeframe" }, { status: 400 });
         }
 
-        const candles = await fetchCandles(symbol, timeframe);
-        if (candles.length === 0) {
+        const limit = Math.min(Math.max(10, Math.floor(limitParam)), MAX_LIMIT);
+        const deepAvailable = hasTwelveDataApiKey();
+        const pagingRequested = beforeParam !== null || fromParam !== null || toParam !== null;
+
+        let candles: MarketCandle[] = [];
+
+        if (pagingRequested && deepAvailable) {
+            // Deep-history path (Twelve Data). Range fill wins over page-back.
+            const fromMs = fromParam !== null ? Number(fromParam) : undefined;
+            const toMs = toParam !== null ? Number(toParam) : undefined;
+            if (fromMs !== undefined && toMs !== undefined && Number.isFinite(fromMs) && Number.isFinite(toMs) && toMs > fromMs) {
+                const before = toMs + 1;
+                const page = await fetchDeepHistoryPage(symbol, timeframe, { beforeMs: before, limit });
+                candles = (page ?? []).filter((c) => c.timestamp >= fromMs && c.timestamp <= toMs);
+            } else if (beforeParam !== null && Number.isFinite(Number(beforeParam))) {
+                const page = await fetchDeepHistoryPage(symbol, timeframe, { beforeMs: Number(beforeParam), limit });
+                candles = page ?? [];
+            }
+        } else if (pagingRequested) {
+            // Paging requested but no deep provider configured: report the
+            // boundary honestly instead of returning duplicated shallow data.
+            return NextResponse.json({
+                success: true,
+                symbol,
+                timeframe,
+                candles: [],
+                candleCount: 0,
+                hasDeepHistory: false,
+                timestamp: Date.now(),
+            });
+        } else {
+            candles = await fetchCandles(symbol, timeframe);
+        }
+
+        if (!pagingRequested && candles.length === 0) {
             return NextResponse.json({ error: "No candles available for this symbol/timeframe" }, { status: 502 });
         }
 
-        const sliced = candles.slice(-Math.min(500, Math.max(10, Number(limitParam) || 200)));
+        // Newest-page responses keep the historical slice behavior; paged
+        // responses are already sized by the provider bridge.
+        const sliced = pagingRequested ? candles : candles.slice(-Math.min(MAX_LIMIT, limit));
 
         const lastCandle = sliced[sliced.length - 1];
         const prevCandle = sliced.length > 1 ? sliced[sliced.length - 2] : lastCandle;
 
-        // Live quote: resolve the real current price (fresh Biquote forming
-        // M1 candle → TradingView scanner) so the forming bar can tick between
-        // feed refreshes. Falls back to the last candle's close — never a
-        // fabricated number — when no live source is reachable.
-        const livePrice = await fetchTradingViewLivePrice(symbol);
-        const price = livePrice?.price ?? lastCandle?.close ?? 0;
-        const changeFromLive = lastCandle ? price - (prevCandle?.close || 0) : 0;
+        // Live quote for the forming bar — only resolved on newest-page
+        // requests so history paging stays cheap.
+        let price: number | null = null;
+        let quoteTs: number | undefined;
+        if (!pagingRequested) {
+            const livePrice = await fetchTradingViewLivePrice(symbol);
+            price = livePrice?.price ?? null;
+            quoteTs = livePrice?.timestamp;
+        }
+        const priceValue = price ?? lastCandle?.close ?? 0;
+        const changeFromLive = lastCandle ? priceValue - (prevCandle?.close || 0) : 0;
 
         return NextResponse.json({
             success: true,
             symbol,
             timeframe,
             candles: sliced,
-            quote: lastCandle ? {
+            quote: lastCandle && !pagingRequested ? {
                 symbol,
-                bid: price,
-                ask: price,
+                bid: priceValue,
+                ask: priceValue,
                 spread: 0,
                 change: Number(changeFromLive.toFixed(5)),
                 changePercent: Number((prevCandle?.close ? (changeFromLive / prevCandle.close) * 100 : 0).toFixed(3)),
-                timestamp: livePrice?.timestamp ?? lastCandle.timestamp,
+                timestamp: quoteTs ?? lastCandle.timestamp,
             } : null,
             candleCount: sliced.length,
+            hasDeepHistory: deepAvailable,
             timestamp: Date.now(),
         });
     } catch (err) {

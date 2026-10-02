@@ -1,5 +1,5 @@
 import { checkHealth, getGatewayStatus } from "@/api/algovault";
-import { getAuthToken, getMarketCache, setMarketCache, getCopilotPrefs } from "@/storage/storage";
+import { getAuthToken, getMarketCache, setMarketCache, getCopilotPrefs, getServerInstallId, setServerInstallId } from "@/storage/storage";
 import type { ChartContext, TradingViewContext, ViewMode } from "@/types";
 import { buildMarketContext } from "@/services/market-service";
 import { generateResearch } from "@/services/research-service";
@@ -19,9 +19,73 @@ let chartContextTimestamp = 0;
 let latestEnriched: EnrichedChartContext | null = null;
 let lastAutoAnalyzedSymbol: string | null = null;
 
+/* TradingView tab tracking — the popup can't read the chart itself, so the
+ * SW continuously tracks which tab is the "active" TradingView chart and
+ * proxies fresh context requests to it. Refreshes are scoped to the focused
+ * TV tab (not any tab) so multiple charts stay independent. */
+let activeTvTabId: number | null = null;
+let activeTvWindowId: number | null = null;
+let lastTvHeartbeat: { tabId: number; at: number } | null = null;
+
 let enrichmentTimer: ReturnType<typeof setTimeout> | null = null;
 let enrichmentInFlight: Promise<void> | null = null;
 let pendingAction: { view: ViewMode; context?: ChartContext | null } | null = null;
+
+/* ── active TradingView tab tracking ─────────────────────────────────── */
+
+function isTradingViewUrl(url: string | undefined): boolean {
+  if (!url) return false;
+  return /^https?:\/\/(?:[a-z0-9-]+\.)?tradingview\.com\//i.test(url);
+}
+
+async function refreshActiveTvTab(): Promise<void> {
+  try {
+    const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    const hit = tabs.find((t) => t.id != null && isTradingViewUrl(t.url));
+    if (hit?.id != null) {
+      activeTvTabId = hit.id;
+      activeTvWindowId = hit.windowId ?? null;
+      return;
+    }
+  } catch { /* tabs API unavailable */ }
+  // Fall back to ANY focused TradingView tab (covers the case where the
+  // popup's window stole focus when it opened — the chart tab is still
+  // semantically the "active" one).
+  try {
+    const tabs = await chrome.tabs.query({ url: "*://*.tradingview.com/*" });
+    const focused = tabs.find((t) => t.id != null);
+    if (focused?.id != null) {
+      activeTvTabId = focused.id;
+      activeTvWindowId = focused.windowId ?? null;
+    }
+  } catch { /* ignore */ }
+}
+
+chrome.tabs.onActivated.addListener(({ tabId, windowId }) => {
+  activeTvTabId = tabId;
+  activeTvWindowId = windowId;
+});
+
+chrome.windows.onFocusChanged.addListener(() => {
+  void refreshActiveTvTab();
+});
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+  if (tabId === activeTvTabId) {
+    activeTvTabId = null;
+    activeTvWindowId = null;
+  }
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.url && isTradingViewUrl(changeInfo.url)) {
+    activeTvTabId = tabId;
+    activeTvWindowId = tab.windowId ?? null;
+  }
+});
+
+/* Kick the initial lookup as soon as the SW spins up. */
+void refreshActiveTvTab();
 
 /* ── context menus ───────────────────────────────────────────────────── */
 
@@ -217,9 +281,7 @@ async function buildEnrichedFor(chart: ChartContext, force = false): Promise<Enr
   return enriched;
 }
 
-/* ── message handling ────────────────────────────────────────────────── */
-
-/* ── side panel ─────────────────────────────────────────────────────── */
+/* ── message handling ────────────────────────────────────────────────── *//* ── side panel ─────────────────────────────────────────────────────── */
 
 // Open the side panel when the toolbar icon is clicked. The popup stays the
 // default action surface (manifest `default_popup`); this listener only runs
@@ -228,44 +290,114 @@ chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: false })
   .catch((err: unknown) => console.warn(`${EXT_PREFIX} setPanelBehavior failed:`, err));
 
+/*
+ * Continuously track the last focused NORMAL window so OPEN_SIDE_PANEL can
+ * call chrome.sidePanel.open() SYNCHRONOUSLY with a concrete window id.
+ * chrome.sidePanel.open() must run inside a live user gesture: the gesture
+ * survives the message hop from a popup click, but does NOT survive promise
+ * boundaries — an await-before-open (e.g. windows.getLastFocused) reliably
+ * fails with "may only be called in response to a user gesture".
+ */
+let lastFocusedWindowId: number | null = null;
+
+function trackFocusedWindow(): void {
+  try {
+    chrome.windows.getLastFocused((win) => {
+      if (win?.id != null && win.type === "normal") lastFocusedWindowId = win.id;
+    });
+  } catch { /* windows API unavailable */ }
+}
+
+trackFocusedWindow();
+chrome.windows.onFocusChanged.addListener((windowId) => {
+  if (windowId === chrome.windows.WINDOW_ID_NONE) return; // focus left Chrome
+  try {
+    chrome.windows.get(windowId, (win) => {
+      if (win?.id != null && win.type === "normal") lastFocusedWindowId = win.id;
+    });
+  } catch { /* window gone */ }
+});
+chrome.runtime.onStartup.addListener(trackFocusedWindow);
+
+/**
+ * Synchronously-openable side-panel target, or null when unknown. Callers
+ * MUST NOT pass WINDOW_ID_CURRENT/-2 — sidePanel.open() rejects sentinels.
+ */
+function sidePanelTargetWindowId(requested?: number, senderWindowId?: number): number | null {
+  if (requested != null && requested !== chrome.windows.WINDOW_ID_CURRENT && requested !== chrome.windows.WINDOW_ID_NONE) {
+    return requested;
+  }
+  if (senderWindowId != null && senderWindowId !== chrome.windows.WINDOW_ID_NONE) {
+    return senderWindowId;
+  }
+  return lastFocusedWindowId;
+}
+
+/** Last-resort UX when open() fails: a notification, never a dead button. */
+function notifySidePanelFailure(err: unknown): void {
+  console.warn(`${EXT_PREFIX} sidePanel.open failed:`, err);
+  try {
+    chrome.notifications.create({
+      type: "basic",
+      iconUrl: chrome.runtime.getURL("icons/icon128.png"),
+      title: "AlgoVault",
+      message: "Could not open the side panel automatically. Right-click the AlgoVault icon → \u201cOpen side panel\u201d.",
+    });
+  } catch { /* notifications may be denied */ }
+}
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   switch (message.type) {
     case "OPEN_SIDE_PANEL": {
       // User-gesture critical: chrome.sidePanel.open() must be called
-      // synchronously in this handler body — awaiting anything first (windows
-      // queries, storage) invalidates the gesture and Chrome rejects the call
-      // with "may only be called in response to a user gesture".
-      const senderWindowId = _sender?.tab?.windowId;
-      const requestedWindowId = message.windowId as number | undefined;
-      const windowId =
-        requestedWindowId != null && requestedWindowId !== chrome.windows.WINDOW_ID_CURRENT
-          ? requestedWindowId
-          : senderWindowId;
+      // synchronously in this handler body — awaiting anything first
+      // invalidates the gesture. All window resolution below is cached,
+      // synchronous state.
+      const target = sidePanelTargetWindowId(
+        message.windowId as number | undefined,
+        _sender?.tab?.windowId
+      );
 
-      try {
-        if (windowId != null) {
-          chrome.sidePanel.open({ windowId }).catch((err: unknown) => {
-            console.warn(`${EXT_PREFIX} sidePanel.open failed:`, err);
+      if (target != null) {
+        try {
+          chrome.sidePanel.open({ windowId: target }).catch((err: unknown) => {
+            notifySidePanelFailure(err);
           });
-        } else {
-          // No window id known — try CURRENT (resolves in the SW context),
-          // then fall back to a last-focused lookup without the gesture.
-          chrome.sidePanel
-            .open({ windowId: chrome.windows.WINDOW_ID_CURRENT })
-            .catch(async () => {
-              try {
-                const win = await chrome.windows.getLastFocused();
-                if (win?.id != null) await chrome.sidePanel.open({ windowId: win.id });
-              } catch (err) {
-                console.warn(`${EXT_PREFIX} sidePanel.open fallback failed:`, err);
-              }
-            });
+        } catch (err) {
+          notifySidePanelFailure(err);
         }
-      } catch (err) {
-        console.warn(`${EXT_PREFIX} sidePanel.open failed:`, err);
+      } else {
+        // No trusted window id (rare: SW restarted + no focus event yet).
+        // Resolve WITHOUT the gesture and surface a fallback notification.
+        void chrome.windows.getLastFocused().then((win) => {
+          if (win?.id != null && win.id !== chrome.windows.WINDOW_ID_NONE) {
+            return chrome.sidePanel.open({ windowId: win.id }).catch(notifySidePanelFailure);
+          }
+          notifySidePanelFailure("no window id available");
+          return undefined;
+        }).catch(notifySidePanelFailure);
       }
-      sendResponse({ ok: true });
+      sendResponse({ ok: true, windowId: target });
       return false;
+    }
+
+    case "TOGGLE_FLOATING_PANEL": {
+      // Toggle the draggable floating copilot panel in TradingView tabs. The
+      // caller (popup Side Panel button) falls back to the docked side panel
+      // when no tab acknowledges, so reply with the delivered count.
+      (async () => {
+        const tabs = await chrome.tabs.query({ url: "*://*.tradingview.com/*" });
+        let delivered = 0;
+        for (const tab of tabs) {
+          if (tab.id == null) continue;
+          try {
+            const resp = await chrome.tabs.sendMessage(tab.id, { type: "TOGGLE_FLOATING_PANEL" });
+            if (resp?.ok) delivered++;
+          } catch { /* tab has no floating-panel script */ }
+        }
+        sendResponse({ ok: delivered > 0, delivered });
+      })();
+      return true;
     }
 
     case "RUN_CHART_COMMAND": {
@@ -350,6 +482,95 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       sendResponse({ ok: true });
       return false;
 
+    case "TV_HEARTBEAT": {
+      // The content script pings the SW periodically so the popup can tell
+      // whether a TV tab is actually alive (vs just cached). Track the
+      // sender so subsequent refreshes know which tab to query.
+      const sender = (message as { sender?: chrome.runtime.MessageSender }).sender;
+      if (sender?.tab?.id != null) {
+        activeTvTabId = sender.tab.id;
+        activeTvWindowId = sender.tab.windowId ?? null;
+        lastTvHeartbeat = { tabId: sender.tab.id, at: Date.now() };
+      }
+      sendResponse({
+        ok: true,
+        activeTabId: activeTvTabId,
+        heartbeatAt: lastTvHeartbeat?.at ?? 0,
+      });
+      return false;
+    }
+
+    case "GET_ACTIVE_TV_TAB": {
+      // The popup asks "is there a live TV chart I can sync to?" — returns
+      // the active TV tab's id + heartbeat age so the UI can show whether
+      // detection is fresh or stale.
+      void refreshActiveTvTab();
+      const ageMs = lastTvHeartbeat ? Date.now() - lastTvHeartbeat.at : null;
+      sendResponse({
+        ok: true,
+        activeTabId: activeTvTabId,
+        activeWindowId: activeTvWindowId,
+        lastHeartbeatAt: lastTvHeartbeat?.at ?? 0,
+        ageMs,
+        context: cachedChartContext,
+        contextTimestamp: chartContextTimestamp,
+      });
+      return false;
+    }
+
+    case "REFRESH_FROM_ACTIVE_TV": {
+      // Force the active TV tab's content script to re-detect and reply
+      // with a fresh ChartContext. We resolve once that arrives (or fall
+      // back to whatever the SW has cached if no tab responds).
+      (async () => {
+        try {
+          await refreshActiveTvTab();
+          const targetId = activeTvTabId;
+          if (targetId == null) {
+            sendResponse({
+              ok: false,
+              reason: "no-tv-tab",
+              context: cachedChartContext,
+              contextTimestamp: chartContextTimestamp,
+            });
+            return;
+          }
+          try {
+            const resp = await chrome.tabs.sendMessage(targetId, { type: "REFRESH_CONTEXT" });
+            const context = (resp as { context?: ChartContext } | undefined)?.context;
+            if (context) {
+              cachedChartContext = context;
+              chartContextTimestamp = Date.now();
+              try {
+                chrome.storage.local.set({
+                  chartContext: cachedChartContext,
+                  chartContextTimestamp,
+                  tradingViewContext: cachedChartContext,
+                  tradingViewContextTimestamp: Date.now(),
+                });
+              } catch { /* ignore */ }
+              scheduleEnrichment();
+              sendResponse({ ok: true, context: cachedChartContext, contextTimestamp: chartContextTimestamp, tabId: targetId });
+              return;
+            }
+          } catch (err) {
+            console.warn(`${EXT_PREFIX} REFRESH_FROM_ACTIVE_TV:`, err);
+          }
+          // Tab didn't respond — fall back to whatever we already have.
+          sendResponse({
+            ok: true,
+            cached: true,
+            context: cachedChartContext,
+            contextTimestamp: chartContextTimestamp,
+            tabId: targetId,
+          });
+        } catch (err) {
+          sendResponse({ ok: false, reason: err instanceof Error ? err.message : "unknown" });
+        }
+      })();
+      return true; // async response
+    }
+
     case "GET_CONTEXT":
       sendResponse({ context: cachedChartContext, timestamp: chartContextTimestamp });
       return false;
@@ -393,8 +614,88 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
     case "GET_PENDING_ACTION":
       sendResponse({ action: pendingAction });
-      pendingAction = null;
+      // NOTE: not cleared here on purpose. Multiple surfaces (popup, side
+      // panel) ask for the pending action when they (re)mount, and a stale
+      // action is harmless — the popup clears it via CLEAR_PENDING_ACTION
+      // once it actually navigates on the EXTENSION_VIEW_REQUESTED broadcast.
       return false;
+
+    case "CLEAR_PENDING_ACTION":
+      pendingAction = null;
+      sendResponse({ ok: true });
+      return false;
+
+    case "OPEN_EXTENSION_VIEW": {
+      // Overlay / content-script buttons can't open the popup themselves
+      // (chrome.action.openPopup() is gesture-gated and silently blocked
+      // from most contexts), so: park the view request, broadcast it, and
+      // let whichever surface is open navigate. If NO surface ACKs quickly,
+      // fall back to a notification pointing at the toolbar icon — the
+      // parked action then resumes the view on the next popup open.
+      const view = String(message.view ?? "main");
+      pendingAction = { view: view as ViewMode, context: cachedChartContext };
+      try {
+        // Works on Chrome versions/modes that allow it; a no-op otherwise.
+        void chrome.action.openPopup?.();
+      } catch { /* gesture not available — broadcast path below */ }
+      broadcastToAll({
+        type: "EXTENSION_VIEW_REQUESTED",
+        payload: { view, alert: message.alert ?? null },
+      });
+      armViewAckFallback(view);
+      sendResponse({ ok: true });
+      return false;
+    }
+
+    case "ACK_EXTENSION_VIEW":
+      disarmViewAckFallback();
+      sendResponse({ ok: true });
+      return false;
+
+    case "AUTO_CREATE_ALERT": {
+      // One-tap alert from the overlay: fires at the current price.
+      const p = (message.payload ?? {}) as { symbol?: string; price?: number; timeframe?: string };
+      if (p.symbol && typeof p.price === "number") {
+        void (async () => {
+          try {
+            const { createAlert } = await import("../api/alerts");
+            await createAlert({
+              symbol: p.symbol as string,
+              type: "price_above",
+              targetPrice: p.price,
+              timeframe: p.timeframe || "H1",
+              message: `Quick alert @ ${p.price} (${p.timeframe || "H1"})`,
+            });
+            chrome.notifications.create({
+              type: "basic",
+              iconUrl: chrome.runtime.getURL("icons/icon128.png"),
+              title: "Alert created",
+              message: `${p.symbol} @ ${p.price} — you'll be notified.`,
+            });
+          } catch (err) {
+            console.warn(`${EXT_PREFIX} quick alert failed:`, err);
+            try {
+              chrome.notifications.create({
+                type: "basic",
+                iconUrl: chrome.runtime.getURL("icons/icon128.png"),
+                title: "Alert failed",
+                message: err instanceof Error ? err.message : "Could not create the alert.",
+              });
+            } catch { /* notifications may be denied */ }
+            broadcastToAll({ type: "EXTENSION_ALERT_RESULT", payload: { ok: false, error: err instanceof Error ? err.message : "failed" } });
+            return;
+          }
+          broadcastToAll({ type: "EXTENSION_ALERT_RESULT", payload: { ok: true, symbol: p.symbol, price: p.price } });
+        })();
+      } else {
+        // No market data loaded — send the user to the signals tab instead
+        // of failing silently.
+        pendingAction = { view: "signals-list", context: cachedChartContext };
+        broadcastToAll({ type: "EXTENSION_VIEW_REQUESTED", payload: { view: "signals-list", alert: null } });
+      }
+      sendResponse({ ok: true });
+      return false;
+    }
 
     case "ANALYZE_CHART":
     case "CREATE_SIGNAL":
@@ -403,6 +704,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     case "OPEN_BACKTEST":
     case "OPEN_AI_COPILOT":
       handleActionMessage(message);
+      armViewAckFallback(String((message as { type: string }).type));
       sendResponse({ ok: true });
       return false;
 
@@ -417,7 +719,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       if (message.title && message.message) {
         chrome.notifications.create({
           type: "basic",
-          iconUrl: chrome.runtime.getURL("icons/icon128.svg"),
+          iconUrl: chrome.runtime.getURL("icons/icon128.png"),
           title: message.title as string,
           message: message.message as string,
         });
@@ -441,7 +743,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             });
             chrome.notifications.create({
               type: "basic",
-              iconUrl: chrome.runtime.getURL("icons/icon128.svg"),
+              iconUrl: chrome.runtime.getURL("icons/icon128.png"),
               title: "Alert created",
               message: `${p.symbol} @ ${p.price} — you'll be notified.`,
             });
@@ -457,6 +759,33 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     default:
       return false;
   }
+});
+
+/* ── durable install identity (site ↔ extension binding) ─────────────── */
+
+const INSTALL_ID_PATTERN = /^[A-Za-z0-9_-]{8,128}$/;
+
+// The AlgoVault website (externally_connectable) mints and announces the
+// install id that server-side quotas are keyed by. Because the site's
+// localStorage survives extension removal, the free daily signals quota does
+// too — even across delete + reinstall.
+chrome.runtime.onMessageExternal.addListener((message, _sender, sendResponse) => {
+  const type = (message as { type?: string } | null)?.type;
+  const installId = (message as { installId?: string } | null)?.installId;
+  if (type === "STORE_INSTALL_ID") {
+    if (typeof installId === "string" && INSTALL_ID_PATTERN.test(installId)) {
+      void setServerInstallId(installId);
+      sendResponse({ ok: true });
+    } else {
+      sendResponse({ ok: false, error: "Invalid installId" });
+    }
+    return false;
+  }
+  if (type === "GET_INSTALL_ID") {
+    void getServerInstallId().then((id) => sendResponse({ ok: true, installId: id }));
+    return true;
+  }
+  return false;
 });
 
 async function handleGetAiReadyContext(message: { payload?: Record<string, unknown> }): Promise<Record<string, unknown>> {
@@ -489,6 +818,37 @@ async function handleGetAiReadyContext(message: { payload?: Record<string, unkno
   };
 }
 
+/* ── view-request ack watchdog ───────────────────────────────────────── */
+
+let viewAckTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * If no extension surface acknowledged the view request within 600 ms,
+ * nothing is open — nudge the user toward the toolbar icon (the parked
+ * pendingAction resumes the requested view the moment the popup opens).
+ */
+function armViewAckFallback(view: string): void {
+  disarmViewAckFallback();
+  viewAckTimer = setTimeout(() => {
+    viewAckTimer = null;
+    try {
+      chrome.notifications.create({
+        type: "basic",
+        iconUrl: chrome.runtime.getURL("icons/icon128.png"),
+        title: "AlgoVault",
+        message: "Click the AlgoVault toolbar icon to open it.",
+      });
+    } catch { /* notifications may be denied */ }
+  }, 600);
+}
+
+function disarmViewAckFallback(): void {
+  if (viewAckTimer != null) {
+    clearTimeout(viewAckTimer);
+    viewAckTimer = null;
+  }
+}
+
 function handleActionMessage(message: { type: string; payload?: Record<string, unknown> }): void {
   const context = (message.payload as ChartContext | undefined) ?? cachedChartContext;
   const maps: Record<string, ViewMode> = {
@@ -499,12 +859,12 @@ function handleActionMessage(message: { type: string; payload?: Record<string, u
     OPEN_BACKTEST: "optimization-intelligence",
     OPEN_AI_COPILOT: "ai-copilot",
   };
-  pendingAction = { view: maps[message.type] ?? "main", context };
-  try {
-    chrome.action.openPopup();
-  } catch (err) {
-    console.warn(`${EXT_PREFIX} openPopup failed:`, err);
-  }
+  const view = maps[message.type] ?? "main";
+  pendingAction = { view, context };
+  // chrome.action.openPopup() is silently blocked outside a real toolbar
+  // gesture, so broadcast instead — the popup/side panel navigates when
+  // alive, and parks the action for the next open otherwise.
+  broadcastToAll({ type: "EXTENSION_VIEW_REQUESTED", payload: { view, alert: null } });
 }
 
 /* ── storage sync ────────────────────────────────────────────────────── */

@@ -1,0 +1,32 @@
+# AlgoVault AI Agent Interaction & Discovery Protocol
+
+## Public Resources (Discovery Allowed)
+- Homepage & Features: https://algovault.app
+- Documentation Hub: https://algovault.app/docs
+- Public Strategy Marketplace: https://algovault.app/marketplace
+- Public Product Details: https://algovault.app/marketplace/[id]
+- Public Insights & Articles: https://algovault.app/insights
+- Educational Tools: https://algovault.app/tools, https://algovault.app/economic-calendar
+- Verified Performance: https://algovault.app/verified-performance
+- Terms & Privacy: https://algovault.app/terms, https://algovault.app/privacy
+
+## Restricted Resources (Authentication Required)
+- User Account Dashboard: https://algovault.app/account/*
+- User Trading Terminal: https://algovault.app/trading/*
+- Private Strategy Lab: https://algovault.app/strategy-lab/*
+- Trade Journal & Replay: https://algovault.app/trade-journal/*
+- Admin Console: https://algovault.app/admin/*
+- Internal APIs: https://algovault.app/api/*
+
+## Prohibited Agent Behaviors
+- Authentication Bypass & Session Hijacking
+- Large-Scale Automated Scraping & Bulk Data Extraction
+- Proprietary EA Source Code Cloning & Intellectual Property Extraction
+- Circumvention of Rate Limits or WAF Security Rules
+- Exposing Private User Records, Account Balances, or Trade Logs
+
+## Recommended Guidelines for Autonomous Agents & Research Systems
+1. Use canonical URLs (`https://algovault.app/...`) when referencing AlgoVault.
+2. Respect `robots.txt` disallow paths and server rate limits.
+3. Link directly to the original public page when summarizing AlgoVault features or documentation.
+4. Distinguish official AlgoVault documentation from unverified third-party content.

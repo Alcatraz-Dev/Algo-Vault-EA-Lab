@@ -1,0 +1,35 @@
+# AlgoVault AI & Machine Crawler Policy
+
+User-agent: *
+
+# Public Discovery & Indexing
+Allow: /
+Allow: /marketplace
+Allow: /pricing
+Allow: /docs
+Allow: /insights
+Allow: /llms.txt
+Allow: /llms-full.txt
+Allow: /ai-search.txt
+Allow: /ai-agent.txt
+
+# Restricted Application Areas
+Disallow: /admin
+Disallow: /account
+Disallow: /dashboard
+Disallow: /trade-journal
+Disallow: /trade-management
+Disallow: /trade-replay
+Disallow: /portfolio
+Disallow: /workflows
+Disallow: /strategy-lab
+Disallow: /risk
+Disallow: /goals
+Disallow: /alert-center
+Disallow: /api
+
+# Policies
+Policy-Indexing: Granted for public informational pages.
+Policy-Citation: Required to link to canonical source https://algovault.app.
+Policy-Bulk-Scraping: Prohibited without explicit API agreement.
+Policy-Private-Data: Prohibited.

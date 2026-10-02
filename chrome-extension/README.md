@@ -44,6 +44,31 @@ the current price in one click (`CREATE_QUICK_ALERT`).
 Optional (Setup tab): when the chart symbol changes, the service worker
 pre-generates the quick research note so it's ready when you look.
 
+### 6. Quick launcher on the chart (v3.1)
+Closing the overlay no longer hides AlgoVault on the chart: a small draggable
+⚡ orb stays in place (position remembered) so the extension reopens with ONE
+click. It lives in its own content script (`content/quick-launcher.js`),
+survives TradingView's SPA navigations, and re-clamps on window resize. The
+overlay's ✕ minimizes to the launcher; the launcher click restores the panel.
+
+### 7. Popup resume (v3.1)
+The popup remembers the last view (Home / Intel / Copilot / sub-screens) and
+reopens exactly where it was closed — no more landing on Home every time.
+
+### 8. Reinstall-proof free daily signals (v3.1)
+The 3 free daily signals are enforced SERVER-SIDE
+(`/api/extension/daily-signals`, atomic Firebase-transaction reservation) and
+keyed by a durable install id that the AlgoVault WEBSITE mints into its own
+localStorage and mirrors into `chrome.storage.sync`. Deleting and reinstalling
+the extension no longer resets the quota. Generated signals and picked symbols
+are also stored server-side and restored in the popup. When the server is
+unreachable, a tamper-resistant (HMAC-notarized) local fallback is used and
+fails closed.
+
+**Setup:** set `NEXT_PUBLIC_EXTENSION_ID` on the website deployment to the
+extension's pack id (chrome://extensions → AlgoVault → ID) so the site can
+announce the install id to the extension via `externally_connectable`.
+
 ## Chat protocol for drawings
 
 When the user asks for markup, CopilotView appends drawing instructions to the

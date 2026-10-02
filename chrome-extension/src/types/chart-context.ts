@@ -82,7 +82,7 @@ export interface ChartContext {
   timestamp?: number;
   dataAgeMs?: number;
   status?: ChartContextStatus;
-  source?: "tradingview" | "manual";
+  source?: "tradingview" | "tradingview-lite" | "manual";
   /** Whether the browser symbol matches the market-data symbol used for enrichment. */
   marketSync?: MarketSyncStatus;
   /** The symbol fed to AlgoVault market data (may differ from symbol under normalization). */

@@ -2,6 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── theme tokens (mirror popup/styles.css + app/globals.css) ───────── */
+:root {
+  --av-base: #0f0f0f;
+  --av-card: #181818;
+  --av-raised: #232323;
+  --av-edge: #383838;
+  --av-ink: #f9f9f9;
+  --av-ink-mute: #a3a3a3;
+  --av-ink-faint: #737373;
+}
+
+.light {
+  --av-base: #f9f9f9;
+  --av-card: #ffffff;
+  --av-raised: #f1f1f1;
+  --av-edge: #e5e7eb;
+  --av-ink: #262626;
+  --av-ink-mute: #727272;
+  --av-ink-faint: #9c9c9c;
+}
+
 /* Side panel stretches to the browser's panel height — no fixed popup size. */
 html,
 body {
@@ -10,8 +31,8 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background: #0f0f0f;
-  color: #f9f9f9;
+  background: var(--av-base);
+  color: var(--av-ink);
   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -22,8 +43,8 @@ body {
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #383838; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #525252; }
+::-webkit-scrollbar-thumb { background: var(--av-edge); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--av-ink-faint); }
 
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {

@@ -106,13 +106,17 @@ export async function POST(request: NextRequest) {
             marginLevel,
             positionsCount,
             pendingOrdersCount,
-            broker,
-            server,
             status: "connected",
             lastHeartbeatAt: now,
             gatewayInstallationId: gatewayInstallationId || null,
             updatedAt: now,
         };
+        // The EA's heartbeat payload does NOT include broker/server — only the
+        // register call does. Only overwrite them when actually reported,
+        // otherwise every heartbeat wipes the broker/server captured at
+        // registration (the extension account selector showed them blank).
+        if (broker) accountUpdate.broker = broker;
+        if (server) accountUpdate.server = server;
         if (gatewayVersion) accountUpdate.gatewayVersion = gatewayVersion;
 
         await adminDatabase

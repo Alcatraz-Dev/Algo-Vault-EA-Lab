@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDatabase } from "@/lib/firebase-admin";
 import { authenticate } from "@/lib/admin-auth";
+import { hasActiveTradingLicense } from "@/lib/gateway";
 
 export const runtime = "nodejs";
 
@@ -64,22 +65,12 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const licensesSnap = await adminDatabase
-            .ref(`trading_access/${token.uid}`)
-            .get();
-
-        const licenses = licensesSnap.val() || {};
-        const now = Date.now();
-        let hasActiveLicense = false;
-
-        for (const [, raw] of Object.entries(licenses)) {
-            if (!raw || typeof raw !== "object") continue;
-            const license = raw as Record<string, unknown>;
-            if (license.status === "active" && Number(license.expiresAt || 0) > now) {
-                hasActiveLicense = true;
-                break;
-            }
-        }
+        // Shared check: trading_access licenses AND the custom_bot
+        // entitlement (same model as gateway register/heartbeat). A stricter
+        // check here than the gateway uses caused a dead end: the EA stays
+        // connected, but every order the extension queues is rejected before
+        // the gateway can pick it up.
+        const hasActiveLicense = await hasActiveTradingLicense(token.uid);
 
         if (!hasActiveLicense) {
             return NextResponse.json(
@@ -87,6 +78,8 @@ export async function POST(request: NextRequest) {
                 { status: 403, headers: corsHeaders }
             );
         }
+
+        const now = Date.now();
 
         const controlsSnap = await adminDatabase
             .ref(`trading_controls/${token.uid}/${accountId}`)
@@ -159,6 +152,10 @@ export async function GET(request: NextRequest) {
     try {
         const url = new URL(request.url);
         const accountId = url.searchParams.get("accountId") || "";
+        // Optional single-order lookup — the extension's Trade Ticket polls
+        // this after queueing to surface the live execution state without
+        // downloading the whole order history.
+        const clientOrderId = url.searchParams.get("clientOrderId") || "";
 
         const ordersSnap = await adminDatabase
             .ref(`trading_order_requests/${token.uid}`)
@@ -171,6 +168,7 @@ export async function GET(request: NextRequest) {
             if (!raw || typeof raw !== "object") continue;
             const order = raw as Record<string, unknown>;
             if (accountId && String(order.accountId || "") !== accountId) continue;
+            if (clientOrderId && String(order.clientOrderId || "") !== clientOrderId) continue;
             orders.push({ ...order, id: orderId });
         }
 

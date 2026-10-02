@@ -31,6 +31,8 @@ const EXT_PREFIX = "[AlgoVault Extension]";
 let currentContext: ChartContext = createEmptyChartContext();
 let observer: MutationObserver | null = null;
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+let pollTimer: ReturnType<typeof setInterval> | null = null;
+let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
 let navigationId = 0;
 let lastBroadcastAt = 0;
 let lastIdentityKey = "";
@@ -502,6 +504,10 @@ function detectTimeframeFromToolbar(): string | null {
     "[data-qa-id='title-wrapper legend-source-interval']",
     "button[data-name='timeframe'][aria-pressed='true']",
     ".chart-toolbar .apply-overflow-tooltip",
+    /* TradingView Lite mode (mobile-style embed / lite chart) renders the
+     * interval as plain content inside the header bar without QA hooks. */
+    "[class*='timeframe']",
+    "[class*='intervalButton']",
   ];
   for (const selector of selectors) {
     const el = document.querySelector<HTMLElement>(selector);
@@ -511,6 +517,64 @@ function detectTimeframeFromToolbar(): string | null {
     }
   }
   return null;
+}
+
+/**
+ * TradingView-Lite mode detection.
+ *
+ * Lite charts (mobile-style embed, lite.tradingview.com, ?lite=1 URL param)
+ * have a stripped DOM: no `tvWidget` global, no legend-source-item rows, the
+ * symbol sits in the document.title and the timeframe in a tiny toolbar.
+ * Returns a partial `ChartContext` patch the way `detectFullContext` expects.
+ */
+function detectLiteContext(): Partial<ChartContext> | null {
+  const url = window.location.href;
+  const isLite = /tradingview\.com\/lite|(\?|&)lite=1\b/i.test(url) || isLiteDom();
+  if (!isLite) return null;
+
+  const patch: Partial<ChartContext> = { isTradingView: true, source: "tradingview-lite" };
+
+  // Lite always shows the symbol in the document.title ("XAUUSD — TradingView")
+  // or the URL path ("/lite/symbol/XAUUSD").
+  const fromTitle = detectSymbolFromTitle();
+  if (fromTitle.symbol) {
+    patch.symbol = fromTitle.symbol;
+    patch.exchange = fromTitle.exchange;
+    patch.rawSymbol = fromTitle.symbol;
+    patch.ticker = fromTitle.symbol;
+  }
+  const fromUrl = detectSymbolFromUrl();
+  if (!patch.symbol && fromUrl.symbol) {
+    patch.symbol = fromUrl.symbol;
+    patch.exchange = fromUrl.exchange;
+    patch.rawSymbol = fromUrl.symbol;
+    patch.ticker = fromUrl.symbol;
+  }
+
+  // Timeframe: in lite mode the URL often has `interval=60` and the toolbar
+  // shows "1H" / "15" / etc.
+  const urlInterval = new URLSearchParams(window.location.search).get("interval");
+  if (urlInterval) {
+    const normalized = normalizeTradingViewTimeframe(urlInterval);
+    if (normalized) {
+      patch.timeframe = normalized;
+      patch.rawTimeframe = urlInterval;
+      patch.timeframeSource = "url";
+    }
+  }
+  if (!patch.timeframe) {
+    const tf = detectTimeframeFromToolbar();
+    if (tf) {
+      patch.timeframe = tf;
+      patch.timeframeSource = "tradingview-dom";
+    }
+  }
+
+  return patch;
+}
+
+function isLiteDom(): boolean {
+  return !!document.querySelector("[class*='lite-'], [class*='LiteChart'], #lite-chart-host");
 }
 
 function detectVisibleRange(widgetRange: { from: number | null; to: number | null } | null): VisibleRange {
@@ -582,6 +646,7 @@ function detectFullContext(): ChartContext {
   const legend = detectFromDom();
   const urlResult = detectSymbolFromUrl();
   const titleResult = detectSymbolFromTitle();
+  const litePatch = detectLiteContext();
 
   // ── symbol / raw symbol ─────────────────────────────────────────────
   const rawSymbol = widget.symbol || legend.symbol || urlResult.symbol || titleResult.symbol || null;
@@ -648,6 +713,7 @@ function detectFullContext(): ChartContext {
 
   const ctx: ChartContext = {
     ...currentContext,
+    ...(litePatch ?? {}),
     symbol,
     rawSymbol,
     ticker: symbol,
@@ -671,10 +737,17 @@ function detectFullContext(): ChartContext {
       ...(widget.symbol ? ["tradingview-widget" as const] : []),
       ...(urlResult.symbol ? ["url" as const] : []),
       ...(titleResult.symbol ? ["title" as const] : []),
+      ...(litePatch?.symbol ? ["tradingview-lite" as const] : []),
     ],
-    timeframeSource: legend.timeframe ? "tradingview-legend" : widget.interval ? "tradingview-widget" : "tradingview-dom",
+    timeframeSource: legend.timeframe
+      ? "tradingview-legend"
+      : widget.interval
+      ? "tradingview-widget"
+      : litePatch?.timeframe
+      ? litePatch.timeframeSource ?? "tradingview-dom"
+      : "tradingview-dom",
     navigationId: navId,
-    source: "tradingview",
+    source: litePatch ? "tradingview-lite" : "tradingview",
     status: symbol ? "active" : "unknown",
     market: "symbol" in resolved ? resolved.market : currentContext.market ?? "unknown",
     marketSymbol: "symbol" in resolved ? resolved.symbol : null,
@@ -754,6 +827,30 @@ function scheduleDetection(): void {
   debounceTimer = setTimeout(() => updateContext(), 350);
 }
 
+/* Some TradingView events (interval button click, right-click → change
+ * symbol, search-driven symbol swap) don't mutate the legend DOM in a way
+ * MutationObserver can catch. A slow poll guarantees we still pick up
+ * changes within a few seconds — and the identity-key check means the
+ * broadcast only fires when something actually changed. */
+function startPolling(): void {
+  if (pollTimer) return;
+  pollTimer = setInterval(() => updateContext(), 2500);
+}
+
+/* Heartbeat to the SW so the popup can tell whether the TV tab is actually
+ * alive. Without this the popup can't distinguish "stale cache" from "no
+ * chart open". */
+function startHeartbeat(): void {
+  if (heartbeatTimer) return;
+  const ping = () => {
+    try {
+      chrome.runtime.sendMessage({ type: "TV_HEARTBEAT", source: "tradingview-content" });
+    } catch { /* SW may be asleep */ }
+  };
+  ping();
+  heartbeatTimer = setInterval(ping, 5000);
+}
+
 function startObserving(): void {
   if (observer) observer.disconnect();
   observer = new MutationObserver(scheduleDetection);
@@ -819,6 +916,8 @@ function init(): void {
   });
 
   startObserving();
+  startPolling();
+  startHeartbeat();
   trackHistoryChanges();
 
   // The chart mounts asynchronously — detect in a few passes.

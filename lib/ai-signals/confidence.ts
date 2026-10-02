@@ -14,6 +14,7 @@ const DEFAULT_WEIGHTS: SignalConfig["weights"] = {
     volume: 10,
     orderFlow: 0,
     entryConfirmation: 15,
+    chartConfluence: 10,
 };
 
 export function calculateConfidence(params: {
@@ -24,10 +25,13 @@ export function calculateConfidence(params: {
     volume: { score: number; detail: string };
     orderFlow: { score: number; detail: string };
     entryConfirmation: { score: number; detail: string };
+    /** Chart overlay confluence — optional so legacy callers keep compiling. */
+    chartConfluence?: { score: number; detail: string };
     weights?: SignalConfig["weights"];
 }): ConfidenceBreakdown {
-    const w = params.weights || DEFAULT_WEIGHTS;
+    const w = { ...DEFAULT_WEIGHTS, ...params.weights };
 
+    const chartWeight = w.chartConfluence ?? 0;
     const totalWeight =
         w.trendAlignment +
         w.marketStructure +
@@ -35,7 +39,8 @@ export function calculateConfidence(params: {
         w.momentum +
         w.volume +
         w.orderFlow +
-        w.entryConfirmation;
+        w.entryConfirmation +
+        chartWeight;
 
     const normalize = (raw: number, max: number, weight: number) => {
         const normalized = Math.min(Math.max(raw / max, 0), 1);
@@ -49,9 +54,12 @@ export function calculateConfidence(params: {
     const volumeScore = normalize(params.volume.score, 10, w.volume);
     const orderFlowScore = normalize(params.orderFlow.score, 15, w.orderFlow);
     const entryScore = normalize(params.entryConfirmation.score, 10, w.entryConfirmation);
+    const chartScore = params.chartConfluence
+        ? normalize(params.chartConfluence.score, 10, chartWeight)
+        : 0;
 
     const rawTotal =
-        trendScore + structureScore + liquidityScore + momentumScore + volumeScore + orderFlowScore + entryScore;
+        trendScore + structureScore + liquidityScore + momentumScore + volumeScore + orderFlowScore + entryScore + chartScore;
 
     const total = Math.round((rawTotal / totalWeight) * 100);
 
@@ -63,6 +71,11 @@ export function calculateConfidence(params: {
         volume: { score: Math.round(volumeScore), max: w.volume, detail: params.volume.detail },
         orderFlow: { score: Math.round(orderFlowScore), max: w.orderFlow, detail: params.orderFlow.detail },
         entryConfirmation: { score: Math.round(entryScore), max: w.entryConfirmation, detail: params.entryConfirmation.detail },
+        chartConfluence: {
+            score: Math.round(chartScore),
+            max: chartWeight,
+            detail: params.chartConfluence?.detail ?? "Chart overlays not evaluated",
+        },
         total: Math.min(total, 100),
     };
 }

@@ -1,6 +1,9 @@
 import React from "react";
-import { ArrowLeft, Zap, Settings } from "lucide-react";
+import { ArrowLeft, Settings } from "lucide-react";
 import { StatusDot } from "./ui";
+
+/** The real AlgoVault logo, same asset the website header uses. */
+const LOGO_URL = chrome.runtime.getURL("logos/logo.png");
 
 interface HeaderProps {
   isHealthy: boolean;
@@ -24,9 +27,7 @@ export function Header({ isHealthy, gatewayConnected, userEmail, onBack, onSetti
           </button>
         )}
         <div className="flex items-center gap-1.5">
-          <div className="flex h-5 w-5 items-center justify-center rounded-md bg-brand-500/15">
-            <Zap size={12} className="text-brand-500" />
-          </div>
+          <img src={LOGO_URL} alt="AlgoVault" className="h-5 w-5 object-contain rounded-sm" />
           <span className="text-sm font-semibold tracking-tight text-ink">AlgoVault</span>
         </div>
       </div>

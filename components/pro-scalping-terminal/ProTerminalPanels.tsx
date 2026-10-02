@@ -9,7 +9,7 @@
  * its payload as a prop so the main terminal owns loading and polling.
  */
 
-import { memo, useEffect, useState } from "react";
+import { memo, Suspense, lazy, useEffect, useState } from "react";
 import {
     Activity,
     CalendarDays,
@@ -37,6 +37,11 @@ import {
     type CalendarEvent,
     eventTimestamp,
 } from "./terminal-utils";
+// AI Execution (additive): lazily loaded so the terminal bundle only pays for
+// it when a token is present.
+const TerminalPlanButtonLazy = lazy(() =>
+    import("@/components/ai-execution/TerminalPlanButton").then((m) => ({ default: m.GenerateTradePlanButton }))
+);
 
 // ── shared bits ─────────────────────────────────────────────────────────────
 
@@ -764,11 +769,14 @@ export const SignalsMiniPanel = memo(function SignalsMiniPanel({
     rejected,
     loading,
     now,
+    token,
 }: {
     signals: TerminalSignal[];
     rejected: Array<{ symbol: string; reason: string }>;
     loading: boolean;
     now: number;
+    /** Auth token for the optional AI-execution TradePlan action (additive). */
+    token?: string | null;
 }) {
     const [showRejected, setShowRejected] = useState(false);
     return (
@@ -833,6 +841,14 @@ export const SignalsMiniPanel = memo(function SignalsMiniPanel({
                                     <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-muted-foreground" title={s.evidence.join(" · ")}>
                                         {s.evidence.slice(0, 2).join(" · ")}
                                     </p>
+                                ) : null}
+                                {/* AI Execution (additive): turn a qualifying signal into a TradePlan. */}
+                                {token ? (
+                                    <div className="mt-1.5">
+                                        <Suspense fallback={null}>
+                                            <TerminalPlanButtonLazy signal={{ id: s.id, symbol: s.symbol, direction: s.direction, entry: s.entry, stop: s.stop, target: s.target, timeframe: s.timeframe, evidence: s.evidence }} token={token} />
+                                        </Suspense>
+                                    </div>
                                 ) : null}
                             </li>
                         );

@@ -122,6 +122,8 @@ export interface ConfidenceBreakdown {
     volume: { score: number; max: number; detail: string };
     orderFlow: { score: number; max: number; detail: string };
     entryConfirmation: { score: number; max: number; detail: string };
+    /** Chart overlay confluence (session/pivot/VWAP/EMA levels the chart draws). */
+    chartConfluence?: { score: number; max: number; detail: string };
     total: number;
 }
 
@@ -134,6 +136,8 @@ export interface SignalAnalysis {
     orderFlow?: string;
     higherTimeframe?: string;
     regime?: string;
+    /** Chart overlay confluence summary (session/pivot/VWAP/EMA levels the chart draws). */
+    chartConfluence?: string;
 }
 
 export interface SignalTimelineEvent {
@@ -246,6 +250,8 @@ export interface AISignal {
     currentPrice: number;
     distanceToEntry: number;
     distanceToSL: number;
+    /** Chart-drawn levels nearest the entry, for chart markers / transparency. */
+    chartLevels?: Array<{ kind: string; label: string; price: number }>;
 
     createdAt: number;
     updatedAt: number;
@@ -313,6 +319,8 @@ export interface SignalConfig {
     proTimeframes: string[];
 
     minimumConfidence: number;
+    /** Hard rejection floor for scans (default 60). Below minimumConfidence, candidates are still created as FORMING. */
+    scanMinimumConfidence?: number;
     minimumRiskReward: number;
     minimumStrength: SignalStrength;
 
@@ -329,6 +337,8 @@ export interface SignalConfig {
         volume: number;
         orderFlow: number;
         entryConfirmation: number;
+        /** Chart overlay confluence (session/pivot/VWAP/EMA levels the chart draws). */
+        chartConfluence?: number;
     };
 
     riskDefaults: {

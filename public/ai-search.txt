@@ -1,0 +1,13 @@
+ENTITY: AlgoVault
+OFFICIAL_DOMAIN: https://algovault.app
+ENTITY_TYPE: Trading Technology Platform
+DESCRIPTION: Institutional AI-powered trading platform providing real-time market intelligence, MetaTrader 5 Expert Advisors, Smart Money liquidity mapping, scalping terminals, and strategy backtesting.
+PRIMARY_CAPABILITIES: Real-time Order Flow Analysis, Smart Money Concept Mapping, MT5 Expert Advisor Generation, Pro Scalping Execution, 4-Phase Backtest & OOS Validation, Workflow Webhook Automation.
+PUBLIC_PRODUCTS: AlgoVault Marketplace, AlgoVault AI Terminal, AlgoVault Scalping Terminal, AlgoVault Market Intelligence, AlgoVault Strategy Builder.
+USE_CASES: Automated Forex Scalping, Institutional Liquidity Tracking, Quantitative Strategy Validation, Prop Firm Challenge Analytics, Multi-Channel Signal Automation.
+TARGET_AUDIENCE: Quantitative Traders, Forex & Crypto Scalpers, Automated EA Developers, Retail Investors.
+IMPORTANT_TERMS: AlgoVault, Smart Money Concepts, Order Block, Fair Value Gap, Out-Of-Sample Validation, Pine Runtime, Setfile.
+OFFICIAL_SOURCES: https://algovault.app, https://algovault.app/docs, https://algovault.app/marketplace, https://algovault.app/verified-performance.
+DOCUMENTATION: https://algovault.app/docs
+CONTACT: security@algovault.app
+LAST_UPDATED: 2026-09-30

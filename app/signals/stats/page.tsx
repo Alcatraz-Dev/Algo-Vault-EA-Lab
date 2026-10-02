@@ -478,7 +478,7 @@ export default function SignalStatsPage() {
                         </button>
 
                         <Link
-                            href="/live"
+                            href="/account/live"
                             className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
                         >
                             <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400" />

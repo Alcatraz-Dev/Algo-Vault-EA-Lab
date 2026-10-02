@@ -6,7 +6,7 @@ import { auth } from "@/lib/firebase";
 import AccountShell from "@/components/account/AccountShell";
 import {
     Brain, MessageSquare, Sparkles, Activity,
-    TrendingUp, Shield, Wallet, Clock,
+    TrendingUp, Shield, Wallet, Clock, Globe,
     Loader2, ChevronDown, ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -101,6 +101,40 @@ export default function AICopilotPage() {
                                         <p className="text-sm text-muted-foreground whitespace-pre-line">{text}</p>
                                     </div>
                                 ))}
+                            </div>
+                        )}
+
+                        {/* TradingView external evidence (separate, provenance-preserved) */}
+                        {copilotData?.tradingview && (
+                            <div className="rounded-xl border border-blue-500/20 bg-blue-500/[0.03] p-5">
+                                <div className="mb-1 flex items-center gap-2 text-xs font-semibold text-blue-400"><Globe size={14} />TRADINGVIEW EVIDENCE <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-medium">BETA · MAY BE DELAYED</span></div>
+                                <p className="mb-3 text-[10px] text-muted-foreground">External context from the TradingView MCP provider — kept separate from AlgoVault evidence.</p>
+                                <div className="grid gap-2">
+                                    {[copilotData.tradingview.technicals, copilotData.tradingview.news, copilotData.tradingview.economicCalendar].map((section: any, i: number) => (
+                                        <div key={i} className="rounded-lg bg-muted/50 p-3">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[11px] font-semibold text-foreground">{{ 0: "Technical snapshot", 1: "News", 2: "Economic calendar" }[i]}</span>
+                                                <span className={cn("rounded px-1.5 py-0.5 text-[9px]", section?.state === "CONNECTED" ? "bg-emerald-500/10 text-emerald-400" : "bg-muted text-muted-foreground")}>{section?.state ?? "UNAVAILABLE"}</span>
+                                            </div>
+                                            {section?.available ? (
+                                                <p className="mt-1 whitespace-pre-line text-[10px] text-muted-foreground">{section.items?.[0]?.value}</p>
+                                            ) : (
+                                                <p className="mt-1 text-[10px] text-muted-foreground">{section?.message || "Not available."}</p>
+                                            )}
+                                            {section?.available && section.items?.[0]?.freshnessLabel ? (
+                                                <p className="mt-1 text-[9px] text-muted-foreground">Freshness: {section.items[0].freshnessLabel}</p>
+                                            ) : null}
+                                        </div>
+                                    ))}
+                                </div>
+                                {copilotData.tradingview.limitations?.length > 0 && (
+                                    <div className="mt-3 border-t border-border/30 pt-2">
+                                        <p className="text-[9px] font-semibold uppercase tracking-wide text-amber-400/70">Limitations</p>
+                                        <ul className="mt-1 list-inside list-disc text-[9px] text-muted-foreground">
+                                            {copilotData.tradingview.limitations.map((l: string, i: number) => <li key={i}>{l}</li>)}
+                                        </ul>
+                                    </div>
+                                )}
                             </div>
                         )}
 

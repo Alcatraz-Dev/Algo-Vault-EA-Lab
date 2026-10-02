@@ -57,8 +57,9 @@ function normalizeProSignal(signal: ProSignal): AISignal {
     const tp2 = signal.takeProfits.find((target) => target.index === 2)?.price ?? undefined;
     const tp3 = signal.takeProfits.find((target) => target.index === 3)?.price ?? undefined;
     const confidence = signal.parserMetadata?.confidence ?? 0;
+    // Reward ÷ risk (was inverted, showing a 0.3R trade as "3.5R").
     const riskReward = signal.stopLoss != null && signal.stopLoss !== 0 && signal.entry !== 0 && tp1 != null && tp1 !== 0
-        ? Number((Math.abs(signal.entry - signal.stopLoss) / Math.abs(signal.entry - tp1)).toFixed(2))
+        ? Number((Math.abs(signal.entry - tp1) / Math.abs(signal.entry - signal.stopLoss)).toFixed(2))
         : 0;
     const confidenceBreakdown: ConfidenceBreakdown = {
         trendAlignment: { score: 0, max: 100, detail: "" },
@@ -190,8 +191,14 @@ export function RealtimeFeed({
     const useApiFallback = useRef(false);
     const onSignalsChangeRef = useRef(onSignalsChange);
     onSignalsChangeRef.current = onSignalsChange;
+    // When the user clears signals, suppress Firebase listener re-population
+    // until genuinely new data arrives (system node is not deleted for non-admins).
+    const clearedRef = useRef(false);
+    // Lets handleClearAllSignals reset the closure-local snapshot caches so
+    // the next mergeAndSet call sees empty user + system data.
+    const resetSnapshotsRef = useRef<(() => void) | null>(null);
 
-        const activeSignals = useMemo<AISignal[]>(() => {
+    const activeSignals = useMemo<AISignal[]>(() => {
         return signals.filter((s: AISignal) => !TERMINAL_STATUSES.has(s.status));
     }, [signals]);
 
@@ -236,6 +243,13 @@ export function RealtimeFeed({
         const systemRef = ref(database, "telegramSignals/system");
         const mergeAndSet = (userData: ProSignal[] | null, systemData: ProSignal[] | null) => {
             if (isUnmounted || useApiFallback.current) return;
+            // After a manual clear, suppress re-population from existing Firebase
+            // snapshots. The clearedRef is reset only when genuinely new signals
+            // arrive (i.e. signals that weren't visible before the clear).
+            if (clearedRef.current) {
+                setLoading(false);
+                return;
+            }
             // A broadcast can be mirrored into the user's node (e.g. after a
             // follow/trade). Dedupe by id so React keys stay unique — the
             // user-scoped copy wins since it carries that user's counters.
@@ -255,6 +269,13 @@ export function RealtimeFeed({
         let latestSystem: ProSignal[] | null = null;
         let userLoaded = false;
         let systemLoaded = false;
+
+        // Expose a way to reset the locally-cached snapshots after a clear so
+        // the next real Firebase push starts from a clean slate.
+        resetSnapshotsRef.current = () => {
+            latestUser = [];
+            latestSystem = [];
+        };
 
         const unsubscribeUser = onValue(
             userRef,
@@ -311,6 +332,12 @@ export function RealtimeFeed({
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` },
             });
+            // Prevent the Firebase onValue listeners from immediately
+            // re-populating the feed from the still-live system node.
+            clearedRef.current = true;
+            // Reset locally-cached snapshots so the next real push from
+            // Firebase starts from an empty baseline.
+            resetSnapshotsRef.current?.();
             setSignalsAndNotify([]);
         } catch (err) {
             console.error("Clear signals error:", err);

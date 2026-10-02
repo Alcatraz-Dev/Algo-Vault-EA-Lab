@@ -166,7 +166,38 @@ export async function POST(request: NextRequest) {
                 : await aiCall({ asset: symbols.join(", "), timeframe: tf, trend: "analysis", volatility: "normal", bestSession: "", bestDay: "", strongestSetup: "", averageR: null, regime: "analysis" });
         }
 
-        return NextResponse.json({ success: true, responses, marketData, accounts: Object.keys(accounts).length, positions: Object.keys(userPositions).length, signals: recentSignals.length, isPro }, { status: 200 });
+        // ── TradingView MCP external context (optional, fail-closed) ──────
+        // Added alongside — never merged into — the AlgoVault evidence above,
+        // so every response keeps provenance (PHASE 5).
+        let tradingview: {
+            technicals: unknown;
+            news: unknown;
+            economicCalendar: unknown;
+            anyExternalEvidence: boolean;
+            limitations: string[];
+        } | null = null;
+        try {
+            const { gatherMultiSourceIntelligence } = await import("@/lib/market-intelligence/ai/external-intelligence-service");
+            const external = await gatherMultiSourceIntelligence({
+                uid,
+                symbol: symbols[0],
+                timeframe: tf,
+                includeTechnicals: true,
+                includeNews: true,
+                includeEconomicCalendar: true,
+            });
+            tradingview = {
+                technicals: external.tradingview.technicals,
+                news: external.tradingview.news,
+                economicCalendar: external.tradingview.economicCalendar,
+                anyExternalEvidence: external.anyExternalEvidence,
+                limitations: external.limitations,
+            };
+        } catch (externalErr) {
+            console.warn("[ai-copilot] TradingView context unavailable:", externalErr instanceof Error ? externalErr.message : externalErr);
+        }
+
+        return NextResponse.json({ success: true, responses, marketData, accounts: Object.keys(accounts).length, positions: Object.keys(userPositions).length, signals: recentSignals.length, isPro, ...(tradingview ? { tradingview } : {}) }, { status: 200 });
     } catch (err: unknown) {
         console.error("[ai-copilot]", err);
         return NextResponse.json({ error: err instanceof Error ? err.message : "AI Copilot failed" }, { status: 500 });

@@ -108,7 +108,7 @@ export async function generateAiMarketSignal(
             entryConfirmation: 10,
         },
         riskDefaults: { riskPercent: 1, maxPositions: 5 },
-        freeSignalsPerDay: 10,
+        freeSignalsPerDay: 3,
         proSignalsPerDay: 100,
         engineVersion: "2.0.0",
         strategyVersion: "2.0.0",

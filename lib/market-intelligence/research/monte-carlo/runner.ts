@@ -49,6 +49,15 @@ export function runMonteCarlo(
     return { min: s[0], max: s[s.length - 1], mean: Math.round(mean * 100) / 100, median: s[Math.floor(s.length / 2)], count: arr.length };
   };
 
+  // Percentile/tail summaries are computed on sorted copies BEFORE stats()
+  // reorders the arrays in place (backward-compatible additive fields).
+  const pct = (sorted: number[], p: number) => sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))] ?? 0;
+  const sortedDraws = [...draws].sort((a, b) => a - b);
+  const sortedReturns = [...returns].sort((a, b) => a - b);
+  const profitProbability = returns.length > 0
+    ? Math.round((returns.filter((r) => r > 0).length / returns.length) * 1000) / 1000
+    : undefined;
+
   return {
     seed: config.seed,
     simulations: sims,
@@ -58,6 +67,9 @@ export function runMonteCarlo(
     returnDistribution: stats(returns),
     drawdownDistribution: stats(draws),
     losingStreakDistribution: undefined,
+    drawdownP95: sims > 0 ? Math.round(pct(sortedDraws, 0.95) * 10000) / 10000 : undefined,
+    returnP5: sims > 0 ? Math.round(pct(sortedReturns, 0.05) * 10000) / 10000 : undefined,
+    profitProbability,
     limitations: ["Monte Carlo resamples historical trade outcomes only. Not predictive."],
   };
 }

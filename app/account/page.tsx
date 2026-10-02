@@ -23,6 +23,7 @@ import {
     Gift,
     Heart,
     Package,
+    Radio,
     Settings,
     Settings2,
     Shield,
@@ -372,11 +373,18 @@ export default function AccountPage() {
                         text="Manage your active licenses."
                     />
                     <QuickCard
-                        href="/live"
-                        icon={<BarChart3 className="h-5 w-5 text-emerald-500" />}
+                        href="/live-performance"
+                        icon={<Radio className="h-5 w-5 text-emerald-500" />}
                         iconClass="bg-emerald-500/10"
                         title="Live Performance"
-                        text="Track live strategy performance."
+                        text="Real-time MT5 execution metrics & AI signal engine."
+                    />
+                    <QuickCard
+                        href="/verified-performance"
+                        icon={<Shield className="h-5 w-5 text-amber-400" />}
+                        iconClass="bg-amber-500/10"
+                        title="Verified Performance"
+                        text="Audited trading performance metrics."
                     />
                     <QuickCard
                         href="/account/settings"
@@ -534,6 +542,12 @@ export default function AccountPage() {
                             icon={<Shield className="h-5 w-5 text-amber-400" />}
                             title="Verified Performance"
                             text="Audited trading performance metrics"
+                        />
+                        <ToolLink
+                            href="/live-performance"
+                            icon={<Radio className="h-5 w-5 text-emerald-500" />}
+                            title="Live Performance"
+                            text="Real-time MT5 execution & AI signal engine"
                         />
                     </div>
                 </div>

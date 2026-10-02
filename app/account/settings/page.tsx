@@ -17,6 +17,7 @@ import {
     Lock,
     Phone,
     Plus,
+    Plug,
     Save,
     Send,
     ShieldCheck,
@@ -36,6 +37,8 @@ import {
 import { onValue, ref, remove, set, update } from "firebase/database";
 import { auth, database } from "@/lib/firebase";
 import AccountShell from "@/components/account/AccountShell";
+import { TradingViewIntegrationCard } from "@/components/account/TradingViewIntegrationCard";
+import { OrderFlowSettingsCard } from "@/components/account/OrderFlowSettingsCard";
 
 type Mt5AccountItem = {
     id: string;
@@ -80,7 +83,7 @@ type UserSettings = {
     updatedAt?: number;
 };
 
-type TabType = "profile" | "mt5" | "security" | "risk" | "notifications";
+type TabType = "profile" | "mt5" | "security" | "risk" | "notifications" | "integrations";
 
 type NotificationRecord = {
     id: string;
@@ -710,9 +713,19 @@ export default function AccountSettingsPage() {
         const t = setTimeout(() => {
             const params = new URLSearchParams(window.location.search);
             const requested = params.get("tab");
-            const valid: TabType[] = ["profile", "mt5", "security", "risk", "notifications"];
+            const valid: TabType[] = ["profile", "mt5", "security", "risk", "notifications", "integrations"];
             if (valid.includes(requested as TabType)) {
                 setActiveTab(requested as TabType);
+            }
+
+            // TradingView OAuth callback lands on ?tab=integrations&tradingview=<state>
+            const tradingviewStep = params.get("tradingview");
+            if (tradingviewStep === "connected") {
+                showToast("success", "TradingView connected.");
+            } else if (tradingviewStep === "denied") {
+                showToast("error", "TradingView: authorization was denied.");
+            } else if (tradingviewStep === "failed" || tradingviewStep === "invalid_response") {
+                showToast("error", "TradingView: connection failed. Please try again.");
             }
 
             const discordStep = params.get("discord");
@@ -868,6 +881,19 @@ export default function AccountSettingsPage() {
                             <Bell size={16} />
                             <span>Notifications</span>
                         </button>
+
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab("integrations")}
+                            className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                                activeTab === "integrations"
+                                    ? "border-foreground text-foreground"
+                                    : "border-transparent text-muted-foreground hover:text-foreground"
+                            }`}
+                        >
+                            <Plug size={16} />
+                            <span>Integrations</span>
+                        </button>
                     </div>
 
                 {/* Main Content Area */}
@@ -890,6 +916,14 @@ export default function AccountSettingsPage() {
                             )}
                             <span>{toastMessage.text}</span>
                         </div>
+                    </div>
+                )}
+
+                {/* TAB: INTEGRATIONS (TradingView MCP) */}
+                {activeTab === "integrations" && (
+                    <div className="grid gap-6">
+                        <TradingViewIntegrationCard user={user} showToast={showToast} />
+                        <OrderFlowSettingsCard />
                     </div>
                 )}
 

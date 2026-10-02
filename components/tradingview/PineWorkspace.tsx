@@ -8,7 +8,8 @@ import TradingViewChart from "@/components/tradingview/TradingViewChart";
 import MarketReplay from "@/components/tradingview/MarketReplay";
 import { ProTerminalChart } from "@/components/pro-scalping-terminal/ProTerminalChart";
 import { ProTerminalReplay } from "@/components/pro-scalping-terminal/ProTerminalReplay";
-import { CHART_LAYERS, defaultLayerState, type ChartLayerId } from "@/components/pro-scalping-terminal/chart-layers";
+import { defaultLayerState, staticLayerAvailability, type ChartLayerId } from "@/components/pro-scalping-terminal/chart-layers";
+import { LayerPicker } from "@/components/pro-scalping-terminal/LayerPicker";
 import { SUPPORTED_SYMBOLS, type SupportedSymbol } from "@/lib/market-data/types";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -1525,25 +1526,8 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                             {useRealChart ? "TradingView embed" : "Real candles"}
                         </button>
                         {layersOpen ? (
-                            <div className="flex flex-wrap gap-1.5 rounded-md border border-border bg-background p-1.5">
-                                {CHART_LAYERS.map((l) => (
-                                    <button
-                                        key={l.id}
-                                        type="button"
-                                        disabled={!l.available}
-                                        onClick={() => l.available && setChartLayers((prev) => ({ ...prev, [l.id]: !prev[l.id] }))}
-                                        aria-pressed={chartLayers[l.id]}
-                                        className={`rounded border px-1.5 py-0.5 text-[11px] transition ${
-                                            !l.available
-                                                ? "cursor-not-allowed border-border/50 text-muted-foreground/40"
-                                                : chartLayers[l.id]
-                                                  ? "border-primary/40 bg-primary/10 text-primary"
-                                                  : "border-border text-muted-foreground hover:text-foreground"
-                                        }`}
-                                    >
-                                        {l.label}
-                                    </button>
-                                ))}
+                            <div className="rounded-md border border-border bg-background p-1.5">
+                                <LayerPicker compact layers={chartLayers} availability={staticLayerAvailability()} onToggle={(id) => setChartLayers((prev) => ({ ...prev, [id]: !prev[id] }))} />
                             </div>
                         ) : null}
                     </div>

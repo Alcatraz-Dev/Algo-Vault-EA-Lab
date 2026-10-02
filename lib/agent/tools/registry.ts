@@ -50,6 +50,9 @@ import {
     memoryWriteTool, memoryListTool, memorySearchTool, memoryDeleteTool,
     docsSearchTool, profileGetTool,
 } from "./knowledge-tools";
+import {
+    TRADINGVIEW_AGENT_TOOLS,
+} from "./external-intelligence-tools";
 
 // Declarations: what each tool requires from the policy layer.
 
@@ -73,6 +76,17 @@ export const TOOL_DECLARATIONS: Record<string, ToolPolicyDeclaration> = {
     "memory.delete": { requires: ["memory_write"], requiresConfirmation: true, category: "memory", mutating: false },
     "docs.search":   { requires: ["read_project_files"], requiresConfirmation: false, category: "knowledge", mutating: false },
     "profile.get":   { requires: ["read_project_files"], requiresConfirmation: false, category: "knowledge", mutating: false },
+    // TradingView MCP external intelligence (read-only, user's own connection).
+    // Network-bound tools require the network_access permission, which no agent
+    // mode grants by default — an explicit per-run override is required, so the
+    // agent cannot silently reach external providers.
+    "tradingview.status":           { requires: ["network_access"], requiresConfirmation: false, category: "context", mutating: false },
+    "tradingview.technicals":       { requires: ["network_access"], requiresConfirmation: false, category: "context", mutating: false },
+    "tradingview.news":             { requires: ["network_access"], requiresConfirmation: false, category: "context", mutating: false },
+    "tradingview.economic_calendar": { requires: ["network_access"], requiresConfirmation: false, category: "context", mutating: false },
+    "tradingview.screener":         { requires: ["network_access"], requiresConfirmation: false, category: "context", mutating: false },
+    "tradingview.watchlists":       { requires: ["network_access"], requiresConfirmation: false, category: "context", mutating: false },
+    "tradingview.alerts":           { requires: ["network_access"], requiresConfirmation: false, category: "context", mutating: false },
 };
 
 interface RegistryEntry {
@@ -234,6 +248,9 @@ export function createDefaultRegistry(): AgentToolRegistry {
         [memoryDeleteTool, TOOL_DECLARATIONS["memory.delete"]],
         [docsSearchTool, TOOL_DECLARATIONS["docs.search"]],
         [profileGetTool, TOOL_DECLARATIONS["profile.get"]],
+        // TradingView MCP (external intelligence registry; fail-closed when the
+        // feature flag is off — tools then return a typed disabled result).
+        ...TRADINGVIEW_AGENT_TOOLS.map((tool) => [tool, TOOL_DECLARATIONS[tool.id]] as [AgentTool, ToolPolicyDeclaration | undefined]),
     ];
     for (const [tool, declaration] of byId) {
         if (tool && declaration) {

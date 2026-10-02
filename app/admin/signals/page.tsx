@@ -61,7 +61,7 @@ const DEFAULT_CONFIG: Partial<SignalConfig> = {
     minimumRiskReward: 2.0,
     signalCooldownMinutes: 15,
     signalExpirationHours: 4,
-    freeSignalsPerDay: 10,
+    freeSignalsPerDay: 3,
     proSignalsPerDay: 20,
     weights: {
         trendAlignment: 20,

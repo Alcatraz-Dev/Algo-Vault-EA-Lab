@@ -125,6 +125,14 @@ export interface DailySignal {
   setup: string;
   reasoning: string;
   createdAt: number;
+  /** Risk/reward of TP1 when the engine computed it. */
+  riskReward?: number;
+  /** Chart-confluence score (0–10) from the generating engine. */
+  chartConfluenceScore?: number;
+  /** Evidence strings naming the drawn levels that backed the call. */
+  chartEvidence?: string[];
+  /** The chart-drawn levels nearest entry (kind/label/price). */
+  chartLevels?: Array<{ kind: string; label: string; price: number }>;
 }
 
 export interface ChatMessage {
@@ -143,6 +151,7 @@ export type ViewMode =
   | "quick-order"
   | "signals-list"
   | "ai-signals"
+  | "demo-trades"
   | "settings"
   | "strategy-intelligence"
   | "optimization-intelligence"

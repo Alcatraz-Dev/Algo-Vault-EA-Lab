@@ -1,0 +1,11 @@
+/* TEAM */
+  Developer & Creator: AlgoVault Engineering Team
+  Contact: contact@algovault.app
+  Twitter: @algovault
+  Location: Global / Remote
+
+/* SITE */
+  Last update: 2026-09-30
+  Standards: HTML5, CSS3, ES2024, Schema.org JSON-LD
+  Components: Next.js 16, React 19, Tailwind CSS, Firebase Realtime Database
+  Integrations: MetaTrader 5 (MT5), Stripe, Telegram, Discord, Lightweight Charts

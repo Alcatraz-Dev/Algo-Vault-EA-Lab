@@ -539,16 +539,32 @@ export default function BacktestsPage() {
         const profit = isLive ? Number(liveStats.netProfit || 0) : Number(perf.profit || 0);
         const finalBalance = isLive ? Number(liveData?.account?.balance || initialDeposit) : Number(perf.finalBalance || (initialDeposit * (1 + profit / 100)).toFixed(2));
         const winRate = isLive ? Number(liveStats.winRate || 0) : Number(perf.winRate || 0);
-        const profitFactor = isLive ? Number(liveStats.profitFactor || 0) : Number(perf.profitFactor || 0);
-        const maxDrawdown = isLive ? Number(liveData?.account?.drawdown || 0) : Number(rsk.maxDrawdown || 0);
         const totalTrades = isLive ? Number(liveStats.totalTrades || 0) : Number(perf.totalTrades || 0);
-        const backtestPeriod = perf.backtestPeriod || (isLive ? "Live MT5 Connected" : "Historical Tick Data");
-
         const winningTrades = isLive ? Number(liveStats.winningTrades || 0) : Math.round(totalTrades * (winRate / 100));
         const losingTrades = isLive ? Number(liveStats.losingTrades || 0) : totalTrades - winningTrades;
+
+        const rawPf = isLive ? liveStats.profitFactor : perf.profitFactor;
+        const isPfUnbounded =
+            isLive &&
+            ((liveStats as { profitFactorUnbounded?: boolean })?.profitFactorUnbounded === true ||
+                rawPf === Infinity ||
+                (typeof rawPf === "number" && rawPf >= 999) ||
+                (winningTrades > 0 && losingTrades === 0));
+
+        const profitFactor = isPfUnbounded
+            ? "∞"
+            : rawPf != null && Number(rawPf) > 0
+            ? Number(rawPf).toFixed(2)
+            : isLive
+            ? "—"
+            : Number(perf.profitFactor || 0).toFixed(2);
+
+        const maxDrawdown = isLive ? Number(liveData?.account?.drawdown || 0) : Number(rsk.maxDrawdown || 0);
+        const backtestPeriod = perf.backtestPeriod || (isLive ? "Live MT5 Connected" : "Historical Tick Data");
+
         const totalProfitVal = isLive ? Number(liveStats.totalProfit || 0) : finalBalance - initialDeposit;
         const expectedPayoff = totalTrades > 0 ? (totalProfitVal / totalTrades).toFixed(2) : "0.00";
-        const sharpeRatio = perf.sharpeRatio || (profitFactor > 1.5 ? "1.85" : "1.20");
+        const sharpeRatio = perf.sharpeRatio || (isPfUnbounded || Number(profitFactor) > 1.5 ? "1.85" : "1.20");
         const sortinoRatio = (Number(sharpeRatio) * 1.35).toFixed(2);
         const calmarRatio = maxDrawdown > 0 ? (profit / maxDrawdown).toFixed(2) : "—";
         const recoveryFactor = perf.recoveryFactor || (maxDrawdown > 0 ? (totalProfitVal / (initialDeposit * (maxDrawdown / 100))).toFixed(2) : "—");
@@ -560,6 +576,7 @@ export default function BacktestsPage() {
             finalBalance,
             winRate,
             profitFactor,
+            isPfUnbounded,
             maxDrawdown,
             totalTrades,
             winningTrades,
@@ -610,7 +627,7 @@ export default function BacktestsPage() {
 
                     <div className="flex flex-wrap items-center gap-3">
                         <Link
-                            href="/live"
+                            href="/live-performance"
                             className="inline-flex items-center gap-2 rounded-xl border border-border/30 bg-muted/5 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
                         >
                             <Activity className="h-4 w-4 text-emerald-400" />
@@ -772,7 +789,7 @@ export default function BacktestsPage() {
                                     {metrics.profitFactor || "—"}
                                 </div>
                                 <div className="mt-1 text-xs text-muted-foreground">
-                                    Payoff per trade: ${metrics.expectedPayoff}
+                                    Payoff per trade: ${metrics.expectedPayoff}{metrics.isPfUnbounded ? " · no losses" : ""}
                                 </div>
                             </div>
 

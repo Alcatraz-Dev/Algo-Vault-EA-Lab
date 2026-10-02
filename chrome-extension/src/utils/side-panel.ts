@@ -1,61 +1,83 @@
 /**
  * Open the AlgoVault side panel from an extension page (popup / options).
  *
- * `chrome.sidePanel.open()` must run inside a LIVE user gesture: extension
- * APIs do not carry the gesture across async boundaries, so the call has to
- * happen synchronously inside the click handler. Calling it inside a
- * `chrome.windows.getCurrent` callback (or after any await) loses the gesture
- * and Chrome rejects with "may only be called in response to a user gesture".
+ * Gesture rules (Chrome MV3): `chrome.sidePanel.open()` must run inside a LIVE
+ * user gesture. The gesture survives a `runtime.sendMessage` hop to the
+ * service worker (official Chromium pattern) but does NOT survive promise
+ * boundaries — the SW therefore must be able to call open() SYNCHRONOUSLY in
+ * its onMessage handler, which requires a real windowId to already be known.
  *
- * Strategy:
- *   1. Prime the current window id at mount (async is fine — no gesture yet).
- *   2. On click, call open() synchronously with the cached id.
- *   3. If the direct call is rejected, hand off to the service worker along
- *      with the window id — the SW listener calls open() synchronously too.
+ * Strategy (ordered):
+ *   1. Direct synchronous open() from this page when a real window id is
+ *      cached (popups prime it on mount). This keeps the gesture in-page.
+ *   2. Relay to the service worker, which continuously tracks the last
+ *      focused window via windows.onFocusChanged and can therefore also call
+ *      open() synchronously with a concrete id (never the -2 sentinel —
+ *      WINDOW_ID_CURRENT is NOT a valid sidePanel.open() target).
+ *   3. If both fail (stale window id, API rejection), the SW shows a
+ *      notification — the button is never silently dead.
  */
 
 let cachedWindowId: number | null = null;
 
-/** Call once when an extension page mounts so clicks can open synchronously. */
+/** Call once when an extension page mounts so clicks can pass a real id. */
 export function primeSidePanelWindowId(): void {
   try {
     chrome.windows.getCurrent((win) => {
-      if (win?.id != null) cachedWindowId = win.id;
+      if (win?.id != null && win.id !== chrome.windows.WINDOW_ID_NONE) {
+        cachedWindowId = win.id;
+      }
     });
   } catch {
-    /* popup context without windows access — fallbacks still apply */
+    /* popup context without windows access — SW relay still applies */
+  }
+}
+
+/**
+ * Open the copilot as a DRAGGABLE floating popup on the TradingView tab.
+ *
+ * Preferred surface for the popup's Side Panel button: the panel floats over
+ * the chart, is draggable/resizable and embeds the full side-panel app. When
+ * no TradingView tab acknowledges the toggle (or the SW is unreachable), fall
+ * back to the docked Chrome side panel so the button is never dead.
+ */
+export function openCopilotFloatingPanel(): void {
+  try {
+    chrome.runtime.sendMessage({ type: "TOGGLE_FLOATING_PANEL" }, (resp) => {
+      const delivered = !chrome.runtime.lastError && (resp as { ok?: boolean } | null)?.ok === true;
+      if (!delivered) openSidePanelFromExtensionPage();
+    });
+  } catch {
+    openSidePanelFromExtensionPage();
   }
 }
 
 /** Must be invoked directly from a click handler — do not await before it. */
 export function openSidePanelFromExtensionPage(): void {
-  const fallback = (windowId?: number) => {
-    try {
-      chrome.runtime.sendMessage({ type: "OPEN_SIDE_PANEL", windowId });
-    } catch {
-      /* SW unavailable — nothing else we can do */
-    }
-  };
-
-  const attempt = (windowId: number) => {
-    try {
-      chrome.sidePanel
-        .open({ windowId })
-        .catch(() => fallback(windowId));
-    } catch {
-      fallback(windowId);
-    }
-  };
-
-  // Synchronous path first: cached id, else the CURRENT-window constant
-  // (resolves inside the popup's own browser window; keeps the gesture alive).
+  // 1) Direct synchronous attempt with a REAL window id. Never pass the
+  //    WINDOW_ID_CURRENT (-2) sentinel: sidePanel.open() rejects it.
   if (cachedWindowId != null) {
-    attempt(cachedWindowId);
-    return;
+    try {
+      const result = chrome.sidePanel.open({ windowId: cachedWindowId });
+      Promise.resolve(result).catch(() => {
+        /* rare rejection (e.g. window closed since priming) — the SW relay
+           below already fired with its own tracked id */
+      });
+    } catch {
+      /* API missing or context closing — SW relay below */
+    }
   }
+
+  // 2) Service-worker relay — the gesture rides the message and the SW calls
+  //    open() synchronously using its continuously-tracked focused window.
   try {
-    attempt(chrome.windows.WINDOW_ID_CURRENT);
+    void chrome.runtime.sendMessage({
+      type: "OPEN_SIDE_PANEL",
+      windowId: cachedWindowId ?? undefined,
+    }).catch(() => {
+      /* SW unreachable — nothing else we can do from this context */
+    });
   } catch {
-    fallback();
+    /* SW unavailable */
   }
 }

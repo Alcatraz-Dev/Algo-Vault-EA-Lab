@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Zap } from "lucide-react";
 import { checkHealth, getGatewayStatus, openStrategyLab, runBacktestFromExtension } from "@/api/algovault";
-import { getAuthToken, getCachedContext, getUser } from "@/storage/storage";
+import { getAuthToken, getCachedContext, getUser, getLastView, saveLastView } from "@/storage/storage";
 import type { TradingViewContext, ViewMode } from "@/types";
 import type { EnrichedChartContext } from "@/services/chart-intelligence";
 import { resolveMarketSymbol, classifyMarket } from "@/utils/symbols";
+import { primeSidePanelWindowId } from "@/utils/side-panel";
 import { Header } from "./components/Header";
 import { TabBar, type TabId } from "./components/TabBar";
 import { MainView } from "./components/MainView";
@@ -13,6 +14,7 @@ import { AICopilotView } from "./components/AICopilotView";
 import { RiskView } from "./components/RiskView";
 import { SignalView } from "./components/SignalView";
 import { ExecuteView } from "./components/ExecuteView";
+import { DemoTradingView } from "./components/DemoTradingView";
 import { SignalsListView } from "./components/SignalsListView";
 import { AISignalsView } from "./components/AISignalsView";
 import { SettingsView } from "./components/SettingsView";
@@ -32,6 +34,35 @@ function tabForView(view: ViewMode): TabId {
   return "home";
 }
 
+/**
+ * Views the popup may reopen into. Excluded: quota-driven ephemeral screens
+ * ("ai-signals") and anything only reachable via a live chart action.
+ */
+const RESUMABLE_VIEWS: ReadonlySet<ViewMode> = new Set<ViewMode>([
+  "main",
+  "analysis",
+  "ai-copilot",
+  "risk",
+  "signal",
+  "execute",
+  "quick-order",
+  "signals-list",
+  "demo-trades",
+  "settings",
+]);
+
+function resumableView(raw: string | null): ViewMode | null {
+  if (!raw) return null;
+  const isViewMode = (VIEW_MODE_FALLBACK as readonly string[]).includes(raw);
+  return isViewMode && RESUMABLE_VIEWS.has(raw as ViewMode) ? (raw as ViewMode) : null;
+}
+
+/** Kept in sync with the ViewMode union in @/types — type-level guard. */
+const VIEW_MODE_FALLBACK: readonly ViewMode[] = [
+  "main", "analysis", "ai-copilot", "risk", "signal", "execute", "quick-order",
+  "signals-list", "ai-signals", "demo-trades", "settings", "strategy-intelligence", "diagnostics",
+];
+
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,6 +70,7 @@ export default function App() {
   const [gatewayConnected, setGatewayConnected] = useState(false);
   const [user, setUser] = useState<Record<string, unknown> | null>(null);
   const [context, setContext] = useState<TradingViewContext | null>(null);
+  const [contextTimestamp, setContextTimestamp] = useState<number | null>(null);
   const [enriched, setEnriched] = useState<EnrichedChartContext | null>(null);
   const [view, setView] = useState<ViewMode>("main");
   const [offlineNotice, setOfflineNotice] = useState(false);
@@ -58,6 +90,15 @@ export default function App() {
   const activeSymbol = effectiveContext?.symbol || null;
   const activeTimeframe = effectiveContext?.timeframe || null;
   const activePrice = enriched?.market?.currentPrice ?? effectiveContext?.price ?? null;
+
+  /* Prime the side-panel window id in the popup SHELL, not per-view: the
+     v3.1 popup-resume feature can reopen the popup onto any view, and views
+     without their own priming (Copilot, Execute, Risk, …) previously left
+     the cached id unset — the Side Panel button then lost its direct
+     gesture-safe open path. */
+  useEffect(() => {
+    primeSidePanelWindowId();
+  }, []);
 
   useEffect(() => {
     const init = async () => {
@@ -83,20 +124,33 @@ export default function App() {
           const cached = await getCachedContext();
           if (cached.context?.symbol) {
             setContext(cached.context);
+            setContextTimestamp(cached.timestamp || Date.now());
           }
           // Canonical enriched context from the service worker.
           try {
             chrome.runtime.sendMessage({ type: "GET_AI_READY_CONTEXT" }, (response) => {
               if (response?.enriched) {
                 setEnriched(response.enriched as EnrichedChartContext);
-                if (response.chart?.symbol) setContext(response.chart as TradingViewContext);
+                if (response.chart?.symbol) {
+                  setContext(response.chart as TradingViewContext);
+                  setContextTimestamp(Date.now());
+                }
               }
             });
           } catch { /* SW may be asleep */ }
           // Overlay / context-menu navigation, if any.
           try {
             chrome.runtime.sendMessage({ type: "GET_PENDING_ACTION" }, (response) => {
-              if (response?.action?.view) setView(response.action.view as ViewMode);
+              if (response?.action?.view) {
+                setView(response.action.view as ViewMode);
+                return;
+              }
+              // No pending action → resume where the user last closed the
+              // popup so a reopen continues instead of always landing Home.
+              getLastView().then((last) => {
+                const resume = resumableView(last);
+                if (resume) setView(resume);
+              });
             });
           } catch { /* ignore */ }
         } catch { /* ignore */ }
@@ -111,9 +165,27 @@ export default function App() {
     const listener = (message: { type: string; payload?: unknown }) => {
       if (message.type === "TRADINGVIEW_CONTEXT_UPDATE" && message.payload) {
         setContext(message.payload as TradingViewContext);
+        setContextTimestamp(Date.now());
       }
       if (message.type === "MARKET_CONTEXT_READY" && message.payload) {
         setEnriched(message.payload as EnrichedChartContext);
+      }
+      // Overlay button navigation (Copilot / Alert / Analyze …): navigate
+      // the open popup, disarm the SW's notification watchdog, and clear the
+      // parked action so it can't replay later.
+      if (message.type === "EXTENSION_VIEW_REQUESTED") {
+        const requested = (message.payload as { view?: string } | null)?.view;
+        if (requested) {
+          setView((prev) => {
+            const next = (VIEW_MODE_FALLBACK as readonly string[]).includes(requested)
+              ? (requested as ViewMode)
+              : "main";
+            void chrome.runtime.sendMessage({ type: "ACK_EXTENSION_VIEW" }).catch(() => undefined);
+            void chrome.runtime.sendMessage({ type: "CLEAR_PENDING_ACTION" }).catch(() => undefined);
+            void saveLastView(next);
+            return next;
+          });
+        }
       }
     };
     chrome.runtime?.onMessage?.addListener(listener);
@@ -122,6 +194,12 @@ export default function App() {
 
   const handleAuth = useCallback(() => { setIsAuthenticated(true); setView("main"); }, []);
   const handleLogout = useCallback(() => { setIsAuthenticated(false); setUser(null); setView("main"); }, []);
+
+  /** Persist the last view so the next popup open resumes there. */
+  const handleSetView = useCallback((next: ViewMode) => {
+    setView(next);
+    void saveLastView(next);
+  }, []);
 
   /** Tell the service worker that the user set a manual chart identity so it
    *  can (re)enrich market data for that symbol. */
@@ -224,30 +302,32 @@ export default function App() {
     const ctx = effectiveContext;
     switch (view) {
       case "analysis":
-        return <AnalysisView symbol={sym} context={ctx} onBack={() => setView("main")} />;
+        return <AnalysisView symbol={sym} context={ctx} onBack={() => handleSetView("main")} />;
       case "ai-copilot":
-        return <AICopilotView symbol={sym} context={ctx} onBack={() => setView("main")} onContextChange={handleContextChange} />;
+        return <AICopilotView symbol={sym} context={ctx} onBack={() => handleSetView("main")} onContextChange={handleContextChange} />;
       case "risk":
-        return <RiskView symbol={sym} context={ctx} onBack={() => setView("main")} />;
+        return <RiskView symbol={sym} context={ctx} onBack={() => handleSetView("main")} />;
       case "signal":
-        return <SignalView symbol={sym} context={ctx} onBack={() => setView("main")} />;
+        return <SignalView symbol={sym} context={ctx} onBack={() => handleSetView("main")} />;
       case "execute":
       case "quick-order":
-        return <ExecuteView symbol={sym} context={ctx} onBack={() => setView("main")} />;
+        return <ExecuteView symbol={sym} context={ctx} contextTimestamp={contextTimestamp} onBack={() => handleSetView("main")} />;
+      case "demo-trades":
+        return <DemoTradingView symbol={sym} context={ctx} contextTimestamp={contextTimestamp} onBack={() => handleSetView("main")} />;
       case "signals-list":
-        return <SignalsListView onBack={() => setView("main")} />;
+        return <SignalsListView onBack={() => handleSetView("main")} />;
       case "ai-signals":
         return (
           <AISignalsView
             symbol={sym}
             context={ctx}
             enriched={enriched}
-            onBack={() => setView("main")}
+            onBack={() => handleSetView("main")}
           />
         );
       case "settings":
       case "diagnostics":
-        return <SettingsView onBack={() => setView("main")} onLogout={handleLogout} />;
+        return <SettingsView onBack={() => handleSetView("main")} onLogout={handleLogout} onOpenCopilot={() => handleSetView("ai-copilot")} />;
       default:
         return (
           <MainView
@@ -257,7 +337,7 @@ export default function App() {
             enriched={enriched}
             isHealthy={isHealthy}
             gatewayConnected={gatewayConnected}
-            onNavigate={setView}
+            onNavigate={handleSetView}
             onSelectSymbol={handleSelectSymbol}
             onSelectTimeframe={handleSelectTimeframe}
             onStrategyLab={handleStrategyLab}
@@ -276,8 +356,8 @@ export default function App() {
         isHealthy={isHealthy}
         gatewayConnected={gatewayConnected}
         userEmail={user ? (user.email as string || null) : null}
-        onBack={!isTab ? () => setView("main") : undefined}
-        onSettings={view === "main" ? () => setView("settings") : undefined}
+        onBack={!isTab ? () => handleSetView("main") : undefined}
+        onSettings={view === "main" ? () => handleSetView("settings") : undefined}
       />
       {offlineNotice && (
         <div className="border-b border-amber-500/20 bg-amber-500/10 px-3 py-1.5">
@@ -285,7 +365,7 @@ export default function App() {
         </div>
       )}
       <div className="animate-fade-in min-h-0 flex-1 overflow-y-auto">{renderView()}</div>
-      {isTab && <TabBar active={activeTab} onChange={(tab) => setView(TAB_VIEWS[tab])} />}
+      {isTab && <TabBar active={activeTab} onChange={(tab) => handleSetView(TAB_VIEWS[tab])} />}
     </div>
   );
 }

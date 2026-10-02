@@ -6,6 +6,7 @@ import { buildAIContextMessage } from "@/services/market-service";
 import { getAuthToken } from "@/storage/storage";
 import type { MarketContext, AnalysisResult } from "@/types/market-context";
 import type { ChatMessage, TradingViewContext } from "@/types";
+import { TradingViewPanel } from "./TradingViewPanel";
 
 interface AnalysisViewProps {
   symbol: string | null;
@@ -118,15 +119,40 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
 
   const ctx = result?.marketContext;
   const ai = result?.aiAnalysis;
+  const [showTradingView, setShowTradingView] = useState(false);
 
   return (
     <div className="flex flex-col h-full">
       <div className="border-b border-edge px-3 py-2">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-ink">Chart Intelligence — {symbol || "—"}</span>
-          {context?.timeframe && <span className="rounded border border-edge bg-raised px-1.5 py-0.5 text-[9px] font-bold text-ink-mute">{context.timeframe}</span>}
+          <div className="flex items-center gap-1.5">
+            {context?.timeframe && <span className="rounded border border-edge bg-raised px-1.5 py-0.5 text-[9px] font-bold text-ink-mute">{context.timeframe}</span>}
+            <button
+              onClick={() => setShowTradingView((v) => !v)}
+              className={`rounded border px-1.5 py-0.5 text-[9px] font-bold transition ${
+                showTradingView ? "border-blue-500/40 bg-blue-500/10 text-blue-400" : "border-edge bg-raised text-ink-mute hover:text-ink"
+              }`}
+              title="TradingView external context + unified intelligence panel"
+            >
+              TV+
+            </button>
+          </div>
         </div>
       </div>
+
+      {showTradingView && (
+        <div className="border-b border-edge bg-card p-3">
+          <TradingViewPanel
+            symbol={symbol}
+            timeframe={context?.timeframe ?? null}
+            marketContext={result?.marketContext ?? null}
+            aiSummary={ai?.summary ?? aiReply}
+            loadingAi={loading}
+            onRefreshContext={() => void handleAnalyze()}
+          />
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
         {loading && (

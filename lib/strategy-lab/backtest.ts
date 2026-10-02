@@ -3,6 +3,7 @@ import { SYMBOL_SPECS } from "@/lib/ai-signals/symbol-specs";
 import {
     BacktestConfig,
     BacktestDirection,
+    BacktestDiagnostics,
     BacktestResult,
     BacktestTrade,
     EquityPoint,
@@ -316,6 +317,74 @@ export function evaluateStrategySignal(
     };
 }
 
+// ──────────── Zero-trade diagnostics ─────────────────────────────────────
+
+/**
+ * Mirrors the main loop's gating order (day → session → volatility → regime)
+ * and counts, for every enabled entry/confirmation rule, on how many bars it
+ * passes. Rules with zero passes on considered bars are the reason a backtest
+ * can produce 0 trades — surfaced so the UI can explain exactly that.
+ */
+function computeRuleDiagnostics(
+    strategy: Strategy,
+    seriesMap: Partial<Record<Timeframe, FeatureSeries>>,
+    entryTF: Timeframe,
+    regimeByBar: string[]
+): BacktestDiagnostics {
+    const primary = seriesMap[entryTF];
+    const diagnostics: BacktestDiagnostics = {
+        loopBars: primary?.candles.length ?? 0,
+        sessionBars: 0,
+        regimeBars: 0,
+        rules: [],
+        blockingRuleIds: [],
+    };
+    if (!primary) return diagnostics;
+
+    const { candles, features } = primary;
+    const enabledRules = [
+        ...strategy.entryRules.filter((r) => r.enabled),
+        ...strategy.confirmationRules.filter((r) => r.enabled),
+    ];
+    if (enabledRules.length === 0) return diagnostics;
+
+    diagnostics.rules = enabledRules.map((r) => ({
+        id: r.id,
+        label: r.label,
+        group: r.group,
+        timeframe: r.timeframe ?? null,
+        passes: 0,
+        consideredBars: 0,
+    }));
+
+    for (let i = 0; i < candles.length; i++) {
+        const c = candles[i];
+        const f = features[i];
+        if (strategy.filters.daysOfWeek.length > 0 && !strategy.filters.daysOfWeek.includes(new Date(c.timestamp).getDay())) continue;
+        if (strategy.filters.sessions.length > 0 && f && !(strategy.filters.sessions as string[]).includes(f.session)) continue;
+        diagnostics.sessionBars++;
+        if (strategy.filters.volatilityMinAtrPct > 0 && f && f.atrPct < strategy.filters.volatilityMinAtrPct) continue;
+        if (strategy.filters.volatilityMaxAtrPct > 0 && f && f.atrPct > strategy.filters.volatilityMaxAtrPct) continue;
+        if (strategy.regimeFilter.length > 0 && f) {
+            const currentRegime = regimeByBar[i] ?? "transitional";
+            if (!strategy.regimeFilter.includes(currentRegime as never)) continue;
+        }
+        diagnostics.regimeBars++;
+
+        for (let ri = 0; ri < enabledRules.length; ri++) {
+            const r = enabledRules[ri];
+            const rf = getFeaturesAt(seriesMap, r.timeframe, c.timestamp) ?? f;
+            diagnostics.rules[ri].consideredBars++;
+            if (evaluateRule(r, rf)) diagnostics.rules[ri].passes++;
+        }
+    }
+
+    diagnostics.blockingRuleIds = diagnostics.rules
+        .filter((r) => r.passes === 0 && r.consideredBars > 0)
+        .map((r) => r.id);
+    return diagnostics;
+}
+
 // ──────────── Position simulation ────────────────────────────────────────────
 
 interface OpenPosition {
@@ -406,6 +475,8 @@ export function backtestStrategy(
             if (i % 4 !== 0) regimeByBar[i] = regimeByBar[i - 1];
         }
     }
+
+    const diagnostics = computeRuleDiagnostics(strategy, seriesMap, entryTF, regimeByBar);
 
     let balance = config.initialBalance;
     let peak = balance;
@@ -815,6 +886,7 @@ export function backtestStrategy(
         equity: equityPoints,
         coverage,
         symbols: [symbol],
+        diagnostics,
     };
 }
 
@@ -860,5 +932,6 @@ function emptyResult(strategy: Strategy, symbol: SupportedSymbol, config: Backte
             maxSourceBars: 0,
         },
         symbols: [symbol],
+        diagnostics: { loopBars: 0, sessionBars: 0, regimeBars: 0, rules: [], blockingRuleIds: [] },
     };
 }

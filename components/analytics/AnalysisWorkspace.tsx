@@ -25,7 +25,8 @@ import { auth } from "@/lib/firebase";
 import { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 import { useLiveQuote } from "@/hooks/useLiveCandles";
 import { ProTerminalChart } from "@/components/pro-scalping-terminal/ProTerminalChart";
-import type { ChartLayerId } from "@/components/pro-scalping-terminal/chart-layers";
+import { defaultLayerState, staticLayerAvailability, type ChartLayerId } from "@/components/pro-scalping-terminal/chart-layers";
+import { LayerPicker } from "@/components/pro-scalping-terminal/LayerPicker";
 
 import MarketHeader from "@/components/analytics/MarketHeader";
 import MarketStructurePanel from "@/components/analytics/MarketStructurePanel";
@@ -177,7 +178,10 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
     const [positions, setPositions] = useState<MT5Position[]>([]);
     const [positionsLoading, setPositionsLoading] = useState(false);
     const [layersOpen, setLayersOpen] = useState(false);
-    const [chartLayers, setChartLayers] = useState<Record<ChartLayerId, boolean>>({
+    const [chartLayers, setChartLayers] = useState<Record<ChartLayerId, boolean>>(() => ({
+        // Full layer map from the shared vocabulary (keeps every layer id
+        // defined), with this workspace's defaults applied over it.
+        ...defaultLayerState(),
         volume: true,
         vwap: true,
         sessionLevels: false,
@@ -188,7 +192,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
         bosChoch: false,
         liquidityLevels: false,
         equalHighsLows: false,
-    });
+    }));
     const [intelligence, setIntelligence] = useState<import("@/lib/ai/analysis/intelligence").AdvancedAnalysisResult | null>(null);
     // Live price for the Bid/Ask cards — polls the shared quote endpoint so
     // the header numbers tick between full analytics refreshes (which stay on
@@ -458,23 +462,8 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                                         {ohlcData?.candleCount ?? 0} candles
                                     </span>
                                     {layersOpen ? (
-                                        <div className="flex flex-wrap gap-1.5 rounded-lg border border-border bg-card p-2">
-                                            {(Object.keys(chartLayers) as ChartLayerId[]).map((id) => (
-                                                <button
-                                                    key={id}
-                                                    type="button"
-                                                    onClick={() => setChartLayers((prev) => ({ ...prev, [id]: !prev[id] }))}
-                                                    aria-pressed={chartLayers[id]}
-                                                    className={cn(
-                                                        "rounded-md border px-2 py-0.5 text-xs transition",
-                                                        chartLayers[id]
-                                                            ? "border-primary/40 bg-primary/10 text-primary"
-                                                            : "border-border bg-background text-muted-foreground hover:text-foreground"
-                                                    )}
-                                                >
-                                                    {id.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase())}
-                                                </button>
-                                            ))}
+                                        <div className="rounded-lg border border-border bg-card p-2">
+                                            <LayerPicker compact layers={chartLayers} availability={staticLayerAvailability()} onToggle={(id) => setChartLayers((prev) => ({ ...prev, [id]: !prev[id] }))} />
                                         </div>
                                     ) : null}
                                 </div>

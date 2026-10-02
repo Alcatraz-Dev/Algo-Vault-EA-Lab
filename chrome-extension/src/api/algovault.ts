@@ -1,4 +1,4 @@
-import { getAuthToken, getSettings } from "@/storage/storage";
+import { getAuthToken, getSettings, getServerInstallId } from "@/storage/storage";
 import type {
   ChartAnalysis,
   Signal,
@@ -69,18 +69,30 @@ export async function getGatewayStatus(): Promise<GatewayStatus> {
     success: boolean;
     accounts: Array<{
       accountId: string;
-      accountNumber: string;
-      broker: string;
-      server: string;
-      balance: number;
-      equity: number;
-      currency: string;
+      // Server historically sent `mt5Account`; newer deployments send
+      // `accountNumber` too. Accept both so the MT5 login number always
+      // renders in the Trade Ticket account selector.
+      accountNumber?: string;
+      mt5Account?: string;
+      broker?: string;
+      server?: string;
+      balance?: number;
+      equity?: number;
+      currency?: string;
     }>;
-    license: { valid: boolean };
+    license?: { valid?: boolean };
   }>("/api/trading/gateway/status");
   return {
     connected: data.accounts?.length > 0,
-    accounts: data.accounts || [],
+    accounts: (data.accounts || []).map((a) => ({
+      accountId: a.accountId,
+      accountNumber: a.accountNumber || a.mt5Account || "",
+      broker: a.broker || "",
+      server: a.server || "",
+      balance: a.balance ?? 0,
+      equity: a.equity ?? 0,
+      currency: a.currency || "",
+    })),
     licenseValid: data.license?.valid ?? false,
   };
 }
@@ -208,6 +220,95 @@ export async function getAISignals(
   return data.signals || [];
 }
 
+/* ── extension free daily signals (server-enforced quota) ───────────── */
+
+export interface ExtensionQuota {
+  used: number;
+  limit: number;
+  remaining: number;
+  day: string;
+  mode: "user" | "install";
+}
+
+export interface ExtensionStoredState {
+  quota: ExtensionQuota;
+  signals: Array<{
+    symbol: string;
+    direction: string;
+    timeframe: string;
+    entry: number;
+    stopLoss: number;
+    stopLossReachedAt?: number;
+    takeProfit1: number;
+    takeProfit2: number;
+    takeProfit3: number;
+    confidence: number;
+    setup: string;
+    reasoning: string;
+    createdAt: number;
+    riskReward?: number;
+    chartEvidence?: string[];
+    chartLevels?: Array<{ kind: string; label: string; price: number }>;
+  }>;
+  symbols: string[];
+}
+
+export async function getExtensionDailySignalsState(): Promise<ExtensionStoredState | null> {
+  const base = await getBaseUrl();
+  const token = await getAuthToken();
+  let installId: string | null = null;
+  if (!token) {
+    installId = await getServerInstallId();
+    if (!installId) return null; // no binding yet — local-only fallback
+  }
+  const params = new URLSearchParams();
+  if (installId) params.set("installId", installId);
+  const res = await fetch(`${base}/api/extension/daily-signals?${params}`, {
+    headers: await authHeaders(),
+    method: "GET",
+  });
+  if (!res.ok) return null; // caller falls back to local quota
+  const data = (await res.json()) as {
+    success: boolean;
+    used: number;
+    limit: number;
+    remaining: number;
+    day: string;
+    mode: "user" | "install";
+    signals?: ExtensionStoredState["signals"];
+    symbols?: string[];
+  };
+  if (!data.success) return null;
+  return {
+    quota: { used: data.used, limit: data.limit, remaining: data.remaining, day: data.day, mode: data.mode },
+    signals: Array.isArray(data.signals) ? data.signals : [],
+    symbols: Array.isArray(data.symbols) ? data.symbols.map((s) => String(s).toUpperCase()) : [],
+  };
+}
+
+export interface ExtensionGenerateResponse {
+  success: boolean;
+  signals: ExtensionStoredState["signals"];
+  generated: number;
+  remaining?: number;
+  note?: string;
+}
+
+export async function generateSignalsOnServer(
+  symbols: string[],
+  context: string
+): Promise<ExtensionGenerateResponse> {
+  const base = await getBaseUrl();
+  const token = await getAuthToken();
+  const body: Record<string, unknown> = { symbols };
+  if (!token) {
+    const installId = await getServerInstallId();
+    if (installId) body.installId = installId;
+  }
+  if (context) body.context = context;
+  return apiPost<ExtensionGenerateResponse>("/api/extension/daily-signals", body);
+}
+
 export async function executeAISignal(
   signalId: string,
   accountId?: string,
@@ -294,6 +395,35 @@ export async function placeOrder(order: {
   clientOrderId?: string;
 }): Promise<{ success: boolean; order: { clientOrderId: string; status: string } }> {
   return apiPost("/api/trading/orders", order as Record<string, unknown>);
+}
+
+export interface OrderStatus {
+  status: string;
+  mt5Ticket?: string;
+  executionPrice?: number;
+  errorMessage?: string;
+}
+
+/**
+ * Live status of a queued order: the gateway EA reports back through
+ * /api/trading/gateway/execution, which updates the stored order with the
+ * terminal status, the real MT5 ticket and the execution price. The Trade
+ * Ticket polls this until a terminal state (or a timeout).
+ */
+export async function getOrderStatus(clientOrderId: string): Promise<OrderStatus | null> {
+  const data = await apiGet<{
+    orders: Array<Record<string, unknown>>;
+  }>(`/api/trading/orders?clientOrderId=${encodeURIComponent(clientOrderId)}`);
+
+  const order = data.orders?.find((o) => String(o.clientOrderId || "") === clientOrderId);
+  if (!order) return null;
+
+  return {
+    status: String(order.status || ""),
+    mt5Ticket: order.mt5Ticket ? String(order.mt5Ticket) : undefined,
+    executionPrice: Number(order.executionPrice || 0) || undefined,
+    errorMessage: order.errorMessage ? String(order.errorMessage) : undefined,
+  };
 }
 
 export async function getStrategies(): Promise<

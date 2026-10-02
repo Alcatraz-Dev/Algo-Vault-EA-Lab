@@ -3,13 +3,21 @@
   "name": "AlgoVault Trading Intelligence",
   "description": "AI chart copilot for TradingView: side-panel chat with per-symbol memory, on-chart AI research, smart drawings, price alerts, chart automation and live market intelligence.",
   "version": "3.0.0",
-  "icons": { "16": "icons/icon16.svg", "32": "icons/icon32.svg", "48": "icons/icon48.svg", "128": "icons/icon128.svg" },
+  "icons": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
   "permissions": ["storage", "activeTab", "contextMenus", "tabs", "notifications", "alarms", "sidePanel", "scripting"],
-  "host_permissions": ["http://localhost:3000/*", "https://algovault.dev/*", "https://www.algovault.dev/*", "https://*.tradingview.com/*"],
+  "host_permissions": [
+    "http://localhost:3000/*",
+    "https://algovault.dev/*",
+    "https://www.algovault.dev/*",
+    "https://*.tradingview.com/*"
+  ],
+  "externally_connectable": {
+    "matches": ["http://localhost:3000/*", "https://algovault.dev/*", "https://www.algovault.dev/*"]
+  },
   "background": { "service_worker": "background/service-worker.js", "type": "module" },
   "action": {
     "default_popup": "popup/index.html",
-    "default_icon": { "16": "icons/icon16.svg", "32": "icons/icon32.svg", "48": "icons/icon48.svg", "128": "icons/icon128.svg" },
+    "default_icon": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
     "default_title": "AlgoVault Trading Intelligence"
   },
   "side_panel": { "default_path": "sidepanel/index.html" },
@@ -17,9 +25,11 @@
     { "matches": ["https://*.tradingview.com/*"], "js": ["content/tradingview.js"], "run_at": "document_idle" },
     { "matches": ["https://*.tradingview.com/*"], "js": ["content/overlay.js"], "run_at": "document_idle" },
     { "matches": ["https://*.tradingview.com/*"], "js": ["content/chart-commands.js"], "run_at": "document_idle" },
-    { "matches": ["https://*.tradingview.com/*"], "js": ["content/chart-drawings.js"], "run_at": "document_idle" }
+    { "matches": ["https://*.tradingview.com/*"], "js": ["content/chart-drawings.js"], "run_at": "document_idle" },
+    { "matches": ["https://*.tradingview.com/*"], "js": ["content/quick-launcher.js"], "run_at": "document_idle", "all_frames": false },
+    { "matches": ["https://*.tradingview.com/*"], "js": ["content/floating-panel.js"], "run_at": "document_idle", "all_frames": false }
   ],
   "options_page": "options/index.html",
-  "web_accessible_resources": [{ "resources": ["icons/*"], "matches": ["https://*.tradingview.com/*"] }],
+  "web_accessible_resources": [{ "resources": ["icons/*", "logos/*", "sidepanel/*", "assets/*"], "matches": ["https://*.tradingview.com/*"] }],
   "content_security_policy": { "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline'" }
 }

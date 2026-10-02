@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { getSettings, saveSettings } from "@/storage/storage";
 import type { TradingViewContext } from "@/types";
-import { Card, Field, GhostButton, inputClass, ViewHeader } from "./ui";
+import { BackButton, Card, Field, inputClass, ViewHeader } from "./ui";
 
 interface RiskViewProps {
   symbol: string | null;
@@ -15,7 +15,7 @@ export function RiskView({ symbol, context, onBack }: RiskViewProps) {
   const displaySymbol = context?.symbol || symbol;
   const livePrice = context?.price ?? null;
 
-  const [accountSize, setAccountSize] = useState("10000");
+  const [accountSizeText, setAccountSizeText] = useState("10000");
   const [riskPercent, setRiskPercent] = useState("1");
   const [side, setSide] = useState<Side>("long");
   const [entry, setEntry] = useState("");
@@ -26,7 +26,7 @@ export function RiskView({ symbol, context, onBack }: RiskViewProps) {
   /* Load persisted trader defaults (account size + risk %). */
   useEffect(() => {
     getSettings().then((s) => {
-      setAccountSize(String(s.accountSize ?? 10000));
+      setAccountSizeText(String(s.accountSize ?? 10000));
       setRiskPercent(String(s.defaultRiskPercent ?? 1));
     });
   }, []);
@@ -36,17 +36,18 @@ export function RiskView({ symbol, context, onBack }: RiskViewProps) {
     if (livePrice != null) setEntry(String(livePrice));
   }, [livePrice]);
 
-  /* Persist defaults when they change. */
-  useEffect(() => {
-    const acc = parseFloat(accountSize);
-    const risk = parseFloat(riskPercent);
-    if (acc > 0 && risk > 0) {
-      saveSettings({ accountSize: acc, defaultRiskPercent: risk });
+  /* Keep the raw text in state so partial input like "5." or "500" is never
+     clobbered while typing; parse only for math + persistence. */
+  const handleAccountSizeChange = (raw: string) => {
+    setAccountSizeText(raw);
+    const value = parseFloat(raw);
+    if (Number.isFinite(value) && value > 0) {
+      saveSettings({ accountSize: value }).catch(() => {});
     }
-  }, [accountSize, riskPercent]);
+  };
 
   const calc = useMemo(() => {
-    const acc = parseFloat(accountSize) || 0;
+    const acc = parseFloat(accountSizeText) || 0;
     const risk = parseFloat(riskPercent) || 0;
     const e = parseFloat(entry) || 0;
     const sl = parseFloat(stopLoss) || 0;
@@ -68,7 +69,7 @@ export function RiskView({ symbol, context, onBack }: RiskViewProps) {
     const tpValid = tpv > 0 && slSideOk && (isLong ? tpv > e : tpv < e);
 
     return { riskAmount, stopDistance, rewardDistance, riskReward, lotSize, slSideOk, tpSuggested, tpValid, isLong };
-  }, [accountSize, riskPercent, entry, stopLoss, tp, rrTarget, side]);
+  }, [accountSizeText, riskPercent, entry, stopLoss, tp, rrTarget, side]);
 
   const effDir = calc.isLong ? "bullish" : "bearish";
 
@@ -98,7 +99,7 @@ export function RiskView({ symbol, context, onBack }: RiskViewProps) {
 
         <div className="grid grid-cols-2 gap-2">
           <Field label="Account ($)">
-            <input type="number" value={accountSize} onChange={(e) => setAccountSize(e.target.value)} className={inputClass} />
+            <input type="number" inputMode="decimal" min={1} step="any" value={accountSizeText} onChange={(e) => handleAccountSizeChange(e.target.value)} className={inputClass} />
           </Field>
           <Field label="Risk (%)">
             <input type="number" step="0.1" value={riskPercent} onChange={(e) => setRiskPercent(e.target.value)} className={inputClass} />
@@ -159,8 +160,8 @@ export function RiskView({ symbol, context, onBack }: RiskViewProps) {
         </p>
       </div>
 
-      <div className="border-t border-edge px-3 py-2">
-        <GhostButton onClick={onBack}>Back</GhostButton>
+      <div className="flex items-center border-t border-edge bg-card/60 px-3 py-2">
+        <BackButton onClick={onBack} />
       </div>
     </div>
   );
