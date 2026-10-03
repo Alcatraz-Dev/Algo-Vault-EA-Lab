@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
     Activity,
@@ -922,7 +922,9 @@ export default function AccountSettingsPage() {
                 {/* TAB: INTEGRATIONS (TradingView MCP) */}
                 {activeTab === "integrations" && (
                     <div className="grid gap-6">
-                        <TradingViewIntegrationCard user={user} showToast={showToast} />
+                        <Suspense fallback={null}>
+                            <TradingViewIntegrationCard user={user} showToast={showToast} />
+                        </Suspense>
                         <OrderFlowSettingsCard />
                     </div>
                 )}

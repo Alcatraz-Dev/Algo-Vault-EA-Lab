@@ -191,7 +191,17 @@ export interface TicketInput {
 
 export function validateTicket(t: TicketInput): { ok: boolean; error?: string } {
   const { side, kind, live, entry, sl, tp } = t;
-  if (entry <= 0) return { ok: false, error: "Entry price is required." };
+
+  // For market orders, entry price is optional as live market price is used automatically.
+  const effectiveEntry = (kind === "market" && entry <= 0) ? live : entry;
+
+  if (kind !== "market" && effectiveEntry <= 0) {
+    return { ok: false, error: `Entry price is required for ${kind.toUpperCase()} orders.` };
+  }
+  if (kind === "market" && effectiveEntry <= 0) {
+    return { ok: false, error: "Live market price is missing." };
+  }
+
   if (sl > 0 && tp > 0 && tp === sl) {
     return { ok: false, error: "Take profit and stop loss cannot be the same price." };
   }
@@ -206,24 +216,24 @@ export function validateTicket(t: TicketInput): { ok: boolean; error?: string } 
 
   if (kind === "limit" && live > 0) {
     // Buy limit must sit below the market, sell limit above it.
-    if (side === "BUY" && entry >= buyBoundary)
+    if (side === "BUY" && effectiveEntry >= buyBoundary)
       return { ok: false, error: `BUY LIMIT must be below the bid (≤ ${buyBoundary.toFixed(5)}). Use a STOP above.` };
-    if (side === "SELL" && entry <= sellBoundary)
+    if (side === "SELL" && effectiveEntry <= sellBoundary)
       return { ok: false, error: `SELL LIMIT must be above the ask (≥ ${sellBoundary.toFixed(5)}). Use a STOP below.` };
   }
   if (kind === "stop" && live > 0) {
-    if (side === "BUY" && entry <= buyBoundary)
+    if (side === "BUY" && effectiveEntry <= buyBoundary)
       return { ok: false, error: `BUY STOP must be above the ask (≥ ${buyBoundary.toFixed(5)}). Use a LIMIT below.` };
-    if (side === "SELL" && entry >= sellBoundary)
+    if (side === "SELL" && effectiveEntry >= sellBoundary)
       return { ok: false, error: `SELL STOP must be below the bid (≤ ${sellBoundary.toFixed(5)}). Use a LIMIT above.` };
   }
   if (sl > 0) {
-    if (side === "BUY" && sl >= entry) return { ok: false, error: "Stop loss must be below the entry for a BUY." };
-    if (side === "SELL" && sl <= entry) return { ok: false, error: "Stop loss must be above the entry for a SELL." };
+    if (side === "BUY" && sl >= effectiveEntry) return { ok: false, error: "Stop loss must be below the entry for a BUY." };
+    if (side === "SELL" && sl <= effectiveEntry) return { ok: false, error: "Stop loss must be above the entry for a SELL." };
   }
   if (tp > 0) {
-    if (side === "BUY" && tp <= entry) return { ok: false, error: "Take profit must be above the entry for a BUY." };
-    if (side === "SELL" && tp >= entry) return { ok: false, error: "Take profit must be below the entry for a SELL." };
+    if (side === "BUY" && tp <= effectiveEntry) return { ok: false, error: "Take profit must be above the entry for a BUY." };
+    if (side === "SELL" && tp >= effectiveEntry) return { ok: false, error: "Take profit must be below the entry for a SELL." };
   }
   return { ok: true };
 }
@@ -300,13 +310,15 @@ export function placeDemoOrder(args: PlaceDemoOrderArgs): { state: DemoState; po
   const tp = args.tp && args.tp > 0 ? args.tp : undefined;
   const commission = round2(commissionFor(state, lots));
 
+  const entryPrice = args.entry > 0 ? args.entry : (side === "BUY" ? quote.ask : quote.bid);
+
   const base: DemoPosition = {
     id: nextId(),
     symbol,
     side,
     kind,
     lots,
-    entry: args.entry,
+    entry: entryPrice,
     sl,
     tp,
     commission,

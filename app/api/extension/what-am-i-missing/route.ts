@@ -19,6 +19,7 @@ import { detectStructure, getOverallStructureBias } from "@/lib/analytics/market
 import { detectLiquidity } from "@/lib/analytics/liquidity";
 import { computeSeriesIndicator } from "@/lib/analytics/indicators";
 import { SUPPORTED_SYMBOLS, type SupportedSymbol, type Timeframe } from "@/lib/market-data/types";
+import { normalizeSymbol, normalizeTimeframe } from "@/lib/market-data/normalize-input";
 import type { MissingPoint } from "@/types/pro";
 
 export const runtime = "nodejs";
@@ -76,8 +77,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = (await request.json().catch(() => ({}))) as { symbol?: string; timeframe?: string };
-    const symbol = (typeof body.symbol === "string" ? body.symbol.trim() : "").toUpperCase();
-    const timeframe = typeof body.timeframe === "string" && body.timeframe.trim() ? body.timeframe.trim() : "H1";
+    const symbol = normalizeSymbol(body.symbol);
+    const timeframe = normalizeTimeframe(body.timeframe);
 
     if (!symbol || !isSupportedSymbol(symbol)) {
       return NextResponse.json(

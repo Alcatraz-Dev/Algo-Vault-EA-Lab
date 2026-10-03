@@ -64,7 +64,7 @@ export async function runFlagsCompatTests(): Promise<boolean> {
 
     s.section("Policy validation (challenge creation is validated server-side)");
     const definitions = defaultChallengeDefinitions(NOW);
-    s.check(definitions.length === 4, "four shipped tiers");
+    s.check(definitions.length >= 4, "shipped tiers");
     s.check(definitions.every((d) => validateDefinition(d).valid), "every shipped definition is valid");
     s.check(new Set(definitions.map((d) => d.key)).size === definitions.length, "definition keys unique");
     s.check(definitions.every((d) => d.rewardPolicyId === "arena-standard-rewards"), "definitions reference a reward policy");

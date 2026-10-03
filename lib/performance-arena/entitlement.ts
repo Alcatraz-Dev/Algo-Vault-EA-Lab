@@ -36,6 +36,10 @@ export interface EntitlementDeps {
      * A missing wallet must resolve to 0 points (fail-closed, no free entry).
      */
     getWalletPoints: (uid: string) => Promise<number>;
+    /**
+     * Check if user has an unconsumed paid challenge grant for a paid definition.
+     */
+    checkPaidChallengeGrant?: (uid: string, definitionId: string) => Promise<boolean>;
 }
 
 export async function evaluateEntitlement(
@@ -59,13 +63,14 @@ export async function evaluateEntitlement(
         }
 
         case "paid": {
-            // Paid challenges are OFF by default (ARENA_PAID_CHALLENGES_ENABLED
-            // = false) until the per-challenge checkout flow is wired into the
-            // existing Stripe billing. When enabled, entitlement still comes
-            // from the billing-verified Pro/license check — never from the
-            // client. See docs/PERFORMANCE_ARENA.md §Monetization.
             if (!isPaidChallengesEnabled()) {
                 return { allowed: false, reason: "Paid challenges are not available yet." };
+            }
+            if (deps.checkPaidChallengeGrant) {
+                const hasGrant = await deps.checkPaidChallengeGrant(uid, definition.id);
+                if (hasGrant) {
+                    return { allowed: true, level: "paid" };
+                }
             }
             const access = await deps.checkEntitlement(uid);
             return access.accessible

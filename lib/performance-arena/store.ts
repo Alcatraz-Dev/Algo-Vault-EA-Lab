@@ -426,3 +426,25 @@ export async function bumpApiActivity(uid: string, now = Date.now()): Promise<nu
     const result = await ref.transaction((current) => (Number(current ?? 0) + 1));
     return Number(result.snapshot.val() ?? 0);
 }
+
+// ──────────── Paid Challenge Grants ──────────────────────────────────────────
+
+export interface PaidChallengeGrant {
+    uid: string;
+    definitionId: string;
+    orderId: string;
+    amountCents: number;
+    grantedAt: number;
+    consumed: boolean;
+    attemptId?: string;
+}
+
+export async function getPaidGrant(uid: string, definitionId: string): Promise<PaidChallengeGrant | null> {
+    const snap = await adminDatabase.ref(`${ARENA_ROOT}/paidGrants/${uid}/${rtdbKey(definitionId)}`).get();
+    return (snap.val() as PaidChallengeGrant | null) ?? null;
+}
+
+export async function savePaidGrant(grant: PaidChallengeGrant): Promise<void> {
+    await adminDatabase.ref(`${ARENA_ROOT}/paidGrants/${grant.uid}/${rtdbKey(grant.definitionId)}`).set(grant);
+}
+

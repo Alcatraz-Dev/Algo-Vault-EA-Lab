@@ -84,7 +84,13 @@ export async function detectTradingViewAccount(force = false): Promise<TradingVi
   let accountInfo: TradingViewAccountInfo;
 
   if (gatewayConnected && gatewayAccount) {
-    const isLive = String(gatewayAccount.accountNumber || "").includes("LIVE") || domContext.mode === "LIVE";
+    // Determine live vs demo from the gateway's explicit accountType field first,
+    // then fall back to DOM context. Never guess from account number strings.
+    const gwAccountType = String(gatewayAccount.accountType || "").toUpperCase();
+    const isLive =
+      gwAccountType === "LIVE" ||
+      gwAccountType === "REAL" ||
+      domContext.mode === "LIVE";
     const mode: AccountMode = domContext.mode !== "UNKNOWN" ? domContext.mode : isLive ? "LIVE" : "DEMO";
 
     accountInfo = {

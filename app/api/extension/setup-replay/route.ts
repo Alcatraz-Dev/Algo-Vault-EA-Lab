@@ -12,6 +12,7 @@ import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
 import { fetchCandles } from "@/lib/market-data/normalizer";
 import { detectStructure, getOverallStructureBias } from "@/lib/analytics/market-structure";
 import { SUPPORTED_SYMBOLS, type SupportedSymbol, type Timeframe } from "@/lib/market-data/types";
+import { normalizeSymbol, normalizeTimeframe } from "@/lib/market-data/normalize-input";
 import type { HistoricalMatch, SetupReplayResponse } from "@/types/pro";
 
 export const runtime = "nodejs";
@@ -65,8 +66,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = (await request.json().catch(() => ({}))) as { symbol?: string; timeframe?: string };
-    const symbol = (typeof body.symbol === "string" ? body.symbol.trim() : "").toUpperCase();
-    const timeframe = typeof body.timeframe === "string" && body.timeframe.trim() ? body.timeframe.trim() : "H1";
+    const symbol = normalizeSymbol(body.symbol);
+    const timeframe = normalizeTimeframe(body.timeframe);
 
     if (!symbol || !SUPPORTED_SET.has(symbol)) {
       return NextResponse.json(

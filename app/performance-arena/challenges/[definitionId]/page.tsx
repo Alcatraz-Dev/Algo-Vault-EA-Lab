@@ -61,6 +61,20 @@ export default function ChallengeDetailPage() {
         setJoining(true);
         setError(null);
         try {
+            if (detail.definition.access.model === "paid" && !detail.access.allowed) {
+                const res = await fetch("/api/performance-arena/checkout", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({ definitionId: detail.definition.id }),
+                });
+                const body = (await res.json()) as { checkoutUrl?: string; error?: string };
+                if (!res.ok) throw new Error(body.error ?? "Failed to create checkout session.");
+                if (body.checkoutUrl) {
+                    window.location.href = body.checkoutUrl;
+                    return;
+                }
+            }
+
             const res = await fetch("/api/performance-arena/attempts", {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -75,6 +89,10 @@ export default function ChallengeDetailPage() {
             setJoining(false);
         }
     };
+
+    const priceText = detail?.definition.access.priceCents
+        ? `$${(detail.definition.access.priceCents / 100).toFixed(2)}`
+        : "$29.00";
 
     return (
         <AppShell navGroups={navGroups} title="Challenge details" eyebrow={<SimulatedBadge />} maxWidth="max-w-5xl">
@@ -127,14 +145,20 @@ export default function ChallengeDetailPage() {
                                 <p className="flex items-center gap-1.5">
                                     <Coins className="h-3 w-3" /> Rewards: AV Points, Pro days, AI credits, research runs, badges (configurable, non-cash)
                                 </p>
-                                <p>Access: {detail.definition.access.model}{detail.definition.access.pricePoints ? ` — ${detail.definition.access.pricePoints} AV Points` : ""}</p>
+                                <p>Access: {detail.definition.access.model}{detail.definition.access.model === "paid" ? ` (${priceText})` : ""}{detail.definition.access.pricePoints ? ` — ${detail.definition.access.pricePoints} AV Points` : ""}</p>
                             </div>
                             <div className="flex items-center gap-2">
                                 {detail.activeAttemptId ? (
                                     <Button onClick={() => router.push(`/account/performance-arena/attempts/${detail.activeAttemptId}`)}>Continue attempt</Button>
                                 ) : (
-                                    <Button disabled={!detail.access.allowed || joining} onClick={() => void join()}>
-                                        {joining ? "Joining…" : "Join challenge"}
+                                    <Button disabled={joining} onClick={() => void join()}>
+                                        {joining
+                                            ? "Processing…"
+                                            : detail.access.allowed
+                                            ? "Join challenge"
+                                            : detail.definition.access.model === "paid"
+                                            ? `Buy Challenge (${priceText})`
+                                            : "Locked"}
                                     </Button>
                                 )}
                             </div>

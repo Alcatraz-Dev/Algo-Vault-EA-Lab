@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
         const alert: Omit<Alert, "id"> = {
             symbol: symbol.toUpperCase(),
             type,
-            targetPrice: targetPrice ? Number(targetPrice) : undefined,
+            ...(targetPrice != null && targetPrice !== "" ? { targetPrice: Number(targetPrice) } : {}),
             timeframe: timeframe || "H1",
             message: message || `${type} alert for ${symbol}`,
             notifyDiscord: notifyDiscord !== false,

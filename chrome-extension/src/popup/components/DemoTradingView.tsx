@@ -145,7 +145,9 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
 
   /* ── ticket math (identical rules to the real ticket) ────────────── */
   const calc = useMemo(() => {
-    const e = parseFloat(entry) || 0;
+    const rawE = parseFloat(entry) || 0;
+    const live = midPrice || livePrice || 0;
+    const e = orderKind === "market" ? (rawE > 0 ? rawE : live) : rawE;
     const stop = parseFloat(sl) || 0;
     const target = parseFloat(tp) || 0;
     const isLong = direction === "BUY";
@@ -158,24 +160,24 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
     const tpValid = target > 0 && stop > 0 && (isLong ? target > e : target < e);
     const rewardDistance = tpValid ? Math.abs(target - e) : 0;
     const riskReward = stopDistance > 0 && rewardDistance > 0 ? rewardDistance / stopDistance : 0;
-    const riskLots = stopDistance > 0 ? riskAmount / (stopDistance * 10) : 0;
-    const volume = sizingMode === "risk" ? riskLots : fixedLotsNum;
+    const riskLots = (sizingMode === "risk" && stopDistance > 0) ? riskAmount / (stopDistance * 10) : 0;
+    const volume = sizingMode === "risk" && stopDistance > 0 ? riskLots : (fixedLotsNum > 0 ? fixedLotsNum : 0.10);
 
     const validation = validateTicket({
-      side: direction, kind: orderKind, live: midPrice, spread, entry: e, sl: stop, tp: target,
+      side: direction, kind: orderKind, live: midPrice, spread, entry: rawE, sl: stop, tp: target,
     });
 
     return {
-      isLong, riskAmount, stopDistance, riskReward,
+      isLong, riskAmount: stopDistance > 0 ? riskAmount : 0, stopDistance, riskReward,
       volume: Math.max(0.01, Math.round(volume * 100) / 100),
       entryNum: e, slNum: stop, tpNum: target,
       ticketError: validation.ok ? null : validation.error ?? null,
     };
-  }, [direction, orderKind, entry, sl, tp, riskPercent, fixedLots, sizingMode, midPrice, spread, demo, quote]);
+  }, [direction, orderKind, entry, sl, tp, riskPercent, fixedLots, sizingMode, midPrice, livePrice, spread, demo, quote]);
 
   const needsStop = sizingMode === "risk";
   const market = orderKind === "market";
-  const canPreview = !!demo && entry !== "" && !calc.ticketError && calc.volume > 0 && (!needsStop || calc.slNum > 0);
+  const canPreview = !!demo && (market || calc.entryNum > 0) && !calc.ticketError && calc.volume > 0;
 
   /* Auto-flip SL/TP when the trader reverses BUY↔SELL: keep the same
      *distances* across the entry, otherwise the SL/TP sit on the wrong side
@@ -193,13 +195,14 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
   /* Set the SL so a 0.01 lot move equals the chosen $ risk, given the
      current entry. Compact one-tap "risk $10 / $25 / $50 / $100" presets. */
   const setQuickRisk = (usd: number) => {
-    if (calc.entryNum <= 0) {
-      setFeedback({ kind: "info", msg: "Enter an entry price first." });
+    const entryPriceNum = calc.entryNum > 0 ? calc.entryNum : midPrice;
+    if (entryPriceNum <= 0) {
+      setFeedback({ kind: "info", msg: "Awaiting live market price." });
       return;
     }
     const lots = Math.max(0.01, parseFloat(fixedLots) || 0.01);
     const distance = usd / (lots * 10);
-    const slPrice = direction === "BUY" ? calc.entryNum - distance : calc.entryNum + distance;
+    const slPrice = direction === "BUY" ? entryPriceNum - distance : entryPriceNum + distance;
     setSl(slPrice.toFixed(slPrice >= 100 ? 2 : 5));
   };
 

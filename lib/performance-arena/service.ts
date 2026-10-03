@@ -187,6 +187,10 @@ export async function evaluateAccess(uid: string, definition: ChallengeDefinitio
     return evaluateEntitlement(uid, definition, {
         checkEntitlement: checkAccess,
         getWalletPoints: async (userId) => (await store.getWallet(userId))?.avPoints ?? 0,
+        checkPaidChallengeGrant: async (userId, defId) => {
+            const grant = await store.getPaidGrant(userId, defId);
+            return !!grant && !grant.consumed;
+        },
     });
 }
 
@@ -271,6 +275,14 @@ export async function joinChallenge(uid: string, definitionId: string): Promise<
 
     const now = Date.now();
     const attemptId = store.newArenaId("att");
+
+    // Paid model: mark grant as consumed when joined via a purchased grant.
+    if (definition.access.model === "paid") {
+        const grant = await store.getPaidGrant(uid, definition.id);
+        if (grant && !grant.consumed) {
+            await store.savePaidGrant({ ...grant, consumed: true, attemptId });
+        }
+    }
 
     // Points-priced entry: debit AV Points idempotently BEFORE creating the
     // attempt (deterministic spend id keyed to this attempt).

@@ -89,6 +89,7 @@ const STATE_CONFIG: Record<
 export const ProTradingAccountPanel: React.FC<Props> = ({ account, onRefresh, refreshing }) => {
   const stateCfg = STATE_CONFIG[account.accountState] || STATE_CONFIG.NOT_CONNECTED;
   const isLive = account.mode === "LIVE";
+  const isDemo = account.mode === "DEMO";
 
   const secondsAgo = Math.floor((Date.now() - account.lastSyncTimestamp) / 1000);
   const timeLabel = secondsAgo < 5 ? "Just now" : `${secondsAgo}s ago`;
@@ -118,10 +119,12 @@ export const ProTradingAccountPanel: React.FC<Props> = ({ account, onRefresh, re
           className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
             isLive
               ? "bg-rose-500/20 text-rose-400 border-rose-500/40 animate-pulse"
+              : isDemo
+              ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
               : "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
           }`}
         >
-          {isLive ? "● LIVE ACCOUNT" : "● PAPER TRADING"}
+          {isLive ? "● LIVE ACCOUNT" : isDemo ? "● DEMO ACCOUNT" : "● PAPER TRADING"}
         </span>
 
         {/* State Badge */}
@@ -140,6 +143,17 @@ export const ProTradingAccountPanel: React.FC<Props> = ({ account, onRefresh, re
           <div>
             <span className="font-semibold block text-rose-200">LIVE ACCOUNT WARNING</span>
             Orders placed in LIVE mode execute against real funds. Double-check all risk parameters.
+          </div>
+        </div>
+      )}
+
+      {/* Demo Account Notice */}
+      {isDemo && (
+        <div className="bg-amber-950/30 border border-amber-500/20 text-amber-300/90 p-2 rounded text-[11px] flex items-start gap-2">
+          <Activity size={13} className="text-amber-400 shrink-0 mt-0.5" />
+          <div>
+            <span className="font-semibold block text-amber-200">Broker Demo Account</span>
+            You are connected to a broker demo account via MT5 Gateway. Orders use real market prices but no real funds.
           </div>
         </div>
       )}

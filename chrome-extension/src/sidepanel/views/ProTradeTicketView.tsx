@@ -109,10 +109,12 @@ export const ProTradeTicketView: React.FC<Props> = ({
           className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
             isLive
               ? "bg-rose-500/20 text-rose-400 border-rose-500/40"
+              : account.mode === "DEMO"
+              ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
               : "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
           }`}
         >
-          {account.mode} MODE
+          {isLive ? "⚠ LIVE ACCOUNT" : account.mode === "DEMO" ? "DEMO ACCOUNT" : "PAPER TRADING"}
         </span>
       </div>
 
@@ -278,7 +280,9 @@ export const ProTradeTicketView: React.FC<Props> = ({
         <Send size={14} className={submitting ? "animate-pulse" : ""} />
         {submitting
           ? "Executing Trade..."
-          : `Confirm & Execute ${side} ${quantity} ${symbol} (${account.mode})`}
+          : `Confirm & Execute ${side} ${quantity} ${symbol} · ${
+              account.mode === "LIVE" ? "⚠ LIVE ORDER" : account.mode === "DEMO" ? "DEMO ORDER" : "PAPER ORDER"
+            }`}
       </button>
     </div>
   );

@@ -195,7 +195,7 @@ export function defaultChallengeDefinitions(now: number): ChallengeDefinition[] 
         make(
             "starter-10k",
             "starter-10k",
-            "Starter $10K",
+            "Starter $10K (Free Practice)",
             "starter",
             "Learn the challenge mechanics with low virtual stakes and forgiving limits.",
             basePolicy({
@@ -212,11 +212,45 @@ export function defaultChallengeDefinitions(now: number): ChallengeDefinition[] 
             { model: "free" }
         ),
         make(
-            "standard-25k",
-            "standard-25k",
-            "Standard $25K",
+            "paid-25k",
+            "paid-25k",
+            "Paid Entry $25K Challenge",
             "standard",
-            "Balanced rules: a 10% target inside a 6% drawdown envelope.",
+            "Affordable entry evaluation with $25,000 virtual capital.",
+            basePolicy({
+                startingBalanceCents: 25_000_00,
+                profitTargetPct: 8,
+                maxDrawdownPct: 6,
+                dailyLossLimitPct: 3,
+                minTradingDays: 4,
+                maxTradingDays: 30,
+                maxCalendarDays: 40,
+            }),
+            { model: "paid", priceCents: 2900 }
+        ),
+        make(
+            "paid-50k",
+            "paid-50k",
+            "Paid Standard $50K Challenge",
+            "standard",
+            "Standard prop-style evaluation with $50,000 virtual capital.",
+            basePolicy({
+                startingBalanceCents: 50_000_00,
+                profitTargetPct: 10,
+                maxDrawdownPct: 8,
+                dailyLossLimitPct: 4,
+                minTradingDays: 5,
+                maxTradingDays: 30,
+                maxCalendarDays: 45,
+            }),
+            { model: "paid", priceCents: 4900 }
+        ),
+        make(
+            "standard-25k",
+            "standard-25k",
+            "Standard $25K (Pro)",
+            "standard",
+            "Balanced rules: a 10% target inside a 6% drawdown envelope (included for Pro).",
             basePolicy({
                 startingBalanceCents: 25_000_00,
                 profitTargetPct: 10,
@@ -231,16 +265,25 @@ export function defaultChallengeDefinitions(now: number): ChallengeDefinition[] 
         make(
             "pro-100k",
             "pro-100k",
-            "Pro $100K",
+            "Pro $100K Challenge",
             "pro",
             "The flagship simulated evaluation: $100K virtual, 10% target, 8% max drawdown.",
             basePolicy({}),
             { model: "pro" }
         ),
         make(
+            "paid-100k",
+            "paid-100k",
+            "Paid Professional $100K Challenge",
+            "pro",
+            "Professional prop-style evaluation with $100,000 virtual capital.",
+            basePolicy({}),
+            { model: "paid", priceCents: 9900 }
+        ),
+        make(
             "elite-200k",
             "elite-200k",
-            "Elite $200K",
+            "Elite $200K Challenge",
             "elite",
             "Largest virtual account with tighter daily-loss and consistency rules.",
             basePolicy({
@@ -260,6 +303,30 @@ export function defaultChallengeDefinitions(now: number): ChallengeDefinition[] 
                 },
             }),
             { model: "pro" }
+        ),
+        make(
+            "paid-200k",
+            "paid-200k",
+            "Paid Advanced $200K Challenge",
+            "elite",
+            "Advanced prop-style evaluation with $200,000 virtual capital.",
+            basePolicy({
+                startingBalanceCents: 200_000_00,
+                profitTargetPct: 12,
+                maxDrawdownPct: 7,
+                dailyLossLimitPct: 3.5,
+                minTradingDays: 7,
+                maxTradingDays: 40,
+                maxCalendarDays: 60,
+                maxConcurrentPositions: 8,
+                maxDailyTrades: 30,
+                consistency: {
+                    required: true,
+                    maxSingleDayPnlSharePct: 40,
+                    minTradesForConsistency: 15,
+                },
+            }),
+            { model: "paid", priceCents: 19900 }
         ),
     ];
 }

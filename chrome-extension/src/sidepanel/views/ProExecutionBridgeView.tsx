@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Zap, Activity, Clock, FileText, Lock, ShieldAlert } from "lucide-react";
+import { Zap, Activity, Clock, FileText, Lock, ShieldAlert, WifiOff } from "lucide-react";
 import { TradingViewAccountInfo, ExecutionResult, TradeReceipt } from "@/types/execution";
 import { detectTradingViewAccount, subscribeTVAccount } from "@/services/tv-account-service";
 import { useProAccess } from "@/services/pro-service";
@@ -141,15 +141,34 @@ export const ProExecutionBridgeView: React.FC<Props> = ({ activeSymbol = "EURUSD
               receipt={latestReceipt}
               onNewTrade={() => setLatestReceipt(null)}
             />
+          ) : account ? (
+            <ProTradeTicketView
+              account={account}
+              initialSymbol={activeSymbol}
+              initialPrice={activePrice}
+              onExecutionComplete={handleExecutionComplete}
+            />
           ) : (
-            account && (
-              <ProTradeTicketView
-                account={account}
-                initialSymbol={activeSymbol}
-                initialPrice={activePrice}
-                onExecutionComplete={handleExecutionComplete}
-              />
-            )
+            <div className="p-4 bg-slate-900 border border-slate-800 rounded-lg text-center space-y-3">
+              <WifiOff size={22} className="mx-auto text-slate-500" />
+              <h3 className="text-sm font-semibold text-slate-300">MT5 Gateway Offline</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                No gateway account detected. Start the <strong className="text-slate-200">AlgoVaultTradeGateway</strong> EA
+                on your MT5 terminal with your gateway token to enable order execution.
+              </p>
+              <p className="text-[10px] text-slate-500">
+                Want to practice without a gateway?{" "}
+                <span className="text-amber-400">Use Demo Trades in the popup.</span>
+              </p>
+              <button
+                onClick={() => void loadAccount(true)}
+                disabled={refreshing}
+                className="mx-auto flex items-center gap-1.5 rounded border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors disabled:opacity-40"
+              >
+                <Zap size={11} className={refreshing ? "animate-pulse" : ""} />
+                {refreshing ? "Checking…" : "Re-check Gateway"}
+              </button>
+            </div>
           )}
         </>
       )}

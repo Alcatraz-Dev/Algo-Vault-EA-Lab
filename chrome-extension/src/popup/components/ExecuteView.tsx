@@ -144,7 +144,8 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
 
   const calc = useMemo(() => {
     const live = livePrice ?? 0;
-    const e = parseFloat(entry) || 0;
+    const rawE = parseFloat(entry) || 0;
+    const e = orderKind === "market" ? (rawE > 0 ? rawE : live) : rawE;
     const stop = parseFloat(sl) || 0;
     const target = parseFloat(tp) || 0;
     const isLong = direction === "BUY";
@@ -164,16 +165,16 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
     const rewardDistance = tpValid ? Math.abs(target - e) : 0;
     const riskReward = stopDistance > 0 && rewardDistance > 0 ? rewardDistance / stopDistance : 0;
 
-    const riskLots = stopDistance > 0 ? riskAmount / (stopDistance * 10) : 0;
+    const riskLots = (sizingMode === "risk" && stopDistance > 0) ? riskAmount / (stopDistance * 10) : 0;
     const fixedLotsNum = parseFloat(fixedLots) || 0;
-    const volume = sizingMode === "risk" ? riskLots : fixedLotsNum;
+    const volume = sizingMode === "risk" && stopDistance > 0 ? riskLots : (fixedLotsNum > 0 ? fixedLotsNum : 0.10);
 
     const validation = validateTicket({
-      side: direction, kind: orderKind, live, entry: e, sl: stop, tp: target,
+      side: direction, kind: orderKind, live, entry: rawE, sl: stop, tp: target,
     });
 
     return {
-      riskAmount, stopDistance, tpValid, riskReward,
+      riskAmount: stopDistance > 0 ? riskAmount : 0, stopDistance, tpValid, riskReward,
       volume: Math.max(0.01, Math.round(volume * 100) / 100),
       isLong, live, entryNum: e, slNum: stop, tpNum: target,
       ticketError: validation.ok ? null : validation.error ?? null,
@@ -185,10 +186,9 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
   const needsStop = sizingMode === "risk";
 
   const canPreview =
-    entry !== "" &&
+    (market || calc.entryNum > 0) &&
     !calc.ticketError &&
-    calc.volume > 0 &&
-    (!needsStop || (calc.slNum > 0 && calc.stopDistance > 0));
+    calc.volume > 0;
 
   /* Orders are keyed to a real gateway account (gateway_<login>). Without one
      loaded the server 404s with "Account not found" — surface that up front
@@ -211,13 +211,14 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
   /* Set the SL so the chosen $-risk budget lands at the current lot size.
      Compact one-tap "$10 / $25 / $50 / $100" presets. */
   const setQuickRisk = (usd: number) => {
-    if (calc.entryNum <= 0) {
-      setFeedback({ kind: "info", msg: "Enter an entry price first." });
+    const entryPriceNum = calc.entryNum > 0 ? calc.entryNum : (livePrice ?? 0);
+    if (entryPriceNum <= 0) {
+      setFeedback({ kind: "info", msg: "Awaiting live market price." });
       return;
     }
     const lots = Math.max(0.01, parseFloat(fixedLots) || 0.01);
     const distance = usd / (lots * 10);
-    const slPrice = direction === "BUY" ? calc.entryNum - distance : calc.entryNum + distance;
+    const slPrice = direction === "BUY" ? entryPriceNum - distance : entryPriceNum + distance;
     setSl(slPrice.toFixed(slPrice >= 100 ? 2 : 5));
   };
 

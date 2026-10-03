@@ -675,6 +675,49 @@ export async function POST(request: NextRequest) {
 
         /*
          * --------------------------------------------------
+         * PERFORMANCE ARENA CHALLENGE PURCHASE FLOW
+         * --------------------------------------------------
+         */
+        if (orderType === "challenge" || session.metadata?.definitionId) {
+            const definitionId = session.metadata?.definitionId;
+            if (definitionId && userId) {
+                const grant: import("@/lib/performance-arena/store").PaidChallengeGrant = {
+                    uid: userId,
+                    definitionId,
+                    orderId: orderId ?? `cha_${Date.now()}`,
+                    amountCents: session.amount_total ?? 0,
+                    grantedAt: Date.now(),
+                    consumed: false,
+                };
+                await import("@/lib/performance-arena/store").then((m) => m.savePaidGrant(grant));
+
+                if (orderId) {
+                    await adminDatabase.ref(`orders/${userId}/${orderId}`).update({
+                        status: "paid",
+                        paymentStatus: "paid",
+                        stripeSessionId: session.id,
+                        stripePaymentIntent: typeof session.payment_intent === "string" ? session.payment_intent : null,
+                        paidAt: Date.now(),
+                        updatedAt: Date.now(),
+                    });
+                }
+
+                const notifyRef = adminDatabase.ref(`notifications/${userId}`).push();
+                await notifyRef.set({
+                    title: "🏆 Paid Challenge Unlocked!",
+                    message: "Your challenge entry fee has been processed. You can now start your evaluation attempt.",
+                    level: "success",
+                    link: `/account/performance-arena/challenges/${definitionId}`,
+                    read: false,
+                    createdAt: Date.now(),
+                });
+
+                return NextResponse.json({ received: true, success: true, orderId, definitionId });
+            }
+        }
+
+        /*
+         * --------------------------------------------------
          * STORE FLOW (Direct Charge)
          *
          * Orders created by /api/store/checkout on a developer's connected

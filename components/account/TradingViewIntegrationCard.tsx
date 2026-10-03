@@ -11,7 +11,8 @@
  *
  * No tokens ever reach this component — only connection state booleans.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { User as FirebaseUser } from "firebase/auth";
 import {
     AlertCircle,
@@ -103,6 +104,27 @@ export function TradingViewIntegrationCard({ user, showToast }: TradingViewInteg
     useEffect(() => {
         void load();
     }, [load]);
+
+    // Auto-refresh and toast after OAuth redirect-back (tradingview=connected / failed / denied)
+    const searchParams = useSearchParams();
+    const handledCallbackRef = useRef(false);
+    useEffect(() => {
+        const param = searchParams.get("tradingview");
+        if (!param || handledCallbackRef.current) return;
+        handledCallbackRef.current = true;
+        if (param === "connected") {
+            showToast?.("success", "TradingView connected successfully!");
+            void load();
+        } else if (param === "denied") {
+            showToast?.("error", "TradingView authorization was denied.");
+        } else if (param === "failed" || param === "invalid_response") {
+            showToast?.("error", "TradingView connection failed. Please try again.");
+        }
+        // Remove the query param from the URL without a full navigation
+        const url = new URL(window.location.href);
+        url.searchParams.delete("tradingview");
+        window.history.replaceState({}, "", url.toString());
+    }, [searchParams, load, showToast]);
 
     const handleConnect = useCallback(async () => {
         if (!user) return;

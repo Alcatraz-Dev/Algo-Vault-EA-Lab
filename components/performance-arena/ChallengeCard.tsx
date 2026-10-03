@@ -43,6 +43,22 @@ export function ChallengeCard({ item, onJoined }: { item: CatalogItem; onJoined?
         try {
             const token = await import("@/lib/firebase").then((m) => m.auth.currentUser?.getIdToken());
             if (!token) throw new Error("Sign in required.");
+
+            // If it's a paid challenge and user is not allowed yet, launch checkout
+            if (definition.access.model === "paid" && !access.allowed) {
+                const res = await fetch("/api/performance-arena/checkout", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({ definitionId: definition.id }),
+                });
+                const body = (await res.json()) as { checkoutUrl?: string; error?: string };
+                if (!res.ok) throw new Error(body.error ?? "Failed to create checkout session.");
+                if (body.checkoutUrl) {
+                    window.location.href = body.checkoutUrl;
+                    return;
+                }
+            }
+
             const res = await fetch("/api/performance-arena/attempts", {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -60,6 +76,8 @@ export function ChallengeCard({ item, onJoined }: { item: CatalogItem; onJoined?
             setJoining(false);
         }
     };
+
+    const priceText = definition.access.priceCents ? `$${(definition.access.priceCents / 100).toFixed(2)}` : "$29.00";
 
     return (
         <div className="flex flex-col rounded-lg border border-border bg-card">
@@ -97,6 +115,7 @@ export function ChallengeCard({ item, onJoined }: { item: CatalogItem; onJoined?
                 </p>
                 <p className="flex items-center gap-1.5">
                     <ShieldCheck className="h-3 w-3" /> Access: {ACCESS_LABEL[definition.access.model] ?? definition.access.model}
+                    {definition.access.model === "paid" ? ` (${priceText})` : ""}
                     {definition.access.model === "credits" && definition.access.pricePoints ? ` (${definition.access.pricePoints} pts)` : ""}
                 </p>
             </div>
@@ -110,9 +129,20 @@ export function ChallengeCard({ item, onJoined }: { item: CatalogItem; onJoined?
                         Continue attempt
                     </Button>
                 ) : (
-                    <Button size="sm" disabled={!access.allowed || joining} onClick={() => void handleJoin()}>
+                    <Button
+                        size="sm"
+                        disabled={joining}
+                        onClick={() => void handleJoin()}
+                        variant={definition.access.model === "paid" && !access.allowed ? "default" : "default"}
+                    >
                         <Coins className="h-3.5 w-3.5" />
-                        {joining ? "Joining…" : access.allowed ? "Join challenge" : "Locked"}
+                        {joining
+                            ? "Processing…"
+                            : access.allowed
+                            ? "Join challenge"
+                            : definition.access.model === "paid"
+                            ? `Buy Challenge (${priceText})`
+                            : "Locked"}
                     </Button>
                 )}
             </div>
