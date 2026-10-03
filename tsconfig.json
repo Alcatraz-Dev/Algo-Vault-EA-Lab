@@ -36,6 +36,13 @@
     // (`@/*` → `src/*`) and its own typecheck/build. Excluding it keeps the
     // root Next.js typecheck from resolving its aliases as if they lived at
     // the repo root. Verify with: cd chrome-extension && npm run typecheck.
-    "chrome-extension"
+    "chrome-extension",
+    // packages/shared (@algovault/shared) is a standalone mobile/Expo package
+    // with its own package.json, node_modules and `npm run typecheck`. It
+    // depends on react-native-only modules (react-native, async-storage,
+    // firebase/auth/react-native) that do not exist in this web app's
+    // dependency tree, so the root Next.js typecheck must not descend into it.
+    // Verify with: cd packages/shared && npm run typecheck.
+    "packages/shared"
   ]
 }

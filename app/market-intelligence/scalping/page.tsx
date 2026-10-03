@@ -5,6 +5,9 @@ import Link from "next/link";
 import { ArrowUpRight, Activity, ShieldCheck, Clock, AlertTriangle } from "lucide-react";
 import { WorkspaceContext, isValidSymbol, isValidTimeframe } from "@/components/market-intelligence/workspace-context";
 import { validateContext } from "@/components/market-intelligence/workspace-context";
+import { AITeamsEntryCard } from "@/components/ai-trading-teams/entry-card";
+import { ChallengeContextBar } from "@/components/performance-arena/ChallengeContextBar";
+import ResearchEvidencePanel from "@/components/strategy-research/ResearchEvidencePanel";
 
 export default function AIScalpingPage() {
   const [ctx, setCtx] = useState<WorkspaceContext>({ symbol: "XAUUSD", timeframe: "M5" });
@@ -23,6 +26,9 @@ export default function AIScalpingPage() {
       </header>
 
       <main className="mx-auto max-w-7xl px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Performance Arena challenge context (rendered only with an active attempt) */}
+        <div className="lg:col-span-3"><ChallengeContextBar /></div>
+
         {/* Left: Context + Timeframe */}
         <section className="lg:col-span-1 space-y-4">
           <div className="rounded-xl border bg-card p-5 shadow-sm">
@@ -31,6 +37,10 @@ export default function AIScalpingPage() {
             <div className="text-xs text-muted-foreground mb-3">Timeframe: <span className="font-medium text-foreground">{ctx.timeframe || "Not selected"}</span></div>
             <div className="text-xs text-muted-foreground">Status: <span className="font-medium">Observing existing data sources</span></div>
           </div>
+
+          <ResearchEvidencePanel symbol={ctx.symbol ?? "XAUUSD"} />
+
+          <AITeamsEntryCard context="Scalping Terminal" />
 
           <div className="rounded-xl border bg-card p-5 shadow-sm">
             <h2 className="text-sm font-semibold mb-3 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-blue-600" /> MTF Alignment</h2>

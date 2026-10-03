@@ -207,7 +207,7 @@ async function withCallContext<T>(
     const cacheable = options.cache;
     const key = cacheable ? cacheKeyFor(cacheable, userId, options.cacheArgs) : null;
     if (cacheable && key) {
-        const hit = getCached<{ data: T; sourceTimestamp: number | null }>(key);
+        const hit = getCached<T>(key);
         if (hit) {
             const provenance = buildProvenance({
                 source: "TRADINGVIEW",
@@ -292,8 +292,9 @@ export class TradingViewMCPProvider implements ExternalIntelligenceProvider {
     async refreshToolList(userId: string): Promise<string[]> {
         const conn = await resolveConnection(userId, null);
         const tools = await listTools(conn.token.accessToken, DEFAULT_TOOL_TIMEOUT_MS);
-        this.listedToolsCache = { names: tools.map((t) => t.name), at: Date.now() };
-        return this.listedToolsCache.names;
+        const names = tools.map((t) => t.name);
+        this.listedToolsCache = { names, at: Date.now() };
+        return names;
     }
 
     async getConnectionStatus(userId: string, options?: GetConnectionStatusOptions): Promise<ProviderConnectionStatus> {

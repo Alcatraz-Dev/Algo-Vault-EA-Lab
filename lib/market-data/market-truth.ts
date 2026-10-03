@@ -220,7 +220,7 @@ export async function fetchMarketSnapshot(
 
     const exchange = provider === "tradingview" ? "TradingView" : "Biquote";
 
-    const multiTimeframeCandles: Record<Timeframe, MarketCandle[]> = { M1: [], M3: [], M5: [], M15: [], M30: [], H1: [], H4: [], D1: [] };
+    const multiTimeframeCandles: Record<Timeframe, MarketCandle[]> = { M1: [], M3: [], M5: [], M15: [], M30: [], H1: [], H4: [], D1: [], W1: [] };
     const mtfTimeframes: Timeframe[] = ["M1", "M5", "M15", "H1", "H4"];
     for (const tf of mtfTimeframes) {
         if (tf === timeframe) {
@@ -304,6 +304,7 @@ function getHigherTimeframe(tf: Timeframe): Timeframe {
     const hierarchy: Record<Timeframe, Timeframe> = {
         M1: "M5", M3: "M5", M5: "H1", M15: "H1", M30: "H1",
         H1: "H4", H4: "D1", D1: "D1",
+        W1: "W1",
     };
     return hierarchy[tf] || "H1";
 }

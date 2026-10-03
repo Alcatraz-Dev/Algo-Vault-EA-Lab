@@ -4,7 +4,7 @@
  */
 
 import { MarketIntelligenceContext } from "./types";
-import { SmartMoneyEngine } from "../../smart-money/engine";
+import { SmartMoneyEngine } from "../smart-money/engine";
 import { Timeframe } from "../types";
 
 export function buildMarketIntelligenceContext(

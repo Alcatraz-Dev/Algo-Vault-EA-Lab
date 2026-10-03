@@ -1,7 +1,7 @@
 /**
  * Reproducibility — deterministic identity.
  */
-import { StrategyDefinition } from "../../strategies/types";
+import { StrategyDefinition } from "../strategies/types";
 
 export function canonicalConfigurationId(parameters: Record<string, unknown>): string {
   const sorted = Object.entries(parameters).sort(([a], [b]) => a.localeCompare(b));

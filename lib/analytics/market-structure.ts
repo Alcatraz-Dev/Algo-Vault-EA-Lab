@@ -1,6 +1,6 @@
 import { MarketCandle, MarketStructureEvent, MarketStructurePoint, Timeframe } from "../market-data/types";
 
-function getSwingPoints(candles: MarketCandle[], lookback: number = 3): MarketStructurePoint[] {
+export function getSwingPoints(candles: MarketCandle[], lookback: number = 3): MarketStructurePoint[] {
     const points: MarketStructurePoint[] = [];
 
     for (let i = lookback; i < candles.length - lookback; i++) {

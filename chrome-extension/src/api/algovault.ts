@@ -385,7 +385,7 @@ export async function getPositions(
 }
 
 export async function placeOrder(order: {
-  accountId: string;
+  accountId?: string;
   symbol: string;
   action: string;
   volume: number;
@@ -393,8 +393,23 @@ export async function placeOrder(order: {
   sl?: number;
   tp?: number;
   clientOrderId?: string;
-}): Promise<{ success: boolean; order: { clientOrderId: string; status: string } }> {
+  comment?: string;
+}): Promise<{ success: boolean; order?: { clientOrderId: string; status: string }; message?: string }> {
   return apiPost("/api/trading/orders", order as Record<string, unknown>);
+}
+
+export async function cancelOrder(
+  orderId: string,
+  symbol: string
+): Promise<{ success: boolean; message?: string }> {
+  return apiPost("/api/trading/orders/cancel", { orderId, symbol });
+}
+
+export async function closePosition(
+  positionId: string,
+  symbol: string
+): Promise<{ success: boolean; message?: string }> {
+  return apiPost("/api/trading/positions/close", { positionId, symbol });
 }
 
 export interface OrderStatus {

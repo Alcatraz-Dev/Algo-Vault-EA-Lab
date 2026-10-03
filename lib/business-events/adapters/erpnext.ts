@@ -13,7 +13,7 @@ export class ERPNextAdapter implements Adapter {
       // Delegate to existing sync functions based on event type
       if (event.eventType === "customer.created" || event.eventType === "customer.updated") {
         const { syncCustomer } = await import("../../integrations/erpnext/customers");
-        await syncCustomer(client, { userId: event.entity.id, ...event.payload } as any);
+        await syncCustomer(client, { userId: event.entity.id, ...(event.payload as Record<string, unknown>) } as any);
       } else if (event.eventType === "order.created" || event.eventType === "order.paid") {
         const { syncOrder, syncOrderPaid } = await import("../../integrations/erpnext/orders");
         if (event.eventType === "order.paid") await syncOrderPaid(client, event.payload as any);

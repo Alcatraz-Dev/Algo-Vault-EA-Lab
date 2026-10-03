@@ -9,6 +9,7 @@ import {
     Brain, Activity as ActivityIcon, Target, Sparkles,
 } from "lucide-react";
 import Link from "next/link";
+import { AITeamsEntryCard } from "@/components/ai-trading-teams/entry-card";
 import SiteNavbar from "@/components/navbar/SiteNavbar";
 import { DashboardNativeAd } from "@/components/growth/DashboardNativeAd";
 import { cn } from "@/lib/utils";
@@ -157,6 +158,7 @@ export default function DashboardBuilderPage() {
                             <div><p className="text-sm font-semibold text-foreground">Tools</p><p className="text-[10px] text-muted-foreground">Trading calculators &amp; utilities</p></div>
                         </div>
                     </Link>
+                    <AITeamsEntryCard context="Dashboard" compact className="sm:col-span-2 lg:col-span-4" />
                 </div>
 
                 {loading ? (

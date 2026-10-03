@@ -4,7 +4,7 @@
  * backtest/research/replay/event/trade continuity fields.
  * No second workspace engine; uses existing load/save + URL-safe encode.
  */
-import { loadWorkspaceState, saveWorkspaceState } from "../../../lib/market-intelligence/workspace";
+import { loadWorkspaceState, saveWorkspaceState } from "../../lib/market-intelligence/workspace";
 
 export interface WorkspaceContext {
   symbol?: string;
@@ -90,7 +90,7 @@ export function decodeContext(raw: string): Partial<WorkspaceContext> {
 export function saveWorkspaceContext(ctx: Partial<WorkspaceContext>) {
   const chart = loadWorkspaceState();
   const merged = { ...chart, ...ctx };
-  saveWorkspaceState(merged as Partial<import("../../../lib/market-intelligence/types").ChartWorkspaceState>);
+  saveWorkspaceState(merged as Partial<import("../../lib/market-intelligence/types").ChartWorkspaceState>);
 }
 
 export function loadWorkspaceContext(): Partial<WorkspaceContext> {

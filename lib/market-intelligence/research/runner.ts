@@ -21,6 +21,7 @@ export function runParameterResearch(
     return {
       id: "run_failed_validation",
       strategyId,
+      executionConfig: "synchronous-runner-v1",
       parameterSpace: space,
       configurations: [],
       status: "failed",
@@ -56,6 +57,7 @@ export function runParameterResearch(
   return {
     id: `run_${strategyId}_${Date.now()}`,
     strategyId,
+    executionConfig: "synchronous-runner-v1",
     parameterSpace: space,
     configurations,
     status: "completed",

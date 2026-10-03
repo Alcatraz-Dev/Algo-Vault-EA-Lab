@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { ERPNextNotEnabledError, ERPNextSyncError } from "../../../lib/integrations/erpnext/errors";
+import { ERPNextNotEnabledError, ERPNextSyncError } from "../../../../lib/integrations/erpnext/errors";
 
 describe("ERPNext Errors", () => {
   it("creates sync error with code", () => {

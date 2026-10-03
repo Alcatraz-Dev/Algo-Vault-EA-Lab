@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildInvestigationContext } from "../../../lib/market-intelligence/investigation/context";
-import { resolveInvestigation } from "../../../lib/market-intelligence/investigation/resolver";
+import { buildInvestigationContext } from "../../../../lib/market-intelligence/investigation/context";
+import { resolveInvestigation } from "../../../../lib/market-intelligence/investigation/resolver";
 
 describe("Phase 14 Investigation", () => {
   it("context builds deterministically", () => {

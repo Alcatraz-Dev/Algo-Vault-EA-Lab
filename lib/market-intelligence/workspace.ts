@@ -1,4 +1,4 @@
-import { ChartWorkspaceState, Timeframe } from "../types";
+import { ChartWorkspaceState, Timeframe } from "./types";
 
 const STORAGE_KEY = "av-market-intelligence-workspace";
 

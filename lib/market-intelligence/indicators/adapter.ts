@@ -3,7 +3,7 @@ import {
   sma, ema, rsi, macd, bollingerBands, atrSeries, supertrend,
   computeIndicatorSnapshot,
 } from "../../analytics/indicators";
-import { Timeframe } from "./types";
+import { Timeframe } from "../types";
 
 /**
  * Technical Analysis Engine — adapter over existing lib/analytics/indicators.

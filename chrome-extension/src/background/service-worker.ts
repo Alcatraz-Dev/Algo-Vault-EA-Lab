@@ -920,10 +920,16 @@ async function startHealthCheck() {
 }
 
 chrome.alarms.create("health-check", { periodInMinutes: 1 });
+chrome.alarms.create("pro-access-refresh", { periodInMinutes: 5 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === "health-check") {
     startHealthCheck();
+  }
+  if (alarm.name === "pro-access-refresh") {
+    import("@/api/pro").then(({ getProAccess }) => {
+      getProAccess(true).catch(() => {});
+    });
   }
 });
 

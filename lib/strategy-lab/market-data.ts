@@ -45,6 +45,7 @@ export const BIQUOTE_MAX_BARS: Record<Timeframe, number> = {
     H1: 169,
     H4: 181,
     D1: 501,
+    W1: 501,
 };
 
 // Timeframes we can actually request from biquote.
@@ -236,6 +237,7 @@ export function timeframeSpanDays(tf: Timeframe, bars: number): number {
         H1: 3_600_000,
         H4: 14_400_000,
         D1: 86_400_000,
+        W1: 604_800_000,
     };
     return (bars * approxMsPerBar[tf]) / 86_400_000;
 }

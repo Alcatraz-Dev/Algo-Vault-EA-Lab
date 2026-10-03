@@ -337,6 +337,12 @@
         ".write": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
     },
+    "executionAudit": {
+      "$userId": {
+        ".read": "auth != null && auth.uid === $userId",
+        ".write": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
     "proTerminal": {
       "$userId": {
         ".read": "auth != null && auth.uid === $userId",
@@ -899,6 +905,11 @@
     "marketingJobs": { ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')", ".indexOn": ["jobKey", "status", "type"], "$id": { ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin') || root.child('growthJobs').child('publicWrite').val() == true" } },
     "marketingAssets": { ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')", ".indexOn": ["creativeId", "kind", "source"], "$id": { ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')" } },
     "marketingVariants": { ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')", ".indexOn": ["creativeId", "kind", "seed"], "$id": { ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')" } },
-    "marketingAnalytics": { ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')", ".indexOn": ["creativeId", "eventType", "channel", "createdAt"], "$id": { ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')" } }
+    "marketingAnalytics": { ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')", ".indexOn": ["creativeId", "eventType", "channel", "createdAt"], "$id": { ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')" } },
+    "performanceArena": {
+      "_comment": "Performance Arena is server-authoritative: clients never read or write this tree directly — all access goes through authenticated API routes using the Admin SDK. Balances, results, rewards, leaderboard entries and fraud flags cannot be edited client-side.",
+      ".read": false,
+      ".write": false
+    }
   }
 }

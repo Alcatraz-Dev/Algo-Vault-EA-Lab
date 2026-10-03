@@ -2,7 +2,7 @@
  * Backtest Terminal Header Adapter — professional compact header.
  * Connects existing BacktestConfig, strategy, replay, and AI.
  */
-import { BacktestConfig } from "../../types";
+import { BacktestConfig } from "../../../lib/market-intelligence/types";
 
 export interface BacktestHeaderInfo {
   strategyName?: string;

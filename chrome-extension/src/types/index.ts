@@ -176,6 +176,23 @@ export {
   createEmptyChartContext, hasChartIdentity, chartIdentityChanged,
 } from "./chart-context";
 
+export type {
+  AccountMode,
+  AccountState,
+  TradingViewAccountInfo,
+  TradingViewPosition,
+  TradingViewPendingOrder,
+  ExecutionLifecycleStatus,
+  NormalizedOrderIntent,
+  OrderValidationResult,
+  RiskCheckResult,
+  ExecutionResult,
+  TradeReceipt,
+  ExecutionAuditRecord,
+  JournalSyncPayload,
+} from "./execution";
+export { createEmptyAccountInfo } from "./execution";
+
 export interface MarketCandle {
   timestamp: number;
   open: number;

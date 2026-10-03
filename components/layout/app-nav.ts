@@ -2,6 +2,7 @@ import {
   Activity,
   AlertTriangle,
   BarChart3,
+  Beaker,
   Bot,
   Brain,
   Calculator,
@@ -31,11 +32,14 @@ import {
   Target,
   Terminal,
   TrendingUp,
+  Trophy,
   UserRound,
   Wallet,
   Zap,
   Database,
   Server,
+  Users,
+  PuzzleIcon,
 } from "lucide-react";
 import type { NavGroup } from "@/components/layout/AppShell";
 
@@ -50,6 +54,7 @@ export const APP_NAV: NavGroup[] = [
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
       { href: "/portfolio", label: "Portfolio", icon: Wallet },
       { href: "/goals", label: "Goals", icon: Target },
+      { href: "/account/performance-arena", label: "Performance Arena", icon: Trophy },
     ],
   },
   {
@@ -75,6 +80,7 @@ export const APP_NAV: NavGroup[] = [
   {
     label: "Intelligence",
     items: [
+      { href: "/ai-trading-teams", label: "AI Trading Teams", icon: Users },
       { href: "/ai-copilot", label: "AI Copilot", icon: Brain },
       { href: "/signals", label: "AI Signals", icon: Radio },
       { href: "/signals/pro", label: "Pro Signals", icon: Zap },
@@ -101,6 +107,7 @@ export const APP_NAV: NavGroup[] = [
     label: "Strategy",
     items: [
       { href: "/strategy-lab", label: "Strategy Lab", icon: FlaskConical },
+      { href: "/strategy-research", label: "Strategy Research", icon: Beaker },
       { href: "/backtests", label: "Backtesting", icon: MonitorPlay },
       { href: "/walk-forward", label: "Walk-Forward", icon: TrendingUp },
       { href: "/monte-carlo", label: "Monte Carlo", icon: CandlestickChart },
@@ -132,6 +139,7 @@ export const APP_NAV: NavGroup[] = [
     label: "Account",
     items: [
       { href: "/account", label: "Account Home", icon: UserRound },
+      { href: "/account/pro-trading-extension", label: "Pro Trading Extension", icon: PuzzleIcon },
       { href: "/account/settings", label: "Settings", icon: Gauge },
       { href: "/account/affiliate", label: "Affiliates", icon: Rocket },
       { href: "/account/tools", label: "Tools", icon: Calculator },
@@ -150,6 +158,8 @@ export const ADMIN_NAV: NavGroup[] = [
     label: "Admin",
     items: [
       { href: "/admin", label: "Overview", icon: LayoutDashboard },
+      { href: "/admin/ai-agents", label: "AI Agents", icon: Bot },
+      { href: "/admin/ai-trading-teams", label: "AI Teams", icon: Users },
       { href: "/admin/users", label: "Users", icon: UserRound },
       { href: "/admin/bots", label: "Bots", icon: Bot },
       { href: "/admin/signals", label: "Signals", icon: Radio },
@@ -175,6 +185,9 @@ export const ADMIN_NAV: NavGroup[] = [
       { href: "/admin/business-operations/financial", label: "Financial Overview", icon: Database },
       { href: "/admin/business-events", label: "Business Events", icon: Database },
       { href: "/admin/erpnext", label: "ERPNext", icon: Server },
+      { href: "/admin/strategy-research", label: "Strategy Research", icon: FlaskConical },
+      { href: "/admin/performance-arena", label: "Performance Arena", icon: Trophy },
+      { href: "/admin/extensions", label: "Pro Extension", icon: PuzzleIcon },
     ],
   },
 ];

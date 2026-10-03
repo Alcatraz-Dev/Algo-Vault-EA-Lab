@@ -106,8 +106,8 @@ export interface OrderBlock {
 }
 
 export interface MarketStructureState {
-  trend: "bullish" | "bearish" | "range" | "unknown";
-  internalTrend: "bullish" | "bearish" | "range" | "unknown";
+  trend: "bullish" | "bearish" | "range" | "neutral" | "unknown";
+  internalTrend: "bullish" | "bearish" | "range" | "neutral" | "unknown";
   lastEvent?: SmartMoneyEvent;
   lastSwingHigh?: number;
   lastSwingLow?: number;

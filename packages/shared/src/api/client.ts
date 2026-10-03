@@ -1,4 +1,4 @@
-import { ApiResponse, PaginatedResponse, MarketQuote, AISignal, UserBot, TradingAccount, UserProfile, UserLicense, Alert, Notification, Subscription, RiskMetrics } from "./types";
+import { ApiResponse, PaginatedResponse, MarketQuote, AISignal, UserBot, TradingAccount, UserProfile, UserLicense, Alert, Notification, Subscription, RiskMetrics } from "../types";
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
 

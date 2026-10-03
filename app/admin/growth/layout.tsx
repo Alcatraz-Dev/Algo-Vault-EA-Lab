@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
     BarChart3,
+    Bot,
     ClipboardCheck,
     FileText,
     FlaskConical,
@@ -19,6 +20,7 @@ import { cn } from "@/lib/utils";
 
 const SECTIONS = [
     { label: "Overview", href: "/admin/growth", icon: LayoutDashboard },
+    { label: "Marketing Agent", href: "/admin/growth/marketing-agent", icon: Bot },
     { label: "Campaigns", href: "/admin/growth/campaigns", icon: Megaphone },
     { label: "Content", href: "/admin/growth/content", icon: FileText },
     { label: "Channels", href: "/admin/growth/channels", icon: Radio },

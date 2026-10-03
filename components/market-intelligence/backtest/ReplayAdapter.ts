@@ -1,7 +1,7 @@
 /**
  * Replay Adapter — connects ReplayEngine to page state.
  */
-import { ReplayEngine } from "../../lib/market-intelligence/backtesting/replay";
+import { ReplayEngine } from "../../../lib/market-intelligence/backtesting/replay";
 
 export interface ReplayUIState {
   playing: boolean;

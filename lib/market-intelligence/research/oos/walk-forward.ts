@@ -1,12 +1,12 @@
 /**
  * Walk-Forward — rolling and expanding windows.
  */
-import { splitDataset, ResearchSplit } from "./oos/split";
+import { splitDataset, ResearchPeriod } from "./split";
 
 export interface WalkForwardWindow {
   index: number;
-  training: ResearchSplit;
-  validation: ResearchSplit;
+  training: ResearchPeriod;
+  validation: ResearchPeriod;
   description: string;
 }
 

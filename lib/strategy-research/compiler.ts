@@ -13,7 +13,7 @@ import {
     sanitizeDraft,
     strategyFromDraft,
 } from "@/lib/strategy-lab/interpret";
-import type { RuleGroup, RuleOperator, Strategy, StrategyDraft, StrategyRule } from "@/lib/strategy-lab/types";
+import type { RuleGroup, RuleOperator, Strategy, StrategyDraft } from "@/lib/strategy-lab/types";
 import { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 import { CompilationReport, ResearchMissionSpec, StrategyHypothesis } from "./types";
 import { newResearchId } from "./storage";
@@ -242,7 +242,10 @@ export function compileHypothesis(
         unsupportedFeatures: unsupported,
         futureLeakageRisk: false,
     };
-    if (errors.length > 0) {
+    // Unsupported features are REJECTIONS, never silent pass-throughs: the
+    // deterministic engine can only evaluate what it knows, and guessing would
+    // fabricate results. AI output with unknown groups/values fails closed.
+    if (errors.length > 0 || unsupported.length > 0) {
         return { report: { ...baseReport, futureLeakageRisk: false } };
     }
 

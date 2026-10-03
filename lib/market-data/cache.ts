@@ -29,6 +29,7 @@ const DEFAULT_TTL_MS: Record<Timeframe, number> = {
   H1: 300000,
   H4: 600000,
   D1: 1800000,
+  W1: 1800000,
 };
 
 export class MarketDataCache {

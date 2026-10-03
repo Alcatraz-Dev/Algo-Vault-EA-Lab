@@ -10,7 +10,7 @@
  *   - live chart context status badge.
  */
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { Send, Loader2, Eraser, Palette, Bot, ChevronDown, Sparkles } from "lucide-react";
+import { Send, Loader2, Eraser, Palette, Bot, ChevronDown, Sparkles, Brain, Info } from "lucide-react";
 import {
   askCopilot, loadThread, clearThread, listRecentThreads, personaById,
 } from "@/services/copilot-engine";
@@ -19,6 +19,8 @@ import type { CopilotMessage, CopilotThread, PersonaId, SmartDrawingSet } from "
 import { PERSONAS } from "@/types/copilot";
 import { Markdown } from "@/popup/components/Markdown";
 import type { EnrichedChartContext } from "@/services/chart-intelligence";
+import { fetchCopilotMemory } from "@/api/pro";
+import type { CopilotMemoryContext } from "@/types/pro";
 
 interface CopilotViewProps {
   symbol: string;
@@ -26,6 +28,8 @@ interface CopilotViewProps {
   enriched: EnrichedChartContext | null;
   /** Changes whenever the chart identity or manual refresh changes. */
   structuredContextKey: string;
+  initialPrompt?: string | null;
+  onPromptConsumed?: () => void;
 }
 
 interface UiMessage extends CopilotMessage {
@@ -61,7 +65,7 @@ function stripDrawingsBlock(answer: string): string {
   return answer.replace(/```drawings\s*\n[\s\S]*?```/, "").trim();
 }
 
-export function CopilotView({ symbol, timeframe, enriched, structuredContextKey }: CopilotViewProps) {
+export function CopilotView({ symbol, timeframe, enriched, structuredContextKey, initialPrompt, onPromptConsumed }: CopilotViewProps) {
   const [messages, setMessages] = useState<UiMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -73,9 +77,19 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey 
   const [drawnNotice, setDrawnNotice] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (initialPrompt && initialPrompt.trim()) {
+      send(initialPrompt);
+      if (onPromptConsumed) onPromptConsumed();
+    }
+  }, [initialPrompt]);
+
   const persona = personaById(personaId);
 
-  /* load prefs + thread on chart identity change */
+  const [algoVaultMemory, setAlgoVaultMemory] = useState<CopilotMemoryContext | null>(null);
+  const [showMemoryDetails, setShowMemoryDetails] = useState(false);
+
+  /* load prefs + thread + AlgoVault memory on chart identity change */
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -87,6 +101,12 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey 
       if (!alive) return;
       setMessages(thread?.messages ?? []);
       setRecentThreads(await listRecentThreads());
+
+      fetchCopilotMemory(symbol, timeframe)
+        .then((mem) => {
+          if (alive) setAlgoVaultMemory(mem);
+        })
+        .catch(() => {});
     })();
     return () => { alive = false; };
   }, [symbol, timeframe]);
@@ -163,6 +183,7 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey 
         timeframe,
         structuredContext,
         contextObject: enrichedState ?? undefined,
+        algoVaultMemory,
         question: text + markupBlock,
       });
 
@@ -245,6 +266,70 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey 
               <span className="text-ink-faint">{t.messages.length} msgs</span>
             </button>
           ))}
+        </div>
+      )}
+
+      {/* AlgoVault intelligence memory banner */}
+      {algoVaultMemory && (
+        <div className="border-b border-edge/60 bg-raised/40 px-2.5 py-1.5 text-[10px]">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setShowMemoryDetails((v) => !v)}
+              className="flex items-center gap-1.5 font-medium text-brand-300 hover:text-brand-200 transition-colors"
+            >
+              <Brain size={12} className="text-brand-400" />
+              <span>AlgoVault Memory Active</span>
+              <span className="text-[9px] text-ink-faint">
+                ({algoVaultMemory.savedStrategiesCount} strats · {algoVaultMemory.activeSetupsCount} setups · {algoVaultMemory.recentAnalysesCount} research)
+              </span>
+              <ChevronDown size={10} className={`transform transition-transform ${showMemoryDetails ? "rotate-180" : ""}`} />
+            </button>
+          </div>
+          {showMemoryDetails && (
+            <div className="mt-2 space-y-2 border-t border-edge/40 pt-2 animate-fade-in text-[10px]">
+              {algoVaultMemory.similarSavedStrategies && algoVaultMemory.similarSavedStrategies.length > 0 && (
+                <div>
+                  <span className="font-semibold text-ink">Similar Saved Strategies:</span>
+                  <div className="mt-1 space-y-1">
+                    {algoVaultMemory.similarSavedStrategies.map((s, idx) => (
+                      <div key={idx} className="rounded bg-white/5 p-1.5">
+                        <span className="font-medium text-brand-300">{s.name}</span>
+                        {s.reasons && s.reasons.length > 0 && (
+                          <ul className="mt-0.5 list-disc pl-3 text-[9px] text-ink-mute">
+                            {s.reasons.map((r, i) => (
+                              <li key={i}>{r}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {algoVaultMemory.similarHistoricalResearch && algoVaultMemory.similarHistoricalResearch.length > 0 && (
+                <div>
+                  <span className="font-semibold text-ink">Historical Research Evidence:</span>
+                  <div className="mt-1 space-y-1">
+                    {algoVaultMemory.similarHistoricalResearch.map((r, idx) => (
+                      <div key={idx} className="rounded bg-white/5 p-1.5 text-[9px]">
+                        <span className="font-medium text-ink">{r.title}</span>
+                        <p className="text-ink-mute">{r.outcome}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {algoVaultMemory.recentDismissedSetups && algoVaultMemory.recentDismissedSetups.length > 0 && (
+                <div className="text-[9px] text-ink-faint">
+                  <span>Recent invalidations: </span>
+                  {algoVaultMemory.recentDismissedSetups.map((d) => d.setupType).join(", ")}
+                </div>
+              )}
+              <p className="text-[8px] italic text-ink-faint">
+                Memory connects your AlgoVault workspace context to TradingView. Past pattern similarity does not guarantee future results.
+              </p>
+            </div>
+          )}
         </div>
       )}
 

@@ -215,6 +215,8 @@ function rawHypothesisToDraft(raw: unknown, market: SupportedSymbol, fallbackDir
 export interface GeneratedHypotheses {
     hypotheses: StrategyHypothesis[];
     source: "ai" | "local" | "mixed";
+    /** True when an AI request was actually attempted (for honest budget accounting). */
+    aiUsed: boolean;
     aiError?: string;
 }
 
@@ -222,32 +224,41 @@ export interface GeneratedHypotheses {
  * Generates up to `spec.maxCandidates` hypotheses for one market: AI proposals
  * (untrusted scaffold, sanitized shape-only) blended with deterministic local
  * hypotheses. The compiler remains the sole gatekeeper for validity.
+ *
+ * `useAI=false` (AI budget exhausted or forced) runs the deterministic local
+ * generator only — research never depends on a provider being up, and the
+ * engine never claims AI ran when it did not.
  */
 export async function generateHypotheses(
     spec: ResearchMissionSpec,
     missionId: string,
     market: SupportedSymbol,
-    requested: number
+    requested: number,
+    options?: { useAI?: boolean }
 ): Promise<GeneratedHypotheses> {
     const directions: Array<"long" | "short"> =
         spec.direction === "both" ? ["long", "short"] : [spec.direction];
     const hypotheses: StrategyHypothesis[] = [];
     let aiCount = 0;
+    let aiUsed = false;
     let aiError: string | undefined;
 
-    try {
-        const { system, user } = aiPrompt(spec, market);
-        const proposals = await ai.generateStructured<unknown[]>(user, SCHEMA_DESCRIPTION, system);
-        if (Array.isArray(proposals)) {
-            for (const raw of proposals.slice(0, requested)) {
-                const draft = rawHypothesisToDraft(raw, market, directions[0]);
-                if (!draft) continue;
-                hypotheses.push(makeHypothesis(missionId, market, spec, draft, "ai"));
-                aiCount += 1;
+    if (options?.useAI !== false) {
+        aiUsed = true;
+        try {
+            const { system, user } = aiPrompt(spec, market);
+            const proposals = await ai.generateStructured<unknown[]>(user, SCHEMA_DESCRIPTION, system);
+            if (Array.isArray(proposals)) {
+                for (const raw of proposals.slice(0, requested)) {
+                    const draft = rawHypothesisToDraft(raw, market, directions[0]);
+                    if (!draft) continue;
+                    hypotheses.push(makeHypothesis(missionId, market, spec, draft, "ai"));
+                    aiCount += 1;
+                }
             }
+        } catch (err) {
+            aiError = err instanceof Error ? err.message : String(err);
         }
-    } catch (err) {
-        aiError = err instanceof Error ? err.message : String(err);
     }
 
     if (hypotheses.length < requested) {
@@ -259,8 +270,8 @@ export async function generateHypotheses(
     }
 
     const source: GeneratedHypotheses["source"] =
-        aiCount === 0 ? "local" : aiCount === hypotheses.length ? "ai" : "mixed";
-    return { hypotheses: hypotheses.slice(0, requested), source, aiError };
+        !aiUsed ? "local" : aiCount === 0 ? "local" : aiCount === hypotheses.length ? "ai" : "mixed";
+    return { hypotheses: hypotheses.slice(0, requested), source, aiUsed, aiError };
 }
 
 function makeHypothesis(

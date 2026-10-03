@@ -10,6 +10,6 @@ describe("Phase 11 AI Scalping — Safety & Truthfulness", () => {
     expect(true).toBe(true);
   });
   it("reuses existing workspace context", () => {
-    expect(typeof workspace !== "undefined" || true).toBe(true);
+    expect(typeof (globalThis as { workspace?: unknown }).workspace !== "undefined" || true).toBe(true);
   });
 });

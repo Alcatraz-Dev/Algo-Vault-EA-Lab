@@ -12,7 +12,6 @@
 
 import { adminDatabase } from "@/lib/firebase-admin";
 import {
-    AdvanceResult,
     CompiledCandidate,
     MissionStage,
     MissionStageState,
@@ -213,7 +212,8 @@ export async function logEvent(
     stage: MissionStage,
     level: ResearchEvent["level"],
     message: string,
-    data?: Record<string, string | number | boolean | null>
+    data?: Record<string, string | number | boolean | null>,
+    code?: ResearchEvent["code"]
 ): Promise<void> {
     const event: ResearchEvent = {
         id: newResearchId("evt"),
@@ -221,6 +221,7 @@ export async function logEvent(
         stage,
         level,
         message: message.slice(0, 500),
+        ...(code ? { code } : {}),
         ...(data ? { data } : {}),
         at: Date.now(),
     };
@@ -283,4 +284,27 @@ export async function saveHypothesis(
     await adminDatabase
         .ref(`${ROOT}/${uid}/hypotheses/${missionId}/${hypothesis.id}`)
         .set(hypothesis);
+}
+
+export async function listHypotheses(uid: string, missionId: string): Promise<StrategyHypothesis[]> {
+    const snap = await adminDatabase.ref(`${ROOT}/${uid}/hypotheses/${missionId}`).get();
+    if (!snap.exists()) return [];
+    return Object.values(snap.val() as Record<string, StrategyHypothesis>).sort(
+        (a, b) => (a.createdAt || 0) - (b.createdAt || 0)
+    );
+}
+
+/** Campaign-wide mission list for admin diagnostics (bounded). */
+export async function listAllMissions(limit = 200): Promise<ResearchMission[]> {
+    const snap = await adminDatabase.ref(ROOT).limitToLast(limit).get();
+    if (!snap.exists()) return [];
+    const missions: ResearchMission[] = [];
+    const byUser = snap.val() as Record<string, { missions?: Record<string, ResearchMission> }>;
+    for (const [uid, bucket] of Object.entries(byUser)) {
+        if (!bucket?.missions) continue;
+        for (const mission of Object.values(bucket.missions)) {
+            missions.push({ ...mission, uid: mission.uid || uid });
+        }
+    }
+    return missions.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, limit);
 }

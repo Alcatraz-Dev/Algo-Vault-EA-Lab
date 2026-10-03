@@ -15,7 +15,7 @@ export function replayUIStateFromEngine(engine: ReplayEngine, candlesLength: num
   return {
     playing: false,
     speedIndex: 0,
-    index: engine.progress || 0,
+    index: engine.getIndex() || 0,
     total: candlesLength,
     events: [],
   };

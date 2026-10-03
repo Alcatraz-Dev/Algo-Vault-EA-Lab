@@ -4,9 +4,9 @@
 
 export const AIResponseSchema = {
   summary: "string",
-  observations: [{ type: "fact" | "interpretation" | "limitation", text: "string", sourceIds: ["string"] }],
+  observations: [{ type: ["fact", "interpretation", "limitation"], text: "string", sourceIds: ["string"] }],
   evidence: [{ type: "string", id: "string?", timestamp: "number?" }],
-  suggestions: [{ type: "modify" | "add" | "remove" | "explain", target: "string?", reason: "string", requiresBacktest: "boolean?" }],
+  suggestions: [{ type: ["modify", "add", "remove", "explain"], target: "string?", reason: "string", requiresBacktest: "boolean?" }],
   limitations: ["string"],
 };
 

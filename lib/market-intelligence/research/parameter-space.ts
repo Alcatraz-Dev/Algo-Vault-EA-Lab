@@ -2,6 +2,7 @@
  * Parameter Space — deterministic Cartesian generation.
  */
 import { ParameterDefinition, ResearchConfiguration, ParameterSpace } from "./types";
+export type { ParameterSpace };
 
 export function generateConfigurations(
   space: ParameterSpace,
@@ -20,8 +21,8 @@ export function generateConfigurations(
 
   const valuesPerDef = defs.map((d) => d.values ?? (d.type === "boolean" ? [true, false] : d.type === "integer" || d.type === "number" ? generateNumericValues(d, maxVals) : ["unknown"]));
 
-  const combos: Record<string, unknown>[] = [];
-  function cartesian(current: number[], path: Record<string, unknown>) {
+  const combos: Record<string, string | number | boolean>[] = [];
+  function cartesian(current: number[], path: Record<string, string | number | boolean>) {
     if (current.length === defs.length) {
       combos.push({ ...path });
       return;

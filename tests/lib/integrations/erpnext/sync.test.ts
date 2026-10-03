@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { getSyncState, recordEvent, updateEventStatus } from "../../../lib/integrations/erpnext/sync";
-import { createEventPayload } from "../../../lib/integrations/erpnext/events";
+import { getSyncState, recordEvent, updateEventStatus } from "../../../../lib/integrations/erpnext/sync";
+import { createEventPayload } from "../../../../lib/integrations/erpnext/events";
 
 describe("ERPNext Sync", () => {
   it("records and updates event status", () => {

@@ -28,6 +28,7 @@ import {
    Zap,
    Crown,
    Target,
+   Trophy,
 } from "lucide-react";
 import { signOut, onAuthStateChanged, User } from "firebase/auth";
 import { auth, database } from "@/lib/firebase";
@@ -47,6 +48,7 @@ const NAV_ITEMS = [
   { icon: FileText, label: "Reports", href: "/report-generator" },
   { icon: Eye, label: "Signal Transparency", href: "/signal-transparency" },
   { icon: Shield, label: "Verified Perf", href: "/verified-performance" },
+  { icon: Trophy, label: "Performance Arena", href: "/performance-arena" },
   { icon: CreditCard, label: "Purchases", href: "/account/purchases" },
   { icon: FileKey2, label: "Licenses", href: "/account/licenses" },
   { icon: Sparkles, label: "TradingView", href: "/account/tradingview" },

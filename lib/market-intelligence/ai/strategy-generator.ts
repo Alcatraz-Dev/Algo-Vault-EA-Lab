@@ -3,7 +3,7 @@
  * Must pass validation before application.
  */
 
-import { StrategyDefinition } from "../../strategies/types";
+import { StrategyDefinition } from "../strategies/types";
 
 export interface StrategyGenerationResult {
   definition: StrategyDefinition;

@@ -48,6 +48,11 @@ export class ReplayEngine {
     return this.progress / (this.candles.length || 1);
   }
 
+  /** Current replay index (0-based candle position) for UI adapters. */
+  getIndex(): number {
+    return this.progress;
+  }
+
   step(): { candles: MarketCandle[]; events: unknown[]; index: number; orderFlowContext?: OrderFlowContext | null } | null {
     if (this.progress >= this.candles.length) return null;
     const available = this.candles.slice(0, this.progress + 1);

@@ -24,6 +24,18 @@ export interface ResearchRun {
   strategyId: string;
   datasetIdentity?: string; // canonical reference
   executionConfig: string;
+  /** Quality of the data the run executed against (additive, optional). */
+  dataQuality?: {
+    status: string;
+    candleCount: number;
+    gaps: number;
+    duplicates: number;
+    invalidOHLC: number;
+    timezone: string;
+    volumeAvailable: boolean;
+    spreadAvailable: boolean;
+    limitations: string[];
+  };
   parameterSpace: ParameterSpace;
   configurations: ResearchConfiguration[];
   status: "pending" | "running" | "completed" | "failed" | "limited";

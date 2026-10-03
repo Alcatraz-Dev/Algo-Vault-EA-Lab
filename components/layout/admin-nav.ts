@@ -7,6 +7,7 @@ import {
   DollarSign,
   FileCode2,
   FileKey2,
+  FlaskConical,
   GitBranch,
   LayoutDashboard,
   LineChart,
@@ -83,7 +84,10 @@ export const ADMIN_NAV: NavGroup[] = [
   {
     label: "Intelligence",
     items: [
+      { href: "/admin/ai-agents", label: "AI Agents", icon: Bot },
+      { href: "/admin/ai-trading-teams", label: "AI Trading Teams", icon: Sparkles },
       { href: "/admin/workflows", label: "Workflow Automation", icon: GitBranch },
+      { href: "/admin/strategy-research", label: "Strategy Research", icon: FlaskConical },
       { href: "/admin/telegram", label: "Telegram Signals", icon: Radio },
       { href: "/admin/backtests", label: "Backtests", icon: MonitorPlay },
       { href: "/admin/analysis", label: "Analysis", icon: BarChart3 },

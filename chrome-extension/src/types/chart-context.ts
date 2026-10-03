@@ -7,6 +7,23 @@
  * canonical accessors; extended fields are optional so the object can be
  * constructed incrementally as browser detection + market enrichment complete.
  */
+import type {
+  TradingViewAccountInfo,
+  AccountMode,
+  AccountState,
+  TradingViewPosition,
+  TradingViewPendingOrder,
+  ExecutionLifecycleStatus,
+} from "./execution";
+
+export type {
+  TradingViewAccountInfo,
+  AccountMode,
+  AccountState,
+  TradingViewPosition,
+  TradingViewPendingOrder,
+  ExecutionLifecycleStatus,
+};
 
 export type Market = "forex" | "crypto" | "index" | "stock" | "metal" | "commodity" | "unknown";
 
@@ -91,6 +108,9 @@ export interface ChartContext {
   unsupportedReason?: string | null;
   /** Manual override set by the user (popup), replacing browser detection. */
   manualOverride?: boolean;
+
+  /* ── account & broker context ────────────────────────────── */
+  account?: TradingViewAccountInfo;
 }
 
 /** Immutable empty context — same shape everywhere it's constructed. */
@@ -123,6 +143,7 @@ export function createEmptyChartContext(): ChartContext {
     marketSymbol: null,
     unsupportedReason: null,
     manualOverride: false,
+    account: undefined,
   };
 }
 

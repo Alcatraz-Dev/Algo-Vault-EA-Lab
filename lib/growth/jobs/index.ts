@@ -273,7 +273,7 @@ export async function optimizationAnalysisJob(payload: OptimizationAnalysisJobPa
 
 // ─── Cron entrypoints ────────────────────────────────────────────────────────
 
-export type CronJobName = "reports" | "content" | "analysis" | "affiliates" | "optimization";
+export type CronJobName = "reports" | "content" | "analysis" | "affiliates" | "optimization" | "marketing-agent";
 
 const CRON_HANDLERS: Record<CronJobName, (payload: Record<string, unknown>, now: number) => Promise<JobHandlerResult>> = {
     reports: (payload, now) => generateReportsJob({ interval: (payload.interval as ReportInterval) ?? "WEEKLY" }, now),
@@ -281,6 +281,12 @@ const CRON_HANDLERS: Record<CronJobName, (payload: Record<string, unknown>, now:
     analysis: (payload) => campaignAnalysisJob({ periodStart: Number(payload.periodStart || 0), periodEnd: Number(payload.periodEnd || Date.now()) }),
     affiliates: () => affiliateReconciliationJob(),
     optimization: (payload) => optimizationAnalysisJob({ periodStart: Number(payload.periodStart || 0), periodEnd: Number(payload.periodEnd || Date.now()), mode: (payload.mode as OptimizationAnalysisJobPayload["mode"]) ?? "RECOMMENDATION_ONLY" }),
+    // Marketing Agent tick: publishes due schedules, verifies, collects metrics.
+    // Loaded lazily so the growth job module never hard-depends on the agent.
+    "marketing-agent": async (payload, now) => {
+        const { runMarketingAgentCron } = await import("@/lib/marketing-agent/cron");
+        return runMarketingAgentCron(payload, now);
+    },
 };
 
 /**
@@ -290,8 +296,12 @@ const CRON_HANDLERS: Record<CronJobName, (payload: Record<string, unknown>, now:
 export async function runCronJob(job: CronJobName, payload: Record<string, unknown> = {}, now = Date.now()): Promise<{ ok: boolean; duplicate?: boolean; result?: JobHandlerResult; error?: string }> {
     if (!(job in CRON_HANDLERS)) return { ok: false, error: `Unknown cron job: ${job}` };
     const handler = CRON_HANDLERS[job];
-    // Deterministic daily bucket so re-triggered crons are deduped.
-    const jobKey = `cron:${job}:${new Date(now).toISOString().slice(0, 10)}`;
+    // Deterministic bucket so re-triggered crons are deduped. Sub-daily jobs
+    // (e.g. the Marketing Agent publishing tick) pass an explicit `tick` bucket
+    // so they can run more than once a day without ever running twice for the
+    // same tick.
+    const tick = typeof payload?.bucket === "string" ? `:${String(payload.bucket).replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40)}` : "";
+    const jobKey = `cron:${job}:${new Date(now).toISOString().slice(0, 10)}${tick}`;
     return runGrowthJob({
         type: `cron_${job}`,
         jobKey,

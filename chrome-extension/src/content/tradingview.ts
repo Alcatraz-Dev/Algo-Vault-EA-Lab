@@ -17,8 +17,20 @@
  * single debounced MutationObserver (no duplicate polling + observer) keeps the
  * live context in sync with symbol / timeframe / navigation changes.
  */
-import type { ChartContext, DetectedDrawing, DetectedIndicator, VisibleRange } from "@/types";
+import type {
+  ChartContext,
+  DetectedDrawing,
+  DetectedIndicator,
+  VisibleRange,
+  TradingViewAccountInfo,
+  AccountMode,
+  AccountState,
+  TradingViewPosition,
+  TradingViewPendingOrder,
+  NormalizedOrderIntent,
+} from "@/types";
 import { createEmptyChartContext } from "@/types/chart-context";
+import { createEmptyAccountInfo } from "@/types/execution";
 import { setCachedContext } from "@/storage/storage";
 import {
   normalizeTradingViewTimeframe,

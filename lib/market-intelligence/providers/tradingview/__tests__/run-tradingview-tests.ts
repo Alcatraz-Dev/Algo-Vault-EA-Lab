@@ -27,11 +27,10 @@ function check(name: string, fn: () => void): void {
     }
 }
 
-function assert(condition: unknown, message: string): void {
-    if (!condition) throw new Error(message);
+function assert(condition: unknown, message = ""): void {
+    if (!condition) throw new Error(message || "Assertion failed.");
 }
 
-function assertEqual(actual: unknown, expected: unknown, message = ""): void;
 function assertEqual(actual: unknown, expected: unknown, message?: string): void;
 function assertEqual(actual: unknown, expected: unknown, message = ""): void {
     assert(

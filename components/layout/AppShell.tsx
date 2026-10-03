@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import {
   LogOut,
   Menu,
+  Search,
   Settings,
   User,
   X,
@@ -49,6 +50,8 @@ export function AppShell({
   maxWidth = "max-w-7xl",
   padding = true,
   role = "app",
+  navSearch,
+  onNavSearch,
 }: {
   children: ReactNode;
   navGroups: NavGroup[];
@@ -60,6 +63,10 @@ export function AppShell({
   maxWidth?: string;
   padding?: boolean;
   role?: "app" | "account" | "admin";
+  /** Current sidebar search query (controlled externally). */
+  navSearch?: string;
+  /** Called when the user changes the sidebar search input. */
+  onNavSearch?: (q: string) => void;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -68,6 +75,9 @@ export function AppShell({
   const [accountOpen, setAccountOpen] = useState(false);
   const [siteName, setSiteName] = useState("AlgoVault");
   const accountRef = useRef<HTMLDivElement | null>(null);
+  const [internalNavSearch, setInternalNavSearch] = useState("");
+  const searchValue = navSearch !== undefined ? navSearch : internalNavSearch;
+  const handleSearch = onNavSearch ?? setInternalNavSearch;
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUser(u));
@@ -102,9 +112,25 @@ export function AppShell({
     return pathname?.startsWith(href) ?? false;
   };
 
+  const displayedGroups = searchValue.trim()
+    ? navGroups
+        .map((group) => ({
+          ...group,
+          items: group.items.filter((item) =>
+            item.label.toLowerCase().includes(searchValue.toLowerCase())
+          ),
+        }))
+        .filter((group) => group.items.length > 0)
+    : navGroups;
+
   const navInner = (
     <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4" aria-label="Primary">
-      {navGroups.map((group) => (
+      {displayedGroups.length === 0 ? (
+        <p className="px-2.5 py-4 text-center text-xs text-muted-foreground">
+          No navigation items found
+        </p>
+      ) : (
+        displayedGroups.map((group) => (
         <div key={group.label}>
           <p className="px-2.5 pb-1.5 text-micro font-medium uppercase tracking-wider text-muted-foreground">
             {group.label}
@@ -138,7 +164,13 @@ export function AppShell({
                   />
                   <span className="truncate">{item.label}</span>
                   {item.badge ? (
-                    <Badge variant="secondary" className="ml-auto h-5 px-2 text-micro">
+                    <Badge
+                      variant="secondary"
+                      className={cn(
+                        "ml-auto shrink-0 font-bold tracking-wide",
+                        role === "account" ? "h-4 px-1.5 text-[9px]" : "h-5 px-2 text-micro"
+                      )}
+                    >
                       {item.badge}
                     </Badge>
                   ) : null}
@@ -147,7 +179,8 @@ export function AppShell({
             })}
           </div>
         </div>
-      ))}
+      ))
+    )}
     </nav>
   );
 
@@ -190,6 +223,32 @@ export function AppShell({
             </p>
           </div>
         </Link>
+      </div>
+      {/* Sidebar search */}
+      <div className="border-b border-border px-3 py-2">
+        <div className="relative">
+          <Search
+            size={12}
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+          />
+          <input
+            type="search"
+            value={searchValue}
+            onChange={(e) => handleSearch(e.target.value)}
+            placeholder="Search navigation…"
+            className="h-7 w-full rounded-button border border-border bg-muted/40 pl-7 pr-2 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+          />
+          {searchValue ? (
+            <button
+              type="button"
+              onClick={() => handleSearch("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="Clear search"
+            >
+              <X size={11} />
+            </button>
+          ) : null}
+        </div>
       </div>
       {navInner}
       {sidebarFooter}
@@ -328,15 +387,19 @@ export function AppShell({
               </Button>
             ) : null}
             <div className="min-w-0" data-guide="page-header">
-              {eyebrow ? (
-                <p className="truncate text-micro font-medium uppercase tracking-wider text-muted-foreground">
-                  {eyebrow}
-                </p>
-              ) : null}
-              {title ? (
-                <h1 className="truncate text-xl font-medium tracking-tight text-foreground">
-                  {title}
-                </h1>
+              {title || eyebrow ? (
+                <div className="flex min-w-0 items-center gap-2">
+                  {title ? (
+                    <h1 className="truncate text-xl font-medium tracking-tight text-foreground">
+                      {title}
+                    </h1>
+                  ) : null}
+                  {eyebrow ? (
+                    <span className="shrink-0 text-micro font-medium uppercase tracking-wider text-muted-foreground">
+                      {eyebrow}
+                    </span>
+                  ) : null}
+                </div>
               ) : null}
               {subtitle ? (
                 <p className="hidden truncate text-body-sm text-muted-foreground sm:block">{subtitle}</p>

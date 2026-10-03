@@ -178,21 +178,21 @@ function AgentCard({
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-4">
                         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
-                            <Bot size={20} className="text-blue-300/60" />
+                            <Bot size={20} className="text-yellow-300/60" />
                         </div>
                         <div className="min-w-0">
                             <div className="flex items-center gap-2">
                                 <Link
                                     href={`/admin/intelligence/agents/${agent.id}`}
-                                    className="text-sm font-semibold text-foreground transition hover:text-blue-300 truncate"
+                                    className="text-sm font-semibold text-foreground transition hover:text-yellow-300 truncate"
                                 >
                                     {agent.name}
                                 </Link>
-                                <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-300">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider text-yellow-300">
                                     {ROLE_LABELS[agent.role] || agent.role}
                                 </span>
                                 {isBuiltIn && (
-                                    <span className="rounded-full bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-300">
+                                    <span className="rounded-full bg-blue-500/10 px-2 py-0.5 text-[8px] text-yellow-300">
                                         Built-in
                                     </span>
                                 )}

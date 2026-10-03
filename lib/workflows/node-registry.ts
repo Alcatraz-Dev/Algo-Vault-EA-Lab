@@ -651,6 +651,14 @@ const NODES: WorkflowNodeDefinition[] = [
     { type: "marketing.compose", category: "marketing", name: "Compose", description: "Assemble video via FFmpeg (Ken Burns + overlay + concat). Reports NOT_AVAILABLE when FFmpeg missing.", permission: "analysis", configSchema: [{ key: "preset", label: "Preset", type: "string", default: "tiktok" }], defaults: { preset: "tiktok" }, timeoutMs: 120000 },
     { type: "marketing.thumbnail", category: "marketing", name: "Thumbnail", description: "Extract thumbnail from composed video.", permission: "analysis", configSchema: [], defaults: {}, timeoutMs: 30000 },
     { type: "marketing.publish", category: "marketing", name: "Publish", description: "Publish approved content through configured channel adapters (gated by APPROVED state).", permission: "analysis", configSchema: [{ key: "channels", label: "Channels", type: "multiselect", options: [{ value: "BLOG", label: "Blog" }, { value: "EMAIL", label: "Email" }, { value: "DISCORD", label: "Discord" }], default: ["BLOG"] }], defaults: { channels: ["BLOG"] }, timeoutMs: 30000 },
+    // ─── Marketing Agent (natural-language autonomous marketing) ────────────
+    { type: "marketing.agent.prompt", category: "marketing", name: "Agent: Analyze Prompt", description: "Parse a natural-language marketing instruction into a campaign plan and resumable task graph.", permission: "analysis", configSchema: [{ key: "prompt", label: "Instruction", type: "string", required: true, placeholder: "Create a 30s TikTok for AI Signals…" }, { key: "mode", label: "Mode", type: "select", options: [{ value: "MANUAL", label: "Manual" }, { value: "ASSISTED", label: "Assisted" }, { value: "AUTONOMOUS", label: "Autonomous" }], default: "ASSISTED" }], defaults: { mode: "ASSISTED" }, timeoutMs: 30000 },
+    { type: "marketing.agent.capture_plan", category: "marketing", name: "Agent: Capture Plan", description: "Build (and validate) the browser capture plan for a product demonstration. Never records anything.", permission: "analysis", configSchema: [{ key: "product", label: "Product key", type: "string", placeholder: "ai-signals" }, { key: "objective", label: "Objective", type: "string" }], defaults: {}, timeoutMs: 15000 },
+    { type: "marketing.agent.produce", category: "marketing", name: "Agent: Produce Creative", description: "Create a Marketing Agent run (intent → plan → production). Returns the run id; production continues asynchronously.", permission: "analysis", configSchema: [{ key: "prompt", label: "Instruction", type: "string", required: true }, { key: "mode", label: "Mode", type: "select", options: [{ value: "MANUAL", label: "Manual" }, { value: "ASSISTED", label: "Assisted" }, { value: "AUTONOMOUS", label: "Autonomous" }], default: "ASSISTED" }], defaults: { mode: "ASSISTED" }, timeoutMs: 60000 },
+    { type: "marketing.agent.qa", category: "marketing", name: "Agent: Creative QA", description: "Run the eight QA gates for a rendered creative version.", permission: "analysis", configSchema: [{ key: "versionId", label: "Version id", type: "string", required: true }], defaults: {}, timeoutMs: 30000 },
+    { type: "marketing.agent.schedule", category: "marketing", name: "Agent: Schedule", description: "Store a schedule for an approved publishing job (timezone + recurrence aware).", permission: "analysis", configSchema: [{ key: "publishingJobId", label: "Publishing job id", type: "string", required: true }, { key: "scheduleHint", label: "When", type: "string", placeholder: "next week at 18:00" }, { key: "timezone", label: "Timezone", type: "string", default: "UTC" }], defaults: { timezone: "UTC" }, timeoutMs: 20000 },
+    { type: "marketing.agent.publish", category: "marketing", name: "Agent: Publish", description: "Publish an approved job through its connector. Becomes PUBLISHED only after platform confirmation.", permission: "analysis", configSchema: [{ key: "publishingJobId", label: "Publishing job id", type: "string", required: true }], defaults: {}, timeoutMs: 60000 },
+    { type: "marketing.agent.analyze", category: "marketing", name: "Agent: Analyze Performance", description: "Collect platform metrics and produce sample-size-qualified learning observations.", permission: "analysis", configSchema: [{ key: "creativeId", label: "Creative id", type: "string" }], defaults: {}, timeoutMs: 45000 },
     // ─── Reports ───────────────────────────────────────────────────────────
     {
         type: "reports.build_report",
@@ -663,6 +671,52 @@ const NODES: WorkflowNodeDefinition[] = [
             { key: "sections", label: "Sections (JSON array: [{ title, ref }])", type: "json", help: "Each ref points at an upstream output, e.g. $rsi or $backtest." },
         ],
         timeoutMs: 5_000,
+    },
+    // ─── Strategy Research (optional nodes; the research engine never depends
+    //     on workflows. All nodes are read-only except start_mission, which
+    //     creates a research-only mission — execution stays disabled.) ───────
+    {
+        type: "research.start_mission",
+        category: "simulation",
+        name: "Start Research Mission",
+        description: "Creates an Autonomous Strategy Research mission (Pro-gated, execution disabled) and optionally runs it to completion. Returns missionId and stage progress.",
+        permission: "analysis",
+        configSchema: [
+            { key: "name", label: "Mission name", type: "string", default: "Workflow research" },
+            { key: "symbol", label: "Market", type: "string", required: true, placeholder: "XAUUSD" },
+            { key: "timeframes", label: "Timeframes (comma-separated)", type: "string", default: "M5,M15", placeholder: "M1,M5,M15" },
+            { key: "style", label: "Trading style", type: "select", options: [{ value: "scalping", label: "scalping" }, { value: "intraday", label: "intraday" }, { value: "swing", label: "swing" }], default: "scalping" },
+            { key: "concepts", label: "Concepts (comma-separated)", type: "string", default: "smart_money,liquidity,fvg", help: "smart_money, liquidity, fvg, order_blocks, vwap, atr, structure, sessions, momentum, mean_reversion" },
+            { key: "maxCandidates", label: "Max candidates", type: "number", default: 6 },
+            { key: "runToCompletion", label: "Run to completion in this node", type: "boolean", default: false, help: "Off = create only; drive progress with Research Status + a repeated workflow." },
+        ],
+        defaults: { name: "Workflow research", timeframes: "M5,M15", style: "scalping", concepts: "smart_money,liquidity,fvg", maxCandidates: 6, runToCompletion: false },
+        timeoutMs: 240_000,
+        rateLimitPerMinute: 5,
+    },
+    {
+        type: "research.status",
+        category: "simulation",
+        name: "Research Status",
+        description: "Reads a research mission's stage progress, candidate counts and budget usage (read-only).",
+        permission: "analysis",
+        configSchema: [
+            { key: "missionId", label: "Mission id", type: "string", required: true, help: "Pass $researchMissionId from a Start Research Mission node." },
+        ],
+        timeoutMs: 15_000,
+    },
+    {
+        type: "research.survivors",
+        category: "simulation",
+        name: "Strategy Memory Lookup",
+        description: "Lists research survivors (validated candidates with evidence) for a symbol from Strategy Memory — read-only, never executes trades.",
+        permission: "analysis",
+        configSchema: [
+            { key: "symbol", label: "Market", type: "string", required: true, placeholder: "XAUUSD" },
+            { key: "limit", label: "Limit", type: "number", default: 10 },
+        ],
+        defaults: { limit: 10 },
+        timeoutMs: 20_000,
     },
 ];
 

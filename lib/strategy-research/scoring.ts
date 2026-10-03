@@ -181,7 +181,13 @@ export function decideLifecycle(
         return { lifecycle: "rejected", rejectedReason: "compile_failed", notes: candidate.compilation.errors };
     }
     if (!candidate.evaluation || !candidate.evaluation.backtest) {
-        return { lifecycle: "compiled", rejectedReason: null, notes: [] };
+        // Fail-closed: no evidence means the candidate cannot be ranked, but a
+        // missing backtest is an operational failure, not an overfit verdict.
+        return {
+            lifecycle: "failed",
+            rejectedReason: "data_unavailable",
+            notes: ["No backtest evidence available — candidate cannot be validated."],
+        };
     }
     const { score, rejection, notes } = scoreCandidate(candidate.evaluation, spec);
     if (rejection) {
@@ -189,22 +195,34 @@ export function decideLifecycle(
     }
     const total = score?.total ?? 0;
 
+    // Mandatory validation stages — never skipped, never faked.
     if (spec.requireOOS && !candidate.evaluation.validation) {
-        return { lifecycle: "validated", rejectedReason: "oos_failed", notes: ["OOS validation required but missing."] };
+        return { lifecycle: "rejected", rejectedReason: "oos_failed", notes: ["OOS validation required but missing."] };
     }
-    if (spec.requireWalkForward && candidate.evaluation.validation && candidate.evaluation.validation.outcome.walkForward.enabled) {
-        if (!candidate.evaluation.validation.outcome.walkForward.stable) {
-            return { lifecycle: "validated", rejectedReason: "walk_forward_unstable", notes: ["Walk-forward windows unstable."] };
-        }
+    const wf = candidate.evaluation.validation?.outcome.walkForward ?? null;
+    if (spec.requireWalkForward && (!wf || !wf.enabled || wf.windows.length === 0 || !wf.stable)) {
+        return {
+            lifecycle: "rejected",
+            rejectedReason: "walk_forward_unstable",
+            notes: ["Walk-forward validation required but absent or unstable."],
+        };
     }
-    if (spec.requireMonteCarlo && candidate.evaluation.monteCarlo) {
-        const mc = candidate.evaluation.monteCarlo.summary;
-        if (mc.simulations === 0 && mc.sourceTradeCount < 2) {
-            return { lifecycle: "stress_tested", rejectedReason: "monte_carlo_fragile", notes: mc.limitations };
+    if (spec.requireMonteCarlo) {
+        const mc = candidate.evaluation.monteCarlo?.summary ?? null;
+        if (!mc || mc.simulations === 0) {
+            return {
+                lifecycle: "rejected",
+                rejectedReason: "monte_carlo_fragile",
+                notes: mc ? mc.limitations : ["Monte Carlo required but unavailable."],
+            };
         }
     }
     if (total < SURVIVOR_THRESHOLD) {
-        return { lifecycle: "ranked", rejectedReason: "below_score_threshold", notes: [`Score ${total} below survivor threshold ${SURVIVOR_THRESHOLD}.`] };
+        return {
+            lifecycle: "rejected",
+            rejectedReason: "below_score_threshold",
+            notes: [`Score ${total} below survivor threshold ${SURVIVOR_THRESHOLD}.`],
+        };
     }
     return { lifecycle: "survivor", rejectedReason: null, notes: notes.length > 0 ? notes : ["Passed all required validation stages."] };
 }

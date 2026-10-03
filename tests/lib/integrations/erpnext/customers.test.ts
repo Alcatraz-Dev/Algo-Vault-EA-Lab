@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { syncCustomer } from "../../../lib/integrations/erpnext/customers";
-import { ERPNextAPIClient } from "../../../lib/integrations/erpnext/client";
+import { describe, it, expect, vi } from "vitest";
+import { syncCustomer } from "../../../../lib/integrations/erpnext/customers";
+import { ERPNextAPIClient } from "../../../../lib/integrations/erpnext/client";
 
 describe("Customer Sync", () => {
   it("idempotent create returns customer", async () => {

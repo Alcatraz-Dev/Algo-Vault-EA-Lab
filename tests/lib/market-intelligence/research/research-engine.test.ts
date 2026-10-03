@@ -1,6 +1,6 @@
-import { generateConfigurations, ParameterSpace } from "../../../lib/market-intelligence/research/parameter-space";
-import { validateParameterSpace } from "../../../lib/market-intelligence/research/validation";
-import { canonicalConfigurationId } from "../../../lib/market-intelligence/research/reproducibility";
+import { generateConfigurations, ParameterSpace } from "../../../../lib/market-intelligence/research/parameter-space";
+import { validateParameterSpace } from "../../../../lib/market-intelligence/research/validation";
+import { canonicalConfigurationId } from "../../../../lib/market-intelligence/research/reproducibility";
 
 describe("Phase 6.1 Parameter Research", () => {
   it("generates deterministic combinations", () => {

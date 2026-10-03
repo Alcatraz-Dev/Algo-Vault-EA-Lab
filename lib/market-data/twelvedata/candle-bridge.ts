@@ -116,6 +116,7 @@ function timeframeToInterval(tf: Timeframe): string {
         H1: "1h",
         H4: "4h",
         D1: "1day",
+        W1: "1week",
     };
     return map[tf];
 }

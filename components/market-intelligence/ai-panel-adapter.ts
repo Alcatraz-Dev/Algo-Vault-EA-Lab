@@ -3,8 +3,8 @@
  * Connects existing AI modules to the workspace.
  * No new AI router / budget / provider.
  */
-import { buildIntelligenceContext, isReplaySafe } from "../../../lib/market-intelligence/ai/intelligence-layer";
-import { analyzeMarket } from "../../../lib/market-intelligence/ai/market-analyst";
+import { buildIntelligenceContext, isReplaySafe } from "../../lib/market-intelligence/ai/intelligence-layer";
+import { analyzeMarket } from "../../lib/market-intelligence/ai/market-analyst";
 import type { WorkspaceContext } from "./workspace-context";
 
 export interface IntelligencePanelState {

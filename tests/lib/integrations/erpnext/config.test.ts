@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { loadERPNextConfig, isERPNextConfigured } from "../../lib/integrations/erpnext/config";
+import { loadERPNextConfig, isERPNextConfigured } from "../../../../lib/integrations/erpnext/config";
 
 describe("ERPNext Config", () => {
   const originalEnv = process.env;

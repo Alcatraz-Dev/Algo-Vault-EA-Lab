@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { authMethods, dbMethods, DB_PATHS } from "./config";
+import { authMethods, dbMethods, DB_PATHS } from "../firebase/config";
 import type { User } from "firebase/auth";
 import type { TradingAccount, UserBot, AISignal, Alert, Notification, RiskMetrics } from "../types";
 

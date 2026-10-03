@@ -3,6 +3,7 @@
 import { AppShell, type NavGroup } from "@/components/layout/AppShell";
 import { APP_NAV } from "@/components/layout/app-nav";
 import { Badge } from "@/components/ui/badge";
+import { AITeamsEntryCard } from "@/components/ai-trading-teams/entry-card";
 import { useMemo } from "react";
 import { Circle } from "lucide-react";
 
@@ -21,6 +22,10 @@ export default function MarketIntelligenceCommandCenterPage() {
           <div className="text-muted-foreground">Strategy: —</div>
           <div className="text-muted-foreground">Backtest: —</div>
           <div className="text-muted-foreground">Research: —</div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,420px)_1fr]">
+          <AITeamsEntryCard context="Market Intelligence" />
         </div>
 
         <div className="grid lg:grid-cols-[1fr_320px] gap-4">

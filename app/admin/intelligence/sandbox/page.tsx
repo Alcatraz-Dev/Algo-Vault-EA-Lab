@@ -47,7 +47,7 @@ export default function AdminSandboxPage() {
                     <div className="space-y-2.5 text-sm">
                         <div className="flex items-center justify-between">
                             <span className="text-muted-foreground">Sandbox mode</span>
-                            <StatusBadge status="ok">Active</StatusBadge>
+                            <StatusBadge tone="active" label="Active" />
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-muted-foreground">Schema check</span>

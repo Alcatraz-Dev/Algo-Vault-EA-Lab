@@ -1189,3 +1189,105 @@ html.dark .react-flow__minimap {
 .react-flow__controls-button svg {
   fill: currentColor;
 }
+/* ───────────────────────────────────────────────────────────────────────────
+   AI Trading Teams — agent visual motion.
+   Subtle, performant (transform/opacity only) and fully disabled when the
+   user prefers reduced motion.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.av-root {
+  contain: content;
+}
+
+.av-ring-spin::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  border-top-color: var(--primary);
+  border-right-color: color-mix(in oklch, var(--primary) 45%, transparent);
+  animation: av-rotate 2.4s linear infinite;
+  pointer-events: none;
+}
+
+.av-ring-pulse {
+  animation: av-ring-breathe 2.6s ease-in-out infinite;
+}
+
+.av-core-pulse {
+  animation: av-core-breathe 2s ease-in-out infinite;
+}
+
+.av-dot-pulse {
+  animation: av-dot-blink 1.4s ease-in-out infinite;
+}
+
+.av-blip {
+  transform-origin: center;
+  animation: av-blip 2.2s ease-in-out infinite;
+}
+
+.av-edge-flow {
+  stroke-dasharray: 6 8;
+  animation: av-dash 1.6s linear infinite;
+}
+
+.av-edge-idle {
+  stroke-dasharray: 2 6;
+  opacity: 0.45;
+}
+
+.av-enter {
+  animation: page-enter 0.28s ease-out;
+}
+
+.av-evidence-in {
+  animation: av-evidence-in 0.32s ease-out;
+}
+
+@keyframes av-rotate {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes av-ring-breathe {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+@keyframes av-core-breathe {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.25); }
+}
+
+@keyframes av-dot-blink {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+@keyframes av-blip {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+@keyframes av-dash {
+  to { stroke-dashoffset: -28; }
+}
+
+@keyframes av-evidence-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .av-ring-spin::after,
+  .av-ring-pulse,
+  .av-core-pulse,
+  .av-dot-pulse,
+  .av-blip,
+  .av-edge-flow,
+  .av-enter,
+  .av-evidence-in {
+    animation: none !important;
+  }
+}

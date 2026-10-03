@@ -21,9 +21,9 @@ export function normalizeMetrics(metrics?: Partial<BacktestMetrics> | null): Res
     totalTrades: typeof metrics.totalTrades === "number" ? metrics.totalTrades : null,
     winRate: typeof metrics.winRate === "number" ? metrics.winRate : null,
     netProfit: typeof metrics.netProfit === "number" ? metrics.netProfit : null,
-    maxDrawdown: typeof metrics.maxDrawdown === "number" ? metrics.maxDrawdown : null,
+    maxDrawdown: typeof metrics.maxDrawdownPct === "number" ? metrics.maxDrawdownPct : null,
     profitFactor: typeof metrics.profitFactor === "number" ? metrics.profitFactor : null,
-    averageTrade: typeof metrics.expectedPayoff === "number" ? metrics.expectedPayoff : null,
+    averageTrade: typeof metrics.expectancy === "number" ? metrics.expectancy : null,
     longTradeCount: metrics.longTrades ?? null,
     shortTradeCount: metrics.shortTrades ?? null,
   };

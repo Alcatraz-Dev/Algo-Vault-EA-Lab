@@ -7,6 +7,7 @@
 
 import { MarketCandle } from "../../market-data/types";
 import { SmartMoneyEvent, BacktestConfig, BacktestResult, Timeframe } from "../types";
+export type { BacktestConfig, BacktestResult };
 import { SmartMoneyEngine } from "../smart-money/engine";
 
 export interface BacktestContext {
@@ -73,10 +74,6 @@ export function validateDataset(candles: MarketCandle[], symbol: string, tf: Tim
     }
     if (c.high < c.low || c.open > c.high || c.low > c.high || c.close < c.low || c.close > c.high) {
       invalid++;
-    }
-    if (i > 0 && sorted[i].timestamp !== sorted[i - 1].timestamp + (sorted[i - 1].timestamp - sorted[i - 2]?.timestamp ?? 0)) {
-      // approximate gap detection
-      // for simplicity: check large jumps
     }
   }
 

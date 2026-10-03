@@ -46,7 +46,7 @@ export function runMonteCarlo(
   const stats = (arr: number[]) => {
     const s = arr.sort((a, b) => a - b);
     const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
-    return { min: s[0], max: s[s.length - 1], mean: Math.round(mean * 100) / 100, median: s[Math.floor(s.length / 2)], count: arr.length };
+    return { method: config.method, min: s[0], max: s[s.length - 1], mean: Math.round(mean * 100) / 100, median: s[Math.floor(s.length / 2)], count: arr.length };
   };
 
   // Percentile/tail summaries are computed on sorted copies BEFORE stats()

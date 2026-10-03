@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { loadERPNextConfig } from "../../../lib/integrations/erpnext/config";
+import { loadERPNextConfig } from "../../../../lib/integrations/erpnext/config";
 
 describe("ERPNext Security", () => {
   it("credentials are not exposed in config object to client" , () => {

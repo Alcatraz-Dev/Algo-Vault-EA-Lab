@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { ERPNextAPIClient } from "../../../lib/integrations/erpnext/client";
+import { ERPNextAPIClient } from "../../../../lib/integrations/erpnext/client";
 
 describe("ERPNext Compatibility / Errors", () => {
   it("handles unreachable ERPNext (timeout/network)", async () => {

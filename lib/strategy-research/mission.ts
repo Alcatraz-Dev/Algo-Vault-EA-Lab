@@ -77,6 +77,8 @@ export async function createMission(
         compiledCount: 0,
         rejectedCount: 0,
         survivorCount: 0,
+        failState: null,
+        budgetUsed: { hypotheses: 0, backtests: 0, aiRequests: 0, startedAt: now },
         lease: null,
         createdAt: now,
         updatedAt: now,
@@ -85,7 +87,7 @@ export async function createMission(
     };
 
     await saveMission({ ...mission, fingerprint } as ResearchMission & { fingerprint: string });
-    await logEvent(uid, mission.id, "data", "info", "Mission created — pipeline queued.");
+    await logEvent(uid, mission.id, "data", "info", "Mission created — pipeline queued.", undefined, "RESEARCH_CREATED");
     return { ok: true, status: 201, mission };
 }
 
@@ -119,7 +121,9 @@ export async function applyMissionControl(
     }
 
     await updateMission(uid, missionId, { status: transition.to });
-    await logEvent(uid, missionId, mission.currentStage, "info", `Mission ${action}d by user.`);
+    const controlCode =
+        action === "pause" ? "RESEARCH_PAUSED" : action === "resume" ? "RESEARCH_RESUMED" : "RESEARCH_CANCELLED";
+    await logEvent(uid, missionId, mission.currentStage, "info", `Mission ${action}d by user.`, undefined, controlCode);
     const updated = await getMission(uid, missionId);
     return { ok: true, status: 200, mission: updated ? sanitizeMissionForClient(updated) : undefined };
 }

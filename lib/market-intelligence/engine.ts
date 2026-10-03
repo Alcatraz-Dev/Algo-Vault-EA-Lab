@@ -1,4 +1,4 @@
-import { MarketCandle } from "../../market-data/types";
+import { MarketCandle } from "../market-data/types";
 import { NormalizedCandle, Timeframe, TIMEFRAMES } from "./types";
 
 /**

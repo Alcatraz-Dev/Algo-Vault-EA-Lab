@@ -28,6 +28,12 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // `playwright` is an OPTIONAL runtime dependency of the browser-capture
+  // provider (lib/marketing-agent/browser/providers.ts): the code probes for
+  // it inside try/catch and degrades to NOT_CONFIGURED when absent. Marking it
+  // external keeps Turbopack from statically resolving (and failing on) an
+  // intentionally uninstalled package at build time.
+  serverExternalPackages: ["playwright"],
   headers: async () => [
     {
       source: "/:path*",

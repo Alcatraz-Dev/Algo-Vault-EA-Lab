@@ -108,6 +108,41 @@ function distillMemory(answer: string, prev: CopilotMemory | null): CopilotMemor
   };
 }
 
+import type { CopilotMemoryContext } from "@/types/pro";
+
+function algoVaultMemoryBlock(mem: CopilotMemoryContext | null): string {
+  if (!mem) return "";
+  const lines = [
+    "===== ALGOVAULT USER REPOSITORY MEMORY =====",
+    `Saved Strategies in Library: ${mem.savedStrategiesCount}`,
+    `Saved Custom Indicators: ${mem.savedIndicatorsCount}`,
+    `Active Setups in Monitoring: ${mem.activeSetupsCount}`,
+    `Completed Research Analyses: ${mem.recentAnalysesCount}`,
+  ];
+  if (mem.similarSavedStrategies && mem.similarSavedStrategies.length > 0) {
+    lines.push("Similar Saved Strategies in Playbook:");
+    mem.similarSavedStrategies.forEach((s) => {
+      lines.push(`- Strategy: ${s.name}`);
+      s.reasons?.forEach((r) => lines.push(`  * ${r}`));
+    });
+  }
+  if (mem.similarHistoricalResearch && mem.similarHistoricalResearch.length > 0) {
+    lines.push("Similar Historical Research Results:");
+    mem.similarHistoricalResearch.forEach((r) => {
+      lines.push(`- ${r.title}: ${r.outcome}`);
+    });
+  }
+  if (mem.recentDismissedSetups && mem.recentDismissedSetups.length > 0) {
+    lines.push("Recent Dismissed / Invalidated Setups:");
+    mem.recentDismissedSetups.forEach((d) => {
+      lines.push(`- ${d.setupType} (invalidated / dismissed)`);
+    });
+  }
+  lines.push("Standard: Explain WHY setups resemble the user's playbook (same structure, indicators, timeframe, liquidity) when relevant. Never imply similarity guarantees future results.");
+  lines.push("===== END ALGOVAULT USER MEMORY =====");
+  return `\n\n${lines.join("\n")}`;
+}
+
 /* ── the main call ──────────────────────────────────────────────────── */
 
 export interface AskOptions {
@@ -117,6 +152,8 @@ export interface AskOptions {
   structuredContext: string | null;
   /** Extra context object handed to the server (enriched chart). */
   contextObject?: unknown;
+  /** User-scoped AlgoVault historical intelligence memory. */
+  algoVaultMemory?: CopilotMemoryContext | null;
   question: string;
   /** Include prior conversation turns (up to 12) for continuity. */
   withHistory?: boolean;
@@ -138,7 +175,7 @@ export async function askCopilot(opts: AskOptions): Promise<{ answer: string; mo
   const conversation = history.map((m) => ({ role: m.role, content: m.content }));
   conversation.push({
     role: "user" as const,
-    content: `${opts.question}${memoryBlock(memory)}${contextBlock}`,
+    content: `${opts.question}${memoryBlock(memory)}${algoVaultMemoryBlock(opts.algoVaultMemory ?? null)}${contextBlock}`,
   });
 
   const result = await chatWithAI(

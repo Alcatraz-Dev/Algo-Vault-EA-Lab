@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildStableExternalId, buildExternalIds, mapEntityReference } from "../../../lib/integrations/erpnext/mapper";
-import { loadERPNextConfig, isERPNextConfigured } from "../../../lib/integrations/erpnext/config";
+import { buildStableExternalId, buildExternalIds, mapEntityReference } from "../../../../lib/integrations/erpnext/mapper";
+import { loadERPNextConfig, isERPNextConfigured } from "../../../../lib/integrations/erpnext/config";
 
 describe("ERPNext Phase 10 Mapping", () => {
   it("builds stable external IDs", () => {

@@ -14,7 +14,7 @@ describe("Phase 12 Validation", () => {
     expect(typeof p.runBacktest).toBe("function");
   });
   it("no prediction fields in result", () => {
-    const r = { stage: "BACKTEST", status: "COMPLETED" };
+    const r = { stage: "BACKTEST", status: "COMPLETED" } as Record<string, unknown>;
     expect(r.probability).toBeUndefined();
   });
 });

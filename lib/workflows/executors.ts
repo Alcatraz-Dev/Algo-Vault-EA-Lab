@@ -792,6 +792,238 @@ async function marketingPublish(args: NodeExecutionArgs): Promise<NodeExecutionR
     return { status: "success", output: { published: false, blocked: "Gated by APPROVED state — out-of-band via adapter." } };
 }
 
+// ─── Marketing Agent (natural-language autonomous marketing, §58) ───────────
+
+async function marketingAgentPrompt(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const { parseIntent } = await import("@/lib/marketing-agent/intent");
+    const { buildPlan } = await import("@/lib/marketing-agent/planner");
+    const prompt = String(args.config.prompt || "").trim();
+    if (prompt.length < 8) return { status: "failed", error: "A marketing instruction of at least 8 characters is required." };
+
+    const intent = parseIntent(prompt);
+    const plan = buildPlan({
+        intent,
+        jobId: `wf_${args.run.id}`,
+        actor: args.uid || "workflow",
+    });
+
+    return {
+        status: "success",
+        output: {
+            command: intent.command,
+            products: plan.plan.products,
+            platforms: plan.plan.platforms,
+            languages: plan.plan.languages,
+            durationSec: plan.plan.durationSec,
+            tasks: plan.plan.tasks.map((t) => t.id),
+            estimatedUnits: plan.estimate.units,
+            blocked: plan.estimate.blocked,
+            requiresBrowserCapture: plan.plan.requiresBrowserCapture,
+            approvalPolicy: plan.plan.approvalPolicy,
+            warnings: plan.warnings,
+        },
+    };
+}
+
+async function marketingAgentCapturePlan(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const { buildCapturePlan, validateCapturePlan } = await import("@/lib/marketing-agent/browser/plan");
+    const { getFeature } = await import("@/lib/marketing-agent/product-knowledge");
+    const product = String(args.config.product || "").trim();
+    if (!product) return { status: "failed", error: "A product key is required (e.g. ai-signals)." };
+
+    const built = buildCapturePlan({
+        productKeys: [product],
+        objective: String(args.config.objective || ""),
+        jobId: `wf_${args.run.id}`,
+    });
+    if (!built.ok) return { status: "failed", error: built.error };
+
+    const feature = getFeature(built.product);
+    const validation = validateCapturePlan(built.plan, feature?.routes ?? [built.route]);
+    if (!validation.ok) return { status: "failed", error: `Invalid capture plan: ${validation.errors.join(" ")}` };
+
+    return {
+        status: "success",
+        output: {
+            product: built.product,
+            route: built.route,
+            steps: built.plan.steps.length,
+            sensitiveRegions: built.plan.sensitiveRegions.length,
+            fingerprint: built.plan.fingerprint,
+            note: "Plan only — recording runs through marketing.captureBrowser with a configured runtime.",
+        },
+    };
+}
+
+async function marketingAgentProduce(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const prompt = String(args.config.prompt || "").trim();
+    if (prompt.length < 8) return { status: "failed", error: "A marketing instruction of at least 8 characters is required." };
+
+    try {
+        const { createJob } = await import("@/lib/marketing-agent/agent");
+        const { loadSettingsFromRtdb } = await import("@/lib/marketing-agent/settings");
+        const settings = await loadSettingsFromRtdb();
+        const mode = String(args.config.mode || settings.mode);
+        const created = await createJob({
+            prompt,
+            mode: (mode === "MANUAL" || mode === "AUTONOMOUS" ? mode : "ASSISTED") as "MANUAL" | "ASSISTED" | "AUTONOMOUS",
+            actor: args.uid || "workflow",
+            settings,
+        });
+        if (!created.ok || !created.job) return { status: "failed", error: created.error || "Could not create the run." };
+        return {
+            status: "success",
+            output: {
+                jobId: created.job.id,
+                state: created.job.state,
+                estimatedUnits: created.job.estimatedUnits,
+                note: "Run created. Production continues through the Marketing Agent API / cron worker.",
+            },
+        };
+    } catch (err) {
+        return { status: "failed", error: err instanceof Error ? err.message : "Marketing Agent is unavailable." };
+    }
+}
+
+async function marketingAgentQa(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const { runQa } = await import("@/lib/marketing-agent/qa");
+    const { getVersion } = await import("@/lib/marketing-agent/storage");
+    const versionId = String(args.config.versionId || "").trim();
+    if (!versionId) return { status: "failed", error: "versionId is required." };
+
+    const version = await getVersion(versionId);
+    if (!version) return { status: "failed", error: "Creative version not found." };
+    if (!version.renderUrl) return { status: "failed", error: "Version has no validated render — QA cannot pass." };
+
+    const report = runQa({
+        platform: version.platform ?? "TIKTOK",
+        durationSec: version.durationSec,
+        maxDurationSec: 600,
+        render: { url: version.renderUrl },
+        ...(version.qa ? { claims: { passed: version.qa.passed, blocked: !version.qa.passed, flags: [], suggestions: [], checkedAt: version.qa.checkedAt } } : {}),
+    });
+
+    return {
+        status: report.passed ? "success" : "failed",
+        output: {
+            passed: report.passed,
+            failedGates: report.failedGates,
+            gates: report.gates.map((g) => ({ gate: g.gate, status: g.status })),
+        },
+        ...(report.passed ? {} : { error: `QA gates failed: ${report.failedGates.join(", ")}` }),
+    };
+}
+
+async function marketingAgentSchedule(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const publishingJobId = String(args.config.publishingJobId || "").trim();
+    if (!publishingJobId) return { status: "failed", error: "publishingJobId is required." };
+
+    const { parseScheduleHint } = await import("@/lib/marketing-agent/scheduling");
+    const { saveSchedule, getPublishingJob } = await import("@/lib/marketing-agent/storage");
+
+    const job = await getPublishingJob(publishingJobId);
+    if (!job) return { status: "failed", error: "Publishing job not found." };
+    if (job.state === "PUBLISHED") return { status: "failed", error: "Job is already published." };
+
+    const parsed = parseScheduleHint(String(args.config.scheduleHint || ""), {
+        timezone: String(args.config.timezone || "UTC"),
+        platform: job.platform,
+    });
+    if (parsed.unresolved) return { status: "failed", error: parsed.explanation };
+
+    const scheduleId = await saveSchedule({
+        publishingJobId,
+        ...(job.campaignId ? { campaignId: job.campaignId } : {}),
+        platform: job.platform,
+        timezone: parsed.timezone,
+        scheduledFor: parsed.scheduledFor,
+        recurrence: parsed.recurrence,
+        state: "ACTIVE",
+        nextRunAt: parsed.scheduledFor,
+        runCount: 0,
+        createdBy: args.uid || "workflow",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+    });
+
+    return {
+        status: "success",
+        output: { scheduleId, scheduledFor: parsed.scheduledFor, timezone: parsed.timezone, recurrence: parsed.recurrence.kind, explanation: parsed.explanation },
+    };
+}
+
+async function marketingAgentPublish(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const publishingJobId = String(args.config.publishingJobId || "").trim();
+    if (!publishingJobId) return { status: "failed", error: "publishingJobId is required." };
+
+    const { executePublishingJob } = await import("@/lib/marketing-agent/publishing/engine");
+    const { rtdbPublishingStore, getPublishingJob } = await import("@/lib/marketing-agent/storage");
+    const { loadSettingsFromRtdb } = await import("@/lib/marketing-agent/settings");
+
+    const job = await getPublishingJob(publishingJobId);
+    if (!job) return { status: "failed", error: "Publishing job not found." };
+
+    const settings = await loadSettingsFromRtdb();
+    const result = await executePublishingJob(rtdbPublishingStore(), publishingJobId, {
+        approvalGranted: true,
+        accountConnected: true,
+        publishingEnabled: settings.flags.marketingAgentPublishingEnabled === true,
+        qaPassed: true,
+    });
+
+    return {
+        status: result.ok ? "success" : "failed",
+        output: {
+            state: result.state,
+            externalId: result.externalId ?? null,
+            externalUrl: result.externalUrl ?? null,
+            attempt: result.attempt,
+            nextAttemptAt: result.nextAttemptAt ?? null,
+            verificationOk: result.verificationOk ?? null,
+            reason: result.reason,
+        },
+        ...(result.ok ? {} : { error: result.reason }),
+    };
+}
+
+async function marketingAgentAnalyze(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const creativeId = String(args.config.creativeId || "").trim();
+    const { collectPublishedMetrics } = await import("@/lib/marketing-agent/metrics-collector");
+    const { generateObservations } = await import("@/lib/marketing-agent/analytics");
+    const { listPerformance, saveLearning } = await import("@/lib/marketing-agent/storage");
+
+    const collected = await collectPublishedMetrics(Date.now(), creativeId ? { creativeId } : undefined);
+    let observations = 0;
+
+    if (creativeId && collected.snapshots.length >= 2) {
+        const [baseline, candidate] = collected.snapshots;
+        const produced = await generateObservations(
+            {
+                savePerformance: async () => "",
+                listPerformance: async () => collected.snapshots,
+                saveLearning: async (o) => saveLearning(o),
+                listLearning: async () => [],
+            },
+            { creativeId, platform: candidate.platform, baseline, candidate, createdBy: args.uid || "workflow" }
+        );
+        observations = produced.length;
+    }
+
+    if (collected.collected === 0 && observations === 0) {
+        return {
+            status: "failed",
+            error: `No metrics collected (uncovered platforms: ${collected.uncovered.join(", ") || "none"}).`,
+            output: { collected: 0, uncovered: collected.uncovered, observations: 0 },
+        };
+    }
+
+    void listPerformance;
+    return {
+        status: "success",
+        output: { collected: collected.collected, skipped: collected.skipped, uncovered: collected.uncovered, observations },
+    };
+}
+
 async function logicCross(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
     const valA = toNum(args.config.seriesA);
     const valB = toNum(args.config.seriesB);
@@ -1044,6 +1276,117 @@ async function aiExecutionKillSwitchCheck(args: NodeExecutionArgs): Promise<Node
 
 // ─── Dispatch ────────────────────────────────────────────────────────────────
 
+// ─── Strategy Research (thin adapters over the research domain) ────────────
+
+async function researchStartMission(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const { checkAccess } = await import("@/lib/strategy-lab/license");
+    const access = await checkAccess(args.uid);
+    if (!access.accessible) {
+        return { status: "failed", error: access.reason ?? "Strategy Research requires Pro access." };
+    }
+
+    const symbol = String(args.config.symbol || "").trim().toUpperCase();
+    if (!symbol) return { status: "failed", error: "symbol is required." };
+    const timeframes = String(args.config.timeframes || "M5,M15")
+        .split(",")
+        .map((t) => t.trim().toUpperCase())
+        .filter(Boolean);
+    const concepts = String(args.config.concepts || "")
+        .split(",")
+        .map((c) => c.trim().toLowerCase())
+        .filter(Boolean);
+
+    const spec = {
+        markets: [symbol],
+        timeframes,
+        tradingStyle: String(args.config.style || "scalping"),
+        concepts,
+        maxCandidates: Number(args.config.maxCandidates) || 6,
+        executionEnabled: false as const,
+    };
+
+    const { createMission } = await import("@/lib/strategy-research/mission");
+    const outcome = await createMission(args.uid, String(args.config.name || "Workflow research"), spec);
+    if (!outcome.ok || !outcome.mission) {
+        return {
+            status: "failed",
+            error: outcome.error ?? "Mission creation failed.",
+            output: outcome.validation ? { validationErrors: outcome.validation.errors } : undefined,
+        };
+    }
+
+    const missionId = outcome.mission.id;
+    let result: Record<string, unknown> | null = null;
+    if (args.config.runToCompletion === true) {
+        const { runMissionToCompletion } = await import("@/lib/strategy-research/orchestrator");
+        const run = await runMissionToCompletion(args.uid, missionId, 60);
+        result = { status: run.status, stage: run.stage, completed: run.completed, message: run.message };
+        if (run.status === "failed") {
+            return { status: "failed", error: run.message, output: { missionId, ...result } };
+        }
+    }
+
+    return {
+        status: "success",
+        output: {
+            missionId,
+            researchMissionId: missionId, // convenience alias for $refs
+            status: result?.status ?? outcome.mission.status,
+            stage: result?.stage ?? outcome.mission.currentStage,
+            executionEnabled: false,
+            run: result,
+        },
+    };
+}
+
+async function researchStatus(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const missionId = String(args.config.missionId || "").trim();
+    if (!missionId) return { status: "failed", error: "missionId is required." };
+    const { getMission, listCandidates } = await import("@/lib/strategy-research/storage");
+    const mission = await getMission(args.uid, missionId);
+    if (!mission) return { status: "failed", error: `Research mission ${missionId} not found.` };
+    const candidates = await listCandidates(args.uid, missionId);
+    const lifecycles: Record<string, number> = {};
+    for (const c of candidates) lifecycles[c.lifecycle] = (lifecycles[c.lifecycle] ?? 0) + 1;
+    return {
+        status: "success",
+        output: {
+            missionId,
+            status: mission.status,
+            stage: mission.currentStage,
+            failState: mission.failState ?? null,
+            stages: mission.stages.map((s) => ({ stage: s.stage, status: s.status })),
+            counts: {
+                hypotheses: mission.hypothesisCount,
+                compiled: mission.compiledCount,
+                rejected: mission.rejectedCount,
+                incubating: mission.survivorCount,
+                candidates: candidates.length,
+                lifecycles,
+            },
+            budget: mission.budgetUsed ?? null,
+            done: mission.status === "completed" || mission.status === "cancelled" || mission.status === "failed",
+        },
+    };
+}
+
+async function researchSurvivors(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const symbol = String(args.config.symbol || "").trim().toUpperCase();
+    if (!symbol) return { status: "failed", error: "symbol is required." };
+    const limit = Math.min(50, Math.max(1, Number(args.config.limit) || 10));
+    const { listSurvivors } = await import("@/lib/strategy-research/queries");
+    const survivors = await listSurvivors(args.uid, { symbol, limit });
+    return {
+        status: "success",
+        output: {
+            symbol,
+            count: survivors.length,
+            survivors,
+            note: "Research evidence only — no execution; live signals untouched.",
+        },
+    };
+}
+
 export async function executeNodeForType(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
     const type = args.node.type;
     switch (type) {
@@ -1103,6 +1446,9 @@ export async function executeNodeForType(args: NodeExecutionArgs): Promise<NodeE
         case "transform.template": return transformTemplate(args);
         case "transform.json": return transformJson(args);
         case "simulation.backtest": return simulationBacktest(args);
+        case "research.start_mission": return researchStartMission(args);
+        case "research.status": return researchStatus(args);
+        case "research.survivors": return researchSurvivors(args);
         case "reports.build_report": return reportsBuild(args);
         case "marketing.creative": return marketingCreative(args);
         case "marketing.variants": return marketingVariants(args);
@@ -1110,6 +1456,13 @@ export async function executeNodeForType(args: NodeExecutionArgs): Promise<NodeE
         case "marketing.compose": return marketingCompose(args);
         case "marketing.thumbnail": return marketingThumbnail(args);
         case "marketing.publish": return marketingPublish(args);
+        case "marketing.agent.prompt": return marketingAgentPrompt(args);
+        case "marketing.agent.capture_plan": return marketingAgentCapturePlan(args);
+        case "marketing.agent.produce": return marketingAgentProduce(args);
+        case "marketing.agent.qa": return marketingAgentQa(args);
+        case "marketing.agent.schedule": return marketingAgentSchedule(args);
+        case "marketing.agent.publish": return marketingAgentPublish(args);
+        case "marketing.agent.analyze": return marketingAgentAnalyze(args);
         default:
             return { status: "failed", error: `Unknown node type "${type}" — not in the registry.` };
     }

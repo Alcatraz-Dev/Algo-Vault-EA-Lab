@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ShieldCheck, ArrowUpRight } from "lucide-react";
@@ -7,6 +8,29 @@ import { buildInvestigationContext } from "@/lib/market-intelligence/investigati
 import type { InvestigationRoot } from "@/lib/market-intelligence/investigation/types";
 
 export default function InvestigationPage() {
+  // useSearchParams() requires a Suspense boundary for static prerendering
+  // (missing-suspense-with-csr-bailout).
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background text-foreground">
+          <header className="border-b border-border bg-card px-6 py-4">
+            <div className="mx-auto max-w-7xl">
+              <h1 className="text-xl font-semibold tracking-tight">Intelligence Investigation</h1>
+            </div>
+          </header>
+          <main className="mx-auto max-w-7xl px-6 py-6">
+            <p className="text-sm text-muted-foreground">Loading investigation…</p>
+          </main>
+        </div>
+      }
+    >
+      <InvestigationContent />
+    </Suspense>
+  );
+}
+
+function InvestigationContent() {
   const params = useSearchParams();
   const type = params.get("type") || "pattern";
   const id = params.get("id") || "unknown";

@@ -16,6 +16,7 @@ import {
     RESEARCH_RISK_PROFILES,
     RESEARCH_SESSIONS,
     RESEARCH_TRADING_STYLES,
+    ResearchBudget,
     ResearchMission,
     ResearchMissionSpec,
 } from "./types";
@@ -31,6 +32,28 @@ export const MISSION_LIMITS = {
     maxCandidates: 24,
     maxNameLength: 80,
 } as const;
+
+/** Hard ceilings for per-mission research budgets (fail-safe upper bounds). */
+export const BUDGET_LIMITS = {
+    maxHypotheses: { min: 1, max: 96, def: 48 },
+    maxBacktests: { min: 10, max: 1200, def: 400 },
+    maxAIRequests: { min: 0, max: 50, def: 12 },
+    maxDurationMs: { min: 60_000, max: 4 * 3_600_000, def: 45 * 60_000 },
+} as const;
+
+function clampBudget(raw: unknown): ResearchBudget {
+    const b = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>;
+    const num = (v: unknown, cfg: { min: number; max: number; def: number }) => {
+        const n = typeof v === "number" && Number.isFinite(v) ? Math.floor(v) : cfg.def;
+        return Math.max(cfg.min, Math.min(cfg.max, n));
+    };
+    return {
+        maxHypotheses: num(b.maxHypotheses, BUDGET_LIMITS.maxHypotheses),
+        maxBacktests: num(b.maxBacktests, BUDGET_LIMITS.maxBacktests),
+        maxAIRequests: num(b.maxAIRequests, BUDGET_LIMITS.maxAIRequests),
+        maxDurationMs: num(b.maxDurationMs, BUDGET_LIMITS.maxDurationMs),
+    };
+}
 
 export interface MissionValidationResult {
     valid: boolean;
@@ -121,10 +144,12 @@ export function validateMissionSpec(raw: unknown): MissionValidationResult {
             direction,
             riskProfile,
             historicalPeriod,
-            maxCandidates,
+            maxCandidates: Math.min(maxCandidates, clampBudget(raw.budget).maxHypotheses),
             requireOOS: raw.requireOOS !== false,
             requireWalkForward: raw.requireWalkForward !== false,
             requireMonteCarlo: raw.requireMonteCarlo !== false,
+            forwardTesting: raw.forwardTesting === true,
+            budget: clampBudget(raw.budget),
             executionEnabled: false,
         },
     };

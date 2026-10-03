@@ -76,6 +76,7 @@ const PERIODS: AnalysisPeriod[] = ["1M", "3M", "6M", "1Y", "3Y"];
 const TIMEFRAME_LABEL: Record<Timeframe, string> = {
     M1: "M1", M3: "M3", M5: "M5", M15: "M15", M30: "M30",
     H1: "H1", H4: "H4", D1: "D1",
+    W1: "W1",
 };
 // Timeframes surfaced in the UI (biquote-supported for the chosen periods).
 const UI_TFS: Timeframe[] = ["M5", "M15", "H1", "H4", "D1"];

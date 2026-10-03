@@ -217,4 +217,5 @@ export const TIMEFRAME_TO_INTERVAL: Record<Timeframe, string> = {
     H1: "1h",
     H4: "4h",
     D1: "1D",
+    W1: "1W",
 };

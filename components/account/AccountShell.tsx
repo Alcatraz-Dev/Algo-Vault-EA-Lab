@@ -28,15 +28,19 @@ import {
    LineChart,
    LogOut,
    Menu,
+   MonitorSmartphone,
    Plug,
    Radio,
+   Search,
    Settings,
    Cpu,
    RotateCcw,
    Shield,
    Target,
    Tag,
+   Trophy,
    TrendingUp,
+   Users,
    Wallet,
    X,
    Zap,
@@ -59,10 +63,12 @@ const ACCOUNT_NAV: NavGroup[] = [
       { icon: Globe, label: "Trading Access", href: "/account/trading-access" },
       { icon: Gift, label: "Affiliates", href: "/account/affiliate" },
       { icon: Zap, label: "Upgrade", href: "/pricing" },
-      { icon: Zap, label: "Scalping Terminal", href: "/account/scalping" },
-      { icon: Zap, label: "Pro Scalping Terminal", href: "/account/scalping-terminal" },
+      { icon: Zap, label: "Scalping Terminal", href: "/account/scalping", badge: "PRO" },
+      { icon: Zap, label: "Pro Scalping Terminal", href: "/account/scalping-terminal", badge: "PRO" },
       { icon: Settings, label: "Settings", href: "/account/settings" },
       { icon: Activity, label: "Account Health", href: "/account/account-health" },
+      { icon: MonitorSmartphone, label: "Pro Trading Extension", href: "/account/pro-trading-extension", badge: "PRO" },
+      { icon: Trophy, label: "Performance Arena", href: "/account/performance-arena" },
     ],
   },
   {
@@ -89,10 +95,11 @@ const ACCOUNT_NAV: NavGroup[] = [
   {
     label: "Intelligence",
     items: [
+      { icon: Users, label: "AI Trading Teams", href: "/account/ai-trading-teams", badge: "PRO" },
       { icon: Plug, label: "My Plugins", href: "/account/plugins" },
       { icon: Cpu, label: "Active Agents", href: "/account/agents" },
       { icon: BarChart3, label: "Analysis", href: "/account/analysis" },
-      { icon: BarChart3, label: "Market Intelligence", href: "/account/market-intelligence" },
+      { icon: BarChart3, label: "Market Intelligence", href: "/account/market-intelligence", badge: "PRO" },
     ],
   },
   {
@@ -113,7 +120,7 @@ const ACCOUNT_NAV: NavGroup[] = [
     items: [
       { icon: Zap, label: "AI Execution", href: "/account/ai-execution" },
       { icon: Bot, label: "My Bots", href: "/account/bots" },
-          { icon: GitBranch, label: "Workflow Automation", href: "/account/workflows" },
+          { icon: GitBranch, label: "Workflow Automation", href: "/account/workflows", badge: "PRO" },
           { icon: Zap, label: "AI Signals", href: "/signals" },
           { icon: LineChart, label: "Trading Studio", href: "/account/tradingview" },
           { icon: RotateCcw, label: "Trade Replay", href: "/trade-replay" },
@@ -136,17 +143,24 @@ export default function AccountShell({
   children,
   title = "Account",
   subtitle,
+  eyebrow,
   onBack,
+  headerActions: extraHeaderActions,
 }: {
   children: React.ReactNode;
   title?: string;
   subtitle?: string;
+  /** Rendered inline with the page title (e.g. the small Pro badge). */
+  eyebrow?: React.ReactNode;
   onBack?: () => void;
+  /** Extra content injected into the topbar alongside the status pill. */
+  headerActions?: React.ReactNode;
 }) {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [siteName, setSiteName] = useState("AlgoVault");
+  const [navSearch, setNavSearch] = useState("");
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (currentUser) => {
@@ -171,6 +185,7 @@ export default function AccountShell({
 
   const headerActions = (
     <div className="flex items-center gap-3">
+      {extraHeaderActions}
       <span className="hidden items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground sm:flex">
         <span className="relative flex h-2 w-2">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-60" />
@@ -181,15 +196,28 @@ export default function AccountShell({
     </div>
   );
 
+  // Filter nav groups by search query
+  const filteredNav = navSearch.trim()
+    ? ACCOUNT_NAV.map((group) => ({
+        ...group,
+        items: group.items.filter((item) =>
+          item.label.toLowerCase().includes(navSearch.toLowerCase())
+        ),
+      })).filter((group) => group.items.length > 0)
+    : ACCOUNT_NAV;
+
   return (
     <AppShell
-      navGroups={ACCOUNT_NAV}
+      navGroups={filteredNav}
       title={title}
       subtitle={subtitle}
+      eyebrow={eyebrow}
       onBack={onBack}
       headerActions={headerActions}
       role="account"
       maxWidth="max-w-7xl"
+      navSearch={navSearch}
+      onNavSearch={setNavSearch}
     >
       {children}
     </AppShell>

@@ -1,4 +1,4 @@
-export type Timeframe = "M1" | "M3" | "M5" | "M15" | "M30" | "H1" | "H4" | "D1";
+export type Timeframe = "M1" | "M3" | "M5" | "M15" | "M30" | "H1" | "H4" | "D1" | "W1";
 
 export type MarketCandle = {
     timestamp: number;
@@ -197,6 +197,7 @@ export const TIMEFRAME_INTERVALS: Record<Timeframe, string> = {
     H1: "1h",
     H4: "4h",
     D1: "1d",
+    W1: "1w",
 };
 
 export const TIMEFRAME_LABELS: Record<Timeframe, string> = {
@@ -208,6 +209,7 @@ export const TIMEFRAME_LABELS: Record<Timeframe, string> = {
     H1: "1 Hour",
     H4: "4 Hour",
     D1: "Daily",
+    W1: "Weekly",
 };
 
 export const SUPPORTED_SYMBOLS = [

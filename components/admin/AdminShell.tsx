@@ -25,6 +25,7 @@ import {
     Puzzle,
     Radio,
     Zap,
+    Trophy,
     RotateCcw,
     Settings,
     Shield,
@@ -32,6 +33,7 @@ import {
     Sparkles,
     Target,
     Users,
+    Search,
     X,
     Brain,
     Gauge,
@@ -58,6 +60,8 @@ const NAV_ITEMS = [
     { icon: Zap, label: "Scalping Terminal", href: "/admin/scalping" },
     { icon: Shield, label: "Account Health", href: "/admin/intelligence/account-health" },
     { icon: Brain, label: "Intelligence", href: "/admin/intelligence" },
+    { icon: Bot, label: "AI Agents", href: "/admin/ai-agents" },
+    { icon: Sparkles, label: "AI Trading Teams", href: "/admin/ai-trading-teams" },
     { icon: HeartPulse, label: "AI Provider Health", href: "/admin/intelligence/ai-health" },
     { icon: Gauge, label: "AI Usage & Budgets", href: "/admin/intelligence/ai-usage" },
     { icon: Download, label: "Backtests", href: "/admin/backtests" },
@@ -82,6 +86,7 @@ const NAV_ITEMS = [
     { icon: Server, label: "ERPNext", href: "/admin/erpnext" },
     { icon: MessageSquare, label: "Reviews", href: "/admin/reviews" },
     { icon: Sparkles, label: "Agent IDE", href: "/agent" },
+    { icon: Trophy, label: "Performance Arena", href: "/admin/performance-arena" },
     { icon: Target, label: "Goals", href: "/goals" },
     { icon: Settings, label: "Settings", href: "/admin/settings" },
 ];
@@ -101,6 +106,7 @@ export default function AdminShell({
     const [user, setUser] = useState<FirebaseUser | null>(null);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [siteName, setSiteName] = useState("AlgoVault");
+    const [navSearch, setNavSearch] = useState("");
 
     useEffect(() => {
         const unsub = onAuthStateChanged(auth, (currentUser) => setUser(currentUser));
@@ -126,30 +132,70 @@ export default function AdminShell({
         </Link>
     );
 
+    const filteredItems = navSearch.trim()
+        ? NAV_ITEMS.filter((item) =>
+              item.label.toLowerCase().includes(navSearch.toLowerCase())
+          )
+        : NAV_ITEMS;
+
+    const sidebarSearch = (
+        <div className="border-b border-border px-3 py-2">
+            <div className="relative">
+                <Search
+                    size={12}
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+                />
+                <input
+                    type="search"
+                    value={navSearch}
+                    onChange={(e) => setNavSearch(e.target.value)}
+                    placeholder="Search navigation…"
+                    className="h-7 w-full rounded-md border border-border bg-muted/40 pl-7 pr-7 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                />
+                {navSearch ? (
+                    <button
+                        type="button"
+                        onClick={() => setNavSearch("")}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        aria-label="Clear search"
+                    >
+                        <X size={11} />
+                    </button>
+                ) : null}
+            </div>
+        </div>
+    );
+
     const nav = (
         <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
-            {NAV_ITEMS.map(({ icon: Icon, label, href }) => {
-                const isActive =
-                    pathname === href ||
-                    (href !== "/admin" && pathname?.startsWith(href));
-                return (
-                    <Link
-                        key={href}
-                        href={href}
-                        onClick={() => setMobileOpen(false)}
-                        className={`flex items-center gap-3 rounded-md px-3 py-2 text-xs transition-colors ${isActive
-                                ? "bg-accent-muted font-semibold text-primary"
-                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                            }`}
-                    >
-                        <Icon
-                            size={16}
-                            className={isActive ? "" : "text-muted-foreground"}
-                        />
-                        {label}
-                    </Link>
-                );
-            })}
+            {filteredItems.length === 0 ? (
+                <p className="px-3 py-4 text-center text-xs text-muted-foreground">
+                    No navigation items found
+                </p>
+            ) : (
+                filteredItems.map(({ icon: Icon, label, href }) => {
+                    const isActive =
+                        pathname === href ||
+                        (href !== "/admin" && pathname?.startsWith(href));
+                    return (
+                        <Link
+                            key={href}
+                            href={href}
+                            onClick={() => setMobileOpen(false)}
+                            className={`flex items-center gap-3 rounded-md px-3 py-2 text-xs transition-colors ${isActive
+                                    ? "bg-accent-muted font-semibold text-primary"
+                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                }`}
+                        >
+                            <Icon
+                                size={16}
+                                className={isActive ? "" : "text-muted-foreground"}
+                            />
+                            {label}
+                        </Link>
+                    );
+                })
+            )}
         </nav>
     );
 
@@ -175,6 +221,7 @@ export default function AdminShell({
     const sidebarInner = (
         <>
             <div className="border-b border-border">{logo}</div>
+            {sidebarSearch}
             {nav}
             {sidebarFooter}
         </>

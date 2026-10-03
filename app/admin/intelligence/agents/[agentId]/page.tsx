@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Bot, ShieldCheck, CheckCircle2, AlertCircle, Terminal, Settings, Trash2, Edit } from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { AgentContract, AgentStatus, AgentRole } from "@/lib/agents/types";
+import { AgentStatus, AgentRole } from "@/lib/agents/types";
 import { BUILT_IN_AGENTS } from "@/lib/agents/catalog";
 
 const ROLE_LABELS: Record<AgentRole, string> = {
@@ -25,22 +25,41 @@ const ROLE_LABELS: Record<AgentRole, string> = {
     custom: "Custom",
 };
 
+/**
+ * Page-local projection of an AgentContract: this detail view only renders
+ * identity, status, permissions and declared outputs (the full contract is
+ * intentionally not leaked into the UI model).
+ */
+type AgentView = {
+    id: string;
+    name: string;
+    role: AgentRole;
+    version: string;
+    description: string;
+    status: AgentStatus;
+    permissions: string[];
+    outputs: string[];
+};
+
 export default function AgentDetailPage() {
     const params = useParams<{ agentId: string }>();
     const agentId = params?.agentId || "";
-    const [agent, setAgent] = useState<AgentContract | null>(null);
+    const [agent, setAgent] = useState<AgentView | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const contract = BUILT_IN_AGENTS.find((a) => a.id === agentId);
         if (contract) {
             setAgent({
-                ...contract,
-                status: (contract.status || "active") as AgentStatus,
-                updatedAt: Date.now(),
-                permissions: (contract as any).requiredPermissions || (contract as any).permissions || ["market_data"],
-                outputs: (contract.outputSchema ? Object.keys(contract.outputSchema) : ["findings"]),
-            } as AgentContract);
+                id: contract.id,
+                name: contract.name,
+                role: contract.role,
+                version: contract.version,
+                description: contract.description,
+                status: contract.status || "active",
+                permissions: contract.requiredPermissions.length > 0 ? contract.requiredPermissions : ["market_data"],
+                outputs: contract.outputSchema && Object.keys(contract.outputSchema).length > 0 ? Object.keys(contract.outputSchema) : ["findings"],
+            });
             setLoading(false);
             return;
         }
@@ -54,8 +73,7 @@ export default function AgentDetailPage() {
             status: "draft" as AgentStatus,
             permissions: ["market_data", "historical_data"],
             outputs: ["signal", "report"],
-            updatedAt: Date.now(),
-        } as AgentContract);
+        });
         setLoading(false);
     }, [agentId]);
 
@@ -97,7 +115,7 @@ export default function AgentDetailPage() {
                         <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
                                 <h2 className="text-base font-semibold">{agent.name}</h2>
-                                <StatusBadge status={agent.status === "active" ? "ok" : agent.status === "draft" ? "info" : agent.status === "testing" ? "warning" : agent.status === "deprecated" ? "expired" : "negative"}>{agent.status}</StatusBadge>
+                                <StatusBadge tone={agent.status === "active" ? "positive" : agent.status === "draft" ? "info" : agent.status === "testing" ? "warning" : agent.status === "deprecated" ? "expired" : "negative"} label={agent.status} />
                                 <span className="text-[10px] font-medium text-violet-400 uppercase tracking-wide">v{agent.version}</span>
                             </div>
                             <p className="mt-1 text-[11px] text-muted-foreground">{agent.description}</p>

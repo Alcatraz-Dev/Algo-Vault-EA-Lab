@@ -6,8 +6,8 @@
  */
 
 import { StrategyDefinition, StrategyNode, StrategyEdge, ConditionExpression } from "./types";
-import { BacktestConfig, BacktestContext } from "../../backtesting/adapter";
-import { SmartMoneyEngine } from "../../smart-money/engine";
+import { BacktestConfig, BacktestContext } from "../backtesting/adapter";
+import { SmartMoneyEngine } from "../smart-money/engine";
 
 export interface CompiledStrategy {
   definition: StrategyDefinition;

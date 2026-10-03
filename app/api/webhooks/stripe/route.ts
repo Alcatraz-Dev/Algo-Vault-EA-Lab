@@ -457,7 +457,7 @@ export async function POST(request: NextRequest) {
     try {
       const { createEvent } = await import("@/lib/business-events/events");
       const { dispatcher } = await import("@/lib/business-events/dispatcher");
-      if (["payment_intent.succeeded", "checkout.session.completed"].includes(event.type)) {
+      if (event.type === "payment_intent.succeeded" || event.type === "checkout.session.completed") {
         await dispatcher.dispatch(createEvent("payment.succeeded", "payment", event.id || event.data.object?.id || "unknown", { stripeEventId: event.id, amount: (event.data.object as any)?.amount_total || 0 }));
       } else if (event.type === "payment_intent.payment_failed") {
         await dispatcher.dispatch(createEvent("payment.failed", "payment", event.id || event.data.object?.id || "unknown", { stripeEventId: event.id }));
