@@ -39,8 +39,10 @@ export interface ArenaSymbolSpec {
     digits: number;
     /** Round-trip spread in price units; 0 when the platform has no data for it. */
     typicalSpread: number;
+    /** The persisted Arena size unit is centi-lots, so execution minimum is 0.01. */
     minLot: number;
     maxLot: number;
+    lotStep: number;
     source: "SYMBOL_SPECS" | "derived";
 }
 
@@ -85,8 +87,9 @@ export function arenaSymbolSpec(symbol: string): ArenaSymbolSpec | null {
             pipSize: canonical.pipSize,
             digits: canonical.digits,
             typicalSpread: canonical.typicalSpread,
-            minLot: canonical.minLot,
+            minLot: Math.max(canonical.minLot, 0.01),
             maxLot: canonical.maxLot,
+            lotStep: 0.01,
             source: "SYMBOL_SPECS",
         };
     }
@@ -97,7 +100,15 @@ export function arenaSymbolSpec(symbol: string): ArenaSymbolSpec | null {
             ? { contractSize: 100_000, pipSize: isJpy ? 0.01 : 0.0001, digits: isJpy ? 3 : 5 }
             : market === "metals"
               ? { contractSize: 100, pipSize: 0.01, digits: 2 }
-              : { contractSize: 1, pipSize: 0.01, digits: 2 };
+              : market === "crypto"
+                ? { contractSize: 1, pipSize: 0.01, digits: 2 }
+                : market === "equities"
+                  ? { contractSize: 1, pipSize: 0.01, digits: 2 }
+                  : { contractSize: 1, pipSize: 0.01, digits: 2 };
+    const instrumentLimits = canonical ?? {
+        minLot: market === "crypto" && ["BTCUSD", "BNBUSD"].includes(upper) ? 0.001 : 0.01,
+        maxLot: market === "crypto" && upper === "BTCUSD" ? 1 : market === "crypto" && upper !== "BNBUSD" ? 10 : market === "indices" ? 10 : 100,
+    };
 
     return {
         symbol: upper,
@@ -106,8 +117,9 @@ export function arenaSymbolSpec(symbol: string): ArenaSymbolSpec | null {
         pipSize: derived.pipSize,
         digits: derived.digits,
         typicalSpread: 0,
-        minLot: 0.01,
-        maxLot: 100,
+        minLot: Math.max(instrumentLimits.minLot, 0.01),
+        maxLot: instrumentLimits.maxLot,
+        lotStep: 0.01,
         source: "derived",
     };
 }

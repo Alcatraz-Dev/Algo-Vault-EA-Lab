@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import type { ChartType, Candle, PriceAlert, DrawingTool } from "./TradingChart/types";
+import type { ChartType, Candle, ChartPriceLine, ChartTradeMarker, PriceAlert, DrawingTool } from "./TradingChart/types";
 import ChartEngine from "./TradingChart/ChartEngine";
 import ChartStorage from "./TradingChart/ChartStorage";
 import ChartContextMenu from "./TradingChart/ChartContextMenu";
@@ -15,6 +15,16 @@ interface TradingChartProps {
     interval?: string;
     studies?: string[];
     height?: number;
+    symbolOptions?: string[];
+    showSymbolSelector?: boolean;
+    showStudies?: boolean;
+    showEditingControls?: boolean;
+    showChartTypeSelector?: boolean;
+    priceLines?: ChartPriceLine[];
+    tradeMarkers?: ChartTradeMarker[];
+    onSymbolChange?: (symbol: string) => void;
+    onIntervalChange?: (interval: string) => void;
+    showDrawingToolbar?: boolean;
 }
 
 // Map the toolbar interval label onto the timeframe enum accepted by the
@@ -60,9 +70,21 @@ export default function TradingChart({
     interval = "1h",
     studies: externalStudies,
     height = 620,
+    symbolOptions,
+    showSymbolSelector = true,
+    showStudies = true,
+    showEditingControls = true,
+    showChartTypeSelector = true,
+    priceLines,
+    tradeMarkers,
+    onSymbolChange,
+    onIntervalChange,
+    showDrawingToolbar = true,
 }: TradingChartProps) {
-    const [chartSymbol, setChartSymbol] = useState(symbol);
-    const [chartInterval, setChartInterval] = useState(interval);
+    const [internalSymbol, setInternalSymbol] = useState(symbol);
+    const [internalInterval, setInternalInterval] = useState(interval);
+    const chartSymbol = onSymbolChange ? symbol : internalSymbol;
+    const chartInterval = onIntervalChange ? interval : internalInterval;
     const [chartType, setChartType] = useState<ChartType>("candlestick");
     const [activeStudies, setActiveStudies] = useState<string[]>(externalStudies ?? []);
     const [activeDrawingTool, setActiveDrawingTool] = useState<DrawingTool>("cursor");
@@ -70,11 +92,29 @@ export default function TradingChart({
     const [containerWidth, setContainerWidth] = useState(800);
     const timeframeParam = INTERVAL_TO_TIMEFRAME[chartInterval];
     const feedSymbol = normalizeSymbol(chartSymbol);
-    const { candles: liveCandles, error: liveError, isLoading: liveLoading, isLive, lastUpdate } = useLiveCandles(
+    const {
+        candles: liveCandles,
+        error: liveError,
+        isLoading: liveLoading,
+        isLive,
+        lastUpdate,
+        quality,
+        hasMoreHistory,
+        loadingOlder,
+        loadOlder,
+    } = useLiveCandles(
         feedSymbol,
         timeframeParam ?? "H1",
         { limit: 250, enabled: Boolean(timeframeParam) }
     );
+    const loadOlderBusyRef = useRef(false);
+    const handleNearHistoryEdge = useCallback(() => {
+        if (!hasMoreHistory || loadingOlder || loadOlderBusyRef.current) return;
+        loadOlderBusyRef.current = true;
+        void loadOlder().finally(() => {
+            loadOlderBusyRef.current = false;
+        });
+    }, [hasMoreHistory, loadingOlder, loadOlder]);
 
     const candles = useMemo<Candle[]>(
         () =>
@@ -93,6 +133,9 @@ export default function TradingChart({
         ? `Timeframe ${chartInterval} is not supported by the market data provider`
         : liveError;
     const marketLoading = liveLoading;
+    const staleData = liveCandles.length > 0 && (
+        !isLive || Boolean(liveError) || ["stale", "gap_detected", "synchronizing", "reconnecting"].includes(quality)
+    );
     const [undoStack, setUndoStack] = useState<unknown[][]>([]);
     const [redoStack, setRedoStack] = useState<unknown[][]>([]);
 
@@ -110,13 +153,15 @@ export default function TradingChart({
 
     const handleSymbolChange = useCallback((sym: string) => {
         setUndoStack((prev) => [...prev, [{ symbol: chartSymbol, interval: chartInterval }]]);
-        setChartSymbol(sym);
-    }, [chartSymbol, chartInterval]);
+        setInternalSymbol(sym);
+        onSymbolChange?.(normalizeSymbol(sym));
+    }, [chartSymbol, chartInterval, onSymbolChange]);
 
     const handleIntervalChange = useCallback((intv: string) => {
         setUndoStack((prev) => [...prev, [{ symbol: chartSymbol, interval: chartInterval }]]);
-        setChartInterval(intv);
-    }, [chartSymbol, chartInterval]);
+        setInternalInterval(intv);
+        onIntervalChange?.(intv);
+    }, [chartSymbol, chartInterval, onIntervalChange]);
 
     const handleChartTypeChange = useCallback((type: ChartType) => {
         setChartType(type);
@@ -143,7 +188,6 @@ export default function TradingChart({
     const [theme, setTheme] = useState<"dark" | "light">(() => (typeof document !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "light"));
 
     // ── live-follow state (Phase 6) ─────────────────────────────────────
-    const [followLive, setFollowLive] = useState(true);
     const [showGoLive, setShowGoLive] = useState(false);
 
     useEffect(() => {
@@ -157,7 +201,7 @@ export default function TradingChart({
 
     const layout = { symbol: chartSymbol, interval: chartInterval, chartType, studies: activeStudies, theme };
 
-    const showEmptyState = !marketLoading && marketError !== null;
+    const showEmptyState = !marketLoading && (marketError !== null || candles.length === 0);
 
     return (
         <div className="flex h-full flex-col rounded-lg border border-border/20 bg-background">
@@ -165,6 +209,12 @@ export default function TradingChart({
 
             <ChartToolbar
                 symbol={chartSymbol}
+                showSymbolSelector={showSymbolSelector}
+                symbolOptions={symbolOptions}
+                showStudies={showStudies}
+                showEditingControls={showEditingControls}
+                showChartTypeSelector={showChartTypeSelector}
+                onIntervalChange={onIntervalChange}
                 interval={chartInterval}
                 chartType={chartType}
                 studies={activeStudies}
@@ -179,16 +229,15 @@ export default function TradingChart({
                 onRedo={handleRedo}
             />
 
-            <DrawingToolbar activeTool={activeDrawingTool} onChangeTool={setActiveDrawingTool} />
+            {showDrawingToolbar ? <DrawingToolbar activeTool={activeDrawingTool} onChangeTool={setActiveDrawingTool} /> : null}
 
             <div className="relative flex-1" data-chart-container>
-                {showEmptyState && (
-                    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-md border border-dashed border-border/40 bg-background/70 backdrop-blur-sm">
+                {showEmptyState && candles.length === 0 && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-md border border-dashed border-border/40 bg-background/90 backdrop-blur-sm">
                         <div className="max-w-xs text-center">
-                            <p className="text-xs font-medium text-muted-foreground">Chart unavailable</p>
+                            <p className="text-xs font-medium text-muted-foreground">Market data temporarily unavailable</p>
                             <p className="mt-1 text-[11px] leading-5 text-muted-foreground/70">
-                                {marketError} — no candles were returned for {feedSymbol}{" "}
-                                {chartInterval}.
+                                {marketError ?? `No candles were returned for ${feedSymbol} ${chartInterval}.`}
                             </p>
                         </div>
                     </div>
@@ -199,24 +248,27 @@ export default function TradingChart({
                     </div>
                 )}
                 {!marketLoading && candles.length > 0 && (
-                    <div className="absolute right-2 top-2 z-10 flex items-center gap-1.5 rounded-full border border-border/40 bg-background/80 px-2 py-0.5 text-[10px] text-muted-foreground backdrop-blur-sm">
-                        <span
-                            className={cnLiveDot(isLive)}
-                            aria-hidden
-                        />
-                        {isLive ? "Live" : "Reconnecting…"}
-                        {lastUpdate > 0 && (
+                    <div className={`absolute right-2 top-2 z-10 flex items-center gap-1.5 rounded-full border border-border/40 bg-background/90 px-2 py-0.5 text-[10px] backdrop-blur-sm ${staleData ? "text-amber-500" : "text-muted-foreground"}`} role="status" aria-live="polite">
+                        <span className={cnLiveDot(isLive && !staleData)} aria-hidden />
+                        {staleData
+                            ? quality === "market_closed" ? "Market closed · last data" : "Stale data · reconnecting"
+                            : isLive ? "Live market data" : "Market data delayed"}
+                        {lastUpdate > 0 ? (
                             <span className="text-muted-foreground/60">
                                 · {new Date(lastUpdate).toLocaleTimeString([], { hour12: false })}
                             </span>
-                        )}
+                        ) : null}
                     </div>
                 )}
+                {loadingOlder && candles.length > 0 ? (
+                    <div className="pointer-events-none absolute bottom-3 left-3 z-20 rounded-full border border-border/40 bg-background/90 px-2 py-0.5 text-[10px] text-muted-foreground backdrop-blur-sm" role="status">
+                        Loading older history…
+                    </div>
+                ) : null}
                 {showGoLive && candles.length > 0 ? (
                     <button
                         type="button"
                         onClick={() => {
-                            setFollowLive(true);
                             setShowGoLive(false);
                             chartRef.current?.timeScale().scrollToRealTime();
                         }}
@@ -231,12 +283,14 @@ export default function TradingChart({
                     height={height}
                     chartType={chartType}
                     candles={candles}
+                    priceLines={priceLines}
+                    tradeMarkers={tradeMarkers}
                     onChartReady={(chart) => { chartRef.current = chart; }}
                     onSeriesReady={() => {}}
                     onFollowChange={(following) => {
-                        setFollowLive(following);
                         setShowGoLive(!following);
                     }}
+                    onNearHistoryEdge={handleNearHistoryEdge}
                 />
                 <ChartContextMenu onReset={() => chartRef.current?.timeScale().fitContent()} />
             </div>

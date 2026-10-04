@@ -40,8 +40,12 @@ export async function runFlagsCompatTests(): Promise<boolean> {
     withEnv(ARENA_FLAG_ENV.cashRewards, undefined, () => s.check(isCashRewardsEnabled() === false, "cashRewardsEnabled = false (HARD DEFAULT)"));
 
     s.section("Env overrides");
-    withEnv(ARENA_FLAG_ENV.paidChallenges, "true", () => s.check(isPaidChallengesEnabled() === true, "paid flag can be enabled by deployment config"));
-    withEnv(ARENA_FLAG_ENV.cashRewards, "true", () => s.check(isCashRewardsEnabled() === true, "cash flag readable (still no provider — see cash-invariant tests)"));
+    withEnv(ARENA_FLAG_ENV.paidChallenges, "true", () => s.check(isPaidChallengesEnabled() === false, "paid remains closed without Stripe billing verification"));
+    withEnv(ARENA_FLAG_ENV.paidChallenges, "true", () => {
+        withEnv("ARENA_STRIPE_BILLING_VERIFIED", undefined, () => s.check(isPaidChallengesEnabled() === false, "paid remains closed without Stripe billing verification"));
+        withEnv("ARENA_STRIPE_BILLING_VERIFIED", "true", () => s.check(isPaidChallengesEnabled() === true, "paid flag opens only after explicit Stripe/webhook verification"));
+    });
+    withEnv(ARENA_FLAG_ENV.cashRewards, "true", () => s.check(isCashRewardsEnabled() === false, "cash remains structurally disabled even if env is accidentally set true"));
 
     s.section("Cascade: disabling the arena disables its surfaces");
     withEnv(ARENA_FLAG_ENV.arena, "false", () => {
@@ -66,6 +70,10 @@ export async function runFlagsCompatTests(): Promise<boolean> {
     const definitions = defaultChallengeDefinitions(NOW);
     s.check(definitions.length >= 4, "shipped tiers");
     s.check(definitions.every((d) => validateDefinition(d).valid), "every shipped definition is valid");
+    s.check(definitions.filter((d) => d.access.model === "paid").every((d) => !d.enabled && d.status === "DRAFT" && d.access.priceCents === undefined), "shipped paid products stay unpublished until price is configured");
+    s.check(!validateDefinition({ ...definitions.find((d) => d.access.model === "paid")!, enabled: true, status: "AVAILABLE" }).valid, "paid challenge cannot be published without an explicit configured price");
+    const configuredPaid = { ...definitions.find((d) => d.access.model === "paid")!, access: { model: "paid" as const, priceCents: 2500, currency: "usd" }, enabled: true, status: "AVAILABLE" as const };
+    s.check(validateDefinition(configuredPaid).valid, "admin-configured paid price permits publication");
     s.check(new Set(definitions.map((d) => d.key)).size === definitions.length, "definition keys unique");
     s.check(definitions.every((d) => d.rewardPolicyId === "arena-standard-rewards"), "definitions reference a reward policy");
 

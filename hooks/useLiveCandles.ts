@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { MarketCandle, SupportedSymbol, Timeframe } from "@/lib/market-data/types";
-import { ChartDataEngine } from "@/lib/chart-engine/chart-data-engine";
-import { createApiDataSources, quoteToTick } from "@/lib/chart-engine/data-sources";
+import { SUPPORTED_SYMBOLS } from "@/lib/market-data/types";
 import { chartCandleToMarketCandle } from "@/lib/chart-engine/candle";
 import { isChartTimeframe, type ChartTimeframe } from "@/lib/chart-engine/timeframe";
+import { useChartEngine } from "@/lib/chart-engine/use-chart-engine";
 
 /**
  * useLiveCandles — canonical live candle feed for every chart in the app.
@@ -48,8 +48,6 @@ export interface UseLiveCandlesResult {
     quality: string;
 }
 
-const QUOTE_POLL_MS = 2000;
-
 type EngineState = {
     key: string;
     candles: readonly MarketCandle[];
@@ -63,11 +61,14 @@ type EngineState = {
 };
 
 // Per-hook-instance engine wrapper (engine itself is per seriesKey).
-function buildAdapter(engine: ChartDataEngine): EngineState {
-    const candles = engine.getCandles().map(chartCandleToMarketCandle);
-    const status = engine.getStatus();
+function buildAdapter(
+    candlesInput: readonly import("@/lib/chart-engine/candle").ChartCandle[],
+    status: import("@/lib/chart-engine/chart-data-engine").ChartEngineStatus,
+    key: string,
+): EngineState {
+    const candles = candlesInput.map(chartCandleToMarketCandle);
     return {
-        key: engine.seriesKey,
+        key,
         candles,
         isLive: status.connection === "live",
         error: status.error,
@@ -87,106 +88,29 @@ export function useLiveCandles(
     const limit = options.limit ?? 300;
     const enabled = options.enabled ?? true;
 
-    const sym = symbol.toUpperCase() as SupportedSymbol;
+    const normalizedSymbol = symbol.toUpperCase();
+    const supportedSymbol = (SUPPORTED_SYMBOLS as readonly string[]).includes(normalizedSymbol);
+    const sym = normalizedSymbol as SupportedSymbol;
     const tfRaw = timeframe.toUpperCase() as Timeframe;
     const tf: ChartTimeframe = isChartTimeframe(tfRaw) ? tfRaw : "H1";
-    const requestKey = enabled ? `${sym}|${tf}` : "";
+    const requestKey = enabled && supportedSymbol ? `${sym}|${tf}` : "";
 
-    const [state, setState] = useState<EngineState | null>(null);
-
-    // Engine acquisition (per mount, keyed by symbol+timeframe).
-    const engine = useMemo(() => {
-        if (!enabled) return null;
-        const e = new ChartDataEngine(createApiDataSources(false), {
-            symbol: sym,
-            timeframe: tf,
-            pageSize: Math.min(Math.max(limit, 50), 500),
-        });
-        return e;
-    }, [enabled, sym, tf, limit]);
-
-    const candleCount = state?.candles.length ?? 0;
-    const lastEngineKey = state?.key ?? "";
-    useEffect(() => {
-        if (!engine) return;
-        // Seed from the engine's snapshot inside the subscription callback
-        // (not synchronously in the effect body) to avoid cascading renders.
-        let queued = false;
-        const emit = () => {
-            if (queued) return;
-            queued = true;
-            queueMicrotask(() => {
-                queued = false;
-                const next = buildAdapter(engine);
-                setState((prev) => {
-                    // Cheap identity checks: skip commits when nothing visible changed.
-                    if (prev && prev.key === next.key && prev.candles.length === next.candles.length) {
-                        const a = prev.candles;
-                        const b = next.candles;
-                        let same = true;
-                        for (let i = 0; i < a.length; i++) {
-                            if (a[i] !== b[i]) {
-                                same = false;
-                                break;
-                            }
-                        }
-                        if (same && prev.isLive === next.isLive && prev.error === next.error && prev.lastUpdate === next.lastUpdate) {
-                            return prev;
-                        }
-                    }
-                    return next;
-                });
-            });
-        };
-
-        engine.start();
-
-        // Live quote poller (shared cadence with all charts).
-        let busy = false;
-        const poll = async () => {
-            if (busy) return;
-            busy = true;
-            try {
-                const res = await fetch(`/api/market/quotes?symbols=${encodeURIComponent(sym)}`, {
-                    cache: "no-store",
-                });
-                const body = (await res.json().catch(() => null)) as
-                    | { quotes?: Record<string, { price: number; timestamp: number }> }
-                    | null;
-                const tick = quoteToTick(body?.quotes?.[sym], sym);
-                if (tick) engine.ingestTick({ ...tick, source: "quotes-api" });
-            } catch {
-                // transient network error — next poll retries
-            } finally {
-                busy = false;
-            }
-        };
-        void poll();
-        const pollTimer = setInterval(poll, QUOTE_POLL_MS);
-
-        const unsub = engine.subscribe(emit);
-
-        return () => {
-            unsub();
-            clearInterval(pollTimer);
-            engine.destroy();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [engine]);
-
-    void candleCount;
-    void lastEngineKey;
+    const shared = useChartEngine(sym, tf, {
+        pageSize: Math.min(Math.max(limit, 50), 500),
+        enabled: enabled && supportedSymbol,
+    });
+    const currentKey = enabled && supportedSymbol ? `${sym}|${tf}` : "";
+    const state = useMemo(
+        () => currentKey ? buildAdapter(shared.candles, shared.status, currentKey) : null,
+        [currentKey, shared.candles, shared.status],
+    );
     void requestKey;
 
     const refetch = useCallback(async () => {
-        if (!engine) return;
-        await engine.resync();
-    }, [engine]);
+        await shared.resync();
+    }, [shared]);
 
-    const loadOlder = useCallback(async () => {
-        if (!engine) return false;
-        return engine.loadOlder();
-    }, [engine]);
+    const loadOlder = useCallback(async () => shared.loadOlder(), [shared]);
 
     const candles = state?.key === requestKey ? (state.candles as MarketCandle[]) : [];
     const isLive = Boolean(state && state.key === requestKey && state.isLive);
@@ -196,20 +120,22 @@ export function useLiveCandles(
     const currentPrice = candles.length > 0 ? candles[candles.length - 1].close : 0;
     const previousPrice = candles.length > 1 ? candles[candles.length - 2].close : 0;
 
+    const unsupportedSymbol = enabled && !supportedSymbol;
+
     return {
         candles,
         currentPrice,
         previousPrice,
         isLive,
         isLoading,
-        error,
+        error: unsupportedSymbol ? `Live market data is unavailable for ${symbol}.` : error,
         lastUpdate,
         refetch,
         loadOlder,
         hasMoreHistory: Boolean(state && state.key === requestKey && state.hasMoreHistory),
         loadingOlder: Boolean(state && state.key === requestKey && state.loadingOlder),
         connection: state && state.key === requestKey ? state.connection : "idle",
-        quality: state && state.key === requestKey ? state.quality : "pristine",
+        quality: state && state.key === requestKey ? state.quality : unsupportedSymbol ? "unsupported" : "pristine",
     };
 }
 

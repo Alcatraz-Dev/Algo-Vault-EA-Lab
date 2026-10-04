@@ -458,7 +458,7 @@ export async function POST(request: NextRequest) {
       const { createEvent } = await import("@/lib/business-events/events");
       const { dispatcher } = await import("@/lib/business-events/dispatcher");
       if (event.type === "payment_intent.succeeded" || event.type === "checkout.session.completed") {
-        await dispatcher.dispatch(createEvent("payment.succeeded", "payment", event.id || event.data.object?.id || "unknown", { stripeEventId: event.id, amount: (event.data.object as any)?.amount_total || 0 }));
+        await dispatcher.dispatch(createEvent("payment.succeeded", "payment", event.id || event.data.object?.id || "unknown", { stripeEventId: event.id, amount: Number((event.data.object as unknown as { amount_total?: number | null }).amount_total ?? 0) }));
       } else if (event.type === "payment_intent.payment_failed") {
         await dispatcher.dispatch(createEvent("payment.failed", "payment", event.id || event.data.object?.id || "unknown", { stripeEventId: event.id }));
       } else if (event.type === "charge.refunded") {
@@ -680,40 +680,94 @@ export async function POST(request: NextRequest) {
          */
         if (orderType === "challenge" || session.metadata?.definitionId) {
             const definitionId = session.metadata?.definitionId;
-            if (definitionId && userId) {
-                const grant: import("@/lib/performance-arena/store").PaidChallengeGrant = {
-                    uid: userId,
-                    definitionId,
-                    orderId: orderId ?? `cha_${Date.now()}`,
-                    amountCents: session.amount_total ?? 0,
-                    grantedAt: Date.now(),
-                    consumed: false,
-                };
-                await import("@/lib/performance-arena/store").then((m) => m.savePaidGrant(grant));
-
-                if (orderId) {
-                    await adminDatabase.ref(`orders/${userId}/${orderId}`).update({
-                        status: "paid",
-                        paymentStatus: "paid",
-                        stripeSessionId: session.id,
-                        stripePaymentIntent: typeof session.payment_intent === "string" ? session.payment_intent : null,
-                        paidAt: Date.now(),
-                        updatedAt: Date.now(),
-                    });
-                }
-
-                const notifyRef = adminDatabase.ref(`notifications/${userId}`).push();
-                await notifyRef.set({
-                    title: "🏆 Paid Challenge Unlocked!",
-                    message: "Your challenge entry fee has been processed. You can now start your evaluation attempt.",
-                    level: "success",
-                    link: `/account/performance-arena/challenges/${definitionId}`,
-                    read: false,
-                    createdAt: Date.now(),
-                });
-
-                return NextResponse.json({ received: true, success: true, orderId, definitionId });
+            if (!definitionId || !userId || !orderId) {
+                return NextResponse.json({ error: "Missing challenge checkout metadata." }, { status: 400 });
             }
+
+            // Stripe's signed event proves payment, but the grant is bound to
+            // the server-created RTDB order and exact Stripe session/amount.
+            // This prevents forged/misrouted metadata from creating access.
+            const orderRef = adminDatabase.ref(`orders/${userId}/${orderId}`);
+            const orderSnap = await orderRef.get();
+            if (!orderSnap.exists()) {
+                return NextResponse.json({ error: "Challenge order not found." }, { status: 404 });
+            }
+            const order = orderSnap.val();
+            const { verifyChallengePayment } = await import("@/lib/performance-arena/billing");
+            const paymentCheck = verifyChallengePayment({
+                uid: userId,
+                requestedOrderId: orderId,
+                order: {
+                    orderId: String(order.orderId ?? ""),
+                    userId: String(order.userId ?? ""),
+                    orderType: String(order.orderType ?? ""),
+                    definitionId: String(order.definitionId ?? ""),
+                    stripeSessionId: typeof order.stripeSessionId === "string" ? order.stripeSessionId : null,
+                    priceCents: typeof order.priceCents === "number" ? order.priceCents : undefined,
+                    price: typeof order.price === "number" ? order.price : undefined,
+                    amount: typeof order.amount === "number" ? order.amount : undefined,
+                    currency: typeof order.currency === "string" ? order.currency : undefined,
+                },
+                session: {
+                    id: session.id,
+                    status: session.status,
+                    payment_status: session.payment_status,
+                    mode: session.mode,
+                    amount_total: session.amount_total,
+                    currency: session.currency,
+                    metadata: session.metadata,
+                },
+            });
+            if (!paymentCheck.ok || paymentCheck.definitionId !== definitionId) {
+                return NextResponse.json({ error: "Challenge payment verification failed.", code: paymentCheck.ok ? "DEFINITION_MISMATCH" : paymentCheck.code }, { status: 400 });
+            }
+            const arenaDefinition = await import("@/lib/performance-arena/store").then((m) => m.getDefinition(definitionId));
+            if (
+                !arenaDefinition ||
+                arenaDefinition.access.model !== "paid" ||
+                !arenaDefinition.enabled ||
+                arenaDefinition.status !== "AVAILABLE" ||
+                !arenaDefinition.paidBillingConfiguredAt ||
+                arenaDefinition.access.priceCents !== paymentCheck.amountCents ||
+                (arenaDefinition.access.currency ?? "usd").toLowerCase() !== String(session.currency ?? "").toLowerCase()
+            ) {
+                return NextResponse.json({ error: "Challenge is no longer configured for this payment.", code: "CHALLENGE_UNAVAILABLE" }, { status: 409 });
+            }
+
+            const paidGrantStore = await import("@/lib/performance-arena/store");
+            const accepted = await paidGrantStore.savePaidGrant({
+                uid: userId,
+                definitionId,
+                orderId,
+                amountCents: paymentCheck.amountCents,
+                grantedAt: Date.now(),
+                consumed: false,
+            });
+            if (!accepted) {
+                return NextResponse.json({ error: "Challenge grant order conflict." }, { status: 409 });
+            }
+
+            await orderRef.update({
+                status: "paid",
+                paymentStatus: "paid",
+                stripeSessionId: session.id,
+                stripePaymentIntent: typeof session.payment_intent === "string" ? session.payment_intent : null,
+                paidAt: order.paidAt || Date.now(),
+                updatedAt: Date.now(),
+            });
+
+            // Signed webhook events are claimed once above; keep notification
+            // creation idempotent by keying it to the order rather than push().
+            await adminDatabase.ref(`notifications/${userId}/arena_${orderId}`).transaction((current) => current ?? {
+                title: "Paid Challenge Unlocked",
+                message: "Your challenge payment is verified. Start the evaluation from your Performance Arena catalog.",
+                level: "success",
+                link: `/account/performance-arena/challenges/${definitionId}`,
+                read: false,
+                createdAt: Date.now(),
+            });
+
+            return NextResponse.json({ received: true, success: true, orderId, definitionId });
         }
 
         /*

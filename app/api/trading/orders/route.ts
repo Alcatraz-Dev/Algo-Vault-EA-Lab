@@ -38,6 +38,10 @@ export async function POST(request: NextRequest) {
         const tp = body.tp !== undefined ? Number(body.tp) : undefined;
         const closeTicket = body.closeTicket !== undefined ? Number(body.closeTicket) : undefined;
         const closeVolume = body.closeVolume !== undefined ? Number(body.closeVolume) : undefined;
+        // MT5 ticket for the gateway EA's MODIFY / CLOSE / CANCEL actions.
+        // (The EA reads `ticket` / `positionTicket`; the legacy `closeTicket`
+        // field is kept for older clients.)
+        const ticket = body.ticket !== undefined ? Number(body.ticket) : undefined;
 
         if (!accountId || !clientOrderId || !symbol || !action) {
             return NextResponse.json(
@@ -46,7 +50,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const validActions = ["BUY", "SELL", "BUY_LIMIT", "SELL_LIMIT", "BUY_STOP", "SELL_STOP", "MODIFY", "CLOSE", "CLOSE_PARTIAL", "CANCEL"];
+        const validActions = ["BUY", "SELL", "BUY_LIMIT", "SELL_LIMIT", "BUY_STOP", "SELL_STOP", "MODIFY", "CLOSE", "CLOSE_PARTIAL", "PARTIAL_CLOSE", "CANCEL"];
         if (!validActions.includes(action)) {
             return NextResponse.json(
                 { success: false, error: "Invalid action." },
@@ -113,6 +117,7 @@ export async function POST(request: NextRequest) {
             price: price ?? null,
             sl: sl ?? null,
             tp: tp ?? null,
+            ticket: Number.isFinite(ticket as number) ? ticket : null,
             closeTicket: closeTicket ?? null,
             closeVolume: closeVolume ?? null,
             status: "queued",

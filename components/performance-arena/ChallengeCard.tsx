@@ -77,7 +77,10 @@ export function ChallengeCard({ item, onJoined }: { item: CatalogItem; onJoined?
         }
     };
 
-    const priceText = definition.access.priceCents ? `$${(definition.access.priceCents / 100).toFixed(2)}` : "$29.00";
+    const priceText = Number.isSafeInteger(definition.access.priceCents) && (definition.access.priceCents ?? 0) > 0
+        ? new Intl.NumberFormat(undefined, { style: "currency", currency: definition.access.currency?.toUpperCase() ?? "USD" }).format((definition.access.priceCents ?? 0) / 100)
+        : null;
+    const purchaseUnavailable = definition.access.model === "paid" && (!priceText || access.reason === "Paid challenges are not available yet.");
 
     return (
         <div className="flex flex-col rounded-lg border border-border bg-card">
@@ -131,7 +134,7 @@ export function ChallengeCard({ item, onJoined }: { item: CatalogItem; onJoined?
                 ) : (
                     <Button
                         size="sm"
-                        disabled={joining}
+                        disabled={joining || purchaseUnavailable}
                         onClick={() => void handleJoin()}
                         variant={definition.access.model === "paid" && !access.allowed ? "default" : "default"}
                     >
@@ -141,7 +144,7 @@ export function ChallengeCard({ item, onJoined }: { item: CatalogItem; onJoined?
                             : access.allowed
                             ? "Join challenge"
                             : definition.access.model === "paid"
-                            ? `Buy Challenge (${priceText})`
+                            ? priceText ? `Buy Challenge (${priceText})` : "Price not configured"
                             : "Locked"}
                     </Button>
                 )}

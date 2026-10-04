@@ -9,6 +9,21 @@ export interface Candle {
     volume: number;
 }
 
+export interface ChartPriceLine {
+    id: string;
+    price: number;
+    color: string;
+    title: string;
+}
+
+export interface ChartTradeMarker {
+    id: string;
+    time: number;
+    price: number;
+    side: "long" | "short";
+    label: string;
+}
+
 export type ChartType = "candlestick" | "line" | "area" | "bar";
 
 export type DrawingTool =

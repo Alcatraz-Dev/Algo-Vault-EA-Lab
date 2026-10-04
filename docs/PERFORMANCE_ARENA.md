@@ -36,6 +36,7 @@ lib/performance-arena/            domain (pure engines → store → service)
   leaderboard.ts                  composite scoring (never raw profit)
   profile.ts                      trader performance profile aggregation
   compatibility.ts                strategy ↔ challenge-rule compatibility
+  billing.ts                      pure Stripe/order binding verifier
   store.ts                        RTDB persistence (Admin SDK, server-only)
   service.ts                      orchestration — the ONLY writer of arena state
   admin-reads.ts                  admin read helpers
@@ -110,9 +111,12 @@ warningUtilizationPct (default 80), dailyLossBreachAction (fail|pause),
 autoSettleOnTarget
 ```
 
-Shipped tiers (configurable, prices not final): Starter $10K (free), Standard
-$25K (pro), Pro $100K (pro — target 10%, max DD 8%, daily 4%, min 5 days,
-30 trading days / 45 calendar), Elite $200K (pro, consistency required).
+Shipped practice and Pro tiers are available from configuration. Paid tier
+records are seeded as disabled `DRAFT` products with no price. Admins must set
+an explicit positive integer `priceCents` before publishing; no example fee is
+used as a real price. Paid checkout remains server-disabled by default until
+the deployment owner verifies the existing Stripe configuration and webhook
+setup.
 
 Server-side validation (`validateChallengePolicy` / `validateDefinition`)
 rejects invalid policies with structured errors (fail-closed).
@@ -241,8 +245,13 @@ Disabling the arena cascades to catalog/leaderboards/platform rewards.
   paths, or `requireAdmin()`. One deliberate public endpoint: `/flags`
   (surface metadata only; entitlement re-checked on every mutation).
 - **Pro gating:** `checkAccess` — the same server-side source of truth used by
-  Strategy Lab / Strategy Research.
-- **Idempotency:** order `clientRequestId`, settlement status CAS,
+  Strategy Lab / Strategy Research. It does not substitute for a paid product
+  purchase.
+- **Paid grants:** keyed per verified Stripe order (not per product), checked
+  against Stripe session ID, signed session metadata, amount, currency and
+  the current configured challenge product before an attempt is made.
+- **Idempotency:** order `clientRequestId`, paid-grant claim transaction,
+  settlement status CAS,
   set-if-absent ledger/events/flags writes.
 - **Rate/abuse counters** (`apiActivity`) feed fraud flags, not blocking
   counters, to avoid invasive behavior.
@@ -275,9 +284,20 @@ orders, subscriptions or strategy data are touched.
 
 ## 12. Monetization & integration points
 
-- Access models: `free` | `pro` (via `checkAccess`) | `paid` (flag OFF —
-  requires future per-challenge Stripe checkout; entitlement currently falls
-  back to billing-verified Pro/license) | `credits` (AV Points debit).
+- Access models: `free` | `pro` (via `checkAccess`) | `paid` (per-challenge
+  Stripe Checkout implementation exists, but both
+  `ARENA_PAID_CHALLENGES_ENABLED` and `ARENA_STRIPE_BILLING_VERIFIED` default
+  false; paid definitions are unpublished and require an explicit configured
+  price; Pro entitlement never bypasses the paid fee) | `credits`
+  (AV Points debit).
+- Checkout returns create orders using the configured amount/currency; the
+  return page calls a server verifier that retrieves the canonical Stripe
+  session. The signed webhook independently validates the server-created
+  order. Neither a success URL nor frontend callback can provision an account.
+  Full live Stripe acceptance testing is not available in this local run, so
+  paid challenges are intentionally not enabled by default. Only after a live
+  end-to-end test may the deployment owner set both rollout flags; this still
+  does not replace the per-product admin-configured price.
 - **Pro days → subscription:** grant entries are banked in the wallet; the
   apply-to-subscription hook is intentionally not wired into Stripe state yet
   (decision flagged for human approval — see report).
@@ -321,7 +341,8 @@ chart, order ticket, positions, rules feed, Guardian, report),
 
 ## 15. Testing
 
-`npm run test:arena` — 13 suites, all pure (no RTDB/network/AI):
+`npm run test:arena` — domain suites include pure Stripe/order verification
+(no RTDB/network/AI), cash-disabled invariants and static security assertions;
 
 money/precision · lifecycle · rules (warn/breach/stale/pre-trade) · metrics
 (equity, drawdown, daily loss %, consistency, trading days) · execution (fills,
@@ -363,4 +384,11 @@ rules, route auth, no Firestore, admin-only writes).
    400) — market entries with SL/TP are supported.
 5. News-trading policy exists in the model but is informational until a
    canonical news-events feed is wired.
-6. Cash rewards remain fully disabled — see `docs/FUTURE_CASH_REWARDS.md`.
+6. Trade journal persistence and modify-SL/TP actions are not implemented in
+   this Arena version; the position table currently supports close only.
+7. Limit/stop entry orders are rejected (HTTP 400) rather than treated as
+   market orders.
+8. Paid checkout is code-wired but rollout-disabled pending live Stripe/webhook
+   acceptance testing; shipped paid products are drafts with no price.
+9. Cash rewards are structurally disabled regardless of an accidental
+   `CASH_REWARDS_ENABLED=true` value — see `docs/FUTURE_CASH_REWARDS.md`.

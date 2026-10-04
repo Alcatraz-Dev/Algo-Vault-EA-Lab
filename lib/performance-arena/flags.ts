@@ -7,7 +7,8 @@
 //
 //   PERFORMANCE_ARENA_ENABLED      = true
 //   ARENA_CATALOG_ENABLED          = true
-//   ARENA_PAID_CHALLENGES_ENABLED  = false   (paid model needs verified billing)
+//   ARENA_PAID_CHALLENGES_ENABLED  = false   (paid model needs explicit rollout)
+//   ARENA_STRIPE_BILLING_VERIFIED  = false   (deployment owner confirms live Stripe/webhook test)
 //   ARENA_LEADERBOARDS_ENABLED     = true
 //   ARENA_PLATFORM_REWARDS_ENABLED = true
 //   CASH_REWARDS_ENABLED           = false   ← HARD OFF BY DEFAULT, see below
@@ -45,7 +46,9 @@ export function isCatalogEnabled(): boolean {
 }
 
 export function isPaidChallengesEnabled(): boolean {
-    return isArenaEnabled() && readFlag(ARENA_FLAG_ENV.paidChallenges, false);
+    return isArenaEnabled() &&
+        readFlag(ARENA_FLAG_ENV.paidChallenges, false) &&
+        readFlag("ARENA_STRIPE_BILLING_VERIFIED", false);
 }
 
 export function isLeaderboardsEnabled(): boolean {
@@ -65,7 +68,10 @@ export function isPlatformRewardsEnabled(): boolean {
  * and reject when it is false.
  */
 export function isCashRewardsEnabled(): boolean {
-    return readFlag(ARENA_FLAG_ENV.cashRewards, false);
+    // Hard invariant for this product stage: even an accidental deployment
+    // variable cannot activate a monetary path. Future work must deliberately
+    // replace this guard only after compliance + payout controls are approved.
+    return false;
 }
 
 /** Snapshot surfaced to the UI so disabled surfaces are hidden, not faked. */

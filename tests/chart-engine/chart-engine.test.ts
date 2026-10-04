@@ -40,6 +40,8 @@ import {
 import { InteractionController } from "../../lib/chart-engine/interactions";
 import { computeStructureOverlay, structureOverlayLayer, computeIndicatorSeries } from "../../lib/chart-engine/overlay-contract";
 import { TailTracker } from "../../lib/chart-engine/indicators";
+import { barIndexForTime, shiftLogicalRangeForPrepend } from "../../lib/chart-engine/coordinate-mapping";
+import { createAdaptiveApiDataSources } from "../../lib/chart-engine/data-sources";
 
 let passed = 0;
 let failed = 0;
@@ -376,6 +378,36 @@ check("initial load, gap detection and repair fill the hole", async () => {
     engine.destroy();
 });
 
+check("adaptive API source enables paging from the canonical capability response", async () => {
+    const originalFetch = globalThis.fetch;
+    const seen: string[] = [];
+    const base = Date.UTC(2026, 8, 23, 13, 0);
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+        const url = String(input);
+        seen.push(url);
+        if (!url.includes("before=")) {
+            return new Response(JSON.stringify({
+                hasDeepHistory: true,
+                candles: [{ timestamp: base + HOUR, open: 100, high: 102, low: 99, close: 101, volume: 5 }],
+            }), { status: 200 });
+        }
+        return new Response(JSON.stringify({
+            hasDeepHistory: true,
+            candles: [{ timestamp: base, open: 98, high: 101, low: 97, close: 100, volume: 4 }],
+        }), { status: 200 });
+    }) as typeof fetch;
+    try {
+        const source = createAdaptiveApiDataSources();
+        const latest = await source.loadLatest({ symbol: "XAUUSD", timeframe: H1, limit: 100 });
+        assertEqual(latest.hasMore, true, "latest page learns deep-history capability");
+        const older = await source.loadOlder({ symbol: "XAUUSD", timeframe: H1, beforeMs: base + HOUR, limit: 100 });
+        assertEqual(older.candles.length, 1);
+        assert(older.candles[0].timestamp < base + HOUR, "only strictly older bars accepted");
+        assert(seen[1].includes(`before=${base + HOUR}`), "older request carries exclusive cursor");
+    } finally {
+        globalThis.fetch = originalFetch;
+    }
+});
 check("loadOlder prepends without duplicating or dropping candles", async () => {
     let olderCalls = 0;
     const engine = mkEngine({
@@ -545,6 +577,21 @@ check("computeWindow slices the visible range inside the series", () => {
     assert(w.startIndex >= 0, "start non-negative");
     const away = computeWindow({ ...VP, scrollFromRightPx: 800 }, 50, 400, H1);
     assert(away.endIndex < w.endIndex, "scrolling left reveals older candles");
+});
+check("barIndexForTime maps timestamps through observed bars across market gaps", () => {
+    const friday = Date.UTC(2026, 8, 25, 20, 0);
+    const sunday = Date.UTC(2026, 8, 27, 21, 0);
+    const bars = [{ timestamp: friday }, { timestamp: sunday }, { timestamp: sunday + HOUR }];
+    assertEqual(barIndexForTime(bars, friday, HOUR), 0);
+    assertEqual(barIndexForTime(bars, sunday, HOUR), 1);
+    assertEqual(barIndexForTime(bars, sunday + HOUR / 2, HOUR), 1.5);
+    assertEqual(barIndexForTime(bars, sunday + 2 * HOUR, HOUR), 3);
+    assert(Number.isNaN(barIndexForTime([], friday, HOUR)), "empty series cannot be mapped");
+});
+check("prepend viewport compensation shifts by newly prepended bars only", () => {
+    const shifted = shiftLogicalRangeForPrepend({ from: 12.25, to: 42.75 }, 400, 650);
+    assertEqual(shifted, { from: 262.25, to: 292.75 });
+    assertEqual(shiftLogicalRangeForPrepend({ from: 5, to: 20 }, 400, 350), { from: 5, to: 20 });
 });
 
 console.log("InteractionController");

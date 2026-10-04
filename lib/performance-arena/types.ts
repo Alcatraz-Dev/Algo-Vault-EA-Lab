@@ -154,6 +154,8 @@ export interface ChallengeDefinition {
     createdAt: number;
     updatedAt: number;
     createdBy: string | null;
+    /** Set only by the authenticated admin product workflow after fee configuration. */
+    paidBillingConfiguredAt?: number;
 }
 
 // ──────────── Attempt + virtual account ──────────────────────────────────────
@@ -178,6 +180,8 @@ export interface ChallengeAttempt {
     tradingDayKeys: Record<string, number>;
     /** dayKey → number of entries that day (daily trade cap). */
     dailyTradeCounts: Record<string, number>;
+    /** Internal idempotency markers for committed pending-order fills. */
+    processedPendingOrderIds?: Record<string, boolean>;
     cancelReason?: string;
     pausedAt?: number;
     /** Set when the engine refused to settle because data was inconsistent. */
@@ -203,6 +207,8 @@ export interface VirtualAccount {
     dailyPnLCcents: number;
     /** Aggregate notional exposure of open positions (cents). */
     exposureCents: number;
+    /** Internal idempotency markers for pending-order account postings. */
+    processedPendingOrderIds?: Record<string, boolean>;
     lastQuoteAt: number;
     createdAt: number;
     updatedAt: number;
@@ -246,6 +252,32 @@ export interface ChallengeTrade {
     realizedPnLCents: number | null;
     /** Client-supplied idempotency key for entry. */
     clientRequestId: string | null;
+    updatedAt?: number;
+}
+
+export type ArenaPendingOrderType = "limit" | "stop";
+export type PendingOrderStatus = "pending" | "processing" | "filled" | "cancelled" | "expired";
+
+export interface ChallengePendingOrder {
+    orderId: string;
+    attemptId: string;
+    userId: string;
+    symbol: string;
+    market: MarketCategory;
+    side: "long" | "short";
+    orderType: ArenaPendingOrderType;
+    sizeCentiLots: number;
+    entryPriceMicros: number;
+    stopLossMicros: number | null;
+    takeProfitMicros: number | null;
+    createdAt: number;
+    expiresAt: number;
+    status: PendingOrderStatus;
+    clientRequestId: string | null;
+    filledTradeId: string | null;
+    processingAt?: number;
+    /** Deterministic fill record persisted before posting accounting effects. */
+    filledTrade?: ChallengeTrade;
 }
 
 /** Server-computed live mark for an open position (not persisted verbatim). */
@@ -323,6 +355,9 @@ export type ChallengeEventType =
     | "ORDER_REJECTED"
     | "TRADE_OPENED"
     | "TRADE_CLOSED"
+    | "POSITION_MODIFIED"
+    | "PENDING_ORDER_PLACED"
+    | "PENDING_ORDER_CANCELLED"
     | "EQUITY_MARK"
     | "SETTLEMENT"
     | "REWARD_GRANTED"

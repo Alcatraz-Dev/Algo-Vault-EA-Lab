@@ -93,6 +93,7 @@ export const ADMIN_NAV: NavGroup[] = [
       { href: "/admin/analysis", label: "Analysis", icon: BarChart3 },
       { href: "/market-intelligence/scalping", label: "AI Scalping Terminal", icon: Zap },
       { href: "/account/scalping-terminal", label: "Pro Scalping Terminal", icon: Zap },
+      { href: "/admin/ai/monitor", label: "AI Intelligence Monitor", icon: Activity },
       { href: "/market-intelligence/advanced", label: "Advanced Analysis", icon: ShieldCheck },
     ],
   },

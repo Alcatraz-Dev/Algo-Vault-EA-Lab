@@ -44,6 +44,7 @@ import type { TradingViewContext } from "@/types";
 import type { EnrichedChartContext } from "@/services/chart-intelligence";
 import { useProAccess } from "@/services/pro-service";
 import { ProGate } from "@/popup/components/ProGate";
+import type { PreparedTradeDraft } from "@/types/execution";
 
 import { CommandBar } from "./components/CommandBar";
 import { CopilotView } from "./views/CopilotView";
@@ -122,6 +123,10 @@ export default function App() {
   const [manualSymbol, setManualSymbol] = useState("");
   const [manualTimeframe, setManualTimeframe] = useState("");
   const [analysisPrompt, setAnalysisPrompt] = useState<string | null>(null);
+  const [preparedDraft, setPreparedDraft] = useState<PreparedTradeDraft | null>(null);
+  const [executionFocus, setExecutionFocus] = useState<
+    "ticket" | "positions" | "pending" | "history"
+  >("ticket");
 
   const { isPro, access: proAccess, flags } = useProAccess();
 
@@ -294,16 +299,59 @@ export default function App() {
       case "open_research":
         window.open(`${getAlgoVaultUrl()}/strategy-research`, "_blank");
         break;
+      case "show_open_positions":
+        setExecutionFocus("positions");
+        setTab("execution");
+        break;
+      case "prepare_modification":
+      case "prepare_close":
+        setExecutionFocus("positions");
+        setTab("execution");
+        break;
+      case "explain_position":
+        setAnalysisPrompt(
+          `Explain my open ${activeSymbol} position: entry logic, current market context, what would invalidate it and what the strategy conditions say now.`
+        );
+        setTab("copilot");
+        break;
+      case "show_market_context":
+        setAnalysisPrompt(
+          `Show the current market context for ${activeSymbol} (${activeTimeframe}): structure, liquidity, FVG, momentum, HTF alignment and volatility.`
+        );
+        setTab("copilot");
+        break;
       default:
         setTab("copilot");
         break;
     }
-  }, [activeSymbol, activeTimeframe]);
-
-  const handleAnalyzeSetup = useCallback((setup: import("@/types/pro").SetupRadarCard) => {
-    const setupPrompt = `Analyze this Setup Radar card for ${setup.symbol} (${setup.timeframe}): setup type "${setup.setupType}", direction ${setup.direction}, status ${setup.status}. Supporting evidence: ${setup.supportingEvidence.join("; ")}. Risk context: ${setup.riskContext || "none"}. Provide trade execution steps.`;
+  }, [activeSymbol, activeTimeframe]);  const handleAnalyzeSetup = useCallback((setup: import("@/types/pro").SetupRadarCard) => {
+    const setupPrompt = `Analyze this Setup Radar card for ${setup.symbol} (${setup.timeframe}): setup type "${setup.setupType}", direction ${setup.direction}, status ${setup.status}. Supporting evidence: ${setup.supportingEvidence.join(";")}. Risk context: ${setup.riskContext || "none"}. Provide trade execution steps.`;
     setAnalysisPrompt(setupPrompt);
     setTab("copilot");
+  }, []);
+
+  /** AI Setup → trade preparation (§5): pre-fills the ticket, never executes. */
+  const handlePrepareTrade = useCallback((setup: import("@/types/pro").SetupRadarCard) => {
+    const side: "BUY" | "SELL" = setup.direction === "SHORT" ? "SELL" : "BUY";
+    setPreparedDraft({
+      source: "setup_radar",
+      symbol: setup.symbol,
+      side,
+      orderType: setup.entryZone ? "LIMIT" : "MARKET",
+      quantity: null,
+      price: setup.entryZone ? setup.entryZone.from : null,
+      stopLoss: setup.invalidation ?? null,
+      takeProfit: setup.targets && setup.targets.length > 0 ? setup.targets[0] : null,
+      timeframe: setup.timeframe,
+      strategyId: setup.strategyId ?? null,
+      strategyName: setup.strategyName ?? null,
+      setupId: setup.id,
+      analysisId: setup.memoryId ?? null,
+      riskContext: setup.riskContext ?? null,
+      preparedAt: Date.now(),
+    });
+    setExecutionFocus("ticket");
+    setTab("execution");
   }, []);
 
   if (isLoading) {
@@ -441,6 +489,7 @@ export default function App() {
                   symbol={activeSymbol || ""}
                   timeframe={activeTimeframe}
                   onAnalyzeSetup={handleAnalyzeSetup}
+                  onPrepareTrade={handlePrepareTrade}
                 />
               </ProGate>
             )}
@@ -550,15 +599,16 @@ export default function App() {
             )}
 
             {tab === "execution" && (
-              <ProGate
-                featureName="TradingView Execution Bridge"
-                flagEnabled={flags.tradingViewExecutionBridge}
-              >
-                <ProExecutionBridgeView
-                  activeSymbol={activeSymbol || "EURUSD"}
-                  activePrice={context?.price ?? undefined}
-                />
-              </ProGate>
+              <ProExecutionBridgeView
+                key={executionFocus}
+                initialSubTab={executionFocus}
+                activeSymbol={activeSymbol || "EURUSD"}
+                activePrice={context?.price ?? undefined}
+                contextTimestamp={context?.timestamp ?? null}
+                timeframe={activeTimeframe}
+                preparedDraft={preparedDraft}
+                onDraftConsumed={() => setPreparedDraft(null)}
+              />
             )}
 
             {tab === "research" && (

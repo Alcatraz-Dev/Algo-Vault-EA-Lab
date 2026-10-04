@@ -37,6 +37,7 @@ import type {
     ChallengeAttempt,
     ChallengeDefinition,
     ChallengeEvent,
+    ChallengePendingOrder,
     ChallengeResult,
     ChallengeTrade,
     CreditWallet,
@@ -50,6 +51,7 @@ import type {
     VirtualAccount,
 } from "./types";
 import { emptyWallet } from "./rewards";
+import { arenaSymbolSpec } from "./execution";
 
 export const ARENA_ROOT = "performanceArena";
 
@@ -144,6 +146,14 @@ export async function saveAttempt(attempt: ChallengeAttempt): Promise<void> {
     await adminDatabase.ref(`${ARENA_ROOT}/attempts/${attempt.userId}/${rtdbKey(attempt.id)}`).set(attempt);
 }
 
+/** Create one attempt record once; concurrent paid-return retries converge. */
+export async function createAttemptIfAbsent(attempt: ChallengeAttempt): Promise<{ created: boolean; attempt: ChallengeAttempt }> {
+    const ref = adminDatabase.ref(`${ARENA_ROOT}/attempts/${attempt.userId}/${rtdbKey(attempt.id)}`);
+    const result = await ref.transaction((current) => current === null ? attempt : undefined);
+    const stored = (result.snapshot.val() as ChallengeAttempt | null) ?? attempt;
+    return { created: result.committed, attempt: stored };
+}
+
 /**
  * Compare-and-swap status transition (idempotent settlement gate).
  * Returns true only for the caller that performed the transition.
@@ -172,6 +182,13 @@ export async function saveAccount(account: VirtualAccount): Promise<void> {
     await adminDatabase.ref(`${ARENA_ROOT}/accounts/${account.userId}/${rtdbKey(account.attemptId)}`).set(account);
 }
 
+/** Create a virtual account once; retries never reset an existing balance. */
+export async function createAccountIfAbsent(account: VirtualAccount): Promise<VirtualAccount> {
+    const ref = adminDatabase.ref(`${ARENA_ROOT}/accounts/${account.userId}/${rtdbKey(account.attemptId)}`);
+    const result = await ref.transaction((current) => current === null ? account : undefined);
+    return (result.snapshot.val() as VirtualAccount | null) ?? account;
+}
+
 export async function listTrades(uid: string, attemptId: string): Promise<ChallengeTrade[]> {
     const snap = await adminDatabase.ref(`${ARENA_ROOT}/trades/${uid}/${rtdbKey(attemptId)}`).get();
     const val = snap.val() as Record<string, ChallengeTrade> | null;
@@ -188,6 +205,126 @@ export async function saveTrade(trade: ChallengeTrade): Promise<void> {
     await adminDatabase
         .ref(`${ARENA_ROOT}/trades/${trade.userId}/${rtdbKey(trade.attemptId)}/${rtdbKey(trade.tradeId)}`)
         .set(trade);
+}
+
+export async function createTradeIfAbsent(trade: ChallengeTrade): Promise<{ created: boolean; trade: ChallengeTrade }> {
+    const ref = adminDatabase.ref(`${ARENA_ROOT}/trades/${trade.userId}/${rtdbKey(trade.attemptId)}/${rtdbKey(trade.tradeId)}`);
+    const result = await ref.transaction((current: ChallengeTrade | null) => current === null ? trade : undefined);
+    return { created: result.committed, trade: (result.snapshot.val() as ChallengeTrade | null) ?? trade };
+}
+
+export async function modifyTradeStops(uid: string, attemptId: string, tradeId: string, stopLossMicros: number | null, takeProfitMicros: number | null, riskCents: number | null, updatedAt: number): Promise<ChallengeTrade | null> {
+    const ref = adminDatabase.ref(`${ARENA_ROOT}/trades/${uid}/${rtdbKey(attemptId)}/${rtdbKey(tradeId)}`);
+    const result = await ref.transaction((current: ChallengeTrade | null) => {
+        if (!current || current.status !== "open") return undefined;
+        return { ...current, stopLossMicros, takeProfitMicros, riskCents, updatedAt };
+    });
+    return result.committed ? result.snapshot.val() as ChallengeTrade : null;
+}
+
+export async function listPendingOrders(uid: string, attemptId: string): Promise<ChallengePendingOrder[]> {
+    const snap = await adminDatabase.ref(`${ARENA_ROOT}/pendingOrders/${uid}/${rtdbKey(attemptId)}`).get();
+    const val = snap.val() as Record<string, ChallengePendingOrder> | null;
+    return val ? Object.values(val).sort((a, b) => a.createdAt - b.createdAt) : [];
+}
+
+export async function getPendingOrder(uid: string, attemptId: string, orderId: string): Promise<ChallengePendingOrder | null> {
+    const snap = await adminDatabase.ref(`${ARENA_ROOT}/pendingOrders/${uid}/${rtdbKey(attemptId)}/${rtdbKey(orderId)}`).get();
+    return (snap.val() as ChallengePendingOrder | null) ?? null;
+}
+
+export async function findPendingOrderByClientRequestId(uid: string, attemptId: string, clientRequestId: string): Promise<ChallengePendingOrder | null> {
+    const orders = await listPendingOrders(uid, attemptId);
+    return orders.find((order) => order.clientRequestId === clientRequestId) ?? null;
+}
+
+export async function claimPendingOrder(uid: string, attemptId: string, orderId: string, now: number): Promise<ChallengePendingOrder | null> {
+    const ref = adminDatabase.ref(`${ARENA_ROOT}/pendingOrders/${uid}/${rtdbKey(attemptId)}/${rtdbKey(orderId)}`);
+    const result = await ref.transaction((current: ChallengePendingOrder | null) => {
+        if (!current || !["pending", "processing"].includes(current.status)) return undefined;
+        // A persisted fill snapshot always gets projection recovery priority,
+        // even if the order's TTL passed while the server was unavailable.
+        if (current.filledTrade) return { ...current, status: "processing", processingAt: now };
+        if (current.expiresAt <= now) return { ...current, status: "expired" };
+        if (current.status === "processing" && current.processingAt && now - current.processingAt < 30_000) return undefined;
+        return { ...current, status: "processing", processingAt: now };
+    });
+    return result.committed ? result.snapshot.val() as ChallengePendingOrder : null;
+}
+
+export async function savePendingOrder(order: ChallengePendingOrder): Promise<void> {
+    await adminDatabase.ref(`${ARENA_ROOT}/pendingOrders/${order.userId}/${rtdbKey(order.attemptId)}/${rtdbKey(order.orderId)}`).set(order);
+}
+
+/**
+ * Commit a pending fill through a deterministic, transaction-claimed order.
+ * The durable order record contains the exact trade snapshot first, so retries
+ * can finish partial projections without generating a second fill.
+ */
+export async function commitPendingFill(params: {
+    uid: string;
+    attemptId: string;
+    order: ChallengePendingOrder;
+    trade: ChallengeTrade;
+    now: number;
+}): Promise<boolean> {
+    const { uid, attemptId, order, trade, now } = params;
+    const ref = adminDatabase.ref(`${ARENA_ROOT}/pendingOrders/${uid}/${rtdbKey(attemptId)}/${rtdbKey(order.orderId)}`);
+    const claim = await ref.transaction((current: ChallengePendingOrder | null) => {
+        if (!current || current.status !== "processing") return undefined;
+        if (current.filledTrade) return current;
+        return { ...current, filledTrade: trade };
+    });
+    const committedOrder = claim.snapshot.val() as ChallengePendingOrder | null;
+    if (!committedOrder?.filledTrade) return false;
+    const committedTrade = committedOrder.filledTrade;
+    const tradeDayKey = new Date(committedTrade.entryAt).toISOString().slice(0, 10);
+    const spec = arenaSymbolSpec(committedTrade.symbol);
+    const exposureDeltaCents = Math.round((committedTrade.entryPriceMicros / 1_000_000) * (committedTrade.sizeCentiLots / 100) * (spec?.contractSize ?? 1) * 100);
+    const tradeRef = adminDatabase.ref(`${ARENA_ROOT}/trades/${uid}/${rtdbKey(attemptId)}/${rtdbKey(committedTrade.tradeId)}`);
+    await tradeRef.transaction((current: ChallengeTrade | null) => current ?? committedTrade);
+
+    const attemptRef = adminDatabase.ref(`${ARENA_ROOT}/attempts/${uid}/${rtdbKey(attemptId)}`);
+    await attemptRef.transaction((current: ChallengeAttempt | null) => {
+        if (!current || current.processedPendingOrderIds?.[order.orderId]) return undefined;
+        return {
+            ...current,
+            tradingDayKeys: { ...current.tradingDayKeys, [tradeDayKey]: current.tradingDayKeys?.[tradeDayKey] ?? now },
+            dailyTradeCounts: { ...current.dailyTradeCounts, [tradeDayKey]: (current.dailyTradeCounts?.[tradeDayKey] ?? 0) + 1 },
+            processedPendingOrderIds: { ...current.processedPendingOrderIds, [order.orderId]: true },
+            updatedAt: now,
+        };
+    });
+    const accountRef = adminDatabase.ref(`${ARENA_ROOT}/accounts/${uid}/${rtdbKey(attemptId)}`);
+    await accountRef.transaction((current: VirtualAccount | null) => {
+        if (!current || current.processedPendingOrderIds?.[order.orderId]) return undefined;
+        return {
+            ...current,
+            feesCents: current.feesCents + committedTrade.costs.spreadCostCents + committedTrade.costs.slippageCostCents + committedTrade.costs.commissionCents,
+            exposureCents: current.exposureCents + exposureDeltaCents,
+            processedPendingOrderIds: { ...current.processedPendingOrderIds, [order.orderId]: true },
+            updatedAt: now,
+        };
+    });
+    await ref.transaction((current: ChallengePendingOrder | null) => current && current.filledTrade ? { ...current, status: "filled", filledTradeId: current.filledTrade.tradeId } : undefined);
+    return true;
+}
+
+export async function releasePendingOrderClaim(uid: string, attemptId: string, orderId: string, claimedAt: number): Promise<void> {
+    const ref = adminDatabase.ref(`${ARENA_ROOT}/pendingOrders/${uid}/${rtdbKey(attemptId)}/${rtdbKey(orderId)}`);
+    await ref.transaction((current: ChallengePendingOrder | null) => {
+        if (!current || current.status !== "processing" || current.processingAt !== claimedAt || current.filledTrade) return undefined;
+        return { ...current, status: "pending", processingAt: undefined };
+    });
+}
+
+export async function cancelPendingOrderIfPending(uid: string, attemptId: string, orderId: string, updatedAt: number): Promise<ChallengePendingOrder | null> {
+    const ref = adminDatabase.ref(`${ARENA_ROOT}/pendingOrders/${uid}/${rtdbKey(attemptId)}/${rtdbKey(orderId)}`);
+    const result = await ref.transaction((current: ChallengePendingOrder | null) => {
+        if (!current || current.status !== "pending") return undefined;
+        return { ...current, status: "cancelled", processingAt: updatedAt };
+    });
+    return result.committed ? result.snapshot.val() as ChallengePendingOrder : null;
 }
 
 /** Find a trade by its client idempotency key (order retries). */
@@ -439,12 +576,54 @@ export interface PaidChallengeGrant {
     attemptId?: string;
 }
 
-export async function getPaidGrant(uid: string, definitionId: string): Promise<PaidChallengeGrant | null> {
-    const snap = await adminDatabase.ref(`${ARENA_ROOT}/paidGrants/${uid}/${rtdbKey(definitionId)}`).get();
-    return (snap.val() as PaidChallengeGrant | null) ?? null;
+export async function getPaidGrantByOrder(uid: string, orderId: string): Promise<PaidChallengeGrant | null> {
+    const snap = await adminDatabase.ref(`${ARENA_ROOT}/paidGrantOrders/${uid}/${rtdbKey(orderId)}`).get();
+    const grant = snap.val() as PaidChallengeGrant | null;
+    return grant?.uid === uid && grant.orderId === orderId ? grant : null;
 }
 
-export async function savePaidGrant(grant: PaidChallengeGrant): Promise<void> {
-    await adminDatabase.ref(`${ARENA_ROOT}/paidGrants/${grant.uid}/${rtdbKey(grant.definitionId)}`).set(grant);
+export async function getPaidGrant(uid: string, definitionId: string): Promise<PaidChallengeGrant | null> {
+    // New grants are keyed by Stripe order so a later purchase can never
+    // overwrite or resurrect a previously consumed grant. Read legacy grants
+    // during migration, but all new writes use the order-scoped namespace.
+    const grantsSnap = await adminDatabase.ref(`${ARENA_ROOT}/paidGrantOrders/${uid}`).get();
+    const grants = grantsSnap.val() as Record<string, PaidChallengeGrant> | null;
+    const grant = Object.values(grants ?? {})
+        .filter((item) => item.definitionId === definitionId && !item.consumed)
+        .sort((a, b) => a.grantedAt - b.grantedAt)[0];
+    if (grant) return grant;
+
+    const legacySnap = await adminDatabase.ref(`${ARENA_ROOT}/paidGrants/${uid}/${rtdbKey(definitionId)}`).get();
+    const legacy = legacySnap.val() as PaidChallengeGrant | null;
+    return legacy && !legacy.consumed ? legacy : null;
+}
+
+/** Idempotently persist one verified Stripe purchase; never reset consumption. */
+export async function savePaidGrant(grant: PaidChallengeGrant): Promise<boolean> {
+    const ref = adminDatabase.ref(`${ARENA_ROOT}/paidGrantOrders/${grant.uid}/${rtdbKey(grant.orderId)}`);
+    const result = await ref.transaction((current) => current === null ? grant : undefined);
+    if (result.committed) return true;
+    const existing = result.snapshot.val() as PaidChallengeGrant | null;
+    return existing?.orderId === grant.orderId && existing.uid === grant.uid && existing.definitionId === grant.definitionId;
+}
+
+/** Atomically consume one specific verified order grant for a single attempt. */
+export async function claimPaidGrant(uid: string, definitionId: string, attemptId: string, orderId?: string): Promise<boolean> {
+    const grant = orderId ? await getPaidGrantByOrder(uid, orderId) : await getPaidGrant(uid, definitionId);
+    if (!grant || grant.definitionId !== definitionId) return false;
+    const newGrantRef = adminDatabase.ref(`${ARENA_ROOT}/paidGrantOrders/${uid}/${rtdbKey(grant.orderId)}`);
+    const newGrantSnap = await newGrantRef.get();
+    const ref = newGrantSnap.exists()
+        ? newGrantRef
+        : adminDatabase.ref(`${ARENA_ROOT}/paidGrants/${uid}/${rtdbKey(definitionId)}`);
+    const result = await ref.transaction((current) => {
+        const value = current as PaidChallengeGrant | null;
+        if (!value || value.uid !== uid || value.definitionId !== definitionId) return undefined;
+        // A retry for the exact same order/attempt resumes a partially
+        // completed server operation; another attempt cannot reuse the grant.
+        if (value.consumed) return value.attemptId === attemptId ? value : undefined;
+        return { ...value, consumed: true, attemptId };
+    });
+    return result.committed;
 }
 

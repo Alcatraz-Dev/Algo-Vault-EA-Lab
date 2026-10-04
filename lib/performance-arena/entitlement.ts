@@ -38,8 +38,7 @@ export interface EntitlementDeps {
     getWalletPoints: (uid: string) => Promise<number>;
     /**
      * Check if user has an unconsumed paid challenge grant for a paid definition.
-     */
-    checkPaidChallengeGrant?: (uid: string, definitionId: string) => Promise<boolean>;
+     */            checkPaidChallengeGrant?: (uid: string, definitionId: string) => Promise<boolean>;
 }
 
 export async function evaluateEntitlement(
@@ -68,14 +67,9 @@ export async function evaluateEntitlement(
             }
             if (deps.checkPaidChallengeGrant) {
                 const hasGrant = await deps.checkPaidChallengeGrant(uid, definition.id);
-                if (hasGrant) {
-                    return { allowed: true, level: "paid" };
-                }
+                if (hasGrant) return { allowed: true, level: "paid" };
             }
-            const access = await deps.checkEntitlement(uid);
-            return access.accessible
-                ? { allowed: true, level: "paid" }
-                : { allowed: false, reason: "This challenge requires purchase (billing entitlement not found)." };
+            return { allowed: false, reason: "A verified purchase for this challenge is required." };
         }
 
         case "credits": {

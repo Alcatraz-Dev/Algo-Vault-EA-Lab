@@ -1,3 +1,5 @@
+import type { SignalIntelligence } from "@/lib/intelligence/types";
+
 export type SignalDirection = "BUY" | "SELL";
 
 export type SignalSourceType = "AI_GENERATED" | "TELEGRAM" | "MANUAL" | "STRATEGY_LAB";
@@ -303,6 +305,13 @@ export interface AISignal {
     sourceMessageId?: string;
     aiAnalysis?: Array<{ timestamp: number; type: string; content: string; facts: Record<string, unknown> }>;
     timeline: Array<{ id: string; timestamp: number; type: string; message: string; metadata?: Record<string, unknown> }>;
+    /**
+     * Unified Intelligence Fabric enrichment (optional — signals remain fully
+     * functional without it). Present when the fabric evaluated this signal;
+     * carries the orchestrated decision state, Jev validation and the concise
+     * Why? factors. No chain-of-thought is ever stored here.
+     */
+    intelligence?: SignalIntelligence;
 }
 
 export interface SignalConfig {

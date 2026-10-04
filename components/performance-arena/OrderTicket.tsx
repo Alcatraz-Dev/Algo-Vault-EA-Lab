@@ -4,10 +4,11 @@
 // costs, fills, PnL and rule evaluation are computed server-side. Rule
 // rejections (422 RULE_VIOLATION) render with the engine's own messages.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowDownRight, ArrowUpRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { RuleEvent } from "@/lib/performance-arena/types";
+import { arenaSymbolSpec } from "@/lib/performance-arena/execution";
 
 export interface OrderTicketResult {
     ok: boolean;
@@ -21,20 +22,58 @@ export function OrderTicket({
     disabled,
     maxLots,
     onPlaced,
+    selectedSymbol,
+    onSymbolChange,
+    currentQuote,
+    policyStepLots = 0.01,
 }: {
     attemptId: string;
     symbols: string[];
     disabled: boolean;
     maxLots: number;
     onPlaced: () => void;
+    selectedSymbol?: string;
+    onSymbolChange?: (symbol: string) => void;
+    currentQuote?: { price: number; timestamp: number } | null;
+    policyStepLots?: number;
 }) {
-    const [symbol, setSymbol] = useState(symbols[0] ?? "EURUSD");
+    const [localSymbol, setLocalSymbol] = useState(symbols[0] ?? "EURUSD");
+    const [localQuote, setLocalQuote] = useState<{ price: number; timestamp: number } | null>(null);
+    const symbol = selectedSymbol ?? localSymbol;
+    const quote = currentQuote === undefined ? localQuote : currentQuote;
     const [side, setSide] = useState<"long" | "short">("long");
     const [size, setSize] = useState("0.10");
     const [stopLoss, setStopLoss] = useState("");
     const [takeProfit, setTakeProfit] = useState("");
+    const [orderType, setOrderType] = useState<"market" | "limit" | "stop">("market");
+    const [entryPrice, setEntryPrice] = useState("");
     const [busy, setBusy] = useState(false);
     const [result, setResult] = useState<OrderTicketResult | null>(null);
+    const instrument = arenaSymbolSpec(symbol);
+    const lotStep = Math.max(instrument?.lotStep ?? 0.01, policyStepLots);
+    const minLot = Math.max(instrument?.minLot ?? 0.01, policyStepLots);
+    const effectiveMaxLots = Math.min(maxLots, instrument?.maxLot ?? maxLots);
+    const quoteIsFresh = Boolean(quote && quote.timestamp <= Date.now() + 5_000 && Date.now() - quote.timestamp <= 60_000);
+    const sizeNumber = Number(size);
+    const stepUnits = sizeNumber / lotStep;
+    const validSize = Number.isFinite(sizeNumber) && sizeNumber >= minLot && sizeNumber <= effectiveMaxLots && Math.abs(stepUnits - Math.round(stepUnits)) <= 1e-7;
+
+    useEffect(() => {
+        if (selectedSymbol || symbols.length === 0) return;
+        let cancelled = false;
+        const refreshQuote = async () => {
+            try {
+                const response = await fetch(`/api/market/quotes?symbols=${encodeURIComponent(symbol)}`, { cache: "no-store" });
+                const body = await response.json() as { quotes?: Record<string, { price: number; timestamp: number }> };
+                if (!cancelled) setLocalQuote(body.quotes?.[symbol] ?? null);
+            } catch {
+                if (!cancelled) setLocalQuote(null);
+            }
+        };
+        void refreshQuote();
+        const timer = window.setInterval(() => void refreshQuote(), 2_000);
+        return () => { cancelled = true; window.clearInterval(timer); };
+    }, [symbol, selectedSymbol, symbols.length]);
 
     const submit = async () => {
         setBusy(true);
@@ -46,12 +85,13 @@ export function OrderTicket({
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify({
-                    action: "market",
+                    action: orderType,
                     symbol,
                     side,
                     sizeLots: Number(size),
-                    stopLoss: stopLoss ? Number(stopLoss) : null,
-                    takeProfit: takeProfit ? Number(takeProfit) : null,
+                    ...(orderType !== "market" ? { entryPrice: Number(entryPrice) } : {}),
+                    stopLoss: stopLoss === "" ? undefined : Number(stopLoss),
+                    takeProfit: takeProfit === "" ? undefined : Number(takeProfit),
                     clientRequestId: `${attemptId}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
                 }),
             });
@@ -72,17 +112,17 @@ export function OrderTicket({
     return (
         <div className="rounded-lg border border-border bg-card">
             <div className="border-b border-border px-4 py-3">
-                <h3 className="text-sm font-semibold">Simulated order</h3>
-                <p className="text-[11px] text-muted-foreground">Market execution at the server-resolved live quote. Virtual only.</p>
+                <h3 className="text-sm font-semibold">Order ticket</h3>
+                <p className="text-[11px] text-muted-foreground">Virtual execution · market fills use the server’s latest quote and configured costs.</p>
             </div>
 
             <div className="space-y-3 p-4">
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <label className="text-xs text-muted-foreground">
                         Symbol
                         <select
                             value={symbol}
-                            onChange={(e) => setSymbol(e.target.value)}
+                            onChange={(e) => { setLocalSymbol(e.target.value); onSymbolChange?.(e.target.value); }}
                             disabled={disabled}
                             className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground"
                         >
@@ -95,9 +135,9 @@ export function OrderTicket({
                         Size (lots)
                         <input
                             type="number"
-                            step="0.01"
-                            min="0.01"
-                            max={maxLots}
+                            step={lotStep}
+                            min={minLot}
+                            max={effectiveMaxLots}
                             value={size}
                             onChange={(e) => setSize(e.target.value)}
                             disabled={disabled}
@@ -106,6 +146,24 @@ export function OrderTicket({
                     </label>
                 </div>
 
+                <label className="block text-xs text-muted-foreground">
+                    Order type
+                    <select value={orderType} onChange={(event) => setOrderType(event.target.value as typeof orderType)} disabled={disabled} className="mt-1 w-full rounded-md border border-border bg-background px-2 py-2 text-sm text-foreground">
+                        <option value="market">Market</option>
+                        <option value="limit">Limit</option>
+                        <option value="stop">Stop</option>
+                    </select>
+                </label>
+                <div className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-muted/40 px-3 py-2 text-xs">
+                    <span className="text-muted-foreground">{symbol} live quote</span>
+                    {quote && quoteIsFresh ? <span className="font-mono font-medium text-foreground">{quote.price.toLocaleString(undefined, { maximumFractionDigits: 6 })} <span className="text-[10px] text-muted-foreground">{new Date(quote.timestamp).toLocaleTimeString()} · live</span></span> : <span className="text-amber-600">{quote ? "Quote stale" : "Quote unavailable"}</span>}
+                </div>
+                {orderType !== "market" ? (
+                    <label className="block text-xs text-muted-foreground">
+                        Pending entry price
+                        <input type="number" inputMode="decimal" step="any" min="0" value={entryPrice} onChange={(event) => setEntryPrice(event.target.value)} disabled={disabled} placeholder="Price" className="mt-1 w-full rounded-md border border-border bg-background px-2 py-2 font-mono text-sm text-foreground" />
+                    </label>
+                ) : null}
                 <div className="grid grid-cols-2 gap-2">
                     <Button
                         size="sm"
@@ -127,7 +185,7 @@ export function OrderTicket({
                     </Button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <label className="text-xs text-muted-foreground">
                         Stop-loss (optional)
                         <input
@@ -154,9 +212,12 @@ export function OrderTicket({
                     </label>
                 </div>
 
-                <Button className="w-full" disabled={disabled || busy} onClick={() => void submit()}>
+                <p className="text-[11px] leading-relaxed text-muted-foreground">{orderType === "market" ? "Market orders fill only when the server has a fresh quote. SL/TP are checked server-side." : "Pending orders are checked against live quotes while this challenge is being monitored; rules are reevaluated at trigger time and orders expire after 7 days or at challenge end."}</p>
+                <p className="text-[10px] text-muted-foreground">Size limits for {symbol}: {minLot}–{effectiveMaxLots} lots · step {lotStep}</p>
+                {!validSize ? <p role="alert" className="text-[11px] text-amber-600">Enter a valid size in {lotStep}-lot increments.</p> : null}
+                <Button className={`w-full ${side === "long" ? "bg-emerald-600 text-white hover:bg-emerald-700" : "bg-red-600 text-white hover:bg-red-700"}`} disabled={disabled || busy || !quoteIsFresh || !validSize || (orderType !== "market" && (!entryPrice || !Number.isFinite(Number(entryPrice)) || Number(entryPrice) <= 0))} onClick={() => void submit()}>
                     {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                    {busy ? "Submitting…" : "Place simulated order"}
+                    {busy ? "Submitting…" : `${orderType === "market" ? "Place market" : `Place ${orderType}`} ${side === "long" ? "buy" : "sell"}`}
                 </Button>
 
                 {disabled ? (
@@ -177,7 +238,7 @@ export function OrderTicket({
                 ) : null}
                 {result?.ok ? (
                     <p className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-600">
-                        Order filled at the server-resolved quote. Rules evaluated — see rule events.
+                        {orderType === "market" ? "Market order accepted by the simulated execution engine. Check position and trade state below." : "Pending order accepted. It will fill only if the live quote triggers it and current challenge rules still permit entry."}
                     </p>
                 ) : null}
             </div>

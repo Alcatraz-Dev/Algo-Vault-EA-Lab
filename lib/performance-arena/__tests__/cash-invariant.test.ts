@@ -29,7 +29,7 @@ export async function runCashInvariantTests(): Promise<boolean> {
     s.check(isCashRewardsEnabled() === false, "CASH_REWARDS_ENABLED unset → false (fail-closed default)");
     s.check(arenaFlagSnapshot().cashRewardsEnabled === false, "snapshot reports cash disabled");
 
-    for (const value of ["false", "0", "off", "no", "disabled", "", "maybe"]) {
+    for (const value of ["false", "0", "off", "no", "disabled", "", "maybe", "true", "1", "on", "enabled"]) {
         process.env[ARENA_FLAG_ENV.cashRewards] = value;
         s.check(isCashRewardsEnabled() === false, `value "${value}" → false`);
     }
@@ -48,13 +48,14 @@ export async function runCashInvariantTests(): Promise<boolean> {
         s.check(!outcome.ok && outcome.code === "CASH_REWARDS_DISABLED", `amount=${String(variant.amountCents)} → CASH_REWARDS_DISABLED`);
     }
 
-    s.section("No payout provider exists in this deployment");
+    s.section("No payout provider exists and env cannot enable cash");
     s.check(listPayoutProviders().length === 0, "provider registry is empty (architecture only)");
-    process.env[ARENA_FLAG_ENV.cashRewards] = "true"; // simulate a flipped flag
+    process.env[ARENA_FLAG_ENV.cashRewards] = "true"; // simulate a misconfigured deployment variable
+    s.check(isCashRewardsEnabled() === false, "CASH_REWARDS_ENABLED=true is still denied by the hard-coded safety invariant");
     const withFlag = await requestCashReward({ userId: "user_1", attemptId: "att_1", amountCents: 10_000 });
-    s.check(!withFlag.ok && withFlag.code === "NO_PAYOUT_PROVIDER", "even with the flag ON → NO_PAYOUT_PROVIDER (no payout path)");
+    s.check(!withFlag.ok && withFlag.code === "CASH_REWARDS_DISABLED", "attempted cash request remains disabled with env set true");
     const withProviderId = await requestCashReward({ userId: "user_1", attemptId: "att_1", amountCents: 10_000, providerId: "made-up" });
-    s.check(!withProviderId.ok && withProviderId.code === "NO_PAYOUT_PROVIDER", "unknown provider id still rejected");
+    s.check(!withProviderId.ok && withProviderId.code === "CASH_REWARDS_DISABLED", "forged provider request still denied before provider lookup");
     restoreEnv(ARENA_FLAG_ENV.cashRewards, savedCash);
 
     s.section("Eligibility layer reports cash as unavailable");

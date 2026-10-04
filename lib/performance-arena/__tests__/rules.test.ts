@@ -159,8 +159,11 @@ export async function runRuleTests(): Promise<boolean> {
     const ok = evaluatePreTrade(basePre);
     s.check(ok.ok && ok.violations.length === 0, "valid order passes the gate");
 
+    s.section("Pre-trade gate: markets and schedules");
+    const cryptoTrade = evaluatePreTrade({ ...basePre, symbol: "BTCUSD", session: null, policy: makePolicy({ weekendTrading: "blocked", tradingHours: { startUtcHour: 8, endUtcHour: 12 }, allowedSessions: ["london"] }) });
+    s.check(cryptoTrade.ok, "supported crypto symbol remains tradeable around the clock when the feed is fresh");
+    s.check(!evaluatePreTrade({ ...basePre, symbol: "BTCUSD", policy: makePolicy({ allowedMarkets: ["forex"] }) }).ok, "explicit market policy still blocks excluded crypto");
     s.section("Pre-trade gate: rejections");
-    s.check(!evaluatePreTrade({ ...basePre, symbol: "BTCUSD" }).ok, "market not allowed → rejected");
     s.check(!evaluatePreTrade({ ...basePre, marketOpen: false }).ok, "market closed (weekend) → rejected");
     s.check(!evaluatePreTrade({ ...basePre, session: "asian", policy: makePolicy({ allowedSessions: ["london"] }) }).ok, "session not allowed → rejected");
     s.check(

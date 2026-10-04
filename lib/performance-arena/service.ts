@@ -16,6 +16,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { tradingViewLivePriceCache } from "@/lib/market-data/tradingview-live";
+import { SUPPORTED_SYMBOLS } from "@/lib/market-data/types";
 import { getCurrentSession, isMarketOpen } from "@/lib/analytics/sessions";
 import { checkAccess } from "@/lib/strategy-lab/license";
 import { defaultLeaderboardPolicy } from "./policies";
@@ -54,12 +55,14 @@ import { runFraudDetections, detectImpossibleExecution, type FraudDetectionConte
 import { buildLeaderboardEntries, buildLeaderboardSnapshot } from "./leaderboard";
 import { buildTraderProfile, type ProfileHistoryItem } from "./profile";
 import * as store from "./store";
-import { toPriceMicros } from "./money";
+import { toPriceMicros, plannedRiskCents } from "./money";
+import { getSymbolSpec } from "@/lib/ai-signals/symbol-specs";
 import {
     ARENA_DISCLAIMERS,
     isTerminalStatus,
     type ChallengeAttempt,
     type ChallengeDefinition,
+    type ChallengePendingOrder,
     type ChallengeEvent,
     type ChallengeMetrics,
     type ChallengePolicy,
@@ -123,11 +126,28 @@ export interface ArenaQuote {
     provider: string;
 }
 
+const MARKET_DATA_SYMBOLS = new Set<string>(SUPPORTED_SYMBOLS);
+
+const ARENA_SYMBOL_ALIASES: Record<string, string> = {
+    GOLD: "XAUUSD", XAU: "XAUUSD", SILVER: "XAGUSD",
+    SP500: "SPX500", US500: "SPX500", S500: "SPX500", SPX: "SPX500",
+    DJIA: "US30", DOW: "US30", NDX: "NAS100", NASDAQ100: "NAS100",
+    BTCUSDT: "BTCUSD", ETHUSDT: "ETHUSD",
+};
+
+export function normalizeArenaSymbol(symbol: string): string {
+    const normalized = symbol.trim().toUpperCase().replaceAll("/", "");
+    const alias = ARENA_SYMBOL_ALIASES[normalized] ?? normalized;
+    return getSymbolSpec(alias)?.symbol ?? alias;
+}
+
 export async function resolveQuote(symbol: string): Promise<ArenaQuote | null> {
+    const normalized = symbol.trim().toUpperCase();
+    if (!MARKET_DATA_SYMBOLS.has(normalized)) return null;
     try {
-        const quote = await tradingViewLivePriceCache.get(symbol);
-        if (!quote) return null;
-        return { symbol: symbol.toUpperCase(), price: quote.price, timestamp: quote.timestamp, provider: quote.provider };
+        const quote = await tradingViewLivePriceCache.get(normalized);
+        if (!quote || !Number.isFinite(quote.price) || quote.price <= 0 || !Number.isFinite(quote.timestamp)) return null;
+        return { symbol: normalized, price: quote.price, timestamp: quote.timestamp, provider: quote.provider };
     } catch {
         return null;
     }
@@ -169,6 +189,29 @@ async function persistRuleEvents(uid: string, attemptId: string, events: RuleEve
 
 async function persistEvent(uid: string, event: ChallengeEvent): Promise<void> {
     await store.writeEvent(uid, event);
+}
+
+async function pauseForStaleData(uid: string, attempt: ChallengeAttempt, now: number, symbols: string): Promise<void> {
+    if (attempt.status !== "ACTIVE") return;
+    const transition = applyTransition({
+        attemptId: attempt.id,
+        from: attempt.status,
+        to: "PAUSED",
+        timestamp: now,
+        reason: `Current market data unavailable for ${symbols}; trading paused until quotes recover.`,
+        eventId: nextEventId("evt"),
+        actor: "system",
+    });
+    if (!transition.changed) return;
+    const paused: ChallengeAttempt = {
+        ...attempt,
+        status: "PAUSED",
+        updatedAt: now,
+        pausedAt: now,
+        settleBlockedReason: "STALE_MARKET_DATA",
+    };
+    await store.saveAttempt(paused);
+    if (transition.event) await persistEvent(uid, transition.event);
 }
 
 // ──────────── Access / entitlement (server-side Pro gating) ──────────────────
@@ -253,7 +296,7 @@ function newAccount(uid: string, attemptId: string, startingBalanceCents: number
     };
 }
 
-export async function joinChallenge(uid: string, definitionId: string): Promise<ChallengeAttempt> {
+export async function joinChallenge(uid: string, definitionId: string, paidOrderId?: string): Promise<ChallengeAttempt> {
     if (!isArenaEnabled()) throw new ArenaError(503, "ARENA_DISABLED", "Performance Arena is currently disabled.");
 
     const definition = await store.getDefinition(definitionId);
@@ -261,8 +304,25 @@ export async function joinChallenge(uid: string, definitionId: string): Promise<
         throw new ArenaError(404, "CHALLENGE_NOT_FOUND", "Challenge not found or not available.");
     }
 
+    const paidGrant = definition.access.model === "paid"
+        ? paidOrderId
+            ? await store.getPaidGrantByOrder(uid, paidOrderId)
+            : await store.getPaidGrant(uid, definition.id)
+        : null;
+    if (definition.access.model === "paid" && (!paidGrant || paidGrant.definitionId !== definition.id || (paidOrderId && paidGrant.orderId !== paidOrderId))) {
+        throw new ArenaError(403, "PURCHASE_REQUIRED", "A verified purchase for this challenge is required.");
+    }
+    // Retry for the same order resumes its assigned attempt id. If the first
+    // provisioning request stopped after claiming the grant, recreate missing
+    // resources at that same id without issuing a second account.
+    if (definition.access.model === "paid" && paidOrderId && paidGrant?.consumed && paidGrant.attemptId) {
+        const resumed = await store.getAttempt(uid, paidGrant.attemptId);
+        if (resumed) return resumed;
+    }
+
     const access = await evaluateAccess(uid, definition);
-    if (!access.allowed) throw new ArenaError(403, "ACCESS_DENIED", access.reason ?? "Access denied.");
+    const retryingClaimedOrder = definition.access.model === "paid" && Boolean(paidOrderId && paidGrant?.consumed && paidGrant.attemptId);
+    if (!access.allowed && !retryingClaimedOrder) throw new ArenaError(403, "ACCESS_DENIED", access.reason ?? "Access denied.");
 
     const attempts = await store.listAttempts(uid, 50);
     const active = attempts.filter((a) => !isTerminalStatus(a.status));
@@ -274,13 +334,14 @@ export async function joinChallenge(uid: string, definitionId: string): Promise<
     }
 
     const now = Date.now();
-    const attemptId = store.newArenaId("att");
+    const attemptId = retryingClaimedOrder && paidGrant?.attemptId ? paidGrant.attemptId : store.newArenaId("att");
 
-    // Paid model: mark grant as consumed when joined via a purchased grant.
+    // Paid access consumes one verified order grant atomically. A retry on
+    // the exact order resumes its original id; it cannot claim a second time.
     if (definition.access.model === "paid") {
-        const grant = await store.getPaidGrant(uid, definition.id);
-        if (grant && !grant.consumed) {
-            await store.savePaidGrant({ ...grant, consumed: true, attemptId });
+        const claimed = await store.claimPaidGrant(uid, definition.id, attemptId, paidGrant?.orderId);
+        if (!claimed) {
+            throw new ArenaError(403, "PURCHASE_REQUIRED", "A verified, unused purchase for this challenge is required.");
         }
     }
 
@@ -329,8 +390,16 @@ export async function joinChallenge(uid: string, definitionId: string): Promise<
         tradingDayKeys: {},
         dailyTradeCounts: {},
     };
-    await store.saveAttempt(attempt);
-    await store.saveAccount(newAccount(uid, attemptId, definition.policy.startingBalanceCents, now));
+    // Provision account before publishing the attempt. If the process fails
+    // between these writes, an order retry reuses the account id and can finish
+    // creating the attempt without resetting any balance.
+    await store.createAccountIfAbsent(newAccount(uid, attemptId, definition.policy.startingBalanceCents, now));
+    const createdAttempt = await store.createAttemptIfAbsent(attempt);
+    if (!createdAttempt.created) {
+        // Two concurrent requests may have claimed the same paid order. Only
+        // one publishes the attempt/start event/analytics record.
+        return createdAttempt.attempt;
+    }
 
     await persistEvent(uid, {
         eventId: nextEventId("evt"),
@@ -374,7 +443,7 @@ async function markAccountToMarket(
         const quote = quotes.get(trade.symbol);
         const spec = arenaSymbolSpec(trade.symbol);
         const contractSize = spec?.contractSize ?? contractSizeOf(trade.symbol);
-        if (!quote || !spec) {
+        if (!quote || quote.timestamp > now + 5_000 || now - quote.timestamp > FRESH_QUOTE_MS || !spec) {
             marks.push({ tradeId: trade.tradeId, unrealizedPnLCents: 0, markPriceMicros: null, quoteAt: null });
             continue;
         }
@@ -560,8 +629,8 @@ async function closeAllOpenPositions(
 
     for (const trade of openTrades) {
         const quote = quotes.get(trade.symbol);
-        if (!quote) {
-            // Fail-closed: no quote ⇒ do not guess an exit price.
+        if (!quote || quote.timestamp > now + 5_000 || now - quote.timestamp > FRESH_QUOTE_MS) {
+            // Fail-closed: no fresh quote ⇒ do not guess an exit price.
             return { trades: openTrades, account: null, blocked: "STALE_MARKET_DATA" };
         }
         const spec = arenaSymbolSpec(trade.symbol);
@@ -793,18 +862,21 @@ export interface AttemptState {
     report: PerformanceReport | null;
     eligibility: ReturnType<typeof evaluateRewardEligibility>;
     quoteProvider: string | null;
+    pendingOrders: ChallengePendingOrder[];
     updatedAt: number;
 }
 
 async function maybeResume(uid: string, attempt: ChallengeAttempt, now: number): Promise<ChallengeAttempt> {
     if (attempt.status !== "PAUSED") return attempt;
     if (attempt.settleBlockedReason === "STALE_MARKET_DATA") {
-        // Resume automatically once a fresh quote resolves for open symbols.
+        // Resume automatically once fresh quotes resolve for open and pending symbols.
         const open = (await store.listTrades(uid, attempt.id)).filter((t) => t.status === "open");
-        const quotes = await resolveQuotes(open.map((t) => t.symbol));
-        const allFresh = open.every((t) => {
-            const q = quotes.get(t.symbol);
-            return q && now - q.timestamp < FRESH_QUOTE_MS;
+        const pending = (await store.listPendingOrders(uid, attempt.id)).filter((order) => order.status === "pending" || order.status === "processing");
+        const quotes = await resolveQuotes([...open.map((trade) => trade.symbol), ...pending.map((order) => order.symbol)]);
+        const symbols = [...open.map((trade) => trade.symbol), ...pending.map((order) => order.symbol)];
+        const allFresh = symbols.length === 0 || symbols.every((symbol) => {
+            const q = quotes.get(symbol);
+            return q && q.timestamp <= now + 5_000 && now - q.timestamp <= FRESH_QUOTE_MS;
         });
         if (!allFresh) return attempt;
     } else if (attempt.pausedAt && dayKeyOf(attempt.pausedAt) === dayKeyOf(now)) {
@@ -873,6 +945,7 @@ export async function getAttemptState(uid: string, attemptId: string): Promise<A
                 productRuleReason: attempt.status === "PASSED" ? undefined : `Challenge ${attempt.status}.`,
             }),
             quoteProvider: null,
+            pendingOrders: await store.listPendingOrders(uid, attemptId),
             updatedAt: now,
         };
     }
@@ -880,7 +953,8 @@ export async function getAttemptState(uid: string, attemptId: string): Promise<A
     // ── Live evaluation ─────────────────────────────────────────────────────
     // 1. Protective triggers: SL/TP hits close server-side at the trigger level.
     const preQuotes = await resolveQuotes(openTrades.map((t) => t.symbol));
-    const triggered = await triggerProtectiveOrders(uid, attempt, openTrades, preQuotes, now);
+    const freshProtectiveQuotes = new Map(Array.from(preQuotes.entries()).filter(([, quote]) => quote.timestamp <= now + 5_000 && now - quote.timestamp <= FRESH_QUOTE_MS));
+    const triggered = await triggerProtectiveOrders(uid, attempt, openTrades, freshProtectiveQuotes, now);
     let liveAccount = account;
     if (triggered.closedAny) {
         trades = await store.listTrades(uid, attemptId);
@@ -888,8 +962,31 @@ export async function getAttemptState(uid: string, attemptId: string): Promise<A
         liveAccount = (await store.getAccount(uid, attemptId)) ?? account;
     }
 
-    // 2. Mark-to-market with fresh quotes.
-    const { account: marked, marks, quoteAt, quotes } = await markAccountToMarket(uid, attempt, liveAccount, openTrades, now);
+    // 2. Mark-to-market. If an open instrument has no fresh server quote,
+    // pause entries and management until the feed recovers; never present a
+    // stale mark as current or settle a challenge against missing data.
+    let { account: marked, marks, quoteAt, quotes } = await markAccountToMarket(uid, attempt, liveAccount, openTrades, now);
+    const staleSymbols = openTrades.filter((trade) => {
+        const quote = quotes.get(trade.symbol);
+        return !quote || quote.timestamp > now + 5_000 || now - quote.timestamp > FRESH_QUOTE_MS;
+    }).map((trade) => trade.symbol);
+    if (staleSymbols.length > 0 && attempt.status === "ACTIVE") {
+        await pauseForStaleData(uid, attempt, now, staleSymbols.join(", "));
+        attempt = { ...attempt, status: "PAUSED", pausedAt: now, settleBlockedReason: "STALE_MARKET_DATA" };
+    }
+    const pendingOrders = await store.listPendingOrders(uid, attemptId);
+    const filledPendingOrder = await processPendingOrders(uid, attempt, pendingOrders, quotes, now);
+    if (filledPendingOrder) {
+        attempt = (await store.getAttempt(uid, attemptId)) ?? attempt;
+        trades = await store.listTrades(uid, attemptId);
+        openTrades = trades.filter((trade) => trade.status === "open");
+        liveAccount = (await store.getAccount(uid, attemptId)) ?? marked;
+        const refreshed = await markAccountToMarket(uid, attempt, liveAccount, openTrades, now);
+        marked = refreshed.account;
+        marks = refreshed.marks;
+        quoteAt = refreshed.quoteAt;
+        quotes = refreshed.quotes;
+    }
     const metrics = buildMetrics({ attempt, account: marked, openTrades, closedTrades, marks, quoteAt, now, equityCurve });
 
     // Persist an equity point at most once a minute (curve for report/DD).
@@ -1000,6 +1097,7 @@ export async function getAttemptState(uid: string, attemptId: string): Promise<A
             productRuleReason: "Profit target not yet reached.",
         }),
         quoteProvider: provider,
+        pendingOrders: await store.listPendingOrders(uid, attemptId),
         updatedAt: now,
     };
 }
@@ -1012,6 +1110,8 @@ export interface PlaceOrderInput {
     sizeLots: number;
     stopLoss?: number | null;
     takeProfit?: number | null;
+    entryPrice?: number | null;
+    orderType?: "market" | "limit" | "stop";
     clientRequestId?: string;
 }
 
@@ -1027,13 +1127,21 @@ export async function placeOrder(uid: string, attemptId: string, input: PlaceOrd
 
     const attempt = await store.getAttempt(uid, attemptId);
     if (!attempt) throw new ArenaError(404, "ATTEMPT_NOT_FOUND", "Challenge attempt not found.");
+    if (attempt.status !== "ACTIVE") throw new ArenaError(409, "NOT_ACTIVE", `Challenge is ${attempt.status} — new orders require an active attempt.`);
 
     // Idempotent replay of a submitted order.
+    const orderType = input.orderType ?? "market";
     if (input.clientRequestId) {
-        const existing = await store.findTradeByClientRequestId(uid, attemptId, input.clientRequestId);
-        if (existing) {
-            return { trade: existing, duplicate: true, state: await getAttemptState(uid, attemptId) };
+        const existingTrade = await store.findTradeByClientRequestId(uid, attemptId, input.clientRequestId);
+        if (existingTrade) return { trade: existingTrade, duplicate: true, state: await getAttemptState(uid, attemptId) };
+        const existingPending = await store.findPendingOrderByClientRequestId(uid, attemptId, input.clientRequestId);
+        if (existingPending) return { trade: null, duplicate: true, state: await getAttemptState(uid, attemptId) };
+    }
+    if (orderType !== "market") {
+        if (input.entryPrice == null || !Number.isFinite(input.entryPrice) || input.entryPrice <= 0) {
+            throw new ArenaError(400, "INVALID_ENTRY", "Limit and stop orders require a positive entry price.");
         }
+        return createPendingOrder(uid, attemptId, input, orderType, now);
     }
 
     const account = await store.getAccount(uid, attemptId);
@@ -1046,22 +1154,40 @@ export async function placeOrder(uid: string, attemptId: string, input: PlaceOrd
     const { account: marked, marks, quoteAt } = await markAccountToMarket(uid, attempt, account, openTrades, now);
     const metrics = buildMetrics({ attempt, account: marked, openTrades, closedTrades, marks, quoteAt, now, equityCurve: [] });
 
-    const spec = arenaSymbolSpec(input.symbol);
-    if (!spec) throw new ArenaError(400, "UNKNOWN_SYMBOL", `Unsupported symbol: ${input.symbol}`);
+    const normalizedSymbol = normalizeArenaSymbol(input.symbol);
+    const spec = arenaSymbolSpec(normalizedSymbol);
+    if (!spec || !MARKET_DATA_SYMBOLS.has(spec.symbol)) {
+        throw new ArenaError(400, "UNKNOWN_SYMBOL", `No configured market-data and execution instrument is available for ${input.symbol}.`);
+    }
+    if (!attempt.policy.allowedMarkets.includes(spec.market) || (attempt.policy.allowedSymbols !== "all" && !attempt.policy.allowedSymbols.some((allowed) => normalizeArenaSymbol(allowed) === spec.symbol))) {
+        throw new ArenaError(422, "RULE_VIOLATION", `${spec.symbol} is not included in this challenge's allowed markets/symbols.`);
+    }
 
     const centiLots = Math.round(input.sizeLots * 100);
-    if (!Number.isFinite(input.sizeLots) || centiLots <= 0) {
+    if (!Number.isFinite(input.sizeLots) || !Number.isSafeInteger(centiLots) || centiLots <= 0) {
         throw new ArenaError(400, "INVALID_SIZE", "Position size must be a positive number of lots.");
+    }
+    const maxSize = Math.min(attempt.policy.positionSizePolicy.maxSizeLots, spec.maxLot);
+    const minSize = Math.max(spec.minLot, attempt.policy.positionSizePolicy.stepLots);
+    if (input.sizeLots < minSize || input.sizeLots > maxSize || Math.abs(input.sizeLots * 100 - centiLots) > 1e-7 || Math.abs(input.sizeLots / attempt.policy.positionSizePolicy.stepLots - Math.round(input.sizeLots / attempt.policy.positionSizePolicy.stepLots)) > 1e-7) {
+        throw new ArenaError(400, "INVALID_SIZE", `Size must be at least ${minSize} lots in ${attempt.policy.positionSizePolicy.stepLots}-lot increments and no greater than ${maxSize} lots for ${spec.symbol}.`);
     }
 
     const quote = await resolveQuote(spec.symbol);
-    if (!quote || now - quote.timestamp > FRESH_QUOTE_MS) {
+    if (!quote || quote.timestamp > now + 5_000 || now - quote.timestamp > FRESH_QUOTE_MS) {
         // Fail-closed: never fill against missing/stale prices.
+        if (openTrades.length > 0) await pauseForStaleData(uid, attempt, now, spec.symbol);
         throw new ArenaError(503, "MARKET_DATA_UNAVAILABLE", "Live market data is unavailable — order rejected (fail-closed).");
     }
 
     const stopLossMicros = input.stopLoss != null ? toPriceMicros(input.stopLoss) : null;
     const takeProfitMicros = input.takeProfit != null ? toPriceMicros(input.takeProfit) : null;
+    if (input.stopLoss != null && (!Number.isFinite(input.stopLoss) || input.stopLoss <= 0)) {
+        throw new ArenaError(400, "INVALID_STOP", "Stop-loss must be a positive finite price.");
+    }
+    if (input.takeProfit != null && (!Number.isFinite(input.takeProfit) || input.takeProfit <= 0)) {
+        throw new ArenaError(400, "INVALID_TP", "Take-profit must be a positive finite price.");
+    }
     if (stopLossMicros !== null) {
         const wrongSide = input.side === "long" ? stopLossMicros >= quotePriceMicros(quote.price) : stopLossMicros <= quotePriceMicros(quote.price);
         if (wrongSide) throw new ArenaError(400, "INVALID_STOP", "Stop-loss is on the wrong side of the current price.");
@@ -1088,7 +1214,7 @@ export async function placeOrder(uid: string, attemptId: string, input: PlaceOrd
         openPositions: openTrades.length,
         quotePrice: quote.price,
         session: session === "closed" ? null : session,
-        marketOpen: isMarketOpen(new Date(now)),
+        marketOpen: spec.market === "crypto" ? true : isMarketOpen(new Date(now)),
         nextEventId: () => nextEventId("rule"),
     });
 
@@ -1121,7 +1247,7 @@ export async function placeOrder(uid: string, attemptId: string, input: PlaceOrd
     }
 
     const trade: ChallengeTrade = {
-        tradeId: store.newArenaId("trd"),
+        tradeId: input.clientRequestId ? store.rtdbKey(`trade_${input.clientRequestId}`) : store.newArenaId("trd"),
         attemptId,
         userId: uid,
         symbol: spec.symbol,
@@ -1142,8 +1268,10 @@ export async function placeOrder(uid: string, attemptId: string, input: PlaceOrd
         exitReason: null,
         realizedPnLCents: null,
         clientRequestId: input.clientRequestId ?? null,
+        updatedAt: now,
     };
-    await store.saveTrade(trade);
+    const savedTrade = await store.createTradeIfAbsent(trade);
+    if (!savedTrade.created) return { trade: savedTrade.trade, duplicate: true, state: await getAttemptState(uid, attemptId) };
 
     // Trading-day / daily-trade accounting.
     const dayKey = dayKeyOf(now);
@@ -1210,8 +1338,208 @@ export async function placeOrder(uid: string, attemptId: string, input: PlaceOrd
     return { trade, duplicate: false, state: await getAttemptState(uid, attemptId) };
 }
 
+async function createPendingOrder(uid: string, attemptId: string, input: PlaceOrderInput, orderType: "limit" | "stop", now: number): Promise<PlaceOrderResult> {
+    const attempt = await store.getAttempt(uid, attemptId);
+    if (!attempt || attempt.status !== "ACTIVE") throw new ArenaError(409, "NOT_ACTIVE", `Challenge is ${attempt?.status ?? "missing"} — pending orders require an active attempt.`);
+    const symbol = normalizeArenaSymbol(input.symbol);
+    const spec = arenaSymbolSpec(symbol);
+    if (!spec || !MARKET_DATA_SYMBOLS.has(spec.symbol)) throw new ArenaError(400, "UNKNOWN_SYMBOL", `No configured market-data and execution instrument is available for ${input.symbol}.`);
+    if (!attempt.policy.allowedMarkets.includes(spec.market) || (attempt.policy.allowedSymbols !== "all" && !attempt.policy.allowedSymbols.some((allowed) => normalizeArenaSymbol(allowed) === spec.symbol))) {
+        throw new ArenaError(422, "RULE_VIOLATION", `${spec.symbol} is not included in this challenge's allowed markets/symbols.`);
+    }
+    const lots = input.sizeLots;
+    const centiLots = Math.round(lots * 100);
+    const minLots = Math.max(spec.minLot, attempt.policy.positionSizePolicy.stepLots);
+    const maxLots = Math.min(attempt.policy.positionSizePolicy.maxSizeLots, spec.maxLot);
+    if (!Number.isFinite(lots) || lots < minLots || lots > maxLots || !Number.isSafeInteger(centiLots) || Math.abs(lots * 100 - centiLots) > 1e-7 || Math.abs(lots / attempt.policy.positionSizePolicy.stepLots - Math.round(lots / attempt.policy.positionSizePolicy.stepLots)) > 1e-7) {
+        throw new ArenaError(400, "INVALID_SIZE", `Size must be at least ${minLots} lots in ${attempt.policy.positionSizePolicy.stepLots}-lot increments and no greater than ${maxLots} lots for ${spec.symbol}.`);
+    }
+    if (input.stopLoss != null && (!Number.isFinite(input.stopLoss) || input.stopLoss <= 0)) throw new ArenaError(400, "INVALID_STOP", "Stop-loss must be a positive finite price.");
+    if (input.takeProfit != null && (!Number.isFinite(input.takeProfit) || input.takeProfit <= 0)) throw new ArenaError(400, "INVALID_TP", "Take-profit must be a positive finite price.");
+    const quote = await resolveQuote(spec.symbol);
+    if (!quote || quote.timestamp > now + 5_000 || now - quote.timestamp > FRESH_QUOTE_MS) throw new ArenaError(503, "MARKET_DATA_UNAVAILABLE", "Current market data is unavailable; pending order placement requires a fresh quote.");
+    const entryPriceMicros = toPriceMicros(input.entryPrice!);
+    const currentPriceMicros = toPriceMicros(quote.price);
+    const validGeometry = orderType === "limit"
+        ? input.side === "long" ? entryPriceMicros < currentPriceMicros : entryPriceMicros > currentPriceMicros
+        : input.side === "long" ? entryPriceMicros > currentPriceMicros : entryPriceMicros < currentPriceMicros;
+    if (!validGeometry) throw new ArenaError(400, "INVALID_ENTRY", `${orderType} entry price is on the wrong side of the current market.`);
+    const stopLossMicros = input.stopLoss == null ? null : toPriceMicros(input.stopLoss);
+    const takeProfitMicros = input.takeProfit == null ? null : toPriceMicros(input.takeProfit);
+    const reference = computeFill({ side: input.side, sizeCentiLots: centiLots, quotePrice: input.entryPrice!, spec, policy: attempt.policy });
+    const riskCents = reference.riskCents(stopLossMicros);
+    if (stopLossMicros !== null && (input.side === "long" ? stopLossMicros >= entryPriceMicros : stopLossMicros <= entryPriceMicros)) throw new ArenaError(400, "INVALID_STOP", "Stop-loss is on the wrong side of the pending entry.");
+    if (takeProfitMicros !== null && (input.side === "long" ? takeProfitMicros <= entryPriceMicros : takeProfitMicros >= entryPriceMicros)) throw new ArenaError(400, "INVALID_TP", "Take-profit is on the wrong side of the pending entry.");
+    const account = await store.getAccount(uid, attemptId);
+    if (!account) throw new ArenaError(500, "ACCOUNT_MISSING", "Virtual account missing.");
+    const trades = await store.listTrades(uid, attemptId);
+    const openTrades = trades.filter((trade) => trade.status === "open");
+    const { account: marked, marks, quoteAt } = await markAccountToMarket(uid, attempt, account, openTrades, now);
+    const metrics = buildMetrics({ attempt, account: marked, openTrades, closedTrades: trades.filter((trade) => trade.status === "closed"), marks, quoteAt, now, equityCurve: [] });
+    const session = getCurrentSession(new Date(now)).current;
+    const preTrade = evaluatePreTrade({
+        attempt, policy: attempt.policy, metrics, now, symbol: spec.symbol, sizeCentiLots: centiLots,
+        stopLossMicros, notionalCents: reference.notionalCents, riskCents, openPositions: openTrades.length,
+        quotePrice: input.entryPrice!, session: session === "closed" ? null : session,
+        marketOpen: spec.market === "crypto" ? true : isMarketOpen(new Date(now)), nextEventId: () => nextEventId("rule"),
+    });
+    if (!preTrade.ok) {
+        await persistEvent(uid, {
+            eventId: nextEventId("evt"), attemptId, type: "ORDER_REJECTED", severity: "warning",
+            message: `Pending order rejected: ${preTrade.violations.map((event) => event.message).join(" ")}`,
+            payload: { symbol: spec.symbol, side: input.side, sizeLots: lots, violations: preTrade.violations.map((event) => event.ruleId) }, timestamp: now,
+        });
+        await persistRuleEvents(uid, attemptId, preTrade.violations, now);
+        throw new ArenaError(422, "RULE_VIOLATION", preTrade.violations.map((event) => event.message).join(" "), preTrade.violations);
+    }
+    if (preTrade.advisories.length > 0) await persistRuleEvents(uid, attemptId, preTrade.advisories, now);
+    const pendingOrder: ChallengePendingOrder = {
+        orderId: store.newArenaId("ord"), attemptId, userId: uid, symbol: spec.symbol, market: spec.market, side: input.side,
+        orderType, sizeCentiLots: centiLots, entryPriceMicros, stopLossMicros, takeProfitMicros, createdAt: now,
+        expiresAt: Math.min(now + 7 * 24 * 60 * 60 * 1000, attempt.expiresAt), status: "pending",
+        clientRequestId: input.clientRequestId ?? null, filledTradeId: null,
+    };
+    await store.savePendingOrder(pendingOrder);
+    await persistEvent(uid, {
+        eventId: nextEventId("evt"), attemptId, type: "PENDING_ORDER_PLACED", severity: "info",
+        message: `${spec.symbol} ${input.side} ${orderType} simulated order placed at ${input.entryPrice}.`,
+        payload: { orderId: pendingOrder.orderId, symbol: spec.symbol, side: input.side, orderType, entryPriceMicros }, timestamp: now,
+    });
+    return { trade: null, duplicate: false, state: await getAttemptState(uid, attemptId) };
+}
+
+async function processPendingOrders(uid: string, attempt: ChallengeAttempt, orders: ChallengePendingOrder[], quotes: Map<string, ArenaQuote>, now: number): Promise<boolean> {
+    if (attempt.status !== "ACTIVE") return false;
+    let filledAny = false;
+    for (const order of orders) {
+        if (order.status !== "pending" && order.status !== "processing") continue;
+        const claim = await store.claimPendingOrder(uid, attempt.id, order.orderId, now);
+        if (!claim) continue;
+        if (claim.status === "expired") {
+            await persistEvent(uid, { eventId: `evt_pending_expire_${store.rtdbKey(order.orderId)}`, attemptId: attempt.id, type: "PENDING_ORDER_CANCELLED", severity: "info", message: `${order.symbol} pending order expired.`, payload: { orderId: order.orderId }, timestamp: now });
+            continue;
+        }
+        try {
+            if (claim.filledTrade) {
+                const committed = await store.commitPendingFill({ uid, attemptId: attempt.id, order: claim, trade: claim.filledTrade, now });
+                filledAny ||= committed;
+                if (committed) break;
+                continue;
+            }
+            const quote = quotes.get(claim.symbol) ?? await resolveQuote(claim.symbol);
+            if (!quote || quote.timestamp > now + 5_000 || now - quote.timestamp > FRESH_QUOTE_MS) {
+                await store.releasePendingOrderClaim(uid, attempt.id, claim.orderId, claim.processingAt ?? now);
+                continue;
+            }
+            const orderPrice = claim.entryPriceMicros / 1_000_000;
+            const marketPrice = quote.price;
+            const triggered = claim.orderType === "limit"
+                ? claim.side === "long" ? marketPrice <= orderPrice : marketPrice >= orderPrice
+                : claim.side === "long" ? marketPrice >= orderPrice : marketPrice <= orderPrice;
+            if (!triggered) {
+                await store.releasePendingOrderClaim(uid, attempt.id, claim.orderId, claim.processingAt ?? now);
+                continue;
+            }
+            const trades = await store.listTrades(uid, attempt.id);
+            const account = await store.getAccount(uid, attempt.id);
+            if (!account) throw new ArenaError(500, "ACCOUNT_MISSING", "Virtual account missing.");
+            const openTrades = trades.filter((trade) => trade.status === "open");
+            const closedTrades = trades.filter((trade) => trade.status === "closed");
+            const { account: marked, marks, quoteAt } = await markAccountToMarket(uid, attempt, account, openTrades, now);
+            const metrics = buildMetrics({ attempt, account: marked, openTrades, closedTrades, marks, quoteAt, now, equityCurve: [] });
+            const spec = arenaSymbolSpec(claim.symbol)!;
+            const fill = computeFill({ side: claim.side, sizeCentiLots: claim.sizeCentiLots, quotePrice: marketPrice, spec, policy: attempt.policy });
+            const riskCents = fill.riskCents(claim.stopLossMicros);
+            const candidateTradeId = claim.filledTradeId ?? store.rtdbKey(`pending-fill_${claim.orderId}`);
+            const candidateTrade: ChallengeTrade = {
+                tradeId: candidateTradeId, attemptId: attempt.id, userId: uid, symbol: claim.symbol, market: claim.market, side: claim.side,
+                sizeCentiLots: claim.sizeCentiLots, entryPriceMicros: fill.entryPriceMicros, entryAt: now,
+                entryQuoteAt: quote.timestamp, costs: fill.costs, stopLossMicros: claim.stopLossMicros,
+                takeProfitMicros: claim.takeProfitMicros, riskCents, status: "open", closedAt: null, exitPriceMicros: null,
+                exitQuoteAt: null, exitReason: null, realizedPnLCents: null, clientRequestId: claim.clientRequestId, updatedAt: now,
+            };
+            const stopsFitFill =
+                (claim.stopLossMicros === null || (claim.side === "long" ? claim.stopLossMicros < fill.entryPriceMicros : claim.stopLossMicros > fill.entryPriceMicros)) &&
+                (claim.takeProfitMicros === null || (claim.side === "long" ? claim.takeProfitMicros > fill.entryPriceMicros : claim.takeProfitMicros < fill.entryPriceMicros));
+            const session = getCurrentSession(new Date(now)).current;
+            const preTrade = evaluatePreTrade({
+                attempt, policy: attempt.policy, metrics, now, symbol: claim.symbol, sizeCentiLots: claim.sizeCentiLots,
+                stopLossMicros: claim.stopLossMicros, notionalCents: fill.notionalCents, riskCents,
+                openPositions: openTrades.length, quotePrice: marketPrice, session: session === "closed" ? null : session,
+                marketOpen: spec.market === "crypto" ? true : isMarketOpen(new Date(now)), nextEventId: () => nextEventId("rule"),
+            });
+            if (preTrade.advisories.length > 0) await persistRuleEvents(uid, attempt.id, preTrade.advisories, now);
+            if (!preTrade.ok || !stopsFitFill) {
+                const reasons = preTrade.violations.map((event) => event.message);
+                if (!stopsFitFill) reasons.push("The market gapped through the pending fill so its stop/target would be invalid.");
+                await store.savePendingOrder({ ...claim, status: "cancelled" });
+                await persistEvent(uid, {
+                    eventId: `evt_pending_reject_${store.rtdbKey(claim.orderId)}`, attemptId: attempt.id, type: "ORDER_REJECTED", severity: "warning",
+                    message: `Triggered pending order cancelled: ${reasons.join(" ")}`,
+                    payload: { orderId: claim.orderId, violations: preTrade.violations.map((event) => event.ruleId), stopsFitFill }, timestamp: now,
+                });
+                continue;
+            }
+            const trade = candidateTrade;
+            const tradeId = trade.tradeId;
+            const committed = await store.commitPendingFill({ uid, attemptId: attempt.id, order: claim, trade, now });
+            if (!committed) continue;
+            filledAny = true;
+            await persistEvent(uid, { eventId: `evt_pending_fill_${store.rtdbKey(claim.orderId)}`, attemptId: attempt.id, type: "TRADE_OPENED", severity: "info", message: `${claim.symbol} ${claim.side} ${claim.orderType} filled at ${marketPrice} (virtual).`, payload: { tradeId, orderId: claim.orderId, entryPriceMicros: fill.entryPriceMicros, costs: fill.costs }, timestamp: now });
+            void metrics;
+            break;
+        } catch (error) {
+            if (!claim.filledTrade) await store.releasePendingOrderClaim(uid, attempt.id, claim.orderId, claim.processingAt ?? now);
+            throw error;
+        }
+    }
+    return filledAny;
+}
+
 function quotePriceMicros(price: number): number {
     return toPriceMicros(price);
+}
+
+export async function modifyPositionStops(
+    uid: string,
+    attemptId: string,
+    tradeId: string,
+    changes: { stopLoss?: number | null; takeProfit?: number | null }
+): Promise<AttemptState> {
+    const now = Date.now();
+    const attempt = await store.getAttempt(uid, attemptId);
+    if (!attempt || attempt.status !== "ACTIVE") throw new ArenaError(409, "NOT_ACTIVE", "Stops can only be modified on an active challenge.");
+    const trade = await store.getTrade(uid, attemptId, tradeId);
+    if (!trade || trade.status !== "open") throw new ArenaError(404, "TRADE_NOT_FOUND", "Open position not found.");
+    const quote = await resolveQuote(trade.symbol);
+    if (!quote || quote.timestamp > now + 5_000 || now - quote.timestamp > FRESH_QUOTE_MS) {
+        await pauseForStaleData(uid, attempt, now, trade.symbol);
+        throw new ArenaError(503, "MARKET_DATA_UNAVAILABLE", "Current quote unavailable; stops were not modified and trading is paused.");
+    }
+    const current = toPriceMicros(quote.price);
+    const stopLossMicros = changes.stopLoss === undefined ? trade.stopLossMicros : changes.stopLoss === null ? null : toPriceMicros(changes.stopLoss);
+    const takeProfitMicros = changes.takeProfit === undefined ? trade.takeProfitMicros : changes.takeProfit === null ? null : toPriceMicros(changes.takeProfit);
+    if (changes.stopLoss !== undefined && changes.stopLoss !== null && (!Number.isFinite(changes.stopLoss) || changes.stopLoss <= 0)) throw new ArenaError(400, "INVALID_STOP", "Stop-loss must be a positive finite price.");
+    if (changes.takeProfit !== undefined && changes.takeProfit !== null && (!Number.isFinite(changes.takeProfit) || changes.takeProfit <= 0)) throw new ArenaError(400, "INVALID_TP", "Take-profit must be a positive finite price.");
+    if (stopLossMicros !== null && (trade.side === "long" ? stopLossMicros >= current : stopLossMicros <= current)) throw new ArenaError(400, "INVALID_STOP", "Stop-loss must remain beyond the current quote on the loss side.");
+    if (takeProfitMicros !== null && (trade.side === "long" ? takeProfitMicros <= current : takeProfitMicros >= current)) throw new ArenaError(400, "INVALID_TP", "Take-profit must remain beyond the current quote on the profit side.");
+    const spec = arenaSymbolSpec(trade.symbol);
+    if (!spec) throw new ArenaError(400, "UNKNOWN_SYMBOL", "Execution specification unavailable for this instrument.");
+    const riskCents = plannedRiskCents({ side: trade.side, entryPriceMicros: trade.entryPriceMicros, stopLossMicros, sizeCentiLots: trade.sizeCentiLots, contractSize: spec.contractSize, costCents: trade.costs.spreadCostCents + trade.costs.slippageCostCents + trade.costs.commissionCents });
+    const modified = await store.modifyTradeStops(uid, attemptId, tradeId, stopLossMicros, takeProfitMicros, riskCents, now);
+    if (!modified) throw new ArenaError(409, "POSITION_CHANGED", "Position was closed or changed concurrently; reload and retry.");
+    await persistEvent(uid, { eventId: nextEventId("evt"), attemptId, type: "POSITION_MODIFIED", severity: "info", message: `${trade.symbol} stops updated.`, payload: { tradeId, stopLossMicros, takeProfitMicros, riskCents }, timestamp: now });
+    return getAttemptState(uid, attemptId);
+}
+
+export async function cancelPendingOrder(uid: string, attemptId: string, orderId: string): Promise<AttemptState> {
+    const now = Date.now();
+    const attempt = await store.getAttempt(uid, attemptId);
+    if (!attempt || (attempt.status !== "ACTIVE" && attempt.status !== "PAUSED")) throw new ArenaError(409, "NOT_ACTIVE", "Pending orders can only be cancelled on a non-terminal challenge.");
+    const cancelled = await store.cancelPendingOrderIfPending(uid, attemptId, orderId, now);
+    if (!cancelled) throw new ArenaError(409, "ORDER_NOT_PENDING", "Order is no longer pending.");
+    await persistEvent(uid, { eventId: `evt_pending_cancel_${store.rtdbKey(orderId)}`, attemptId, type: "PENDING_ORDER_CANCELLED", severity: "info", message: `${cancelled.symbol} pending entry cancelled.`, payload: { orderId }, timestamp: now });
+    return getAttemptState(uid, attemptId);
 }
 
 export async function closePosition(uid: string, attemptId: string, tradeId: string, clientRequestId?: string): Promise<AttemptState> {
@@ -1220,6 +1548,16 @@ export async function closePosition(uid: string, attemptId: string, tradeId: str
     if (!attempt) throw new ArenaError(404, "ATTEMPT_NOT_FOUND", "Challenge attempt not found.");
     if (attempt.status !== "ACTIVE" && attempt.status !== "PAUSED") {
         throw new ArenaError(409, "NOT_ACTIVE", `Challenge is ${attempt.status} — positions are managed by settlement.`);
+    }
+    if (attempt.status === "PAUSED" && attempt.settleBlockedReason === "STALE_MARKET_DATA") {
+        const open = (await store.listTrades(uid, attemptId)).filter((item) => item.status === "open");
+        const quotes = await resolveQuotes(open.map((item) => item.symbol));
+        if (open.some((item) => {
+            const current = quotes.get(item.symbol);
+            return !current || current.timestamp > now + 5_000 || now - current.timestamp > FRESH_QUOTE_MS;
+        })) {
+            throw new ArenaError(503, "MARKET_DATA_UNAVAILABLE", "Market data is stale — position changes are paused until current quotes return.");
+        }
     }
 
     const trade = await store.getTrade(uid, attemptId, tradeId);
@@ -1231,8 +1569,9 @@ export async function closePosition(uid: string, attemptId: string, tradeId: str
     }
 
     const quote = await resolveQuote(trade.symbol);
-    if (!quote || now - quote.timestamp > FRESH_QUOTE_MS) {
-        throw new ArenaError(503, "MARKET_DATA_UNAVAILABLE", "Live market data is unavailable — close rejected (fail-closed).");
+    if (!quote || quote.timestamp > now + 5_000 || now - quote.timestamp > FRESH_QUOTE_MS) {
+        await pauseForStaleData(uid, attempt, now, trade.symbol);
+        throw new ArenaError(503, "MARKET_DATA_UNAVAILABLE", "Live market data is unavailable — position paused and close rejected (fail-closed).");
     }
 
     const spec = arenaSymbolSpec(trade.symbol);

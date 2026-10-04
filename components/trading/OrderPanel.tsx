@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,11 +31,19 @@ function formatCurrency(value: number): string {
 export default function OrderPanel({
   account,
   onOrderPlaced,
+  symbol: initialSymbol,
 }: {
   account: TradingAccount | null;
   onOrderPlaced: (clientOrderId: string) => void;
+  symbol?: string;
 }) {
-  const [symbol, setSymbol] = useState("XAUUSD");
+  const [symbol, setSymbol] = useState(initialSymbol || "XAUUSD");
+
+  useEffect(() => {
+    if (initialSymbol) {
+      setSymbol(initialSymbol.replace(/^(FX|CRYPTO|INDICES|FOREX):/, ""));
+    }
+  }, [initialSymbol]);
   const [side, setSide] = useState<OrderSide>("BUY");
   const [volume, setVolume] = useState("0.01");
   const [orderType, setOrderType] = useState<OrderType>("market");

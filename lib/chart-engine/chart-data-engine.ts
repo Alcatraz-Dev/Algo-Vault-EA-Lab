@@ -109,6 +109,8 @@ export class ChartDataEngine {
     private candles: ChartCandle[] = [];
     private snapshot: readonly ChartCandle[] = Object.freeze([]);
     private status: ChartEngineStatus;
+    /** Stable immutable status identity for useSyncExternalStore consumers. */
+    private statusSnapshot: ChartEngineStatus;
     private destroyed = false;
     private generation = 0;
 
@@ -147,6 +149,7 @@ export class ChartDataEngine {
             rowsRejected: 0,
             reconnects: 0,
         };
+        this.statusSnapshot = Object.freeze({ ...this.status });
         this.seriesKey = `${this.symbol}|${this.timeframe}`;
     }
 
@@ -163,7 +166,7 @@ export class ChartDataEngine {
     }
 
     getStatus(): ChartEngineStatus {
-        return { ...this.status };
+        return this.statusSnapshot;
     }
 
     get symbolName(): string {
@@ -482,6 +485,14 @@ export class ChartDataEngine {
         if (!isChronological(next)) next = enforceChronology(next);
         this.candles = next;
         this.snapshot = Object.freeze(next.slice());
+        // The public store snapshot is shared by useSyncExternalStore; swap it
+        // whenever canonical candles change, before notifying subscribers.
+        this.statusSnapshot = Object.freeze({
+            ...this.status,
+            candlesLoaded: next.length,
+            oldestLoadedTimestamp: next[0]?.timestamp ?? null,
+        });
+        this.status = { ...this.status, candlesLoaded: next.length, oldestLoadedTimestamp: next[0]?.timestamp ?? null };
         for (const listener of Array.from(this.listeners)) {
             try {
                 listener({ type: "candles", candles: this.snapshot, reason });
@@ -494,7 +505,8 @@ export class ChartDataEngine {
     private setStatus(patch: Partial<ChartEngineStatus> | ((s: ChartEngineStatus) => Partial<ChartEngineStatus>)): void {
         const resolved = typeof patch === "function" ? patch(this.status) : patch;
         this.status = { ...this.status, ...resolved };
-        const event: EngineEvent = { type: "status", status: this.getStatus() };
+        this.statusSnapshot = Object.freeze({ ...this.status });
+        const event: EngineEvent = { type: "status", status: this.statusSnapshot };
         for (const listener of Array.from(this.listeners)) {
             try {
                 listener(event);

@@ -80,6 +80,14 @@ export interface GatewayAccount {
   balance: number;
   equity: number;
   currency: string;
+  /** Margin fields as reported by the gateway heartbeat (0 = not reported). */
+  margin?: number;
+  freeMargin?: number;
+  marginLevel?: number;
+  positionsCount?: number;
+  pendingOrdersCount?: number;
+  status?: string;
+  lastHeartbeatAt?: number;
 }
 
 export interface OrderTicket {

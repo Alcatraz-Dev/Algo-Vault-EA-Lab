@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { ChartDataEngine, type ChartEngineStatus } from "./chart-data-engine";
-import { createApiDataSources, quoteToTick } from "./data-sources";
+import { createAdaptiveApiDataSources, quoteToTick } from "./data-sources";
 import type { ChartCandle } from "./candle";
 import type { ChartTimeframe } from "./timeframe";
 
@@ -28,6 +28,22 @@ type PoolEntry = {
 };
 const enginePool = new Map<string, PoolEntry>();
 let deepHistoryFlag: boolean | null = null;
+const EMPTY_CANDLES: readonly ChartCandle[] = Object.freeze([]);
+const EMPTY_STATUS: ChartEngineStatus = Object.freeze({
+    connection: "idle",
+    quality: "pristine",
+    error: null,
+    lastTickAt: 0,
+    lastHistoryLoadAt: 0,
+    candlesLoaded: 0,
+    oldestLoadedTimestamp: null,
+    hasMoreHistory: false,
+    loadingOlder: false,
+    gapsDetected: 0,
+    duplicatesDropped: 0,
+    rowsRejected: 0,
+    reconnects: 0,
+});
 
 /** Called once (server probe) to decide whether paging beyond Biquote works. */
 export function setDeepHistoryAvailable(v: boolean): void {
@@ -38,11 +54,11 @@ function poolKey(symbol: string, timeframe: string): string {
     return `${symbol.toUpperCase()}|${timeframe.toUpperCase()}`;
 }
 
-function acquireEngine(symbol: string, timeframe: ChartTimeframe, pageSize: number): PoolEntry {
+function getEngineEntry(symbol: string, timeframe: ChartTimeframe, pageSize: number): PoolEntry {
     const key = poolKey(symbol, timeframe);
     let entry = enginePool.get(key);
     if (!entry) {
-        const engine = new ChartDataEngine(createApiDataSources(deepHistoryFlag ?? false), {
+        const engine = new ChartDataEngine(createAdaptiveApiDataSources(), {
             symbol,
             timeframe,
             pageSize,
@@ -50,20 +66,29 @@ function acquireEngine(symbol: string, timeframe: ChartTimeframe, pageSize: numb
         entry = { engine, refs: 0, pollTimer: null, pollBusy: false, lastTickAt: 0 };
         enginePool.set(key, entry);
     }
-    entry.refs += 1;
     return entry;
 }
 
-function releaseEngine(symbol: string, timeframe: string): void {
-    const key = poolKey(symbol, timeframe);
-    const entry = enginePool.get(key);
-    if (!entry) return;
-    entry.refs -= 1;
-    if (entry.refs <= 0) {
-        if (entry.pollTimer !== null) clearInterval(entry.pollTimer);
-        entry.engine.destroy();
-        enginePool.delete(key);
-    }
+function subscribeEngine(
+    entry: PoolEntry,
+    symbol: string,
+    timeframe: ChartTimeframe,
+    pollMs: number,
+    notify: () => void,
+): () => void {
+    const unsubscribe = entry.engine.subscribe(() => notify());
+    entry.refs += 1;
+    entry.engine.start();
+    ensurePoller(entry, symbol, timeframe, pollMs);
+    return () => {
+        unsubscribe();
+        entry.refs -= 1;
+        if (entry.refs <= 0) {
+            if (entry.pollTimer !== null) clearInterval(entry.pollTimer);
+            entry.engine.destroy();
+            enginePool.delete(poolKey(symbol, timeframe));
+        }
+    };
 }
 
 /** Ensure the shared quote poller is running for this engine's series. */
@@ -124,88 +149,33 @@ export function useChartEngine(
 
     const sym = symbol.toUpperCase();
     const entry = useMemo(
-        () => (enabled ? acquireEngine(sym, timeframe, pageSize) : null),
+        () => (enabled && typeof window !== "undefined" ? getEngineEntry(sym, timeframe, pageSize) : null),
         [enabled, sym, timeframe, pageSize],
     );
 
-    // Release on unmount / key change.
-    useEffect(() => {
-        if (!entry) return;
-        return () => {
-            releaseEngine(sym, timeframe);
-        };
-    }, [entry, sym, timeframe]);
-
-    // Start engine + poller while mounted.
-    useEffect(() => {
-        if (!entry) return;
-        entry.engine.start();
-        ensurePoller(entry, sym, timeframe, pollMs);
-    }, [entry, sym, timeframe, pollMs]);
-
-    // ── subscription with coalesced snapshots ───────────────────────────
-    const candlesCache = useRef<{ snap: readonly ChartCandle[]; version: number }>({ snap: Object.freeze([]), version: 0 });
-    const [, forceVersion] = useState(0);
-
-    useEffect(() => {
-        if (!entry) return;
-        let scheduled = false;
-        const bump = () => {
-            if (scheduled) return;
-            scheduled = true;
-            // Coalesce bursts of engine events into one React commit per frame.
-            requestAnimationFrame(() => {
-                scheduled = false;
-                forceVersion((v) => v + 1);
-            });
-        };
-        const unsub = entry.engine.subscribe(bump);
-        return unsub;
-    }, [entry]);
-
-    const getCandlesSnapshot = useCallback((): readonly ChartCandle[] => {
-        if (!entry) return Object.freeze([]);
-        const snap = entry.engine.getCandles();
-        if (snap !== candlesCache.current.snap) {
-            candlesCache.current = { snap, version: candlesCache.current.version + 1 };
-        }
-        return snap;
-    }, [entry]);
-
+    // ── external-store subscription ─────────────────────────────────────
+    // The engine refreshes its stable snapshot after every candle or status
+    // commit. One subscription therefore refreshes both data and status
+    // without ref reads during render or a second rAF-driven state path.
     const getStatusSnapshot = useCallback((): ChartEngineStatus => {
-        if (!entry) {
-            return {
-                connection: "idle",
-                quality: "pristine",
-                error: null,
-                lastTickAt: 0,
-                lastHistoryLoadAt: 0,
-                candlesLoaded: 0,
-                oldestLoadedTimestamp: null,
-                hasMoreHistory: false,
-                loadingOlder: false,
-                gapsDetected: 0,
-                duplicatesDropped: 0,
-                rowsRejected: 0,
-                reconnects: 0,
-            };
-        }
+        if (!entry) return EMPTY_STATUS;
         return entry.engine.getStatus();
     }, [entry]);
 
-    useSyncExternalStore(
-        (onStoreChange) => {
+    const subscribe = useCallback(
+        (onStoreChange: () => void) => {
             if (!entry) return () => {};
-            return entry.engine.subscribe(onStoreChange);
+            return subscribeEngine(entry, sym, timeframe, pollMs, onStoreChange);
         },
+        [entry, sym, timeframe, pollMs],
+    );
+    const status = useSyncExternalStore(
+        subscribe,
         getStatusSnapshot,
         getStatusSnapshot,
     );
-    // Version read ties the rAF-coalesced bump into the same render pass.
-    // (useSyncExternalStore covers status; the version re-read refreshes candles.)
-    void forceVersion;
 
-    const candles = entry ? getCandlesSnapshot() : Object.freeze([]);
+    const candles: readonly ChartCandle[] = entry ? entry.engine.getCandles() : EMPTY_CANDLES;
 
     const loadOlder = useCallback(async () => {
         if (!entry) return false;
@@ -220,15 +190,15 @@ export function useChartEngine(
     const currentPrice = candles.length > 0 ? candles[candles.length - 1].close : 0;
 
     const mode: UseChartEngineResult["mode"] =
-        !entry || (entry.engine.getStatus().connection === "loading" && candles.length === 0)
+        !entry || (status.connection === "loading" && candles.length === 0)
             ? "loading"
-            : entry.engine.getStatus().connection === "error"
+            : status.connection === "error"
                 ? "error"
-                : entry.engine.getStatus().connection === "reconnecting"
+                : status.connection === "reconnecting"
                     ? "reconnecting"
                     : "live";
 
-    return { candles, status: entry ? entry.engine.getStatus() : getStatusSnapshot(), mode, hasMoreHistory: entry ? entry.engine.getStatus().hasMoreHistory : false, loadOlder, resync, currentPrice };
+    return { candles, status, mode, hasMoreHistory: status.hasMoreHistory, loadOlder, resync, currentPrice };
 }
 
 /**
@@ -238,10 +208,7 @@ export function useChartEngine(
 export function useEngineDeepHistoryProbe(): boolean {
     const [deep, setDeep] = useState<boolean>(deepHistoryFlag ?? false);
     useEffect(() => {
-        if (deepHistoryFlag !== null) {
-            setDeep(deepHistoryFlag);
-            return;
-        }
+        if (deepHistoryFlag !== null) return;
         let cancelled = false;
         fetch("/api/chart-config", { cache: "no-store" })
             .then((r) => (r.ok ? r.json() : null))

@@ -28,6 +28,7 @@ import { calculateVWAP, getVWAPPosition } from "@/lib/analytics/vwap";
 import { analyzeVolatility, calculateATR } from "@/lib/analytics/volatility";
 import { analyzeVolume, detectVolumeSpike } from "@/lib/analytics/volume";
 import { detectRegime } from "@/lib/analytics/market-regime";
+import { enrichSignalWithIntelligence, signalIntelligenceEnabled } from "@/lib/intelligence/signal-bridge";
 import { getMultiTimeframeBias } from "@/lib/analytics/multi-timeframe";
 import { detectOrderBlocks, detectFairValueGaps } from "@/lib/analytics/zones";
 import { calculateMarketScore } from "@/lib/analytics/market-score";
@@ -1038,8 +1039,24 @@ export async function generateAISignalWithMarketTruth(
     }
 
     const now = Date.now();
+
+    // ── Unified Intelligence Fabric (additive, fail-open to deterministic) ──
+    // Runs AFTER all deterministic validation; can only ADD the `intelligence`
+    // block. It never modifies entry/SL/TP/direction and never blocks a
+    // deterministic signal by itself — risk remains enforced at execution.
+    let intelligenceEnrichment: Awaited<ReturnType<typeof enrichSignalWithIntelligence>> | null = null;
+    if (signalIntelligenceEnabled()) {
+        intelligenceEnrichment = await enrichSignalWithIntelligence({
+            snapshot,
+            direction,
+            confidence: candidate.confidence,
+            symbol,
+            timeframe: tf,
+            executionAdjacent: sourceType === "AI_GENERATED",
+        });
+    }
+
     const signal: Partial<AISignal> = {
-        id: `sig_${now}_${Math.random().toString(36).substring(2, 8)}`,
         symbol,
         direction,
         timeframe: tf,
@@ -1098,6 +1115,7 @@ export async function generateAISignalWithMarketTruth(
         generationPrice: candidate.entry,
         validationStatus: "VALIDATED",
         validationReason: "Passed all deterministic checks",
+        intelligence: intelligenceEnrichment?.intelligence,
         timeline: [
             {
                 id: `evt_${now}_CREATED`,

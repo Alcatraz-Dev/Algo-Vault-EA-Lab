@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { arenaAuth, arenaError, arenaJson, arenaOPTIONS } from "../../../_shared";
-import { placeOrder, closePosition, ArenaError } from "@/lib/performance-arena/service";
+import { placeOrder, closePosition, modifyPositionStops, cancelPendingOrder, ArenaError } from "@/lib/performance-arena/service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,6 +17,11 @@ interface OrderBody {
     sizeLots?: unknown;
     stopLoss?: unknown;
     takeProfit?: unknown;
+    entryPrice?: unknown;
+    orderType?: unknown;
+    stopLossProvided?: unknown;
+    takeProfitProvided?: unknown;
+    orderId?: unknown;
     tradeId?: unknown;
     clientRequestId?: unknown;
 }
@@ -50,16 +55,22 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             return arenaJson({ state });
         }
 
-        if (action !== "market" && action !== "limit" && action !== "stop") {
-            return arenaJson({ error: "action must be market | close.", code: "INVALID_BODY" }, 400);
+        if (action === "cancelPending") {
+            if (typeof body.orderId !== "string" || !body.orderId) return arenaJson({ error: "orderId is required.", code: "INVALID_BODY" }, 400);
+            const state = await cancelPendingOrder(auth.uid, attemptId, body.orderId);
+            return arenaJson({ state });
         }
-        if (action !== "market") {
-            // Pending limit/stop ENTRY orders are not part of v1 execution —
-            // rejected honestly rather than silently treated as market orders.
-            return arenaJson(
-                { error: "Pending entry orders are not supported in this challenge build — use a market order with stop/take-profit.", code: "UNSUPPORTED_ORDER_TYPE" },
-                400
-            );
+        if (action === "modifyStops") {
+            if (typeof body.tradeId !== "string" || !body.tradeId) return arenaJson({ error: "tradeId is required.", code: "INVALID_BODY" }, 400);
+            const stopLoss = body.stopLossProvided === true ? body.stopLoss === null ? null : typeof body.stopLoss === "number" ? body.stopLoss : undefined : undefined;
+            const takeProfit = body.takeProfitProvided === true ? body.takeProfit === null ? null : typeof body.takeProfit === "number" ? body.takeProfit : undefined : undefined;
+            if (body.stopLossProvided === true && stopLoss === undefined || body.takeProfitProvided === true && takeProfit === undefined) return arenaJson({ error: "Stop and target must be a number or null.", code: "INVALID_BODY" }, 400);
+            if (stopLoss === undefined && takeProfit === undefined) return arenaJson({ error: "stopLoss or takeProfit must be provided.", code: "INVALID_BODY" }, 400);
+            const state = await modifyPositionStops(auth.uid, attemptId, body.tradeId, { stopLoss, takeProfit });
+            return arenaJson({ state });
+        }
+        if (action !== "market" && action !== "limit" && action !== "stop") {
+            return arenaJson({ error: "action must be market | limit | stop | close | modifyStops | cancelPending.", code: "INVALID_BODY" }, 400);
         }
 
         if (typeof body.symbol !== "string" || !body.symbol) {
@@ -77,8 +88,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             symbol: body.symbol,
             side: body.side,
             sizeLots,
-            stopLoss: typeof body.stopLoss === "number" ? body.stopLoss : null,
-            takeProfit: typeof body.takeProfit === "number" ? body.takeProfit : null,
+            stopLoss: typeof body.stopLoss === "number" ? body.stopLoss : body.stopLoss === null ? null : undefined,
+            takeProfit: typeof body.takeProfit === "number" ? body.takeProfit : body.takeProfit === null ? null : undefined,
+            entryPrice: typeof body.entryPrice === "number" ? body.entryPrice : null,
+            orderType: action,
             clientRequestId: typeof body.clientRequestId === "string" ? body.clientRequestId : undefined,
         });
 

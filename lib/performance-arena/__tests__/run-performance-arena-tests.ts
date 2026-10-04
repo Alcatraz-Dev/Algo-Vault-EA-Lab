@@ -24,6 +24,7 @@ import { runFraudTests } from "./fraud.test";
 import { runFlagsCompatTests } from "./flags-compat.test";
 import { runEntitlementTests } from "./entitlement.test";
 import { runSecurityTests } from "./security.test";
+import { runBillingTests } from "./billing.test";
 
 async function main() {
     console.log("==================================================");
@@ -46,6 +47,7 @@ async function main() {
         ["flags-compatibility-profile", runFlagsCompatTests],
         ["entitlement-pro-gating", runEntitlementTests],
         ["security", runSecurityTests],
+        ["billing-verification", runBillingTests],
     ];
 
     for (const [name, run] of suites) {

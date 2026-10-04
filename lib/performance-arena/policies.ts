@@ -95,7 +95,7 @@ export function validateChallengePolicy(policy: ChallengePolicy): PolicyValidati
     return { valid: errors.length === 0, errors };
 }
 
-export function validateDefinition(def: Pick<ChallengeDefinition, "key" | "name" | "policy" | "access">): PolicyValidation {
+export function validateDefinition(def: Pick<ChallengeDefinition, "key" | "name" | "policy" | "access"> & Partial<Pick<ChallengeDefinition, "enabled" | "status">>): PolicyValidation {
     const errors: string[] = [];
     if (!/^[a-z0-9][a-z0-9-]{2,48}$/.test(def.key)) {
         errors.push("key must be 3–49 chars, lowercase alphanumeric/dash.");
@@ -108,8 +108,17 @@ export function validateDefinition(def: Pick<ChallengeDefinition, "key" | "name"
     if (!["free", "pro", "paid", "credits"].includes(def.access.model)) {
         errors.push("access.model must be free | pro | paid | credits.");
     }
-    if (def.access.model === "paid" && (!Number.isFinite(def.access.priceCents) || (def.access.priceCents ?? 0) <= 0)) {
-        errors.push("paid access requires a positive priceCents.");
+    if (def.access.model === "paid") {
+        const published = def.enabled === true || def.status === "AVAILABLE";
+        if (def.access.priceCents !== undefined && (!Number.isSafeInteger(def.access.priceCents) || def.access.priceCents <= 0)) {
+            errors.push("paid access priceCents, when configured, must be a positive integer.");
+        }
+        if (published && (def.access.priceCents === undefined || !Number.isSafeInteger(def.access.priceCents) || def.access.priceCents <= 0)) {
+            errors.push("publishing paid access requires a configured positive integer priceCents.");
+        }
+        if (def.access.currency !== undefined && !/^[a-z]{3}$/i.test(def.access.currency)) {
+            errors.push("paid access currency must be a 3-letter ISO currency code.");
+        }
     }
     if (def.access.model === "credits" && (!Number.isFinite(def.access.pricePoints) || (def.access.pricePoints ?? 0) <= 0)) {
         errors.push("credits access requires a positive pricePoints.");
@@ -130,7 +139,9 @@ function basePolicy(overrides: Partial<ChallengePolicy>): ChallengePolicy {
         minTradingDays: 5,
         maxTradingDays: 30,
         maxCalendarDays: 45,
-        allowedMarkets: ["forex", "metals", "indices"],
+        // Simulated practice supports every configured asset class by default.
+        // Custom admin policies may still restrict a challenge's markets.
+        allowedMarkets: ["forex", "metals", "indices", "crypto", "equities"],
         allowedSymbols: "all",
         allowedSessions: "all",
         tradingHours: "all",
@@ -183,8 +194,10 @@ export function defaultChallengeDefinitions(now: number): ChallengeDefinition[] 
         policy,
         access,
         rewardPolicyId: "arena-standard-rewards",
-        status: "AVAILABLE",
-        enabled: true,
+        // Paid products stay unpublished until an admin configures the fee.
+        // Checkout is also server-disabled by default until billing is verified.
+        status: access.model === "paid" ? "DRAFT" : "AVAILABLE",
+        enabled: access.model !== "paid",
         version: 1,
         createdAt: now,
         updatedAt: now,
@@ -226,7 +239,7 @@ export function defaultChallengeDefinitions(now: number): ChallengeDefinition[] 
                 maxTradingDays: 30,
                 maxCalendarDays: 40,
             }),
-            { model: "paid", priceCents: 2900 }
+            { model: "paid", currency: "usd" }
         ),
         make(
             "paid-50k",
@@ -243,7 +256,7 @@ export function defaultChallengeDefinitions(now: number): ChallengeDefinition[] 
                 maxTradingDays: 30,
                 maxCalendarDays: 45,
             }),
-            { model: "paid", priceCents: 4900 }
+            { model: "paid", currency: "usd" }
         ),
         make(
             "standard-25k",
@@ -278,7 +291,7 @@ export function defaultChallengeDefinitions(now: number): ChallengeDefinition[] 
             "pro",
             "Professional prop-style evaluation with $100,000 virtual capital.",
             basePolicy({}),
-            { model: "paid", priceCents: 9900 }
+            { model: "paid", currency: "usd" }
         ),
         make(
             "elite-200k",
@@ -326,7 +339,7 @@ export function defaultChallengeDefinitions(now: number): ChallengeDefinition[] 
                     minTradesForConsistency: 15,
                 },
             }),
-            { model: "paid", priceCents: 19900 }
+            { model: "paid", currency: "usd" }
         ),
     ];
 }

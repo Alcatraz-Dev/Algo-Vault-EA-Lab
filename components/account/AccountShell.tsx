@@ -44,6 +44,7 @@ import {
    Wallet,
    X,
    Zap,
+   Terminal,
 } from "lucide-react";
 // Zap is reused for the AI Execution nav entry (no new icon dependency).
 import { signOut, onAuthStateChanged, User } from "firebase/auth";
@@ -118,6 +119,7 @@ const ACCOUNT_NAV: NavGroup[] = [
   },  {
     label: "Trading",
     items: [
+      { icon: Terminal, label: "Trading Terminal", href: "/account/trading" },
       { icon: Zap, label: "AI Execution", href: "/account/ai-execution" },
       { icon: Bot, label: "My Bots", href: "/account/bots" },
           { icon: GitBranch, label: "Workflow Automation", href: "/account/workflows", badge: "PRO" },

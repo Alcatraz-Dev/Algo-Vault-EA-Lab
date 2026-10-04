@@ -35,13 +35,19 @@ export async function POST(request: NextRequest) {
         if (!definition || !definition.enabled || definition.status !== "AVAILABLE") {
             return arenaJson({ error: "Challenge not found or unavailable.", code: "NOT_FOUND" }, 404);
         }
-
-        if (definition.access.model === "free") {
-            return arenaJson({ error: "This challenge is free practice and does not require purchase.", code: "FREE_CHALLENGE" }, 400);
+        if (definition.access.model !== "paid") {
+            return arenaJson({ error: "Only paid challenge products can be purchased.", code: "NOT_A_PAID_CHALLENGE" }, 400);
         }
-
-        const priceCents = definition.access.priceCents || 2900;
-        const priceUsd = priceCents / 100;
+        if (!definition.paidBillingConfiguredAt) {
+            return arenaJson({ error: "A verified admin billing configuration is required before checkout.", code: "BILLING_NOT_CONFIGURED" }, 503);
+        }
+        const priceCents = definition.access.priceCents;
+        const currency = (definition.access.currency ?? "usd").toLowerCase();
+        if (!Number.isSafeInteger(priceCents) || (priceCents ?? 0) <= 0 || !/^[a-z]{3}$/.test(currency)) {
+            return arenaJson({ error: "This challenge has no valid configured price and cannot be purchased.", code: "PRICE_NOT_CONFIGURED" }, 409);
+        }
+        const configuredPriceCents = priceCents as number;
+        const priceUsd = configuredPriceCents / 100;
         const orderId = store.newArenaId("cha");
         const now = Date.now();
 
@@ -61,12 +67,12 @@ export async function POST(request: NextRequest) {
                 line_items: [
                     {
                         price_data: {
-                            currency: "usd",
+                            currency,
                             product_data: {
                                 name: `AlgoVault Challenge: ${definition.name}`,
                                 description: `Prop-Style Trading Evaluation — ${definition.summary}`,
                             },
-                            unit_amount: priceCents,
+                            unit_amount: configuredPriceCents,
                         },
                         quantity: 1,
                     },
@@ -77,7 +83,7 @@ export async function POST(request: NextRequest) {
                     definitionId: definition.id,
                     orderType: "challenge",
                     price: String(priceUsd),
-                    currency: "usd",
+                    currency,
                 },
                 success_url: `${appUrl}/account/performance-arena/attempts/verify?payment=success&order=${encodeURIComponent(orderId)}&definitionId=${encodeURIComponent(definition.id)}`,
                 cancel_url: `${appUrl}/performance-arena/challenges/${encodeURIComponent(definition.id)}?payment=cancelled`,
@@ -97,7 +103,8 @@ export async function POST(request: NextRequest) {
             productName: `AlgoVault Challenge: ${definition.name}`,
             price: priceUsd,
             amount: priceUsd,
-            currency: "USD",
+            currency: currency.toUpperCase(),
+            priceCents: configuredPriceCents,
             stripeSessionId: session.id,
             paymentProvider: "stripe",
             orderType: "challenge",

@@ -22,15 +22,9 @@ import type {
   DetectedDrawing,
   DetectedIndicator,
   VisibleRange,
-  TradingViewAccountInfo,
-  AccountMode,
-  AccountState,
-  TradingViewPosition,
-  TradingViewPendingOrder,
-  NormalizedOrderIntent,
 } from "@/types";
 import { createEmptyChartContext } from "@/types/chart-context";
-import { createEmptyAccountInfo } from "@/types/execution";
+import type { TradingViewPageAccountSignal } from "@/types/execution";
 import { setCachedContext } from "@/storage/storage";
 import {
   normalizeTradingViewTimeframe,
@@ -858,9 +852,97 @@ function startHeartbeat(): void {
     try {
       chrome.runtime.sendMessage({ type: "TV_HEARTBEAT", source: "tradingview-content" });
     } catch { /* SW may be asleep */ }
+    broadcastAccountSignal();
   };
   ping();
   heartbeatTimer = setInterval(ping, 5000);
+}
+
+/*
+ * ── TradingView account/broker signal probe ────────────────────────
+ *
+ * Reads ONLY positively identifiable markers from the TradingView document
+ * the user is looking at:
+ *   • an ACTIVE Paper Trading tab/panel
+ *   • a broker label rendered by TradingView's own trading panel
+ *   • an explicit "live" badge in the TradingView trading panel
+ *
+ * Absence stays false/null — the probe never guesses a broker, never reads
+ * credentials and never touches private TradingView APIs. Results are
+ * persisted for the side panel and broadcast as TV_ACCOUNT_CONTEXT.
+ */
+
+const ACCOUNT_SIGNAL_KEY = "tvPageAccountSignal";
+let lastAccountSignalJson = "";
+
+function probeTradingViewAccountSignals(): TradingViewPageAccountSignal | null {
+  if (!isTradingViewPage() || typeof document === "undefined") return null;
+
+  let paperTrading = false;
+  let brokerLabel: string | null = null;
+  let liveBadge = false;
+
+  try {
+    // 1. Active paper-trading panel/tab (aria-selected / active class only).
+    const paperCandidates = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-name*='paper' i]")
+    );
+    paperTrading = paperCandidates.some(
+      (el) =>
+        el.getAttribute("aria-selected") === "true" ||
+        el.getAttribute("aria-pressed") === "true" ||
+        /(^|[\s-])active([\s-]|$)/i.test(el.className || "")
+    );
+
+    // 2. Broker label rendered by TradingView's trading panel.
+    const brokerEl = document.querySelector<HTMLElement>(
+      "[data-name='bottom-widget-broker-name'], .js-broker-title, [data-name*='broker-name' i]"
+    );
+    const brokerText = brokerEl?.textContent?.trim() || "";
+    if (brokerText && brokerText.length <= 60) brokerLabel = brokerText;
+
+    // 3. Explicit live badge in the TradingView trading panel.
+    liveBadge = Boolean(
+      document.querySelector("[data-name*='live-badge' i], [class*='live-badge']")
+    );
+  } catch {
+    // DOM probe failures simply mean "nothing detected".
+  }
+
+  return {
+    pageReachable: true,
+    paperTrading,
+    brokerLabel,
+    liveBadge,
+    detectedAt: Date.now(),
+  };
+}
+
+function broadcastAccountSignal(): void {
+  const signal = probeTradingViewAccountSignals();
+  if (!signal) return;
+
+  const json = JSON.stringify({
+    p: signal.paperTrading,
+    b: signal.brokerLabel,
+    l: signal.liveBadge,
+  });
+  const unchanged = json === lastAccountSignalJson;
+  const payload = {
+    ...signal,
+    // Stale markers must not outlive the page probe.
+    detectedAt: Date.now(),
+  };
+
+  try {
+    chrome.storage.local.set({ [ACCOUNT_SIGNAL_KEY]: payload });
+  } catch { /* storage may be unavailable */ }
+
+  if (unchanged) return;
+  lastAccountSignalJson = json;
+  try {
+    chrome.runtime.sendMessage({ type: "TV_ACCOUNT_CONTEXT", payload });
+  } catch { /* service worker may be asleep */ }
 }
 
 function startObserving(): void {
@@ -931,6 +1013,11 @@ function init(): void {
   startPolling();
   startHeartbeat();
   trackHistoryChanges();
+
+  // Probe TradingView's own account/broker markers right away, then refresh
+  // them alongside the context poll (event-driven + slow cadence).
+  broadcastAccountSignal();
+  setInterval(broadcastAccountSignal, 30_000);
 
   // The chart mounts asynchronously — detect in a few passes.
   setTimeout(() => updateContext(), 800);

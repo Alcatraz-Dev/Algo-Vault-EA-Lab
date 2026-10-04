@@ -24,6 +24,7 @@ const ROOT = process.cwd();
 const ARENA_ENV_KEYS = [
     "PERFORMANCE_ARENA_ENABLED",
     "ARENA_PAID_CHALLENGES_ENABLED",
+    "ARENA_STRIPE_BILLING_VERIFIED",
     "ARENA_PLATFORM_REWARDS_ENABLED",
 ] as const;
 
@@ -76,6 +77,7 @@ export async function runEntitlementTests(): Promise<boolean> {
         // Deterministic baseline: arena on, paid off (product default), rewards on.
         setEnv("PERFORMANCE_ARENA_ENABLED", "true");
         setEnv("ARENA_PAID_CHALLENGES_ENABLED", "false");
+        setEnv("ARENA_STRIPE_BILLING_VERIFIED", "false");
         setEnv("ARENA_PLATFORM_REWARDS_ENABLED", "true");
 
         s.section("Free model — allowed with no dependency consulted");
@@ -115,17 +117,22 @@ export async function runEntitlementTests(): Promise<boolean> {
             s.check(r.entitlementCalls.length === 0, "flag gate short-circuits before any entitlement call");
         }
         setEnv("ARENA_PAID_CHALLENGES_ENABLED", "true");
+        setEnv("ARENA_STRIPE_BILLING_VERIFIED", "true");
         {
             const r = makeDeps({ entitlement: ENTITLED });
+            r.deps.checkPaidChallengeGrant = async () => true;
             const res = await evaluateEntitlement("uid_paid", def("paid"), r.deps);
-            s.check(res.allowed === true && res.level === "paid", "billing-entitled user allowed when flag on");
+            s.check(res.allowed === true && res.level === "paid", "verified order grant allows paid challenge when flag on");
+            s.check(r.entitlementCalls.length === 0, "Pro subscription does not substitute for a paid challenge purchase");
         }
         {
-            const r = makeDeps({ entitlement: NOT_ENTITLED });
+            const r = makeDeps({ entitlement: ENTITLED });
+            r.deps.checkPaidChallengeGrant = async () => false;
             const res = await evaluateEntitlement("uid_paid", def("paid"), r.deps);
-            s.check(res.allowed === false && res.reason === "This challenge requires purchase (billing entitlement not found).", "unentitled user denied even with flag on");
+            s.check(res.allowed === false && res.reason === "A verified purchase for this challenge is required.", "denies paid challenge without verified purchase even for Pro user");
         }
         setEnv("ARENA_PAID_CHALLENGES_ENABLED", "false");
+        setEnv("ARENA_STRIPE_BILLING_VERIFIED", "false");
 
         s.section("Credits model — AV Points priced entry (server wallet)");
         {

@@ -18,6 +18,16 @@ import { computeIndicator } from "./ta";
 import { parsePath } from "./paths";
 import { validateUrlForRequest, assertPublicHost } from "./ssrf";
 import { saveSignal, saveOrderRequest, saveReport, readVariable, writeVariable, listUserSignals } from "./database";
+import {
+    buildMarketIntelligenceContext,
+    marketContextUsableForAI,
+    orchestrateDecision,
+    runJevValidation,
+    getUnifiedRouter,
+    FINANCIAL_TONE_CLAUSE,
+    type MarketIntelligenceContext,
+} from "@/lib/intelligence";
+import type { MarketContextInput } from "@/lib/intelligence/market-context";
 
 // ─── Market data ─────────────────────────────────────────────────────────────
 
@@ -205,6 +215,203 @@ function parseJsonResponse(text: string): unknown {
         try { return JSON.parse(t.slice(start, end + 1)); } catch { /* continue */ }
     }
     return undefined;
+}
+
+// ─── Intelligence Fabric nodes (unified AI intelligence layer) ──────────────
+// These nodes compose the fabric (lib/intelligence) — they never duplicate
+// market-data fetching (reuse the workflow snapshot helpers) and never touch
+// execution or risk beyond what the orchestrator already enforces.
+
+async function intelligenceContext(args: NodeExecutionArgs, symbol: string, timeframe: string): Promise<MarketIntelligenceContext | { error: string }> {
+    const cached = await args.snapshots.getOrFetch(`snapshot:${symbol}`, () => fetchWorkflowSnapshot(symbol));
+    if (!cached || (cached as { ok?: boolean }).ok === false) {
+        const err = cached && typeof cached === "object" && "error" in cached ? String((cached as { error?: string }).error) : "Market snapshot unavailable.";
+        return { error: err };
+    }
+    const snap = ((cached as { snapshot?: unknown }).snapshot ?? cached) as Record<string, unknown>;
+    // Compress through the fabric builder — the workflow snapshot shape is
+    // compatible with MarketContextInput (same deterministic upstream).
+    const ctx = buildMarketIntelligenceContext({
+        symbol,
+        timeframe,
+        timestamp: typeof snap.timestamp === "number" ? snap.timestamp : Date.now(),
+        dataAgeMs: typeof snap.dataAgeMs === "number" ? snap.dataAgeMs : undefined,
+        currentPrice: typeof snap.currentPrice === "number" ? snap.currentPrice : undefined,
+        trend: typeof snap.trend === "string" ? snap.trend : undefined,
+        regime: typeof snap.regime === "string" ? snap.regime : undefined,
+        marketStructure: typeof snap.marketStructure === "string" ? snap.marketStructure : undefined,
+        liquidity: (snap.liquidity as MarketContextInput["liquidity"]) ?? null,
+        FVG: Array.isArray(snap.FVG) ? (snap.FVG as MarketContextInput["FVG"]) : undefined,
+        orderBlocks: Array.isArray(snap.orderBlocks) ? (snap.orderBlocks as MarketContextInput["orderBlocks"]) : undefined,
+        volatility: (snap.volatility as MarketContextInput["volatility"]) ?? undefined,
+        ATR: typeof snap.ATR === "number" ? snap.ATR : undefined,
+        marketSession: typeof snap.marketSession === "string" ? snap.marketSession : undefined,
+    });
+    return ctx;
+}
+
+async function intelligenceAnalyzeMarket(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const symbol = String(args.config.symbol || "").toUpperCase();
+    const timeframe = String(args.config.timeframe || "M5");
+    if (!symbol) return { status: "failed", error: "Symbol is required." };
+    const ctxOrErr = await intelligenceContext(args, symbol, timeframe);
+    if ("error" in ctxOrErr) return { status: "failed", error: ctxOrErr.error };
+    const gate = marketContextUsableForAI(ctxOrErr, { expectFresh: false });
+    if (!gate.ok) return { status: "failed", error: gate.reason };
+
+    const decision = await orchestrateDecision({
+        ctx: ctxOrErr,
+        proposedDirection: "HOLD",
+        userTier: "pro",
+        skipLLM: false,
+    });
+    return {
+        status: "success",
+        output: {
+            decisionState: decision.state,
+            direction: decision.direction,
+            confidence: decision.confidence,
+            rationale: decision.rationale,
+            factors: decision.factors.slice(0, 8),
+            jev: decision.jev ? { decision: decision.jev.decision, confidence: decision.jev.confidence, status: decision.jev.validationStatus } : null,
+            llmProvider: decision.llm?.provider ?? null,
+            versions: decision.versions,
+        },
+    };
+}
+
+async function intelligenceClassifyRegime(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const symbol = String(args.config.symbol || "").toUpperCase();
+    const timeframe = String(args.config.timeframe || "M5");
+    if (!symbol) return { status: "failed", error: "Symbol is required." };
+    const ctxOrErr = await intelligenceContext(args, symbol, timeframe);
+    if ("error" in ctxOrErr) return { status: "failed", error: ctxOrErr.error };
+    const gate = marketContextUsableForAI(ctxOrErr, { expectFresh: false });
+    if (!gate.ok) return { status: "failed", error: gate.reason };
+
+    const router = getUnifiedRouter();
+    const res = await router.execute({
+        task: "FAST_MARKET_CLASSIFICATION",
+        systemPrompt: `${FINANCIAL_TONE_CLAUSE} Classify the market regime from the facts. Answer ONLY with JSON: {"regime":"TRENDING_BULLISH"|"TRENDING_BEARISH"|"RANGING"|"BREAKOUT"|"HIGH_VOLATILITY"|"LOW_VOLATILITY"|"UNCERTAIN","confidence":0-100}`,
+        messages: [{ role: "user", content: JSON.stringify(ctxOrErr) }],
+        userTier: "pro",
+        maxTokens: 200,
+        temperature: 0.1,
+    }, { source: "workflow" });
+    if (res.validationStatus !== "ok" || !res.structuredData) {
+        return { status: "failed", error: `AI_UNAVAILABLE: regime classification could not be produced (${res.errors?.join(", ") ?? res.validationStatus}).` };
+    }
+    const regime = typeof res.structuredData.regime === "string" ? res.structuredData.regime : "UNCERTAIN";
+    return { status: "success", output: { regime, confidence: typeof res.structuredData.confidence === "number" ? res.structuredData.confidence : null, provider: res.provider, model: res.model } };
+}
+
+async function intelligenceEvaluateSetup(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const symbol = String(args.config.symbol || "").toUpperCase();
+    const timeframe = String(args.config.timeframe || "M5");
+    const rawDir = String(args.config.direction || "BUY").toUpperCase();
+    const direction = rawDir === "SELL" ? "SELL" : rawDir === "HOLD" ? "HOLD" : "BUY";
+    if (!symbol) return { status: "failed", error: "Symbol is required." };
+    const ctxOrErr = await intelligenceContext(args, symbol, timeframe);
+    if ("error" in ctxOrErr) return { status: "failed", error: ctxOrErr.error };
+    const gate = marketContextUsableForAI(ctxOrErr, { expectFresh: false });
+    if (!gate.ok) return { status: "failed", error: gate.reason };
+
+    const decision = await orchestrateDecision({
+        ctx: ctxOrErr,
+        proposedDirection: direction,
+        userTier: "pro",
+    });
+    return {
+        status: "success",
+        output: {
+            direction: decision.direction,
+            state: decision.state,
+            confidence: decision.confidence,
+            rationale: decision.rationale,
+            factors: decision.factors.slice(0, 10),
+            jev: decision.jev ? { decision: decision.jev.decision, confidence: decision.jev.confidence } : null,
+            validationStatus: decision.validationStatus,
+            versions: decision.versions,
+        },
+    };
+}
+
+async function intelligenceJevValidate(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const symbol = String(args.config.symbol || "").toUpperCase();
+    const timeframe = String(args.config.timeframe || "M5");
+    const rawDir = String(args.config.direction || "BUY").toUpperCase();
+    const direction = rawDir === "SELL" ? "SELL" : rawDir === "HOLD" ? "HOLD" : "BUY";
+    if (!symbol) return { status: "failed", error: "Symbol is required." };
+    const ctxOrErr = await intelligenceContext(args, symbol, timeframe);
+    if ("error" in ctxOrErr) return { status: "failed", error: ctxOrErr.error };
+
+    const jev = await runJevValidation({ ctx: ctxOrErr, direction, userTier: "pro" });
+    return {
+        status: "success",
+        output: {
+            decision: jev.decision,
+            confidence: jev.confidence,
+            validationStatus: jev.validationStatus,
+            reason: jev.reason ?? null,
+            answers: jev.answers.slice(0, 12).map((a) => ({ id: a.id, answer: a.answer, confidence: a.confidence })),
+            reasoningSummary: jev.reasoningSummary,
+            provider: jev.provider,
+            model: jev.model,
+            jevPolicyVersion: jev.jevPolicyVersion,
+        },
+    };
+}
+
+async function intelligenceExplainSignal(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const rawContext = args.config.contextNode as unknown;
+    let contextData: unknown = null;
+    if (rawContext && typeof rawContext === "object" && !Array.isArray(rawContext)) {
+        contextData = rawContext;
+    } else {
+        const contextRef = String(rawContext || "").trim().replace(/^\$/, "");
+        if (contextRef) contextData = args.payloads[contextRef]?.output ?? null;
+    }
+    if (!contextData) return { status: "failed", error: "An upstream signal/analysis node is required for explanation." };
+
+    const router = getUnifiedRouter();
+    const res = await router.execute({
+        task: "SIGNAL_EXPLANATION",
+        systemPrompt: `${FINANCIAL_TONE_CLAUSE} Explain the provided trading signal or analysis concisely in <=4 sentences, citing only the evidence present in the data. No guarantees, no advice to trade.`,
+        messages: [{ role: "user", content: JSON.stringify(contextData).slice(0, 6000) }],
+        userTier: "pro",
+        maxTokens: 500,
+        temperature: 0.3,
+    }, { source: "workflow" });
+    if (res.validationStatus !== "ok" || !res.content) {
+        return { status: "failed", error: `AI_UNAVAILABLE: explanation could not be produced (${res.errors?.join(", ") ?? res.validationStatus}).` };
+    }
+    return { status: "success", output: { explanation: res.content.slice(0, 2000), provider: res.provider, model: res.model } };
+}
+
+async function intelligenceDetectAnomaly(args: NodeExecutionArgs): Promise<NodeExecutionResult> {
+    const rawContext = args.config.contextNode as unknown;
+    let contextData: unknown = null;
+    if (rawContext && typeof rawContext === "object" && !Array.isArray(rawContext)) {
+        contextData = rawContext;
+    } else {
+        const contextRef = String(rawContext || "").trim().replace(/^\$/, "");
+        if (contextRef) contextData = args.payloads[contextRef]?.output ?? null;
+    }
+    if (!contextData) return { status: "failed", error: "An upstream data node is required." };
+
+    const router = getUnifiedRouter();
+    const res = await router.execute({
+        task: "ANOMALY_DETECTION",
+        systemPrompt: `${FINANCIAL_TONE_CLAUSE} Inspect the data for anomalies (unusual volatility, data gaps, impossible values). Answer ONLY with JSON: {"anomalies":[{"type":"...","detail":"..."}],"clean":true|false}`,
+        messages: [{ role: "user", content: JSON.stringify(contextData).slice(0, 6000) }],
+        userTier: "pro",
+        maxTokens: 400,
+        temperature: 0.1,
+    }, { source: "workflow" });
+    if (res.validationStatus !== "ok" || !res.structuredData) {
+        return { status: "failed", error: `AI_UNAVAILABLE: anomaly detection could not be produced (${res.errors?.join(", ") ?? res.validationStatus}).` };
+    }
+    return { status: "success", output: { anomalies: res.structuredData.anomalies ?? [], clean: res.structuredData.clean === true, provider: res.provider, model: res.model } };
 }
 
 // ─── Logic ───────────────────────────────────────────────────────────────────
@@ -1418,6 +1625,12 @@ export async function executeNodeForType(args: NodeExecutionArgs): Promise<NodeE
             return technicalNode(args);
         case "ai.analyze": return aiAnalyze(args);
         case "ai.extract_json": return aiExtractJson(args);
+        case "intelligence.analyze_market": return intelligenceAnalyzeMarket(args);
+        case "intelligence.classify_regime": return intelligenceClassifyRegime(args);
+        case "intelligence.evaluate_setup": return intelligenceEvaluateSetup(args);
+        case "intelligence.jev_validate": return intelligenceJevValidate(args);
+        case "intelligence.explain_signal": return intelligenceExplainSignal(args);
+        case "intelligence.detect_anomaly": return intelligenceDetectAnomaly(args);
         case "logic.condition": return logicCondition(args);
         case "logic.cross": return logicCross(args);
         case "logic.delay": return logicDelay(args);

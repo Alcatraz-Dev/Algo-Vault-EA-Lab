@@ -225,6 +225,108 @@ const NODES: WorkflowNodeDefinition[] = [
         timeoutMs: 45_000,
         rateLimitPerMinute: 10,
     },
+
+    // ─── Intelligence Fabric (unified AI intelligence layer) ───────────────
+    {
+        type: "intelligence.analyze_market",
+        category: "ai",
+        name: "Intelligence: Analyze Market",
+        description: "Unified Intelligence Fabric: builds the compressed market context and returns an AI interpretation with decision state. Uses the task-aware router; never fabricates results (AI_UNAVAILABLE when no provider).",
+        permission: "analysis",
+        configSchema: [
+            { key: "symbol", label: "Symbol", type: "string", required: true, placeholder: "XAUUSD" },
+            { key: "timeframe", label: "Timeframe", type: "select", options: [
+                { value: "M1", label: "1 min" }, { value: "M5", label: "5 min" }, { value: "M15", label: "15 min" },
+                { value: "H1", label: "1 hour" }, { value: "H4", label: "4 hours" }, { value: "D1", label: "Daily" },
+            ], default: "M5" },
+        ],
+        defaults: { symbol: "XAUUSD", timeframe: "M5" },
+        timeoutMs: 45_000,
+        rateLimitPerMinute: 10,
+    },
+    {
+        type: "intelligence.classify_regime",
+        category: "ai",
+        name: "Intelligence: Classify Regime",
+        description: "Fast structured regime classification through the intelligence fabric (FAST_MARKET_CLASSIFICATION task).",
+        permission: "analysis",
+        configSchema: [
+            { key: "symbol", label: "Symbol", type: "string", required: true, placeholder: "XAUUSD" },
+            { key: "timeframe", label: "Timeframe", type: "select", options: [
+                { value: "M5", label: "5 min" }, { value: "M15", label: "15 min" },
+                { value: "H1", label: "1 hour" }, { value: "H4", label: "4 hours" }, { value: "D1", label: "Daily" },
+            ], default: "M5" },
+        ],
+        defaults: { symbol: "XAUUSD", timeframe: "M5" },
+        timeoutMs: 30_000,
+        rateLimitPerMinute: 15,
+    },
+    {
+        type: "intelligence.evaluate_setup",
+        category: "ai",
+        name: "Intelligence: Evaluate Setup",
+        description: "Orchestrates deterministic facts + Jev validation + AI interpretation for a proposed direction. Risk gate optional (informational only).",
+        permission: "analysis",
+        configSchema: [
+            { key: "symbol", label: "Symbol", type: "string", required: true, placeholder: "XAUUSD" },
+            { key: "timeframe", label: "Timeframe", type: "select", options: [
+                { value: "M1", label: "1 min" }, { value: "M5", label: "5 min" }, { value: "M15", label: "15 min" },
+                { value: "H1", label: "1 hour" }, { value: "H4", label: "4 hours" },
+            ], default: "M5" },
+            { key: "direction", label: "Proposed direction", type: "select", required: true, options: [
+                { value: "BUY", label: "Buy" }, { value: "SELL", label: "Sell" }, { value: "HOLD", label: "Hold" },
+            ], default: "BUY" },
+        ],
+        defaults: { symbol: "XAUUSD", timeframe: "M5", direction: "BUY" },
+        timeoutMs: 45_000,
+        rateLimitPerMinute: 10,
+    },
+    {
+        type: "intelligence.jev_validate",
+        category: "ai",
+        name: "Intelligence: Jev Validate Setup",
+        description: "Runs the Jev structured validation question set over the market context. Returns decision/confidence/answers; UNAVAILABLE when no Jev path is configured.",
+        permission: "analysis",
+        configSchema: [
+            { key: "symbol", label: "Symbol", type: "string", required: true, placeholder: "XAUUSD" },
+            { key: "timeframe", label: "Timeframe", type: "select", options: [
+                { value: "M1", label: "1 min" }, { value: "M5", label: "5 min" }, { value: "M15", label: "15 min" },
+                { value: "H1", label: "1 hour" }, { value: "H4", label: "4 hours" },
+            ], default: "M5" },
+            { key: "direction", label: "Proposed direction", type: "select", required: true, options: [
+                { value: "BUY", label: "Buy" }, { value: "SELL", label: "Sell" }, { value: "HOLD", label: "Hold" },
+            ], default: "BUY" },
+        ],
+        defaults: { symbol: "XAUUSD", timeframe: "M5", direction: "BUY" },
+        timeoutMs: 30_000,
+        rateLimitPerMinute: 12,
+    },
+    {
+        type: "intelligence.explain_signal",
+        category: "ai",
+        name: "Intelligence: Explain Signal",
+        description: "Produces a concise evidence-based explanation of an upstream signal or analysis payload (SIGNAL_EXPLANATION task).",
+        permission: "analysis",
+        configSchema: [
+            { key: "contextNode", label: "Signal/analysis node", type: "string", required: true, placeholder: "$nodeId" },
+        ],
+        defaults: {},
+        timeoutMs: 30_000,
+        rateLimitPerMinute: 10,
+    },
+    {
+        type: "intelligence.detect_anomaly",
+        category: "ai",
+        name: "Intelligence: Detect Anomaly",
+        description: "Flags anomalies in an upstream numeric payload (unusual volatility, data gaps, suspicious values) using the fabric.",
+        permission: "analysis",
+        configSchema: [
+            { key: "contextNode", label: "Data node", type: "string", required: true, placeholder: "$nodeId" },
+        ],
+        defaults: {},
+        timeoutMs: 30_000,
+        rateLimitPerMinute: 10,
+    },
     // ─── Logic ─────────────────────────────────────────────────────────────
     {
         type: "logic.condition",

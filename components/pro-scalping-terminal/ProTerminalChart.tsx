@@ -38,8 +38,10 @@ import {
 import { cn } from "@/lib/utils";
 import { useLiveCandles } from "@/hooks/useLiveCandles";
 import { gexLevels, type GexLevel } from "@/lib/order-flow/gex/levels";
-import { isMarketTradableAt } from "@/lib/chart-engine/timeframe";
+import { isMarketTradableAt, isChartTimeframe, TIMEFRAME_MS } from "@/lib/chart-engine/timeframe";
 import { structureOverlayLayer } from "@/lib/chart-engine/overlay-contract";
+import { ChartAnchoredOverlay, type AnchoredItem } from "@/lib/chart-engine/chart-anchored-overlay";
+import { barIndexForTime, shiftLogicalRangeForPrepend } from "@/lib/chart-engine/coordinate-mapping";
 import { useOrderFlow } from "@/hooks/use-order-flow";
 import type { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 import type { AdvancedAnalysisResult } from "@/lib/ai/analysis/intelligence";
@@ -57,8 +59,6 @@ type Candle = {
     close: number;
     volume?: number;
 };
-
-
 // ── overlay computation (same rules as the server engines) ──────────────────
 
 /** Session anchors: the UTC windows used by lib/analytics/sessions.ts. */
@@ -268,6 +268,8 @@ function computeEqualLevels(candles: Candle[]): Array<{ price: number; kind: "eq
 // ── component ───────────────────────────────────────────────────────────────
 
 const PINE_PANE_STRETCH = 0.35;
+/** Panning within this many bars of the loaded window's left edge triggers an older-page load. */
+const HISTORY_LOAD_THRESHOLD_BARS = 6;
 
 /** Push a series of values (NaN → skipped) onto the chart, aligned 1:1 with candles. */
 function feedSeries(series: ISeriesApi<"Line">, candles: Candle[], values: Array<number | null>): void {
@@ -378,6 +380,7 @@ export function ProTerminalChart({
     // Tail of the bar the candle series currently holds — lets live quote ticks
     // be pushed with `series.update()` instead of a full `setData` redraw.
     const lastPushedBarRef = useRef<{ time: number; open: number; high: number; low: number; close: number } | null>(null);
+    const lastPushedCandlesRef = useRef<Candle[]>([]);
     const haSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
     const rsiSeriesRef = useRef<{ rsi: ISeriesApi<"Line">; pane: number | null; lines: IPriceLine[] } | null>(null);
     const macdSeriesRef = useRef<{ macd: ISeriesApi<"Line">; signal: ISeriesApi<"Line">; pane: number | null } | null>(null);
@@ -404,6 +407,17 @@ export function ProTerminalChart({
     const gexLinesRef = useRef<IPriceLine[]>([]);
     // Chart-confluence levels of the displayed signal (dashed price lines).
     const chartLevelLinesRef = useRef<IPriceLine[]>([]);
+    // Anchored overlay layer (FVG/OB zones + volume profile) — positioned by
+    // the chart's own coordinate transforms, never by independent DOM math.
+    const anchoredOverlayRef = useRef<ChartAnchoredOverlay | null>(null);
+    // Mirror of the latest candles + interval for the overlay's time→bar
+    // transform (read inside the rAF loop, never during render).
+    const candlesMirrorRef = useRef<Candle[]>([]);
+    const intervalMsRef = useRef(3_600_000);
+    // Progressive-history request callback, refreshed every render and read
+    // by the chart's visible-range handler (no re-subscription churn).
+    const olderPageRequestRef = useRef<(() => void) | null>(null);
+    const firstPushedTimeRef = useRef<number | null>(null);
 
     const [hover, setHover] = useState<{ o: number; h: number; l: number; c: number; time: number } | null>(null);
 
@@ -421,11 +435,9 @@ export function ProTerminalChart({
         symbol,
         timeframe,
         { limit: 400 }
-    );
-
-    // `candles` must be declared before useOrderFlow below — referencing it
-    // earlier threw "Cannot access 'candles' before initialization" and
-    // crashed the signal detail pages.
+    );        // `candles` must be declared before useOrderFlow below — referencing it
+        // earlier threw "Cannot access 'candles' before initialization" and
+        // crashed the signal detail pages.
     const candles = liveCandles;
 
     const onCandlesChangeRef = useRef(onCandlesChange);
@@ -455,6 +467,26 @@ export function ProTerminalChart({
 
     const requestKey = `${symbol}|${timeframe}`;
     const loading = feedLoading;
+
+    // Canonical interval for the market→bar-index transform (chart timeframes
+    // only; the terminal never renders D1/W1).
+    const intervalMs = isChartTimeframe(timeframe) ? TIMEFRAME_MS[timeframe] : 3_600_000;
+    useEffect(() => {
+        intervalMsRef.current = intervalMs;
+        candlesMirrorRef.current = candles;
+    }, [intervalMs, candles]);
+    useEffect(() => {
+        return () => {
+            anchoredOverlayRef.current?.destroy();
+            anchoredOverlayRef.current = null;
+        };
+    }, []);
+
+    // Stable market→bar-index transform handed to the overlay bridge.
+    const timeToBarIndex = useCallback(
+        (timeMs: number) => barIndexForTime(candlesMirrorRef.current, timeMs, intervalMsRef.current),
+        [],
+    );
     // Market-closed honesty (Phase 7): weekend silence is reported, never
     // papered over with fabricated candles. The badge above renders the
     // status; the engine simply produces no new candles when nothing trades.
@@ -476,6 +508,7 @@ export function ProTerminalChart({
         lastBarCountRef.current = 0;
         lastKeyRef.current = "";
         lastPushedBarRef.current = null;
+        lastPushedCandlesRef.current = [];
 
         const chart = createChart(container, {
             autoSize: true,
@@ -524,6 +557,20 @@ export function ProTerminalChart({
         });
         chart.priceScale("vol").applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
 
+        // Anchored overlay bridge: FVG/OB zones and the volume profile are
+        // positioned through the chart's own time→x / price→y transforms
+        // (single coordinate source — they cannot detach from the candles).
+        if (candleSeriesRef.current) {
+            const overlay = new ChartAnchoredOverlay();
+            overlay.attach({
+                chart,
+                series: candleSeriesRef.current,
+                paneIndex: 0,
+                timeToBarIndex,
+            });
+            anchoredOverlayRef.current = overlay;
+        }
+
         vwapSeriesRef.current = chart.addSeries(LineSeries, {
             color: "#f59e0b",
             lineWidth: 1,
@@ -568,8 +615,14 @@ export function ProTerminalChart({
                 if (range === null || bars <= 0) return;
                 const atEdge = range.to >= bars - 1.5;
                 setShowGoLive(!atEdge);
-                if (atEdge) setFollowLive(true);
-                else setFollowLive(false);
+                setFollowLive(atEdge);
+                // ── progressive historical loading (Phase 3) ────────────────
+                // Reaching the left edge of the loaded window prepends the
+                // next older page, so the user can scroll back through the
+                // full provider history naturally (never hard-limited).
+                if (range.from <= HISTORY_LOAD_THRESHOLD_BARS) {
+                    olderPageRequestRef.current?.();
+                }
             } catch {
                 // range not available yet
             }
@@ -577,6 +630,8 @@ export function ProTerminalChart({
         timeScale.subscribeVisibleLogicalRangeChange(handleVisibleRange);
 
         return () => {
+            anchoredOverlayRef.current?.destroy();
+            anchoredOverlayRef.current = null;
             chart.remove();
             chartRef.current = null;
             candleSeriesRef.current = null;
@@ -632,7 +687,9 @@ export function ProTerminalChart({
             e9.setData([]);
             e20.setData([]);
             lastPushedBarRef.current = null;
+            lastPushedCandlesRef.current = [];
             lastBarCountRef.current = 0;
+            firstPushedTimeRef.current = null;
             return;
         }
 
@@ -651,14 +708,53 @@ export function ProTerminalChart({
         const last = bars[bars.length - 1];
         const prev = bars.length > 1 ? bars[bars.length - 2] : null;
 
+        // Prepend detection: the same series grew at the FRONT (an older
+        // history page arrived). lightweight-charts setData replaces all
+        // bars, which would otherwise re-anchor the viewport — so the
+        // logical range is captured and shifted by the prepend size to keep
+        // the exact same candles on screen (no jump, no re-zoom).
+        const prepended =
+            key === lastKeyRef.current &&
+            bars.length > lastBarCountRef.current &&
+            firstPushedTimeRef.current !== null &&
+            bars[0].time < firstPushedTimeRef.current &&
+            lastPushedBarRef.current !== null &&
+            bars[bars.length - 1].time >= lastPushedBarRef.current.time;
+        let restoreRange: { from: number; to: number } | null = null;
+        if (prepended) {
+            try {
+                const range = chartRef.current?.timeScale().getVisibleLogicalRange();
+                if (range) {
+                    const prependCount = bars.findIndex((bar) => bar.time >= firstPushedTimeRef.current!);
+                    if (prependCount > 0) {
+                        restoreRange = shiftLogicalRangeForPrepend(range, 0, prependCount);
+                    }
+                }
+            } catch {
+                restoreRange = null;
+            }
+        }
+
         // Tick-only path: same instrument/timeframe, history length stable or
         // grown by exactly one bar, and the visible change is confined to the
         // forming bar (same time as the last pushed bar) or a single forward
         // append right after it (bar close). Anything else — provider reconcile
         // that rewrote history, timeframe switch — takes the full redraw path.
+        const previousCandles = lastPushedCandlesRef.current;
+        const previousCount = lastBarCountRef.current;
+        const previousStableCount = Math.min(previousCandles.length, candles.length) - 1;
+        let stableHistoryPrefix = previousCount > 0 && previousCandles.length === previousCount && candles.length >= previousCount && !prepended;
+        for (let i = 0; stableHistoryPrefix && i < previousStableCount; i++) {
+            const a = previousCandles[i];
+            const b = candles[i];
+            if (a.timestamp !== b.timestamp || a.open !== b.open || a.high !== b.high || a.low !== b.low || a.close !== b.close || (a.volume ?? 0) !== (b.volume ?? 0)) {
+                stableHistoryPrefix = false;
+            }
+        }
         const isTailOnly =
             key === lastKeyRef.current &&
             pushed !== null &&
+            stableHistoryPrefix &&
             (bars.length === lastBarCountRef.current || bars.length === lastBarCountRef.current + 1) &&
             (last.time === pushed.time ||
                 (prev !== null && prev.time === pushed.time && last.time > pushed.time));
@@ -691,17 +787,28 @@ export function ProTerminalChart({
             pushLineTail(e9, ema(closes, 9));
             pushLineTail(e20, ema(closes, 20));
             lastPushedBarRef.current = { time: last.time, open: last.open, high: last.high, low: last.low, close: last.close };
+            lastPushedCandlesRef.current = candles.map((c) => ({ ...c }));
             lastBarCountRef.current = bars.length;
             return;
         }
 
         cs.setData(bars);
+        if (restoreRange) {
+            try {
+                chartRef.current?.timeScale().setVisibleLogicalRange(restoreRange);
+            } catch {
+                // timescale not ready — the default view is acceptable
+            }
+        }
         vs.setData(
-            candles.map((c) => ({
-                time: toSec(c.timestamp),
-                value: c.volume ?? 0,
-                color: c.close >= c.open ? "rgba(38, 166, 154, 0.45)" : "rgba(239, 83, 80, 0.45)",
-            }))
+            bars.map((bar, i) => {
+                const candle = candles[i];
+                return {
+                    time: bar.time,
+                    value: candle.volume ?? 0,
+                    color: candle.close >= candle.open ? "rgba(38, 166, 154, 0.45)" : "rgba(239, 83, 80, 0.45)",
+                };
+            })
         );
         vw.setData(computeVwap(candles));
 
@@ -721,10 +828,11 @@ export function ProTerminalChart({
         // Only auto-fit when the dataset itself changed (symbol/timeframe
         // switch or a reconcile that added closed bars). Live tick updates to
         // the forming bar keep the current viewport so the last candle moves
-        // in place instead of the chart re-zooming every 2 seconds.
+        // in place instead of the chart re-zooming every 2 seconds. Prepends
+        // keep the user's scroll position (restoreRange above).
         const barCountChanged = bars.length !== lastBarCountRef.current;
-        const appended = barCountChanged && bars.length > lastBarCountRef.current && key === lastKeyRef.current;
-        if (key !== lastKeyRef.current || (barCountChanged && !appended)) {
+        const appended = barCountChanged && bars.length > lastBarCountRef.current && key === lastKeyRef.current && !prepended && stableHistoryPrefix;
+        if (key !== lastKeyRef.current || (barCountChanged && !appended && !prepended)) {
             chartRef.current?.timeScale().fitContent();
             lastKeyRef.current = key;
         }
@@ -739,7 +847,9 @@ export function ProTerminalChart({
             }
         }
         lastBarCountRef.current = bars.length;
+        firstPushedTimeRef.current = bars[0].time;
         lastPushedBarRef.current = { time: last.time, open: last.open, high: last.high, low: last.low, close: last.close };
+        lastPushedCandlesRef.current = candles.map((c) => ({ ...c }));
     }, [candles, symbol, timeframe, followLive]);
 
     // ── Pine study overlays ─────────────────────────────────────────────
@@ -1080,66 +1190,98 @@ export function ProTerminalChart({
         );
     }, [candles, layers, analysis]);
 
-    // Zone rectangles (FVG / order blocks) drawn into a lightweight overlay.
-    const zones = useMemo(() => {
-        if (candles.length === 0) return { fvg: [], ob: [] };
+    // Zone rectangles (FVG / order blocks) as MARKET coordinates: the zone's
+    // own price band and candle-time span. The anchored overlay bridge maps
+    // (time, price) → screen px through the chart's coordinate transforms on
+    // viewport/data/resize changes — zones can never drift from their candles.
+    const zoneItems = useMemo<AnchoredItem[]>(() => {
+        if (candles.length === 0) return [];
         const lastTime = candles[candles.length - 1].timestamp;
-        const range = Math.max(...candles.map((c) => c.high)) - Math.min(...candles.map((c) => c.low));
-        const toPct = (price: number) => {
-            const min = Math.min(...candles.map((c) => c.low));
-            return ((price - min) / range) * 100;
-        };
-        const map = (z: { top: number; bottom: number; startIdx: number; bullish: boolean }, bullishColor: string, bearishColor: string) => ({
-            topPct: toPct(z.top),
-            heightPct: Math.abs(toPct(z.top) - toPct(z.bottom)),
-            leftPct: (z.startIdx / Math.max(1, candles.length - 1)) * 78,
-            widthPct: 100 - (z.startIdx / Math.max(1, candles.length - 1)) * 78,
-            bullish: z.bullish,
-            color: z.bullish ? bullishColor : bearishColor,
-            fromPrice: z.bottom,
-            toPrice: z.top,
-            startTime: candles[z.startIdx]?.timestamp ?? lastTime,
-        });
-        return {
-            fvg: layers.fvg ? computeFvgs(candles).map((z) => map(z, "rgba(52, 211, 153, 0.10)", "rgba(251, 113, 133, 0.10)")) : [],
-            ob: layers.orderBlocks ? computeOrderBlocks(candles).map((z) => map(z, "rgba(56, 189, 248, 0.10)", "rgba(251, 146, 60, 0.10)")) : [],
-        };
-    }, [candles, layers.fvg, layers.orderBlocks]);
-
-    const showZones = zones.fvg.length > 0 || zones.ob.length > 0;
+        // Unmitigated zones extend to just past the newest candle (right margin).
+        const rightEdge = lastTime + 3 * intervalMs;
+        const items: AnchoredItem[] = [];
+        if (layers.fvg) {
+            for (const z of computeFvgs(candles)) {
+                items.push({
+                    id: `fvg_${z.startIdx}_${z.top}`,
+                    kind: "zone",
+                    fromTime: candles[z.startIdx]?.timestamp ?? lastTime,
+                    toTime: rightEdge,
+                    top: z.top,
+                    bottom: z.bottom,
+                    style: {
+                        background: z.bullish ? "rgba(52, 211, 153, 0.10)" : "rgba(251, 113, 133, 0.10)",
+                        borderTop: `1px dashed ${z.bullish ? "rgba(52, 211, 153, 0.5)" : "rgba(251, 113, 133, 0.5)"}`,
+                        borderBottom: `1px dashed ${z.bullish ? "rgba(52, 211, 153, 0.5)" : "rgba(251, 113, 133, 0.5)"}`,
+                        label: `FVG ${fmtPrice(z.bottom, symbol)}–${fmtPrice(z.top, symbol)}`,
+                        labelColor: z.bullish ? "rgba(52, 211, 153, 0.85)" : "rgba(251, 113, 133, 0.85)",
+                    },
+                });
+            }
+        }
+        if (layers.orderBlocks) {
+            for (const z of computeOrderBlocks(candles)) {
+                items.push({
+                    id: `ob_${z.startIdx}_${z.top}`,
+                    kind: "zone",
+                    fromTime: candles[z.startIdx]?.timestamp ?? lastTime,
+                    toTime: rightEdge,
+                    top: z.top,
+                    bottom: z.bottom,
+                    style: {
+                        background: z.bullish ? "rgba(56, 189, 248, 0.10)" : "rgba(251, 146, 60, 0.10)",
+                        borderLeft: `2px solid ${z.bullish ? "rgba(56, 189, 248, 0.6)" : "rgba(251, 146, 60, 0.6)"}`,
+                        label: `OB`,
+                        labelColor: z.bullish ? "rgba(56, 189, 248, 0.9)" : "rgba(251, 146, 60, 0.9)",
+                    },
+                });
+            }
+        }
+        return items;
+    }, [candles, layers.fvg, layers.orderBlocks, intervalMs, symbol]);
 
     // ── Volume Profile side histogram (right-aligned horizontal bars) ────
-    // Pure positioned divs driven by the computed profile — zoom-safe because
-    // they map price→percent of the profile's own range, independent of the
-    // chart's price scale. Rendered only when the layer is on.
-    const profileHistogram = useMemo(() => {
+    // Market coordinates only (price range + volume fraction); the anchored
+    // overlay bridge converts them to screen pixels through the chart's own
+    // price scale on every frame, so the profile stays aligned with candles
+    // through pan, zoom, autoscale and resize.
+    const volumeProfileItems = useMemo<AnchoredItem[]>(() => {
         if (!layers.volumeProfile || !orderFlow.sessionProfile) return [];
         const p = orderFlow.sessionProfile;
         const maxVol = Math.max(...p.volumeByPrice.map((b) => b.volume), 1);
-        const range = p.volumeByPrice.length > 0
-            ? p.volumeByPrice[p.volumeByPrice.length - 1].high - p.volumeByPrice[0].low
-            : 0;
-        if (range <= 0) return [];
-        const min = p.volumeByPrice[0].low;
         // Downsample to at most 60 bars for rendering performance.
         const step = Math.max(1, Math.ceil(p.volumeByPrice.length / 60));
-        const out: Array<{ bottomPct: number; heightPct: number; widthPct: number; hvn: boolean; lvn: boolean; poc: boolean }> = [];
+        const out: AnchoredItem[] = [];
         for (let i = 0; i < p.volumeByPrice.length; i += step) {
             const b = p.volumeByPrice[i];
-            const bottomPct = ((b.low - min) / range) * 100;
-            const heightPct = ((b.high - b.low) / range) * 100;
-            const widthPct = (b.volume / maxVol) * 100;
             out.push({
-                bottomPct,
-                heightPct,
-                widthPct,
-                hvn: p.hvn.includes(b.price),
-                lvn: p.lvn.includes(b.price),
-                poc: b.price === p.poc,
+                id: `vp_${b.price}`,
+                kind: "hbar",
+                low: b.low,
+                high: b.high,
+                widthFrac: b.volume / maxVol,
+                style: {
+                    background: b.price === p.poc
+                        ? "rgba(245, 158, 11, 0.55)"
+                        : p.hvn.includes(b.price)
+                            ? "rgba(56, 189, 248, 0.30)"
+                            : p.lvn.includes(b.price)
+                                ? "rgba(148, 163, 184, 0.12)"
+                                : "rgba(100, 116, 139, 0.22)",
+                    ...(b.price === p.poc ? { borderRight: "2px solid #f59e0b" } : {}),
+                },
             });
         }
         return out;
     }, [layers.volumeProfile, orderFlow.sessionProfile]);
+
+    // Push the anchored item set into the coordinate bridge (data changes
+    // only touch market coordinates; pixel geometry re-syncs on viewport/resize changes).
+    useEffect(() => {
+        const overlay = anchoredOverlayRef.current;
+        if (!overlay) return;
+        overlay.setItems([...zoneItems, ...volumeProfileItems]);
+    }, [zoneItems, volumeProfileItems]);
 
     // ── Math-indicator layers ────────────────────────────────────────
     // Every layer is computed with the same deterministic TA the Pine
@@ -1214,7 +1356,7 @@ export function ProTerminalChart({
                 stPaneOwnedRef.current = null;
             }
         } else if (!stSeriesRef.current) {
-            const [stLine, stDir] = TA.supertrend(
+            const [, stDir] = TA.supertrend(
                 candles.map((c) => c.high),
                 candles.map((c) => c.low),
                 candles.map((c) => c.close),
@@ -1297,7 +1439,19 @@ export function ProTerminalChart({
                 rsiPaneOwnedRef.current = null;
             }
             const rsi = addHiddenLine(chart, paneIndex, "#c084fc");
-            rsiSeriesRef.current = { rsi, pane: paneIndex, lines: [] };
+            // 30/70 guides are part of the layer itself — created once with
+            // the series, never recreated per tick.
+            const guides = [30, 70].map((v) =>
+                rsi.createPriceLine({
+                    price: v,
+                    color: "rgba(148, 163, 184, 0.6)",
+                    lineWidth: 1,
+                    lineStyle: LineStyle.Dashed,
+                    axisLabelVisible: false,
+                    title: `RSI ${v}`,
+                })
+            );
+            rsiSeriesRef.current = { rsi, pane: paneIndex, lines: guides };
         }
 
         // ── Estimated delta pane (histogram + cumulative line) ──
@@ -1440,26 +1594,6 @@ export function ProTerminalChart({
         if (rsiSeriesRef.current) {
             const rsiVals = TA.rsi(closes, 14);
             feedSeries(rsiSeriesRef.current.rsi, candles, rsiVals);
-            const paneApi = rsiSeriesRef.current.pane !== null ? chartRef.current?.panes()[rsiSeriesRef.current.pane] : undefined;
-            if (paneApi) {
-                for (const l of rsiSeriesRef.current.lines) {
-                    try {
-                        rsiSeriesRef.current.rsi.removePriceLine(l);
-                    } catch {
-                        // already gone
-                    }
-                }
-                rsiSeriesRef.current.lines = [30, 70].map((v) =>
-                    rsiSeriesRef.current!.rsi.createPriceLine({
-                        price: v,
-                        color: "rgba(148, 163, 184, 0.6)",
-                        lineWidth: 1,
-                        lineStyle: LineStyle.Dashed,
-                        axisLabelVisible: false,
-                        title: `RSI ${v}`,
-                    })
-                );
-            }
         }
         if (macdSeriesRef.current) {
             const [macdLine, signalLine] = TA.macd(closes, 12, 26, 9);
@@ -1627,15 +1761,20 @@ export function ProTerminalChart({
     }, [layers.gex, orderFlow.gex, orderFlow.settings.gexShowWalls, orderFlow.settings.gexShowGammaFlip]);
 
     // ── historical scrolling (Phase 3) ────────────────────────────────────
-    // Scrolling toward the left edge of the loaded window prepends one older
-    // page; the viewport is preserved by lightweight-charts logical-range
-    // anchoring (bar indices shift, screen position does not).
-    const handleEdgeHistoryLoad = useCallback(() => {
-        if (!hasMoreHistory || olderLoading) return;
-        setOlderLoading(true);
-        void loadOlder().finally(() => setOlderLoading(false));
+    // The chart's visible-range handler calls this when the user pans within
+    // HISTORY_LOAD_THRESHOLD_BARS of the loaded window's left edge. The
+    // engine dedupes in-flight requests; the prepended page is viewport-
+    // compensated in the data-push effect so candles do not shift on screen.
+    useEffect(() => {
+        olderPageRequestRef.current = () => {
+            if (!hasMoreHistory || olderLoading) return;
+            setOlderLoading(true);
+            void loadOlder().finally(() => setOlderLoading(false));
+        };
+        return () => {
+            olderPageRequestRef.current = null;
+        };
     }, [hasMoreHistory, olderLoading, loadOlder]);
-    void handleEdgeHistoryLoad;
 
     // Go to Live: jump to the newest candle and re-enable following.
     const handleGoLive = useCallback(() => {
@@ -1674,9 +1813,27 @@ export function ProTerminalChart({
                     ) : (
                         <>
                             {candles.length} bars · /api/analytics/ohlc
-                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-emerald-500">
-                                <span className="inline-block h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />
-                                live
+                            <span className={cn(
+                                "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-bold uppercase",
+                                quality === "live" && connection === "live"
+                                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
+                                    : quality === "market_closed"
+                                        ? "border-slate-500/30 bg-slate-500/10 text-slate-400"
+                                        : quality === "delayed" || connection === "reconnecting"
+                                            ? "border-amber-500/30 bg-amber-500/10 text-amber-500"
+                                            : "border-border bg-background text-muted-foreground",
+                            )}>
+                                <span className={cn(
+                                    "inline-block h-1 w-1 rounded-full",
+                                    quality === "live" && connection === "live" ? "bg-emerald-500 animate-pulse"
+                                        : quality === "delayed" || connection === "reconnecting" ? "bg-amber-500 animate-pulse"
+                                            : "bg-muted-foreground",
+                                )} />
+                                {quality === "live" && connection === "live" ? "live"
+                                    : quality === "market_closed" ? "market closed"
+                                        : quality === "delayed" ? "delayed"
+                                            : quality === "stale" || connection === "error" || connection === "reconnecting" ? "stale / reconnecting"
+                                                : "history"}
                             </span>
                         </>
                     )}
@@ -1713,6 +1870,14 @@ export function ProTerminalChart({
 
             <div className="relative" style={{ height }}>
                 <div ref={containerRef} className="absolute inset-0" />
+
+                {/* Progressive-history status — left edge (Phase 3) */}
+                {olderLoading ? (
+                    <div className="pointer-events-none absolute bottom-3 left-3 z-20 inline-flex items-center gap-1.5 rounded-full border border-border/40 bg-background/90 px-2 py-0.5 text-[10px] font-medium text-muted-foreground backdrop-blur-sm">
+                        <span className="inline-block h-1 w-1 animate-pulse rounded-full bg-primary" aria-hidden />
+                        Loading older history…
+                    </div>
+                ) : null}
 
                 {/* Go-to-Live chip — visible only when the user scrolled away */}
                 {showGoLive ? (
@@ -1763,31 +1928,6 @@ export function ProTerminalChart({
                     </div>
                 ) : null}
 
-                {/* Order Flow: volume-profile histogram (right-aligned) */}
-                {layers.volumeProfile && profileHistogram.length > 0 ? (
-                    <div className="pointer-events-none absolute inset-y-0 right-0 z-[5] flex w-[18%] flex-col justify-end">
-                        {profileHistogram.map((b, i) => (
-                            <div
-                                key={`vp_${i}`}
-                                className="absolute right-0"
-                                style={{
-                                    bottom: `${b.bottomPct}%`,
-                                    height: `${Math.max(b.heightPct, 0.15)}%`,
-                                    width: `${b.widthPct}%`,
-                                    background: b.poc
-                                        ? "rgba(245, 158, 11, 0.55)"
-                                        : b.hvn
-                                            ? "rgba(56, 189, 248, 0.30)"
-                                            : b.lvn
-                                                ? "rgba(148, 163, 184, 0.12)"
-                                                : "rgba(100, 116, 139, 0.22)",
-                                    ...(b.poc ? { borderRight: "2px solid #f59e0b" } : {}),
-                                }}
-                            />
-                        ))}
-                    </div>
-                ) : null}
-
                 {/* Order Flow: data-quality + capability chip */}
                 {orderFlow.enabled && orderFlow.context ? (
                     <div
@@ -1806,43 +1946,6 @@ export function ProTerminalChart({
                         title={`ESTIMATED — ${orderFlow.estimatedDelta.method}: candle volume signed by bar direction. NOT bid/ask delta; upgrades only with a trade-classified feed.`}
                     >
                         Δ ESTIMATED · {orderFlow.estimatedDelta.method}
-                    </div>
-                ) : null}
-
-                {/* Zone overlay (FVG / OB rectangles) */}
-                {showZones ? (
-                    <div className="pointer-events-none absolute inset-y-0 right-0" style={{ left: "22%" }}>
-                        {zones.fvg.map((z, i) => (
-                            <div
-                                key={`fvg_${i}`}
-                                className="absolute"
-                                style={{
-                                    top: `${z.topPct}%`,
-                                    height: `${Math.max(z.heightPct, 0.4)}%`,
-                                    left: `${z.leftPct}%`,
-                                    width: `${z.widthPct}%`,
-                                    background: z.color,
-                                    borderTop: `1px dashed ${z.bullish ? "rgba(52, 211, 153, 0.5)" : "rgba(251, 113, 133, 0.5)"}`,
-                                    borderBottom: `1px dashed ${z.bullish ? "rgba(52, 211, 153, 0.5)" : "rgba(251, 113, 133, 0.5)"}`,
-                                }}
-                                title={`FVG ${z.fromPrice}–${z.toPrice}`}
-                            />
-                        ))}
-                        {zones.ob.map((z, i) => (
-                            <div
-                                key={`ob_${i}`}
-                                className="absolute"
-                                style={{
-                                    top: `${z.topPct}%`,
-                                    height: `${Math.max(z.heightPct, 0.4)}%`,
-                                    left: `${z.leftPct}%`,
-                                    width: `${z.widthPct}%`,
-                                    background: z.color,
-                                    borderLeft: `2px solid ${z.bullish ? "rgba(56, 189, 248, 0.6)" : "rgba(251, 146, 60, 0.6)"}`,
-                                }}
-                                title={`Order block ${z.fromPrice}–${z.toPrice}`}
-                            />
-                        ))}
                     </div>
                 ) : null}
 
@@ -1867,9 +1970,8 @@ export function ProTerminalChart({
 function symbolPrecision(symbol: string): number {
     const s = symbol.toUpperCase();
     if (s.endsWith("JPY")) return 3;
-    if (s === "XAUUSD") return 2;
     if (s === "XAGUSD") return 3;
     if (["BTCUSD", "ETHUSD"].includes(s)) return 1;
-    const v = s.length === 6 || ["US30", "NAS100", "SPX500"].includes(s) ? 2 : 2;
-    return v;
+    // Forex, metals, indices: 2 decimals (matches the feed's quote precision).
+    return 2;
 }

@@ -22,6 +22,11 @@ import {
   ExternalLink,
   ChevronRight,
   Command,
+  Activity,
+  MessageSquareText,
+  Globe2,
+  PencilLine,
+  XCircle,
 } from "lucide-react";
 import type { CommandId, CommandSpec } from "@/types/pro";
 
@@ -112,6 +117,41 @@ export const COMMANDS: CommandSpec[] = [
     keywords: ["research", "monte carlo", "oos", "walk forward", "engine"],
   },
   {
+    id: "show_open_positions",
+    label: "Show My Open Positions",
+    description: "Live positions reported by the connected execution gateway",
+    icon: "Activity",
+    keywords: ["positions", "open", "holdings", "pnl", "trade"],
+  },
+  {
+    id: "explain_position",
+    label: "Explain This Position",
+    description: "AI walkthrough of the open position on the active symbol",
+    icon: "MessageSquareText",
+    keywords: ["explain", "position", "why", "hold", "trade"],
+  },
+  {
+    id: "show_market_context",
+    label: "Show Current Market Context",
+    description: "Structure, liquidity, momentum and HTF context right now",
+    icon: "Globe2",
+    keywords: ["context", "market", "structure", "htf", "bias"],
+  },
+  {
+    id: "prepare_modification",
+    label: "Prepare a Position Modification",
+    description: "Prepare a stop/target change — execution stays behind your confirmation",
+    icon: "PencilLine",
+    keywords: ["modify", "stop", "target", "change", "position"],
+  },
+  {
+    id: "prepare_close",
+    label: "Prepare a Position Close",
+    description: "Prepare a close request — nothing is closed until you confirm",
+    icon: "XCircle",
+    keywords: ["close", "exit", "flatten", "position"],
+  },
+  {
     id: "open_algovault",
     label: "Open AlgoVault Command Center",
     description: "Launch the full Pro Command Center on the web platform",
@@ -133,6 +173,11 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   Cpu: <Cpu size={14} className="text-teal-400" />,
   FlaskConical: <FlaskConical size={14} className="text-pink-400" />,
   ExternalLink: <ExternalLink size={14} className="text-ink-mute" />,
+  Activity: <Activity size={14} className="text-cyan-400" />,
+  MessageSquareText: <MessageSquareText size={14} className="text-brand-400" />,
+  Globe2: <Globe2 size={14} className="text-sky-400" />,
+  PencilLine: <PencilLine size={14} className="text-amber-400" />,
+  XCircle: <XCircle size={14} className="text-rose-400" />,
 };
 
 export function CommandBar({ isOpen, onClose, symbol, timeframe, onExecute }: Props) {

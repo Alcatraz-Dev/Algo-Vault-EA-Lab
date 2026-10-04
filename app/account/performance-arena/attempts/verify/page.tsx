@@ -14,25 +14,28 @@ function VerifyContent() {
     const [status, setStatus] = useState<"verifying" | "success" | "error">("verifying");
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    const definitionId = searchParams.get("definitionId") || "";
     const orderId = searchParams.get("order") || "";
 
     const verifyAndStart = useCallback(async () => {
-        if (!token || !definitionId) return;
+        if (!token || !orderId) {
+            setStatus("error");
+            setErrorMsg("A signed-in account and checkout order reference are required. No challenge was started.");
+            return;
+        }
         setStatus("verifying");
         setErrorMsg(null);
 
         try {
-            const res = await fetch("/api/performance-arena/attempts", {
+            const res = await fetch("/api/performance-arena/attempts/verify", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ definitionId }),
+                body: JSON.stringify({ orderId }),
             });
 
-            const body = (await res.json()) as { attempt?: { id: string }; error?: string };
+            const body = (await res.json()) as { attempt?: { id: string }; error?: string; code?: string };
 
             if (res.ok && body.attempt?.id) {
                 setStatus("success");
@@ -41,22 +44,22 @@ function VerifyContent() {
                 }, 1200);
             } else {
                 setStatus("error");
-                setErrorMsg(body.error ?? "Verification in progress. Your payment is confirmed. Click below to start.");
+                setErrorMsg(body.error ?? "Payment is not yet verified. The challenge remains unavailable until Stripe confirms the purchase.");
             }
         } catch (err) {
             setStatus("error");
             setErrorMsg(err instanceof Error ? err.message : "Failed to verify challenge purchase.");
         }
-    }, [token, definitionId, router]);
+    }, [token, orderId, router]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (token && definitionId) {
+            if (token && orderId) {
                 void verifyAndStart();
             }
         }, 500);
         return () => clearTimeout(timer);
-    }, [token, definitionId, verifyAndStart]);
+    }, [token, orderId, verifyAndStart]);
 
     return (
         <div className="mx-auto max-w-lg space-y-6 rounded-xl border border-border bg-card p-8 text-center shadow-lg">
@@ -82,10 +85,10 @@ function VerifyContent() {
             {status === "error" && (
                 <div className="space-y-4 py-6">
                     <AlertCircle className="mx-auto h-12 w-12 text-amber-500" />
-                    <h2 className="text-xl font-semibold">Payment Received</h2>
+                    <h2 className="text-xl font-semibold">Challenge Not Yet Verified</h2>
                     <p className="text-sm text-muted-foreground">{errorMsg}</p>
                     <div className="flex justify-center gap-3 pt-4">
-                        <Button onClick={() => void verifyAndStart()}>Start Challenge Now</Button>
+                        <Button onClick={() => void verifyAndStart()}>Retry verification</Button>
                         <Button variant="outline" onClick={() => router.push("/account/performance-arena")}>
                             View Catalog
                         </Button>

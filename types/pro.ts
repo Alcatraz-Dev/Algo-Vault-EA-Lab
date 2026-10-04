@@ -41,6 +41,7 @@ export interface ProFeatureFlags {
     researchPipeline: boolean;
     aiOverlay: boolean;
     proCommandCenter: boolean;
+    tradingViewExecutionBridge: boolean;
 }
 
 /* ── TradingView MCP context (server-normalised) ────────────────────── */
@@ -310,7 +311,12 @@ export type CommandId =
     | "open_research"
     | "why_invalid"
     | "scan_symbol"
-    | "explain_indicators";
+    | "explain_indicators"
+    | "show_open_positions"
+    | "explain_position"
+    | "show_market_context"
+    | "prepare_modification"
+    | "prepare_close";
 
 export interface CommandSpec {
     id: CommandId;

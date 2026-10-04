@@ -19,6 +19,9 @@ export async function runExecutionTests(): Promise<boolean> {
     s.check(aapl?.typicalSpread === 0, "derived spec has zero spread (honest — no fake data)");
     s.check(arenaSymbolSpec("DOGEUSDT") === null, "unknown symbol → null");
     s.check(marketOfSymbol("BTCUSD") === "crypto" && marketOfSymbol("NAS100") === "indices", "market classification");
+    s.check(arenaSymbolSpec("SOLUSD")?.market === "crypto", "SOLUSD resolves to a configured crypto execution instrument");
+    s.check(arenaSymbolSpec("AAPL")?.contractSize === 1, "cash equities use one share per lot in the simulation contract");
+    s.check(arenaSymbolSpec("BTCUSD")?.minLot === 0.01 && arenaSymbolSpec("BTCUSD")?.lotStep === 0.01 && arenaSymbolSpec("BTCUSD")?.maxLot === 1, "BTC uses supported centi-lot storage increments and its configured maximum");
     s.check(contractSizeOf("EURUSD") === 100_000, "contractSizeOf fallback resolver");
 
     s.section("Fill computation");

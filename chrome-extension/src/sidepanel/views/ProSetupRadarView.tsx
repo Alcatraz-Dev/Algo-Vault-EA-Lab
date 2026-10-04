@@ -7,9 +7,11 @@
  * real calculation.
  *
  * Actions per setup card:
- *   Analyze → AI Copilot with setup context injected
- *   Backtest → handoff to existing AlgoVault backtesting engine
- *   Dismiss  → local hide (server record persists)
+ *   Analyze      → AI Copilot with setup context injected
+ *   Backtest     → handoff to existing AlgoVault backtesting engine
+ *   Research     → handoff to AlgoVault Strategy Research
+ *   Prepare Trade→ pre-fills the Execution Bridge trade ticket (no execution)
+ *   Dismiss      → local hide (server record persists)
  */
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
@@ -28,6 +30,8 @@ interface ProSetupRadarViewProps {
   marketContext?: unknown;
   /** Called when user wants to analyze a setup in the Copilot. */
   onAnalyzeSetup?: (setup: SetupRadarCard) => void;
+  /** Called when the user wants to prepare (never execute) a trade ticket. */
+  onPrepareTrade?: (setup: SetupRadarCard) => void;
 }
 
 const POLL_INTERVAL_MS = 60_000; // 1 min — setups don't change second-by-second
@@ -50,10 +54,11 @@ function DirIcon({ dir }: { dir: SetupDirection }) {
   return <Minus size={12} className="text-ink-faint" />;
 }
 
-function SetupCard({ setup, onAnalyze, onBacktest, onDismiss }: {
+function SetupCard({ setup, onAnalyze, onBacktest, onPrepareTrade, onDismiss }: {
   setup: SetupRadarCard;
   onAnalyze: (s: SetupRadarCard) => void;
   onBacktest: (s: SetupRadarCard) => void;
+  onPrepareTrade: (s: SetupRadarCard) => void;
   onDismiss: (id: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -172,6 +177,29 @@ function SetupCard({ setup, onAnalyze, onBacktest, onDismiss }: {
           Backtest
         </button>
       </div>
+
+      {/* research + trade preparation */}
+      <div className="border-t border-edge/50 flex">
+        <button
+          onClick={() =>
+            window.open(
+              `${getAlgoVaultUrl()}/strategy-research?symbol=${encodeURIComponent(setup.symbol)}`,
+              "_blank"
+            )
+          }
+          className="flex-1 flex items-center justify-center gap-1 py-1.5 text-[9px] text-ink-mute hover:text-ink hover:bg-raised/50 transition-colors"
+        >
+          <FlaskConical size={10} /> Research
+        </button>
+        <div className="w-px bg-edge/50" />
+        <button
+          onClick={() => onPrepareTrade(setup)}
+          className="flex-1 flex items-center justify-center gap-1 py-1.5 text-[9px] font-semibold text-brand-400 hover:text-brand-300 hover:bg-brand-500/10 transition-colors"
+          title="Prepare a trade ticket from this setup — nothing is executed until you confirm"
+        >
+          <ArrowRight size={10} /> Prepare Trade
+        </button>
+      </div>
     </article>
   );
 }
@@ -182,6 +210,7 @@ export function ProSetupRadarView({
   chartContext,
   marketContext,
   onAnalyzeSetup,
+  onPrepareTrade,
 }: ProSetupRadarViewProps) {
   const [setups, setSetups] = useState<SetupRadarCard[]>([]);
   const [loading, setLoading] = useState(true);
@@ -219,6 +248,10 @@ export function ProSetupRadarView({
   const handleAnalyze = useCallback((setup: SetupRadarCard) => {
     onAnalyzeSetup?.(setup);
   }, [onAnalyzeSetup]);
+
+  const handlePrepareTrade = useCallback((setup: SetupRadarCard) => {
+    onPrepareTrade?.(setup);
+  }, [onPrepareTrade]);
 
   const handleBacktest = useCallback(async (setup: SetupRadarCard) => {
     // No-op here — handled inside SetupCard
@@ -295,6 +328,7 @@ export function ProSetupRadarView({
             setup={setup}
             onAnalyze={handleAnalyze}
             onBacktest={handleBacktest}
+            onPrepareTrade={handlePrepareTrade}
             onDismiss={handleDismiss}
           />
         ))}

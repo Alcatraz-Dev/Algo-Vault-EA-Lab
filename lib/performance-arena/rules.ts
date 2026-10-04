@@ -375,7 +375,9 @@ export function evaluatePreTrade(input: PreTradeInput): PreTradeResult {
 
     // ── Market / symbol / session ───────────────────────────────────────────
     const market = marketOfSymbol(symbol);
-    if (!market || !policy.allowedMarkets.includes(market)) {
+    const allowedMarket = market !== null && policy.allowedMarkets.includes(market);
+    const allowedSymbol = policy.allowedSymbols === "all" || policy.allowedSymbols.map((s) => s.toUpperCase()).includes(symbol.toUpperCase());
+    if (!market || !allowedMarket) {
         violations.push(
             mk({
                 ruleId: "MARKET_ALLOWED",
@@ -387,7 +389,7 @@ export function evaluatePreTrade(input: PreTradeInput): PreTradeResult {
                 message: `Market "${market ?? symbol}" is not allowed in this challenge. Allowed: ${policy.allowedMarkets.join(", ")}.`,
             })
         );
-    } else if (policy.allowedSymbols !== "all" && !policy.allowedSymbols.map((s) => s.toUpperCase()).includes(symbol.toUpperCase())) {
+    } else if (!allowedSymbol) {
         violations.push(
             mk({
                 ruleId: "SYMBOL_ALLOWED",
@@ -401,22 +403,20 @@ export function evaluatePreTrade(input: PreTradeInput): PreTradeResult {
         );
     }
 
-    if (!marketOpen) {
+    const isCryptoMarket = market === "crypto";
+    if (!isCryptoMarket && policy.weekendTrading === "blocked" && marketOpen === false) {
         violations.push(
             mk({
-                ruleId: policy.weekendTrading === "blocked" ? "WEEKEND_TRADING" : "SESSION_ALLOWED",
+                ruleId: "WEEKEND_TRADING",
                 type: "TRADING_HOURS_VIOLATION",
                 currentValue: 0,
                 threshold: 1,
                 percentageUsed: 100,
                 unit: "count",
-                message:
-                    policy.weekendTrading === "blocked"
-                        ? "Market is closed (weekend) and weekend trading is blocked for this challenge."
-                        : "Market is currently closed — simulated fills require a live quote.",
+                message: "Market is closed (weekend) and weekend trading is blocked for this challenge.",
             })
         );
-    } else if (policy.allowedSessions !== "all") {
+    } else if (!isCryptoMarket && marketOpen && policy.allowedSessions !== "all") {
         if (!session || session === "closed" || !policy.allowedSessions.includes(session as never)) {
             violations.push(
                 mk({
@@ -432,13 +432,14 @@ export function evaluatePreTrade(input: PreTradeInput): PreTradeResult {
         }
     }
 
-    if (policy.tradingHours !== "all") {
+    if (!isCryptoMarket && policy.tradingHours !== "all") {
         const hour = new Date(now).getUTCHours();
         const { startUtcHour, endUtcHour } = policy.tradingHours;
-        const inWindow =
+        const inWindow = marketOpen !== false && (
             startUtcHour < endUtcHour
                 ? hour >= startUtcHour && hour < endUtcHour
-                : hour >= startUtcHour || hour < endUtcHour;
+                : hour >= startUtcHour || hour < endUtcHour
+        );
         if (!inWindow) {
             violations.push(
                 mk({

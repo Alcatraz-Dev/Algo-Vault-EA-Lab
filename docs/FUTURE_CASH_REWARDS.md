@@ -24,24 +24,25 @@ activation.
 ## 2. The server-side gate (implemented and tested)
 
 ```
-CASH_REWARDS_ENABLED = false        # env var, server-only, default false
+CASH_REWARDS_ENABLED = false        # reported configuration key; hard server invariant
 ```
 
-- Read exclusively by `lib/performance-arena/flags.ts` →
-  `isCashRewardsEnabled()`.
+- `lib/performance-arena/flags.ts` → `isCashRewardsEnabled()` currently returns
+  constant `false`. The environment variable name is documented for deployment
+  hygiene but is deliberately ignored by the current code: setting it to true
+  cannot enable a monetary path.
 - There is **no RTDB key**, **no admin endpoint**, and **no request body field**
   that can change it. Admin API explicitly rejects `CASH` reward grants with
   `403 CASH_REWARDS_DISABLED`.
 - `POST /api/performance-arena/payouts` delegates to
   `lib/performance-arena/payout.ts` → `requestCashReward()`, which:
-  1. rejects `CASH_REWARDS_DISABLED` while the flag is off (checked FIRST,
-     before any payload validation — a forged/malformed request changes
-     nothing), and
-  2. still rejects `NO_PAYOUT_PROVIDER` when the flag is on, because **no
-     payout provider is registered in this codebase**.
+  1. always rejects `CASH_REWARDS_DISABLED` before any payload validation —
+     forged/malformed requests and environment overrides change nothing.
+- The provider registry is empty and cannot be reached through any user/admin
+  API. No payout request, withdrawal or cash redemption is supported.
 - Tested invariant (`npm run test:arena` → `cash-invariant` suite): no user
-  can cause a cash reward to be issued while the flag is false, even with a
-  fully forged eligibility object; and even flag=true cannot produce a payout.
+  can cause a cash reward to be issued even when attempting to override the
+  documented environment flag with `true`, including with forged eligibility.
 
 ## 3. Implemented architecture seams (no live flow)
 
@@ -94,11 +95,10 @@ step is an adapter to be added later.
    - `npm run test:arena` (cash-invariant suite must be updated deliberately),
    - security review of the new route,
    - load/abuse testing of eligibility + rate limits.
-8. **Deployment safeguards** — set `CASH_REWARDS_ENABLED=true` only via
-   controlled infrastructure config with review; keep the flag out of any
-   admin UI permanently; consider a second independent server-side guard
-   (e.g. separate env var for provider registration) so a single mistaken
-   variable cannot enable payouts.
+8. **Deployment safeguards** — do not enable payouts by setting an environment
+   value. A future implementation must replace the hard false in code only in
+   a reviewed change, retain a second independent server-side guard, and keep
+   any activation controls out of normal admin UI.
 9. **Terms & UX** — rewrite reward terms, disclosures and disclaimers for
    monetary programs; remove any ambiguity that virtual performance converts
    to money.

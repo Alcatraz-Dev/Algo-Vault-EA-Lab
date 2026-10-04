@@ -66,6 +66,7 @@ import { ProTerminalJournal } from "./ProTerminalJournal";
 import { ProTerminalChart } from "./ProTerminalChart";
 import { ProTradingViewContextPanel, type TradingViewContextPayload } from "./ProTradingViewContextPanel";
 import { parseTrades, type TerminalTrade } from "./terminal-utils";
+import { IntelligencePanel, type TerminalIntelligencePayload } from "./IntelligencePanel";
 
 type RadarPayload = { radar: RadarResult; invalid?: string[] };
 type AnalysisPayload = { analysis: AdvancedAnalysisResult; fetchErrors?: Array<{ timeframe: string; reason: string }> };
@@ -126,6 +127,14 @@ export function ProScalpingTerminal() {
     const tvContextUrl = token ? `/api/integrations/tradingview/context?symbol=${symbol}&timeframe=${timeframe}&mode=scalping&t=${tvCacheTick}` : null;
     const tvContext = useThrottledAuthedFetch<{ success: boolean; tradingview: TradingViewContextPayload }>(tvContextUrl, { minIntervalMs: 120000, enabled: !!token });
     const tvContextPayload = tvContext.data?.success ? tvContext.data.tradingview : null;
+
+    // ── Unified Intelligence Fabric (slow-poll, Pro-gated, fail-open) ──────
+    // AI confidence/Jev/decision-state panel. The fabric is strictly additive:
+    // deterministic panels above are untouched and keep working when this is
+    // unavailable. Polls at 60s — the decision layer is slower by design.
+    const intelligenceTick = Math.floor(now / 60000);
+    const intelligenceUrl = token ? `/api/scalping/intelligence?symbol=${symbol}&timeframe=${timeframe}&t=${intelligenceTick}` : null;
+    const intelligence = useThrottledAuthedFetch<TerminalIntelligencePayload>(intelligenceUrl, { minIntervalMs: 60000, enabled: !!token });
 
     const accessError = [radar.error, analysis.error, signals.error].find((e) => e && /license|subscription|plan|access/i.test(e));
 
@@ -434,6 +443,11 @@ export function ProScalpingTerminal() {
                         onSelectSymbol={setSymbol}
                     />
                     <OrderFlowPanel orderFlow={orderFlow} symbol={symbol} />
+                    <IntelligencePanel
+                        payload={intelligence.data ?? null}
+                        loading={intelligence.loading}
+                        pro={!intelligence.error || !/PRO_REQUIRED|UNAUTHENTICATED|403|401/.test(intelligence.error)}
+                    />
                     <SignalsMiniPanel
                         signals={signals.data?.signals ?? []}
                         rejected={signals.data?.rejected ?? []}
@@ -460,10 +474,12 @@ export function ProScalpingTerminal() {
             </div>
 
             <p className="text-[10px] leading-4 text-muted-foreground">
-                All measurements come from the AlgoVault market-data and analytics engines; the terminal makes no AI model calls.
-                Signals are produced by the deterministic scanner only when its confidence and R:R gates pass. Analytics use only
-                your own journal entries. TradingView context (when connected) is external research context only — it may be
-                delayed and is never used for execution. Nothing here is financial advice.
+                All measurements come from the AlgoVault market-data and analytics engines. Signals are produced by the
+                deterministic scanner only when its confidence and R:R gates pass; the Intelligence panel adds an AI-driven
+                decision state and Jev validation over those same deterministic facts — it never executes trades and never
+                overrides the risk engine. Analytics use only your own journal entries. TradingView context (when connected)
+                is external research context only — it may be delayed and is never used for execution. Nothing here is
+                financial advice.
             </p>
         </div>
     );

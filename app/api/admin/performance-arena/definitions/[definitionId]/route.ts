@@ -23,6 +23,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         const body = (await request.json().catch(() => null)) as Partial<ChallengeDefinition> | null;
         if (!body) return NextResponse.json({ error: "JSON body required." }, { status: 400, headers });
 
+        const now = Date.now();
         const next: ChallengeDefinition = {
             ...existing,
             ...(body.name !== undefined ? { name: body.name } : {}),
@@ -33,7 +34,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             ...(body.rewardPolicyId !== undefined ? { rewardPolicyId: body.rewardPolicyId } : {}),
             ...(body.status !== undefined ? { status: body.status } : {}),
             ...(body.enabled !== undefined ? { enabled: Boolean(body.enabled) } : {}),
-            updatedAt: Date.now(),
+            ...(body.access === undefined
+                ? {}
+                : body.access.model === "paid" && Number.isSafeInteger(body.access.priceCents) && (body.access.priceCents ?? 0) > 0
+                    ? { paidBillingConfiguredAt: existing.paidBillingConfiguredAt ? existing.paidBillingConfiguredAt : now }
+                    : body.access.model === "paid" && body.access.priceCents === undefined
+                        ? {}
+                        : { paidBillingConfiguredAt: 0 }),
+            updatedAt: now,
             version: existing.version + (body.policy ? 1 : 0),
         };
 
@@ -42,6 +50,16 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
             return NextResponse.json({ error: "Invalid update.", errors: validation.errors }, { status: 422, headers });
         }
 
+        if (next.access.model === "paid" && next.paidBillingConfiguredAt) {
+            const priorPrice = existing.access.model === "paid" ? existing.access.priceCents : undefined;
+            const priorCurrency = existing.access.model === "paid" ? existing.access.currency ?? "usd" : "usd";
+            if (priorPrice !== next.access.priceCents || priorCurrency.toLowerCase() !== (next.access.currency ?? "usd").toLowerCase()) {
+                // Checkout/payment binding must never silently change underneath
+                // an in-flight session. Re-activation requires a new explicit
+                // admin configuration edit after the price mutation.
+                next.paidBillingConfiguredAt = 0;
+            }
+        }
         await saveDefinition(next);
         return NextResponse.json({ definition: next }, { headers });
     } catch (error) {

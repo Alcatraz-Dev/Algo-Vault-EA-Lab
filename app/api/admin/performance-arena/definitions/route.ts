@@ -51,6 +51,9 @@ export async function POST(request: NextRequest) {
             createdAt: now,
             updatedAt: now,
             createdBy: token.uid,
+            ...(body.access.model === "paid" && Number.isSafeInteger(body.access.priceCents) && (body.access.priceCents ?? 0) > 0
+                ? { paidBillingConfiguredAt: now }
+                : {}),
         };
 
         const validation = validateDefinition(candidate);

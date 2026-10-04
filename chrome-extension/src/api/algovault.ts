@@ -79,6 +79,13 @@ export async function getGatewayStatus(): Promise<GatewayStatus> {
       balance?: number;
       equity?: number;
       currency?: string;
+      margin?: number;
+      freeMargin?: number;
+      marginLevel?: number;
+      positionsCount?: number;
+      pendingOrdersCount?: number;
+      status?: string;
+      lastHeartbeatAt?: number;
     }>;
     license?: { valid?: boolean };
   }>("/api/trading/gateway/status");
@@ -92,9 +99,47 @@ export async function getGatewayStatus(): Promise<GatewayStatus> {
       balance: a.balance ?? 0,
       equity: a.equity ?? 0,
       currency: a.currency || "",
+      margin: a.margin,
+      freeMargin: a.freeMargin,
+      marginLevel: a.marginLevel,
+      positionsCount: a.positionsCount,
+      pendingOrdersCount: a.pendingOrdersCount,
+      status: a.status,
+      lastHeartbeatAt: a.lastHeartbeatAt,
     })),
     licenseValid: data.license?.valid ?? false,
   };
+}
+
+/** Raw order-request rows as stored by /api/trading/orders (real gateway
+ *  lifecycle: queued → executing → filled / partially_filled / rejected /
+ *  failed). Used by the Execution Bridge for pending orders + history. */
+export interface OrderRequestRow {
+  clientOrderId: string;
+  accountId?: string;
+  symbol?: string;
+  action?: string;
+  volume?: number;
+  price?: number | null;
+  sl?: number | null;
+  tp?: number | null;
+  status?: string;
+  errorMessage?: string | null;
+  errorCode?: number | null;
+  mt5Ticket?: string | null;
+  executionPrice?: number | null;
+  createdAt?: number;
+  executedAt?: number | null;
+  updatedAt?: number | null;
+}
+
+export async function listOrderRequests(accountId?: string): Promise<OrderRequestRow[]> {
+  const params = new URLSearchParams();
+  if (accountId) params.set("accountId", accountId);
+  const data = await apiGet<{ orders?: OrderRequestRow[] }>(
+    `/api/trading/orders?${params.toString()}`
+  );
+  return Array.isArray(data.orders) ? data.orders : [];
 }
 
 export async function getOHLCData(

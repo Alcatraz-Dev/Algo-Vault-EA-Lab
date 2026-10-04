@@ -90,9 +90,10 @@ export default function ChallengeDetailPage() {
         }
     };
 
-    const priceText = detail?.definition.access.priceCents
-        ? `$${(detail.definition.access.priceCents / 100).toFixed(2)}`
-        : "$29.00";
+    const priceText = detail && Number.isSafeInteger(detail.definition.access.priceCents) && (detail.definition.access.priceCents ?? 0) > 0
+        ? new Intl.NumberFormat(undefined, { style: "currency", currency: detail.definition.access.currency?.toUpperCase() ?? "USD" }).format((detail.definition.access.priceCents ?? 0) / 100)
+        : null;
+    const purchaseUnavailable = detail?.definition.access.model === "paid" && (!priceText || detail.access.reason === "Paid challenges are not available yet.");
 
     return (
         <AppShell navGroups={navGroups} title="Challenge details" eyebrow={<SimulatedBadge />} maxWidth="max-w-5xl">
@@ -151,13 +152,13 @@ export default function ChallengeDetailPage() {
                                 {detail.activeAttemptId ? (
                                     <Button onClick={() => router.push(`/account/performance-arena/attempts/${detail.activeAttemptId}`)}>Continue attempt</Button>
                                 ) : (
-                                    <Button disabled={joining} onClick={() => void join()}>
+                                    <Button disabled={joining || purchaseUnavailable} onClick={() => void join()}>
                                         {joining
                                             ? "Processing…"
                                             : detail.access.allowed
                                             ? "Join challenge"
                                             : detail.definition.access.model === "paid"
-                                            ? `Buy Challenge (${priceText})`
+                                            ? priceText ? `Buy Challenge (${priceText})` : "Price not configured"
                                             : "Locked"}
                                     </Button>
                                 )}
