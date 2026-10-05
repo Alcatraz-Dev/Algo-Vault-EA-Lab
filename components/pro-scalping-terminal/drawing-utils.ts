@@ -21,6 +21,7 @@ import type { DrawingItem, DrawingTool } from "./ProTerminalChart";
 /** Tools whose prices snap to candle OHLC when the magnet is on. */
 export const MAGNET_TOOLS: ReadonlySet<DrawingTool> = new Set<DrawingTool>([
     "trendline",
+    "arrow",
     "ray",
     "horizontal",
     "fibo",
@@ -103,6 +104,7 @@ export function hitTestDrawing(
         case "vertical":
             return Math.abs(x - g.x1) <= threshold;
         case "trendline":
+        case "arrow":
         case "ray":
         case "ruler":
             return distToSegment(x, y, g.x1, g.y1, g.x2, g.y2) <= threshold;
@@ -149,6 +151,27 @@ export function hitTestDrawing(
 
 export function removeDrawingById(list: DrawingItem[], id: string): DrawingItem[] {
     return list.filter((d) => d.id !== id);
+}
+
+/**
+ * Translate a drawing in market coordinates. Pointer pixels never become
+ * stored state: the caller resolves the pointer's start/end through the
+ * chart's time/price transforms and passes those market-coordinate deltas.
+ */
+export function translateDrawingByMarketDelta(
+    drawing: DrawingItem,
+    deltaTimeMs: number,
+    deltaPrice: number,
+): DrawingItem {
+    if (!Number.isFinite(deltaTimeMs) || !Number.isFinite(deltaPrice)) return drawing;
+    return {
+        ...drawing,
+        points: drawing.points.map((point) => ({
+            ...point,
+            ...(point.time !== undefined ? { time: point.time + deltaTimeMs } : {}),
+            price: point.price + deltaPrice,
+        })),
+    };
 }
 
 /** Undo: drop the most recently placed drawing (no-op on an empty list). */

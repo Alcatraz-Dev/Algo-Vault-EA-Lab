@@ -24,7 +24,9 @@ import {
     LineChart,
     TrendingUp,
     Activity,
+    ArrowUpRight,
     MousePointer,
+    Move,
     TrendingUp as TrendlineIcon,
     Minus,
     Split,
@@ -106,7 +108,9 @@ const CHART_TYPES: Array<{ id: ChartType; label: string; icon: LucideIcon }> = [
 
 const DRAWING_TOOLS: Array<{ id: DrawingTool; label: string; icon: LucideIcon }> = [
     { id: "select", label: "Pointer / Select", icon: MousePointer },
+    { id: "hand", label: "Drag / Move", icon: Move },
     { id: "trendline", label: "Trendline", icon: TrendlineIcon },
+    { id: "arrow", label: "Arrow", icon: ArrowUpRight },
     { id: "horizontal", label: "Horizontal Line", icon: Minus },
     { id: "vertical", label: "Vertical Line", icon: Split },
     { id: "fibo", label: "Fibonacci Retracement", icon: Activity },
@@ -137,6 +141,7 @@ const COLOR_ROWS: Array<{ label: string; key: keyof ChartSettings["colors"] }> =
     { label: "Take profit", key: "tpLine" },
     { label: "Pending order", key: "pendingLine" },
     { label: "AI draw", key: "aiLine" },
+    { label: "Bar close countdown", key: "countdownLine" },
 ];
 
 const DISPLAY_ROWS: Array<{ label: string; key: keyof ChartSettings["display"]; hint: string }> = [
@@ -148,6 +153,7 @@ const DISPLAY_ROWS: Array<{ label: string; key: keyof ChartSettings["display"]; 
     { label: "Auto-scale", key: "autoScale", hint: "Price axis keeps fitting the visible range" },
     { label: "Free movement", key: "freeMove", hint: "Drag the chart in any direction, wheel/pinch zoom" },
     { label: "Magnet", key: "magnet", hint: "Snap drawing prices to the candle under the cursor (open/high/low/close)" },
+    { label: "Bar close countdown", key: "showBarCloseCountdown", hint: "Show a countdown timer for the next bar close" },
 ];
 
 /** `type="color"` needs a #hex value; presets may hold rgba() strings. */

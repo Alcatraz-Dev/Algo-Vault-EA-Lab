@@ -69,7 +69,8 @@ export const APP_NAV: NavGroup[] = [
   {
     label: "Trading",
     items: [
-      { href: "/account/trading", label: "Terminal", icon: Terminal, pro: true },
+      { href: "/account/terminal", label: "Terminal", icon: Terminal, pro: true },
+      { href: "/account/trading", label: "Live Trading", icon: Terminal, pro: true },
       { href: "/trade-management", label: "Trade Management", icon: Layers, pro: true },
       { href: "/execution-analytics", label: "Execution Analytics", icon: Gauge, pro: true },
       { href: "/trade-journal", label: "Trade Journal", icon: ScrollText },

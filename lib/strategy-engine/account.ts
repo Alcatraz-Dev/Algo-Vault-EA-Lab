@@ -20,9 +20,15 @@ export interface CreateAccountInput {
 
 export function createAccount(input: CreateAccountInput): AccountState {
     const balance = input.balance + (input.deposit ?? 0);
+    if (!Number.isFinite(balance) || balance < 0 || !Number.isFinite(input.now)) {
+        throw new Error("Account balance and timestamp must be finite and balance cannot be negative.");
+    }
     return {
         id: input.id,
         environment: input.environment,
+        mode: input.environment === "live" ? "LIVE" : "SIMULATOR",
+        provider: input.environment === "paper" || input.environment === "replay" || input.environment === "backtest" || input.environment === "chart" ? "SIMULATOR" : "UNKNOWN",
+        status: "ACTIVE",
         balance,
         equity: balance,
         peakEquity: balance,
@@ -33,6 +39,7 @@ export function createAccount(input: CreateAccountInput): AccountState {
         exposure: 0,
         dailyPnL: 0,
         dailyPnLDate: dayKey(input.now),
+        dailyStartBalance: balance,
         drawdownAbs: 0,
         drawdownPct: 0,
         consecutiveLosses: 0,
@@ -53,7 +60,8 @@ export function dayKey(timestamp: number): string {
 export function rollDay(account: AccountState, now: number): AccountState {
     const key = dayKey(now);
     if (key === account.dailyPnLDate) return account;
-    return { ...account, dailyPnLDate: key, dailyPnL: 0 };
+    const dayStartBalance = account.balance;
+    return { ...account, dailyPnLDate: key, dailyPnL: 0, dailyStartBalance: dayStartBalance };
 }
 
 /** Apply a realized P&L (trade closed) to the account. */
@@ -73,6 +81,10 @@ export interface MarkInput {
     /** Mark price per symbol (open positions only). */
     priceOf: (symbol: string, side: "LONG" | "SHORT") => number;
     contractSizes: Record<string, number>;
+    /** Optional symbol-specific P&L conversion for instrument tick/pip values. */
+    pnlOf?: (move: number, quantity: number, symbol: string) => number;
+    /** Optional contract size for account exposure and margin. */
+    contractSizeOf?: (symbol: string) => number;
 }
 
 /** Mark-to-market: equity, drawdown, exposure, margin. */
@@ -86,10 +98,13 @@ export function markAccount(account: AccountState, input: MarkInput, now: number
         if (pos.status !== "open") continue;
         const price = input.priceOf(pos.symbol, pos.side);
         const move = pos.side === "LONG" ? price - pos.entryPrice : pos.entryPrice - price;
-        const contract = input.contractSizes[pos.symbol] ?? 100;
-        unrealized += move * pos.remainingQuantity * contract;
-        exposure += price * pos.remainingQuantity * contract;
-        usedMargin += price * pos.remainingQuantity * contract; // 1:1 margin assumption (documented)
+        const contract = input.contractSizeOf?.(pos.symbol) ?? input.contractSizes[pos.symbol] ?? 100;
+        unrealized += input.pnlOf
+            ? input.pnlOf(move, pos.remainingQuantity, pos.symbol)
+            : move * pos.remainingQuantity * contract;
+        const positionValue = price * pos.remainingQuantity * contract;
+        exposure += positionValue;
+        usedMargin += positionValue / (account.leverage && account.leverage > 0 ? account.leverage : 1); // explicit leverage or documented conservative 1:1 assumption
     }
 
     next.unrealizedPnL = round2(unrealized);

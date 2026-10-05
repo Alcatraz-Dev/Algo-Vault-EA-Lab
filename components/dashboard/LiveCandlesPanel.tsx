@@ -25,6 +25,25 @@ const UP_VOLUME = "rgba(38, 166, 154, 0.28)";
 const DOWN_VOLUME = "rgba(239, 83, 80, 0.28)";
 const PROJECTION_COLOR = "#38bdf8";
 
+/** AI signal levels drawn on the chart (entry / stop / targets). */
+export type ChartLevel = {
+    price: number;
+    label: string;
+    tone: "entry" | "stop" | "target";
+};
+
+const LEVEL_COLORS: Record<ChartLevel["tone"], string> = {
+    entry: "#f59e0b",
+    stop: "#ef4444",
+    target: "#26a69a",
+};
+
+const LEVEL_STYLE: Record<ChartLevel["tone"], 0 | 1 | 2> = {
+    entry: 0,
+    stop: 2,
+    target: 1,
+};
+
 const QUALITY_LABELS: Record<string, string> = {
     live: "live feed",
     delayed: "delayed feed",
@@ -75,6 +94,7 @@ export default function LiveCandlesPanel({
     height = 240,
     badge,
     limit = 200,
+    levels,
 }: {
     symbol: string;
     timeframe: string;
@@ -82,6 +102,8 @@ export default function LiveCandlesPanel({
     /** Extra chip in the header (bias, confidence…). */
     badge?: ReactNode;
     limit?: number;
+    /** AI signal prices (entry / stop / targets) drawn as axis lines. */
+    levels?: ChartLevel[];
 }) {
     const containerRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<IChartApi | null>(null);
@@ -89,6 +111,7 @@ export default function LiveCandlesPanel({
     const volumeSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
     const projectionLineRef = useRef<ReturnType<ISeriesApi<"Candlestick">["createPriceLine"]> | null>(null);
     const projectionPriceRef = useRef<number | null>(null);
+    const levelLinesRef = useRef<ReturnType<ISeriesApi<"Candlestick">["createPriceLine"]>[]>([]);
     const seededRef = useRef(false);
     const lastBarRef = useRef<{ time: number; open: number; high: number; low: number; close: number } | null>(null);
 
@@ -174,6 +197,7 @@ export default function LiveCandlesPanel({
             volumeSeriesRef.current = null;
             projectionLineRef.current = null;
             projectionPriceRef.current = null;
+            levelLinesRef.current = [];
             seededRef.current = false;
             lastBarRef.current = null;
         };
@@ -265,6 +289,34 @@ export default function LiveCandlesPanel({
         });
     }, [projection, symbol, timeframe, height]);
 
+    // ── AI signal level lines (entry / stop / targets) ─────────────────────
+    useEffect(() => {
+        const series = candleSeriesRef.current;
+        if (!series) return;
+
+        levelLinesRef.current.forEach((line) => {
+            try {
+                series.removePriceLine(line);
+            } catch {
+                // The series may already be disposed after a symbol change.
+            }
+        });
+        levelLinesRef.current = [];
+
+        if (!levels || levels.length === 0) return;
+
+        levelLinesRef.current = levels.map((level) =>
+            series.createPriceLine({
+                price: level.price,
+                color: LEVEL_COLORS[level.tone],
+                title: level.label,
+                lineWidth: 1,
+                lineStyle: LEVEL_STYLE[level.tone],
+                axisLabelVisible: true,
+            })
+        );
+    }, [levels, symbol, timeframe, height]);
+
     const lastBar = candles.length > 0 ? candles[candles.length - 1] : null;
     const prevBar = candles.length > 1 ? candles[candles.length - 2] : null;
     const changePercent =
@@ -326,6 +378,25 @@ export default function LiveCandlesPanel({
                     ) : null}
                 </div>
             </div>
+
+            {/* AI signal levels — the same entry/stop/target the Signals page trades */}
+            {levels && levels.length > 0 ? (
+                <div className="flex flex-wrap items-center gap-1.5">
+                    {levels.map((level) => (
+                        <span
+                            key={level.label}
+                            className="font-numeric inline-flex items-center gap-1 rounded-full border border-border bg-muted px-1.5 py-0.5 text-[11px] text-foreground"
+                        >
+                            <span
+                                aria-hidden="true"
+                                className="h-1.5 w-1.5 rounded-full"
+                                style={{ background: LEVEL_COLORS[level.tone] }}
+                            />
+                            {level.label} {level.price.toFixed(priceDigits(level.price))}
+                        </span>
+                    ))}
+                </div>
+            ) : null}
 
             {/* Chart */}
             {showError ? (

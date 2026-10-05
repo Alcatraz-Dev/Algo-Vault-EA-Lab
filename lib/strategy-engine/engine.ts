@@ -36,6 +36,7 @@ import {
     computeStops,
     markPosition,
     openSimPosition,
+    cashValueForMove,
     processPositionBar,
     resetPositionIds,
     sizePosition,
@@ -45,7 +46,8 @@ import {
     type SimPosition,
     type SimSymbolSpec,
 } from "./simulation";
-import { evaluateRisk, riskLimitsFromStrategy, tradeRiskPct, type RiskCheckInput } from "./risk";
+import { evaluateRisk, riskLimitsFromStrategy, type RiskCheckInput } from "./risk";
+import { createOrder, transitionOrder } from "./orders";
 import { buildDecisionTrace, TraceBuffer } from "./trace";
 import type {
     AccountState,
@@ -69,8 +71,12 @@ export interface StrategyEngineOptions {
     costs?: ExecutionCostConfig;
     gapAware?: boolean;
     executionModel?: ExecutionModel;
-    /** Precomputed regime labels per bar (backtest stride sampling). */
+    /** Precomputed regime labels per bar (when supplied by a research runner). */
     regimeByBar?: string[];
+    /** Restrict strategy entries to this timestamp window; warm-up bars are still processed causally. */
+    entryWindow?: { from: number; to: number };
+    /** Close positions when the data window ends; false for ongoing paper/live sessions. */
+    finalizeAtEnd?: boolean;
     riskLimits?: RiskLimits;
     debug?: boolean;
     /** Max retained decision traces. */
@@ -79,6 +85,8 @@ export interface StrategyEngineOptions {
     initialBalance?: number;
     /** Set false for manual-only sessions (replay/paper without a strategy). */
     autoStrategy?: boolean;
+    /** Called immediately before an order submission; return true to reject a duplicate. */
+    beforeOrderSubmit?(intent: OrderIntent): string | null;
 }
 
 /**
@@ -155,10 +163,13 @@ export class StrategyEngine {
     private readonly executionModel: ExecutionModel;
     private readonly gapAware: boolean;
     private readonly regimeByBar?: string[];
+    private readonly entryWindow?: { from: number; to: number };
+    private readonly finalizeAtEnd: boolean;
     private readonly limits: RiskLimits;
     private readonly debug: boolean;
     private readonly autoStrategy: boolean;
     private readonly traces: TraceBuffer;
+    private readonly beforeOrderSubmit?: StrategyEngineOptions["beforeOrderSubmit"];
 
     private candles: MarketCandle[] = [];
     private features: CandleFeatures[] = [];
@@ -177,6 +188,7 @@ export class StrategyEngine {
     /** Index of the most recently processed bar — manual operations must use
      * this (never the end of a pre-loaded future series). */
     private currentIndex = -1;
+    private windowStarted = false;
 
     constructor(options: StrategyEngineOptions) {
         this.strategy = options.strategy;
@@ -193,10 +205,20 @@ export class StrategyEngine {
         this.executionModel = options.executionModel ?? options.strategy.executionModel ?? "next_bar_open";
         this.gapAware = options.gapAware ?? true;
         this.regimeByBar = options.regimeByBar;
-        this.limits = options.riskLimits ?? riskLimitsFromStrategy(options.strategy);
+        this.entryWindow = options.entryWindow;
+        this.finalizeAtEnd = options.finalizeAtEnd ?? true;
+        const strategyRiskLimits = riskLimitsFromStrategy(options.strategy);
+        this.limits = {
+            ...strategyRiskLimits,
+            ...options.riskLimits,
+            maxOpenPositions: options.riskLimits?.maxOpenPositions ?? strategyRiskLimits.maxOpenPositions,
+            maxPositionSize: options.riskLimits?.maxPositionSize ?? this.spec.maxLot,
+            maxSpread: options.riskLimits?.maxSpread ?? this.spec.typicalSpread * 2,
+        };
         this.debug = options.debug ?? false;
         this.autoStrategy = options.autoStrategy ?? true;
         this.traces = new TraceBuffer(options.traceLimit ?? 200);
+        this.beforeOrderSubmit = options.beforeOrderSubmit;
         this.accountState =
             options.account ??
             createAccount({
@@ -217,9 +239,30 @@ export class StrategyEngine {
      * strategy may see at bar i.
      */
     loadSeries(candles: MarketCandle[], features?: CandleFeatures[]): void {
-        this.candles = [...candles];
-        this.features = features ?? computeFeatures(this.candles);
-        this.seriesMap = { [this.timeframe]: { features: this.features, candles: this.candles } };
+        this.loadSeriesByTimeframe({ [this.timeframe]: candles }, features ? { [this.timeframe]: features } : undefined);
+    }
+
+    /** Load causal market series for all strategy timeframes once. */
+    loadSeriesByTimeframe(
+        candlesByTF: Partial<Record<Timeframe, MarketCandle[]>>,
+        featuresByTF?: Partial<Record<Timeframe, CandleFeatures[]>>
+    ): void {
+        const map: SeriesMap = {};
+        for (const [tf, allCandles] of Object.entries(candlesByTF) as [Timeframe, MarketCandle[]][]) {
+            if (!allCandles?.length) continue;
+            const features = featuresByTF?.[tf] ?? computeFeatures(allCandles);
+            map[tf] = { candles: allCandles, features };
+        }
+        const primary = map[this.timeframe];
+        if (!primary) {
+            this.candles = [];
+            this.features = [];
+            this.seriesMap = map;
+            return;
+        }
+        this.candles = [...primary.candles];
+        this.features = [...primary.features];
+        this.seriesMap = map;
     }
 
     /** Append a newly closed candle (paper/live feed). */
@@ -253,6 +296,29 @@ export class StrategyEngine {
         return this.accountState;
     }
 
+    /** The configured provider boundary used by this engine. */
+    getAdapter(): ExecutionAdapter {
+        return this.adapter;
+    }
+
+    /** Cancel and reconcile an adapter order into the engine's canonical state. */
+    cancelOrder(orderId: string): Order | null {
+        const current = this.orders.find((order) => order.id === orderId || order.clientOrderId === orderId);
+        if (!current || current.status !== "OPEN") return null;
+        const cancelled = transitionOrder(current, "CANCELLED", this.adapter.now());
+        if (!cancelled.changed || !this.adapter.cancel(orderId)) return null;
+        this.trackOrder(cancelled.order);
+        return cancelled.order;
+    }
+
+    /** Modify and reconcile an adapter order into the engine's canonical state. */
+    modifyOrder(orderId: string, patch: Partial<Pick<Order, "price" | "quantity" | "stopLoss" | "takeProfit">>): Order | null {
+        const updated = this.adapter.modify?.(orderId, patch);
+        if (!updated) return null;
+        this.trackOrder(updated);
+        return updated;
+    }
+
     /** Replace the canonical account (deposits/withdrawals/halt from hosts). */
     replaceAccount(next: AccountState): void {
         this.accountState = next;
@@ -284,6 +350,22 @@ export class StrategyEngine {
             throw new Error(`StrategyEngine: bars must be processed sequentially (expected ${this.currentIndex + 1}, got ${index})`);
         }
         this.currentIndex = index;
+
+        if (!this.windowStarted && this.entryWindow && bar.timestamp >= this.entryWindow.from) {
+            this.accountState = createAccount({
+                id: this.accountState.id,
+                environment: this.environment,
+                balance: this.accountState.initialBalance,
+                now: bar.timestamp,
+            });
+            this.tradesToday = 0;
+            this.cooldownUntil = -1;
+            this.lastSignalAt = null;
+            this.pending = null;
+            this.windowStarted = true;
+        } else if (!this.entryWindow) {
+            this.windowStarted = true;
+        }
 
         this.adapter.setBar?.(bar);
 
@@ -323,7 +405,7 @@ export class StrategyEngine {
         }
 
         // ── 2. Mark-to-market → equity snapshot (pre-exit, Strategy Lab parity) ──
-        for (const pos of this.positions) markPosition(pos, bar.close, bar);
+        for (const pos of this.positions) markPosition(pos, bar.close, bar, this.spec);
         this.accountState = this.markTo(bar.close, bar.timestamp);
         const equityPoint: EquityPoint = {
             time: bar.timestamp,
@@ -351,7 +433,7 @@ export class StrategyEngine {
             const pos = this.positions[p];
             const acts = processPositionBar(pos, bar, input);
             if (acts.length > 0) actions.push({ positionId: pos.id, actions: acts });
-            markPosition(pos, bar.close, bar);
+            markPosition(pos, bar.close, bar, this.spec);
             if (pos.status === "closed") {
                 this.finalizePosition(pos);
                 closed.push(pos);
@@ -360,7 +442,7 @@ export class StrategyEngine {
         }
 
         // ── 5. End of data ──
-        if (index === this.candles.length - 1) {
+        if (this.finalizeAtEnd && index === this.candles.length - 1) {
             closed.push(...this.closeAllPositions("end_of_data", bar, index, actions));
         }
 
@@ -379,7 +461,10 @@ export class StrategyEngine {
         let risk: RiskVerdict | null = null;
         let trace: DecisionTrace | undefined;
 
-        if (this.autoStrategy && !skipEntry && !this.accountState.halted && !this.pending) {
+        const inEntryWindow = !this.entryWindow || (
+            bar.timestamp >= this.entryWindow.from && bar.timestamp <= this.entryWindow.to
+        );
+        if (this.autoStrategy && inEntryWindow && !skipEntry && !this.accountState.halted && !this.pending) {
             evaluation = evaluateEntry({
                 strategy: this.strategy,
                 seriesMap: this.seriesMap,
@@ -416,8 +501,8 @@ export class StrategyEngine {
                 };
 
                 risk = evaluateRisk(
-                    this.limits,
-                    this.riskInput(intent, index, evaluation, riskDistance)
+                this.limits,
+                this.riskInput(intent, index, evaluation, riskDistance)
                 );
 
                 trace = buildDecisionTrace({
@@ -494,25 +579,31 @@ export class StrategyEngine {
     ): RiskCheckInput {
         const equity = this.accountState.equity || this.accountState.balance;
         const quantity = intent.quantity;
+        const entryPrice = this.adapter.entryPrice(intent.side) ?? this.candles[index].close;
+        const exposure = this.accountState.exposure + entryPrice * quantity * this.spec.contractSize;
+        const spread = this.currentSpread();
         return {
             intent,
             account: this.accountState,
             openPositions: this.positions.length,
-            exposure: this.accountState.exposure,
+            exposure,
             equity,
             session: evaluation.session as RiskCheckInput["session"],
             dataTimestamp: this.candles[index].timestamp,
             now: this.candles[index].timestamp,
             riskPct:
                 riskDistance > 0 && quantity > 0
-                    ? tradeRiskPct({
-                          stopDistance: riskDistance,
-                          quantity,
-                          contractSize: this.spec.contractSize,
-                          equity,
-                      })
+                    ? (cashValueForMove(riskDistance, quantity, this.spec) / equity) * 100
                     : undefined,
+            spread,
         };
+    }
+
+    private currentSpread(): number | undefined {
+        const buy = this.adapter.marketPrice("BUY");
+        const sell = this.adapter.marketPrice("SELL");
+        if (buy === null || sell === null) return undefined;
+        return Math.abs(buy - sell);
     }
 
     private submitStrategyEntry(
@@ -521,7 +612,7 @@ export class StrategyEngine {
         bar: MarketCandle,
         index: number
     ): SimPosition | null {
-        const planStops = computeStops(this.strategy, fillPrice, plan.atr, plan.side === "BUY", this.spec.digits);
+        const planStops = computeStops(this.strategy, fillPrice, plan.atr, plan.side === "BUY", this.spec.digits, this.spec.tickSize);
         if (planStops.riskPrice <= 0) return null;
         const quantity = sizePosition({
             strategy: this.strategy,
@@ -541,6 +632,19 @@ export class StrategyEngine {
             strategyVersion: this.strategy.version,
             submittedAt: bar.timestamp,
         };
+        const refusal = this.beforeOrderSubmit?.(intent);
+        if (refusal) {
+            this.trackOrder(this.rejectIntent(intent, bar.timestamp, refusal));
+            return null;
+        }
+        const fillRisk = evaluateRisk(
+            this.limits,
+            this.riskInput(intent, index, plan.evaluation, planStops.riskPrice)
+        );
+        if (!fillRisk.allowed) {
+            this.trackOrder(this.rejectIntent(intent, bar.timestamp, fillRisk.reasons.join("; ")));
+            return null;
+        }
         const report = this.adapter.submit(intent);
         this.trackOrder(report.order);
         if (!report.filled || report.order.filledQuantity <= 0) return null;
@@ -553,7 +657,8 @@ export class StrategyEngine {
             atr: plan.atr,
             balance: this.accountState.balance,
             spec: this.spec,
-            costs: this.costs,
+            costs: this.adapter.positionOpenCosts?.() ?? this.costs,
+            entryCostOverride: report.order.fills.reduce((total, fill) => total + fill.spreadCost + fill.slippageCost, 0),
             timestamp: bar.timestamp,
             barIndex: index,
             session: plan.session,
@@ -579,7 +684,8 @@ export class StrategyEngine {
             atr: this.atrAt(index),
             balance: this.accountState.balance,
             spec: this.spec,
-            costs: this.costs,
+            costs: this.adapter.positionOpenCosts?.() ?? this.costs,
+            entryCostOverride: order.fills.reduce((total, fill) => total + fill.spreadCost + fill.slippageCost, 0),
             timestamp: bar.timestamp,
             barIndex: index,
             session: this.features[index]?.session ?? "unknown",
@@ -600,7 +706,22 @@ export class StrategyEngine {
 
     placeOrder(intent: OrderIntent): { order: Order; position: SimPosition | null } {
         const bar = this.currentIndex >= 0 ? this.candles[this.currentIndex] : null;
-        const report = this.adapter.submit({ ...intent, submittedAt: intent.submittedAt ?? this.adapter.now() });
+        const submittedAt = intent.submittedAt ?? this.adapter.now();
+        const duplicate = intent.clientOrderId
+            ? this.orders.some((order) => order.clientOrderId === intent.clientOrderId) || !!this.adapter.hasOrderId?.(intent.clientOrderId)
+            : false;
+        const hostRefusal = intent.reduceOnly ? null : this.beforeOrderSubmit?.(intent);
+        const risk = duplicate || hostRefusal ? null : this.manualOrderRisk(intent, bar, submittedAt);
+        if (duplicate || hostRefusal || (risk && !risk.allowed)) {
+            const order = this.rejectIntent(
+                intent,
+                submittedAt,
+                hostRefusal ?? (duplicate ? "Duplicate client order id" : risk!.reasons.join("; "))
+            );
+            return { order, position: null };
+        }
+
+        const report = this.adapter.submit({ ...intent, submittedAt });
         this.trackOrder(report.order);
 
         let position: SimPosition | null = null;
@@ -608,6 +729,66 @@ export class StrategyEngine {
             position = this.positionFromFilledOrder(report.order, bar, this.currentIndex);
         }
         return { order: report.order, position };
+    }
+
+    private manualOrderRisk(intent: OrderIntent, bar: MarketCandle | null, now: number): RiskVerdict {
+        if (intent.reduceOnly) return { allowed: true, reasons: [], checks: [] };
+        const session = this.currentIndex >= 0 ? this.features[this.currentIndex]?.session : undefined;
+        const quotePrice = this.adapter.entryPrice(intent.side);
+        const price = intent.price ?? quotePrice ?? bar?.close;
+        const quantity = intent.quantity;
+        const currentExposure = this.accountState.exposure;
+        const equity = this.accountState.equity || this.accountState.balance;
+        const stopDistance = intent.stopLoss !== undefined && price !== undefined
+            ? Math.abs(price - intent.stopLoss)
+            : 0;
+        const exposurePerUnit = price !== undefined && price > 0 && this.spec.contractSize > 0
+            ? price * this.spec.contractSize
+            : 0;
+        const exposureForCheck = currentExposure + quantity * exposurePerUnit;
+        return evaluateRisk(this.limits, {
+            intent,
+            account: this.accountState,
+            openPositions: this.positions.length,
+            exposure: exposureForCheck,
+            equity,
+            session: session as RiskCheckInput["session"],
+            dataTimestamp: bar?.timestamp,
+            now,
+            price,
+            riskPct: stopDistance > 0 && equity > 0
+                ? (cashValueForMove(stopDistance, quantity, this.spec) / equity) * 100
+                : undefined,
+            spread: this.currentSpread(),
+        });
+    }
+
+    private rejectIntent(intent: OrderIntent, now: number, reason: string): Order {
+        const created = createOrder(this.symbol, { ...intent, submittedAt: now }, now);
+        const submitted = transitionOrder(created, "SUBMITTED", now);
+        const rejected = transitionOrder(submitted.order, "REJECTED", now, { rejectReason: reason });
+        this.trackOrder(rejected.order);
+        return rejected.order;
+    }
+
+    /** Modify protective levels on the authoritative open position state. */
+    modifyPosition(positionId: string, stopLoss?: number | null, takeProfit?: number | null): SimPosition | null {
+        const position = this.positions.find((item) => item.id === positionId && item.status === "open");
+        if (!position) return null;
+        const isLong = position.side === "LONG";
+        if (stopLoss !== undefined && stopLoss !== null) {
+            if (!Number.isFinite(stopLoss) || stopLoss <= 0 || (isLong ? stopLoss >= position.currentPrice : stopLoss <= position.currentPrice)) return null;
+            position.stopLoss = stopLoss;
+        }
+        if (takeProfit !== undefined && takeProfit !== null) {
+            if (!Number.isFinite(takeProfit) || takeProfit <= 0 || (isLong ? takeProfit <= position.currentPrice : takeProfit >= position.currentPrice)) return null;
+            const target = position.targets.find((item) => item.id === "tp1");
+            if (target) target.price = takeProfit;
+            else position.targets.push({ id: "tp1", price: takeProfit, closePercent: 100, hit: false });
+            position.tp1 = takeProfit;
+        }
+        position.updatedAt = this.adapter.now();
+        return position;
     }
 
     /** Close an open position at market (manual close / risk action). */
@@ -618,8 +799,10 @@ export class StrategyEngine {
         const index = this.currentIndex;
         const pos = this.positions[idx];
         const closeSide: "BUY" | "SELL" = pos.side === "LONG" ? "SELL" : "BUY";
+        if (this.adapter.canExecute && !this.adapter.canExecute(closeSide, this.adapter.now())) return null;
         const price = this.adapter.exitPrice?.(closeSide) ?? bar.close;
-        closePositionAt(pos, price, reason, this.positionInput(bar, index), bar);
+        const closeInput = { ...this.positionInput(bar, index), costs: this.adapter.positionCloseCosts?.() ?? this.costs };
+        closePositionAt(pos, price, reason, closeInput, bar);
         this.finalizePosition(pos);
         this.positions.splice(idx, 1);
         return pos;
@@ -666,8 +849,12 @@ export class StrategyEngine {
         while (this.positions.length > 0) {
             const pos = this.positions[0];
             const closeSide: "BUY" | "SELL" = pos.side === "LONG" ? "SELL" : "BUY";
+            if (this.adapter.canExecute && !this.adapter.canExecute(closeSide, this.adapter.now())) {
+                throw new Error(`StrategyEngine: execution adapter unavailable for ${reason}; position ${pos.id} remains open`);
+            }
             const price = this.adapter.exitPrice?.(closeSide) ?? bar.close;
-            const acts = closePositionAt(pos, price, reason, input, bar);
+            const closeInput = { ...input, costs: this.adapter.positionCloseCosts?.() ?? input.costs };
+            const acts = closePositionAt(pos, price, reason, closeInput, bar);
             if (acts.length > 0) actions.push({ positionId: pos.id, actions: acts });
             this.finalizePosition(pos);
             closed.push(pos);
@@ -688,8 +875,13 @@ export class StrategyEngine {
             this.accountState,
             {
                 positions: this.positions,
-                priceOf: () => price,
+                priceOf: (symbol, side) => {
+                    const orderSide = side === "LONG" ? "SELL" : "BUY";
+                    return symbol === this.symbol ? this.adapter.marketPrice(orderSide) ?? price : price;
+                },
                 contractSizes: { [this.symbol]: this.spec.contractSize },
+                pnlOf: (move, quantity) => cashValueForMove(move, quantity, this.spec),
+                contractSizeOf: () => this.spec.contractSize,
             },
             at
         );

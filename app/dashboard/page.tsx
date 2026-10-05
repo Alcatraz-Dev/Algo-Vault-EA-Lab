@@ -9,6 +9,7 @@ import {
     AlertTriangle,
     Crown,
     GripVertical,
+    LayoutDashboard,
     Loader2,
     Plus,
     RefreshCw,
@@ -26,10 +27,15 @@ import {
     WidgetBody,
     WidgetPicker,
     defaultWidgetConfig,
+    isMarketScoped,
     type DashboardWidget,
+    type MarketScope,
     type PortfolioAccount,
 } from "@/components/dashboard/widgets";
+import { SUPPORTED_SYMBOLS, TIMEFRAME_LABELS } from "@/lib/market-data/types";
 import { cn } from "@/lib/utils";
+import { DASHBOARD_PRESETS, normalizeWidget, type DashboardPreset } from "@/lib/dashboard/presets";
+import { HomeIntelligenceOS } from "@/components/intelligence-os/IntelligenceOSPanel";
 
 type DashboardConfig = {
     id: string;
@@ -45,14 +51,85 @@ const SPAN_BY_WIDTH: Record<number, string> = {
     3: "sm:col-span-3",
 };
 
-function normalizeWidget(widget: DashboardWidget): DashboardWidget {
-    const spec = WIDGET_SPEC_BY_TYPE[widget.type];
-    const width = spec?.widths.includes(widget.w) ? widget.w : (spec?.widths[0] ?? 1);
-    return { ...widget, w: width, h: widget.h === 2 ? 2 : 1, config: widget.config ?? {} };
-}
-
 function newWidgetId(): string {
     return `w_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+}
+
+const MARKET_STORAGE_KEY = "algovault.dashboard.market";
+
+/**
+ * The picker's groups. The symbol list is still the single source of truth
+ * (`SUPPORTED_SYMBOLS` validates every choice) — this only orders it so a
+ * 44-symbol dropdown is navigable.
+ */
+const SYMBOL_GROUPS: { label: string; symbols: string[] }[] = [
+    { label: "Metals", symbols: ["XAUUSD", "XAGUSD"] },
+    { label: "Majors", symbols: ["EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "NZDUSD", "USDCAD"] },
+    { label: "Crosses", symbols: ["EURGBP", "EURJPY", "GBPJPY", "AUDJPY", "EURCHF"] },
+    { label: "Indices", symbols: ["US30", "NAS100", "SPX500", "SPY", "QQQ", "DXY"] },
+    { label: "Crypto", symbols: ["BTCUSD", "ETHUSD", "SOLUSD", "XRPUSD", "ADAUSD", "DOGEUSD", "BNBUSD", "LTCUSD", "DOTUSD"] },
+    { label: "Equities", symbols: ["AAPL", "TSLA", "MSFT", "NVDA", "AMZN", "META", "GOOGL", "AMD", "NFLX", "COIN"] },
+].map((group) => ({
+    ...group,
+    // Drop anything the data layer stopped supporting rather than offering a
+    // selection that 400s on every request.
+    symbols: group.symbols.filter((s) => (SUPPORTED_SYMBOLS as readonly string[]).includes(s)),
+}));
+
+/** Only ever stores symbols/timeframes the data layer actually serves. */
+function readStoredMarket(): MarketScope {
+    const fallback: MarketScope = { symbol: "XAUUSD", timeframe: "H1" };
+    if (typeof window === "undefined") return fallback;
+    try {
+        const raw = window.localStorage.getItem(MARKET_STORAGE_KEY);
+        if (!raw) return fallback;
+        const parsed = JSON.parse(raw) as Partial<MarketScope>;
+        const symbol = String(parsed.symbol ?? "").toUpperCase();
+        const timeframe = String(parsed.timeframe ?? "").toUpperCase();
+        return {
+            symbol: (SUPPORTED_SYMBOLS as readonly string[]).includes(symbol) ? symbol : fallback.symbol,
+            timeframe: timeframe in TIMEFRAME_LABELS ? timeframe : fallback.timeframe,
+        };
+    } catch {
+        return fallback;
+    }
+}
+
+/**
+ * The command-centre starter layout: AI signal panels first, then the
+ * account widgets around them. Used by Reset and by the first-run seed so a
+ * fresh dashboard opens with the AI widgets already on screen.
+ */
+function buildCommandCenterSeed(): DashboardWidget[] {
+    return [
+        { id: newWidgetId(), type: "portfolio_summary", title: "Portfolio Summary", x: 0, y: 0, w: 3, h: 1, config: {} },
+        { id: newWidgetId(), type: "live_chart", title: "Live Chart", x: 0, y: 1, w: 3, h: 1, config: defaultWidgetConfig("live_chart") },
+        { id: newWidgetId(), type: "signal_core", title: "Signal Core", x: 0, y: 2, w: 1, h: 1, config: defaultWidgetConfig("signal_core") },
+        { id: newWidgetId(), type: "confidence_meter", title: "Signal Confidence", x: 0, y: 3, w: 1, h: 1, config: defaultWidgetConfig("confidence_meter") },
+        { id: newWidgetId(), type: "mtf_bias", title: "Multi-Timeframe Bias", x: 0, y: 4, w: 1, h: 1, config: defaultWidgetConfig("mtf_bias") },
+        { id: newWidgetId(), type: "equity_curve", title: "Equity Curve", x: 0, y: 5, w: 2, h: 1, config: {} },
+        { id: newWidgetId(), type: "market_score", title: "Market Score", x: 0, y: 6, w: 1, h: 1, config: { symbol: "XAUUSD", timeframe: "H1" } },
+        { id: newWidgetId(), type: "positions", title: "Open Positions", x: 0, y: 7, w: 2, h: 1, config: {} },
+        { id: newWidgetId(), type: "recent_alerts", title: "Recent Alerts", x: 0, y: 8, w: 1, h: 1, config: {} },
+    ];
+}
+
+/** Builds a full, normalized layout for a preset (or the command centre). */
+function buildPresetLayout(preset: DashboardPreset | null): DashboardWidget[] {
+    const spec = preset ? preset.widgets : null;
+    if (!spec) return buildCommandCenterSeed();
+    return spec.map(([type, w], index) =>
+        normalizeWidget({
+            id: newWidgetId(),
+            type,
+            title: WIDGET_SPEC_BY_TYPE[type]?.label ?? type,
+            x: 0,
+            y: index,
+            w,
+            h: 1,
+            config: defaultWidgetConfig(type),
+        })
+    );
 }
 
 export default function DashboardBuilderPage() {
@@ -73,6 +150,9 @@ export default function DashboardBuilderPage() {
     const [draggingId, setDraggingId] = useState<string | null>(null);
     const [selectedAccountId, setSelectedAccountId] = useState("");
     const [accounts, setAccounts] = useState<PortfolioAccount[]>([]);
+    // The market every symbol-scoped widget follows. Seeded from the last
+    // choice so the dashboard reopens on what the user was actually watching.
+    const [market, setMarket] = useState<MarketScope>(readStoredMarket);
     // Pro entitlement for the advanced widgets. Read from the server-mirrored
     // subscription record (never from a client flag) and defaults to locked, so
     // a failed lookup can never accidentally unlock Pro data.
@@ -132,6 +212,19 @@ export default function DashboardBuilderPage() {
         return () => unsub();
     }, []);
 
+    // Read once on mount and mirror every change back, so the choice survives a
+    // reload without adding a field to the persisted dashboard layout. The lazy
+    // initializer is safe here: the page renders the auth spinner until the
+    // client has a session, so the selector is never in the SSR HTML.
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        try {
+            window.localStorage.setItem(MARKET_STORAGE_KEY, JSON.stringify(market));
+        } catch {
+            // Private mode / storage disabled — the selector still works for the session.
+        }
+    }, [market]);
+
     const loadLayouts = useCallback(async () => {
         setLayoutLoading(true);
         setLayoutError(null);
@@ -172,6 +265,7 @@ export default function DashboardBuilderPage() {
         [dashboards, activeDashId]
     );
     const widgets = activeDash?.widgets ?? [];
+    const scopedWidgetCount = widgets.filter((w) => isMarketScoped(w.type)).length;
 
     /** Optimistic local update, then a debounced persist. */
     const commitWidgets = useCallback(
@@ -208,6 +302,50 @@ export default function DashboardBuilderPage() {
             if (saveTimer.current) clearTimeout(saveTimer.current);
         };
     }, []);
+
+    // Every dashboard opens with the command-centre AI widgets on screen —
+    // empty layouts get the full seed, existing layouts get only the seed
+    // widget types they are missing (so a layout the user curated keeps its
+    // order and content). The localStorage marker makes it a one-shot per
+    // dashboard: removing a seeded widget later never re-adds it.
+    const seededDashRef = useRef<Set<string>>(new Set());
+    useEffect(() => {
+        if (layoutLoading || !activeDash) return;
+        const dashId = activeDash.id;
+        if (seededDashRef.current.has(dashId)) return;
+        const marker = `algovault:dashboard-seeded:${dashId}`;
+        try {
+            if (window.localStorage.getItem(marker)) {
+                seededDashRef.current.add(dashId);
+                return;
+            }
+            window.localStorage.setItem(marker, "1");
+        } catch {
+            // Storage unavailable (private mode) — the in-memory ref still
+            // limits this to one seed per session.
+        }
+        seededDashRef.current.add(dashId);
+
+        const existing = activeDash.widgets;
+        const present = new Set(existing.map((w) => w.type));
+        const seed = buildCommandCenterSeed();
+        const missing = existing.length === 0 ? seed : seed.filter((w) => !present.has(w.type));
+        if (missing.length === 0) return;
+        // Missing command-centre widgets go to the front (that is the point of
+        // the seed — they open on screen); existing widgets keep their order.
+        // y is renumbered to the array index, matching moveWidget's convention.
+        const merged = existing.length === 0 ? missing : [...missing, ...existing];
+        const next = merged.map((w, index) => ({ ...w, y: index }));
+        // Deferred like loadLayouts above: commitWidgets writes state, so
+        // calling it synchronously in the effect body would cascade renders.
+        let cancelled = false;
+        void Promise.resolve().then(() => {
+            if (!cancelled) commitWidgets(next);
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [layoutLoading, activeDash, commitWidgets]);
 
     const addWidget = (type: string) => {
         const spec = WIDGET_SPEC_BY_TYPE[type];
@@ -264,18 +402,13 @@ export default function DashboardBuilderPage() {
     };
 
     const resetLayout = () => {
-        const seed: DashboardWidget[] = [
-            { id: newWidgetId(), type: "portfolio_summary", title: "Portfolio Summary", x: 0, y: 0, w: 3, h: 1, config: {} },
-            { id: newWidgetId(), type: "live_chart", title: "Live Chart", x: 0, y: 1, w: 3, h: 1, config: defaultWidgetConfig("live_chart") },
-            { id: newWidgetId(), type: "signal_core", title: "Signal Core", x: 0, y: 2, w: 1, h: 1, config: defaultWidgetConfig("signal_core") },
-            { id: newWidgetId(), type: "confidence_meter", title: "Signal Confidence", x: 0, y: 3, w: 1, h: 1, config: defaultWidgetConfig("confidence_meter") },
-            { id: newWidgetId(), type: "mtf_bias", title: "Multi-Timeframe Bias", x: 0, y: 4, w: 1, h: 1, config: defaultWidgetConfig("mtf_bias") },
-            { id: newWidgetId(), type: "equity_curve", title: "Equity Curve", x: 0, y: 5, w: 2, h: 1, config: {} },
-            { id: newWidgetId(), type: "market_score", title: "Market Score", x: 0, y: 6, w: 1, h: 1, config: { symbol: "XAUUSD", timeframe: "H1" } },
-            { id: newWidgetId(), type: "positions", title: "Open Positions", x: 0, y: 7, w: 2, h: 1, config: {} },
-            { id: newWidgetId(), type: "recent_alerts", title: "Recent Alerts", x: 0, y: 8, w: 1, h: 1, config: {} },
-        ];
-        commitWidgets(seed);
+        commitWidgets(buildCommandCenterSeed());
+    };
+
+    const applyPreset = (presetId: string) => {
+        const preset = DASHBOARD_PRESETS.find((p) => p.id === presetId) ?? null;
+        if (!preset) return;
+        commitWidgets(buildPresetLayout(preset));
     };
 
     // Bumping refreshKey re-runs every widget fetch and the account lookup, so a
@@ -351,6 +484,24 @@ export default function DashboardBuilderPage() {
                             >
                                 <Plus size={13} /> Add widget
                             </button>
+                            <label className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1.5 text-xs text-muted-foreground">
+                                <LayoutDashboard size={13} />
+                                <span className="sr-only">Layout preset</span>
+                                <select
+                                    value=""
+                                    onChange={(e) => {
+                                        if (e.target.value) applyPreset(e.target.value);
+                                    }}
+                                    className="bg-transparent text-xs text-foreground outline-none"
+                                >
+                                    <option value="">Apply preset…</option>
+                                    {DASHBOARD_PRESETS.map((p) => (
+                                        <option key={p.id} value={p.id} title={p.description}>
+                                            {p.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
                             <button
                                 type="button"
                                 onClick={resetLayout}
@@ -400,6 +551,46 @@ export default function DashboardBuilderPage() {
                     </div>
                 )}
 
+                {/* Market selector — every symbol-scoped widget follows this choice. */}
+                <div className="flex flex-wrap items-center gap-2" data-guide="market-selector">
+                    <label htmlFor="dashboard-symbol" className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                        Market
+                    </label>
+                    <select
+                        id="dashboard-symbol"
+                        value={market.symbol}
+                        onChange={(e) => setMarket((m) => ({ ...m, symbol: e.target.value }))}
+                        className="rounded-md border border-border bg-background px-2.5 py-1.5 text-xs text-foreground outline-none transition focus:border-primary"
+                    >
+                        {SYMBOL_GROUPS.map((group) => (
+                            <optgroup key={group.label} label={group.label}>
+                                {group.symbols.map((s) => (
+                                    <option key={s} value={s}>
+                                        {s}
+                                    </option>
+                                ))}
+                            </optgroup>
+                        ))}
+                    </select>
+                    <select
+                        aria-label="Market timeframe"
+                        value={market.timeframe}
+                        onChange={(e) => setMarket((m) => ({ ...m, timeframe: e.target.value }))}
+                        className="rounded-md border border-border bg-background px-2.5 py-1.5 text-xs text-foreground outline-none transition focus:border-primary"
+                    >
+                        {(Object.keys(TIMEFRAME_LABELS) as (keyof typeof TIMEFRAME_LABELS)[]).map((tf) => (
+                            <option key={tf} value={tf}>
+                                {tf} · {TIMEFRAME_LABELS[tf]}
+                            </option>
+                        ))}
+                    </select>
+                    <span className="text-[11px] text-muted-foreground">
+                        {scopedWidgetCount === 0
+                            ? "No symbol widgets on this layout yet."
+                            : `${scopedWidgetCount} widget${scopedWidgetCount === 1 ? "" : "s"} follow this market.`}
+                    </span>
+                </div>
+
                 {layoutError && (
                     <div
                         role="alert"
@@ -421,6 +612,11 @@ export default function DashboardBuilderPage() {
                 )}
 
                 <DashboardNativeAd />
+
+                {/* Intelligence OS context layer */}
+                {isPro && (
+                    <HomeIntelligenceOS refreshKey={refreshKey} />
+                )}
 
                 {/* Quick access */}
                 <div
@@ -541,6 +737,14 @@ export default function DashboardBuilderPage() {
                                                         per account
                                                     </span>
                                                 )}
+                                                {isMarketScoped(widget.type) && (
+                                                    <span
+                                                        className="font-numeric rounded-full border border-border bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground"
+                                                        title="Follows the Market selector above"
+                                                    >
+                                                        {market.symbol} · {market.timeframe}
+                                                    </span>
+                                                )}
                                             </span>
                                         )}
                                     </header>
@@ -553,6 +757,7 @@ export default function DashboardBuilderPage() {
                                             config={widget.config}
                                             accountId={selectedAccountId}
                                             isPro={isPro}
+                                            marketScope={market}
                                         />
                                     </div>
                                 </section>

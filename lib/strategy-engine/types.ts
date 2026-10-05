@@ -49,9 +49,7 @@ export type {
     Strategy,
     SupportedSymbol,
     Timeframe,
-};
-
-/** Where a strategy is being executed. The strategy itself never sees this. */
+};    /** Where a strategy is being executed. The strategy itself never sees this. */
 export type ExecutionEnvironment = "backtest" | "replay" | "paper" | "live" | "chart";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -121,7 +119,7 @@ export type StrategyEvent =
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type OrderSide = "BUY" | "SELL";
-export type OrderType = "MARKET" | "LIMIT" | "STOP";
+export type OrderType = "MARKET" | "LIMIT" | "STOP" | "STOP_LIMIT";
 
 export type OrderStatus =
     | "CREATED"
@@ -150,7 +148,10 @@ export interface OrderIntent {
     reduceOnly?: boolean;
     positionId?: string;
     clientOrderId?: string;
+    accountId?: string;
+    provider?: "SIMULATOR" | "CHALLENGE" | "DEMO_BROKER" | "BROKER" | "UNKNOWN";
     submittedAt?: number;
+    stopLimitPrice?: number;
 }
 
 export interface ExecutionFill {
@@ -168,6 +169,8 @@ export interface ExecutionFill {
 export interface Order {
     id: string;
     clientOrderId?: string;
+    accountId?: string;
+    provider?: "SIMULATOR" | "CHALLENGE" | "DEMO_BROKER" | "BROKER" | "UNKNOWN";
     symbol: string;
     side: OrderSide;
     type: OrderType;
@@ -186,6 +189,9 @@ export interface Order {
     positionId?: string;
     rejectReason?: string;
     createdAt: number;
+    submittedAt?: number;
+    filledAt?: number;
+    cancelledAt?: number;
     updatedAt: number;
 }
 
@@ -213,6 +219,9 @@ export interface PositionTarget {
 export interface Position {
     id: string;
     ticket: number;
+    /** Optional provider boundary metadata; legacy simulations remain valid. */
+    accountId?: string;
+    provider?: "SIMULATOR" | "CHALLENGE" | "DEMO_BROKER" | "BROKER" | "UNKNOWN";
     symbol: string;
     side: PositionSide;
     quantity: number;
@@ -248,6 +257,13 @@ export interface Position {
 export interface AccountState {
     id: string;
     environment: ExecutionEnvironment;
+    /** Explicit account boundary; optional for persisted/backtest compatibility. */
+    userId?: string;
+    mode?: "SIMULATOR" | "CHALLENGE" | "DEMO" | "LIVE";
+    provider?: "SIMULATOR" | "CHALLENGE" | "DEMO_BROKER" | "BROKER" | "UNKNOWN";
+    status?: "ACTIVE" | "SUSPENDED" | "CLOSED" | "UNKNOWN";
+    currency?: string;
+    leverage?: number;
     balance: number;
     equity: number;
     peakEquity: number;
@@ -258,6 +274,8 @@ export interface AccountState {
     exposure: number;
     dailyPnL: number;
     dailyPnLDate: string;
+    /** Balance baseline for the current daily P&L bucket. */
+    dailyStartBalance?: number;
     drawdownAbs: number;
     drawdownPct: number;
     consecutiveLosses: number;
@@ -343,6 +361,8 @@ export interface RiskLimits {
     maxDrawdownPct?: number;
     maxOpenPositions?: number;
     maxExposure?: number;
+    /** Maximum single-order quantity in instrument lots/contracts. */
+    maxPositionSize?: number;
     maxConsecutiveLosses?: number;
     allowedSessions?: MarketSession[];
     /** Account-level kill switch. When true nothing may trade. */
@@ -384,6 +404,13 @@ export interface ExecutionAdapter {
     /** Submit an intent; the adapter decides whether/how it fills. */
     submit(intent: OrderIntent): ExecutionReport;
     cancel(orderId: string): boolean;
+    /** Return authoritative order state if it has already been seen. */
+    getOrder?(orderId: string): Order | null;
+    /** Idempotency lookup prevents duplicate client IDs from reaching an adapter. */
+    hasOrderId?(orderId: string): boolean;
+    /** Replace an unfilled working order without changing its stable id. */
+    modify?(orderId: string, patch: Partial<Pick<Order, "price" | "quantity" | "stopLoss" | "takeProfit">>): Order | null;
+    workingOrders?(): Order[];
     /** Current market price for a side (bid/ask aware when available). */
     marketPrice(side: OrderSide): number | null;
     /**
@@ -397,6 +424,11 @@ export interface ExecutionAdapter {
     /** Bar-driven adapters (simulation/paper) receive each revealed bar. */
     setBar?(bar: MarketCandle): void;
     onBar?(bar: MarketCandle): ExecutionReport[];
+    /** Optional residual costs when a fill price already embeds executable bid/ask. */
+    positionOpenCosts?(): { spreadPips: number; commissionPerLot: number; slippagePips: number };
+    positionCloseCosts?(): { spreadPips: number; commissionPerLot: number; slippagePips: number };
+    /** Whether the adapter has a valid, fresh executable quote for this side. */
+    canExecute?(side: OrderSide, now?: number): boolean;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -34,6 +34,11 @@ const SUPPORTED_WIDGET_TYPES = new Set([
     "recent_alerts",
     "watchlist",
     "market_clock",
+    // Command centre
+    "signal_core",
+    "confidence_meter",
+    "live_chart",
+    "mtf_bias",
     // Pro tier
     "market_regime",
     "volatility",
@@ -64,6 +69,10 @@ const LEGACY_WIDGET_TITLES: Record<string, string> = {
     accounts: "Connected Accounts",
     watchlist: "Watchlist",
     market_clock: "Market Clock",
+    signal_core: "Signal Core",
+    confidence_meter: "Signal Confidence",
+    live_chart: "Live Chart",
+    mtf_bias: "Multi-Timeframe Bias",
     market_regime: "Market Regime",
     volatility: "Volatility Profile",
     volume_analysis: "Volume Analysis",

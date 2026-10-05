@@ -144,8 +144,10 @@ export function runEnvironmentTests(): boolean {
 
     // Fresh quote → allowed.
     w2 += 1;
-    guarded.feedQuote({ bid: 4000, ask: 4001, timestamp: w2 });
+    guarded.feedQuote({ bid: 4000, ask: 4000.2, timestamp: w2 });
     guarded.feedCandle({ timestamp: w2, open: 4000, high: 4010, low: 3995, close: 4005, volume: 1 });
+    const invalidProtection = guarded.placeOrder({ side: "BUY", type: "MARKET", quantity: 0.1, reason: "manual", source: "manual", stopLoss: 4001 });
+    check(invalidProtection.order.status === "REJECTED", "invalid protective stop on the wrong side is rejected");
     const fresh = guarded.placeOrder({ side: "BUY", type: "MARKET", quantity: 0.1, reason: "manual", source: "manual" });
     check(fresh.order.status === "FILLED", "order with fresh quote fills");
     check(fresh.position !== null, "fresh paper market order creates a virtual position");
@@ -156,12 +158,12 @@ export function runEnvironmentTests(): boolean {
     check(staleClose === null, "stale quote cannot close at a fallback candle price");
     const staleNow = guarded.placeOrder({ side: "BUY", type: "MARKET", quantity: 0.1, reason: "manual", source: "manual" });
     check(staleNow.order.status === "REJECTED", "stale quote → order rejected");
-    guarded.feedQuote({ bid: 4001, ask: 4002, timestamp: w2 });
+    guarded.feedQuote({ bid: 4001, ask: 4001.2, timestamp: w2 });
     const freshClose = fresh.position ? guarded.closePosition(fresh.position.id) : null;
     check(freshClose?.status === "closed", "fresh paper quote permits a market close");
 
     // Kill switch.
-    guarded.feedQuote({ bid: 4000, ask: 4001, timestamp: w2 });
+    guarded.feedQuote({ bid: 4000, ask: 4000.2, timestamp: w2 });
     guarded.engageKillSwitch();
     const killed = guarded.placeOrder({ side: "BUY", type: "MARKET", quantity: 0.1, reason: "manual", source: "manual" });
     check(killed.order.status === "REJECTED" && !!killed.rejected?.includes("kill_switch"), "kill switch blocks trading");

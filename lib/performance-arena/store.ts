@@ -59,6 +59,17 @@ export function rtdbKey(value: string): string {
     return value.replace(/[.#$[\]/]/g, "_");
 }
 
+function stripUndefined(obj: unknown): unknown {
+    if (obj === null || typeof obj !== "object") return obj;
+    if (Array.isArray(obj)) return obj.map(stripUndefined);
+    const cleaned: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+        if (v === undefined) continue;
+        cleaned[k] = stripUndefined(v);
+    }
+    return cleaned;
+}
+
 export function newArenaId(prefix: string): string {
     const ts = Date.now().toString(36);
     const rand = Math.random().toString(36).slice(2, 8);
@@ -157,7 +168,7 @@ export async function listAllAttempts(limit = 500): Promise<ChallengeAttempt[]> 
 }
 
 export async function saveAttempt(attempt: ChallengeAttempt): Promise<void> {
-    await adminDatabase.ref(`${ARENA_ROOT}/attempts/${attempt.userId}/${rtdbKey(attempt.id)}`).set(attempt);
+    await adminDatabase.ref(`${ARENA_ROOT}/attempts/${attempt.userId}/${rtdbKey(attempt.id)}`).set(stripUndefined(attempt));
 }
 
 /** Create one attempt record once; concurrent paid-return retries converge. */

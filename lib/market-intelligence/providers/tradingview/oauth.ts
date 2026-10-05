@@ -38,8 +38,8 @@ export class TradingViewMcpNotConfiguredError extends Error {
     }
 }
 
-/** Default scopes are read-only (PHASE 14: default to read-only). */
-export const DEFAULT_SCOPES = ["read"];
+/** Default scopes are read-only but include tool access so MCP calls work. */
+export const DEFAULT_SCOPES = ["mcp:read", "mcp:tools"];
 
 /**
  * Scopes are requested from the authorization server's own advertisement
@@ -58,12 +58,17 @@ function resolveScopes(metadata: OAuthServerMetadata | null): string[] {
     const override = scopeOverride();
     if (override) return override;
     const supported = metadata?.scopesSupported;
-    if (!supported || supported.length === 0) return DEFAULT_SCOPES;
-    // Read-only preference: pick the advertised read scope (e.g. `mcp:read`),
-    // fall back to a literal `read`, and only then to the static default.
+    if (!supported || supported.length === 0) {
+        // Request both read scopes so tool calls are authorised; default read-only.
+        return ["mcp:read", "mcp:tools"];
+    }
+    // If the server advertises scopes, include both read and tools when available.
     const readScope = supported.find((s) => s === "mcp:read" || s === "read" || /:read$/i.test(s));
-    if (readScope) return [readScope];
-    return DEFAULT_SCOPES.filter((s) => supported.includes(s));
+    const toolsScope = supported.find((s) => s === "mcp:tools" || /:tools$/i.test(s));
+    const scopes: string[] = [];
+    if (readScope) scopes.push(readScope);
+    if (toolsScope) scopes.push(toolsScope);
+    return scopes.length > 0 ? scopes : DEFAULT_SCOPES; // DEFAULT_SCOPES = ["read"]
 }
 
 /** Env-provided static client registration (fallback when discovery is unavailable). */

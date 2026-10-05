@@ -471,6 +471,7 @@ export default function AccountTradingPage() {
                             token={userToken}
                             storageScope="account-trading"
                             hideWatchlist
+                            onSymbolChange={setSelectedSymbol}
                             positions={chartPositions}
                             pendingOrders={chartOrders}
                             tradeHistory={chartHistory}

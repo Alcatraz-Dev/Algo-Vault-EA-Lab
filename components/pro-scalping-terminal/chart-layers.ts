@@ -72,14 +72,17 @@ export type ChartLayerDef = {
 };
 
 export const CHART_LAYERS: ChartLayerDef[] = [
-    { id: "volume", label: "Volume", defaultOn: true, available: true },
-    { id: "vwap", label: "VWAP", defaultOn: true, available: true },
-    { id: "sessionLevels", label: "Session H/L", defaultOn: true, available: true },
-    { id: "prevDayHighLow", label: "Prev day H/L", defaultOn: true, available: true },
+    // By default, show ONLY clean candlesticks — no overlays.
+    // Users activate indicators from the layer panel when they want analysis.
+    // This matches the professional trading platform UX (TradingView, brokers).
+    { id: "volume", label: "Volume", defaultOn: false, available: true },
+    { id: "vwap", label: "VWAP", defaultOn: false, available: true },
+    { id: "sessionLevels", label: "Session H/L", defaultOn: false, available: true },
+    { id: "prevDayHighLow", label: "Prev day H/L", defaultOn: false, available: true },
     { id: "supportResistance", label: "S/R", defaultOn: false, available: true },
-    { id: "fvg", label: "FVG", defaultOn: true, available: true },
+    { id: "fvg", label: "FVG", defaultOn: false, available: true },
     { id: "orderBlocks", label: "Order blocks", defaultOn: false, available: true },
-    { id: "bosChoch", label: "BOS / CHoCH", defaultOn: true, available: true },
+    { id: "bosChoch", label: "BOS / CHoCH", defaultOn: false, available: true },
     { id: "liquidityLevels", label: "Liquidity", defaultOn: false, available: true },
     { id: "equalHighsLows", label: "Equal H/L", defaultOn: false, available: true },
     // Indicator overlays (off by default so default charts stay uncluttered).

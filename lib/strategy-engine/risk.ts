@@ -60,7 +60,8 @@ export function evaluateRisk(limits: RiskLimits, input: RiskCheckInput): RiskVer
     }
 
     if (limits.maxDailyLossPct !== undefined && limits.maxDailyLossPct > 0 && equity > 0) {
-        const threshold = -(equity * limits.maxDailyLossPct) / 100;
+        const dayStartBalance = input.account.dailyStartBalance ?? input.account.balance;
+        const threshold = -(dayStartBalance * limits.maxDailyLossPct) / 100;
         checks.push({
             name: "max_daily_loss",
             passed: input.account.dailyPnL > threshold,
@@ -89,6 +90,14 @@ export function evaluateRisk(limits: RiskLimits, input: RiskCheckInput): RiskVer
         const qty = input.intent.quantity;
         const validQty = Number.isFinite(qty) && qty > 0;
         checks.push({ name: "valid_quantity", passed: validQty, detail: validQty ? undefined : String(qty) });
+
+        if (opening && limits.maxPositionSize !== undefined) {
+            checks.push({
+                name: "max_position_size",
+                passed: validQty && qty <= limits.maxPositionSize,
+                detail: `${qty} / max ${limits.maxPositionSize}`,
+            });
+        }
 
         if (input.intent.type !== "MARKET") {
             const validPrice = !!input.intent.price && Number.isFinite(input.intent.price) && input.intent.price > 0;

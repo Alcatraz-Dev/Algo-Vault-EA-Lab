@@ -28,10 +28,16 @@ import {
     withPreset,
 } from "../components/pro-scalping-terminal/chart-settings";
 import {
+    barCloseCountdown,
+    formatCountdown,
+    intervalMsForTimeframe,
+} from "../lib/chart-engine/bar-countdown";
+import {
     MAGNET_TOOLS,
     hitTestDrawing,
     removeDrawingById,
     snapToOHLC,
+    translateDrawingByMarketDelta,
     undoLastDrawing,
     updateDrawingColor,
     updateDrawingLabel,
@@ -365,6 +371,42 @@ check("hit test: fib levels and text bounding box", () => {
     assert(!hitTestDrawing("text", text, 120, 90), "below the label misses");
 });
 
+check("market-coordinate move translates every anchor by the same time/price delta", () => {
+    const original = drawing({
+        color: "#38bdf8",
+        points: [
+            { time: 1_700_000_000_000, price: 100 },
+            { time: 1_700_000_600_000, price: 110 },
+        ],
+    });
+    const moved = translateDrawingByMarketDelta(original, 120_000, -2.5);
+    assertEqual(moved.points, [
+        { time: 1_700_000_120_000, price: 97.5 },
+        { time: 1_700_000_720_000, price: 107.5 },
+    ]);
+    assertEqual(moved.id, original.id, "identity is preserved");
+    assertEqual(moved.color, original.color, "style is preserved");
+    assertEqual(original.points[0].price, 100, "source drawing remains immutable");
+    assertEqual(
+        moved.points[1].price - moved.points[0].price,
+        original.points[1].price - original.points[0].price,
+        "trendline price delta is preserved",
+    );
+    assertEqual(
+        moved.points[1].time! - moved.points[0].time!,
+        original.points[1].time! - original.points[0].time!,
+        "trendline time span is preserved",
+    );
+});
+
+check("market-coordinate move keeps time-less anchors and ignores invalid deltas", () => {
+    const original = drawing({ points: [{ price: 100 }, { price: 105 }] });
+    const moved = translateDrawingByMarketDelta(original, 60_000, 2);
+    assertEqual(moved.points, [{ price: 102 }, { price: 107 }]);
+    assertEqual(translateDrawingByMarketDelta(original, Number.NaN, 2), original);
+    assertEqual(translateDrawingByMarketDelta(original, 1, Number.POSITIVE_INFINITY), original);
+});
+
 check("single-object delete removes only that drawing", () => {
     const a = drawing({ id: "a" });
     const b = drawing({ id: "b", type: "horizontal" });
@@ -399,6 +441,54 @@ check("magnet defaults on and survives partial merges", () => {
     assertEqual(mergeChartSettings({ display: { magnet: false } }).display.magnet, false);
     // Settings persisted before the magnet existed must gain the default.
     assertEqual(mergeChartSettings({ display: { grid: false } }).display.magnet, true);
+});
+
+console.log("Bar-close countdown (moves with the live candle)");
+check("counts down inside the forming bar", () => {
+    const interval = 300_000; // M5
+    const barStart = 1_700_000_100_000; // arbitrary but grid-aligned below
+    const at = barStart + 61_000; // 1:01 into the bar
+    const c = barCloseCountdown(at, interval)!;
+    assertEqual(c.barStart, Math.floor(at / interval) * interval);
+    assertEqual(c.closeAt, c.barStart + interval);
+    assertEqual(c.remainingMs, interval - 61_000);
+    assertEqual(formatCountdown(c.remainingMs), "00:03:59", "zero-padded HH:MM:SS");
+});
+
+check("rolls into the next bar instead of sticking at zero", () => {
+    const interval = 60_000;
+    const barStart = Math.floor(1_700_000_000_000 / interval) * interval;
+    const atBoundary = barStart + interval; // exactly the next bar's open
+    const c = barCloseCountdown(atBoundary, interval)!;
+    assertEqual(c.barStart, barStart + interval, "bar advanced");
+    assertEqual(c.remainingMs, interval, "a fresh bar gets the full interval");
+    assertEqual(formatCountdown(c.remainingMs), "00:01:00");
+});
+
+check("never returns a negative or over-long remaining time", () => {
+    const interval = 60_000;
+    for (const offset of [-1, 0, 1, 59_999, 60_000, 120_000]) {
+        const at = 1_700_000_000_000 + offset;
+        const c = barCloseCountdown(at, interval)!;
+        assert(c.remainingMs >= 0, `remaining >= 0 at offset ${offset}`);
+        assert(c.remainingMs <= interval, `remaining <= interval at offset ${offset}`);
+    }
+});
+
+check("a broken clock or interval degrades safely", () => {
+    assertEqual(barCloseCountdown(Number.NaN, 60_000), null);
+    const bad = barCloseCountdown(1_700_000_000_000, 0)!; // interval 0 → 60s fallback
+    assertEqual(bad.remainingMs <= 60_000, true);
+    assertEqual(intervalMsForTimeframe("M5", { M5: 300_000 }), 300_000);
+    assertEqual(intervalMsForTimeframe("NOPE", { M5: 300_000 }), 60_000, "unknown tf falls back");
+});
+
+check("countdown label stays HH:MM:SS past an hour", () => {
+    assertEqual(formatCountdown(0), "00:00:00");
+    assertEqual(formatCountdown(1_000), "00:00:01");
+    assertEqual(formatCountdown(61_000), "00:01:01");
+    assertEqual(formatCountdown(3_661_000), "01:01:01");
+    assertEqual(formatCountdown(-500), "00:00:00", "negative input clamps");
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

@@ -239,6 +239,26 @@ export interface VirtualAccount {
 export type TradeStatus = "open" | "closed";
 export type TradeExitReason = "manual" | "partial_close" | "stop_loss" | "take_profit" | "challenge_end" | "breach_close";
 
+/**
+ * Why a position was closed, at the granularity the accounting needs.
+ *
+ * Deliberately separate from `exitReason`: `exitReason` answers "which rule
+ * fired", `closeType` answers "how was the position flattened". Overloading
+ * one field is what made every partial close indistinguishable from every
+ * other partial close.
+ *
+ * Optional on ChallengeTrade for backward compatibility — rows written before
+ * this field existed are backfilled by `closeTypeOf()` in ./partial-close.
+ */
+export type TradeCloseType =
+    | "FULL"
+    | "VOLUME_PARTIAL"
+    | "PROFIT_PRESERVATION"
+    | "STOP_LOSS"
+    | "TAKE_PROFIT"
+    | "MANUAL"
+    | "CHALLENGE_RISK";
+
 export interface TradeFillCosts {
     /** Round-trip spread cost charged at entry (half on each leg, combined). */
     spreadCostCents: number;
@@ -268,6 +288,8 @@ export interface ChallengeTrade {
     exitPriceMicros: number | null;
     exitQuoteAt: number | null;
     exitReason: TradeExitReason | null;
+    /** Full/volume/profit-preservation/SL/TP distinction. Optional; see closeTypeOf(). */
+    closeType?: TradeCloseType | null;
     /** Net realized PnL (gross − costs) after close. */
     realizedPnLCents: number | null;
     /** Client-supplied idempotency key for entry. */

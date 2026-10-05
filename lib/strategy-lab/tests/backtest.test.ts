@@ -198,7 +198,7 @@ export function runBacktestTests(): boolean {
         check(r0.trades.length === 1, `Pine produced exactly one trade (got ${r0.trades.length})`);
         check(r0.trades.length === 1 && Math.abs(r0.trades[0].profit - gross) < 1e-6, `Zero-cost net == gross ${gross.toFixed(4)} (got ${r0.trades[0]?.profit})`);
 
-        // Canonical cost: spread 20 pips (XAUUSD pip 0.01) + slip 1 pip ×2 + flat $7/lot.
+        // Canonical cost: full spread 20 pips, slippage 1 pip ×2, and flat $7/lot.
         const unitCost = 20 * 0.01 + 2 * 1 * 0.01 + 7; // 7.22
         const r1 = backtestPine(PINE_SCRIPT, candles, "XAUUSD", "M15", {
             spreadPips: 20,

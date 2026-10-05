@@ -22,17 +22,24 @@ export interface TradingAccount {
   server: string;
   currency: string;
   leverage: string;
-  balance: number;
-  equity: number;
-  margin: number;
-  freeMargin: number;
-  marginLevel: number;
-  status: "connected" | "offline" | "unauthorized" | "license_expired" | "disabled";
+  /**
+   * Null means "the gateway has not reported this yet" — never zero. A field
+   * that has not loaded must not render as a real $0.00 balance.
+   */
+  balance: number | null;
+  equity: number | null;
+  margin: number | null;
+  freeMargin: number | null;
+  marginLevel: number | null;
+  /** "unknown" = no status reported yet; it is not a healthy state. */
+  status: "connected" | "offline" | "unauthorized" | "license_expired" | "disabled" | "unknown";
   lastHeartbeatAt: number;
   gatewayVersion: string;
 }
 
-function formatCurrency(value: number): string {
+/** Render an unreported value as an em dash instead of a fabricated zero. */
+function formatCurrency(value: number | null): string {
+  if (value === null || !Number.isFinite(value)) return "—";
   return value.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -138,6 +145,8 @@ export default function AccountHeader({
       ? "Unauthorized"
       : account.status === "license_expired"
       ? "License Expired"
+      : account.status === "unknown"
+      ? "Status Unknown"
       : "Disabled";
 
   return (
@@ -159,13 +168,17 @@ export default function AccountHeader({
 
           <Separator orientation="vertical" className="h-8" />
 
-          <StatItem label="Balance" value={`$${formatCurrency(account.balance)}`} />
-          <StatItem label="Equity" value={`$${formatCurrency(account.equity)}`} />
-          <StatItem label="Margin" value={`$${formatCurrency(account.margin)}`} />
-          <StatItem label="Free Margin" value={`$${formatCurrency(account.freeMargin)}`} />
+          <StatItem label="Balance" value={account.balance === null ? "—" : `$${formatCurrency(account.balance)}`} />
+          <StatItem label="Equity" value={account.equity === null ? "—" : `$${formatCurrency(account.equity)}`} />
+          <StatItem label="Margin" value={account.margin === null ? "—" : `$${formatCurrency(account.margin)}`} />
+          <StatItem label="Free Margin" value={account.freeMargin === null ? "—" : `$${formatCurrency(account.freeMargin)}`} />
           <StatItem
             label="Margin Level"
-            value={account.marginLevel > 0 ? `${account.marginLevel.toFixed(1)}%` : "N/A"}
+            value={
+              account.marginLevel === null || !Number.isFinite(account.marginLevel) || account.marginLevel <= 0
+                ? "N/A"
+                : `${account.marginLevel.toFixed(1)}%`
+            }
           />
 
           <Separator orientation="vertical" className="h-8" />

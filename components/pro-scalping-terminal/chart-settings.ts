@@ -33,6 +33,10 @@ export interface ChartSettingsColors {
     bull: string;
     /** Bearish candle body/wick. */
     bear: string;
+    /** Bullish candle upper/lower wick or fill. */
+    bullFill: string;
+    /** Bearish candle upper/lower wick or fill. */
+    bearFill: string;
     /** Bid line (real-time quote / last price). */
     bidLine: string;
     /** Ask line (only drawn when a real ask is known). */
@@ -49,6 +53,8 @@ export interface ChartSettingsColors {
     pendingLine: string;
     /** AI-drawn plan lines. */
     aiLine: string;
+    /** Bar-close countdown line + its price-axis tag. */
+    countdownLine: string;
 }
 
 export interface ChartDisplaySettings {
@@ -68,6 +74,9 @@ export interface ChartDisplaySettings {
     freeMove: boolean;
     /** Magnet: snap drawing prices to the nearest candle open/high/low/close. */
     magnet: boolean;
+    /** Show a countdown timer in the chart footer for the closing time of the
+     *  current bar. 0 = hidden. */
+    showBarCloseCountdown: boolean;
 }
 
 export interface ChartToolSettings {
@@ -81,6 +90,8 @@ export interface ChartToolSettings {
     lineStyle: "solid" | "dashed" | "dotted";
     /** Fibonacci levels (fractions, ascending). Editable "values". */
     fiboLevels: number[];
+    /** Bar width for candles/bars (px). 0 = auto-width (traditional candle look). */
+    candleWidth: number;
 }
 
 export interface ChartSettings {
@@ -122,6 +133,8 @@ function presetColors(preset: ChartPresetId): PresetColors {
                 crosshair: "rgba(255, 255, 255, 0.45)",
                 bull: "#26a69a",
                 bear: "#ef5350",
+                bullFill: "rgba(38, 166, 154, 0.15)",
+                bearFill: "rgba(239, 83, 80, 0.15)",
                 bidLine: "#42a5f5",
                 askLine: "#ffb74d",
                 buyEntry: "#29b6f6",
@@ -130,6 +143,7 @@ function presetColors(preset: ChartPresetId): PresetColors {
                 tpLine: "#66bb6a",
                 pendingLine: "#ab47bc",
                 aiLine: "#7e57c2",
+                countdownLine: "#00bcd4",
             };
         case "light":
             return {
@@ -139,6 +153,8 @@ function presetColors(preset: ChartPresetId): PresetColors {
                 crosshair: "rgba(234, 123, 74, 0.55)",
                 bull: "#26a69a",
                 bear: "#ef5350",
+                bullFill: "rgba(38, 166, 154, 0.15)",
+                bearFill: "rgba(239, 83, 80, 0.15)",
                 bidLine: "#1976d2",
                 askLine: "#ef6c00",
                 buyEntry: "#1565c0",
@@ -147,6 +163,7 @@ function presetColors(preset: ChartPresetId): PresetColors {
                 tpLine: "#2e7d32",
                 pendingLine: "#7b1fa2",
                 aiLine: "#5e35b1",
+                countdownLine: "#00838f",
             };
         case "midnight":
         default:
@@ -158,6 +175,8 @@ function presetColors(preset: ChartPresetId): PresetColors {
                 crosshair: "rgba(255, 255, 255, 0.35)",
                 bull: "#26a69a",
                 bear: "#ef5350",
+                bullFill: "rgba(38, 166, 154, 0.15)",
+                bearFill: "rgba(239, 83, 80, 0.15)",
                 bidLine: "#38bdf8",
                 askLine: "#f59e0b",
                 buyEntry: "#2196f3",
@@ -166,6 +185,7 @@ function presetColors(preset: ChartPresetId): PresetColors {
                 tpLine: "#22c55e",
                 pendingLine: "#a78bfa",
                 aiLine: "#8b5cf6",
+                countdownLine: "#22d3ee",
             };
     }
 }
@@ -186,6 +206,7 @@ export function defaultChartSettings(preset: ChartPresetId = DARK_PRESET): Chart
             autoScale: true,
             freeMove: true,
             magnet: true,
+            showBarCloseCountdown: true,
         },
         tools: {
             color: DEFAULT_TOOL_COLOR,
@@ -193,6 +214,7 @@ export function defaultChartSettings(preset: ChartPresetId = DARK_PRESET): Chart
             fontSize: 12,
             lineStyle: "dashed" as const,
             fiboLevels: [...DEFAULT_FIBO_LEVELS],
+            candleWidth: 0, // 0 = auto-width (traditional candle look)
         },
     };
 }
@@ -244,6 +266,7 @@ export function mergeChartSettings(input: unknown): ChartSettings {
         autoScale: typeof d.autoScale === "boolean" ? d.autoScale : base.display.autoScale,
         freeMove: typeof d.freeMove === "boolean" ? d.freeMove : base.display.freeMove,
         magnet: typeof d.magnet === "boolean" ? d.magnet : base.display.magnet,
+        showBarCloseCountdown: typeof d.showBarCloseCountdown === "boolean" ? d.showBarCloseCountdown : base.display.showBarCloseCountdown,
     };
 
     const t = (raw.tools ?? {}) as Record<string, unknown>;
@@ -265,6 +288,9 @@ export function mergeChartSettings(input: unknown): ChartSettings {
         fiboLevels: Array.isArray(t.fiboLevels) && t.fiboLevels.length >= 2
             ? t.fiboLevels.filter(isFiniteNumber).slice(0, 12)
             : base.tools.fiboLevels,
+        candleWidth: isFiniteNumber(t.candleWidth)
+            ? Math.min(10, Math.max(0, Math.round(t.candleWidth)))
+            : base.tools.candleWidth,
     };
 
     // Preset wins for colors unless the stored copy carries custom colors.
@@ -377,21 +403,33 @@ export function partialCloseVolume(
 ): { mode: "full" | "partial"; volume: number } {
     const v = Number(volume);
     const p = Number(percent);
+    // The lot step is instrument-specific; a 0.001-step crypto pair must not be
+    // clamped at 0.01 or the slice stops being tradable (and on a 0.003 lot it
+    // would collapse to a full close).
+    const lotStep = Number.isFinite(step) && step > 0 ? step : 0.01;
     if (!Number.isFinite(v) || v <= 0) return { mode: "full", volume: 0 };
     if (!Number.isFinite(p) || p >= 100) return { mode: "full", volume: v };
     if (p <= 0) return { mode: "partial", volume: 0 };
 
-    const closeLots = Math.floor((v * p) / 100 / step) * step;
-    const rounded = Math.round(closeLots * 100) / 100;
+    // Snap to the instrument's grid without floating-point drift.
+    const precision = Math.max(0, Math.min(8, Math.ceil(-Math.log10(lotStep))));
+    const factor = 10 ** precision;
+    const round = (value: number) => Math.round(value * factor) / factor;
+    const closeLots = Math.floor((v * p) / 100 / lotStep) * lotStep;
+    const rounded = round(closeLots);
 
-    if (rounded < step) {
+    if (rounded < lotStep) {
         // Requested slice is under one lot step.
-        if (Math.round(v * 100) / 100 <= step) return { mode: "full", volume: v };
-        return { mode: "partial", volume: step };
+        if (round(v) <= lotStep) return { mode: "full", volume: v };
+        return { mode: "partial", volume: lotStep };
     }
 
-    const remaining = Math.round((v - rounded) * 1000) / 1000;
-    if (remaining < step) return { mode: "full", volume: v };
+    // Compare the RAW remainder against one lot step. Rounding it first makes
+    // a 0.005 dust remainder round *up* to exactly 0.01 and slip past the
+    // check, stranding an untradeable sliver on the book (0.025 @ 90% → close
+    // 0.02 and leave 0.005). Closing the position in full is the honest result.
+    const remainingRaw = v - rounded;
+    if (remainingRaw < lotStep) return { mode: "full", volume: v };
     return { mode: "partial", volume: rounded };
 }
 

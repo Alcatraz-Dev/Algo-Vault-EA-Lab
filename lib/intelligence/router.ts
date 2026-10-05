@@ -16,6 +16,7 @@
  *    existing caller.
  */
 
+import { AIConfig } from "../ai/config";
 import { defaultRouter as legacyRouter } from "../ai/router";
 import type { AIUsageSource } from "../ai/usage-events";
 import { AIProvider, AIChatRequest, AIResponse as LegacyAIResponse } from "../ai/types";
@@ -82,9 +83,14 @@ function scoreCandidate(params: {
     let score = 50;
 
     // Health dominates: a circuit-open provider is never chosen.
+    // Resolved (last-resort): when all free providers are blocked and CODECRAFT_ALLOW_METERED is true.
+    const resolvedPaid = (AIConfig.freeOnly && AIConfig.codecraftAllowMetered && provider.id === "codecraft") ? true : false;
     if (health.circuitState === "open") return -Infinity;
     score += health.reliabilityScore * 30; // 0..30
     if (health.lastErrorCode && isNonRetryable(health.lastErrorCode)) score -= 40;
+
+    // Last-resort fallback: a working metered provider is preferred over "nothing" when free tier is exhausted.
+    if (resolvedPaid) score += 8;
 
     // Latency fit.
     const fast = health.avgLatencyMs !== null && health.avgLatencyMs < 1500;
@@ -102,9 +108,11 @@ function scoreCandidate(params: {
     // Free-first policy.
     const costClass = descriptor?.costClass ?? "free";
     const isPaid = PAID_PROVIDER_IDS.has(provider.id) || costClass === "paid";
+    const isMeteredOptIn = provider.id === "codecraft" && AIConfig.codecraftAllowMetered && AIConfig.freeOnly;
     if (!isPaid) score += 25;
-    if (isPaid && paidAllowed) score += 10; // premium may be preferred for deep tasks
-    if (isPaid && !paidAllowed) return -Infinity; // hard policy gate
+    if (isPaid && paidAllowed) score += 10;
+    else if (isMeteredOptIn && paidAllowed) score += 5; // metered opt-in allowed as fallback
+    if (isPaid && !paidAllowed && !isMeteredOptIn) return -Infinity; // hard policy gate
 
     // Registry priority: lower number = more preferred.
     const priority = descriptor?.priority ?? 50;
@@ -155,6 +163,9 @@ export class UnifiedLLMRouter {
             req.allowPaidFallback === true ||
             (req.userTier === "pro" && profile.allowPremium) ||
             (req.userTier === "admin");
+        // Last-resort metered fallback: when free-only is on and the metered opt-in is set,
+        // allow the metered provider even on free tier (only after free providers exhausted).
+        const meteredOptInAllowed = AIConfig.freeOnly && AIConfig.codecraftAllowMetered;
 
         const candidates: Array<{ provider: AIProvider; model?: string; score: number; isPaid: boolean }> = [];
 
@@ -172,13 +183,14 @@ export class UnifiedLLMRouter {
             if (!model) continue;
 
             const isPaid = PAID_PROVIDER_IDS.has(id) || descriptor?.costClass === "paid";
+            const isMeteredOptIn = id === "codecraft" && meteredOptInAllowed;
             const score = scoreCandidate({
                 provider,
                 model,
                 profile,
                 health: snap,
                 isFreeRouterOn: isFreeRouterEnabled(),
-                paidAllowed,
+                paidAllowed: paidAllowed || isMeteredOptIn,
             });
             if (score === -Infinity) continue;
             candidates.push({ provider, model, score, isPaid });

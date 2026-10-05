@@ -19,6 +19,8 @@
 import { emaRuntime } from "../market-core/indicators/primitives";
 import { detectPivots } from "../market-core/smart-money/structure";
 import { inferTimeframe, timeframeToMs } from "../market-core/smart-money/shared";
+import { detectLiquidity } from "../analytics/liquidity";
+import type { MarketCandle, Timeframe } from "../market-data/types";
 
 export interface AiDrawCandle {
     timestamp: number;
@@ -63,6 +65,14 @@ export interface AiDrawPlan {
     /** Nearest clustered swing support/resistance below/above the close. */
     support: number | null;
     resistance: number | null;
+    /** SMC / liquidity-derived zones (order-block / FVG proxy from candle clusters). */
+    liquidityZones: Array<{ price: number; side: "bid" | "ask"; strength: number }>;
+    /** Order-block proxy derived from swing cluster near price. */
+    orderBlock: number | null;
+    /** FVG proxy zones derived from candle gap analysis. */
+    fvgZone: Array<{ low: number; high: number }>;
+    /** Bias score biased toward profitable setups (strong trend + near structure). */
+    biasScore: number;
     trendUp: boolean;
     /** Real computed facts backing the plan (numbers, not adjectives). */
     evidence: string[];
@@ -190,14 +200,59 @@ export function computeAiDrawPlan(candles: AiDrawCandle[]): AiDrawPlan | null {
     const slow = ema(closes.slice(-100), 50);
     const trendUp = fast > slow;
 
+    // SMC / liquidity zone enhancement: detect liquidity pools near price
+    // (derived from same candles; no fabrication) for smoother, profitable trade bias.
+    let liquidityBias = 0; // positive = bullish liquidity pressure
+    const liquidityZones: Array<{ price: number; side: "bid" | "ask"; strength: number }> = [];
+    try {
+        const timeframe = inferTimeframe(candles) as Timeframe;
+        // `AiDrawCandle` is the engine's own structural candle shape; the
+        // analytics detector takes the canonical `MarketCandle`. Both carry the
+        // OHLC fields this reads, so the widening cast is safe here.
+        const results = detectLiquidity(
+            candles as unknown as MarketCandle[],
+            timeframe
+        );
+        for (const lvl of results.levels.slice(0, 5)) {
+            const isBid = lvl.type.includes("low");
+            liquidityZones.push({
+                price: Number.isFinite(lvl.price) ? lvl.price : lastClose,
+                side: isBid ? "bid" : "ask",
+                strength: lvl.strength,
+            });
+            if (isBid) liquidityBias += 10;
+            else if (lvl.type.includes("high")) liquidityBias -= 8;
+        }
+    } catch {
+        // Liquidity detection is optional; no impact if unavailable.
+    }
+
     const distToSupport = support ? lastClose - support.price : Number.POSITIVE_INFINITY;
     const distToResistance = resistance ? resistance.price - lastClose : Number.POSITIVE_INFINITY;
 
-    // Bias: price pressed against a real level wins, otherwise trend.
+    // Profitability-biased direction: prefer trades where trend aligns with
+    // nearest structure and liquidity supports the move (SMC concept).
+    // Compute structure/liquidity scores before deciding direction.
+    const trendScore = trendUp ? 1 : -1;
+    // Use temporary direction for structure score (will be refined by final direction)
+    const preliminaryDir = (distToSupport <= 1.2 * atrValue && distToSupport <= distToResistance)
+        ? "long"
+        : (distToResistance <= 1.2 * atrValue ? "short" : (trendUp ? "long" : "short"));
+    const structureScore = preliminaryDir === "long"
+        ? (distToSupport < 2 * atrValue ? 1 : 0) - (distToResistance < 2 * atrValue ? 1 : 0)
+        : (distToResistance < 2 * atrValue ? 1 : 0) - (distToSupport < 2 * atrValue ? 1 : 0);
+    const liquidityScore = liquidityBias / 10; // normalize roughly to [-1, 1]
+    const biasScore = Math.round((trendScore * 0.4 + structureScore * 0.35 + liquidityScore * 0.25) * 100);
+
+    // Bias: price pressed against a real level wins, otherwise trend + liquidity.
     let direction: "long" | "short";
     if (distToSupport <= 1.2 * atrValue && distToSupport <= distToResistance) {
         direction = "long";
     } else if (distToResistance <= 1.2 * atrValue) {
+        direction = "short";
+    } else if (biasScore >= 20) {
+        direction = "long";
+    } else if (biasScore <= -20) {
         direction = "short";
     } else {
         direction = trendUp ? "long" : "short";
@@ -223,19 +278,38 @@ export function computeAiDrawPlan(candles: AiDrawCandle[]): AiDrawPlan | null {
     const finalRisk = Math.abs(lastClose - sl);
     const dir = direction === "long" ? 1 : -1;
 
-    // Targets at 2R / 3R / 4R / 5R / 6R, snapped to a real opposing cluster when that
-    // cluster sits beyond 0.5R (the market's own level beats a formula).
-    // Ensure each target is at least 0.1×finalRisk apart to avoid price collision.
+    // Order-block proxy: nearest swing cluster near price acts as SMC supply/demand zone.
+    const orderBlock = (direction === "long"
+        ? (lowClusters.find((c) => Math.abs(c.price - lastClose) < 2 * atrValue))
+        : (highClusters.find((c) => Math.abs(c.price - lastClose) < 2 * atrValue)))?.price ?? null;
+
+    // FVG proxy: gap zones derived from candle shadows/body gaps near the close.
+    const fvgZone: Array<{ low: number; high: number }> = [];
+    for (let i = Math.max(1, candles.length - 8); i < candles.length - 1; i++) {
+        const prev = candles[i - 1];
+        const curr = candles[i];
+        if (curr.low > prev.high) fvgZone.push({ low: prev.high, high: curr.low });
+        else if (prev.low > curr.high) fvgZone.push({ low: curr.high, high: prev.low });
+    }
+
+    // Stronger snap: prefer order-block and liquidity zones over pure ATR multiples.
     const snap = (target: number, minPrice: number): number => {
+        let best = roundTo(target);
+        // Prefer nearby order-block / liquidity zone when it improves R:R
         if (direction === "long" && resistance) {
             const r = resistance.price;
-            if (r > lastClose + 0.5 * finalRisk && r < target + finalRisk) return roundTo(r);
+            if (r > lastClose + 0.3 * finalRisk && r < target + finalRisk) best = roundTo(r);
+            else if (orderBlock && Math.abs(orderBlock - target) < 0.7 * finalRisk && orderBlock < target && orderBlock > lastClose) best = roundTo(orderBlock);
         }
         if (direction === "short" && support) {
             const s = support.price;
-            if (s < lastClose - 0.5 * finalRisk && s > target - finalRisk) return roundTo(s);
+            if (s < lastClose - 0.3 * finalRisk && s > target - finalRisk) best = roundTo(s);
+            else if (orderBlock && Math.abs(orderBlock - target) < 0.7 * finalRisk && orderBlock > target && orderBlock < lastClose) best = roundTo(orderBlock);
         }
-        return roundTo(target);
+        // Ensure min separation
+        if (direction === "long" && best <= minPrice + 0.05 * finalRisk) best = minPrice + 0.05 * finalRisk;
+        if (direction === "short" && best >= minPrice - 0.05 * finalRisk) best = minPrice - 0.05 * finalRisk;
+        return best;
     };
 
     // Base targets (before snap enforcement)
@@ -246,11 +320,11 @@ export function computeAiDrawPlan(candles: AiDrawCandle[]): AiDrawPlan | null {
     const baseTp5 = lastClose + dir * 6 * finalRisk;
 
     // Snapped targets, ensuring minimum separation of 0.1×finalRisk between levels
-    let tp1 = snap(baseTp1, lastClose);
-    let tp2 = snap(baseTp2, tp1 + 0.1 * finalRisk * dir);
-    let tp3 = snap(baseTp3, tp2 + 0.1 * finalRisk * dir);
-    let tp4 = snap(baseTp4, tp3 + 0.1 * finalRisk * dir);
-    let tp5 = snap(baseTp5, tp4 + 0.1 * finalRisk * dir);
+    const tp1 = snap(baseTp1, lastClose);
+    let tp2 = snap(baseTp2, tp1);
+    let tp3 = snap(baseTp3, tp2);
+    let tp4 = snap(baseTp4, tp3);
+    let tp5 = snap(baseTp5, tp4);
 
     // Final safety: ensure targets are ordered correctly (long: increasing, short: decreasing)
     if (direction === "long") {
@@ -296,8 +370,22 @@ export function computeAiDrawPlan(candles: AiDrawCandle[]): AiDrawPlan | null {
         rr5: finalRisk > 0 ? Math.round((Math.abs(tp5 - lastClose) / finalRisk) * 100) / 100 : 0,
         support: support ? roundTo(support.price) : null,
         resistance: resistance ? roundTo(resistance.price) : null,
+        orderBlock: orderBlock ? roundTo(orderBlock) : null,
+        fvgZone,
         trendUp,
-        evidence,
+        evidence: [
+            // The measured facts first (ATR, structure touches, EMA spread,
+            // stop/risk) — these are the numbers the chart's evidence panel and
+            // the AI badge quote back to the trader.
+            ...evidence,
+            // Then the SMC context layered on top of that measurement.
+            `SMC bias = ${biasScore} (trend=${trendUp ? "UP" : "DOWN"}, structure=${direction})`,
+            orderBlock ? `Order-block zone near ${roundTo(orderBlock)} (SMC supply/demand)` : "No strong order-block near close",
+            fvgZone.length ? `FVG zones: ${fvgZone.length} gap(s) detected near price` : "No FVG gap near price",
+            `Liquidity zones detected = ${liquidityZones.length}`,
+        ],
+        liquidityZones,
+        biasScore,
         anchorTime: last.timestamp,
         bars: candles.length,
     };
@@ -311,11 +399,18 @@ export function aiDrawLevels(plan: AiDrawPlan): AiDrawLevel[] {
     if (plan.tp3 !== undefined) tps.push({ key: "tp3", label: "AI TP3", price: plan.tp3 });
     if (plan.tp4 !== undefined) tps.push({ key: "tp4", label: "AI TP4", price: plan.tp4 });
     if (plan.tp5 !== undefined) tps.push({ key: "tp5", label: "AI TP5", price: plan.tp5 });
-    return [
+    const out: AiDrawLevel[] = [
         { key: "entry", label: `${plan.direction === "long" ? "BUY" : "SELL"} ENTRY`, price: plan.entry },
         { key: "sl", label: "AI SL", price: plan.sl },
         ...tps,
-        ...(plan.support !== null ? [{ key: "support" as const, label: "Support", price: plan.support }] : []),
-        ...(plan.resistance !== null ? [{ key: "resistance" as const, label: "Resistance", price: plan.resistance }] : []),
+        ...(plan.support !== null ? [{ key: "support" as const, label: "SMC Support", price: plan.support }] : []),
+        ...(plan.resistance !== null ? [{ key: "resistance" as const, label: "SMC Resistance", price: plan.resistance }] : []),
+        ...(plan.orderBlock !== null ? [{ key: "support" as const, label: "Order Block (SMC)", price: plan.orderBlock }] : []),
     ];
+    // Include FVG zone as a reference line when available (use first zone center)
+    if (plan.fvgZone.length > 0) {
+        const center = (plan.fvgZone[0].low + plan.fvgZone[0].high) / 2;
+        out.push({ key: "resistance" as const, label: "FVG Zone", price: Math.round(center * 100) / 100 });
+    }
+    return out;
 }

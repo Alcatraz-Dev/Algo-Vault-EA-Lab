@@ -9,6 +9,16 @@ export type NotifyPayload = {
     message: string;
     level?: "info" | "success" | "warning" | "error";
     link?: string;
+    /**
+     * Structured event code (e.g. TRADE_OPENED, STOP_LOSS_HIT). Optional, but
+     * the Alert Center filters on it — see `app/alert-center/page.tsx`. A
+     * notification without one is still listed, it just never matches the
+     * trades/targets/risk filter groups.
+     */
+    event?: string;
+    symbol?: string;
+    direction?: string;
+    metadata?: Record<string, unknown>;
 };
 
 export type NotifyChannel = "discord" | "telegram" | "email";
@@ -332,11 +342,26 @@ export async function notifyUser(
     try {
         const eventRef = adminDatabase.ref(`notifications/${uid}`).push();
         if (eventRef.key) {
+            // Canonical in-app record shape. `severity` is the field the Alert
+            // Center reads (`app/alert-center/page.tsx`); `level` is retained
+            // because it is this module's own input vocabulary and older
+            // readers may still use it. `lib/trade-management/notifications.ts`
+            // wrote `severity` only, so before this change the Alert Center
+            // rendered every notifyUser() alert as default-info and none of
+            // them matched the event filters.
+            const severity = payload.level ?? "info";
             await eventRef.set({
+                notificationId: eventRef.key,
                 title: payload.title,
                 message: payload.message,
-                level: payload.level ?? "info",
+                severity,
+                level: severity,
                 link: payload.link || "",
+                event: payload.event || "",
+                symbol: payload.symbol || "",
+                direction: payload.direction || "",
+                metadata: payload.metadata || {},
+                read: false,
                 channels,
                 status: results.length === 0 ? "no_channel" : anySent ? "sent" : "failed",
                 results: results.map((r) => ({

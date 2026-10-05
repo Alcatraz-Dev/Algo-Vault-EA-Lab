@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState, type ComponentType, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import type { User } from "firebase/auth";
 import {
     Activity,
@@ -38,7 +39,7 @@ import LevelBars, { type LevelBarItem } from "@/components/charts/LevelBars";
 import MiniSparkline from "@/components/charts/MiniSparkline";
 import ProgressRing from "@/components/charts/ProgressRing";
 import SignalCore, { type SignalVerdict } from "@/components/charts/SignalCore";
-import LiveCandlesPanel from "./LiveCandlesPanel";
+import LiveCandlesPanel, { type ChartLevel } from "./LiveCandlesPanel";
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Types — mirrors of the real API payloads (never invented client-side).
@@ -270,38 +271,42 @@ export const WIDGET_CATALOG: WidgetSpec[] = [
     {
         type: "signal_core",
         label: "Signal Core",
-        description: "Pulsing BUY/SELL verdict ring with score, confidence and factor alignment.",
+        description: "Pulsing BUY/SELL verdict ring backed by the live AI signal, with reasoning and factor alignment.",
         icon: Signal,
         needsAccount: false,
         widths: [1, 2],
         live: true,
+        pro: true,
     },
     {
         type: "confidence_meter",
         label: "Signal Confidence",
-        description: "Animated market-score meter with the per-factor checklist behind it.",
+        description: "AI signal confidence meter with the per-factor confluence checklist behind it.",
         icon: Percent,
         needsAccount: false,
         widths: [1, 2],
         live: true,
+        pro: true,
     },
     {
         type: "live_chart",
         label: "Live Chart",
-        description: "Live candles with volume, quote header and a dashed trend projection line.",
+        description: "Live candles with the AI signal's entry/stop/target lines and a dashed trend projection.",
         icon: CandlestickChart,
         needsAccount: false,
         widths: [2, 3],
         live: true,
+        pro: true,
     },
     {
         type: "mtf_bias",
         label: "Multi-Timeframe Bias",
-        description: "Per-timeframe score and bias sparklines, with the alignment read on top.",
+        description: "Per-timeframe score and bias sparklines, with the AI signal's timeframe flagged.",
         icon: AlignLeft,
         needsAccount: false,
         widths: [1, 2, 3],
         live: true,
+        pro: true,
     },
 
     /* ── Pro tier: advanced analytics ─────────────────────────────────────── */
@@ -407,6 +412,16 @@ export function defaultWidgetConfig(type: string): WidgetConfig {
         default:
             return {};
     }
+}
+
+/**
+ * Widgets that read a single symbol/timeframe pair, i.e. the ones a dashboard
+ * market selector can retarget. Derived from `defaultWidgetConfig` so adding a
+ * widget to the catalog is enough to opt it in — no second list to keep in sync.
+ * Multi-symbol widgets (watchlist, symbol scores) are excluded on purpose.
+ */
+export function isMarketScoped(type: string): boolean {
+    return "symbol" in defaultWidgetConfig(type);
 }
 
 /** Reads the symbol/timeframe pair every analytics widget shares. */
@@ -2267,6 +2282,84 @@ function MarketBreadthWidget({ user, refreshKey, config, isPro }: WidgetProps) {
 
 type ScorePayload = { score?: Score };
 
+/* ── Real AI signals — the same /api/ai-signals feed the Signals page uses ──
+ * The route is authenticated and enforces the PRO tier server-side, so a
+ * locked client never receives PRO signals. Only the fields the widgets read
+ * are mirrored here.
+ */
+
+type AiSignal = {
+    id: string;
+    symbol: string;
+    direction: "BUY" | "SELL";
+    timeframe: string;
+    tier?: string;
+    entry: number;
+    stopLoss: number;
+    tp1?: number;
+    tp2?: number;
+    tp3?: number;
+    confidence: number;
+    strength?: string;
+    riskReward?: number;
+    status?: string;
+    reasoning?: string;
+    createdAt: number;
+    updatedAt?: number;
+    expiresAt?: number;
+};
+
+type AiSignalPayload = { signals?: AiSignal[] };
+
+/** Statuses that mean the signal is finished — never presented as live. */
+const AI_TERMINAL_STATUSES = new Set([
+    "EXPIRED",
+    "CANCELLED",
+    "CLOSED",
+    "STOPPED",
+    "STOPPED_OUT",
+    "INVALIDATED",
+    "COMPLETED",
+    "STALE",
+    "OUTCOME_AMBIGUOUS",
+]);
+
+function aiSignalPath(symbol: string): string {
+    return `/api/ai-signals?symbol=${encodeURIComponent(symbol)}&limit=40`;
+}
+
+/** Newest still-live AI signal for this exact symbol, or null. */
+function pickAiSignal(signals: AiSignal[] | undefined, symbol: string): AiSignal | null {
+    if (!signals || signals.length === 0) return null;
+    const forSymbol = signals.filter(
+        (signal) => signal && String(signal.symbol ?? "").toUpperCase() === symbol
+    );
+    if (forSymbol.length === 0) return null;
+    const live = forSymbol.filter(
+        (signal) => !AI_TERMINAL_STATUSES.has(String(signal.status ?? "").toUpperCase())
+    );
+    const pool = live.length > 0 ? live : forSymbol;
+    return [...pool].sort((a, b) => Number(b.createdAt ?? 0) - Number(a.createdAt ?? 0))[0] ?? null;
+}
+
+/** "VERY_STRONG" → "Very strong" */
+function strengthLabel(strength?: string): string | null {
+    if (!strength) return null;
+    const text = String(strength).toLowerCase().replace(/_/g, " ").trim();
+    return text ? `${text.charAt(0).toUpperCase()}${text.slice(1)}` : null;
+}
+
+function aiVerdict(signal: AiSignal): SignalVerdict {
+    return signal.direction === "BUY" ? "buy" : signal.direction === "SELL" ? "sell" : "flat";
+}
+
+/** Is this signal still worth showing as an active level on the chart? */
+function isLiveAiSignal(signal: AiSignal | null): signal is AiSignal {
+    if (!signal) return false;
+    if (signal.expiresAt && Date.now() > Number(signal.expiresAt)) return false;
+    return !AI_TERMINAL_STATUSES.has(String(signal.status ?? "").toUpperCase());
+}
+
 const BIAS_TONE: Record<Score["bias"], "positive" | "negative" | "muted"> = {
     bullish: "positive",
     bearish: "negative",
@@ -2304,71 +2397,151 @@ function BiasChip({ bias }: { bias: Score["bias"] }) {
 
 /* ── Signal Core ─────────────────────────────────────────────────────────── */
 
-function SignalCoreWidget({ user, refreshKey, config }: WidgetProps) {
+function SignalCoreWidget({ user, refreshKey, config, isPro }: WidgetProps) {
     const { symbol, timeframe } = readSymbolTimeframe(config);
-    // The score is cheap server-side (candles are cached), so the verdict ring
-    // can breathe on a 60s poll like the rest of the command centre.
+    // Two reads: the live AI signal (the same feed the Signals page uses) and
+    // the deterministic score that stands in when no AI signal covers this
+    // symbol. Both paths are disabled while locked, so a locked widget never
+    // issues a request.
+    const aiRes = useApiData<AiSignalPayload>(
+        isPro ? aiSignalPath(symbol) : null,
+        user,
+        refreshKey,
+        true,
+        90_000
+    );
     const { data, status } = useApiData<ScorePayload>(
-        analyticsPath("score", config),
+        isPro ? analyticsPath("score", config) : null,
         user,
         refreshKey,
         true,
         60_000
     );
 
-    if (status === "loading" || status === "idle") return <WidgetSkeleton rows={3} />;
-    if (status === "error") {
+    if (!isPro) {
         return (
-            <WidgetState
-                icon={AlertTriangle}
-                tone="negative"
-                title="Signal unavailable"
-                hint={`No score could be computed for ${symbol} ${timeframe}.`}
+            <ProLock
+                label="Signal Core"
+                hint="The live AI signal, its reasoning and its confidence are Pro features."
             />
         );
     }
+
+    const ai = pickAiSignal(aiRes.data?.signals, symbol);
     const score = data?.score;
-    if (!score) {
-        return <WidgetState icon={Signal} title="Insufficient data" hint="Not enough candles to derive a signal." />;
+
+    if (!ai && !score) {
+        if (status === "error" || aiRes.status === "error") {
+            return (
+                <WidgetState
+                    icon={AlertTriangle}
+                    tone="negative"
+                    title="Signal unavailable"
+                    hint={`No AI signal or market score could be loaded for ${symbol} ${timeframe}.`}
+                />
+            );
+        }
+        if (status === "loading" || status === "idle" || aiRes.status === "loading") {
+            return <WidgetSkeleton rows={3} />;
+        }
+        return <WidgetState icon={Signal} title="Insufficient data" hint="Not enough data to derive a signal." />;
     }
-    return <SignalCoreView symbol={symbol} timeframe={timeframe} score={score} />;
+
+    return <SignalCoreView symbol={symbol} timeframe={timeframe} score={score ?? null} ai={ai} />;
 }
 
 export function SignalCoreView({
     symbol,
     timeframe,
     score,
+    ai,
 }: {
     symbol: string;
     timeframe: string;
-    score: Score;
+    score: Score | null;
+    ai: AiSignal | null;
 }) {
-    const total = score.components.length;
-    const aligned = score.components.filter((component) => component.direction === score.bias).length;
+    const total = score?.components.length ?? 0;
+    const aligned = score ? score.components.filter((c) => c.direction === score.bias).length : 0;
+    const verdict = ai ? aiVerdict(ai) : verdictOf(score?.bias ?? "neutral");
+    const bias: Score["bias"] = ai
+        ? verdict === "buy"
+            ? "bullish"
+            : verdict === "sell"
+                ? "bearish"
+                : "neutral"
+        : (score?.bias ?? "neutral");
+    const strength = strengthLabel(ai?.strength);
 
     return (
-        <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center">
-            <SignalCore verdict={verdictOf(score.bias)} />
-            <div className="w-full min-w-0 flex-1 space-y-3">
-                <div className="flex flex-wrap items-center gap-2">
-                    <BiasChip bias={score.bias} />
-                    <span className="font-numeric truncate text-[11px] uppercase tracking-wide text-muted-foreground">
-                        {symbol} · {timeframe}
-                    </span>
-                </div>
-                <div className="grid grid-cols-2 gap-x-3 gap-y-3">
-                    <div className="min-w-0">
-                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Market score</p>
-                        <p className="font-numeric mt-1 text-2xl font-semibold text-foreground">
-                            <CountUp value={Math.round(score.total)} />
-                            <span className="text-sm text-muted-foreground">/100</span>
-                        </p>
+        <div className="space-y-3">
+            <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center">
+                <SignalCore verdict={verdict} caption={ai ? `${Math.round(ai.confidence)}%` : undefined} />
+                <div className="w-full min-w-0 flex-1 space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <BiasChip bias={bias} />
+                        {strength ? (
+                            <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-primary">
+                                {strength}
+                            </span>
+                        ) : null}
+                        <span className="font-numeric truncate text-[11px] uppercase tracking-wide text-muted-foreground">
+                            {symbol} · {ai?.timeframe ?? timeframe}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground">
+                            {relativeTime(ai?.createdAt ?? score?.timestamp)}
+                        </span>
                     </div>
-                    <Metric label="Confidence" value={score.confidence} />
-                    <Metric label="Factors aligned" value={`${aligned}/${total}`} />
-                    <Metric label="Updated" value={relativeTime(score.timestamp)} tone="muted" />
+
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-3">
+                        {ai ? (
+                            <>
+                                <div className="min-w-0">
+                                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                                        AI confidence
+                                    </p>
+                                    <p className="font-numeric mt-1 text-2xl font-semibold text-foreground">
+                                        <CountUp value={Math.round(ai.confidence)} suffix="%" />
+                                    </p>
+                                </div>
+                                <Metric
+                                    label="Risk : reward"
+                                    value={ai.riskReward ? `1 : ${Number(ai.riskReward).toFixed(1)}` : "—"}
+                                />
+                                <Metric label="Entry" value={formatPrice(ai.entry, symbol)} />
+                                <Metric label="Stop loss" value={formatPrice(ai.stopLoss, symbol)} tone="negative" />
+                            </>
+                        ) : (
+                            <>
+                                <div className="min-w-0">
+                                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                                        Market score
+                                    </p>
+                                    <p className="font-numeric mt-1 text-2xl font-semibold text-foreground">
+                                        <CountUp value={Math.round(score?.total ?? 0)} />
+                                        <span className="text-sm text-muted-foreground">/100</span>
+                                    </p>
+                                </div>
+                                <Metric label="Confidence" value={score?.confidence ?? "—"} />
+                                <Metric label="Factors aligned" value={`${aligned}/${total}`} />
+                                <Metric label="Updated" value={relativeTime(score?.timestamp)} tone="muted" />
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
+
+            {ai?.reasoning ? (
+                <div className="border-t border-border pt-2.5">
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">AI reasoning</p>
+                    <p className="mt-1 line-clamp-3 text-[12px] leading-relaxed text-foreground">{ai.reasoning}</p>
+                </div>
+            ) : !ai ? (
+                <p className="border-t border-border pt-2.5 text-[11px] text-muted-foreground">
+                    No live AI signal for {symbol} — showing the deterministic market score
+                    {score ? ` (${aligned}/${total} factors aligned)` : ""}.
+                </p>
+            ) : null}
         </div>
     );
 }
@@ -2387,53 +2560,91 @@ function factorState(bias: Score["bias"], component: ScoreComponent): FactorStat
     return "against";
 }
 
-function ConfidenceWidget({ user, refreshKey, config }: WidgetProps) {
+function ConfidenceWidget({ user, refreshKey, config, isPro }: WidgetProps) {
     const { symbol, timeframe } = readSymbolTimeframe(config);
+    // AI confidence comes from the Signals feed; the deterministic score backs
+    // both the fallback value and the confluence checklist below it.
+    const aiRes = useApiData<AiSignalPayload>(
+        isPro ? aiSignalPath(symbol) : null,
+        user,
+        refreshKey,
+        true,
+        90_000
+    );
     const { data, status } = useApiData<ScorePayload>(
-        analyticsPath("score", config),
+        isPro ? analyticsPath("score", config) : null,
         user,
         refreshKey,
         true,
         60_000
     );
 
-    if (status === "loading" || status === "idle") return <WidgetSkeleton rows={4} />;
-    if (status === "error") {
+    if (!isPro) {
         return (
-            <WidgetState
-                icon={AlertTriangle}
-                tone="negative"
-                title="Confidence unavailable"
-                hint={`No score could be computed for ${symbol} ${timeframe}.`}
+            <ProLock
+                label="Signal Confidence"
+                hint="AI signal confidence and the confluence checklist are Pro features."
             />
         );
     }
+
     const score = data?.score;
-    if (!score) {
-        return <WidgetState icon={Percent} title="Insufficient data" hint="Not enough candles to score this market." />;
+    const ai = pickAiSignal(aiRes.data?.signals, symbol);
+
+    if (!score && !ai) {
+        if (status === "error" || aiRes.status === "error") {
+            return (
+                <WidgetState
+                    icon={AlertTriangle}
+                    tone="negative"
+                    title="Confidence unavailable"
+                    hint={`No AI signal or market score could be loaded for ${symbol} ${timeframe}.`}
+                />
+            );
+        }
+        if (status === "loading" || status === "idle" || aiRes.status === "loading") {
+            return <WidgetSkeleton rows={4} />;
+        }
+        return <WidgetState icon={Percent} title="Insufficient data" hint="Not enough data to score this market." />;
     }
-    return <ConfidenceView symbol={symbol} timeframe={timeframe} score={score} />;
+
+    return <ConfidenceView symbol={symbol} timeframe={timeframe} score={score ?? null} ai={ai} />;
 }
 
 export function ConfidenceView({
     symbol,
     timeframe,
     score,
+    ai,
 }: {
     symbol: string;
     timeframe: string;
-    score: Score;
+    score: Score | null;
+    ai: AiSignal | null;
 }) {
-    const value = Math.max(0, Math.min(100, score.total));
-    const tone = BIAS_TONE[score.bias];
-    const aligned = score.components.filter((c) => factorState(score.bias, c) === "aligned").length;
+    const bias: Score["bias"] = ai
+        ? ai.direction === "BUY"
+            ? "bullish"
+            : ai.direction === "SELL"
+                ? "bearish"
+                : "neutral"
+        : (score?.bias ?? "neutral");
+    const value = Math.max(0, Math.min(100, ai ? Number(ai.confidence) : (score?.total ?? 0)));
+    const tone = BIAS_TONE[bias];
+    const strength = strengthLabel(ai?.strength);
+    const aligned = score ? score.components.filter((c) => factorState(score.bias, c) === "aligned").length : 0;
+    // Pre-narrowed copies: the checklist callback below must not close over a
+    // `Score | null` parameter binding, whose narrowing does not survive
+    // inside a nested function.
+    const components = score?.components ?? [];
+    const modelBias: Score["bias"] = score?.bias ?? "neutral";
 
     return (
         <div className="space-y-4">
             <div className="flex items-end justify-between gap-3">
                 <div className="min-w-0">
                     <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                        {symbol} · {timeframe} market score
+                        {symbol} · {ai ? `AI confidence · ${ai.timeframe}` : `${timeframe} market score`}
                     </p>
                     <p
                         className={cn(
@@ -2447,8 +2658,12 @@ export function ConfidenceView({
                     </p>
                 </div>
                 <div className="flex flex-col items-end gap-1.5">
-                    <BiasChip bias={score.bias} />
-                    <span className="text-[11px] text-muted-foreground">{score.confidence} confidence</span>
+                    <BiasChip bias={bias} />
+                    <span className="text-[11px] text-muted-foreground">
+                        {ai
+                            ? `${strength ?? ai.direction} · ${relativeTime(ai.createdAt)}`
+                            : `${score?.confidence ?? "—"} confidence`}
+                    </span>
                 </div>
             </div>
 
@@ -2456,14 +2671,15 @@ export function ConfidenceView({
             <div className="relative h-2.5 overflow-hidden rounded-full bg-muted">
                 <div
                     className="h-full rounded-full transition-[width] duration-1000 ease-out"
-                    style={{ width: `${value}%`, background: biasColorVar(score.bias) }}
+                    style={{ width: `${value}%`, background: biasColorVar(bias) }}
                 />
                 <div aria-hidden="true" className="shimmer-overlay absolute inset-0" />
             </div>
 
+            {components.length > 0 ? (
             <ul className="space-y-2">
-                {score.components.map((component, index) => {
-                    const state = factorState(score.bias, component);
+                {components.map((component, index) => {
+                    const state = factorState(modelBias, component);
                     const Icon = state === "aligned" ? Check : state === "against" ? X : Minus;
                     return (
                         <li
@@ -2492,11 +2708,20 @@ export function ConfidenceView({
                     );
                 })}
             </ul>
+            ) : (
+                <p className="text-[11px] text-muted-foreground">
+                    Model confluence factors are unavailable for this symbol right now.
+                </p>
+            )}
 
             <p className="border-t border-border pt-2.5 text-[11px] text-muted-foreground">
-                {score.components.length === 0
-                    ? "No factors were computed for this window."
-                    : `${aligned}/${score.components.length} factors align with the ${biasLabel(score.bias).toUpperCase()} call · updated ${relativeTime(score.timestamp)}`}
+                {ai
+                    ? `${ai.direction} AI signal · ${strength ?? "no strength label"} · ${relativeTime(ai.createdAt)}${
+                          score ? ` · ${aligned}/${components.length} model factors align` : ""
+                      }`
+                    : components.length === 0
+                        ? "No factors were computed for this window."
+                        : `${aligned}/${components.length} factors align with the ${biasLabel(modelBias).toUpperCase()} call · updated ${relativeTime(score?.timestamp)}`}
             </p>
         </div>
     );
@@ -2504,30 +2729,85 @@ export function ConfidenceView({
 
 /* ── Live Chart ──────────────────────────────────────────────────────────── */
 
-function LiveChartWidget({ user, refreshKey, config }: WidgetProps) {
+function LiveChartWidget({ user, refreshKey, config, isPro }: WidgetProps) {
     const { symbol, timeframe } = readSymbolTimeframe(config);
     // The candle feed itself is owned by LiveCandlesPanel (canonical live
-    // stream); the score only adds the bias chip next to the price.
-    const { data } = useApiData<ScorePayload>(analyticsPath("score", config), user, refreshKey, true, 60_000);
+    // stream); the AI signal supplies the levels drawn on top of it and the
+    // deterministic score is the badge fallback when no AI signal exists.
+    const aiRes = useApiData<AiSignalPayload>(
+        isPro ? aiSignalPath(symbol) : null,
+        user,
+        refreshKey,
+        true,
+        90_000
+    );
+    const { data } = useApiData<ScorePayload>(
+        isPro ? analyticsPath("score", config) : null,
+        user,
+        refreshKey,
+        true,
+        60_000
+    );
     const score = data?.score;
+    const ai = pickAiSignal(aiRes.data?.signals, symbol);
+    // Identity-stable so the chart only rebuilds its price lines when a price
+    // actually changes, not on every render of the live feed.
+    const levels = useMemo(() => aiChartLevels(ai), [ai]);
+
+    if (!isPro) {
+        return (
+            <ProLock
+                label="Live Chart"
+                hint="Live candles with the AI signal's entry, stop and target lines are Pro features."
+            />
+        );
+    }
+
+    const bias: Score["bias"] = ai
+        ? ai.direction === "BUY"
+            ? "bullish"
+            : "bearish"
+        : (score?.bias ?? "neutral");
+    const badgeValue = ai
+        ? `${Math.round(ai.confidence)}%`
+        : score
+            ? `${Math.round(score.total)}/100`
+            : null;
 
     return (
         <LiveCandlesPanel
             symbol={symbol}
             timeframe={timeframe}
             height={260}
+            levels={levels}
             badge={
-                score ? (
+                badgeValue ? (
                     <span className="flex items-center gap-1.5">
-                        <BiasChip bias={score.bias} />
-                        <span className="font-numeric text-[11px] text-muted-foreground">
-                            {Math.round(score.total)}/100
-                        </span>
+                        <BiasChip bias={bias} />
+                        <span className="font-numeric text-[11px] text-muted-foreground">{badgeValue}</span>
                     </span>
                 ) : null
             }
         />
     );
+}
+
+/** AI signal prices as chart lines; empty when there is no live signal. */
+function aiChartLevels(ai: AiSignal | null): ChartLevel[] {
+    if (!isLiveAiSignal(ai)) return [];
+    const levels: ChartLevel[] = [];
+    if (typeof ai.entry === "number" && Number.isFinite(ai.entry) && ai.entry > 0) {
+        levels.push({ price: ai.entry, label: "AI ENTRY", tone: "entry" });
+    }
+    if (typeof ai.stopLoss === "number" && Number.isFinite(ai.stopLoss) && ai.stopLoss > 0) {
+        levels.push({ price: ai.stopLoss, label: "AI SL", tone: "stop" });
+    }
+    [ai.tp1, ai.tp2].forEach((tp, index) => {
+        if (typeof tp === "number" && Number.isFinite(tp) && tp > 0) {
+            levels.push({ price: tp, label: `AI TP${index + 1}`, tone: "target" });
+        }
+    });
+    return levels.slice(0, 4);
 }
 
 /* ── Multi-Timeframe Bias ────────────────────────────────────────────────── */
@@ -2547,9 +2827,18 @@ function readTimeframeList(config: WidgetConfig): string[] {
     return (unique.length > 0 ? unique : MTF_DEFAULT_TIMEFRAMES.split(",")).slice(0, MTF_MAX_ROWS);
 }
 
-function MtfBiasWidget({ user, refreshKey, config }: WidgetProps) {
+function MtfBiasWidget({ user, refreshKey, config, isPro }: WidgetProps) {
     const symbol = String(config.symbol ?? "XAUUSD").toUpperCase();
     const timeframes = readTimeframeList(config);
+    // Fetched once in the parent (not per row) purely to flag which timeframe
+    // the live AI signal actually traded on.
+    const aiRes = useApiData<AiSignalPayload>(
+        isPro ? aiSignalPath(symbol) : null,
+        user,
+        refreshKey,
+        true,
+        90_000
+    );
     // Rows report their score up so the header can read alignment across them
     // without a second request — stable callback, keyed by timeframe.
     const [reports, setReports] = useState<Record<string, { bias: Score["bias"]; total: number }>>({});
@@ -2560,6 +2849,20 @@ function MtfBiasWidget({ user, refreshKey, config }: WidgetProps) {
             return { ...prev, [timeframe]: { bias: score.bias, total: score.total } };
         });
     }, []);
+
+    // Every hook above has run — safe to bail out for a locked widget, and no
+    // row component is mounted, so no per-timeframe request is issued.
+    if (!isPro) {
+        return (
+            <ProLock
+                label="Multi-Timeframe Bias"
+                hint="Multi-timeframe bias reads with the AI signal's timeframe are Pro features."
+            />
+        );
+    }
+
+    const ai = pickAiSignal(aiRes.data?.signals, symbol);
+    const aiTimeframe = ai ? String(ai.timeframe ?? "").toUpperCase() : "";
 
     const known = timeframes.filter((tf) => reports[tf]);
     const counts = known.reduce(
@@ -2583,12 +2886,17 @@ function MtfBiasWidget({ user, refreshKey, config }: WidgetProps) {
                 <span className="font-numeric text-[11px] uppercase tracking-wide text-muted-foreground">
                     {symbol} · multi-timeframe
                 </span>
-                {known.length > 0 ? (
+                {known.length > 0 || ai ? (
                     <span className="flex items-center gap-1.5">
                         <BiasChip bias={dominant} />
                         <span className="font-numeric text-[11px] text-muted-foreground">
-                            {aligned}/{known.length} aligned
+                            {known.length > 0 ? `${aligned}/${known.length} aligned` : "—"}
                         </span>
+                        {aiTimeframe ? (
+                            <span className="rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-primary">
+                                AI · {aiTimeframe}
+                            </span>
+                        ) : null}
                     </span>
                 ) : null}
             </div>
@@ -2602,6 +2910,7 @@ function MtfBiasWidget({ user, refreshKey, config }: WidgetProps) {
                         user={user}
                         refreshKey={refreshKey}
                         onReport={report}
+                        isAiTimeframe={aiTimeframe === timeframe}
                     />
                 ))}
             </ul>
@@ -2616,12 +2925,15 @@ function MtfRow({
     user,
     refreshKey,
     onReport,
+    isAiTimeframe = false,
 }: {
     symbol: string;
     timeframe: string;
     user: User | null;
     refreshKey: number;
     onReport: (timeframe: string, score: Score) => void;
+    /** True when the live AI signal traded this timeframe. */
+    isAiTimeframe?: boolean;
 }) {
     const scorePath = `/api/analytics/score?symbol=${encodeURIComponent(symbol)}&timeframe=${encodeURIComponent(timeframe)}`;
     const ohlcPath = `/api/analytics/ohlc?symbol=${encodeURIComponent(symbol)}&timeframe=${encodeURIComponent(timeframe)}&limit=60`;
@@ -2663,6 +2975,11 @@ function MtfRow({
             <span className="font-numeric w-8 shrink-0 text-right text-[11px] text-muted-foreground">
                 {score ? Math.round(score.total) : "—"}
             </span>
+            {isAiTimeframe ? (
+                <span className="rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-primary">
+                    AI
+                </span>
+            ) : null}
             {score ? (
                 <BiasChip bias={score.bias} />
             ) : (
@@ -2683,54 +3000,67 @@ export type WidgetProps = {
     isPro: boolean;
 };
 
-export function WidgetBody(props: WidgetProps & { type: string }) {
-    const { type } = props;
+/** The dashboard-wide market the user is currently looking at. */
+export type MarketScope = { symbol: string; timeframe: string };
+
+export function WidgetBody(props: WidgetProps & { type: string; marketScope?: MarketScope | null }) {
+    const { type, marketScope } = props;
+
+    // A market-scoped widget follows the dashboard selector, so its own stored
+    // symbol is only the seed it was added with. Multi-symbol widgets keep the
+    // lists in their config.
+    const config =
+        marketScope && isMarketScoped(type)
+            ? { ...props.config, symbol: marketScope.symbol, timeframe: marketScope.timeframe }
+            : props.config;
+    // `scoped` still carries marketScope/type, which the bodies ignore.
+    const scoped = { ...props, config } as WidgetProps;
 
     switch (type) {
         case "portfolio_summary":
-            return <PortfolioSummaryWidget {...props} />;
+            return <PortfolioSummaryWidget {...scoped} />;
         case "accounts":
-            return <AccountsWidget {...props} />;
+            return <AccountsWidget {...scoped} />;
         case "equity_curve":
-            return <EquityCurveWidget {...props} />;
+            return <EquityCurveWidget {...scoped} />;
         case "market_score":
-            return <MarketScoreWidget {...props} />;
+            return <MarketScoreWidget {...scoped} />;
         case "risk":
-            return <RiskWidget {...props} />;
+            return <RiskWidget {...scoped} />;
         case "positions":
-            return <PositionsWidget {...props} />;
+            return <PositionsWidget {...scoped} />;
         case "exposure":
-            return <ExposureWidget {...props} />;
+            return <ExposureWidget {...scoped} />;
         case "recent_alerts":
-            return <RecentAlertsWidget {...props} />;
+            return <RecentAlertsWidget {...scoped} />;
         case "watchlist":
-            return <WatchlistWidget {...props} />;
+            return <WatchlistWidget {...scoped} />;
         case "market_clock":
             return <MarketClockWidget />;
         case "market_regime":
-            return <MarketRegimeWidget {...props} />;
+            return <MarketRegimeWidget {...scoped} />;
         case "volatility":
-            return <VolatilityWidget {...props} />;
+            return <VolatilityWidget {...scoped} />;
         case "volume_analysis":
-            return <VolumeAnalysisWidget {...props} />;
+            return <VolumeAnalysisWidget {...scoped} />;
         case "structure_events":
-            return <StructureEventsWidget {...props} />;
+            return <StructureEventsWidget {...scoped} />;
         case "liquidity_map":
-            return <LiquidityMapWidget {...props} />;
+            return <LiquidityMapWidget {...scoped} />;
         case "zones":
-            return <ZonesWidget {...props} />;
+            return <ZonesWidget {...scoped} />;
         case "correlation_matrix":
-            return <CorrelationMatrixWidget {...props} />;
+            return <CorrelationMatrixWidget {...scoped} />;
         case "market_breadth":
-            return <MarketBreadthWidget {...props} />;
+            return <MarketBreadthWidget {...scoped} />;
         case "signal_core":
-            return <SignalCoreWidget {...props} />;
+            return <SignalCoreWidget {...scoped} />;
         case "confidence_meter":
-            return <ConfidenceWidget {...props} />;
+            return <ConfidenceWidget {...scoped} />;
         case "live_chart":
-            return <LiveChartWidget {...props} />;
+            return <LiveChartWidget {...scoped} />;
         case "mtf_bias":
-            return <MtfBiasWidget {...props} />;
+            return <MtfBiasWidget {...scoped} />;
         default:
             return (
                 <WidgetState
@@ -2793,20 +3123,42 @@ export function WidgetPicker({
         );
     };
 
-    return (
+    // Escape closes the picker, and the page behind it stops scrolling while it
+    // is open — dialog behaviour the hand-rolled overlay was missing.
+    useEffect(() => {
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") onClose();
+        };
+        document.addEventListener("keydown", onKeyDown);
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.removeEventListener("keydown", onKeyDown);
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [onClose]);
+
+    if (typeof document === "undefined") return null;
+
+    // Portalled to <body>: AppShell's <main> runs `animate-page-enter`, whose
+    // fill-mode leaves a `transform` — that makes <main> the containing block
+    // for this fixed overlay, so the scrim was trapped in the page-content box
+    // and the panel centred below the fold instead of on screen. Rendering from
+    // <body> makes positioning independent of the page wrapper.
+    return createPortal(
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm"
             role="dialog"
             aria-modal="true"
             aria-label="Add widget"
             onClick={onClose}
         >
             <div
-                className="max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-lg border border-border bg-popover p-4 shadow-lg"
+                className="flex max-h-[min(85dvh,720px)] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-border bg-popover shadow-lg"
                 onClick={(event) => event.stopPropagation()}
             >
-                <div className="mb-3 flex items-center justify-between">
-                    <div>
+                <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
+                    <div className="min-w-0">
                         <h2 className="text-sm font-semibold text-foreground">Add widget</h2>
                         <p className="text-[11px] text-muted-foreground">
                             Every widget reads live data from your connected accounts.
@@ -2815,12 +3167,13 @@ export function WidgetPicker({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-md px-2 py-1 text-[11px] text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                        className="shrink-0 rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition hover:bg-muted hover:text-foreground"
                     >
                         Close
                     </button>
                 </div>
 
+                <div className="min-h-0 flex-1 overflow-y-auto p-4">
                 <ul className="space-y-1.5">{standard.map(renderItem)}</ul>
 
                 {pro.length > 0 && (
@@ -2839,8 +3192,10 @@ export function WidgetPicker({
                         <ul className="space-y-1.5">{pro.map(renderItem)}</ul>
                     </>
                 )}
+                </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
 

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { arenaAuth, arenaError, arenaJson, arenaOPTIONS } from "../../../_shared";
-import { placeOrder, closePosition, modifyPositionStops, cancelPendingOrder, ArenaError } from "@/lib/performance-arena/service";
+import { placeOrder, closePosition, previewPartialClose, modifyPositionStops, cancelPendingOrder, ArenaError } from "@/lib/performance-arena/service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,8 +26,14 @@ interface OrderBody {
     clientRequestId?: unknown;
     /** Partial close: absolute lot amount (mutually exclusive with percent). */
     closeLots?: unknown;
-    /** Partial close: percent of the position to close. */
+    /** Partial close: percent of the position VOLUME to close. */
     percent?: unknown;
+    /**
+     * Partial close: percent of the position's CURRENT NET UNREALIZED PROFIT to
+     * lock. Mutually exclusive with closeLots/percent — the two modes mean
+     * different things and are never inferred from one another.
+     */
+    profitPercent?: unknown;
 }
 
 // Auth: bearer token. The client submits INTENT only (symbol/side/size/stop).
@@ -46,28 +52,47 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         const action = typeof body.action === "string" ? body.action : "market";
 
-        if (action === "close") {
+        if (action === "close" || action === "previewClose") {
             if (typeof body.tradeId !== "string" || !body.tradeId) {
                 return arenaJson({ error: "tradeId is required to close a position.", code: "INVALID_BODY" }, 400);
             }
-            // Omitting both closeLots and percent closes the whole position.
+            // Omitting every size field closes the whole position.
             const closeLots = body.closeLots === undefined || body.closeLots === null ? undefined : Number(body.closeLots);
             const percent = body.percent === undefined || body.percent === null ? undefined : Number(body.percent);
+            const profitPercent = body.profitPercent === undefined || body.profitPercent === null ? undefined : Number(body.profitPercent);
             if (closeLots !== undefined && (!Number.isFinite(closeLots) || closeLots <= 0)) {
                 return arenaJson({ error: "closeLots must be a positive number.", code: "INVALID_BODY" }, 400);
             }
             if (percent !== undefined && (!Number.isFinite(percent) || percent <= 0 || percent > 100)) {
                 return arenaJson({ error: "percent must be greater than 0 and at most 100.", code: "INVALID_BODY" }, 400);
             }
-            if (closeLots !== undefined && percent !== undefined) {
-                return arenaJson({ error: "Provide closeLots or percent, not both.", code: "INVALID_BODY" }, 400);
+            if (profitPercent !== undefined && (!Number.isFinite(profitPercent) || profitPercent <= 0 || profitPercent > 100)) {
+                return arenaJson({ error: "profitPercent must be greater than 0 and at most 100.", code: "INVALID_BODY" }, 400);
             }
+            const provided = [closeLots, percent, profitPercent].filter((value) => value !== undefined);
+            if (provided.length > 1) {
+                return arenaJson(
+                    { error: "Provide at most one of closeLots, percent or profitPercent.", code: "INVALID_BODY" },
+                    400
+                );
+            }
+            const size =
+                closeLots !== undefined || percent !== undefined || profitPercent !== undefined
+                    ? { lots: closeLots, percent, profitPercent }
+                    : undefined;
+
+            // Preview: same engine, same quote as the close that follows it.
+            if (action === "previewClose") {
+                const plan = await previewPartialClose(auth.uid, attemptId, body.tradeId, size);
+                return arenaJson({ plan });
+            }
+
             const state = await closePosition(
                 auth.uid,
                 attemptId,
                 body.tradeId,
                 typeof body.clientRequestId === "string" ? body.clientRequestId : undefined,
-                closeLots !== undefined || percent !== undefined ? { lots: closeLots, percent } : undefined
+                size
             );
             return arenaJson({ state });
         }
@@ -87,7 +112,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             return arenaJson({ state });
         }
         if (action !== "market" && action !== "limit" && action !== "stop") {
-            return arenaJson({ error: "action must be market | limit | stop | close | modifyStops | cancelPending.", code: "INVALID_BODY" }, 400);
+            return arenaJson({ error: "action must be market | limit | stop | close | previewClose | modifyStops | cancelPending.", code: "INVALID_BODY" }, 400);
         }
 
         if (typeof body.symbol !== "string" || !body.symbol) {

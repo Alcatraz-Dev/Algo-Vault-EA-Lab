@@ -6,6 +6,7 @@ import { THEME_INIT_ID, THEME_INIT_SCRIPT } from "@/components/theme/theme-init"
 import GuideHost from "@/components/guides/GuideHost";
 import PwaRegister from "@/components/pwa/PwaRegister";
 import ExtensionInstallBinding from "@/components/extension/ExtensionInstallBinding";
+import ProductAnalyticsProvider from "@/components/product-analytics/ProductAnalyticsProvider";
 import {
   StructuredData,
   ALGOVAULT_ORGANIZATION_SCHEMA,
@@ -145,6 +146,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <GuideHost />
         <PwaRegister />
         <ExtensionInstallBinding />
+        <ProductAnalyticsProvider />
       </body>
     </html>
   );

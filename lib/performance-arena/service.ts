@@ -32,6 +32,12 @@ import {
     takeProfitHit,
 } from "./execution";
 import { computeMetrics, dayKeyOf, dailyPnlSeries } from "./metrics";
+import {
+    planPartialClose,
+    splitTradeCosts,
+    totalCostCentsOf,
+    type PartialClosePlan,
+} from "./partial-close";
 import { evaluateAccountRules, evaluatePreTrade, type OrderIntent } from "./rules";
 import { applyTransition, InvalidTransitionError } from "./state-machine";
 import {
@@ -76,7 +82,7 @@ import {
     type RuleEvent,
     type TraderPerformanceProfile,
     type TradeExitReason,
-    type TradeFillCosts,
+    type TradeCloseType,
     type VirtualAccount,
 } from "./types";
 
@@ -1127,30 +1133,8 @@ export async function getAttemptState(uid: string, attemptId: string): Promise<A
 // splits them pro-rata and hands the residual to the surviving trade, so the
 // slices of a position always sum back to the original gross PnL and cost.
 
-/** Split a trade's round-trip costs between a closed slice and the remainder. */
-function splitTradeCosts(costs: TradeFillCosts, closeCentiLots: number, totalCentiLots: number): { closed: TradeFillCosts; remaining: TradeFillCosts } {
-    if (closeCentiLots >= totalCentiLots) {
-        return { closed: costs, remaining: { spreadCostCents: 0, slippageCostCents: 0, commissionCents: 0 } };
-    }
-    const share = (value: number) => roundHalfAwayFromZero((value * closeCentiLots) / totalCentiLots);
-    const closed = {
-        spreadCostCents: share(costs.spreadCostCents),
-        slippageCostCents: share(costs.slippageCostCents),
-        commissionCents: share(costs.commissionCents),
-    };
-    return {
-        closed,
-        remaining: {
-            spreadCostCents: costs.spreadCostCents - closed.spreadCostCents,
-            slippageCostCents: costs.slippageCostCents - closed.slippageCostCents,
-            commissionCents: costs.commissionCents - closed.commissionCents,
-        },
-    };
-}
-
-function totalCostCentsOf(costs: TradeFillCosts): number {
-    return Math.max(0, costs.spreadCostCents + costs.slippageCostCents + costs.commissionCents);
-}
+// Cost splitting lives in ./partial-close so the preview and the settlement
+// that follows it can never disagree about how a slice paid its share.
 
 export interface ReductionResult {
     closedCentiLots: number;
@@ -1176,6 +1160,8 @@ async function reduceExposure(params: {
     closeCentiLots: number;
     quote: ArenaQuote;
     exitReason: TradeExitReason;
+    /** How the position was flattened; defaults to the legacy inference. */
+    closeType?: TradeCloseType;
     now: number;
     clientRequestId?: string;
 }): Promise<ReductionResult> {
@@ -1232,6 +1218,10 @@ async function reduceExposure(params: {
             exitPriceMicros: exit.exitPriceMicros,
             exitQuoteAt: quote.timestamp,
             exitReason: isFullClose ? exitReason : "partial_close",
+            // A partial slice is VOLUME_PARTIAL or PROFIT_PRESERVATION depending
+            // on how the quantity was chosen, not an undifferentiated
+            // "partial_close". Full closes keep the caller's classification.
+            closeType: isFullClose ? (params.closeType ?? "FULL") : (params.closeType ?? "VOLUME_PARTIAL"),
             realizedPnLCents: netPnLCents,
             updatedAt: now,
         };
@@ -1976,17 +1966,64 @@ export async function cancelPendingOrder(uid: string, attemptId: string, orderId
 }
 
 /**
- * Close a position — fully by default, or partially via `size` (lot amount or
- * percent of the position). Both delegate to `reduceExposure`, the single
- * netting engine, so a chart "close 50%" and an opposing market order produce
- * identical accounting.
+ * Server-side preview for a partial close. Produces the EXACT plan the
+ * subsequent close will execute — same engine, same quote, same grid — so a
+ * trader never confirms one number and receives another.
+ *
+ * Read-only: resolves nothing but the current quote and never writes state.
+ */
+export async function previewPartialClose(
+    uid: string,
+    attemptId: string,
+    tradeId: string,
+    size?: { lots?: number; percent?: number; profitPercent?: number }
+): Promise<PartialClosePlan> {
+    const attempt = await store.getAttempt(uid, attemptId);
+    if (!attempt) throw new ArenaError(404, "ATTEMPT_NOT_FOUND", "Challenge attempt not found.");
+    if (attempt.status !== "ACTIVE" && attempt.status !== "PAUSED") {
+        throw new ArenaError(409, "NOT_ACTIVE", `Challenge is ${attempt.status} — positions are managed by settlement.`);
+    }
+    const trade = await store.getTrade(uid, attemptId, tradeId);
+    if (!trade) throw new ArenaError(404, "TRADE_NOT_FOUND", "Trade not found.");
+    if (trade.status !== "open") {
+        throw new ArenaError(409, "POSITION_CLOSED", "Position is already closed.");
+    }
+
+    const quote = await resolveQuote(trade.symbol);
+    if (!quote) {
+        return planPartialClose({
+            trade,
+            spec: arenaSymbolSpec(trade.symbol),
+            quote: null,
+            stepCentiLots: Math.max(1, Math.round(attempt.policy.positionSizePolicy.stepLots * 100)),
+            volume: size?.profitPercent == null ? { lots: size?.lots ?? null, percent: size?.percent ?? null } : null,
+            profitPercent: size?.profitPercent ?? null,
+        });
+    }
+
+    return planPartialClose({
+        trade,
+        spec: arenaSymbolSpec(trade.symbol),
+        quote: { price: quote.price, timestamp: quote.timestamp },
+        stepCentiLots: Math.max(1, Math.round(attempt.policy.positionSizePolicy.stepLots * 100)),
+        volume: size?.profitPercent == null ? { lots: size?.lots ?? null, percent: size?.percent ?? null } : null,
+        profitPercent: size?.profitPercent ?? null,
+    });
+}
+
+/**
+ * Close a position — fully by default, partially by volume (`lots` / `percent`
+ * of the position), or by profit preservation (`profitPercent` of the current
+ * net unrealized P&L). All three delegate to `reduceExposure`, the single
+ * netting engine, so a chart close, a profit lock and an opposing market order
+ * produce identical accounting.
  */
 export async function closePosition(
     uid: string,
     attemptId: string,
     tradeId: string,
     clientRequestId?: string,
-    size?: { lots?: number; percent?: number }
+    size?: { lots?: number; percent?: number; profitPercent?: number }
 ): Promise<AttemptState> {
     const now = Date.now();
     const attempt = await store.getAttempt(uid, attemptId);
@@ -2019,23 +2056,35 @@ export async function closePosition(
         throw new ArenaError(503, "MARKET_DATA_UNAVAILABLE", "Live market data is unavailable — position paused and close rejected (fail-closed).");
     }
 
-    // Resolve the requested size to centi-lots, clamped to the position.
+    // Both partial-close modes resolve through the ONE planning engine, so the
+    // preview a trader confirms and the quantity that settles are produced by
+    // identical arithmetic against the same server-resolved quote.
     const stepCentiLots = Math.max(1, Math.round(attempt.policy.positionSizePolicy.stepLots * 100));
-    let closeCentiLots = trade.sizeCentiLots;
-    if (size && (size.lots != null || size.percent != null)) {
-        const requestedCentiLots =
-            size.lots != null
-                ? Math.round(size.lots * 100)
-                : Math.round((trade.sizeCentiLots * (size.percent as number)) / 100);
-        if (!Number.isSafeInteger(requestedCentiLots) || requestedCentiLots <= 0) {
-            throw new ArenaError(400, "INVALID_SIZE", "Close size must be a positive number of lots or percent.");
+    const spec = arenaSymbolSpec(trade.symbol);
+    const plan = planPartialClose({
+        trade,
+        spec,
+        quote: { price: quote.price, timestamp: quote.timestamp },
+        stepCentiLots,
+        volume: size?.profitPercent == null ? { lots: size?.lots ?? null, percent: size?.percent ?? null } : null,
+        profitPercent: size?.profitPercent ?? null,
+    });
+    if (!plan.ok) {
+        // Profit preservation refuses rather than executing a close that would
+        // realize a loss or is impossible to express on the lot grid.
+        if (plan.blocked.includes("NOT_PROFITABLE")) {
+            throw new ArenaError(409, "POSITION_NOT_PROFITABLE", plan.message);
         }
-        // Snap DOWN to the lot grid so a partial close is always tradable, and
-        // never exceed the position.
-        closeCentiLots = Math.min(
-            trade.sizeCentiLots,
-            Math.max(stepCentiLots, Math.floor(requestedCentiLots / stepCentiLots) * stepCentiLots)
-        );
+        if (plan.blocked.includes("INVALID_PERCENT")) {
+            throw new ArenaError(400, "INVALID_SIZE", plan.message);
+        }
+        if (plan.blocked.includes("UNINTENDED_LOSS")) {
+            throw new ArenaError(409, "PROFIT_LOCK_UNSAFE", plan.message);
+        }
+        throw new ArenaError(400, "INVALID_SIZE", plan.message);
+    }
+    if (plan.closeCentiLots <= 0) {
+        throw new ArenaError(400, "INVALID_SIZE", "Close size resolves below the tradable lot step.");
     }
 
     const reduction = await reduceExposure({
@@ -2043,9 +2092,10 @@ export async function closePosition(
         attempt,
         symbol: trade.symbol,
         orderSide: trade.side === "long" ? "short" : "long",
-        closeCentiLots,
+        closeCentiLots: plan.closeCentiLots,
         quote,
         exitReason: "manual",
+        closeType: plan.closeType,
         now,
         clientRequestId,
     });

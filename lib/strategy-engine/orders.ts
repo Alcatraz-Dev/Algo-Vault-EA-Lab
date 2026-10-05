@@ -43,6 +43,8 @@ export function createOrder(symbol: string, intent: OrderIntent, now: number): O
     return {
         id: intent.clientOrderId ?? `ord-${now.toString(36)}-${orderSeq}`,
         clientOrderId: intent.clientOrderId,
+        accountId: intent.accountId,
+        provider: intent.provider,
         symbol,
         side: intent.side,
         type: intent.type,
@@ -76,7 +78,14 @@ export function transitionOrder(
         return { order, changed: false, error: `Invalid order transition ${order.status} → ${to}` };
     }
     return {
-        order: { ...order, ...patch, status: to, updatedAt: now },
+        order: {
+            ...order,
+            ...patch,
+            status: to,
+            ...(to === "SUBMITTED" && order.submittedAt === undefined ? { submittedAt: now } : {}),
+            ...(to === "CANCELLED" ? { cancelledAt: now } : {}),
+            updatedAt: now,
+        },
         changed: true,
     };
 }
@@ -109,6 +118,7 @@ export function applyFill(order: Order, fill: ExecutionFill): { order: Order; ch
         order: {
             ...next.order,
             filledQuantity,
+            ...(status === "FILLED" ? { filledAt: fill.timestamp } : {}),
             avgFillPrice: Number(avgFillPrice.toFixed(6)),
             fills,
         },

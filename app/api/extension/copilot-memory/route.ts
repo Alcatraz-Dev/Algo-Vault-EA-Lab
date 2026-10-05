@@ -2,11 +2,20 @@
  * /api/extension/copilot-memory
  *
  * User-scoped intelligence memory adapter for the AI Chart Copilot.
- * Queries saved strategies, indicators, active setups, recent research,
- * and setup memory history for the authenticated user from RTDB.
+ * Reads saved strategies, indicators, active setups and research for the
+ * authenticated user from RTDB.
  *
- * Provides historical context & structural explanations of similarity without
- * predicting future outcomes.
+ * HONESTY CONTRACT (Phase 8 §7 / §24): this route reports only what it can
+ * read and compare. It does NOT return historical outcome statistics, because
+ * no similarity/outcome engine exists yet. Matches are exact symbol/timeframe
+ * comparisons only, and the response declares that limit via
+ * `similarityBasis` / `historicalStatisticsAvailable` / `historicalSampleSize`
+ * so the copilot cannot present a near-match as a validated precedent.
+ *
+ * Previously this route returned the first 3 strategies in RTDB key order
+ * alongside a hardcoded "Shares structural bias and indicator filter
+ * definitions" claim and a default "Historical analysis completed" research
+ * outcome. Both were fabricated and were fed into the copilot prompt.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
@@ -75,39 +84,89 @@ export async function POST(request: NextRequest) {
     const setups = Object.values(setupSnap.val() || {}) as Array<Record<string, unknown>>;
     const research = Object.values(researchSnap.val() || {}) as Array<Record<string, unknown>>;
 
-    const activeSetups = setups.filter((s) => s.status === "ACTIVE" || s.status === "FORMING");
+    // Statuses below are the real `SetupMemoryRecord["status"]` union
+    // (lib/market-intelligence/memory/types.ts). The previous version filtered
+    // on "FORMING" and "DISMISSED", which exist in no enum, so those branches
+    // never matched anything.
+    const ACTIVE_STATUSES = new Set(["ACTIVE", "TRIGGERED", "PARTIALLY_MATCHED"]);
+    const RESOLVED_STATUSES = new Set(["INVALIDATED", "CANCELLED", "EXPIRED"]);
+
+    const activeSetups = setups.filter((s) => ACTIVE_STATUSES.has(String(s.status)));
     const dismissedSetups = setups
-      .filter((s) => s.status === "DISMISSED" || s.status === "INVALIDATED")
+      .filter((s) => RESOLVED_STATUSES.has(String(s.status)))
       .slice(-5)
       .map((s) => ({
         setupType: String(s.setupType || s.name || "Unknown"),
+        status: String(s.status),
         timestamp: Number(s.updatedAt || s.createdAt || Date.now()),
       }));
 
-    const similarSavedStrategies = strats.slice(0, 3).map((s) => ({
-      id: String(s.id),
-      name: String(s.name || "Strategy"),
-      reasons: [
-        `Target timeframe: ${String((s.spec as Record<string, unknown>)?.timeframe || timeframe)}`,
-        `Shares structural bias and indicator filter definitions`,
-        `Saved strategy scope: ${String(s.symbol || symbol || "ALL")}`,
-      ],
-    }));
+    // ── Honesty contract ──────────────────────────────────────────────────────
+    // There is no historical-outcome similarity engine in the platform yet
+    // (Phase 8 item 12 / "setup similarity" is still MISSING; the only
+    // similarity that exists is exact structural-fingerprint dedup in
+    // lib/strategy-research/fingerprint.ts, which yields no statistics).
+    //
+    // The previous implementation returned `strats.slice(0, 3)` — RTDB key
+    // order, i.e. arbitrary — and asserted hardcoded reasons such as "Shares
+    // structural bias and indicator filter definitions", plus a default
+    // research outcome of "Historical analysis completed". That is fabricated
+    // market context fed straight into the copilot prompt, which the Phase 8
+    // brief explicitly forbids ("AI must not invent the event").
+    //
+    // We now match ONLY on fields we can actually read and compare, every
+    // returned string is a verified fact about that record, and the response
+    // declares its own limits so downstream prompts cannot over-claim.
+    const matchingStrategies = strats
+      .map((s) => {
+        const spec = (s.spec as Record<string, unknown>) | undefined;
+        const sSymbol = String(s.symbol || "").toUpperCase();
+        const sTimeframe = String(spec?.timeframe || s.timeframe || "").toUpperCase();
+        const reasons: string[] = [];
+        if (sSymbol && sSymbol === symbol) reasons.push(`Saved on the same symbol: ${sSymbol}`);
+        if (sTimeframe && sTimeframe === timeframe.toUpperCase()) {
+          reasons.push(`Saved on the same timeframe: ${sTimeframe}`);
+        }
+        return { strategy: s, reasons, score: reasons.length };
+      })
+      .filter((m) => m.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map((m) => ({
+        id: String(m.strategy.id),
+        name: String(m.strategy.name || "Strategy"),
+        // Only verified, field-level matches. Never a structural claim.
+        reasons: m.reasons,
+      }));
 
-    const similarHistoricalResearch = research.slice(0, 3).map((r) => ({
-      id: String(r.id),
-      title: String(r.title || `Research for ${symbol}`),
-      outcome: String(r.outcome || "Historical analysis completed"),
-    }));
+    const researchForSymbol = research
+      .filter((r) => {
+        const rSymbol = String(r.symbol || "").toUpperCase();
+        return rSymbol ? rSymbol === symbol : false;
+      })
+      .slice(0, 3)
+      .map((r) => ({
+        id: String(r.id),
+        title: String(r.title || "Untitled research"),
+        // Real stored outcome only. Empty string means "no recorded outcome" —
+        // the copilot must treat that as unknown, not as a success.
+        outcome: String(r.outcome || ""),
+      }));
 
     const memoryContext = {
       savedStrategiesCount: strats.length,
       savedIndicatorsCount: inds.length,
       activeSetupsCount: activeSetups.length,
       recentAnalysesCount: research.length,
-      similarSavedStrategies,
-      similarHistoricalResearch,
+      // Same shape as before (chrome-extension CopilotView + copilot-engine
+      // consume these names), but now empty unless a real match was verified.
+      similarSavedStrategies: matchingStrategies,
+      similarHistoricalResearch: researchForSymbol,
       recentDismissedSetups: dismissedSetups,
+      /** Declared limits so no downstream prompt can imply real statistics. */
+      similarityBasis: "symbol_timeframe_exact_match_only" as const,
+      historicalStatisticsAvailable: false,
+      historicalSampleSize: 0,
     };
 
     return NextResponse.json({ memoryContext }, { status: 200, headers: corsHeaders });

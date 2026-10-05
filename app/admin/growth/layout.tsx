@@ -13,6 +13,7 @@ import {
     Megaphone,
     Radio,
     ShieldCheck,
+    TrendingUp,
     Workflow,
 } from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
@@ -20,6 +21,7 @@ import { cn } from "@/lib/utils";
 
 const SECTIONS = [
     { label: "Overview", href: "/admin/growth", icon: LayoutDashboard },
+    { label: "Command Center", href: "/admin/growth/command-center", icon: TrendingUp },
     { label: "Marketing Agent", href: "/admin/growth/marketing-agent", icon: Bot },
     { label: "Campaigns", href: "/admin/growth/campaigns", icon: Megaphone },
     { label: "Content", href: "/admin/growth/content", icon: FileText },

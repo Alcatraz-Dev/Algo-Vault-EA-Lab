@@ -20,7 +20,7 @@ import {
 import { StrategyEngine } from "@/lib/strategy-engine/engine";
 import { SimulationAdapter } from "@/lib/strategy-engine/adapters";
 import { resetOrderIds } from "@/lib/strategy-engine/orders";
-import { resetPositionIds, simSymbolSpec, type SimPosition } from "@/lib/strategy-engine/simulation";
+import { cashValueForMove, legCosts, resetPositionIds, simSymbolSpec, type SimPosition } from "@/lib/strategy-engine/simulation";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Backtest engine — the BACKTEST execution environment of the canonical
@@ -201,7 +201,8 @@ export function backtestStrategy(
     candlesByTF: Partial<Record<Timeframe, MarketCandle[]>>,
     config: BacktestConfig,
     from: number,
-    to: number
+    to: number,
+    entryWindow?: { from: number; to: number }
 ): BacktestResult {
     resetPositionIds();
     resetOrderIds();
@@ -258,23 +259,33 @@ export function backtestStrategy(
         },
         spec,
         regimeByBar,
+        entryWindow,
         initialBalance: config.initialBalance,
     });
-    engine.loadSeries(candles, features);
+    const executionEnd = entryWindow
+        ? candles.findIndex((candle) => candle.timestamp > entryWindow.to)
+        : -1;
+    const executionLength = executionEnd < 0 ? candles.length : executionEnd;
+    const executionCandles = candles.slice(0, executionLength);
+    engine.loadSeries(executionCandles, features.slice(0, executionLength));
 
     const equityPoints: EquityPoint[] = [];
     const closed: SimPosition[] = [];
-    for (let i = 0; i < candles.length; i++) {
+    for (let i = 0; i < executionCandles.length; i++) {
         const result = engine.onCandleClose(i);
         equityPoints.push(result.equityPoint);
         closed.push(...result.closed);
     }
 
-    const trades: BacktestTrade[] = closed.map((pos) => simPositionToTrade(pos, symbol, config, spec));
+    const trades: BacktestTrade[] = closed
+        .map((pos) => simPositionToTrade(pos, symbol, config, spec))
+        .filter((trade) => !entryWindow || (trade.openedAt >= entryWindow.from && trade.openedAt <= entryWindow.to));
+    const inRangeEquity = equityPoints.filter((point) => point.time >= from && point.time <= to);
 
-    const metrics = computeMetrics(trades, equityPoints, config.initialBalance);
-    if (candles.length >= 2) {
-        metrics.buyHoldReturnPct = Number(((candles[candles.length - 1].close / candles[0].close - 1) * 100).toFixed(2));
+    const metrics = computeMetrics(trades, inRangeEquity, config.initialBalance);
+    const rangeCandles = candles.filter((candle) => candle.timestamp >= from && candle.timestamp <= to);
+    if (rangeCandles.length >= 2) {
+        metrics.buyHoldReturnPct = Number(((rangeCandles[rangeCandles.length - 1].close / rangeCandles[0].close - 1) * 100).toFixed(2));
     }
 
     const coverage = computeCoverage(candles, from, to, entryTF);
@@ -289,7 +300,7 @@ export function backtestStrategy(
         config,
         metrics,
         trades,
-        equity: equityPoints,
+        equity: inRangeEquity,
         coverage,
         symbols: [symbol],
         diagnostics,
@@ -304,7 +315,7 @@ function simPositionToTrade(
     spec: ReturnType<typeof simSymbolSpec>
 ): BacktestTrade {
     const lastChunk = pos.chunks[pos.chunks.length - 1];
-    const riskDenominator = pos.initialRisk * pos.quantity * spec.contractSize;
+    const riskDenominator = cashValueForMove(pos.initialRisk, pos.quantity, spec);
     const profitR = riskDenominator > 0 ? pos.realizedPnL / riskDenominator : 0;
 
     return {
@@ -329,9 +340,9 @@ function simPositionToTrade(
         durationMs: (pos.closedAt ?? pos.updatedAt) - pos.openedAt,
         regime: pos.regime,
         session: pos.session,
-        spreadCost: Number((config.spreadPips * spec.pipSize * pos.quantity * spec.contractSize * 2).toFixed(2)),
-        commission: Number((config.commissionPerLot * pos.quantity * spec.contractSize).toFixed(2)),
-        slippageCost: Number((config.slippagePips * spec.pipSize * pos.quantity * spec.contractSize * 2).toFixed(2)),
+        spreadCost: Number((2 * legCosts(pos.quantity, spec, { ...config, slippagePips: 0, commissionPerLot: 0 }).spread).toFixed(2)),
+        commission: Number(legCosts(pos.quantity, spec, { ...config, spreadPips: 0, slippagePips: 0 }).commission.toFixed(2)),
+        slippageCost: Number((2 * legCosts(pos.quantity, spec, { ...config, spreadPips: 0, commissionPerLot: 0 }).slippage).toFixed(2)),
         pnlGross: pos.realizedPnL,
     };
 }
@@ -346,7 +357,8 @@ function computeCoverage(candles: MarketCandle[], from: number, to: number, time
         requestedTo: to,
         availableFrom,
         availableTo: inRange.length > 0 ? inRange[inRange.length - 1].timestamp : 0,
-        fullyCoversRequest: availableFrom <= from,
+        fullyCoversRequest:
+            inRange.length > 0 && availableFrom <= from && inRange[inRange.length - 1].timestamp >= to,
         spanDays: candles.length > 0 ? (candles[candles.length - 1].timestamp - candles[0].timestamp) / 86_400_000 : 0,
         source: "biquote",
         maxSourceBars: candles.length,

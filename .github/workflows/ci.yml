@@ -57,13 +57,23 @@ jobs:
         run: node scripts/jiti-tsrun.mjs lib/strategy-research/__tests__/run-research-tests.ts
 
       - name: AI Signals suite
-        run: node scripts/jiti-tsrun.mjs lib/ai-signals/__tests__/run-ai-signals-tests.ts
+        run: npm run test:ai-signals
 
       - name: Risk suite
         run: node scripts/jiti-tsrun.mjs lib/risk/tests/run-tests.ts
 
       - name: Agents suite
-        run: node scripts/jiti-tsrun.mjs lib/agents/__tests__/run-agents-tests.ts
+        run: npm run test:agents
+
+      # Phase 8 §47: live-safety coverage (kill switch, daily loss, drawdown,
+      # exposure, stale data, duplicate orders, missing SL, invalid size,
+      # spread) plus setup-memory transitions. This suite existed but was
+      # never referenced by any runner, so it never executed. Wired 2026-10-05.
+      - name: AI Execution (live safety) suite
+        run: npm run test:ai-execution
+
+      - name: Agent IDE suite
+        run: npm run test:agent-ide
 
       - name: Telegram signal parser/lifecycle suite
         run: node scripts/jiti-tsrun.mjs features/telegram-signals/tests/run-tests.ts

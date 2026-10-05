@@ -47,13 +47,13 @@ import {
     Minimize2,
     MousePointer,
     Ruler,
-    SlidersHorizontal,
     Split,
     TrendingUp,
     Type,
     Activity,
     Minus,
     AlertTriangle,
+    X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Watchlist from "@/components/trading/Watchlist";
@@ -181,6 +181,12 @@ export interface ProTerminalChartWorkspaceProps {
     onSymbolChange?: (symbol: string) => void;
     /** Fired when the user changes the chart timeframe. */
     onTimeframeChange?: (timeframe: Timeframe) => void;
+    /**
+     * Event → chart navigation: a request from an external feed to centre the
+     * chart on a specific bar. Propagated to the chart, which applies it once
+     * data for the (possibly new) symbol is available.
+     */
+    focusRequest?: { seq: number; time: number; price?: number; label?: string } | null;
     /** AI Draw entitlement override: true = always allowed, false = never. */
     canUseAiDraw?: boolean;
     /** Receives the AI draw plan whenever it recomputes (null when off). */
@@ -212,6 +218,7 @@ export function ProTerminalChartWorkspace({
     onCancelOrder,
     onSymbolChange,
     onTimeframeChange,
+    focusRequest = null,
     canUseAiDraw,
     onAiPlanChange,
     className,
@@ -429,16 +436,16 @@ export function ProTerminalChartWorkspace({
             )}
             data-pro-terminal-workspace
         >
-            {/* ── Top toolbar ───────────────────────────────────────────── */}
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-sm">
+            {/* ── Professional top toolbar ─────────────────────────────────── */}
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/50 bg-card/80 px-4 py-2.5 shadow-sm backdrop-blur-sm">
                 <div className="flex flex-wrap items-center gap-3">
                     <span
-                        className="rounded-md border border-primary/30 bg-primary/10 px-2 py-1 font-mono text-sm font-bold text-primary"
+                        className="rounded-md border border-primary/40 bg-primary/10 px-3 py-1 font-mono text-base font-bold text-primary tracking-tight"
                         title="Active symbol"
                     >
                         {cleanSymbol}
                     </span>
-                    <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-1">
+                    <div className="flex items-center gap-0.5 rounded-lg border border-border bg-background p-0.5">
                         {TERMINAL_TIMEFRAMES.map((tf) => (
                             <button
                                 key={tf}
@@ -456,12 +463,13 @@ export function ProTerminalChartWorkspace({
                             </button>
                         ))}
                     </div>
-                    <ChartInfo
-                        chartType={chartType}
-                        timeframe={timeframe}
-                        drawingCount={drawings.length}
-                        layerCount={activeLayerCount}
-                    />
+                    {activeLayerCount > 0 && (
+                        <ChartInfo
+                            chartType={chartType}
+                            timeframe={timeframe}
+                            layerCount={activeLayerCount}
+                        />
+                    )}
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -469,13 +477,18 @@ export function ProTerminalChartWorkspace({
                         type="button"
                         onClick={() => setLayersOpen((o) => !o)}
                         aria-expanded={layersOpen}
-                        className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-xs font-medium transition hover:bg-muted"
+                        className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-background px-3 text-sm font-medium transition hover:bg-muted"
                     >
-                        <SlidersHorizontal className="size-3.5" />
-                        Indicators &amp; Layers
-                        <span className="font-mono text-[10px] text-muted-foreground">{activeLayerCount}</span>
+                        <Layers className="size-4" />
+                        <span className="hidden sm:inline">Indicators</span>
+                        <span className="inline sm:hidden">Indicators</span>
+                        {activeLayerCount > 0 && (
+                            <span className="rounded-full bg-primary/20 px-2 py-0.5 font-mono text-[10px] text-primary">
+                                {activeLayerCount}
+                            </span>
+                        )}
                         <ChevronDown
-                            className={cn("size-3 transition-transform", layersOpen && "rotate-180")}
+                            className={cn("size-3.5 transition-transform", layersOpen && "rotate-180")}
                         />
                     </button>
                     {!hideFullscreen ? (
@@ -533,13 +546,44 @@ export function ProTerminalChartWorkspace({
 
             {/* ── Layer picker (collapsible) ─────────────────────────────── */}
             {layersOpen ? (
-                <div className="rounded-xl border border-border bg-card p-3 shadow-sm">
+                <div className="rounded-xl border border-border/50 bg-card p-4 shadow-md">
+                    <div className="mb-4 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Layers className="size-4 text-primary" />
+                            <h3 className="text-sm font-semibold text-foreground">Technical Indicators &amp; Overlays</h3>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setLayersOpen(false)}
+                            className="rounded-md p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                            aria-label="Close indicator panel"
+                        >
+                            <X className="size-4" />
+                        </button>
+                    </div>
+                    <p className="mb-4 text-[11px] text-muted-foreground">
+                        Select indicators to overlay on the chart. Click any indicator to toggle it on/off.
+                    </p>
                     <LayerPicker
                         layers={layers}
                         availability={layerAvailability}
                         onToggle={toggleLayer}
-                        compact
+                        compact={false}
                     />
+                    {activeLayerCount > 0 && (
+                        <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+                            <span className="text-[11px] text-muted-foreground">
+                                {activeLayerCount} active overlay{activeLayerCount > 1 ? "s" : ""}
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => setLayers(defaultLayerState())}
+                                className="text-[11px] text-muted-foreground transition hover:text-foreground"
+                            >
+                                Reset all
+                            </button>
+                        </div>
+                    )}
                 </div>
             ) : null}
 
@@ -586,6 +630,7 @@ export function ProTerminalChartWorkspace({
                         quote={settings.display.bidAsk ? quote : null}
                         aiDraw={aiGate.enabled}
                         fitSignal={fitSignal}
+                        focusRequest={focusRequest}
                         onAiPlanChange={onAiPlanChange}
                         onClosePosition={onClosePosition}
                         onCancelOrder={onCancelOrder}
@@ -615,27 +660,26 @@ export function ProTerminalChartWorkspace({
 function ChartInfo({
     chartType,
     timeframe,
-    drawingCount,
     layerCount,
 }: {
     chartType: ChartType;
     timeframe: Timeframe;
-    drawingCount: number;
     layerCount: number;
 }) {
     const Icon = CHART_TYPE_ICONS[chartType];
     return (
-        <div className="hidden items-center gap-3 rounded-lg border border-border/60 bg-background px-2.5 py-1 font-mono text-[10px] text-muted-foreground md:flex">
-            <span className="inline-flex items-center gap-1">
+        <div className="hidden items-center gap-2 rounded-lg border border-border/60 bg-background px-2.5 py-1 font-mono text-[10px] text-muted-foreground md:flex">
+            <span className="inline-flex items-center gap-1.5">
                 <Icon className="size-3 text-primary" />
-                {chartType.toUpperCase()}
+                <span className="font-semibold text-foreground">{chartType.toUpperCase()}</span>
             </span>
-            <span>·</span>
-            <span>{timeframe}</span>
-            <span>·</span>
-            <span title="Drawings on chart">{drawingCount} drawings</span>
-            <span>·</span>
-            <span title="Active layers">{layerCount} layers</span>
+            <span className="text-muted-foreground">·</span>
+            <span className="text-muted-foreground">{timeframe}</span>
+            <span className="text-muted-foreground">·</span>
+            <span className="inline-flex items-center gap-1 text-primary">
+                <Layers className="size-2.5" />
+                <span>{layerCount}</span>
+            </span>
         </div>
     );
 }
@@ -669,37 +713,59 @@ function ChartInfoCard({
         <div className="rounded-xl border border-border bg-card p-3 text-xs shadow-sm">
             <div className="flex items-center gap-1.5 border-b border-border pb-1.5">
                 <Layers className="size-3.5 text-muted-foreground" />
-                <h3 className="font-semibold uppercase tracking-wide text-foreground">Workspace</h3>
+                <h3 className="font-semibold uppercase tracking-wide text-foreground">Chart Info</h3>
             </div>
-            <dl className="mt-2 space-y-1 text-muted-foreground">
-                <Row label="Symbol" value={symbol} mono />
-                <Row label="Timeframe" value={timeframe} mono />
-                <Row label="Chart type" value={chartType} mono />
-                <Row label="Drawings" value={String(drawings)} mono />
-                <Row label="Active layers" value={String(layers)} mono />
-            </dl>
-            <div className="mt-2 grid grid-cols-2 gap-1.5">
-                <button
-                    type="button"
-                    onClick={onClearDrawings}
-                    disabled={drawings === 0}
-                    className="inline-flex items-center justify-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[10px] font-medium text-foreground transition hover:bg-muted disabled:opacity-50"
-                    title="Clear all drawings on the active chart"
-                >
-                    <Ruler className="size-3" />
-                    Clear drawings
-                </button>
-                <button
-                    type="button"
-                    onClick={onClearLayers}
-                    disabled={layers === 0}
-                    className="inline-flex items-center justify-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[10px] font-medium text-foreground transition hover:bg-muted disabled:opacity-50"
-                    title="Reset overlays to defaults"
-                >
-                    <Layers className="size-3" />
-                    Reset layers
-                </button>
-            </div>
+            {layers === 0 ? (
+                <div className="mt-2 space-y-2">
+                    <div className="flex items-start gap-2 rounded-md bg-primary/5 p-2 text-[11px]">
+                        <Box className="mt-0.5 size-3.5 text-primary shrink-0" />
+                        <div>
+                            <p className="text-foreground font-medium">Clean chart — no overlays</p>
+                            <p className="text-muted-foreground mt-0.5">
+                                Click the Indicators button above to add technical analysis layers.
+                            </p>
+                        </div>
+                    </div>
+                    <dl className="space-y-1 text-muted-foreground">
+                        <Row label="Symbol" value={symbol} mono />
+                        <Row label="Timeframe" value={timeframe} mono />
+                        <Row label="Chart type" value={chartType} mono />
+                        <Row label="Drawings" value={String(drawings)} mono />
+                    </dl>
+                </div>
+            ) : (
+                <>
+                    <dl className="mt-2 space-y-1 text-muted-foreground">
+                        <Row label="Symbol" value={symbol} mono />
+                        <Row label="Timeframe" value={timeframe} mono />
+                        <Row label="Chart type" value={chartType} mono />
+                        <Row label="Drawings" value={String(drawings)} mono />
+                        <Row label="Active layers" value={String(layers)} mono />
+                    </dl>
+                    <div className="mt-2 grid grid-cols-2 gap-1.5">
+                        <button
+                            type="button"
+                            onClick={onClearDrawings}
+                            disabled={drawings === 0}
+                            className="inline-flex items-center justify-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[10px] font-medium text-foreground transition hover:bg-muted disabled:opacity-50"
+                            title="Clear all drawings on the active chart"
+                        >
+                            <Ruler className="size-3" />
+                            Clear drawings
+                        </button>
+                        <button
+                            type="button"
+                            onClick={onClearLayers}
+                            disabled={layers === 0}
+                            className="inline-flex items-center justify-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[10px] font-medium text-foreground transition hover:bg-muted disabled:opacity-50"
+                            title="Reset overlays to defaults"
+                        >
+                            <Layers className="size-3" />
+                            Reset layers
+                        </button>
+                    </div>
+                </>
+            )}
             <p className="mt-2 text-[10px] text-muted-foreground">
                 Draw with the toolbar above. Press <kbd className="rounded border border-border px-1 font-mono text-[9px]">Esc</kbd> to
                 return to pointer.

@@ -28,6 +28,10 @@ const jiti = createJiti(process.cwd(), {
     // Enable tsconfig `paths` resolution ("@/*" → repo root).
     tsconfigPaths: true,
     moduleCache: false,
+    // Parse JSX so tests can import catalog modules that live in .tsx files
+    // (e.g. the dashboard widget catalog). Purely additive: files without
+    // JSX are parsed exactly as before.
+    jsx: true,
 });
 
 await jiti.import(resolve(process.cwd(), script)).catch((error) => {

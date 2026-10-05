@@ -1,20 +1,35 @@
 import { VolatilityData, MarketCandle } from "../market-data/types";
+import { atrRuntime } from "../market-core/indicators/primitives";
 
-function calculateTrueRange(candle: MarketCandle, prevClose: number): number {
-    const { high, low } = candle;
-    return Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
-}
-
+/**
+ * Deterministic technical indicator calculations over OHLCV candles.
+ *
+ * Phase 8: ATR is now a THIN ADAPTER over the ONE indicator kernel in
+ * `lib/market-core/indicators/primitives` (`atrRuntime`), matching the pattern
+ * already used in `lib/analytics/indicators.ts`. The previous local
+ * implementation averaged the last `period` true ranges, which is NOT Wilder's
+ * ATR — it ignored all history before the window, so it drifted from every
+ * other ATR in the platform (market-core, Pine runtime, chart) and inflated
+ * risk sizing, regime thresholds and SL distances.
+ *
+ * The exported signature and the `0` insufficient-data contract are unchanged,
+ * so the ~20 consumer modules (ai-signals, ai/analysis, ai-trading-teams,
+ * strategy-lab, scanner, market-regime, plugins runtime, API routes) need no
+ * edits. Numeric output does change — that is the bug fix.
+ */
 export function calculateATR(candles: MarketCandle[], period: number = 14): number {
     if (candles.length < period + 1) return 0;
 
-    const trueRanges: number[] = [];
-    for (let i = 1; i < candles.length; i++) {
-        trueRanges.push(calculateTrueRange(candles[i], candles[i - 1].close));
+    const runtime = atrRuntime(period);
+    const state = runtime.initialState();
+
+    let last: number | null = null;
+    for (const candle of candles) {
+        const step = runtime.step(state, candle);
+        if (step.value !== null && step.value !== undefined) last = step.value as number;
     }
 
-    const recent = trueRanges.slice(-period);
-    return recent.reduce((sum, tr) => sum + tr, 0) / recent.length;
+    return last ?? 0;
 }
 
 export function analyzeVolatility(candles: MarketCandle[], period: number = 14): VolatilityData {

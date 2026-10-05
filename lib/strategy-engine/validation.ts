@@ -87,6 +87,12 @@ export function validateStrategyDefinition(
         if (risk.mode === "fixed_lot" && !(risk.fixedLot > 0)) {
             issues.push(issue("risk.fixedLot", "Fixed lot must be > 0.", "error"));
         }
+        if (!["percent", "fixed_lot"].includes(risk.mode)) {
+            issues.push(issue("risk.mode", `Unsupported risk mode: ${String(risk.mode)}.`, "error"));
+        }
+        if (!Number.isFinite(risk.maxPositions)) {
+            issues.push(issue("risk.maxPositions", "Max positions must be a finite number.", "error"));
+        }
         if (risk.maxPositions < 0) {
             issues.push(issue("risk.maxPositions", "Max positions cannot be negative.", "error"));
         }
@@ -112,6 +118,12 @@ export function validateStrategyDefinition(
 
     const tp = strategy.takeProfit;
     if (tp) {
+        if (!["r", "fixed"].includes(tp.mode)) {
+            issues.push(issue("takeProfit.mode", `Unsupported take-profit mode: ${String(tp.mode)}.`, "error"));
+        }
+        if (tp.mode === "fixed" && !(tp.fixedDistance > 0)) {
+            issues.push(issue("takeProfit.fixedDistance", "Fixed take-profit distance must be greater than zero.", "error"));
+        }
         if (tp.r1 < 0 || tp.r2 < 0 || tp.r3 < 0) {
             issues.push(issue("takeProfit", "Take-profit R levels cannot be negative.", "error"));
         }

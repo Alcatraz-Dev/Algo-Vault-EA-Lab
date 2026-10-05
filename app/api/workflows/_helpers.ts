@@ -22,6 +22,11 @@ export async function authenticateWorkflow(request: NextRequest): Promise<Workfl
             const decoded = await adminAuth.verifyIdToken(token);
             let isAdmin = decoded.admin === true || decoded.role === "admin";
             if (!isAdmin && decoded.uid) {
+                // Fail closed (constitution §O / Phase 8 §43): a missing user
+                // record or a failed lookup must NOT escalate to admin. The
+                // previous `|| true` on the return below made every caller an
+                // admin, which defeated Pro gating, run limits and the global
+                // kill switch. Admin must be positively proven, never assumed.
                 try {
                     const snapshot = await adminDatabase.ref(`users/${decoded.uid}`).get();
                     if (snapshot.exists()) {
@@ -29,15 +34,12 @@ export async function authenticateWorkflow(request: NextRequest): Promise<Workfl
                         if (val?.role === "admin" || val?.isAdmin === true) {
                             isAdmin = true;
                         }
-                    } else {
-                        // Default to admin if user record not found or in dev mode
-                        isAdmin = true;
                     }
                 } catch {
-                    isAdmin = true;
+                    isAdmin = false;
                 }
             }
-            return { uid: decoded.uid, isAdmin: isAdmin || true };
+            return { uid: decoded.uid, isAdmin };
         } catch {
             return { uid: "", isAdmin: false, error: "Invalid token." };
         }

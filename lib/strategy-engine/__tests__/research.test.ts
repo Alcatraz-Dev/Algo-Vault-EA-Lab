@@ -93,6 +93,8 @@ export function runResearchTests(): boolean {
     const monthlyNet = run1.analytics.monthly.reduce((s, b) => s + b.net, 0);
     check(approx(monthlyNet, run1.result.metrics.netProfit, 0.01), "monthly P&L sums to net profit");
     check(run1.analytics.advanced.status === "ok", "advanced metrics computed");
+    check(run1.analytics.advanced.cagr === null, "short acceptance series has no fabricated CAGR");
+    check(run1.analytics.advanced.maxConsecutiveLosses >= 0, "advanced analytics includes deterministic losing streaks");
 
     check(
         run1.integrity.assumptions.length === SIMULATION_ASSUMPTIONS.length && run1.integrity.assumptions.some((a) => a.startsWith("OHLC")),
@@ -111,6 +113,41 @@ export function runResearchTests(): boolean {
         "explicit INSUFFICIENT_DATA reason present"
     );
     check(RELIABILITY.minBars > 30, "reliability threshold documented");
+
+    const outsideWindow = runResearchBacktest({
+        ...request,
+        from: candles[80].timestamp,
+        to: candles[100].timestamp,
+    });
+    check(
+        outsideWindow.result.trades.every((trade) => trade.openedAt >= candles[80].timestamp && trade.openedAt <= candles[100].timestamp),
+        "custom date window excludes trades signaled outside requested timestamps"
+    );
+    check(
+        outsideWindow.result.equity.every((point) => point.time >= candles[80].timestamp && point.time <= candles[100].timestamp),
+        "custom date window returns only equity points in range"
+    );
+    check(
+        outsideWindow.experiment.dataset.bars === candles.slice(80, 101).length,
+        "experiment records bars in the selected dataset window"
+    );
+
+    const splitRun = runResearchBacktest({
+        ...request,
+        entryWindow: { from: candles[80].timestamp, to: candles[100].timestamp },
+    });
+    check(
+        splitRun.result.trades.every((trade) => trade.openedAt >= candles[80].timestamp && trade.openedAt <= candles[100].timestamp),
+        "walk-forward entry window excludes trades opened outside the validation partition"
+    );
+    check(
+        splitRun.result.equity.every((point) => point.time >= candles[0].timestamp && point.time <= candles[100].timestamp),
+        "partition run keeps pre-window warm-up history and stops at validation end"
+    );
+    check(
+        splitRun.experiment.dataset.from === candles[80].timestamp && splitRun.experiment.dataset.to === candles[100].timestamp,
+        "partition experiment records its actual in-sample/out-of-sample window"
+    );
 
     section("Strategy validation");
     const valid = validateStrategyDefinition(strategy);

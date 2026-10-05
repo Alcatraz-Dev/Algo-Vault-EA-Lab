@@ -6,6 +6,7 @@
 //
 // Pure domain coverage — no RTDB writes, no network, no AI calls:
 //   money/precision · lifecycle · rules · metrics · execution · settlement ·
+//   partial close (volume vs profit-preservation, never-realize-a-loss) ·
 //   rewards (idempotency + AV points) · cash-reward invariant · leaderboard ·
 //   fraud flags · feature flags · compatibility · profile · entitlement
 //   (Pro gating) · static security (RTDB rules, route auth, no Firestore).
@@ -16,6 +17,8 @@ import { runLifecycleTests } from "./lifecycle.test";
 import { runRuleTests } from "./rules.test";
 import { runMetricsTests } from "./metrics.test";
 import { runExecutionTests } from "./execution.test";
+import { runPartialCloseTests } from "./partial-close.test";
+import { runPartialCloseLifecycleTests } from "./partial-close-lifecycle.test";
 import { runSettlementTests } from "./settlement.test";
 import { runRewardsTests } from "./rewards.test";
 import { runCashInvariantTests } from "./cash-invariant.test";
@@ -39,6 +42,8 @@ async function main() {
         ["rules", runRuleTests],
         ["metrics", runMetricsTests],
         ["execution", runExecutionTests],
+        ["partial-close", runPartialCloseTests],
+        ["partial-close-lifecycle", runPartialCloseLifecycleTests],
         ["settlement", runSettlementTests],
         ["rewards", runRewardsTests],
         ["cash-invariant", runCashInvariantTests],

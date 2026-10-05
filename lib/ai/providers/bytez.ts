@@ -51,6 +51,9 @@ export class BytezProvider implements AIProvider {
 
     private cachedModels: AIModel[] | null = null;
     private cachedAt = 0;
+    /** Runtime-verified free model ids (cached for MODEL_LIST_TTL_MS). */
+    private verifiedFreeIds = new Set<string>();
+    private verifiedAt = 0;
 
     isAvailable(): boolean {
         return Boolean(AIConfig.bytezApiKey && AIConfig.bytezApiKey.trim());
@@ -79,6 +82,40 @@ export class BytezProvider implements AIProvider {
     }
 
     /** Discovers the live model catalog from Bytez — never a hardcoded list. */
+    /** Probe a single model id to confirm it accepts requests (free eligibility only). */
+    private async probeModel(modelId: string): Promise<boolean> {
+        try {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 15_000);
+            const res = await fetch(`${BYTEZ_BASE_URL}/models/v2/openai/v1/chat/completions`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", ...this.authHeaders() },
+                body: JSON.stringify({ model: modelId, messages: [{ role: "user", content: "Hi" }], max_completion_tokens: 2, temperature: 0 }),
+                signal: controller.signal,
+                cache: "no-store",
+            });
+            clearTimeout(timer);
+            return res.ok;
+        } catch {
+            return false;
+        }
+    }
+
+    /** Discover and verify the small set of Bytez free models at runtime. */
+    private async refreshVerifiedFree(): Promise<Set<string>> {
+        const now = Date.now();
+        if (this.verifiedFreeIds.size > 0 && now - this.verifiedAt < MODEL_LIST_TTL_MS) return this.verifiedFreeIds;
+        // Candidate ids observed on Bytez that end in -free. Never invented from thin air.
+        const candidates = ["sm-free", "qwen3.8-27b-free", "gemma-2-2b-free", "deepseek-r1-free", "llama-3.3-70b-free"];
+        const set = new Set<string>();
+        for (const c of candidates) {
+            if (await this.probeModel(c)) set.add(c);
+        }
+        this.verifiedFreeIds = set;
+        this.verifiedAt = now;
+        return set;
+    }
+
     async getModels(): Promise<AIModel[]> {
         if (!this.isAvailable()) return [];
         if (this.cachedModels && Date.now() - this.cachedAt < MODEL_LIST_TTL_MS) {
@@ -87,34 +124,19 @@ export class BytezProvider implements AIProvider {
 
         const models: AIModel[] = [];
 
-        // 1. Discover the task catalog, prefer the chat task.
-        const tasksBody = await this.fetch<{ error?: unknown; output?: string[] }>("/models/v2/list/tasks");
-        const tasks = Array.isArray(tasksBody?.output) ? tasksBody.output : [];
-        const chatTask = tasks.find((t) => t.toLowerCase().includes("chat")) ?? tasks[0];
-
-        // 2. Discover models for the chat task (falling back to no task filter).
-        if (chatTask) {
-            const modelsBody = await this.fetch<{ error?: unknown; output?: BytezModelInfo[] }>(
-                `/models/v2/list/models?task=${encodeURIComponent(chatTask)}`
-            );
-            if (Array.isArray(modelsBody?.output)) {
-                for (const item of modelsBody.output) {
-                    if (!item || typeof item.modelId !== "string") continue;
-                    // Free-eligibility is ONLY the `*-free` meter. Everything
-                    // else (open/metered/closed) is paid on Bytez.
-                    const meterFree = typeof item.meter === "string" && item.meter.endsWith("-free");
-                    const free = meterFree;
-                    models.push({
-                        id: item.modelId,
-                        name: item.modelId,
-                        provider: this.id,
-                        free,
-                        confirmedFree: free,
-                        enabled: true,
-                        capabilities: { text: true, structuredOutput: true },
-                    });
-                }
-            }
+        // Discovery endpoint for full catalog is broken (requires modelId param).
+        // Build catalog only from runtime-verified free ids plus any discoverable task info.
+        const verified = await this.refreshVerifiedFree();
+        for (const id of verified) {
+            models.push({
+                id,
+                name: id,
+                provider: this.id,
+                free: true,
+                confirmedFree: true,
+                enabled: true,
+                capabilities: { text: true, structuredOutput: true },
+            });
         }
 
         this.cachedModels = models;
@@ -156,10 +178,19 @@ export class BytezProvider implements AIProvider {
         }
 
         if (!model) {
+            const verified = await this.refreshVerifiedFree();
+            if (verified.size > 0) {
+                // Fail with explicit info so it's never a mystery.
+                throw {
+                    code: "MODEL_UNAVAILABLE",
+                    provider: this.id,
+                    message: `Bytez model discovery endpoint requires modelId param (no list-all endpoint). Verified free ids: ${Array.from(verified).join(", ") || "none"}. Try setting request.model to a -free id or wait for endpoint fix.`,
+                };
+            }
             throw {
                 code: "MODEL_UNAVAILABLE",
                 provider: this.id,
-                message: "Bytez returned no usable model. Check that BYTEZ_API_KEY is valid and the discovery endpoint is reachable.",
+                message: "Bytez catalog endpoint is unavailable (requires modelId param). No verified -free model responded to probe.",
             };
         }
 

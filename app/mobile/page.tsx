@@ -1,5 +1,7 @@
-import { redirect } from "next/navigation";
+"use client";
 
-export default function MobileRoot() {
-  redirect("/mobile/home");
+import { CommandCenter } from "@/components/mobile/CommandCenter";
+
+export default function MobileHome() {
+    return <CommandCenter />;
 }

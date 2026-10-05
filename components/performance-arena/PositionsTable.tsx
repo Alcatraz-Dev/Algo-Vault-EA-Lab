@@ -4,7 +4,7 @@
 // computed marks; the close button submits intent only.
 
 import { useState } from "react";
-import { Loader2, XCircle, Pencil, Check, X } from "lucide-react";
+import { Loader2, XCircle, Pencil, Check, X, Scissors, Lock } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Money } from "./primitives";
@@ -24,12 +24,15 @@ export function PositionsTable({
     canClose,
     canModifyStops = canClose,
     onClose,
+    onPartialClose,
     onModifyStops,
 }: {
     positions: MarkedTrade[];
     canClose: boolean;
     canModifyStops?: boolean;
     onClose: (tradeId: string) => Promise<void>;
+    /** Opens the two-mode partial-close dialog (volume % vs profit %). */
+    onPartialClose?: (trade: MarkedTrade, mode: "VOLUME" | "PROFIT_PRESERVATION", percent: number) => void;
     onModifyStops?: (tradeId: string, stops: { stopLoss?: number | null; takeProfit?: number | null }) => Promise<void>;
 }) {
     const [closing, setClosing] = useState<string | null>(null);
@@ -90,7 +93,9 @@ export function PositionsTable({
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {positions.map(({ trade, markPriceMicros, unrealizedPnLCents, stale }) => (
+                    {positions.map((marked) => {
+                        const { trade, markPriceMicros, unrealizedPnLCents, stale } = marked;
+                        return (
                         <TableRow key={trade.tradeId}>
                             <TableCell className="font-mono text-xs">{trade.symbol}</TableCell>
                             <TableCell><SideBadge side={trade.side} /></TableCell>
@@ -123,19 +128,53 @@ export function PositionsTable({
                                 )}
                             </TableCell>
                             <TableCell className="text-right">
-                                <button
-                                    type="button"
-                                    aria-label={`Close ${trade.side === "long" ? "buy" : "sell"} position in ${trade.symbol}`}
-                                    disabled={!canClose || closing === trade.tradeId}
-                                    onClick={() => void close(trade.tradeId)}
-                                    className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:bg-muted disabled:opacity-50"
-                                >
-                                    {closing === trade.tradeId ? <Loader2 className="h-3 w-3 animate-spin" /> : <XCircle className="h-3 w-3" />}
-                                    <span className="hidden sm:inline">Close</span>
-                                </button>
+                                <div className="flex justify-end gap-1">
+                                    {onPartialClose ? (
+                                        <>
+                                            {/* Shortcuts that name the MODE, so a 50% is never ambiguous. */}
+                                            <button
+                                                type="button"
+                                                aria-label={`Lock 50% of the profit on the ${trade.symbol} position`}
+                                                disabled={!canClose}
+                                                onClick={() => onPartialClose(marked, "PROFIT_PRESERVATION", 50)}
+                                                title="Lock 50% of the current profit"
+                                                className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground hover:bg-muted disabled:opacity-50"
+                                                data-partial-mode="PROFIT_PRESERVATION"
+                                                data-partial-percent="50"
+                                            >
+                                                <Lock className="h-3 w-3" />
+                                                <span className="hidden md:inline">Lock 50%</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                aria-label={`Close 50% of the volume of the ${trade.symbol} position`}
+                                                disabled={!canClose}
+                                                onClick={() => onPartialClose(marked, "VOLUME", 50)}
+                                                title="Close 50% of the position volume"
+                                                className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground hover:bg-muted disabled:opacity-50"
+                                                data-partial-mode="VOLUME"
+                                                data-partial-percent="50"
+                                            >
+                                                <Scissors className="h-3 w-3" />
+                                                <span className="hidden md:inline">Half size</span>
+                                            </button>
+                                        </>
+                                    ) : null}
+                                    <button
+                                        type="button"
+                                        aria-label={`Close ${trade.side === "long" ? "buy" : "sell"} position in ${trade.symbol}`}
+                                        disabled={!canClose || closing === trade.tradeId}
+                                        onClick={() => void close(trade.tradeId)}
+                                        className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:bg-muted disabled:opacity-50"
+                                    >
+                                        {closing === trade.tradeId ? <Loader2 className="h-3 w-3 animate-spin" /> : <XCircle className="h-3 w-3" />}
+                                        <span className="hidden sm:inline">Close</span>
+                                    </button>
+                                </div>
                             </TableCell>
                         </TableRow>
-                    ))}
+                        );
+                    })}
                 </TableBody>
             </Table>
             {actionError ? <p role="alert" className="border-t border-destructive/30 px-3 py-2 text-xs text-destructive">{actionError}</p> : null}

@@ -108,6 +108,7 @@ export async function gatherMultiSourceIntelligence(input: MultiSourceIntelligen
         "TradingView MCP data may be delayed and is not intended for latency-sensitive execution.",
         "AI interpretation must cite the evidence sections above; do not invent prices, levels or classifications.",
     ];
+    const feedCheckedAt = new Date().toISOString();
 
     if (!flags.master) {
         const disabled = emptyExternalEvidenceSection("DISABLED", "TradingView MCP integration is disabled.");
@@ -175,6 +176,9 @@ export async function gatherMultiSourceIntelligence(input: MultiSourceIntelligen
 
     const anyExternalEvidence = [technicals, news, economicCalendar].some((s) => s.available);
 
+    // Add feed timestamp so "0 events" is clearly a real feed-time, not a missing feed.
+    limitations.push(`Feed checked at ${feedCheckedAt} — ${anyExternalEvidence ? "external evidence present" : "no external evidence (connection or data unavailable)"}.`);
+
     const lines: string[] = ["TRADINGVIEW EVIDENCE (external provider — may be delayed; context only):"];
     if (technicals.available) {
         const item = technicals.items[0];
@@ -196,8 +200,8 @@ export async function gatherMultiSourceIntelligence(input: MultiSourceIntelligen
     return {
         tradingview: { technicals, news, economicCalendar },
         anyExternalEvidence,
-        aiEvidenceText: lines.join("\n"),
-        limitations: [...limitations, ...(technicals.available || news.available || economicCalendar.available ? [] : ["TradingView context was unavailable; the analysis below is AlgoVault-only."])],
+        aiEvidenceText: lines.join("\n") + `\n\n[Feed check: ${feedCheckedAt} · ${flags.master ? "TradingView MCP master enabled; connection: " + (anyExternalEvidence ? "connected" : (technicals.state === "NOT_CONNECTED" ? "not connected — connect at /api/integrations/tradingview/connect" : "attempted, failed")) : "disabled"}]`,
+        limitations: [...limitations, ...(technicals.available || news.available || economicCalendar.available ? [] : [`TradingView context unavailable (${technicals.state}/${news.state}/${economicCalendar.state}) — connect account or wait; terminal runs on AlgoVault-only.`])],
     };
 }
 

@@ -28,6 +28,7 @@ import { OrderTicket } from "@/components/performance-arena/OrderTicket";
 import { PerformancePanel } from "@/components/performance-arena/PerformancePanel";
 import { PendingOrdersTable, PositionsTable, RecentTradesTable } from "@/components/performance-arena/PositionsTable";
 import { GuardianPanel } from "@/components/performance-arena/GuardianPanel";
+import { PartialCloseDialog } from "@/components/performance-arena/PartialCloseDialog";
 import { AttemptReport } from "@/components/performance-arena/AttemptReport";
 import { useAuthToken } from "@/lib/scalping/client";
 import { useLiveQuote } from "@/hooks/useLiveCandles";
@@ -99,6 +100,10 @@ export default function AccountChallengeDashboardPage() {
   const [now, setNow] = useState<number | null>(null);
   const [activePanel, setActivePanel] = useState<"positions" | "orders" | "history" | "guardian">("positions");
   const [cancelling, setCancelling] = useState(false);
+  // Partial close is a dialog, not a single ambiguous percentage: the trader
+  // picks VOLUME (% of size) or PROFIT (% of the open profit) and confirms a
+  // server-priced plan.
+  const [partialClose, setPartialClose] = useState<{ trade: MarkedTrade; mode: "VOLUME" | "PROFIT_PRESERVATION"; percent: number } | null>(null);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -502,12 +507,24 @@ export default function AccountChallengeDashboardPage() {
               ))}
             </div>
             <div className="min-w-0 p-3 sm:p-4" role="tabpanel">
-              {activePanel === "positions" ? <PositionsTable positions={state.openPositions} canClose={canManagePositions} canModifyStops={active} onClose={onClosePosition} onModifyStops={modifyStops} /> : null}
+              {activePanel === "positions" ? <PositionsTable positions={state.openPositions} canClose={canManagePositions} canModifyStops={active} onClose={onClosePosition} onPartialClose={(marked, mode, pct) => setPartialClose({ trade: marked, mode, percent: pct })} onModifyStops={modifyStops} /> : null}
               {activePanel === "orders" ? <PendingOrdersTable orders={state.pendingOrders} canCancel={canCancelPendingOrders} onCancel={cancelPending} /> : null}
               {activePanel === "history" ? <RecentTradesTable trades={state.recentTrades} /> : null}
               {activePanel === "guardian" ? <GuardianPanel attemptId={state.attempt.id} insights={state.guardian} onStateChange={() => void load()} /> : null}
             </div>
           </section>
+
+          <PartialCloseDialog
+            key={`${partialClose?.trade.trade.tradeId ?? "none"}_${partialClose?.mode ?? "PROFIT_PRESERVATION"}_${partialClose?.percent ?? 50}`}
+            trade={partialClose?.trade ?? null}
+            attemptId={state.attempt.id}
+            token={token}
+            open={partialClose !== null}
+            onOpenChange={(open) => { if (!open) setPartialClose(null); }}
+            onClosed={() => void load()}
+            initialMode={partialClose?.mode ?? "PROFIT_PRESERVATION"}
+            initialPercent={partialClose?.percent ?? 50}
+          />
 
           <ArenaDisclaimer>{ARENA_DISCLAIMERS.simulated} {ARENA_DISCLAIMERS.challengeScope}</ArenaDisclaimer>
         </>

@@ -75,7 +75,6 @@ export class PaperTradingSession {
     private readonly engine: StrategyEngine;
     private readonly limits: RiskLimits;
     private killSwitch = false;
-    private lastQuote: PendingQuote | null = null;
 
     constructor(options: PaperSessionOptions) {
         this.symbol = options.symbol;
@@ -110,6 +109,10 @@ export class PaperTradingSession {
         });
 
         const strategy = options.strategy ?? createManualOnlyStrategy(options.symbol, options.timeframe);
+        const engineRiskLimits: RiskLimits = {
+            ...this.limits,
+            maxPositionSize: this.limits.maxPositionSize ?? simSymbolSpec(options.symbol).maxLot,
+        };
         this.engine = new StrategyEngine({
             strategy,
             autoStrategy: !!options.strategy,
@@ -120,9 +123,17 @@ export class PaperTradingSession {
             account: this.account,
             spec: simSymbolSpec(options.symbol),
             costs: options.costs,
-            riskLimits: this.limits,
+            riskLimits: engineRiskLimits,
             debug: options.debug ?? false,
             initialBalance: options.initialBalance,
+            finalizeAtEnd: false,
+            beforeOrderSubmit: (intent) => {
+                if (this.killSwitch && !intent.reduceOnly) return "kill_switch: engaged";
+                const validationError = this.validatePaperIntent(intent);
+                if (validationError) return validationError;
+                if (!this.adapter.canExecute(intent.side)) return "Stale or abnormal market quote — paper trading fails closed";
+                return null;
+            },
         });
     }
 
@@ -130,7 +141,6 @@ export class PaperTradingSession {
 
     /** Feed a real bid/ask quote from the live data source. */
     feedQuote(quote: PendingQuote): void {
-        this.lastQuote = quote;
         this.adapter.setQuote(quote);
     }
 
@@ -157,9 +167,8 @@ export class PaperTradingSession {
     }
 
     closePosition(positionId: string): SimPosition | null {
-        // Never fall back to a historical candle close when a real quote is
-        // stale: defer the manual close until an executable quote is available.
-        if (this.adapter.isStale()) return null;
+        // The engine/adapter enforce a fresh executable quote; never fall back
+        // to the last historical candle when a paper close cannot execute.
         return this.engine.closePosition(positionId, "mandatory_exit");
     }
 
@@ -234,11 +243,18 @@ export class PaperTradingSession {
     /** Current risk verdict (for the UI's live guard panel). */
     preTradeRisk(): RiskVerdict {
         const account = this.engine.getAccount();
-        return evaluateAccountHalt(
-            { ...this.limits, killSwitch: this.killSwitch, maxDataAgeMs: this.limits.maxDataAgeMs },
+        const base = evaluateAccountHalt(
+            { ...this.engineRiskLimits(), killSwitch: this.killSwitch },
             account,
             this.engine.getPositions().length
         );
+        const quoteAvailable = this.adapter.canExecute("BUY", this.now());
+        const checks = [
+            ...base.checks,
+            { name: "data_freshness", passed: quoteAvailable, detail: quoteAvailable ? undefined : "no fresh executable quote" },
+        ];
+        const failed = checks.filter((check) => !check.passed);
+        return { allowed: failed.length === 0, reasons: failed.map((check) => `${check.name}${check.detail ? `: ${check.detail}` : ""}`), checks };
     }
 
     getEngine(): StrategyEngine {
@@ -246,6 +262,36 @@ export class PaperTradingSession {
     }
 
     // ── internals ────────────────────────────────────────────────────────────
+
+    private engineRiskLimits(): RiskLimits {
+        // Paper quote freshness is checked by the adapter using wall-clock time.
+        // Do not compare the candle timestamp through the generic risk check.
+        const limits = { ...this.limits };
+        delete limits.maxDataAgeMs;
+        return limits;
+    }
+
+    private validatePaperIntent(intent: OrderIntent): string | null {
+        const spec = simSymbolSpec(this.symbol);
+        if (!Number.isFinite(intent.quantity) || intent.quantity < spec.minLot) return "Invalid quantity";
+        if (intent.quantity > Math.min(this.limits.maxPositionSize ?? spec.maxLot, spec.maxLot)) return "Maximum position size exceeded";
+        const steppedLots = intent.quantity / spec.lotStep;
+        if (Math.abs(steppedLots - Math.round(steppedLots)) > 1e-8) return "Quantity does not match the instrument lot step";
+        if ((intent.type === "LIMIT" || intent.type === "STOP") && (!Number.isFinite(intent.price) || (intent.price ?? 0) <= 0)) {
+            return `${intent.type} order requires a valid price`;
+        }
+        if (intent.stopLoss !== undefined && (!Number.isFinite(intent.stopLoss) || intent.stopLoss <= 0)) return "Invalid stop-loss price";
+        if (intent.takeProfit !== undefined && (!Number.isFinite(intent.takeProfit) || intent.takeProfit <= 0)) return "Invalid take-profit price";
+        const isMarket = intent.type === "MARKET";
+        const entryPrice = intent.price ?? (isMarket ? this.adapter.marketPrice(intent.side) : undefined);
+        if (entryPrice !== undefined && entryPrice !== null) {
+            if (intent.side === "BUY" && intent.stopLoss !== undefined && intent.stopLoss >= entryPrice) return "Long stop loss must be below entry price";
+            if (intent.side === "BUY" && intent.takeProfit !== undefined && intent.takeProfit <= entryPrice) return "Long take profit must be above entry price";
+            if (intent.side === "SELL" && intent.stopLoss !== undefined && intent.stopLoss <= entryPrice) return "Short stop loss must be above entry price";
+            if (intent.side === "SELL" && intent.takeProfit !== undefined && intent.takeProfit >= entryPrice) return "Short take profit must be below entry price";
+        }
+        return null;
+    }
 
     private applyAccount(next: AccountState): AccountState {
         // The engine owns the canonical account; external mutations are pushed in.

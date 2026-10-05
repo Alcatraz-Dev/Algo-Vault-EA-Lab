@@ -50,7 +50,7 @@ import type { ExperimentRecord, ExecutionEnvironment } from "./types";
 
 /** Documented simulation assumptions surfaced next to every result. */
 export const SIMULATION_ASSUMPTIONS = [
-    "OHLC data only: spread and slippage are charged as explicit per-leg cash costs (net-equivalent of bid/ask execution); historical bid/ask is not available.",
+    "OHLC data only: entries/exits execute against the configured synthetic bid/ask around the bar price and slippage/commission are explicit per-leg cash costs; historical quotes are not available.",
     "When a stop and a target are both touched inside one bar, the stop is assumed to fill first (conservative).",
     "Gaps: stops/targets fill at the bar open when the market opened through them.",
     "Commission is charged once, on exit (established Strategy Lab cost model).",
@@ -75,6 +75,8 @@ export interface ResearchBacktestRequest {
     environment?: ExecutionEnvironment;
     datasetSource?: string;
     parameters?: Record<string, unknown>;
+    /** Optional split run (warm-up only before from; strategy cannot enter after to). */
+    entryWindow?: { from: number; to: number };
     /** Override "now" for reproducible experiment timestamps. */
     createdAt?: number;
 }
@@ -116,9 +118,20 @@ export function runResearchBacktest(request: ResearchBacktestRequest): ResearchB
     const from = request.from ?? request.config.from;
     const to = request.to ?? request.config.to;
 
-    const result = backtestStrategy(strategy, symbol, request.candlesByTF, request.config, from, to);
-
     const primaryCandles = request.candlesByTF[strategy.timeframes.setup] ?? [];
+    const experimentFrom = request.entryWindow?.from ?? from;
+    const experimentTo = request.entryWindow?.to ?? to;
+    const inRangeCandles = primaryCandles.filter((c) => c.timestamp >= experimentFrom && c.timestamp <= experimentTo);
+    const result = backtestStrategy(
+        strategy,
+        symbol,
+        request.candlesByTF,
+        request.config,
+        from,
+        to,
+        request.entryWindow ?? { from: experimentFrom, to: experimentTo }
+    );
+
     const trades: BacktestTrade[] = result.trades;
     const equity: EquityPoint[] = result.equity;
 
@@ -141,7 +154,7 @@ export function runResearchBacktest(request: ResearchBacktestRequest): ResearchB
 
     // ── Integrity ──
     const reasons: string[] = [];
-    const bars = result.coverage.availableBars;
+    const bars = inRangeCandles.length;
     if (bars < RELIABILITY.minBars) {
         reasons.push(`${INSUFFICIENT_DATA}: ${bars} bars (< ${RELIABILITY.minBars}).`);
     }
@@ -159,16 +172,19 @@ export function runResearchBacktest(request: ResearchBacktestRequest): ResearchB
     }
 
     const limitations: string[] = [];
-    if (bars > 0 && result.coverage.availableFrom > from) {
-        limitations.push("Dataset does not fully cover the requested range; results cover the available period only.");
+    if (bars === 0 || inRangeCandles[0].timestamp > experimentFrom) {
+        limitations.push("Dataset does not fully cover the requested start; results cover the available period only.");
+    }
+    if (bars === 0 || inRangeCandles[inRangeCandles.length - 1].timestamp < experimentTo) {
+        limitations.push("Dataset does not fully cover the requested end; results cover the available period only.");
     }
 
     const experiment = buildExperimentRecord({
         strategy,
         symbol,
         timeframe: strategy.timeframes.setup,
-        from,
-        to,
+        from: experimentFrom,
+        to: experimentTo,
         bars,
         source: request.datasetSource ?? "historical",
         config: request.config,

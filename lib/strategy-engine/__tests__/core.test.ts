@@ -6,6 +6,7 @@ import { SimulationAdapter } from "../adapters";
 import { applyFill, canTransition, createOrder, transitionOrder } from "../orders";
 import {
     computeStops,
+    cashValueForMove,
     legCosts,
     openSimPosition,
     processPositionBar,
@@ -56,9 +57,30 @@ export function runCoreTests(): boolean {
     check(manual.order.avgFillPrice === 4005, "manual order fills at the current bar close");
 
     const costs = legCosts(0.1, SPEC, COSTS);
-    check(approx(costs.spread, 20 * 0.01 * 0.1 * 100, 1e-9), "spread cost = spreadPips × pip × lots × contract");
-    check(approx(costs.slippage, 1 * 0.01 * 0.1 * 100, 1e-9), "slippage cost scales with size");
-    check(approx(costs.commission, 7 * 0.1 * 100, 1e-9), "commission per lot contract size");
+    check(approx(costs.spread, 10 * SPEC.pipValue * 0.1, 1e-9), "each execution leg pays half the full quoted spread");
+    check(approx(costs.slippage, 1 * SPEC.pipValue * 0.1, 1e-9), "slippage cost uses configured cash value per pip per lot");
+    check(approx(costs.commission, 7 * 0.1 * SPEC.contractSize, 1e-9), "commission per lot contract size");
+    const eurCosts = legCosts(1, simSymbolSpec("EURUSD"), { spreadPips: 1, commissionPerLot: 0, slippagePips: 0 });
+    check(approx(eurCosts.spread, 5), "EURUSD execution leg charges half the $10 pip-value spread");
+    check(approx(cashValueForMove(0.001, 1, simSymbolSpec("EURUSD")), 100), "EURUSD 10-pip move converts to $100 for one lot");
+
+    const strategy = acceptanceStrategy(); // 1% risk
+    const fxSpec = simSymbolSpec("EURUSD");
+    const fxRisk = openSimPosition({
+        strategy,
+        symbol: "EURUSD",
+        side: "BUY",
+        entryPrice: 1.1,
+        atr: 0.001,
+        balance: 10_000,
+        spec: fxSpec,
+        costs: { spreadPips: 1, slippagePips: 0, commissionPerLot: 0 },
+        timestamp: 1,
+        barIndex: 1,
+        session: "london",
+        regime: "trending",
+    });
+    check(fxRisk !== null && approx(fxRisk.quantity, 1, 0.011), `EURUSD sizing uses its $10 pip value (got ${fxRisk?.quantity})`);
 
     // Resting orders + gap handling
     check(restingOrderFillPrice("BUY", "LIMIT", 3995, bar(4000, 4010, 3990, 4005), SPEC) === 3995, "buy limit fills at its price when traded through");
@@ -97,7 +119,6 @@ export function runCoreTests(): boolean {
     check(!afterTerminal.changed && !!afterTerminal.error, "no fills after FILLED");
 
     section("Position sizing (instrument-aware)");
-    const strategy = acceptanceStrategy(); // 1% risk
     const sized = openSimPosition({
         strategy, symbol: "XAUUSD", side: "BUY", entryPrice: 4000, atr: 5, balance: 10_000,
         spec: SPEC, costs: COSTS, timestamp: 1, barIndex: 1, session: "london", regime: "trending",

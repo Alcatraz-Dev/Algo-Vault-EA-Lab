@@ -140,7 +140,13 @@ export function setupLifecycleCheck(plan: TradePlan, setupStatus: string | null 
 }
 
 export function expiryCheck(plan: TradePlan, now: number): GateCheck {
-    if (plan.expiresAt <= now) {
+    return expiryDeadlineCheck(plan.expiresAt, now);
+}
+
+/** Source-agnostic expiry check. `expiresAt === undefined` means "no expiry". */
+export function expiryDeadlineCheck(expiresAt: number | undefined, now: number): GateCheck {
+    if (expiresAt === undefined) return check("EXECUTION_POLICY", true, "NO_EXPIRY");
+    if (expiresAt <= now) {
         return check("EXECUTION_POLICY", false, "PLAN_EXPIRED", "Plan has expired — never execute a stale plan.");
     }
     return check("EXECUTION_POLICY", true, "PLAN_VALID");
@@ -157,18 +163,28 @@ export function tradingHoursCheck(policy: AutomationPolicy, now: number): GateCh
 }
 
 export function instrumentWhitelistCheck(plan: TradePlan, policy: AutomationPolicy): GateCheck {
+    return instrumentAllowedCheck(plan.instrument, policy);
+}
+
+/** Source-agnostic instrument whitelist check. Empty whitelist = deny all. */
+export function instrumentAllowedCheck(instrument: string, policy: AutomationPolicy): GateCheck {
     if (!Array.isArray(policy.allowedInstruments) || policy.allowedInstruments.length === 0) {
         return check("EXECUTION_POLICY", false, "NO_INSTRUMENT_WHITELIST", "Automation policy must name at least one allowed instrument before automated execution.");
     }
-    const normalized = plan.instrument.toUpperCase().replace("/", "");
+    const normalized = instrument.toUpperCase().replace("/", "");
     if (!policy.allowedInstruments.map((s) => s.toUpperCase().replace("/", "")).includes(normalized)) {
-        return check("EXECUTION_POLICY", false, "INSTRUMENT_NOT_ALLOWED", `${plan.instrument} is not in the automation whitelist.`);
+        return check("EXECUTION_POLICY", false, "INSTRUMENT_NOT_ALLOWED", `${instrument} is not in the automation whitelist.`);
     }
     return check("EXECUTION_POLICY", true, "INSTRUMENT_ALLOWED");
 }
 
 export function stopDistanceCheck(plan: TradePlan, minPips: number): GateCheck {
-    const pips = pipsFor(plan.instrument, Math.abs(plan.entry - plan.stopLoss));
+    return stopDistanceForCheck(plan.instrument, plan.entry, plan.stopLoss, minPips);
+}
+
+/** Source-agnostic stop-distance check (geometry, before risk sizing). */
+export function stopDistanceForCheck(instrument: string, entry: number, stopLoss: number, minPips: number): GateCheck {
+    const pips = pipsFor(instrument, Math.abs(entry - stopLoss));
     if (pips < minPips) {
         return check("EXECUTION_POLICY", false, "STOP_TOO_CLOSE", `Stop distance ${pips.toFixed(1)} pips is below the ${minPips} pip minimum.`);
     }

@@ -35,6 +35,10 @@ import type { OrderSide, Position, PositionSide, PositionTarget } from "./types"
 export interface SimSymbolSpec {
     symbol: string;
     pipSize: number;
+    /** Price increment used to round executable prices (may differ from pipSize). */
+    tickSize: number;
+    /** Cash value of one pip per lot in account currency, from SYMBOL_SPECS.tickValue. */
+    pipValue: number;
     contractSize: number;
     digits: number;
     minLot: number;
@@ -46,6 +50,8 @@ export interface SimSymbolSpec {
 const DEFAULT_SPEC: SimSymbolSpec = {
     symbol: "UNKNOWN",
     pipSize: 0.01,
+    tickSize: 0.01,
+    pipValue: 1,
     contractSize: 100,
     digits: 2,
     minLot: 0.01,
@@ -61,6 +67,8 @@ export function simSymbolSpec(symbol: string): SimSymbolSpec {
     return {
         symbol,
         pipSize: s.pipSize ?? DEFAULT_SPEC.pipSize,
+        tickSize: 10 ** -(s.digits ?? DEFAULT_SPEC.digits),
+        pipValue: s.tickValue ?? DEFAULT_SPEC.pipValue,
         contractSize: s.contractSize ?? DEFAULT_SPEC.contractSize,
         digits: s.digits ?? DEFAULT_SPEC.digits,
         minLot: s.minLot ?? DEFAULT_SPEC.minLot,
@@ -70,8 +78,14 @@ export function simSymbolSpec(symbol: string): SimSymbolSpec {
     };
 }
 
-export function roundPrice(value: number, digits: number): number {
-    return Number(value.toFixed(digits));
+export function roundPrice(value: number, digits: number, tickSize?: number): number {
+    if (!tickSize || !Number.isFinite(tickSize) || tickSize <= 0) return Number(value.toFixed(digits));
+    return Number((Math.round(value / tickSize) * tickSize).toFixed(digits));
+}
+
+/** Convert a price move to account-currency P&L using configured pip value. */
+export function cashValueForMove(move: number, volume: number, spec: SimSymbolSpec): number {
+    return (move / spec.pipSize) * spec.pipValue * volume;
 }
 
 /** Round a volume to the instrument's lot step (never below zero). */
@@ -100,12 +114,13 @@ export interface LegCosts {
 
 /**
  * Cash cost of executing `volume` lots on one leg.
- * commission is charged on EXIT only (matches the established Strategy Lab
- * cost model so historical results stay comparable).
+ * `spreadPips` is a full quoted spread, so each leg pays half; across a
+ * round-trip the two halves equal one full spread. Commission is charged on
+ * EXIT only (matches the established Strategy Lab cost model).
  */
 export function legCosts(volume: number, spec: SimSymbolSpec, costs: ExecutionCostConfig): LegCosts {
-    const spread = costs.spreadPips * spec.pipSize * volume * spec.contractSize;
-    const slippage = costs.slippagePips * spec.pipSize * volume * spec.contractSize;
+    const spread = (costs.spreadPips * spec.pipValue * volume) / 2;
+    const slippage = costs.slippagePips * spec.pipValue * volume;
     const commission = costs.commissionPerLot * volume * spec.contractSize;
     return { spread, slippage, commission, total: spread + slippage + commission };
 }
@@ -235,7 +250,8 @@ export function computeStops(
     entryPrice: number,
     atr: number,
     isLong: boolean,
-    digits: number
+    digits: number,
+    tickSize = 10 ** -digits
 ): StopsPlan {
     let sl: number;
     if (strategy.stopLoss.mode === "atr") {
@@ -248,11 +264,17 @@ export function computeStops(
             : entryPrice + strategy.stopLoss.levelOffset;
     }
     const riskPrice = Math.abs(entryPrice - sl);
-    const slRounded = roundPrice(sl, digits);
+    const slRounded = roundPrice(sl, digits, tickSize);
 
-    const tp1 = roundPrice(isLong ? entryPrice + strategy.takeProfit.r1 * riskPrice : entryPrice - strategy.takeProfit.r1 * riskPrice, digits);
-    const tp2 = roundPrice(isLong ? entryPrice + strategy.takeProfit.r2 * riskPrice : entryPrice - strategy.takeProfit.r2 * riskPrice, digits);
-    const tp3 = roundPrice(isLong ? entryPrice + strategy.takeProfit.r3 * riskPrice : entryPrice - strategy.takeProfit.r3 * riskPrice, digits);
+    const tpDistance = (r: number) => strategy.takeProfit.mode === "fixed"
+        ? (r > 0 ? strategy.takeProfit.fixedDistance * r : 0)
+        : r * riskPrice;
+    const tp1Distance = tpDistance(strategy.takeProfit.r1 || (strategy.takeProfit.mode === "fixed" ? 1 : 0));
+    const tp2Distance = tpDistance(strategy.takeProfit.r2);
+    const tp3Distance = tpDistance(strategy.takeProfit.r3);
+    const tp1 = tp1Distance > 0 ? roundPrice(isLong ? entryPrice + tp1Distance : entryPrice - tp1Distance, digits, tickSize) : 0;
+    const tp2 = tp2Distance > 0 ? roundPrice(isLong ? entryPrice + tp2Distance : entryPrice - tp2Distance, digits, tickSize) : 0;
+    const tp3 = tp3Distance > 0 ? roundPrice(isLong ? entryPrice + tp3Distance : entryPrice - tp3Distance, digits, tickSize) : 0;
 
     return { sl: slRounded, tp1, tp2, tp3, riskPrice };
 }
@@ -266,7 +288,7 @@ export interface SizingInput {
 
 /**
  * Instrument-aware position sizing.
- *  • risk_percent → riskAmount / (stopDistance × contractSize), clamped to
+ *  • risk_percent → riskAmount / (stopDistance × pipValue / pipSize), clamped to
  *    lot step, min lot and max lot.
  *  • fixed_lot → the configured lot, clamped the same way.
  * Returns 0 when the instrument granularity cannot express the risk (never
@@ -279,7 +301,8 @@ export function sizePosition(input: SizingInput): number {
     let volume: number;
     if (strategy.risk.mode === "percent") {
         const riskAmount = balance * (strategy.risk.riskPercent / 100);
-        volume = riskAmount / (riskPrice * spec.contractSize);
+        const cashRiskPerLot = (riskPrice / spec.pipSize) * spec.pipValue;
+        volume = cashRiskPerLot > 0 ? riskAmount / cashRiskPerLot : 0;
     } else {
         volume = strategy.risk.fixedLot;
     }
@@ -334,6 +357,8 @@ export interface OpenPositionInput {
     balance: number;
     spec: SimSymbolSpec;
     costs: ExecutionCostConfig;
+    /** Costs already embedded in the opening executable quote (e.g. paper bid/ask). */
+    entryCostOverride?: number;
     timestamp: number;
     barIndex: number;
     session: string;
@@ -353,7 +378,7 @@ export function openSimPosition(input: OpenPositionInput): SimPosition | null {
     const isLong = input.side === "BUY";
     const digits = spec.digits;
 
-    const entry = roundPrice(input.entryPrice, digits);
+    const entry = roundPrice(input.entryPrice, digits, spec.tickSize);
 
     let sl: number;
     let tp1 = 0;
@@ -374,7 +399,7 @@ export function openSimPosition(input: OpenPositionInput): SimPosition | null {
         tp1 = input.manual.tp !== undefined && input.manual.tp > 0 ? roundPrice(input.manual.tp, digits) : 0;
         riskPrice = Number.isFinite(sl) ? Math.abs(input.entryPrice - sl) : 0;
     } else {
-        const plan = computeStops(strategy, input.entryPrice, input.atr, isLong, digits);
+        const plan = computeStops(strategy, input.entryPrice, input.atr, isLong, digits, spec.tickSize);
         sl = plan.sl;
         tp1 = plan.tp1;
         tp2 = plan.tp2;
@@ -389,7 +414,7 @@ export function openSimPosition(input: OpenPositionInput): SimPosition | null {
     if (volume <= 0) return null;
 
     const entryLeg = legCosts(volume, spec, costs);
-    const entryCost = entryLeg.spread + entryLeg.slippage;
+    const entryCost = input.entryCostOverride ?? (entryLeg.spread + entryLeg.slippage);
 
     const isManual = !!input.manual;
     const targets: PositionTarget[] = (
@@ -583,9 +608,8 @@ function closeChunk(
     const spec = input.spec;
     const closeVol = Math.min(volume ?? pos.remainingQuantity, pos.remainingQuantity);
     if (closeVol <= 0) return;
-
     const move = pos.side === "LONG" ? price - pos.entryPrice : pos.entryPrice - price;
-    const gross = move * closeVol * spec.contractSize;
+    const gross = cashValueForMove(move, closeVol, spec);
     const costs = legCosts(closeVol, spec, input.costs);
     const pnl = gross - costs.spread - costs.slippage - costs.commission;
 
@@ -631,11 +655,12 @@ export function closePositionAt(
 }
 
 /** Mark a position to market, updating unrealized PnL + MAE/MFE. */
-export function markPosition(pos: SimPosition, price: number, bar?: MarketCandle): void {
+export function markPosition(pos: SimPosition, price: number, bar?: MarketCandle, symbolSpec?: SimSymbolSpec): void {
     if (pos.status !== "open") return;
     pos.currentPrice = price;
     const move = pos.side === "LONG" ? price - pos.entryPrice : pos.entryPrice - price;
-    pos.unrealizedPnL = round2(move * pos.remainingQuantity * simSymbolSpec(pos.symbol).contractSize);
+    const spec = symbolSpec ?? simSymbolSpec(pos.symbol);
+    pos.unrealizedPnL = round2(cashValueForMove(move, pos.remainingQuantity, spec));
 
     if (bar) {
         const adverse = pos.side === "LONG" ? pos.entryPrice - bar.low : bar.high - pos.entryPrice;

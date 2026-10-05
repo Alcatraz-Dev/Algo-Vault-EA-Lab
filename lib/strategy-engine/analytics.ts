@@ -305,11 +305,15 @@ function bucket(trades: BacktestTrade[], keyOf: (t: BacktestTrade) => string): P
 export interface AdvancedMetrics {
     /** Average win ÷ average loss. null without both sides. */
     payoffRatio: number | null;
-    /** Downside-deviation-based annualized ratio on trade returns. */
+    /** Downside-deviation-based ratio on sequential daily returns. */
     sortino: number | null;
-    /** CAGR ÷ max drawdown. null without a multi-period equity curve. */
+    /** CAGR ÷ maximum drawdown. null without a multi-period equity curve. */
     calmar: number | null;
+    /** Annualized compound growth; null when duration is under one year or equity is invalid. */
+    cagr: number | null;
     avgDurationMs: number | null;
+    maxConsecutiveWins: number;
+    maxConsecutiveLosses: number;
     status: "ok" | typeof INSUFFICIENT_DATA;
 }
 
@@ -319,7 +323,7 @@ export function computeAdvancedMetrics(
     initialBalance: number
 ): AdvancedMetrics {
     if (trades.length === 0) {
-        return { payoffRatio: null, sortino: null, calmar: null, avgDurationMs: null, status: INSUFFICIENT_DATA };
+        return { payoffRatio: null, sortino: null, calmar: null, cagr: null, avgDurationMs: null, maxConsecutiveWins: 0, maxConsecutiveLosses: 0, status: INSUFFICIENT_DATA };
     }
     const wins = trades.filter((t) => t.pnlGross > 0).map((t) => t.pnlGross);
     const losses = trades.filter((t) => t.pnlGross < 0).map((t) => t.pnlGross);
@@ -328,33 +332,66 @@ export function computeAdvancedMetrics(
     const payoffRatio = avgWin !== null && avgLoss !== null && avgLoss > 0 ? round(avgWin / avgLoss) : null;
 
     let sortino: number | null = null;
-    if (trades.length >= 5) {
-        const returns = trades.map((t) => t.pnlGross / initialBalance);
-        const mean = avg(returns);
-        const downside = returns.filter((r) => r < 0);
-        if (downside.length > 0) {
+    const dailyEquity = new Map<string, { first: number; last: number }>();
+    for (const point of equity) {
+        const day = new Date(point.time).toISOString().slice(0, 10);
+        const row = dailyEquity.get(day);
+        if (!row) dailyEquity.set(day, { first: point.equity, last: point.equity });
+        else row.last = point.equity;
+    }
+    const dailyRows = [...dailyEquity.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([, row]) => row);
+    const dailyReturns = dailyRows.slice(1).map((row, i) =>
+        dailyRows[i].last > 0 ? row.last / dailyRows[i].last - 1 : Number.NaN
+    ).filter(Number.isFinite);
+    if (dailyReturns.length >= 2) {
+        const mean = avg(dailyReturns);
+        const downside = dailyReturns.filter((r) => r < 0);
+        if (downside.length >= 2) {
             const downsideDev = Math.sqrt(avg(downside.map((r) => r * r)));
-            if (downsideDev > 0) sortino = round((mean / downsideDev) * Math.sqrt(returns.length));
+            if (downsideDev > 0) sortino = round((mean / downsideDev) * Math.sqrt(252));
         }
     }
 
+    let cagr: number | null = null;
     let calmar: number | null = null;
     if (equity.length >= 2 && initialBalance > 0) {
         const first = equity[0].equity;
         const last = equity[equity.length - 1].equity;
         const days = (equity[equity.length - 1].time - equity[0].time) / 86_400_000;
         const maxDd = Math.max(...equity.map((e) => e.drawdownPct));
-        if (days > 0 && maxDd > 0 && first > 0) {
-            const growth = Math.pow(last / first, 365 / days) - 1;
-            calmar = round(growth / (maxDd / 100));
+        if (days >= 365 && first > 0 && last > 0) {
+            cagr = round(Math.pow(last / first, 365 / days) - 1);
+            if (maxDd > 0) calmar = round(cagr / (maxDd / 100));
         }
+    }
+
+    let maxConsecutiveWins = 0;
+    let maxConsecutiveLosses = 0;
+    let winsInARow = 0;
+    let lossesInARow = 0;
+    for (const trade of trades) {
+        if (trade.pnlGross > 0) {
+            winsInARow += 1;
+            lossesInARow = 0;
+        } else if (trade.pnlGross < 0) {
+            lossesInARow += 1;
+            winsInARow = 0;
+        } else {
+            winsInARow = 0;
+            lossesInARow = 0;
+        }
+        maxConsecutiveWins = Math.max(maxConsecutiveWins, winsInARow);
+        maxConsecutiveLosses = Math.max(maxConsecutiveLosses, lossesInARow);
     }
 
     return {
         payoffRatio,
         sortino,
         calmar,
+        cagr,
         avgDurationMs: round(avg(trades.map((t) => t.durationMs))),
+        maxConsecutiveWins,
+        maxConsecutiveLosses,
         status: "ok",
     };
 }

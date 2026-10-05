@@ -42,6 +42,10 @@ import { cn } from "@/lib/utils";
 import { useLiveCandles } from "@/hooks/useLiveCandles";
 import { gexLevels, type GexLevel } from "@/lib/order-flow/gex/levels";
 import { isMarketTradableAt, isChartTimeframe, TIMEFRAME_MS } from "@/lib/chart-engine/timeframe";
+import {
+    barCloseCountdown as computeBarCloseCountdown,
+    formatCountdown,
+} from "@/lib/chart-engine/bar-countdown";
 import { structureOverlayLayer } from "@/lib/chart-engine/overlay-contract";
 import {
     detectSmartMoney,
@@ -74,6 +78,7 @@ import {
     hitTestDrawing,
     removeDrawingById,
     snapToOHLC,
+    translateDrawingByMarketDelta,
     undoLastDrawing,
     updateDrawingColor,
     updateDrawingLabel,
@@ -86,7 +91,9 @@ export type ChartType = "candlestick" | "bar" | "line" | "area" | "baseline";
 
 export type DrawingTool =
     | "select"
+    | "hand"
     | "trendline"
+    | "arrow"
     | "horizontal"
     | "vertical"
     | "ray"
@@ -107,6 +114,8 @@ export type DrawingItem = {
     color?: string;
     /** Stroke width captured when the drawing was placed (tool settings). */
     width?: number;
+    /** Stroke style captured when the drawing was placed (tool settings). */
+    lineStyle?: "solid" | "dashed" | "dotted";
 };
 
 /** One computed line an AI overlay wants drawn on the price pane. */
@@ -378,7 +387,9 @@ const PINE_PANE_STRETCH = 0.35;
 /** In-chart hint shown while a drawing tool is active (bottom-center chip). */
 const DRAWING_TOOL_HINTS: Record<DrawingTool, string> = {
     select: "Click an object to select · Del removes it",
+    hand: "Drag to move a drawing · click to release",
     trendline: "Drag between two points",
+    arrow: "Drag from origin to target (arrow drawn at target)",
     horizontal: "Click to place a price level",
     vertical: "Click to place a time marker",
     ray: "Drag from an origin through a target",
@@ -441,6 +452,28 @@ function computeDailyPivotLines(candles: Candle[]): Array<{ price: number; label
     ];
 }
 
+/**
+ * Pick a legible text colour for a filled tag.
+ *
+ * The AI direction pill is filled with the user's buy/sell colour, which they
+ * can set to anything — including a pale yellow. Hard-coding white would make
+ * the label unreadable, so pick black or white from the colour's relative
+ * luminance. Non-hex values (the rgba() strings presets may hold for lines)
+ * fall back to white, which is correct for every preset's saturated side
+ * colours.
+ */
+function contrastText(hex: string): string {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+    if (!m) return "#ffffff";
+    const n = parseInt(m[1], 16);
+    const r = (n >> 16) & 255;
+    const g = (n >> 8) & 255;
+    const b = n & 255;
+    // Rec. 709 luma on gamma-encoded sRGB is close enough for a pick-a-ink test.
+    const luma = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    return luma > 0.6 ? "#0b0f17" : "#ffffff";
+}
+
 export function ProTerminalChart({
     symbol,
     timeframe,
@@ -468,6 +501,7 @@ export function ProTerminalChart({
     quote = null,
     aiDraw = false,
     fitSignal = 0,
+    focusRequest = null,
     onAiPlanChange,
     onClosePosition,
     onCancelOrder,
@@ -519,6 +553,14 @@ export function ProTerminalChart({
     aiDraw?: boolean;
     /** Increment to reset the viewport (fit content + re-enable price auto-scale). */
     fitSignal?: number;
+    /**
+     * Event → chart navigation (Phase 5 §32). Each request carries its own
+     * `seq`, so clicking the same feed entry twice re-centres the view. The
+     * chart selects the bar's timestamp, centres the visible range around it
+     * and pins a labelled price line on the event's price when one is given.
+     */
+    focusRequest?: { seq: number; time: number; price?: number; label?: string } | null;
+    /** Countdown to next bar close (phase 9 → 10). */
     /** Notified when the AI draw plan is (re)computed — null when off/insufficient data. */
     onAiPlanChange?: (plan: AiDrawPlan | null) => void;
     /** Close a position by percentage (25 → close 25% of the volume). */
@@ -550,8 +592,20 @@ export function ProTerminalChart({
     const tradeLinesRef = useRef<IPriceLine[]>([]);
     // BID/ASK lines from the real-time quote.
     const bidAskLinesRef = useRef<IPriceLine[]>([]);
+    // Bar-close countdown line — rides the live candle's price (like BID/ASK).
+    const countdownLinesRef = useRef<IPriceLine[]>([]);
+    // Which series owns those lines, so a chart-type switch removes them from
+    // the series that actually created them.
+    const countdownLineOwnerRef = useRef<{
+        series: ISeriesApi<"Candlestick"> | ISeriesApi<"Line"> | ISeriesApi<"Area"> | ISeriesApi<"Baseline"> | ISeriesApi<"Bar">;
+        lines: IPriceLine[];
+    } | null>(null);
     // AI-drawn plan lines (entry/SL/TP/support/resistance).
     const aiPlanLinesRef = useRef<IPriceLine[]>([]);
+    // Transient line marking the event the feed navigated to.
+    const focusLineRef = useRef<IPriceLine[]>([]);
+    // Focus request waiting for the chart to hold data for it.
+    const pendingFocusRef = useRef<{ seq: number; time: number; price?: number; label?: string } | null>(null);
     // Historical fill markers (trade entry/exit history).
     const historyMarkersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
     // AI draw marker (direction arrow on the live bar).
@@ -649,7 +703,11 @@ export function ProTerminalChart({
     const baselineSeriesRef = useRef<ISeriesApi<"Baseline"> | null>(null);
     const barSeriesRef = useRef<ISeriesApi<"Bar"> | null>(null);
     const activeSeriesTypeRef = useRef<ChartType>("candlestick");
-    const visiblePriceSeriesRef = useRef<ISeriesApi<"Candlestick"> | ISeriesApi<"Line"> | ISeriesApi<"Area"> | ISeriesApi<"Baseline"> | ISeriesApi<"Bar"> | null>(null);
+    // The price series the user is actually looking at (candle/line/area/
+    // baseline/bar). Overlays that must sit ON the price — the countdown line,
+    // the AI plan, chart markers — attach to this so they follow the chart when
+    // the type changes instead of staying pinned to a hidden candle series.
+    const activePriceSeriesRef = useRef<ISeriesApi<"Candlestick"> | ISeriesApi<"Line"> | ISeriesApi<"Area"> | ISeriesApi<"Baseline"> | ISeriesApi<"Bar"> | null>(null);
     // ── Drawing + indicator/strategy layer state ─────────────────────────────
     // SVG overlay for interactive drawing tools. Coordinate transforms use
     // the chart's own time→x and price→y APIs so drawings stay pinned to
@@ -660,6 +718,10 @@ export function ProTerminalChart({
         startX: number; startY: number;
         startPrice: number; startTime: number;
         curX: number; curY: number;
+        // Drag-to-move existing drawing; source coordinates are market values.
+        moveId?: string;
+        pointerStartPrice?: number;
+        pointerStartTime?: number;
     } | null>(null);
     // Double-click detection for the select tool (second tap edits a label).
     const lastSelectClickRef = useRef<{ id: string; at: number } | null>(null);
@@ -691,6 +753,9 @@ export function ProTerminalChart({
     } | null>(null);
     // Container dimensions tracked for the SVG viewport.
     const [containerSize, setContainerSize] = useState({ w: 0, h: 0 });
+    // Bumped on every pan/zoom so chart-anchored SVG (drawings, AI badge)
+    // recomputes its pixel coordinates in step with the canvas.
+    const [viewportTick, setViewportTick] = useState(0);
 
     // ── selection + text editing ─────────────────────────────────────
     // One drawing can be selected (click), restyled, renamed and deleted;
@@ -839,6 +904,13 @@ export function ProTerminalChart({
         // crashed the signal detail pages.
     const candles = liveCandles;
 
+    // Sync volume series visibility with layers prop (clean chart by default)
+    useEffect(() => {
+        if (volumeSeriesRef.current) {
+            volumeSeriesRef.current.applyOptions({ visible: layers.volume || false });
+        }
+    }, [layers.volume]);
+
     const onCandlesChangeRef = useRef(onCandlesChange);
     useEffect(() => {
         onCandlesChangeRef.current = onCandlesChange;
@@ -872,7 +944,13 @@ export function ProTerminalChart({
     // structure and S/R clusters — so the levels can never reference a
     // price the chart is not already showing. Keyed down to a value
     // signature so tick updates do not churn the drawn lines every 2 s.
-    const aiPlan = useMemo(() => (aiDraw ? computeAiDrawPlan(candles) : null), [aiDraw, candles]);
+    const candleCount = candles.length;
+    const lastClose = candles[candles.length - 1]?.close;
+    // Deliberate value keying: bar count + last close change only when the
+    // charted data changes, while the candles array identity changes on every
+    // tick — recomputing the ATR/S-R plan per tick would redraw the lines.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const aiPlan = useMemo(() => (aiDraw ? computeAiDrawPlan(candles) : null), [aiDraw, candleCount, lastClose]);
     const aiPlanKey = aiPlan
         ? `${aiPlan.direction}|${aiPlan.entry}|${aiPlan.sl}|${aiPlan.tp1}|${aiPlan.tp2}|${aiPlan.support}|${aiPlan.resistance}|${aiPlan.anchorTime}`
         : "";
@@ -892,28 +970,22 @@ export function ProTerminalChart({
     // Canonical interval for the market→bar-index transform (chart timeframes
     // only; the terminal never renders D1/W1).
     const intervalMs = isChartTimeframe(timeframe) ? TIMEFRAME_MS[timeframe] : 3_600_000;
+    // ── Bar-close countdown clock ───────────────────────────────────────
+    // One shared clock for the moving countdown line and the footer chip.
+    // Ticks on a 250 ms interval (not rAF: rAF burns a frame budget for a
+    // label that only shows whole seconds) and rolls into the next bar on its
+    // own, so the countdown never sticks at 00:00:00.
+    const [countdown, setCountdown] = useState(() => computeBarCloseCountdown(Date.now(), intervalMs));
     useEffect(() => {
-        intervalMsRef.current = intervalMs;
-        candlesMirrorRef.current = candles;
-    }, [intervalMs, candles]);
-    useEffect(() => {
-        return () => {
-            anchoredOverlayRef.current?.destroy();
-            anchoredOverlayRef.current = null;
-            for (const plugin of [studyMarkersRef.current, signalMarkersRef.current, orderFlowMarkersRef.current, historyMarkersRef.current, aiDrawMarkersRef.current]) {
-                plugin?.detach();
-            }
-            studyMarkersRef.current = null;
-            signalMarkersRef.current = null;
-            orderFlowMarkersRef.current = null;
-            historyMarkersRef.current = null;
-            aiDrawMarkersRef.current = null;
-            lineSeriesRef.current = null;
-            areaSeriesRef.current = null;
-            baselineSeriesRef.current = null;
-            barSeriesRef.current = null;
-        };
-    }, []);
+        const tick = () => setCountdown(computeBarCloseCountdown(Date.now(), intervalMs));
+        tick();
+        const id = window.setInterval(tick, 250);
+        return () => window.clearInterval(id);
+    }, [intervalMs]);
+    // A host may pin its own clock; the chart's own stays the fallback so the
+    // timer is always present (and moving) even without the prop.
+    const countdownMs = countdown?.remainingMs ?? 0;
+    const countdownLabel = formatCountdown(countdownMs);
 
     // Stable market→bar-index transform handed to the overlay bridge.
     const timeToBarIndex = useCallback(
@@ -951,11 +1023,12 @@ export function ProTerminalChart({
                 background: { type: ColorType.Solid, color: t.uiBackground },
                 textColor: t.textColor,
                 fontFamily: "var(--font-sans, Inter), var(--font-mono, monospace), sans-serif",
+                fontSize: 11,
                 attributionLogo: false,
             },
             grid: {
-                vertLines: { color: t.gridColor },
-                horzLines: { color: t.gridColor },
+                vertLines: { color: t.gridColor, style: LineStyle.Solid },
+                horzLines: { color: t.gridColor, style: LineStyle.Solid },
             },
             rightPriceScale: {
                 borderColor: t.gridColor,
@@ -969,8 +1042,8 @@ export function ProTerminalChart({
             },
             crosshair: {
                 mode: CrosshairMode.Normal,
-                vertLine: { color: t.crosshairColor, labelBackgroundColor: t.uiBackground },
-                horzLine: { color: t.crosshairColor, labelBackgroundColor: t.uiBackground },
+                vertLine: { color: t.crosshairColor, labelBackgroundColor: t.uiBackground, width: 1, style: LineStyle.Dashed },
+                horzLine: { color: t.crosshairColor, labelBackgroundColor: t.uiBackground, width: 1, style: LineStyle.Dashed },
             },
             // Free movement: the chart pans in every direction (including a
             // vertical price-scale drag) and zooms by wheel/pinch — the
@@ -995,19 +1068,26 @@ export function ProTerminalChart({
         chart.applyOptions({
             layout: { background: { type: ColorType.Solid, color: t.uiBackground } },
         });            candleSeriesRef.current = chart.addSeries(CandlestickSeries, {
-            upColor: "#26a69a",
-            downColor: "#ef5350",
-            borderUpColor: "#26a69a",
-            borderDownColor: "#ef5350",
-            wickUpColor: "#26a69a",
-            wickDownColor: "#ef5350",
+            upColor: cfg.colors.bull,
+            downColor: cfg.colors.bear,
+            borderUpColor: cfg.colors.bull,
+            borderDownColor: cfg.colors.bear,
+            wickUpColor: cfg.colors.bull,
+            wickDownColor: cfg.colors.bear,
             priceFormat: { type: "price", precision: symbolPrecision(symbol), minMove: 10 ** -symbolPrecision(symbol) },
             lastValueVisible: false,
+            // Apply user's candle width setting (0 = auto-width)
+            barWidth: cfg.tools.candleWidth,
         });
+        // Volume series is created but NOT shown by default — clean chart experience
+        // User activates volume from the indicator panel when desired
+        // Volume shares candle colors so the chart stays cohesive
         volumeSeriesRef.current = chart.addSeries(HistogramSeries, {
             priceScaleId: "vol",
             priceFormat: { type: "volume" },
-            color: "rgba(100, 116, 139, 0.5)",
+            color: cfg.colors.bull,
+            borderColor: cfg.colors.bear,
+            visible: layers.volume || false,
         });
         chart.priceScale("vol").applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
 
@@ -1063,30 +1143,34 @@ export function ProTerminalChart({
             visible: false,
         });
         areaSeriesRef.current = chart.addSeries(AreaSeries, {
-            lineColor: "#38bdf8",
-            topColor: "rgba(56, 189, 248, 0.35)",
-            bottomColor: "rgba(56, 189, 248, 0.02)",
-            lineWidth: 2,
+            lineColor: cfg.colors.bull,
+            topColor: cfg.colors.bullFill,
+            bottomColor: cfg.colors.bullFill,
+            lineWidth: cfg.tools.lineWidth,
             priceLineVisible: false,
             lastValueVisible: true,
             visible: false,
         });
         baselineSeriesRef.current = chart.addSeries(BaselineSeries, {
             baseValue: { type: "price", price: 0 },
-            topLineColor: "#34d399",
-            topFillColor1: "rgba(52, 211, 153, 0.28)",
-            topFillColor2: "rgba(52, 211, 153, 0.02)",
-            bottomLineColor: "#fb7185",
-            bottomFillColor1: "rgba(251, 113, 133, 0.02)",
-            bottomFillColor2: "rgba(251, 113, 133, 0.28)",
-            lineWidth: 2,
+            topLineColor: cfg.colors.bull,
+            topFillColor1: cfg.colors.bullFill,
+            topFillColor2: cfg.colors.bullFill,
+            bottomLineColor: cfg.colors.bear,
+            bottomFillColor1: cfg.colors.bearFill,
+            bottomFillColor2: cfg.colors.bearFill,
+            lineWidth: cfg.tools.lineWidth,
             priceLineVisible: false,
             lastValueVisible: true,
             visible: false,
         });
         barSeriesRef.current = chart.addSeries(BarSeries, {
-            upColor: "#26a69a",
-            downColor: "#ef5350",
+            upColor: cfg.colors.bull,
+            downColor: cfg.colors.bear,
+            borderUpColor: cfg.colors.bull,
+            borderDownColor: cfg.colors.bear,
+            wickUpColor: cfg.colors.bullFill,
+            wickDownColor: cfg.colors.bearFill,
             priceFormat: { type: "price", precision: symbolPrecision(symbol), minMove: 10 ** -symbolPrecision(symbol) },
             visible: false,
         });
@@ -1123,6 +1207,10 @@ export function ProTerminalChart({
         // re-engages automatically.
         const timeScale = chart.timeScale();
         const handleVisibleRange = () => {
+            // The SVG overlay (drawings + the AI direction badge) positions
+            // itself from chart coordinates, so any pan/zoom invalidates those
+            // pixels. One state bump re-renders it in step with the canvas.
+            setViewportTick((t) => t + 1);
             try {
                 const range = timeScale.getVisibleLogicalRange();
                 const bars = lastBarCountRef.current;
@@ -1200,7 +1288,8 @@ export function ProTerminalChart({
             areaSeriesRef.current = null;
             baselineSeriesRef.current = null;
             barSeriesRef.current = null;
-            visiblePriceSeriesRef.current = null;
+            countdownLinesRef.current = [];
+            activePriceSeriesRef.current = null;
             activeSeriesTypeRef.current = "candlestick";
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1436,6 +1525,16 @@ export function ProTerminalChart({
         }
         if (bars) { try { bars.setData(barPts); } catch { /* chart not ready */ } }
 
+        // Publish which price series is on screen BEFORE the early return:
+        // overlays (countdown line, AI plan) attach to this ref, and on the
+        // very first pass the type is already correct yet still unassigned.
+        activePriceSeriesRef.current =
+            chartType === "line" ? ls
+            : chartType === "area" ? as_
+            : chartType === "baseline" ? bs
+            : chartType === "bar" ? bars
+            : cs;
+
         if (activeSeriesTypeRef.current === chartType) return;
         try {
             cs.applyOptions({ visible: chartType === "candlestick" });
@@ -1456,7 +1555,7 @@ export function ProTerminalChart({
         const chart = chartRef.current;
         if (!container || !chart) return;
 
-        const getCoords = (e: PointerEvent) => {
+        const getCoords = (e: PointerEvent | MouseEvent) => {
             const rect = container.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
@@ -1552,21 +1651,46 @@ export function ProTerminalChart({
                 const sy = e.clientY - rect.top;
                 const hit = hitTestAt(sx, sy, rect.width, rect.height);
                 if (hit) {
+                    // Run in capture phase so the chart canvas does not start
+                    // its own pan/scale gesture before the drawing drag begins.
+                    e.preventDefault();
                     e.stopPropagation();
                     const now = Date.now();
                     const last = lastSelectClickRef.current;
                     const isDouble = last?.id === hit.id && now - last.at < 450;
                     lastSelectClickRef.current = { id: hit.id, at: now };
                     setSelectedDrawingId(hit.id);
+                    // Start drag-to-move on selected drawing
+                    const pointerStartPrice = pixelToPrice(sx, sy);
+                    const pointerStartTime = pixelToTime(sx);
+                    drawingInProgressRef.current = {
+                        tool: "select",
+                        startX: sx, startY: sy,
+                        startPrice: pointerStartPrice,
+                        startTime: pointerStartTime,
+                        curX: sx, curY: sy,
+                        moveId: hit.id,
+                        pointerStartPrice,
+                        pointerStartTime,
+                    };
+                    try {
+                        container.setPointerCapture(e.pointerId);
+                    } catch {
+                        // Pointer capture can fail for synthetic or stale events.
+                    }
                     if (isDouble && hit.type === "text") {
                         setTextEdit({ id: hit.id, value: hit.label ?? "" });
                     }
+                    return;
                 } else {
                     lastSelectClickRef.current = null;
                     setSelectedDrawingId(null);
                 }
                 return;
             }
+            // Active drawing tools own the gesture; suppress canvas pan/scale
+            // before the event reaches lightweight-charts target listeners.
+            e.preventDefault();
             e.stopPropagation();
             const { x, y } = getCoords(e);
             drawingInProgressRef.current = {
@@ -1578,10 +1702,10 @@ export function ProTerminalChart({
             };
             setDrawingPreview({ ...drawingInProgressRef.current });
             try {
-                (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+                container.setPointerCapture(e.pointerId);
             } catch {
-                // No active pointer (synthetic/racing events) — the drag still
-                // tracks through normal event bubbling on the container.
+                // No active pointer (synthetic/racing events) — pointer events
+                // still track while they remain over the chart container.
             }
         };
 
@@ -1592,8 +1716,22 @@ export function ProTerminalChart({
             const { x, y } = getCoords(e);
             dp.curX = x;
             dp.curY = y;
-            // Mirror into state so the SVG preview re-renders on every move.
-            setDrawingPreview({ ...dp });
+            e.preventDefault();
+            e.stopPropagation();
+            if (dp.moveId) {
+                // Render a temporary, market-coordinate translation from the
+                // original anchors; do not accumulate deltas frame by frame.
+                const deltaPrice = pixelToPrice(x, y) - (dp.pointerStartPrice ?? dp.startPrice);
+                const deltaTimeMs = pixelToTime(x) - (dp.pointerStartTime ?? dp.startTime);
+                setDrawingPreview(null);
+                setDrawingElements(drawingsRef.current.map((drawing) =>
+                    drawing.id === dp.moveId
+                        ? translateDrawingByMarketDelta(drawing, deltaTimeMs, deltaPrice)
+                        : drawing
+                ));
+            } else {
+                setDrawingPreview({ ...dp });
+            }
         };
 
         const handlePointerUp = (e: PointerEvent) => {
@@ -1603,11 +1741,28 @@ export function ProTerminalChart({
             const { x, y } = getCoords(e);
             dp.curX = x;
             dp.curY = y;
+            e.preventDefault();
+            e.stopPropagation();
             const endPrice = pixelToPrice(x, y);
             const endTime = pixelToTime(x);
 
             // Only add if the drag moved enough (filter accidental clicks).
             const dist = Math.hypot(dp.curX - dp.startX, dp.curY - dp.startY);
+            if (dp.moveId) {
+                const deltaPrice = endPrice - (dp.pointerStartPrice ?? dp.startPrice);
+                const deltaTimeMs = endTime - (dp.pointerStartTime ?? dp.startTime);
+                const current = drawingsRef.current;
+                const moved = current.map((drawing) =>
+                    drawing.id === dp.moveId
+                        ? translateDrawingByMarketDelta(drawing, deltaTimeMs, deltaPrice)
+                        : drawing
+                );
+                commitDrawings(moved);
+                drawingInProgressRef.current = null;
+                setDrawingPreview(null);
+                setSelectedDrawingId(dp.moveId);
+                return;
+            }
             if (dist > 4 || dp.tool === "horizontal" || dp.tool === "text") {
                 // Capture the user's current tool style (color + width from
                 // the settings panel) so each drawing keeps its own look.
@@ -1621,6 +1776,7 @@ export function ProTerminalChart({
                     ],
                     color: toolStyle.color,
                     width: toolStyle.lineWidth,
+                    lineStyle: toolStyle.lineStyle,
                     ...(dp.tool === "text" ? { label: "" } : {}),
                 };
                 commitDrawings([...drawingsRef.current, newDrawing]);
@@ -1635,13 +1791,27 @@ export function ProTerminalChart({
             setDrawingPreview(null);
         };
 
-        container.addEventListener("pointerdown", handlePointerDown);
-        container.addEventListener("pointermove", handlePointerMove);
-        container.addEventListener("pointerup", handlePointerUp);
+        const handlePointerCancel = () => {
+            if (!drawingInProgressRef.current) return;
+            drawingInProgressRef.current = null;
+            setDrawingPreview(null);
+            setDrawingElements(drawingsRef.current);
+        };
+
+        // Capture-phase routing is essential: lightweight-charts attaches its
+        // gesture handlers to the canvas target, which runs before bubble-phase
+        // listeners on this container. Select-on-empty still propagates, so
+        // native chart panning remains available in the select tool.
+        const capture = true;
+        container.addEventListener("pointerdown", handlePointerDown, capture);
+        container.addEventListener("pointermove", handlePointerMove, capture);
+        container.addEventListener("pointerup", handlePointerUp, capture);
+        container.addEventListener("pointercancel", handlePointerCancel, capture);
         return () => {
-            container.removeEventListener("pointerdown", handlePointerDown);
-            container.removeEventListener("pointermove", handlePointerMove);
-            container.removeEventListener("pointerup", handlePointerUp);
+            container.removeEventListener("pointerdown", handlePointerDown, capture);
+            container.removeEventListener("pointermove", handlePointerMove, capture);
+            container.removeEventListener("pointerup", handlePointerUp, capture);
+            container.removeEventListener("pointercancel", handlePointerCancel, capture);
         };
     }, [commitDrawings]);
 
@@ -2157,6 +2327,49 @@ export function ProTerminalChart({
         bidAskLinesRef.current = lines;
     }, [cfg, quote, candles]);
 
+    // ── Bar-close countdown line (moves with the live candle) ───────────
+    // Rendered as a price line on the ACTIVE series so it tracks the forming
+    // candle exactly like BID/ASK does — the label rides the price axis and
+    // the line follows the last price instead of sitting in a fixed corner.
+    // lightweight-charts cannot restyle a price line in place, so the line is
+    // rebuilt once per second: one create + one remove per tick is cheap and
+    // keeps a single source of truth (the shared clock).
+    useEffect(() => {
+        // Remove from the series that OWNS the line — the active series can
+        // have changed since the line was created (chart-type switch).
+        const prev = countdownLineOwnerRef.current;
+        if (prev) {
+            for (const l of prev.lines) {
+                try {
+                    prev.series.removePriceLine(l);
+                } catch {
+                    // series already gone
+                }
+            }
+        }
+        countdownLinesRef.current = [];
+        countdownLineOwnerRef.current = null;
+
+        const series = activePriceSeriesRef.current;
+        if (!series || !cfg.display.showBarCloseCountdown) return;
+        const last = candles[candles.length - 1];
+        if (!last || !Number.isFinite(last.close) || last.close <= 0) return;
+
+        const line = series.createPriceLine({
+                // Follows the live quote when one is known, otherwise the last
+                // rendered close — the same price the candle is drawing at.
+                price: quote?.bid ?? last.close,
+                color: cfg.colors.countdownLine,
+                lineWidth: 1,
+                lineStyle: LineStyle.Dotted,
+                axisLabelVisible: true,
+                // "00:04:31" — always zero-padded HH:MM:SS.
+                title: countdownLabel,
+        });
+        countdownLinesRef.current = [line];
+        countdownLineOwnerRef.current = { series, lines: [line] };
+    }, [countdownLabel, candles, quote, cfg, chartType]);
+
     // ── Trade levels: open positions + pending orders ────────────────────
     // MT5-style level lines on the price pane: a solid entry line coloured
     // by side (with the lot size on the axis) plus dashed SL/TP lines, and
@@ -2305,10 +2518,16 @@ export function ProTerminalChart({
         const plan = aiDraw ? aiPlan : null;
         onAiPlanChangeRef.current?.(plan);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [aiDraw, aiPlanKey]);
-
-    useEffect(() => {
-        const cs = candleSeriesRef.current;
+    }, [aiDraw, aiPlanKey]);    useEffect(() => {
+        const activeType = activeSeriesTypeRef.current;
+        const linesRef = (
+            activeType === "line" ? lineSeriesRef
+            : activeType === "area" ? areaSeriesRef
+            : activeType === "baseline" ? baselineSeriesRef
+            : activeType === "bar" ? barSeriesRef
+            : candleSeriesRef
+        );
+        const cs = linesRef.current;
         if (!cs) return;
         for (const l of aiPlanLinesRef.current) {
             try {
@@ -2318,6 +2537,7 @@ export function ProTerminalChart({
             }
         }
         aiPlanLinesRef.current = [];
+
         const plan = aiDraw ? aiPlan : null;
         if (!plan) {
             aiDrawMarkersRef.current?.setMarkers([]);
@@ -2325,6 +2545,7 @@ export function ProTerminalChart({
         }
 
         const lines: IPriceLine[] = [];
+        const sideWord = plan.direction === "long" ? "LONG" : "SHORT";
         for (const lvl of aiDrawLevels(plan)) {
             const isRef = lvl.key === "support" || lvl.key === "resistance";
             const color =
@@ -2344,28 +2565,20 @@ export function ProTerminalChart({
                     lineWidth: isRef ? 1 : 2,
                     lineStyle: isRef ? LineStyle.Dotted : lvl.key === "entry" ? LineStyle.Solid : LineStyle.Dashed,
                     axisLabelVisible: !isRef,
-                    title: lvl.label,
+                    // MT5-style tags on the price scale: the entry line carries
+                    // the direction so the scale alone tells you which way the
+                    // plan is pointing ("AI LONG · ENTRY").
+                    title: lvl.key === "entry" ? `AI ${sideWord} · ENTRY` : lvl.label,
                 })
             );
         }
         aiPlanLinesRef.current = lines;
 
-        const anchorSec = Math.floor(plan.anchorTime / 1000) as UTCTimestamp;
-        const markers: SeriesMarker<Time>[] = [
-            {
-                time: anchorSec,
-                position: plan.direction === "long" ? "belowBar" : "aboveBar",
-                shape: plan.direction === "long" ? "arrowUp" : "arrowDown",
-                color: cfg.colors.aiLine,
-                size: 2,
-                text: `AI ${plan.direction === "long" ? "LONG" : "SHORT"}`,
-            },
-        ];
-        if (aiDrawMarkersRef.current) {
-            aiDrawMarkersRef.current.setMarkers(markers);
-        } else {
-            aiDrawMarkersRef.current = createSeriesMarkers(cs, markers);
-        }
+        // The direction label is drawn as a chat-box badge in the SVG overlay
+        // (below), not as a chart marker: lightweight-charts markers can only
+        // render a bare shape plus loose text, which reads as a raw arrow.
+        aiDrawMarkersRef.current?.setMarkers([]);
+        aiDrawMarkersRef.current = null;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [aiPlanKey, aiDraw, cfg]);
 
@@ -2385,6 +2598,59 @@ export function ProTerminalChart({
             // chart not ready
         }
     }, [fitSignal]);
+
+    // ── Event → chart navigation (Phase 5 §32) ────────────────────────────
+    // The request may arrive before the new symbol's candles have loaded, so
+    // it is held pending and applied on the first render that has data. That
+    // is what makes "click the BOS in the feed" land on the right bar instead
+    // of being wiped out by the post-load fit.
+    useEffect(() => {
+        if (!focusRequest || !focusRequest.seq) return;
+        pendingFocusRef.current = focusRequest;
+    }, [focusRequest]);
+
+    useEffect(() => {
+        const pending = pendingFocusRef.current;
+        if (!pending || candles.length === 0) return;
+        const chart = chartRef.current;
+        if (!chart) return;
+        pendingFocusRef.current = null;
+        try {
+            const spanMs = isChartTimeframe(timeframe) ? TIMEFRAME_MS[timeframe] : TIMEFRAME_MS.M5;
+            const half = Math.max(300, Math.floor((spanMs * 12) / 1000));
+            const centre = Math.floor(pending.time / 1000);
+            chart.timeScale().setVisibleRange({
+                from: (centre - half) as UTCTimestamp,
+                to: (centre + half) as UTCTimestamp,
+            });
+
+            const cs = candleSeriesRef.current;
+            if (cs) {
+                for (const l of focusLineRef.current) {
+                    try {
+                        cs.removePriceLine(l);
+                    } catch {
+                        // line already gone with the series
+                    }
+                }
+                focusLineRef.current = [];
+                if (typeof pending.price === "number" && Number.isFinite(pending.price)) {
+                    focusLineRef.current = [
+                        cs.createPriceLine({
+                            price: pending.price,
+                            color: cfgRef.current.colors.aiLine,
+                            lineWidth: 2,
+                            lineStyle: LineStyle.Dashed,
+                            axisLabelVisible: true,
+                            title: pending.label ?? "Event",
+                        }),
+                    ];
+                }
+            }
+        } catch {
+            // chart not ready — the next data render retries from the pending ref
+        }
+    }, [focusRequest?.seq, candles.length, timeframe]);
 
     // Static price-line overlays (session, prev day, S/R, equal H/L, liquidity).
     useEffect(() => {
@@ -2644,10 +2910,10 @@ export function ProTerminalChart({
             }
         } else if (!haSeriesRef.current) {
             haSeriesRef.current = chart.addSeries(CandlestickSeries, {
-                upColor: "#26a69a",
-                downColor: "#ef5350",
-                borderUpColor: "#26a69a",
-                borderDownColor: "#ef5350",
+            upColor: cfg.colors.bull,
+            downColor: cfg.colors.bear,
+            borderUpColor: cfg.colors.bull,
+            borderDownColor: cfg.colors.bear,
                 wickUpColor: "#26a69a",
                 wickDownColor: "#ef5350",
                 priceLineVisible: false,
@@ -3213,6 +3479,14 @@ export function ProTerminalChart({
                     height={containerSize.h}
                     style={{ opacity: containerSize.w > 0 ? 1 : 0 }}
                 >
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                            <polygon points="0 0, 10 3, 0 6" fill="#38bdf8" />
+                        </marker>
+                        <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                            <polygon points="0 0, 10 3, 0 6" fill="#f43f5e" />
+                        </marker>
+                    </defs>
                     {/* Render committed drawings */}
                     {drawingElements.map((d) => {
                         const chart = chartHandles?.chart ?? null;
@@ -3258,7 +3532,16 @@ export function ProTerminalChart({
                         }
                         if (d.type === "trendline" || d.type === "ray") {
                             return (
-                                <line key={d.id} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth={width} strokeDasharray={dash === "none" ? undefined : dash} markerEnd="url(#arrow)" />
+                                <line key={d.id} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth={width} strokeDasharray={dash === "none" ? undefined : dash} markerEnd={d.type === "ray" ? "url(#arrow)" : undefined} />
+                            );
+                        }
+                        if (d.type === "arrow") {
+                            // Arrow drawing: line from p1 to p2 with arrowhead at p2
+                            return (
+                                <g key={d.id}>
+                                    <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth={width} strokeDasharray={dash === "none" ? undefined : dash} markerEnd="url(#arrow)" />
+                                    <polygon points={`${x2},${y2 - 4} ${x2 - 4},${y2 + 3} ${x2 + 4},${y2 + 3}`} fill={color} opacity={0.85} />
+                                </g>
                             );
                         }
                         if (d.type === "rectangle") {
@@ -3358,6 +3641,83 @@ export function ProTerminalChart({
                         );
                     })() : null}
 
+                    {/* AI direction badge — a chat-box style tag anchored to the
+                        entry line, the way TradingView/MT5 label a position.
+                        `viewportTick` is read here purely to re-derive the pixel
+                        coordinates after a pan or zoom. */}
+                    {aiDraw && aiPlan && chartHandles?.chart && chartHandles.cs
+                        ? (() => {
+                            const chart = chartHandles.chart!;
+                            const cs = chartHandles.cs!;
+                            let entryY: number;
+                            let x: number;
+                            try {
+                                entryY = cs.priceToCoordinate(aiPlan.entry) ?? 0;
+                                x = chart.timeScale().timeToCoordinate(
+                                    Math.floor(aiPlan.anchorTime / 1000) as UTCTimestamp
+                                ) ?? 0;
+                            } catch {
+                                return null;
+                            }
+                            if (!Number.isFinite(entryY) || !Number.isFinite(x)) return null;
+
+                            const isLong = aiPlan.direction === "long";
+                            // LONG wears the bullish colour so it reads green like
+                            // the up candles; SHORT keeps the sell colour. Both come
+                            // from the user's own colour settings, so the tag always
+                            // matches the candles it sits on.
+                            const accent = isLong ? cfg.colors.bull : cfg.colors.sellEntry;
+                            // TradingView-style compact tag: a solid pill carrying a
+                            // direction triangle and the lowercase word, the way a
+                            // broker terminal marks a trade. The numbers live in the
+                            // AI Draw panel above the chart, so the tag stays small.
+                            const label = isLong ? "long" : "short";
+                            const ink = contrastText(accent);
+                            const pillW = 58;
+                            const pillH = 18;
+                            const gap = 10;
+                            // SHORT labels sit ABOVE the entry, LONG below: the tag
+                            // always sits on the side the trade moves toward, so it
+                            // never covers the level it marks.
+                            const pillY = isLong ? entryY + gap : entryY - gap - pillH;
+                            const pillX = Math.max(2, Math.min(containerSize.w - pillW - 2, x - pillW / 2));
+                            // Triangle points the way the trade goes: up for long,
+                            // down for short. It shares the pill's ink colour so the
+                            // tag reads as one mark, not two glued-together shapes.
+                            const triCx = pillX + 12;
+                            const triCy = pillY + pillH / 2;
+                            const s = 4;
+                            const tri = isLong
+                                ? `${triCx},${triCy - s} ${triCx - s},${triCy + s * 0.75} ${triCx + s},${triCy + s * 0.75}`
+                                : `${triCx},${triCy + s} ${triCx - s},${triCy - s * 0.75} ${triCx + s},${triCy - s * 0.75}`;
+
+                            return (
+                                <g key="ai-plan-badge" data-vp={viewportTick} style={{ pointerEvents: "none" }}>
+                                    <rect
+                                        x={pillX}
+                                        y={pillY}
+                                        width={pillW}
+                                        height={pillH}
+                                        rx={3}
+                                        fill={accent}
+                                    />
+                                    <polygon points={tri} fill={ink} />
+                                    <text
+                                        x={pillX + 22 + (pillW - 22 - 6) / 2}
+                                        y={pillY + 13}
+                                        fill={ink}
+                                        fontSize={10}
+                                        fontFamily="var(--font-sans, Inter), system-ui, sans-serif"
+                                        fontWeight="600"
+                                        textAnchor="middle"
+                                    >
+                                        {label}
+                                    </text>
+                                </g>
+                            );
+                        })()
+                        : null}
+
                     {/* Live drawing preview */}
                     {drawingPreview && (() => {
                         const dp = drawingPreview;
@@ -3411,6 +3771,14 @@ export function ProTerminalChart({
                                     <line x1={dp.startX} y1={dp.startY} x2={dp.startX} y2={dp.curY} stroke={color} strokeWidth={1} opacity={0.5} />
                                     <line x1={dp.startX} y1={dp.curY} x2={dp.curX} y2={dp.curY} stroke={color} strokeWidth={1} opacity={0.5} />
                                     <text x={(dp.startX + dp.curX) / 2} y={Math.min(dp.startY, dp.curY) - 4} fill={color} fontSize={labelSize} fontFamily="monospace" textAnchor="middle">Δ {Math.abs(p2p - p1p).toFixed(2)}</text>
+                                </g>
+                            );
+                        }
+                        if (dp.tool === "arrow") {
+                            return (
+                                <g opacity={0.85}>
+                                    <line x1={dp.startX} y1={dp.startY} x2={dp.curX} y2={dp.curY} stroke={color} strokeWidth={width} markerEnd="url(#arrow)" />
+                                    <polygon points={`${dp.curX},${dp.curY - 4} ${dp.curX - 4},${dp.curY + 3} ${dp.curX + 4},${dp.curY + 3}`} fill={color} opacity={0.85} />
                                 </g>
                             );
                         }
@@ -3670,9 +4038,9 @@ export function ProTerminalChart({
                                                 type="button"
                                                 onClick={() => onClosePosition(p.ticket, pct)}
                                                 className="rounded border border-border bg-card px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground transition hover:border-amber-500/40 hover:text-foreground"
-                                                title={`Close ${pct}% of this ${p.side} ${p.volume.toFixed(2)} position`}
+                                                title={`Close ${pct}% of the position VOLUME (${(p.volume * pct) / 100 >= 0.01 ? ((p.volume * pct) / 100).toFixed(2) : "0.01 min"} lot of ${p.volume.toFixed(2)}). This is volume, not profit.`}
                                             >
-                                                {pct}%
+                                                {pct}% vol
                                             </button>
                                         ))}
                                         <button
