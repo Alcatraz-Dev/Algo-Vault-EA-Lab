@@ -9,6 +9,7 @@ import AccountShell from "@/components/account/AccountShell";
 import TradingAccessCard, {
     TradingAccessLicense,
 } from "@/components/trading/TradingAccessCard";
+import ProviderConnectionCard from "@/components/trading/ProviderConnectionCard";
 import { Badge } from "@/components/ui/badge";
 import {
     WifiOff,
@@ -320,6 +321,10 @@ export default function TradingAccessPage() {
                         Activating trading access...
                     </div>
                 )}
+
+                {/* Providers (Unified Trading Service) — MT5 Demo plus the
+                    explicitly NOT IMPLEMENTED future connectors. */}
+                <ProviderConnectionCard />
 
                 {/* Connected Accounts */}
                 {license?.status === "active" && (

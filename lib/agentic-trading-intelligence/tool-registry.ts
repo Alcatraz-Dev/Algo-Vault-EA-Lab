@@ -461,7 +461,13 @@ export const TOOL_DEFINITIONS: ReadonlyArray<ToolDefinition> = [
     },
     outputSchema: { type: "object", properties: { actionId: { type: "string" }, status: { type: "string" } } },
   },
+  ...PORTFOLIO_TOOL_DEFINITIONS,
 ];
+
+// Portfolio Intelligence tools (Phase 15) are declared in `lib/portfolio/
+// tool-definitions` using this same shape and merged in here, so the platform
+// keeps exactly ONE canonical tool registry.
+import { PORTFOLIO_TOOL_DEFINITIONS } from "@/lib/portfolio/tool-definitions";
 
 export type ToolDefinition = {
   name: string;

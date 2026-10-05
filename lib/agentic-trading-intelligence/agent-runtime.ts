@@ -28,6 +28,9 @@ import type {
   ToolDefinition,
 } from "./contracts";
 import { TOOL_REGISTRY, isToolAllowed, isRiskLevelAcceptable } from "./tool-registry";
+// Portfolio Intelligence agents (Phase 15) are registered here so the platform
+// has ONE agent registry, not two.
+import { PORTFOLIO_AGENTS } from "@/lib/portfolio/agents";
 
 export class AgentRuntime {
   constructor(
@@ -288,6 +291,7 @@ export const AGENT_DEFINITIONS: ReadonlyArray<AgentDefinition> = [
     maxCostPerRunCents: 5,
     maxActionsPerRun: 5,
   },
+  ...PORTFOLIO_AGENT_DEFINITIONS,
   {
     id: "orchestrator",
     name: "Agent Team Orchestrator",
@@ -303,6 +307,9 @@ export const AGENT_DEFINITIONS: ReadonlyArray<AgentDefinition> = [
     modelPreference: { provider: "default", model: "reasoning", temperature: 0.3, maxTokens: 2048 },
   },
 ];
+
+/** Portfolio Intelligence agent definitions, merged into the canonical registry. */
+const PORTFOLIO_AGENT_DEFINITIONS: ReadonlyArray<AgentDefinition> = PORTFOLIO_AGENTS;
 
 /** Lookup an agent definition by id. */
 export function getAgentDefinition(id: string): AgentDefinition | undefined {

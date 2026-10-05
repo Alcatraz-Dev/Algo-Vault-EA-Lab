@@ -72,6 +72,7 @@ const NAV_ITEMS = [
     { icon: ShoppingCart, label: "Orders", href: "/admin/orders" },
     { icon: FileKey2, label: "Licenses", href: "/admin/licenses" },
     { icon: Radio, label: "Trading Accounts", href: "/admin/trading-accounts" },
+    { icon: Activity, label: "Trading Providers", href: "/admin/trading-providers" },
     { icon: FileKey2, label: "Trading Licenses", href: "/admin/trading-licenses" },
     { icon: FileCode2, label: "Set Files", href: "/admin/setfiles" },
     { icon: Users, label: "Users", href: "/admin/users" },

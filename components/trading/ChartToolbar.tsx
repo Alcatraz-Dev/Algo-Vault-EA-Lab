@@ -153,7 +153,7 @@ const DISPLAY_ROWS: Array<{ label: string; key: keyof ChartSettings["display"]; 
     { label: "Auto-scale", key: "autoScale", hint: "Price axis keeps fitting the visible range" },
     { label: "Free movement", key: "freeMove", hint: "Drag the chart in any direction, wheel/pinch zoom" },
     { label: "Magnet", key: "magnet", hint: "Snap drawing prices to the candle under the cursor (open/high/low/close)" },
-    { label: "Bar close countdown", key: "showBarCloseCountdown", hint: "Show a countdown timer for the next bar close" },
+    { label: "Bar close countdown", key: "showBarCloseCountdown", hint: "Countdown timer: next bar close, or the next market open while closed" },
 ];
 
 /** `type="color"` needs a #hex value; presets may hold rgba() strings. */

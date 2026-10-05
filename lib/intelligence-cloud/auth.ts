@@ -17,6 +17,10 @@ export const API_SCOPES = [
     "research:read",
     "research:write",
     "risk:read",
+    // Portfolio Intelligence (Phase 15)
+    "portfolio:read",
+    "portfolio:stress",
+    "portfolio:allocation",
     "webhook:read",
     "webhook:write",
     "certification:read",

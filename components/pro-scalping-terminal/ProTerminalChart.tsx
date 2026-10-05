@@ -16,7 +16,7 @@
  * TradingChart component.
  */
 
-import { useEffect, useMemo, useRef, useState, useCallback, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback, useSyncExternalStore, type RefObject } from "react";
 import {
     createChart,
     ColorType,
@@ -42,10 +42,14 @@ import {
 import { cn } from "@/lib/utils";
 import { useLiveCandles } from "@/hooks/useLiveCandles";
 import { gexLevels, type GexLevel } from "@/lib/order-flow/gex/levels";
-import { isMarketTradableAt, isChartTimeframe, TIMEFRAME_MS } from "@/lib/chart-engine/timeframe";
+import { isChartTimeframe, TIMEFRAME_MS } from "@/lib/chart-engine/timeframe";
 import {
-    barCloseCountdown as computeBarCloseCountdown,
+    barCloseCountdown,
     formatCountdown,
+    marketCountdown,
+    marketStatusAt,
+    resolveSession,
+    type PauseReason,
 } from "@/lib/chart-engine/bar-countdown";
 import { structureOverlayLayer } from "@/lib/chart-engine/overlay-contract";
 import {
@@ -426,6 +430,62 @@ const DRAWING_TOOL_HINTS: Record<DrawingTool, string> = {
 };
 /** Panning within this many bars of the loaded window's left edge triggers an older-page load. */
 const HISTORY_LOAD_THRESHOLD_BARS = 6;
+
+/** How long the in-chart market open/close notice stays on screen. */
+const MARKET_NOTICE_MS = 15_000;
+
+/** UTC weekday label for the market-hours tooltip (0 = Sunday). */
+const UTC_DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+
+/** "Fri 21:00 UTC" for a boundary timestamp — the market's own clock, not the viewer's. */
+function formatBoundaryUtc(ms: number): string {
+    const d = new Date(ms);
+    const hh = String(d.getUTCHours()).padStart(2, "0");
+    const mm = String(d.getUTCMinutes()).padStart(2, "0");
+    return `${UTC_DAY_LABELS[d.getUTCDay()]} ${hh}:${mm} UTC`;
+}
+
+// ── shared wall clock ───────────────────────────────────────────────────────
+//
+// Every chart on the page needs the same "what time is it" tick (bar-close
+// countdown, market open/closed phase, the open/close notice), so ONE 250 ms
+// interval feeds all of them through an external store instead of every chart
+// owning its own timer. `useSyncExternalStore` also solves SSR honestly: the
+// server snapshot is 0 ("no client clock yet"), so a countdown is never
+// rendered into the server HTML with a time the client would contradict.
+
+const clockSubscribers = new Set<() => void>();
+let clockTimer: number | null = null;
+/**
+ * Cached tick value. `useSyncExternalStore` compares snapshots by identity and
+ * re-renders whenever they differ, so the snapshot MUST be stable between
+ * notifications — the interval owns the clock, `getSnapshot` only reads it.
+ * (Returning a fresh `Date.now()` from getSnapshot is an infinite render loop.)
+ */
+let clockSnapshot = 0;
+
+function subscribeClock(onStoreChange: () => void): () => void {
+    clockSubscribers.add(onStoreChange);
+    if (clockTimer === null) {
+        clockSnapshot = Date.now();
+        clockTimer = window.setInterval(() => {
+            clockSnapshot = Date.now();
+            for (const notify of [...clockSubscribers]) notify();
+        }, 250);
+    }
+    return () => {
+        clockSubscribers.delete(onStoreChange);
+        if (clockSubscribers.size === 0 && clockTimer !== null) {
+            window.clearInterval(clockTimer);
+            clockTimer = null;
+        }
+    };
+}
+
+/** Client snapshot: epoch ms, refreshed every 250 ms by the shared timer. */
+const getClockSnapshot = () => clockSnapshot;
+/** Server snapshot: no client clock — 0 tells the UI to stay silent. */
+const getServerClockSnapshot = () => 0;
 
 /** Push a series of values (NaN → skipped) onto the chart, aligned 1:1 with candles. */
 function feedSeries(series: ISeriesApi<"Line">, candles: Candle[], values: Array<number | null>): void {
@@ -956,7 +1016,94 @@ export function ProTerminalChart({
     );        // `candles` must be declared before useOrderFlow below — referencing it
         // earlier threw "Cannot access 'candles' before initialization" and
         // crashed the signal detail pages.
-    const candles = liveCandles;
+    // ── Bar-close countdown + market-hours clock ────────────────────────
+    // One shared clock (see `subscribeClock`) for the moving countdown line,
+    // the HUD chip and the open/close notice. Ticks on a 250 ms store update
+    // (not rAF: rAF burns a frame budget for a label that only shows whole
+    // seconds) and rolls into the next bar on its own, so the countdown never
+    // sticks at 00:00:00. Market phase is a *clock* fact, not market data.
+    const nowMs = useSyncExternalStore(subscribeClock, getClockSnapshot, getServerClockSnapshot);
+    // 0 is the server's "no clock yet" value — until the client clock ticks the
+    // chip shows the phase without a time, so hydration never disagrees.
+    const clockLive = nowMs > 0;
+    // Canonical interval for the bar/market math (chart timeframes only; the
+    // terminal never renders D1/W1).
+    const intervalMs = isChartTimeframe(timeframe) ? TIMEFRAME_MS[timeframe] : 3_600_000;
+    // Crypto exchanges never close; forex/CFDs run Sun 21:00 → Fri 21:00 UTC.
+    const cryptoSymbol = /BTC|ETH|SOL|XRP|ADA|DOGE|BNB|LTC|DOT/i.test(symbol);
+    const marketStatus = useMemo(
+        () => marketStatusAt(nowMs, { alwaysOpen: cryptoSymbol }),
+        [nowMs, cryptoSymbol]
+    );
+    // Bar close while the market trades; the wait to the next open once it does
+    // not. While the session is PAUSED the chart shows the frozen clock below
+    // instead, so no timer ticks on a market that is not trading.
+    const marketCount = useMemo(
+        () => marketCountdown(nowMs, intervalMs, { alwaysOpen: cryptoSymbol }),
+        [nowMs, intervalMs, cryptoSymbol]
+    );
+    const marketOpen = marketStatus.open;
+    const countdownLabel = formatCountdown(marketCount.remainingMs);
+
+    // ── Session: is anything actually trading? ────────────────────────────
+    // Two independent signals (see `resolveSession`): the weekly calendar, and
+    // the feed going quiet (the chart engine's own "stale" verdict — no tick
+    // for its staleness window). A metals or index session can end mid-week
+    // without the calendar changing, so silence is the only honest evidence.
+    const session = resolveSession({
+        calendarOpen: marketOpen,
+        feedStale: liveQuality === "stale",
+        // A mid-week session break (metals/indices) shows up as candles the
+        // engine cannot fill, i.e. "gap_detected" — that is unusable data for a
+        // live chart just as much as silence is.
+        feedGap: liveQuality === "gap_detected",
+        alwaysOpen: cryptoSymbol,
+    });
+    const sessionOpen = session.open;
+    const pauseReason: PauseReason = session.reason;
+
+    // PAUSE — one snapshot, taken the moment the session stops, carries all
+    // three freezes: the wall clock at the pause (so the countdown is replayed
+    // from that instant and then held), and the exact dataset the chart was
+    // drawing when it froze. It is state, not a ref, because it is read during
+    // render — and it is adjusted during render (React's "adjust state when
+    // something changes" pattern, already used for drawings) so the pause/resume
+    // transition never needs an effect.
+    const pausedKey = `${symbol}|${timeframe}`;
+    const firstLive = liveCandles[0]?.timestamp ?? 0;
+    const [pause, setPause] = useState<{
+        at: number;
+        key: string;
+        first: number;
+        candles: Candle[];
+    } | null>(sessionOpen ? null : { at: nowMs, key: pausedKey, first: firstLive, candles: liveCandles });
+
+    if (sessionOpen && pause !== null) {
+        // Resumed: drop the snapshot so the live feed drives the chart again.
+        setPause(null);
+    } else if (!sessionOpen) {
+        const staleWindow =
+            pause !== null && (pause.key !== pausedKey || pause.first !== firstLive);
+        if (pause === null || staleWindow) {
+            // Just paused, or the instrument/window changed while paused (a
+            // symbol switch or paged-in history) — rebase onto what is on screen.
+            setPause({ at: pause?.at ?? nowMs, key: pausedKey, first: firstLive, candles: liveCandles });
+        }
+    }
+
+    // The frozen clock is recomputed from the pause instant on every render but
+    // always yields the SAME string, so it holds still instead of ticking.
+    const pausedClock = pause !== null ? formatCountdown(barCloseCountdown(pause.at, intervalMs)?.remainingMs ?? 0) : countdownLabel;
+    const displayClock = sessionOpen ? countdownLabel : pausedClock;
+    const displayCaption = sessionOpen
+        ? marketCount.closingSoon ? "closes in" : "close"
+        : "paused";
+
+    // PAUSE — everything the chart draws below reads `candles`, so pointing it
+    // at the frozen snapshot holds the candles, every overlay and the
+    // live-follow scroll still. `liveCandles` remains the feed's truth for the
+    // host callback above.
+    const candles = sessionOpen || pause === null ? liveCandles : pause.candles;
 
     // Sync volume series visibility with layers prop (clean chart by default)
     useEffect(() => {
@@ -1021,25 +1168,20 @@ export function ProTerminalChart({
         [pendingOrders, symbol]
     );
 
-    // Canonical interval for the market→bar-index transform (chart timeframes
-    // only; the terminal never renders D1/W1).
-    const intervalMs = isChartTimeframe(timeframe) ? TIMEFRAME_MS[timeframe] : 3_600_000;
-    // ── Bar-close countdown clock ───────────────────────────────────────
-    // One shared clock for the moving countdown line and the footer chip.
-    // Ticks on a 250 ms interval (not rAF: rAF burns a frame budget for a
-    // label that only shows whole seconds) and rolls into the next bar on its
-    // own, so the countdown never sticks at 00:00:00.
-    const [countdown, setCountdown] = useState(() => computeBarCloseCountdown(Date.now(), intervalMs));
+    // ── Market open/close notice ────────────────────────────────────────
+    // A trader staring at a weekend chart should be told the moment trading
+    // resumes (and told when it stops). Fires only on a real phase FLIP — the
+    // first render seeds the ref, so mounting mid-session is not a "change".
+    const [marketNotice, setMarketNotice] = useState<{ open: boolean; at: number } | null>(null);
+    const prevMarketOpenRef = useRef(sessionOpen);
     useEffect(() => {
-        const tick = () => setCountdown(computeBarCloseCountdown(Date.now(), intervalMs));
-        tick();
-        const id = window.setInterval(tick, 250);
-        return () => window.clearInterval(id);
-    }, [intervalMs]);
-    // A host may pin its own clock; the chart's own stays the fallback so the
-    // timer is always present (and moving) even without the prop.
-    const countdownMs = countdown?.remainingMs ?? 0;
-    const countdownLabel = formatCountdown(countdownMs);
+        const wasOpen = prevMarketOpenRef.current;
+        prevMarketOpenRef.current = sessionOpen;
+        if (wasOpen === sessionOpen) return;
+        setMarketNotice({ open: sessionOpen, at: Date.now() });
+        const id = window.setTimeout(() => setMarketNotice(null), MARKET_NOTICE_MS);
+        return () => window.clearTimeout(id);
+    }, [sessionOpen]);
 
     // Stable market→bar-index transform handed to the overlay bridge.
     const timeToBarIndex = useCallback(
@@ -1049,13 +1191,11 @@ export function ProTerminalChart({
     // Market-closed honesty (Phase 7): weekend silence is reported, never
     // papered over with fabricated candles. The badge above renders the
     // status; the engine simply produces no new candles when nothing trades.
-    // Purity: session classification reads the LAST CANDLE's timestamp (a
-    // render-stable value), never Date.now() during render.
-    const cryptoSymbol = /BTC|ETH|SOL|XRP|ADA|DOGE|BNB|LTC|DOT/i.test(symbol);
-    const lastCandle = candles.length > 0 ? candles[candles.length - 1] : null;
-    const marketOpen = lastCandle ? isMarketTradableAt(lastCandle.timestamp, { alwaysOpen: cryptoSymbol }) : true;
-    const connection = marketOpen ? liveConnection : "reconnecting";
-    const quality = marketOpen ? liveQuality : "market_closed";
+    // The phase comes from the shared clock (`marketStatus`), not from the
+    // last candle — a stale weekend candle must not keep the badge reading
+    // "closed" for the first minutes after the market re-opens.
+    const connection = sessionOpen ? liveConnection : "reconnecting";
+    const quality = sessionOpen ? liveQuality : "market_closed";
     void requestKey;
     void token;
     void feedError;
@@ -2525,6 +2665,10 @@ export function ProTerminalChart({
 
         const series = activePriceSeriesRef.current;
         if (!series || !cfg.display.showBarCloseCountdown) return;
+        // Nothing counts down to a bar close while the market is closed — the
+        // HUD chip carries "opens in HH:MM:SS" instead, so a frozen bar clock
+        // never sits on the price axis pretending to be live.
+        if (!sessionOpen) return;
         const last = candles[candles.length - 1];
         if (!last || !Number.isFinite(last.close) || last.close <= 0) return;
 
@@ -2541,7 +2685,7 @@ export function ProTerminalChart({
         });
         countdownLinesRef.current = [line];
         countdownLineOwnerRef.current = { series, lines: [line] };
-    }, [countdownLabel, candles, quote, cfg, chartType]);
+    }, [countdownLabel, candles, quote, cfg, chartType, sessionOpen]);
 
     // ── Trade levels: open positions + pending orders ────────────────────
     // MT5-style level lines on the price pane: a solid entry line coloured
@@ -3506,6 +3650,44 @@ export function ProTerminalChart({
                 <span className="rounded border border-primary/30 bg-primary/10 px-1 py-0.5 font-mono text-[10px] font-bold text-primary">
                     {timeframe}
                 </span>
+                {/* Market hours + countdown chip. Always visible so the trader
+                    never has to guess whether the chart is live: green while
+                    trading, amber inside the last 15 minutes of the session,
+                    slate with the time to the next open once closed. */}
+                <span
+                    className={cn(
+                        "inline-flex items-center gap-1.5 rounded-full border px-1.5 py-0.5 font-mono text-[10px] font-semibold",
+                        !sessionOpen
+                            ? "border-slate-500/40 bg-slate-500/10 text-slate-400"
+                            : marketCount.closingSoon
+                                ? "border-amber-500/40 bg-amber-500/10 text-amber-500"
+                                : "border-emerald-500/30 bg-emerald-500/10 text-emerald-500",
+                    )}
+                    title={
+                        pauseReason === "feed-quiet"
+                            ? "No ticks from the feed — the chart and its countdown are paused until trading resumes."
+                            : pauseReason === "feed-gap"
+                                ? "The feed is missing bars it cannot fill — the chart and its countdown are paused until data resumes."
+                                : marketStatus.changeAt !== null
+                                ? `${marketOpen ? "Market closes" : "Market opens"} ${formatBoundaryUtc(marketStatus.changeAt)} · forex week runs Sun 21:00 → Fri 21:00 UTC`
+                                : "This market trades 24/7 — no session close."
+                    }
+                    data-testid="market-hours-chip"
+                >
+                    <span
+                        aria-hidden
+                        className={cn(
+                            "inline-block h-1.5 w-1.5 rounded-full",
+                            !sessionOpen ? "bg-slate-500" : marketCount.closingSoon ? "bg-amber-500 animate-pulse" : "bg-emerald-500 animate-pulse",
+                        )}
+                    />
+                    {sessionOpen ? "OPEN" : pauseReason === "feed-quiet" ? "NO TICKETS" : pauseReason === "feed-gap" ? "NO DATA" : "CLOSED"}
+                    {clockLive && cfg.display.showBarCloseCountdown ? (
+                        <span className="tabular-nums text-muted-foreground">
+                            · {displayCaption} {displayClock}
+                        </span>
+                    ) : null}
+                </span>
                 {hover ? (
                     <span className="font-mono tabular-nums text-muted-foreground">
                         O <span className="text-foreground">{fmtPrice(hover.o, symbol)}</span>{" "}
@@ -4093,7 +4275,14 @@ export function ProTerminalChart({
                 {/* Data-quality badge (Phase 20): never presents stale data as live */}
                 {!loading || candles.length > 0 ? (
                     <div className="absolute left-3 top-2 z-10 flex items-center gap-1.5 rounded-full border border-border/50 bg-background/85 px-2 py-0.5 text-[10px] font-medium text-muted-foreground backdrop-blur-sm">
-                        {quality === "live" && connection === "live" ? (
+                        {!sessionOpen ? (
+                            <>
+                                {/* Session state wins over the connection state:
+                                    a paused market is not "reconnecting". */}
+                                <span className="inline-block h-1.5 w-1.5 rounded-full bg-slate-500" aria-hidden />
+                                <span className="text-slate-300">MARKET CLOSED · PAUSED</span>
+                            </>
+                        ) : quality === "live" && connection === "live" ? (
                             <>
                                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
                                 <span className="text-emerald-400">LIVE</span>
@@ -4124,6 +4313,69 @@ export function ProTerminalChart({
                                 <span>{connection === "error" ? "OFFLINE" : quality === "market_closed" ? "MARKET CLOSED" : connection.toUpperCase()}</span>
                             </>
                         )}
+                    </div>
+                ) : null}
+
+                {/* Market open/close notice — shown for a few seconds after the real phase
+                    flip, so the transition itself is impossible to miss (a
+                    chart left open over the weekend announces the re-open). */}
+                {marketNotice ? (
+                    <div
+                        role="status"
+                        aria-live="polite"
+                        data-testid="market-notice"
+                        className={cn(
+                            "pointer-events-none absolute left-1/2 top-12 z-30 flex max-w-[92%] -translate-x-1/2 items-center justify-center gap-2 rounded-full border px-3 py-1 text-center text-[11px] font-semibold shadow-lg backdrop-blur",
+                            marketNotice.open
+                                ? "border-emerald-500/60 bg-emerald-500/15 text-emerald-300"
+                                : "border-slate-400/50 bg-slate-500/15 text-slate-200",
+                        )}
+                    >
+                        <span
+                            aria-hidden
+                            className={cn(
+                                "inline-block h-2 w-2 rounded-full",
+                                marketNotice.open ? "bg-emerald-400 animate-pulse" : "bg-slate-300",
+                            )}
+                        />
+                        {marketNotice.open
+                            ? `MARKET OPEN — trading resumed · next close ${marketStatus.changeAt !== null ? formatBoundaryUtc(marketStatus.changeAt) : "n/a"}`
+                            : pauseReason === "feed-quiet"
+                                ? "NO TICKETS — chart and countdown paused"
+                                : pauseReason === "feed-gap"
+                                    ? "NO DATA — chart and countdown paused"
+                                    : `MARKET CLOSED — chart and countdown paused · opens ${marketStatus.changeAt !== null ? formatBoundaryUtc(marketStatus.changeAt) : "n/a"}`}
+                    </div>
+                ) : null}
+
+                {/* Persistent pause state — while nothing trades the chart holds
+                    still, so it says WHY instead of leaving a frozen candle to
+                    be misread as a live one. */}
+                {!sessionOpen && !marketNotice && candles.length > 0 ? (
+                    <div
+                        data-testid="session-paused"
+                        title={
+                            pauseReason === "feed-quiet"
+                                ? "The feed has sent no tick for longer than the chart's staleness window, so the chart is holding its last traded bar."
+                                : pauseReason === "feed-gap"
+                                    ? "The feed is missing bars it cannot fill, so the chart is holding its last traded bar."
+                                    : "Outside the weekly trading window — the chart is holding its last traded bar."
+                        }
+                        className="pointer-events-none absolute inset-x-0 top-1/2 z-20 flex justify-center"
+                    >
+                        <div className="flex flex-col items-center gap-0.5 rounded-lg border border-border/50 bg-background/85 px-4 py-2 text-center backdrop-blur-sm">
+                            <span className="text-[11px] font-bold uppercase tracking-wide text-slate-300">
+                                {pauseReason === "feed-quiet"
+                                    ? "Market closed — no tickets"
+                                    : pauseReason === "feed-gap"
+                                        ? "Market closed — no data"
+                                        : "Market closed"}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground">
+                                Chart paused at{" "}
+                                <span className="font-mono tabular-nums">{displayCaption} {displayClock}</span>
+                            </span>
+                        </div>
                     </div>
                 ) : null}
 

@@ -53,6 +53,7 @@ export const APP_NAV: NavGroup[] = [
     items: [
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
       { href: "/portfolio", label: "Portfolio", icon: Wallet },
+      { href: "/portfolio/intelligence", label: "Portfolio Intelligence", icon: Layers },
       { href: "/goals", label: "Goals", icon: Target },
       { href: "/account/performance-arena", label: "Performance Arena", icon: Trophy },
     ],

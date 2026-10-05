@@ -276,6 +276,30 @@
         ".write": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
     },
+    "tradingUnifiedAccounts": {
+      "$userId": {
+        ".read": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "tradingExecutionRequests": {
+      "$userId": {
+        ".read": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "tradingExecutionResults": {
+      "$userId": {
+        ".read": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
+    "tradingAudit": {
+      "$userId": {
+        ".read": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
     "tradeManagement": {
       "$userId": {
         ".read": "auth != null && auth.uid === $userId",
@@ -981,7 +1005,7 @@
       }
     },
     "performanceArena": {
-      "_comment": "Performance Arena is server-authoritative: clients never read or write this tree directly — all access goes through authenticated API routes using the Admin SDK. Balances, results, rewards, leaderboard entries and fraud flags cannot be edited client-side.",
+      "_comment": "Performance Arena is server-authoritative: clients never read or write this tree directly \u2014 all access goes through authenticated API routes using the Admin SDK. Balances, results, rewards, leaderboard entries and fraud flags cannot be edited client-side.",
       ".read": false,
       ".write": false
     },
@@ -993,14 +1017,14 @@
       }
     },
     "monitoring": {
-      "_comment": "Setup Memory (MEMORY_PATHS in lib/market-intelligence/memory/repository.ts -> monitoring/setups/$uid). Phase 11 audit: the repository wrote here but no rule existed, so clients were denied while the Admin SDK wrote — setups were invisible on every client. Owner-scoped: a setup is private by default and is never readable by another user.",
+      "_comment": "Setup Memory (MEMORY_PATHS in lib/market-intelligence/memory/repository.ts -> monitoring/setups/$uid). Phase 11 audit: the repository wrote here but no rule existed, so clients were denied while the Admin SDK wrote \u2014 setups were invisible on every client. Owner-scoped: a setup is private by default and is never readable by another user.",
       "$userId": {
         ".read": "auth != null && auth.uid === $userId",
         ".write": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
     },
     "deviceWorkspace": {
-      "_comment": "Phase 11 cross-device workspace. SERVER-AUTHORITATIVE: clients may read their own workspace (so every surface — desktop, PWA, native — sees the same state) but may NEVER write directly. Writes go through /api/mobile/workspace so revision is bumped by the server and validation is enforced. Denying .write here is what makes deterministic conflict resolution possible.",
+      "_comment": "Phase 11 cross-device workspace. SERVER-AUTHORITATIVE: clients may read their own workspace (so every surface \u2014 desktop, PWA, native \u2014 sees the same state) but may NEVER write directly. Writes go through /api/mobile/workspace so revision is bumped by the server and validation is enforced. Denying .write here is what makes deterministic conflict resolution possible.",
       "$userId": {
         ".read": "auth != null && auth.uid === $userId",
         ".write": "false"
@@ -1018,6 +1042,151 @@
       "$userId": {
         ".read": "false",
         ".write": "false"
+      }
+    },
+    "portfolios": {
+      "$userId": {
+        ".read": "auth != null && auth.uid === $userId",
+        "$portfolioId": {
+          ".write": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+          "riskBudgets": {
+            "$budgetId": {
+              ".write": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+            }
+          },
+          "versions": {
+            ".read": "auth != null && auth.uid === $userId",
+            ".write": "auth != null && auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+          }
+        }
+      }
+    },
+    "portfolioSnapshots": {
+      "$userId": {
+        "$portfolioId": {
+          ".indexOn": [
+            "timestamp",
+            "generatedAt",
+            "createdAt",
+            "eventCreatedAt",
+            "observedAt"
+          ],
+          ".read": "auth != null && auth.uid === $userId",
+          ".write": "auth != null && auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+        }
+      }
+    },
+    "portfolioDecisions": {
+      "$userId": {
+        "$portfolioId": {
+          ".indexOn": [
+            "timestamp",
+            "generatedAt",
+            "createdAt",
+            "eventCreatedAt",
+            "observedAt"
+          ],
+          ".read": "auth != null && auth.uid === $userId",
+          ".write": "auth != null && auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+        }
+      }
+    },
+    "portfolioStressTests": {
+      "$userId": {
+        "$portfolioId": {
+          ".indexOn": [
+            "timestamp",
+            "generatedAt",
+            "createdAt",
+            "eventCreatedAt",
+            "observedAt"
+          ],
+          ".read": "auth != null && auth.uid === $userId",
+          ".write": "auth != null && auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+        }
+      }
+    },
+    "portfolioAllocations": {
+      "$userId": {
+        "$portfolioId": {
+          ".indexOn": [
+            "timestamp",
+            "generatedAt",
+            "createdAt",
+            "eventCreatedAt",
+            "observedAt"
+          ],
+          ".read": "auth != null && auth.uid === $userId",
+          ".write": "auth != null && auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+        }
+      }
+    },
+    "portfolioJournal": {
+      "$userId": {
+        "$portfolioId": {
+          ".indexOn": [
+            "timestamp",
+            "generatedAt",
+            "createdAt",
+            "eventCreatedAt",
+            "observedAt"
+          ],
+          ".read": "auth != null && auth.uid === $userId",
+          ".write": "auth != null && auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+        }
+      }
+    },
+    "portfolioMemory": {
+      "$userId": {
+        "$portfolioId": {
+          ".indexOn": [
+            "timestamp",
+            "generatedAt",
+            "createdAt",
+            "eventCreatedAt",
+            "observedAt"
+          ],
+          ".read": "auth != null && auth.uid === $userId",
+          ".write": "auth != null && auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+        }
+      }
+    },
+    "portfolioEvents": {
+      "$userId": {
+        "$portfolioId": {
+          ".indexOn": [
+            "timestamp",
+            "generatedAt",
+            "createdAt",
+            "eventCreatedAt",
+            "observedAt"
+          ],
+          ".read": "auth != null && auth.uid === $userId",
+          ".write": "auth != null && auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+        }
+      }
+    },
+    "portfolioObservability": {
+      "$userId": {
+        "$portfolioId": {
+          ".indexOn": [
+            "timestamp",
+            "generatedAt",
+            "createdAt",
+            "eventCreatedAt",
+            "observedAt"
+          ],
+          ".read": "auth != null && auth.uid === $userId",
+          ".write": "auth != null && auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+        }
+      }
+    },
+    "portfolioStrategies": {
+      "$userId": {
+        "$portfolioId": {
+          ".read": "auth != null && auth.uid === $userId",
+          ".write": "auth != null && auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+        }
       }
     }
   }

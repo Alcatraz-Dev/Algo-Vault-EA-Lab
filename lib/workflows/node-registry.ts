@@ -13,6 +13,10 @@
  */
 
 import { NodeCategory, WorkflowNodeDefinition, WorkflowPermissionLevel } from "./types";
+// Portfolio Intelligence nodes (Phase 15) are declared in `lib/portfolio/
+// workflow-nodes` and merged here, so the platform keeps exactly ONE workflow
+// node registry.
+import { PORTFOLIO_WORKFLOW_NODES } from "@/lib/portfolio/workflow-nodes";
 
 export const NODE_CATEGORY_LABELS: Record<NodeCategory, string> = {
     trigger: "Triggers",
@@ -848,8 +852,11 @@ function constTA(type: string, name: string, description: string): WorkflowNodeD
     };
 }
 
+/** Built-in workflow nodes + the Portfolio Intelligence node set (Phase 15). */
+const ALL_NODES: WorkflowNodeDefinition[] = [...NODES, ...PORTFOLIO_WORKFLOW_NODES];
+
 export const NODE_REGISTRY: Record<string, WorkflowNodeDefinition> = Object.fromEntries(
-    NODES.map((n) => [n.type, n])
+    ALL_NODES.map((n) => [n.type, n])
 );
 
 export function getNodeDefinition(type: string): WorkflowNodeDefinition | undefined {
@@ -857,11 +864,11 @@ export function getNodeDefinition(type: string): WorkflowNodeDefinition | undefi
 }
 
 export function getAllNodes(): WorkflowNodeDefinition[] {
-    return [...NODES];
+    return [...ALL_NODES];
 }
 
 export function getNodesByCategory(category: NodeCategory): WorkflowNodeDefinition[] {
-    return NODES.filter((n) => n.category === category);
+    return ALL_NODES.filter((n) => n.category === category);
 }
 
 export function categoryOf(nodeType: string): NodeCategory | null {

@@ -55,6 +55,7 @@ export const INTELLIGENCE_MODES = [
     "setups",
     "signals",
     "risk",
+    "portfolio",
     "ai",
 ] as const;
 

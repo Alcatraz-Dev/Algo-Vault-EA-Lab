@@ -13,6 +13,7 @@ import { hasActiveTradingLicense, getGatewayTokenForUser, newClientOrderId } fro
 import { fetchEconomicEvents } from "@/lib/plugins/runtime/scheduler";
 import { getSymbolCategory, getSymbolSpec } from "@/lib/ai-signals/symbol-specs";
 import { NodeExecutionArgs, NodeExecutionResult, NodeExecutionRecord } from "./types";
+import { executePortfolioNode } from "@/lib/portfolio/workflow-executors";
 import { fetchWorkflowCandles, fetchWorkflowQuote, fetchWorkflowSnapshot } from "./market";
 import { computeIndicator } from "./ta";
 import { parsePath } from "./paths";
@@ -1676,6 +1677,18 @@ export async function executeNodeForType(args: NodeExecutionArgs): Promise<NodeE
         case "marketing.agent.schedule": return marketingAgentSchedule(args);
         case "marketing.agent.publish": return marketingAgentPublish(args);
         case "marketing.agent.analyze": return marketingAgentAnalyze(args);
+        // Portfolio Intelligence (Phase 15) — all read-only or advisory.
+        case "trigger.portfolio":
+        case "portfolio.snapshot":
+        case "portfolio.correlation":
+        case "portfolio.concentration":
+        case "portfolio.stress_test":
+        case "portfolio.allocation_recommendation":
+        case "portfolio.trade_precheck":
+        case "portfolio.reduce_risk":
+        case "portfolio.request_approval":
+        case "portfolio.journal_entry":
+            return executePortfolioNode(type, args);
         default:
             return { status: "failed", error: `Unknown node type "${type}" — not in the registry.` };
     }

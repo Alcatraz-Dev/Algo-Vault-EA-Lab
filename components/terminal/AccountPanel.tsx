@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import OpenPositions from "@/components/trading/OpenPositions";
 import PendingOrders from "@/components/trading/PendingOrders";
 import AccountHeader from "@/components/trading/AccountHeader";
+import { TradingProviderStatus } from "./TradingProviderStatus";
 import { useTerminal } from "./TerminalContext";
 import { useTerminalData } from "./TerminalData";
 import { PanelErrorBoundary } from "./PanelErrorBoundary";
@@ -145,7 +146,12 @@ export function AccountPanel() {
                                 />
                             ) : null}
                             {tab === "orders" ? <PendingOrders orders={data.orders} onCancel={handleCancel} /> : null}
-                            {tab === "account" ? <AccountHeader account={data.account} loading={false} /> : null}
+                            {tab === "account" ? (
+                                <div className="space-y-3">
+                                    <AccountHeader account={data.account} loading={false} />
+                                    <TradingProviderStatus />
+                                </div>
+                            ) : null}
                         </>
                     )}
                 </PanelErrorBoundary>

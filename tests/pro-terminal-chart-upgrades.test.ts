@@ -31,7 +31,11 @@ import {
     barCloseCountdown,
     formatCountdown,
     intervalMsForTimeframe,
+    marketCountdown,
+    marketStatusAt,
+    resolveSession,
 } from "../lib/chart-engine/bar-countdown";
+import { isMarketTradableAt } from "../lib/chart-engine/timeframe";
 import {
     MAGNET_TOOLS,
     hitTestDrawing,
@@ -489,6 +493,138 @@ check("countdown label stays HH:MM:SS past an hour", () => {
     assertEqual(formatCountdown(61_000), "00:01:01");
     assertEqual(formatCountdown(3_661_000), "01:01:01");
     assertEqual(formatCountdown(-500), "00:00:00", "negative input clamps");
+});
+
+console.log("Market hours (open/closed state + what the countdown waits for)");
+// Forex week: Sunday 21:00 UTC → Friday 21:00 UTC.
+const utc = (y: number, m: number, d: number, h = 0, min = 0) => Date.UTC(y, m - 1, d, h, min);
+
+check("a trading weekday is open and counts to the Friday close", () => {
+    const wed = utc(2026, 1, 7, 12); // Wednesday 12:00 UTC
+    const s = marketStatusAt(wed);
+    assertEqual(s.open, true);
+    assertEqual(s.phase, "open");
+    assertEqual(new Date(s.changeAt as number).toISOString(), "2026-01-09T21:00:00.000Z", "closes Friday 21:00 UTC");
+    const c = marketCountdown(wed, 300_000);
+    assertEqual(c.target, "bar-close", "counts to the forming bar while trading");
+    assertEqual(c.label, "close 00:05:00");
+    assertEqual(c.closingSoon, false);
+});
+
+check("inside the last 15 minutes the chip counts to the session close", () => {
+    const late = utc(2026, 1, 9, 20, 50); // Friday 20:50 UTC → closes in 10 min
+    const c = marketCountdown(late, 300_000);
+    assertEqual(c.open, true);
+    assertEqual(c.closingSoon, true);
+    assertEqual(c.label, "closes in 00:10:00", "the session close wins over the bar clock");
+});
+
+check("a closed market counts to the next open, never to a bar close", () => {
+    const sat = utc(2026, 1, 10, 12); // Saturday 12:00 UTC
+    const s = marketStatusAt(sat);
+    assertEqual(s.open, false);
+    assertEqual(s.phase, "closed");
+    assertEqual(new Date(s.changeAt as number).toISOString(), "2026-01-11T21:00:00.000Z", "re-opens Sunday 21:00 UTC");
+    const c = marketCountdown(sat, 300_000);
+    assertEqual(c.target, "market-open");
+    assertEqual(c.closingSoon, false);
+    assertEqual(c.label, "opens in 33:00:00");
+    assertEqual(c.remainingMs, 33 * 3_600_000);
+});
+
+check("Friday 21:00 UTC is the close; Sunday 21:00 UTC is the open", () => {
+    const fridayClose = marketStatusAt(utc(2026, 1, 9, 21, 0));
+    assertEqual(fridayClose.open, false, "the boundary minute itself is closed");
+    assertEqual(new Date(fridayClose.changeAt as number).toISOString(), "2026-01-11T21:00:00.000Z");
+    const sundayOpen = marketStatusAt(utc(2026, 1, 11, 21, 0));
+    assertEqual(sundayOpen.open, true, "the open boundary minute is trading");
+    assertEqual(new Date(sundayOpen.changeAt as number).toISOString(), "2026-01-16T21:00:00.000Z", "closes the coming Friday");
+    assertEqual(
+        marketStatusAt(utc(2026, 1, 11, 20, 59)).untilChangeMs,
+        60_000,
+        "one minute to the Sunday open"
+    );
+});
+
+check("crypto never closes and keeps the bar countdown", () => {
+    const sat = utc(2026, 1, 10, 12);
+    const s = marketStatusAt(sat, { alwaysOpen: true });
+    assertEqual(s.open, true);
+    assertEqual(s.changeAt, null, "an always-on market has no boundary to count to");
+    const c = marketCountdown(sat, 300_000, { alwaysOpen: true });
+    assertEqual(c.target, "bar-close");
+    assertEqual(c.closingSoon, false, "nothing ever closes, so nothing is closing soon");
+});
+
+check("a broken clock degrades to 'open' instead of claiming a weekend", () => {
+    const s = marketStatusAt(Number.NaN);
+    assertEqual(s.open, true);
+    assertEqual(s.changeAt, null);
+    assertEqual(marketCountdown(Number.NaN, 300_000).remainingMs, 0);
+});
+
+check("market phase always agrees with the candle-gap engine", () => {
+    // Every hour of two full weeks: the clock's open/closed verdict and its
+    // next-boundary claim must match isMarketTradableAt minute by minute.
+    const start = utc(2026, 1, 5); // Monday
+    for (let h = 0; h < 14 * 24; h++) {
+        const at = start + h * 3_600_000;
+        const s = marketStatusAt(at);
+        assertEqual(s.open, isMarketTradableAt(at), `phase agrees at ${new Date(at).toISOString()}`);
+        assert(s.untilChangeMs >= 0, "never a negative wait");
+        if (s.changeAt !== null) {
+            const expectedPhase = isMarketTradableAt(s.changeAt);
+            assertEqual(expectedPhase, !s.open, `boundary flips the phase at ${new Date(s.changeAt).toISOString()}`);
+            assert(
+                isMarketTradableAt(s.changeAt - 60_000) === s.open,
+                "one minute earlier the phase is still the old one"
+            );
+        }
+    }
+});
+
+console.log("Session pause (chart + countdown hold still when nothing trades)");
+check("a quiet feed pauses the chart even mid-week", () => {
+    // Mid-week: the calendar says open, but the provider has gone silent
+    // (metals/index session break) — the chart must pause.
+    assertEqual(resolveSession({ calendarOpen: true, feedStale: false }).open, true, "ticks flowing → running");
+    const quiet = resolveSession({ calendarOpen: true, feedStale: true });
+    assertEqual(quiet.open, false);
+    assertEqual(quiet.reason, "feed-quiet");
+});
+
+check("unfillable gaps pause too — that is how a mid-week break reads", () => {
+    // A metals/indices session break inside the weekly window leaves candle
+    // opens the engine cannot fill, so the feed reports a gap, not silence.
+    const gap = resolveSession({ calendarOpen: true, feedGap: true });
+    assertEqual(gap.open, false);
+    assertEqual(gap.reason, "feed-gap");
+    assertEqual(
+        resolveSession({ calendarOpen: true, feedStale: true, feedGap: true }).reason,
+        "feed-gap",
+        "a gap is the more specific reason and wins"
+    );
+});
+
+check("a closed calendar pauses regardless of the feed", () => {
+    const closed = resolveSession({ calendarOpen: false, feedStale: false });
+    assertEqual(closed.open, false);
+    assertEqual(closed.reason, "calendar-close", "the weekly window is the stated reason");
+    assertEqual(resolveSession({ calendarOpen: false, feedStale: true, feedGap: true }).reason, "calendar-close");
+});
+
+check("crypto keeps running through feed silence", () => {
+    // A silent 24/7 feed is a broken feed, not a closed market — the chart must
+    // not freeze and claim "market closed".
+    assertEqual(resolveSession({ calendarOpen: true, feedStale: true, alwaysOpen: true }).open, true);
+    assertEqual(resolveSession({ calendarOpen: true, feedGap: true, alwaysOpen: true }).open, true);
+    assertEqual(resolveSession({ calendarOpen: true, feedStale: true, alwaysOpen: true }).reason, null);
+});
+
+check("nothing is paused while ticks are flowing and the week is open", () => {
+    const running = resolveSession({ calendarOpen: true, feedStale: false, feedGap: false, alwaysOpen: false });
+    assertEqual(running.open, true);
+    assertEqual(running.reason, null);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

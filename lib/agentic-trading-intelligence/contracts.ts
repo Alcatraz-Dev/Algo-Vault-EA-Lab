@@ -189,7 +189,11 @@ export type AgentPermission =
   | "journal_create"
   | "alert_create"
   | "user_confirm"
-  | "admin_approve";
+  | "admin_approve"
+  // Portfolio Intelligence (Phase 15). Every portfolio permission maps onto
+  // these existing permissions — no portfolio-specific authority was invented.
+  | "portfolio_read"
+  | "portfolio_recommend";
 
 // ─── Tool Registry ────────────────────────────────────────────────────────────
 /** Tool definition in the canonical Agent Tool Registry (Phase 14 §9). */
@@ -233,7 +237,12 @@ export type EvidenceSource =
   | "position"
   | "order"
   | "journal"
-  | "event";
+  | "event"
+  | "portfolio"
+  | "account"
+  | "correlation"
+  | "allocation"
+  | "stress";
 
 // ─── Helper types ─────────────────────────────────────────────────────────────
 export type AgentRunStatus =
@@ -292,7 +301,19 @@ export type AgentActionType =
   | "synthesize_intelligence"
   | "orchestrate_agents"
   | "approve_action"
-  | "reject_action";
+  | "reject_action"
+  // Portfolio Intelligence (Phase 15)
+  | "get_portfolio_snapshot"
+  | "get_portfolio_exposure"
+  | "get_portfolio_risk"
+  | "get_portfolio_correlation"
+  | "get_portfolio_concentration"
+  | "get_portfolio_strategies"
+  | "get_portfolio_health"
+  | "get_portfolio_journal"
+  | "precheck_trade"
+  | "recommend_allocation"
+  | "run_portfolio_stress";
 
 export interface StructuredGoal {
   intent: string;
@@ -301,7 +322,7 @@ export interface StructuredGoal {
   limitations: string[];
 }
 
-export type GoalScope = "market" | "setup" | "strategy" | "risk" | "research" | "execution" | "journal" | "intelligence" | "multi_agent";
+export type GoalScope = "market" | "setup" | "strategy" | "risk" | "research" | "execution" | "journal" | "intelligence" | "multi_agent" | "portfolio";
 
 export interface ExpectedOutput {
   format: "report" | "recommendation" | "intelligence" | "decision" | "action" | "observation" | "synthesis";

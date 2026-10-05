@@ -25,6 +25,7 @@ export const ENTITLEMENTS = [
     "certification",
     "white-label",
     "reports",
+    "portfolio.intelligence",
 ] as const;
 export type Entitlement = (typeof ENTITLEMENTS)[number];
 
@@ -68,6 +69,7 @@ export const PLAN_DEFINITIONS: Record<TenantPlan, PlanDefinition> = {
             "sdk",
             "webhooks",
             "reports",
+            "portfolio.intelligence",
         ],
         includedUnitsPerMonth: 500_000,
         maxConcurrentResearchJobs: 2,

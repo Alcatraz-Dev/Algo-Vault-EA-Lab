@@ -20,6 +20,7 @@ import {
     INDICATOR_ENGINE_VERSION,
     STRATEGY_ENGINE_VERSION,
 } from "@/lib/strategy-engine/versioning";
+import { PORTFOLIO_CONTRACT_VERSION } from "@/lib/portfolio/versioning";
 import type { EngineVersions } from "./contracts";
 
 /** Sentinel for an engine that does not publish a version constant. */
@@ -34,6 +35,7 @@ export type EngineId =
     | "smart-money"
     | "strategy-engine"
     | "risk"
+    | "portfolio"
     | "research"
     | "intelligence"
     | "ai-router";
@@ -96,6 +98,13 @@ export const ENGINE_REGISTRY: EngineVersionRecord[] = [
         version: UNVERSIONED,
         sourcePath: "lib/risk/risk-engine.ts",
         versioned: false,
+    },
+    {
+        id: "portfolio",
+        name: "Portfolio Intelligence Engine",
+        version: PORTFOLIO_CONTRACT_VERSION,
+        sourcePath: "lib/portfolio/versioning.ts (PORTFOLIO_CONTRACT_VERSION)",
+        versioned: true,
     },
     {
         id: "research",

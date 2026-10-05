@@ -22,7 +22,9 @@ import {
     Radio,
     ShieldCheck,
     ListChecks,
+    Wallet,
 } from "lucide-react";
+import { PortfolioTerminalPanel } from "@/components/portfolio/PortfolioTerminalPanel";
 import { cn } from "@/lib/utils";
 import {
     LiquidityPanel,
@@ -43,6 +45,7 @@ const TABS: Array<{ id: IntelligenceMode; label: string; icon: typeof Boxes }> =
     { id: "setups", label: "Setups", icon: Target },
     { id: "signals", label: "Signals", icon: Radio },
     { id: "risk", label: "Risk", icon: ShieldCheck },
+    { id: "portfolio", label: "Portfolio", icon: Wallet },
     { id: "ai", label: "AI", icon: Sparkles },
 ];
 
@@ -418,6 +421,10 @@ export function IntelligenceRail({ now }: { now: number }) {
                     ) : null}
 
                     {mode === "risk" ? <RiskSummary /> : null}
+
+                    {mode === "portfolio" ? (
+                        <PortfolioTerminalPanel symbol={state.symbol} timeframe={state.timeframe} />
+                    ) : null}
 
                     {mode === "ai" ? <AiInterpretation now={now} /> : null}
                 </div>

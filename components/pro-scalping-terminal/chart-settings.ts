@@ -74,8 +74,9 @@ export interface ChartDisplaySettings {
     freeMove: boolean;
     /** Magnet: snap drawing prices to the nearest candle open/high/low/close. */
     magnet: boolean;
-    /** Show a countdown timer in the chart footer for the closing time of the
-     *  current bar. 0 = hidden. */
+    /** Show the countdown timer: the closing time of the current bar while the
+     *  market trades, or the time to the next weekly open while it is closed.
+     *  false = hidden (the open/closed badge itself always shows). */
     showBarCloseCountdown: boolean;
 }
 
