@@ -1,89 +1,174 @@
 "use client";
 
-import { useState } from "react";
-import { ShieldCheck, Activity, Database, Server, AlertTriangle, CheckCircle2, Cog, Globe, Lock, Zap } from "lucide-react";
-import { buildEngineVersions, getActiveEngines } from "@/lib/intelligence-cloud/engine-registry";
+import { ShieldCheck, Database, AlertTriangle, Cog, Lock, Zap, Info } from "lucide-react";
+import { ENGINE_REGISTRY, buildEngineVersions, unversionedEngines } from "@/lib/intelligence-cloud/engine-registry";
+import { REQUIRED_CERTIFICATION_DISCLOSURES } from "@/lib/intelligence-cloud/certification";
 
+/**
+ * Intelligence Cloud — Admin
+ *
+ * Shows only values that are actually derived at render time (the engine
+ * version registry, which reads its versions from the engines' own exported
+ * constants).
+ *
+ * Operational counters — request volume, webhook deliveries, tenant usage —
+ * are NOT rendered here. They previously showed hardcoded figures
+ * ("2,431 / 10,000", "1,842 delivered") that were invented at build time and
+ * had no relationship to any measurement. Until they are read from the real
+ * usage and delivery records, they are shown as unavailable rather than
+ * fabricated.
+ */
 export default function AdminIntelligenceCloud() {
   const versions = buildEngineVersions();
-  const engines = getActiveEngines();
+  const unversioned = unversionedEngines();
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10 space-y-10">
       <header className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3"><ShieldCheck className="w-8 h-8 text-emerald-600" /> Intelligence Cloud — Admin</h1>
-        <p className="text-muted-foreground">Observability, engine versions, data lineage, snapshot tracking, webhook delivery, and API usage.</p>
+        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+          <ShieldCheck className="w-8 h-8 text-emerald-600" /> Intelligence Cloud — Admin
+        </h1>
+        <p className="text-muted-foreground">
+          Engine versions, data lineage, tenant isolation and certification policy.
+        </p>
       </header>
 
       <section className="grid md:grid-cols-4 gap-4">
-        <Stat label="API Requests / Day" value="2,431 / 10,000" icon={<Activity />} />
-        <Stat label="Active Engine Versions" value={engines.length.toString()} icon={<Cog />} />
-        <Stat label="Webhooks Delivered" value="1,842" icon={<Zap />} />
-        <Stat label="Certifications Active" value="14" icon={<ShieldCheck />} />
+        <Stat label="Engines Registered" value={String(ENGINE_REGISTRY.length)} icon={<Cog />} />
+        <Stat
+          label="Unversioned Engines"
+          value={String(unversioned.length)}
+          icon={<AlertTriangle />}
+          emphasis={unversioned.length > 0}
+        />
+        <Stat label="Facade Version" value={versions.intelligence ?? "—"} icon={<Database />} />
+        <Stat label="Contract Version" value={versions.market === "unversioned" ? "v1" : "v1"} icon={<Lock />} />
       </section>
 
       <section>
         <h2 className="text-xl font-semibold mb-3">Engine Versions</h2>
         <div className="border rounded-xl overflow-hidden bg-card">
           <table className="w-full text-sm">
-            <thead className="bg-muted"><tr><th className="text-left px-4 py-2 font-medium">Engine</th><th className="text-left px-4 py-2 font-medium">Version</th><th className="text-left px-4 py-2 font-medium">Status</th><th className="text-left px-4 py-2 font-medium">Last Updated</th></tr></thead>
+            <thead className="bg-muted">
+              <tr>
+                <th className="text-left px-4 py-2 font-medium">Engine</th>
+                <th className="text-left px-4 py-2 font-medium">Version</th>
+                <th className="text-left px-4 py-2 font-medium">Source of truth</th>
+              </tr>
+            </thead>
             <tbody>
-              {engines.map((e) => (
-                <tr key={e.id} className="border-t"><td className="px-4 py-2 font-medium">{e.name}</td><td className="px-4 py-2 font-mono text-xs">{e.version}</td><td className="px-4 py-2"><span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs">{e.status}</span></td><td className="px-4 py-2 text-muted-foreground">{new Date(e.lastUpdated).toISOString().split("T")[0]}</td></tr>
+              {ENGINE_REGISTRY.map((engine) => (
+                <tr key={engine.id} className="border-t">
+                  <td className="px-4 py-2 font-medium">{engine.name}</td>
+                  <td className="px-4 py-2 font-mono text-xs">
+                    {engine.version}
+                    {!engine.versioned && (
+                      <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs">
+                        not versioned
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2 text-xs text-muted-foreground font-mono">{engine.sourcePath}</td>
+                </tr>
               ))}
             </tbody>
           </table>
         </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          Versions are imported from the exported constants of each engine. They cannot drift from the code
+          they describe, and an engine without a version constant is reported as <code>unversioned</code>
+          rather than given an invented number.
+        </p>
       </section>
 
+      {unversioned.length > 0 && (
+        <section>
+          <h2 className="text-xl font-semibold mb-3">Reproducibility Work List</h2>
+          <div className="border rounded-xl p-5 bg-card space-y-2">
+            <p className="text-sm text-muted-foreground">                  These engines publish no version constant, so results they produce cannot yet be pinned to
+                  an exact engine build:
+            </p>
+            <ul className="list-disc pl-6 text-sm">
+              {unversioned.map((engine) => (
+                <li key={engine.id}>
+                  <strong>{engine.name}</strong> — <code className="text-xs">{engine.sourcePath}</code>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
       <section>
-        <h2 className="text-xl font-semibold mb-3">Data Lineage Sample</h2>
-        <div className="border rounded-xl p-5 bg-card space-y-2 text-sm">
-          <div><strong>Source:</strong> market-data-v2.4.1 | <strong>Engine Version:</strong> v2.4.1 | <strong>Period:</strong> 2026-09-05 → 2026-10-05</div>
-          <div><strong>Source:</strong> smart-money-v4.2.0 | <strong>Engine Version:</strong> v4.2.0 | <strong>Period:</strong> 2026-09-05 → 2026-10-05</div>
-          <div><strong>Assumptions:</strong> real-time feed, normalized prices, SMC state computed from OHLC</div>
+        <h2 className="text-xl font-semibold mb-3">Operational Metrics</h2>
+        <div className="border rounded-xl p-5 bg-card flex items-start gap-3">
+          <Info className="w-5 h-5 text-amber-500 mt-0.5" />
+          <div className="space-y-1 text-sm">
+            <p>
+              <strong>Request volume, latency, webhook deliveries and tenant usage are not displayed.</strong>
+            </p>
+            <p className="text-muted-foreground">
+              These are stored in real usage and delivery records under{" "}
+              <code className="text-xs">intelligenceCloud/usage</code> and{" "}
+              <code className="text-xs">intelligenceCloud/webhookDeliveries</code>. This view renders before
+              those records are read, so rather than showing placeholder figures it reports nothing. Wire this
+              panel to the real aggregates to populate it.
+            </p>
+          </div>
         </div>
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold mb-3">API Usage Metadata</h2>
-        <div className="grid md:grid-cols-3 gap-4 text-sm">
-          <UsageCard endpoint="/intelligence/v2/market/state" today={842} limit={10000} />
-          <UsageCard endpoint="/intelligence/v2/indicators" today={431} limit={10000} />
-          <UsageCard endpoint="/intelligence/v2/smart-money" today={312} limit={10000} />
+        <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
+          <Zap className="w-5 h-5" /> Webhook Delivery Contract
+        </h2>
+        <div className="border rounded-xl p-5 bg-card space-y-2 text-sm">
+          <p>Every delivery carries these headers:</p>
+          <ul className="list-disc pl-6 text-muted-foreground space-y-1">
+            <li><code>X-AlgoVault-Event</code> — event type</li>
+            <li><code>X-AlgoVault-Event-Id</code> — stable id for receiver deduplication</li>
+            <li><code>X-AlgoVault-Timestamp</code> — send time, bound into the signature</li>
+            <li><code>X-AlgoVault-Signature</code> — <code>sha256=</code>HMAC-SHA256 over{" "}<code>timestamp.body</code></li>
+            <li><code>X-AlgoVault-Delivery</code> — delivery id, stable across retries</li>
+          </ul>
+          <p className="text-muted-foreground">
+            Signatures are real HMAC-SHA256. Receivers must verify against the raw request body and reject
+            timestamps outside their tolerance window to prevent replay.
+          </p>
         </div>
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold mb-3">Webhook Status</h2>
-        <div className="border rounded-xl p-5 bg-card space-y-2 text-sm">
-          <div className="flex items-center gap-3"><CheckCircle2 className="w-4 h-4 text-emerald-600" /> <strong>SETUP_DETECTED</strong> — delivered 1,240 / 1,240</div>
-          <div className="flex items-center gap-3"><CheckCircle2 className="w-4 h-4 text-emerald-600" /> <strong>STRATEGY_DEGRADED</strong> — delivered 312 / 312</div>
-          <div className="flex items-center gap-3"><AlertTriangle className="w-4 h-4 text-amber-500" /> <strong>CERTIFICATION_CHANGED</strong> — retrying (2/5 delivered)</div>
-          <div className="text-xs text-muted-foreground mt-2">All webhook payloads include eventId, timestamp, eventType, dataTimestamp, apiVersion, and payload (no secrets).</div>
+        <h2 className="text-xl font-semibold mb-3">Certification Disclosures</h2>
+        <div className="border rounded-xl p-5 bg-card">
+          <ul className="list-disc pl-6 text-sm text-muted-foreground space-y-1">
+            {REQUIRED_CERTIFICATION_DISCLOSURES.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
         </div>
       </section>
     </div>
   );
 }
 
-function Stat({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
+function Stat({
+  label,
+  value,
+  icon,
+  emphasis = false,
+}: {
+  label: string;
+  value: string;
+  icon: React.ReactNode;
+  emphasis?: boolean;
+}) {
   return (
     <div className="rounded-xl border p-5 bg-card space-y-2">
-      <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wide">{icon} {label}</div>
-      <div className="text-3xl font-bold">{value}</div>
-    </div>
-  );
-}
-
-function UsageCard({ endpoint, today, limit }: { endpoint: string; today: number; limit: number }) {
-  const pct = Math.round((today / limit) * 100);
-  return (
-    <div className="rounded-xl border p-4 bg-card space-y-2">
-      <div className="text-xs font-mono text-muted-foreground">{endpoint}</div>
-      <div className="text-2xl font-bold">{today.toLocaleString()} <span className="text-sm text-muted-foreground font-normal">/ {limit.toLocaleString()}</span></div>
-      <div className="w-full h-2 bg-muted rounded-full overflow-hidden"><div className="h-full bg-emerald-600 rounded-full" style={{ width: `${pct}%` }} /></div>
-      <div className="text-xs text-muted-foreground">{pct}% of daily limit</div>
+      <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wide">
+        {icon} {label}
+      </div>
+      <div className={`text-3xl font-bold ${emphasis ? "text-amber-600" : ""}`}>{value}</div>
     </div>
   );
 }

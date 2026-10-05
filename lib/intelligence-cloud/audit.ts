@@ -112,7 +112,9 @@ export async function listAudit(tenantId: string, limit = 100): Promise<AuditEnt
         .limitToLast(limit)
         .get();
     const out: AuditEntry[] = [];
-    snap.forEach((child) => out.push(child.val() as AuditEntry));
+    snap.forEach((child) => {
+        out.push(child.val() as AuditEntry);
+    });
     return out.sort((a, b) => b.at - a.at);
 }
 

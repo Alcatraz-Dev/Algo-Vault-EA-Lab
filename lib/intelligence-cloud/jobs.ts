@@ -209,6 +209,8 @@ export async function listJobs(tenantId: string, limit = 25): Promise<StoredJob[
         .limitToLast(limit)
         .get();
     const out: StoredJob[] = [];
-    snap.forEach((child) => out.push(child.val() as StoredJob));
+    snap.forEach((child) => {
+        out.push(child.val() as StoredJob);
+    });
     return out.sort((a, b) => b.createdAt - a.createdAt);
 }

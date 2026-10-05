@@ -237,7 +237,7 @@ export function RecentTradesTable({ trades }: { trades: ChallengeTrade[] }) {
                                 )}
                             </TableCell>
                             <TableCell className="text-right font-mono text-xs text-muted-foreground">
-                                {trade.exitPriceMicros !== null ? priceMicrosToNumber(trade.exitPriceMicros) : "—"}
+                                {trade.exitPriceMicros !== null && Number.isFinite(trade.exitPriceMicros) ? priceMicrosToNumber(trade.exitPriceMicros) : "—"}
                             </TableCell>
                             <TableCell>
                                 <Badge variant={trade.status === "closed" ? "secondary" : "outline"}>{trade.status}</Badge>

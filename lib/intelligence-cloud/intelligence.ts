@@ -127,8 +127,21 @@ export function normaliseRequest(
 
 // ── Engine adaptation ───────────────────────────────────────────────────────
 
-/** Map the market-data candle shape onto the canonical CoreCandle shape. */
-function toCoreCandles(candles: readonly MarketCandle[]): CoreCandle[] {
+/**
+ * Map the market-data candle shape onto the canonical CoreCandle shape.
+ *
+ * `MarketCandle` carries no `finalized` flag, so it is derived from the
+ * timeframe: a bucket is still forming until its close time has passed.
+ * Deriving it is what lets the response set `availableAt` instead of presenting
+ * a mid-candle value as settled.
+ */
+function toCoreCandles(candles: readonly MarketCandle[], timeframe: string, now: number): CoreCandle[] {
+    let tfMs = 0;
+    try {
+        tfMs = timeframeToMs(timeframe);
+    } catch {
+        tfMs = 0;
+    }
     return candles.map((candle) => ({
         timestamp: candle.timestamp,
         open: candle.open,
@@ -136,7 +149,7 @@ function toCoreCandles(candles: readonly MarketCandle[]): CoreCandle[] {
         low: candle.low,
         close: candle.close,
         volume: candle.volume,
-        finalized: candle.finalized ?? true,
+        finalized: tfMs > 0 ? candle.timestamp + tfMs <= now : true,
     }));
 }
 
@@ -239,18 +252,21 @@ function adaptSmartMoney(
     if (price !== undefined) {
         const candidates = [...activeFvg, ...activeOb];
         let best: (typeof candidates)[number] | undefined;
+        let bestPrice: number | null = null;
         let bestDistance = Number.POSITIVE_INFINITY;
         for (const zone of candidates) {
-            if (typeof zone.price !== "number") continue;
-            const distance = Math.abs(zone.price - price);
+            const zonePrice = zone.price;
+            if (typeof zonePrice !== "number") continue;
+            const distance = Math.abs(zonePrice - price);
             if (distance < bestDistance) {
                 bestDistance = distance;
                 best = zone;
+                bestPrice = zonePrice;
             }
         }
-        if (best) {
+        if (best && bestPrice !== null) {
             nearestZone = {
-                price: best.price,
+                price: bestPrice,
                 direction: best.direction ?? "unknown",
                 status: best.status,
             };
@@ -381,7 +397,7 @@ export async function getIntelligence(
     }
 
     const candles = snapshot.recentCandles ?? [];
-    const coreCandles = toCoreCandles(candles);
+    const coreCandles = toCoreCandles(candles, normalised.timeframe, envelopeAt);
     const dataTimestamp = snapshot.timestamp ?? snapshot.serverTimestamp ?? envelopeAt;
 
     const marketState: MarketState = {
@@ -405,25 +421,25 @@ export async function getIntelligence(
     let liquidity: LiquidityState | undefined;
     let smartMoney: SmartMoneySnapshot | undefined;
 
-    if (normalised.wantSmartMoney || normalised.wantStructure || normalised.wantLiquidity) {
+    if (normalised.want.smartMoney || normalised.want.structure || normalised.want.liquidity) {
         if (coreCandles.length === 0) {
             limitations.push("Smart Money analysis is unavailable: no candle history was returned for this instrument.");
         } else {
             const detection = detectSmartMoney(coreCandles, {
                 symbol: normalised.symbol,
                 timeframe: normalised.timeframe,
-                structure: normalised.wantStructure,
-                liquidity: normalised.wantLiquidity,
-                zones: normalised.wantSmartMoney,
-                orderBlocks: normalised.wantSmartMoney,
-                sessions: normalised.wantSmartMoney,
+                structure: normalised.want.structure,
+                liquidity: normalised.want.liquidity,
+                zones: normalised.want.smartMoney,
+                orderBlocks: normalised.want.smartMoney,
+                sessions: normalised.want.smartMoney,
             });
 
-            if (normalised.wantStructure) {
+            if (normalised.want.structure) {
                 structure = adaptStructure(detection);
             }
 
-            if (normalised.wantLiquidity) {
+            if (normalised.want.liquidity) {
                 liquidity = {
                     pools: detection.pools
                         .filter((p) => typeof p.price === "number" && p.status === "active")
@@ -452,7 +468,7 @@ export async function getIntelligence(
                 };
             }
 
-            if (normalised.wantSmartMoney) {
+            if (normalised.want.smartMoney) {
                 smartMoney = adaptSmartMoney(detection, snapshot.currentPrice, limitations);
             }
         }
@@ -496,7 +512,7 @@ export async function getIntelligence(
     const lineage = normalised.includeLineage ? buildLineage(coreCandles, engineVersionSnapshot()) : undefined;
     const cost = intelligenceCost({
         indicatorCount: normalised.indicatorIds.length,
-        wantSmartMoney: normalised.wantSmartMoney,
+        wantSmartMoney: normalised.want.smartMoney,
         wantRegime: normalised.want.regime,
     });
 

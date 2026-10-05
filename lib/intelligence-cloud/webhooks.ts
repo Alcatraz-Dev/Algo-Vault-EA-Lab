@@ -359,7 +359,9 @@ export async function getDeliveryHistory(
         .limitToFirst(limit)
         .get();
     const out: WebhookDelivery[] = [];
-    snap.forEach((child) => out.push(child.val() as WebhookDelivery));
+    snap.forEach((child) => {
+        out.push(child.val() as WebhookDelivery);
+    });
     return out.sort((a, b) => b.createdAt - a.createdAt);
 }
 

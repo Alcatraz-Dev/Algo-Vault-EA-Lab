@@ -82,21 +82,25 @@ export function generateApiKey(): GeneratedApiKey {
     return { secret: `${KEY_PREFIX}_${prefix}_${secret}`, lookupPrefix: prefix };
 }
 
+/** `av_live_<12 hex prefix>_<secret>`. The secret is base64url and may itself contain `_`. */
+const API_KEY_PATTERN = /^av_live_([0-9a-f]{12})_(.+)$/;
+
 /**
  * Parse a presented bearer token into its lookup prefix.
  * Returns null for anything that is not a well-formed AlgoVault key, without
  * doing any hashing (cheap rejection before the database read).
+ *
+ * A regex is required rather than `split("_")`: the base64url secret alphabet
+ * includes `_`, so a naive split yields more than four segments for a perfectly
+ * valid key and would reject it.
  */
 export function parseApiKeyPrefix(presented: string): { lookupPrefix: string } | null {
     if (!presented || typeof presented !== "string") return null;
-    const parts = presented.split("_");
-    // ["av", "live", "<prefix>", "<secret>"]
-    if (parts.length !== 4) return null;
-    if (parts[0] !== "av" || parts[1] !== "live") return null;
-    const prefix = parts[2];
-    if (!/^[0-9a-f]{12}$/.test(prefix)) return null;
-    if (!parts[3] || parts[3].length < 20) return null;
-    return { lookupPrefix: prefix };
+    const match = API_KEY_PATTERN.exec(presented);
+    if (!match) return null;
+    const secret = match[2];
+    if (secret.length < 20) return null;
+    return { lookupPrefix: match[1] };
 }
 
 /**

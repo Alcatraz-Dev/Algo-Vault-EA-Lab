@@ -25,6 +25,9 @@ import type { EngineVersions } from "./contracts";
 /** Sentinel for an engine that does not publish a version constant. */
 export const UNVERSIONED = "unversioned";
 
+/** Version of this facade's own contract mapping. Bump when response shape changes. */
+export const INTELLIGENCE_FACADE_VERSION = "1.0.0";
+
 export type EngineId =
     | "market-data"
     | "indicators"
@@ -116,9 +119,6 @@ export const ENGINE_REGISTRY: EngineVersionRecord[] = [
         versioned: false,
     },
 ];
-
-/** Version of this facade's own contract mapping. Bump when response shape changes. */
-export const INTELLIGENCE_FACADE_VERSION = "1.0.0";
 
 const BY_ID = new Map(ENGINE_REGISTRY.map((record) => [record.id, record]));
 

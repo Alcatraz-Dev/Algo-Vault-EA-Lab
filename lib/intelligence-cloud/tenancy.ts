@@ -13,6 +13,7 @@
  */
 
 import { TENANT_ROLES, ROLE_PERMISSIONS, type Permission, type TenantRole } from "./permissions";
+import { errors } from "./errors";
 
 export type { Permission, TenantRole };
 export { TENANT_ROLES, ROLE_PERMISSIONS };
@@ -92,16 +93,12 @@ export function requirePermission(
     permission: Permission
 ): TenantContext {
     if (!context) {
-        // Import lazily to keep this module free of route-level dependencies.
-        const { errors } = require("./errors") as typeof import("./errors");
         throw errors.tenantRequired();
     }
     if (context.tenant.status !== "active") {
-        const { errors } = require("./errors") as typeof import("./errors");
         throw errors.forbidden("This organisation is not currently active.");
     }
     if (!context.permissions.has(permission)) {
-        const { errors } = require("./errors") as typeof import("./errors");
         throw errors.forbidden(`Missing tenant permission: ${permission}.`);
     }
     return context;

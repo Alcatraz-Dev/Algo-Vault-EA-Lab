@@ -22,6 +22,7 @@ import {
     ColorType,
     CrosshairMode,
     LineStyle,
+    type LineWidth,
     CandlestickSeries,
     BarSeries,
     AreaSeries,
@@ -102,6 +103,30 @@ export type DrawingTool =
     | "text"
     | "ruler"
     | "triangle";
+/**
+ * lightweight-charts types `lineWidth` as the literal union 1–4 while the
+ * settings model stores a plain number, so narrow/clamp at the boundary
+ * instead of casting through `any`.
+ */
+function toLineWidth(value: number): LineWidth {
+    if (value <= 1) return 1;
+    if (value >= 4) return 4;
+    return Math.round(value) as LineWidth;
+}
+
+/**
+ * Owner metadata attached to a trade price line so the SVG pointer gesture can
+ * tell an entry/SL/TP/pending line apart from a stale reference. Declared once
+ * as a named type so both the line builder and the hit-test share one shape.
+ */
+export type TradeLineOwner = {
+    ticket: string;
+    side?: "BUY" | "SELL";
+    kind: "entry" | "stop" | "target" | "pending";
+};
+
+export type TradePriceLine = IPriceLine & { _owner?: TradeLineOwner };
+
 export type DrawingPoint = {
     time?: number;
     price: number;
@@ -503,6 +528,8 @@ export function ProTerminalChart({
     fitSignal = 0,
     focusRequest = null,
     onAiPlanChange,
+    onPositionSelect,
+    onModifyPositionStops,
     onClosePosition,
     onCancelOrder,
 }: {
@@ -543,6 +570,17 @@ export function ProTerminalChart({
     settings?: ChartSettings | null;
     /** Open positions to draw as entry/SL/TP trade levels (active symbol only). */
     positions?: ChartPositionView[];
+    /**
+     * Called when the user clicks a drawn position or its SL/TP level so the
+     * host can surface the full position editor (modify stops, partial close,
+     * close).
+     */
+    onPositionSelect?: (ticket: string) => void;
+    /** Called when the user drags a position's SL or TP price line to a new level. */
+    onModifyPositionStops?: (
+        ticket: string,
+        stops: { stopLoss?: number | null; takeProfit?: number | null }
+    ) => void;
     /** Pending orders (buy/sell limit & stop) to draw on the price pane. */
     pendingOrders?: ChartPendingOrderView[];
     /** Historical fills rendered as entry/exit markers (real executions only). */
@@ -589,7 +627,7 @@ export function ProTerminalChart({
     const ema20Ref = useRef<ISeriesApi<"Line"> | null>(null);
     const priceLinesRef = useRef<IPriceLine[]>([]);
     // Trade levels: open-position entry/SL/TP + pending order lines.
-    const tradeLinesRef = useRef<IPriceLine[]>([]);
+    const tradeLinesRef = useRef<TradePriceLine[]>([]);
     // BID/ASK lines from the real-time quote.
     const bidAskLinesRef = useRef<IPriceLine[]>([]);
     // Bar-close countdown line — rides the live candle's price (like BID/ASK).
@@ -663,6 +701,7 @@ export function ProTerminalChart({
     // Progressive-history request callback, refreshed every render and read
     // by the chart's visible-range handler (no re-subscription churn).
     const olderPageRequestRef = useRef<(() => void) | null>(null);
+
     const firstPushedTimeRef = useRef<number | null>(null);
 
     const [hover, setHover] = useState<{ o: number; h: number; l: number; c: number; time: number } | null>(null);
@@ -674,6 +713,15 @@ export function ProTerminalChart({
     useEffect(() => { onAiPlanChangeRef.current = onAiPlanChange; }, [onAiPlanChange]);
     const onClosePositionRef = useRef(onClosePosition);
     useEffect(() => { onClosePositionRef.current = onClosePosition; }, [onClosePosition]);
+    const onPositionSelectRef = useRef(onPositionSelect);
+    useEffect(() => { onPositionSelectRef.current = onPositionSelect; }, [onPositionSelect]);
+    const onModifyPositionStopsRef = useRef(onModifyPositionStops);
+    useEffect(() => { onModifyPositionStopsRef.current = onModifyPositionStops; }, [onModifyPositionStops]);
+
+    // Track which price-line title owns each trade line so the pointer handler
+    // can distinguish a position entry/SL/TP, a pending order line, and a
+    // position-level click (the ticket itself) from ordinary drawings/BID-ASK.
+    const tradeLineOwnerRef = useRef<Array<TradeLineOwner & { line: TradePriceLine }>>([]);
     // Live chart handles mirrored into state so the SVG drawing overlay can
     // convert price/time → pixels during render without touching refs.
     const [chartHandles, setChartHandles] = useState<{
@@ -714,7 +762,7 @@ export function ProTerminalChart({
     // candles regardless of zoom/scroll.
     const svgOverlayRef = useRef<SVGSVGElement | null>(null);
     const drawingInProgressRef = useRef<{
-        tool: DrawingTool;
+        tool: DrawingTool | "select";
         startX: number; startY: number;
         startPrice: number; startTime: number;
         curX: number; curY: number;
@@ -722,6 +770,12 @@ export function ProTerminalChart({
         moveId?: string;
         pointerStartPrice?: number;
         pointerStartTime?: number;
+        // TradingView-style SL/TP drag on a position line: the grabbed line and
+        // its owner so the move/update/commit paths can identify it. A private
+        // slot keeps the drag mode out of the public DrawingTool union so the
+        // rest of the chart is not polluted with a fake tool.
+        _dragMode?: "line";
+        _lineRef?: TradePriceLine;
     } | null>(null);
     // Double-click detection for the select tool (second tap edits a label).
     const lastSelectClickRef = useRef<{ id: string; at: number } | null>(null);
@@ -1017,6 +1071,12 @@ export function ProTerminalChart({
 
         const initialTheme = document.documentElement.dataset.chartTheme === "light" ? "light" : "dark";
         const t = THEME_OPTIONS[initialTheme];
+
+        // Position-level interactivity: the chart keeps a mutable mirror of the
+        // drawn-position price lines and report the ticket whose entry/SL/TP the
+        // user clicked or dragged, so the host can open the editor or write back
+        // a new stop/target price without the chart owning account state.
+
         const chart = createChart(container, {
             autoSize: true,
             layout: {
@@ -1076,9 +1136,18 @@ export function ProTerminalChart({
             wickDownColor: cfg.colors.bear,
             priceFormat: { type: "price", precision: symbolPrecision(symbol), minMove: 10 ** -symbolPrecision(symbol) },
             lastValueVisible: false,
-            // Apply user's candle width setting (0 = auto-width)
-            barWidth: cfg.tools.candleWidth,
         });
+        // lightweight-charts v5 has no per-series `barWidth`: candle width is a
+        // horizontal-scale concern (`barSpacing` on the time scale), so the
+        // user's px setting is applied there (0 = auto, keep the default).
+        if (cfg.tools.candleWidth > 0) {
+            chart.applyOptions({
+                timeScale: {
+                    barSpacing: cfg.tools.candleWidth,
+                    minBarSpacing: cfg.tools.candleWidth,
+                },
+            });
+        }
         // Volume series is created but NOT shown by default — clean chart experience
         // User activates volume from the indicator panel when desired
         // Volume shares candle colors so the chart stays cohesive
@@ -1086,7 +1155,6 @@ export function ProTerminalChart({
             priceScaleId: "vol",
             priceFormat: { type: "volume" },
             color: cfg.colors.bull,
-            borderColor: cfg.colors.bear,
             visible: layers.volume || false,
         });
         chart.priceScale("vol").applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
@@ -1146,7 +1214,7 @@ export function ProTerminalChart({
             lineColor: cfg.colors.bull,
             topColor: cfg.colors.bullFill,
             bottomColor: cfg.colors.bullFill,
-            lineWidth: cfg.tools.lineWidth,
+            lineWidth: toLineWidth(cfg.tools.lineWidth),
             priceLineVisible: false,
             lastValueVisible: true,
             visible: false,
@@ -1159,18 +1227,16 @@ export function ProTerminalChart({
             bottomLineColor: cfg.colors.bear,
             bottomFillColor1: cfg.colors.bearFill,
             bottomFillColor2: cfg.colors.bearFill,
-            lineWidth: cfg.tools.lineWidth,
+            lineWidth: toLineWidth(cfg.tools.lineWidth),
             priceLineVisible: false,
             lastValueVisible: true,
             visible: false,
         });
+        // v5 Bar series expose only up/down color (plus openVisible/thinBars), so
+        // the preset's body colors are all a bar can carry.
         barSeriesRef.current = chart.addSeries(BarSeries, {
             upColor: cfg.colors.bull,
             downColor: cfg.colors.bear,
-            borderUpColor: cfg.colors.bull,
-            borderDownColor: cfg.colors.bear,
-            wickUpColor: cfg.colors.bullFill,
-            wickDownColor: cfg.colors.bearFill,
             priceFormat: { type: "price", precision: symbolPrecision(symbol), minMove: 10 ** -symbolPrecision(symbol) },
             visible: false,
         });
@@ -1639,6 +1705,43 @@ export function ProTerminalChart({
             return null;
         };
 
+        // Line-hit test for trade-level price lines: returns the owner of the
+        // position/pending line under the cursor, plus how far the cursor is from
+        // the line in screen pixels (so the gesture can decide whether to start a
+        // drag instead of a drawing or a chart pan).
+        const hitTestTradeLine = (
+            sx: number,
+            sy: number
+        ): { owner: TradeLineOwner; line: TradePriceLine; dist: number } | null => {
+            const cs = candleSeriesRef.current;
+            if (!cs || tradeLineOwnerRef.current.length === 0) return null;        const series = chartType === "line"
+            ? lineSeriesRef.current
+            : chartType === "area"
+                ? areaSeriesRef.current
+                : chartType === "baseline"
+                    ? baselineSeriesRef.current
+                    : chartType === "bar"
+                        ? barSeriesRef.current
+                        : cs;
+        if (!series) return null;
+        const priceToY = (price: number) => {
+            try { return series.priceToCoordinate(price) ?? NaN; } catch { return NaN; }
+        };
+        let best: { owner: TradeLineOwner; line: TradePriceLine; dist: number } | null = null;
+        for (const owner of tradeLineOwnerRef.current) {
+            const line = owner.line;
+            // Only host-owned trade lines (not stale references) participate.
+            if (line._owner?.ticket !== owner.ticket) continue;
+            // v5 `IPriceLine` exposes no `price()` getter — the live level is
+            // read back through `options()`.
+            const y = priceToY(line.options().price);
+            if (!Number.isFinite(y)) continue;
+            const dist = Math.abs(sy - y);
+            if (!best || dist < best.dist) best = { owner: line._owner!, line, dist };
+        }
+        return best;
+        };
+
         const handlePointerDown = (e: PointerEvent) => {
             const tool = activeDrawingToolRef.current;
             if (tool === "select") {
@@ -1683,6 +1786,37 @@ export function ProTerminalChart({
                     }
                     return;
                 } else {
+                    // TradingView-style position interaction: before starting a
+                    // chart pan on empty space, check whether the cursor is over a
+                    // drawn position's entry/SL/TP/pending line. A click on a
+                    // position line opens that position; a drag on an SL/TP line
+                    // drags the stop/target along the price axis.
+                    const tradeHit = hitTestTradeLine(sx, sy);
+                    if (tradeHit && tradeHit.dist <= 6) {
+                        const { owner, line } = tradeHit;
+                        if (owner.kind === "stop" || owner.kind === "target") {
+                            // Begin a drag of that stop/target line. While dragging,
+                            // handlePointerMove updates the line in place; on release
+                            // the new price is committed to the host.
+                            drawingInProgressRef.current = {
+                                tool: "select",
+                                startX: sx, startY: sy,
+                                startPrice: line.options().price,
+                                startTime: e.timeStamp,
+                                curX: sx, curY: sy,
+                                _dragMode: "line",
+                                _lineRef: line,
+                            };
+                            e.preventDefault();
+                            e.stopPropagation();
+                            try { container.setPointerCapture(e.pointerId); } catch {}
+                            return;
+                        }
+                        // Entry and pending lines, plus SL/TP lines missed by the
+                        // 6px threshold, open the position editor instead.
+                        onPositionSelectRef.current?.(owner.ticket);
+                        return;
+                    }
                     lastSelectClickRef.current = null;
                     setSelectedDrawingId(null);
                 }
@@ -1718,6 +1852,25 @@ export function ProTerminalChart({
             dp.curY = y;
             e.preventDefault();
             e.stopPropagation();
+
+        // TradingView-style SL/TP drag: when nothing is being drawn but a position's
+            // stop or target line was grabbed, recompute the dragged price here
+            // (one live value — no render churn per frame) and update the chart
+            // line in place. v5 `IPriceLine` moves via applyOptions({ price }).
+            // The level only reaches the host on pointerup, so server-side
+            // validation happens once on release.
+            const draggedLine = dp._lineRef;
+            if (!dp.moveId && dp._dragMode === "line" && draggedLine) {
+                const dragged = tradeLineOwnerRef.current.find((o) => o.line === draggedLine);
+                if (dragged && Number.isFinite(dp.startPrice)) {
+                    const newPrice = pixelToPrice(x, y);
+                    if (Number.isFinite(newPrice) && newPrice > 0) {
+                        draggedLine.applyOptions({ price: newPrice });
+                    }
+                }
+                return;
+            }
+
             if (dp.moveId) {
                 // Render a temporary, market-coordinate translation from the
                 // original anchors; do not accumulate deltas frame by frame.
@@ -1743,10 +1896,30 @@ export function ProTerminalChart({
             dp.curY = y;
             e.preventDefault();
             e.stopPropagation();
+
+            // TradingView-style SL/TP drag commit: when the user dragged a
+            // position's stop/target line, finalise the new price with the host
+            // instead of creating a drawing. guard against stale refs from rapid
+            // symbol switches between down and up.
+            if (dp._dragMode === "line" && dp._lineRef && Number.isFinite(dp.startPrice)) {
+                const dragged = tradeLineOwnerRef.current.find((o) => o.line === dp._lineRef);
+                if (dragged && dp.startPrice > 0) {
+                    const newPrice = pixelToPrice(x, y);
+                    if (Number.isFinite(newPrice) && newPrice > 0 && Math.abs(newPrice - dp.startPrice) > 0) {
+                        const kind = dragged.kind === "stop" ? "stopLoss" : "takeProfit";
+                        onModifyPositionStopsRef.current?.(dragged.ticket, { [kind]: newPrice });
+                    }
+                }
+                drawingInProgressRef.current = null;
+                setDrawingPreview(null);
+                return;
+            }
+
             const endPrice = pixelToPrice(x, y);
             const endTime = pixelToTime(x);
 
             // Only add if the drag moved enough (filter accidental clicks).
+            // For trade-line drags the commit path already returned above.
             const dist = Math.hypot(dp.curX - dp.startX, dp.curY - dp.startY);
             if (dp.moveId) {
                 const deltaPrice = endPrice - (dp.pointerStartPrice ?? dp.startPrice);
@@ -1813,7 +1986,7 @@ export function ProTerminalChart({
             container.removeEventListener("pointerup", handlePointerUp, capture);
             container.removeEventListener("pointercancel", handlePointerCancel, capture);
         };
-    }, [commitDrawings]);
+    }, []);
 
     // Push candle + derived series data. Live quote ticks only move the
     // forming bar, so those updates are pushed incrementally with
@@ -2374,6 +2547,11 @@ export function ProTerminalChart({
     // MT5-style level lines on the price pane: a solid entry line coloured
     // by side (with the lot size on the axis) plus dashed SL/TP lines, and
     // dotted buy/sell limit & stop lines for pending orders.
+    //
+    // Each line is tracked in `tradeLineOwnerRef` so the SVG pointer gesture
+    // can hit-test the line the cursor is over and (for SL/TP) read back the
+    // new price when the user drags it — the same way TradingView lets you
+    // drag a position's stop or target along the price axis.
     useEffect(() => {
         const cs = candleSeriesRef.current;
         if (!cs) return;
@@ -2385,6 +2563,7 @@ export function ProTerminalChart({
             }
         }
         tradeLinesRef.current = [];
+        tradeLineOwnerRef.current = [];
         if (!cfg.display.tradeLevels) return;
 
         const vol = (v?: number) => (typeof v === "number" && Number.isFinite(v) ? v.toFixed(2) : "");
@@ -2402,9 +2581,16 @@ export function ProTerminalChart({
             if (value === null) return "";
             return `${value >= 0 ? "+" : ""}${value.toFixed(2)} USD`;
         };
-        const lines: IPriceLine[] = [];
-        const stopLine = (price: number, volume: number | undefined, kind: "SL" | "TP", pnl?: string) =>
-            cs.createPriceLine({
+        const lines: TradePriceLine[] = [];
+        const stopLine = (
+            price: number,
+            volume: number | undefined,
+            kind: "SL" | "TP",
+            ticket: string,
+            side?: "BUY" | "SELL",
+            pnl?: string
+        ): TradePriceLine => {
+            const line: TradePriceLine = cs.createPriceLine({
                 price,
                 color: kind === "SL" ? cfg.colors.slLine : cfg.colors.tpLine,
                 lineWidth: 1,
@@ -2412,6 +2598,9 @@ export function ProTerminalChart({
                 axisLabelVisible: true,
                 title: `${kind} ${vol(volume)}${pnl ? ` · ${pnl}` : ""}`.trim(),
             });
+            line._owner = { ticket, side, kind: kind === "SL" ? "stop" : "target" };
+            return line;
+        };
 
         for (const p of symbolPositions) {
             const pn = livePnL(p);
@@ -2419,35 +2608,37 @@ export function ProTerminalChart({
             // winning tint rather than claiming a loss the data does not show.
             const liveValue = liveProfitOf(p);
             const isWin = liveValue === null ? true : liveValue >= 0;
-            lines.push(
-                cs.createPriceLine({
-                    price: p.entry,
-                    color: isWin ? cfg.colors.tpLine : cfg.colors.slLine,
-                    lineWidth: 2,
-                    lineStyle: LineStyle.Solid,
-                    axisLabelVisible: true,
-                    title: `${p.side} ${vol(p.volume)} ${pn}`.trim(),
-                })
-            );
-            if (p.sl != null && Number.isFinite(p.sl) && p.sl > 0) lines.push(stopLine(p.sl, p.volume, "SL", pn));
-            if (p.tp != null && Number.isFinite(p.tp) && p.tp > 0) lines.push(stopLine(p.tp, p.volume, "TP", pn));
+            const entryLine: TradePriceLine = cs.createPriceLine({
+                price: p.entry,
+                color: isWin ? cfg.colors.tpLine : cfg.colors.slLine,
+                lineWidth: 2,
+                lineStyle: LineStyle.Solid,
+                axisLabelVisible: true,
+                title: `${p.side} ${vol(p.volume)} ${pn}`.trim(),
+            });
+            entryLine._owner = { ticket: p.ticket, side: p.side, kind: "entry" };
+            lines.push(entryLine);
+            if (p.sl != null && Number.isFinite(p.sl) && p.sl > 0) lines.push(stopLine(p.sl, p.volume, "SL", p.ticket, p.side, pn));
+            if (p.tp != null && Number.isFinite(p.tp) && p.tp > 0) lines.push(stopLine(p.tp, p.volume, "TP", p.ticket, p.side, pn));
         }
 
         for (const o of symbolOrders) {
-            lines.push(
-                cs.createPriceLine({
-                    price: o.price,
-                    color: cfg.colors.pendingLine,
-                    lineWidth: 2,
-                    lineStyle: LineStyle.Dotted,
-                    axisLabelVisible: true,
-                    title: `${o.type.replace("_", " ")} ${vol(o.volume)}`.trim(),
-                })
-            );
-            if (o.sl != null && Number.isFinite(o.sl) && o.sl > 0) lines.push(stopLine(o.sl, o.volume, "SL"));
-            if (o.tp != null && Number.isFinite(o.tp) && o.tp > 0) lines.push(stopLine(o.tp, o.volume, "TP"));
+            const pendingLine: TradePriceLine = cs.createPriceLine({
+                price: o.price,
+                color: cfg.colors.pendingLine,
+                lineWidth: 2,
+                lineStyle: LineStyle.Dotted,
+                axisLabelVisible: true,
+                title: `${o.type.replace("_", " ")} ${vol(o.volume)}`.trim(),
+            });
+            pendingLine._owner = { ticket: o.ticket, kind: "pending" };
+            lines.push(pendingLine);
+            if (o.sl != null && Number.isFinite(o.sl) && o.sl > 0) lines.push(stopLine(o.sl, o.volume, "SL", o.ticket, undefined, undefined));
+            if (o.tp != null && Number.isFinite(o.tp) && o.tp > 0) lines.push(stopLine(o.tp, o.volume, "TP", o.ticket, undefined, undefined));
         }
 
+        // `TradePriceLine` extends `IPriceLine`, so the owner metadata survives the
+        // assignment without a cast and the ref keeps tracking owner tags.
         tradeLinesRef.current = lines;
     }, [cfg, symbolPositions, symbolOrders]);
 
@@ -3362,7 +3553,7 @@ export function ProTerminalChart({
 
             {/* AI draw readout (Pro) — plan derived from this chart's own candles. */}
             {aiDraw ? (
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border bg-violet-500/[0.04] px-3 py-1.5 text-[11px]">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border bg-violet-500/4 px-3 py-1.5 text-[11px]">
                     <span className="inline-flex items-center gap-1 rounded-full border border-violet-500/40 bg-violet-500/10 px-1.5 py-0.5 font-mono text-[10px] font-bold text-violet-400">
                         ✦ AI DRAW
                     </span>
@@ -4058,7 +4249,7 @@ export function ProTerminalChart({
                         {symbolOrders.map((o) => (
                             <div
                                 key={o.ticket}
-                                className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-dashed border-violet-500/30 bg-violet-500/[0.04] px-2 py-1"
+                                className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-dashed border-violet-500/30 bg-violet-500/4 px-2 py-1"
                             >
                                 <span className="rounded bg-violet-500/15 px-1.5 py-0.5 font-mono text-[10px] font-bold text-violet-300">
                                     {o.type.replace("_", " ")} {o.volume.toFixed(2)}

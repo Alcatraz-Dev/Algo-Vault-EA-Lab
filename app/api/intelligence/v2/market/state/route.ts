@@ -1,41 +1,40 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createIntelligenceCloud } from "@/lib/intelligence-cloud";
-import { hasScope } from "@/lib/intelligence-cloud/auth";
-import { validateApiKey } from "@/lib/api-key-auth"; // existing basic auth; enhanced below
+/**
+ * POST /api/intelligence/v2/market/state — legacy adapter.
+ *
+ * Phase 13 keeps `/api/v2` alive for existing clients, but it is now a thin
+ * adapter over the same canonical facade that serves `/api/v1`. No intelligence
+ * logic exists in this file, and no client behaviour changes.
+ */
 
-export async function POST(request: NextRequest) {
-  try {
-    // Enhanced auth: check bearer token and basic scopes
-    const authHeader = request.headers.get("authorization");
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : "";
-    const userId = await validateApiKey(token); // basic existing auth for now
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized", code: "AUTH_REQUIRED" }, { status: 401 });
-    }
+import { runIntelligencePipeline } from "@/lib/intelligence-cloud/route";
+import { getIntelligence } from "@/lib/intelligence-cloud/intelligence";
+import {
+    INTELLIGENCE_API_VERSION,
+    INTELLIGENCE_LEGACY_API_VERSION,
+    type IntelligenceRequest,
+} from "@/lib/intelligence-cloud/contracts";
 
-    const body = await request.json();
-    const { symbol, timeframe, timestamp, context } = body || {};
+export const dynamic = "force-dynamic";
 
-    if (!symbol || !timeframe) {
-      return NextResponse.json({ error: "symbol and timeframe are required", code: "VALIDATION_ERROR" }, { status: 400 });
-    }
-
-    const cloud = createIntelligenceCloud({ includeLineage: true });
-    const result = await cloud.getMarketIntelligence({
-      symbol: String(symbol),
-      timeframe: String(timeframe),
-      timestamp: timestamp ? Number(timestamp) : undefined,
-      context: {
-        smartMoney: Boolean(context?.smartMoney),
-        indicators: Array.isArray(context?.indicators) ? context.indicators : [],
-        regime: Boolean(context?.regime),
-        liquidity: Boolean(context?.liquidity),
-        volatility: Boolean(context?.volatility),
-      },
+export async function POST(request: Request) {
+    return runIntelligencePipeline({
+        request,
+        options: {
+            requiredScope: "market:read",
+            requiredEntitlement: "market.intelligence",
+            endpoint: "GET /v1/market",
+            usageCategory: "market.data",
+            apiVersion: INTELLIGENCE_LEGACY_API_VERSION,
+            build: (intelligence) => ({
+                success: true,
+                apiVersion: INTELLIGENCE_LEGACY_API_VERSION,
+                contractVersion: INTELLIGENCE_API_VERSION,
+                data: intelligence,
+            }),
+        },
+        run: async (body) => {
+            const intelligence = await getIntelligence(body as unknown as IntelligenceRequest);
+            return { intelligence };
+        },
     });
-
-    return NextResponse.json({ success: true, data: result, apiVersion: result.apiVersion });
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message ?? "Internal error", code: "INTERNAL_ERROR" }, { status: 500 });
-  }
 }

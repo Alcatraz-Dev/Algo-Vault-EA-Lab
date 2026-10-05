@@ -55,7 +55,7 @@ export interface IntelligenceSnapshot {
 }
 
 /** Stable stringify so hashing is insensitive to key insertion order. */
-function canonical(value: unknown): string {
+export function canonical(value: unknown): string {
     if (value === null || typeof value !== "object") return JSON.stringify(value ?? null);
     if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
     const entries = Object.entries(value as Record<string, unknown>)

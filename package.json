@@ -17,6 +17,7 @@
     "test:agents": "node scripts/jiti-tsrun.mjs lib/agents/__tests__/run-agents-tests.ts",
     "test:agent-ide": "node scripts/jiti-tsrun.mjs lib/agent/__tests__/run-agent-ide-tests.ts",
     "test:intelligence": "node scripts/jiti-tsrun.mjs lib/intelligence/__tests__/run-intelligence-tests.ts",
+    "test:intelligence-cloud": "node scripts/jiti-tsrun.mjs lib/intelligence-cloud/__tests__/run-intelligence-cloud-tests.ts",
     "test:ai-teams": "JITI_TSCONFIG_PATHS=1 jiti lib/ai-trading-teams/__tests__/run-ai-trading-teams-tests.ts",
     "test:account-health": "JITI_TSCONFIG_PATHS=1 jiti lib/account-health/__tests__/run-tests.ts",
     "test:arena": "node scripts/jiti-tsrun.mjs lib/performance-arena/__tests__/run-performance-arena-tests.ts",
