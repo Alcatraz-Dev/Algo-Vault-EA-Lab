@@ -171,6 +171,9 @@ export function deriveAnswer(
 
 // ── Adapter ──────────────────────────────────────────────────────────────────
 
+/** The systemone endpoint accepts 1–8 questions per request (verified live). */
+const MAX_SYSTEMONE_QUESTIONS = 8;
+
 export interface JevValidationInput {
     ctx: MarketIntelligenceContext;
     direction: "BUY" | "SELL" | "HOLD";
@@ -212,29 +215,101 @@ export async function runJevValidation(input: JevValidationInput): Promise<JevRe
         return unavailableResult(input, "MISSING_MARKET_FACTS: symbol/timeframe absent", started);
     }
 
-    // ── Path 1: dedicated Jev endpoint ──────────────────────────────────────
+    // ── Path 1: dedicated Jev endpoint (POST /v1/systemone) ────────────────
+    // Contract: { model, state, questions } → { code, data.result.answers }.
+    // Noul answers are yes-probabilities, choice picks BUY/SELL/HOLD, score
+    // ranks evidence strength. Anything else (wrong shape, non-zero code,
+    // HTTP failure) falls through to the LLM-profiled path — never a guess.
     const jevUrl = process.env.JEV_API_URL;
     const jevKey = process.env.JEV_API_KEY;
+    // Why the dedicated endpoint (if configured) did not serve — carried into
+    // the failure reason when the LLM-profiled path also cannot serve.
+    let dedicatedFailure: string | null = null;
     if (jevUrl && jevKey) {
         try {
+            const model = process.env.JEV_MODEL?.trim() || "typesafe/jev-1.13";
+            const derivedFacts = JEV_QUESTIONS.map((q) => {
+                const d = deriveAnswer(q, input.ctx, input.direction);
+                return d ? { id: q.id, answer: d.answer, evidence: d.evidence } : null;
+            }).filter(Boolean);
+
+            // The endpoint accepts 1–8 questions per call. The decision and
+            // evidence rubric take two slots; the rest go to the questions
+            // that still need model adjudication, then to fact-backed ones.
+            // The fact-backed ones the model never saw are merged back in
+            // below from the deterministic derivation.
+            const seeded = JEV_QUESTIONS.map((q) => ({ q, derived: deriveAnswer(q, input.ctx, input.direction) }));
+            const picked = [
+                ...seeded.filter((s) => !s.derived),
+                ...seeded.filter((s) => s.derived),
+            ].slice(0, MAX_SYSTEMONE_QUESTIONS - 2);
+
+            const questions: Record<string, unknown> = {
+                decision: {
+                    type: "choice",
+                    instructions:
+                        "Which trading decision does this market context support for the proposed direction?",
+                    criteria: {
+                        BUY: "Evidence supports long exposure",
+                        SELL: "Evidence supports short exposure",
+                        HOLD: "Evidence is insufficient or conflicting — take no trade",
+                    },
+                },
+                evidence_strength: {
+                    type: "score",
+                    instructions: "How strong is the evidence for that decision?",
+                    criteria: ["Very weak", "Weak", "Moderate", "Strong", "Very strong"],
+                },
+            };
+            for (const { q } of picked) {
+                questions[q.id] = { type: "noul", instructions: q.question };
+            }
+
             const res = await fetch(jevUrl, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${jevKey}` },
                 body: JSON.stringify({
-                    schema: INTELLIGENCE_VERSION.jevPolicy,
-                    direction: input.direction,
-                    setupQuality: input.setupQuality,
-                    context: input.ctx,
+                    model,
+                    state: {
+                        proposedDirection: input.direction,
+                        setupQuality: input.setupQuality,
+                        deterministicFacts: derivedFacts,
+                        context: input.ctx,
+                    },
+                    questions,
                 }),
                 signal: AbortSignal.timeout(Number(process.env.JEV_TIMEOUT_MS || "8000") || 8000),
             });
             if (res.ok) {
                 const body = (await res.json()) as Record<string, unknown>;
-                const parsed = parseJevPayload(body, "jev", "jev-engine");
-                if (parsed) return finalize(parsed, input, started, "jev", "jev-engine");
+                const parsed = parseSystemOnePayload(body);
+                if (parsed) {
+                    const answered = new Set(parsed.answers.map((a) => a.id));
+                    for (const q of JEV_QUESTIONS) {
+                        if (answered.has(q.id)) continue;
+                        const d = deriveAnswer(q, input.ctx, input.direction);
+                        if (!d) continue;
+                        parsed.answers.push({
+                            id: q.id,
+                            question: q.question,
+                            answer: d.answer,
+                            confidence: d.confidence,
+                            evidence: `derived: ${d.evidence}`,
+                        });
+                    }
+                    return finalize(parsed, input, started, "jev", model);
+                }
+                dedicatedFailure = "Jev endpoint returned an unexpected payload";
+            } else {
+                // 401/402 (bad key / out of credits) and any other HTTP error
+                // are recorded, NOT fatal: the LLM-profiled path below is an
+                // independent route to a validated Jev result.
+                dedicatedFailure = `Jev endpoint ${res.status}: ${
+                    res.status === 401 ? "API key rejected" : res.status === 402 ? "out of credits" : "HTTP error"
+                }`;
             }
         } catch {
-            // fall through to the LLM-profiled path
+            dedicatedFailure = "Jev endpoint unreachable";
         }
     }
 
@@ -282,11 +357,8 @@ export async function runJevValidation(input: JevValidationInput): Promise<JevRe
 
     const res = await router.execute(req, { source: "system", userId: input.userId });
     if (res.validationStatus !== "ok" || !res.structuredData) {
-        return unavailableResult(
-            input,
-            `Jev LLM path unavailable: ${res.errors?.join(", ") ?? res.validationStatus}`,
-            started,
-        );
+        const llmReason = `Jev LLM path unavailable: ${res.errors?.join(", ") ?? res.validationStatus}`;
+        return unavailableResult(input, dedicatedFailure ? `${dedicatedFailure}; ${llmReason}` : llmReason, started);
     }
     const parsed = parseJevPayload(res.structuredData, res.provider, res.model);
     if (!parsed) {
@@ -303,6 +375,59 @@ interface ParsedJev {
     answers: JevAnswer[];
     reasoningSummary: string;
 }
+
+/**
+ * Parse the Jev systemone envelope into the shared ParsedJev shape.
+ * Accepts both documented response forms (`data.result.answers` and a bare
+ * `answers`) and returns null for any envelope it does not fully understand.
+ */
+export function parseSystemOnePayload(payload: unknown): ParsedJev | null {
+    if (!payload || typeof payload !== "object") return null;
+    const p = payload as Record<string, unknown>;
+    if (typeof p.code === "number" && p.code !== 0) return null;
+
+    const data = (p.data ?? p) as Record<string, unknown>;
+    const result = (data.result ?? data) as Record<string, unknown>;
+    const answers = result.answers as Record<string, unknown> | undefined;
+    if (!answers || typeof answers !== "object") return null;
+
+    const rawDecision = answers.decision as Record<string, unknown> | undefined;
+    const decision = typeof rawDecision?.choice === "string" ? rawDecision.choice.toUpperCase() : "";
+    if (decision !== "BUY" && decision !== "SELL" && decision !== "HOLD") return null;
+
+    // Score: probability-weighted position across the ordered criteria, so a
+    // 5-level rubric spans 0..4 → 0..100.
+    const rawScore = answers.evidence_strength as Record<string, unknown> | undefined;
+    const levels = EVIDENCE_RUBRIC.length - 1;
+    const score = typeof rawScore?.score === "number" ? rawScore.score : NaN;
+    const confidence = Number.isFinite(score) ? Math.round((score / levels) * 100) : 50;
+
+    const mapped: JevAnswer[] = [];
+    for (const q of JEV_QUESTIONS) {
+        const a = answers[q.id] as Record<string, unknown> | undefined;
+        if (!a || a.type !== "noul" || typeof a.noul !== "number") continue;
+        const noul = Math.max(0, Math.min(1, a.noul));
+        const answer: JevAnswerValue = noul > 0.55 ? "yes" : noul < 0.45 ? "no" : "unclear";
+        mapped.push({
+            id: q.id,
+            question: q.question,
+            answer,
+            confidence: answer === "unclear" ? 0.5 : Math.round(Math.max(noul, 1 - noul) * 100) / 100,
+            evidence: `jev noul ${noul.toFixed(2)}`,
+        });
+    }
+
+    const choiceConfidence = typeof rawDecision?.confidence === "number" ? rawDecision.confidence : 0.5;
+    const summary =
+        `Jev systemone: ${decision} (choice confidence ${(choiceConfidence * 100).toFixed(0)}%, ` +
+        `evidence strength ${(Number.isFinite(score) ? score.toFixed(1) : "n/a")}/${levels}, ` +
+        `${mapped.length}/${JEV_QUESTIONS.length} factual questions answered).`;
+
+    return { decision, confidence: Math.max(0, Math.min(100, confidence)), answers: mapped, reasoningSummary: summary };
+}
+
+/** Ordered low→high evidence rubric used for the score question. */
+const EVIDENCE_RUBRIC = ["Very weak", "Weak", "Moderate", "Strong", "Very strong"];
 
 export function parseJevPayload(payload: unknown, provider: string, model: string): ParsedJev | null {
     if (!payload || typeof payload !== "object") return null;

@@ -33,6 +33,17 @@ export type ChartLayerId =
     | "dailyPivots"
     | "rsiPane"
     | "macdPane"
+    // Moving averages & Technical Overlay Indicators
+    | "ema20"
+    | "ema50"
+    | "ema200"
+    | "sma20"
+    | "sma50"
+    | "sma200"
+    | "stochasticPane"
+    | "atrPane"
+    | "parabolicSar"
+    | "ichimokuCloud"
     // Order Flow & Market Microstructure Intelligence — candle-grade layers
     // are available now; trade/L2/options-grade layers are declared with
     // available: false until a provider supplies that data class (honest
@@ -80,6 +91,16 @@ export const CHART_LAYERS: ChartLayerDef[] = [
     { id: "dailyPivots", label: "Pivots", defaultOn: false, available: true },
     { id: "rsiPane", label: "RSI pane", defaultOn: false, available: true },
     { id: "macdPane", label: "MACD pane", defaultOn: false, available: true },
+    { id: "ema20", label: "EMA 20", defaultOn: false, available: true },
+    { id: "ema50", label: "EMA 50", defaultOn: false, available: true },
+    { id: "ema200", label: "EMA 200", defaultOn: false, available: true },
+    { id: "sma20", label: "SMA 20", defaultOn: false, available: true },
+    { id: "sma50", label: "SMA 50", defaultOn: false, available: true },
+    { id: "sma200", label: "SMA 200", defaultOn: false, available: true },
+    { id: "stochasticPane", label: "Stochastic", defaultOn: false, available: true },
+    { id: "atrPane", label: "ATR pane", defaultOn: false, available: true },
+    { id: "parabolicSar", label: "Parabolic SAR", defaultOn: false, available: true },
+    { id: "ichimokuCloud", label: "Ichimoku Cloud", defaultOn: false, available: true },
     // Order Flow layers. Availability mirrors the capability model
     // (lib/order-flow/capabilities.ts): OHLCV can honestly render the volume
     // profile, behavioural events, and the ESTIMATED candle-direction delta

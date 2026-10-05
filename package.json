@@ -20,11 +20,15 @@
     "sieve:login": "node scripts/sieve-device-login.mjs",
     "sieve:smoke": "node scripts/sieve-smoke.mjs",
     "test:ea": "jiti lib/strategy-lab/ea/tests/run-tests.ts",
+    "test:strategy-engine": "node scripts/jiti-tsrun.mjs lib/strategy-engine/__tests__/run-strategy-engine-tests.ts",
     "test:research": "node scripts/jiti-tsrun.mjs lib/strategy-research/__tests__/run-research-tests.ts",
     "test:workflows": "node scripts/jiti-tsrun.mjs lib/workflows/__tests__/run-workflow-tests.ts",
     "test:growth": "JITI_TSCONFIG_PATHS=1 jiti lib/growth/__tests__/run-growth-tests.ts",
     "test:marketing": "JITI_TSCONFIG_PATHS=1 jiti lib/marketing-media/__tests__/run-marketing-tests.ts",
     "test:marketing-agent": "JITI_TSCONFIG_PATHS=1 jiti lib/marketing-agent/__tests__/run-marketing-agent-tests.ts",
+    "test:market-core": "node scripts/jiti-tsrun.mjs tests/market-core/market-core.test.ts",
+    "test:chart-engine": "node scripts/jiti-tsrun.mjs tests/chart-engine/chart-engine.test.ts",
+    "test:dashboard-charts": "node scripts/jiti-tsrun.mjs tests/dashboard/trend-projection.test.ts",
     "test:seo-ai": "JITI_TSCONFIG_PATHS=1 jiti tests/run-seo-security-tests.ts",
     "validate:seo-ai": "JITI_TSCONFIG_PATHS=1 jiti scripts/validate-seo-ai.ts"
   },
@@ -68,6 +72,7 @@
     "babel-plugin-module-resolver": "^5.0.3",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
+    "skills": "^1.7.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^5.0.3"

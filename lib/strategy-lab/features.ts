@@ -1,4 +1,5 @@
 import { MarketCandle, MarketSession } from "@/lib/market-data/types";
+import { rsi as rsiSeries } from "@/lib/analytics/indicators";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Per-candle feature computation used by BOTH the pattern discovery engine and
@@ -31,6 +32,8 @@ export interface CandleFeatures {
     close: number;
     ema20: number;
     ema50: number;
+    /** Canonical RSI(14) (lib/market-core indicator engine). null during warmup. */
+    rsi: number | null;
     trend: TrendLabel;
     trendScore: number;
     atr: number;
@@ -93,6 +96,12 @@ export function computeFeatures(candles: MarketCandle[]): CandleFeatures[] {
     const n = candles.length;
     const features: CandleFeatures[] = [];
     if (n < 5) return features;
+
+    // Canonical RSI(14) over the closes — computed once from the canonical
+    // indicator engine (lib/market-core), causal: rsiValues[i] only uses closes 0..i.
+    const rsiValues = rsiSeries(candles.map((c) => c.close), 14).map((v) =>
+        Number.isFinite(v) ? v : null
+    );
 
     // Warm up EMA/ATR window.
     const closes: number[] = [];
@@ -295,6 +304,7 @@ export function computeFeatures(candles: MarketCandle[]): CandleFeatures[] {
             close: c.close,
             ema20,
             ema50,
+            rsi: rsiValues[i] ?? null,
             trend,
             trendScore: trend === "bullish" ? 1 : trend === "bearish" ? -1 : 0,
             atr,

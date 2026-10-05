@@ -58,3 +58,14 @@ export function shiftLogicalRangeForPrepend(
     const added = Math.max(0, Math.floor(nextCount) - Math.floor(previousCount));
     return { from: range.from + added, to: range.to + added };
 }
+
+/** Find the exact prefix length before the previously loaded first timestamp. */
+export function countPrependedBars<T extends { time: number }>(
+    bars: readonly T[],
+    previousFirstTime: number,
+): number {
+    if (!Number.isFinite(previousFirstTime)) return 0;
+    let count = 0;
+    while (count < bars.length && bars[count].time < previousFirstTime) count += 1;
+    return count;
+}

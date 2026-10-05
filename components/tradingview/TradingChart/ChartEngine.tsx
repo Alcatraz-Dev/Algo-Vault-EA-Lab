@@ -18,7 +18,7 @@ import {
     type UTCTimestamp,
 } from "lightweight-charts";
 import type { Candle, ChartPriceLine, ChartTradeMarker, ChartType } from "./types";
-import { shiftLogicalRangeForPrepend } from "@/lib/chart-engine/coordinate-mapping";
+import { countPrependedBars, shiftLogicalRangeForPrepend } from "@/lib/chart-engine/coordinate-mapping";
 
 interface ChartEngineProps {
     width: number;
@@ -291,9 +291,7 @@ export default function ChartEngine({
             try {
                 const range = chart.timeScale().getVisibleLogicalRange();
                 if (range && firstPushedTimeRef.current !== null) {
-                    const previousFirstTime = firstPushedTimeRef.current;
-                    let prependCount = 0;
-                    while (prependCount < clean.length && clean[prependCount].time < previousFirstTime) prependCount += 1;
+                    const prependCount = countPrependedBars(clean, firstPushedTimeRef.current);
                     if (prependCount > 0) {
                         restoreRange = shiftLogicalRangeForPrepend(range, 0, prependCount);
                     }
@@ -309,7 +307,7 @@ export default function ChartEngine({
         // a provider history rewrite still takes the full setData path.
         const previousData = lastPushedDataRef.current;
         const previousCount = pushedCountRef.current;
-        const comparableCount = Math.min(previousData.length, clean.length) - 1;
+        const comparableCount = Math.max(0, Math.min(previousData.length, clean.length) - 1);
         let stablePrefix = previousCount > 0 && clean.length >= previousCount && previousData.length === previousCount;
         for (let i = 0; stablePrefix && i < comparableCount; i++) {
             const a = previousData[i];

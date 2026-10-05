@@ -896,6 +896,7 @@ export function CalendarPanel({
     error,
     activeSymbol,
     now,
+    source,
 }: {
     events: CalendarEvent[];
     loading: boolean;
@@ -903,6 +904,8 @@ export function CalendarPanel({
     activeSymbol: string;
     /** Ticking clock, passed in so the component stays render-pure. */
     now: number;
+    /** Which feed produced the rows (platform feed vs TradingView MCP). */
+    source?: "platform" | "tradingview-mcp" | "none";
 }) {
     const relevant = currenciesOf(activeSymbol);
 
@@ -980,7 +983,7 @@ export function CalendarPanel({
                         );
                     })}
                     <p className="px-3 py-1.5 text-[10px] text-muted-foreground">
-                        Times in UTC from the platform calendar feed. Rows relevant to {activeSymbol} are highlighted.
+                        Times in UTC from the {source === "tradingview-mcp" ? "TradingView MCP" : "platform calendar"} feed. Rows relevant to {activeSymbol} are highlighted.
                     </p>
                 </div>
             )}
@@ -989,22 +992,28 @@ export function CalendarPanel({
 }
 
 /** Hook: economic calendar with in-component caching per mount. */
-export function useCalendar() {
+export function useCalendar(token?: string | null) {
     const [state, setState] = useState<{
         events: CalendarEvent[];
         loading: boolean;
         error: string | null;
+        source?: "platform" | "tradingview-mcp" | "none";
     }>({ events: [], loading: true, error: null });
 
     useEffect(() => {
         let cancelled = false;
         (async () => {
             try {
-                const res = await fetch("/api/calendar", { next: undefined } as RequestInit);
-                const body = (await res.json().catch(() => null)) as { events?: CalendarEvent[] } | null;
+                const res = await fetch("/api/calendar", {
+                    next: undefined,
+                    // Auth lets the route fall back to the caller's TradingView
+                    // MCP calendar when the platform feed is empty.
+                    ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
+                } as RequestInit);
+                const body = (await res.json().catch(() => null)) as { events?: CalendarEvent[]; source?: "platform" | "tradingview-mcp" | "none" } | null;
                 if (cancelled) return;
                 if (!res.ok || !body) throw new Error("Calendar feed unavailable");
-                setState({ events: body.events ?? [], loading: false, error: null });
+                setState({ events: body.events ?? [], loading: false, error: null, source: body.source });
             } catch {
                 if (cancelled) return;
                 setState({ events: [], loading: false, error: "Calendar feed unavailable right now." });
@@ -1013,7 +1022,8 @@ export function useCalendar() {
         return () => {
             cancelled = true;
         };
-    }, []);
+        // Re-fetch when the token lands: the MCP fallback needs it.
+    }, [token]);
 
     return state;
 }

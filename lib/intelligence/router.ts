@@ -264,16 +264,49 @@ export class UnifiedLLMRouter {
                     provider: undefined,
                     responseFormat: req.structuredSchema ? "json_object" : undefined,
                 };
-                const res: LegacyAIResponse = await provider.chat(legacyReq);
+                // Structured tasks first ask with JSON mode. Several free-tier
+                // models reject `response_format` even though the prompt already
+                // demands JSON (the parser tolerates fenced/inline JSON), so a
+                // non-quota failure of that first call is retried once WITHOUT
+                // it against the same provider before moving on.
+                const call = (jsonMode: boolean): Promise<LegacyAIResponse> =>
+                    provider.chat({ ...legacyReq, responseFormat: jsonMode ? "json_object" : undefined });
+                let res: LegacyAIResponse;
+                try {
+                    res = await call(true);
+                } catch (err) {
+                    const code = this.errorCode(err);
+                    const structuredRetry =
+                        Boolean(req.structuredSchema) &&
+                        code !== "RATE_LIMITED" &&
+                        code !== "QUOTA_EXCEEDED" &&
+                        code !== "TIMEOUT" &&
+                        code !== "INVALID_API_KEY";
+                    if (!structuredRetry) throw err;
+                    res = await call(false);
+                }
                 const latency = Date.now() - attemptStart;
+                const usage = this.usageFrom(res);
+                const structuredData = this.tryParseJson(res.content);
+
+                // A structured task that came back as prose is a FAILED
+                // attempt, not a result: record it honestly and let the next
+                // candidate (one that honours JSON mode) take its turn.
+                if (req.structuredSchema && !structuredData) {
+                    // UNKNOWN_ERROR (retryable): one prose reply must not trip
+                    // the non-retryable breaker, only a run of them should.
+                    this.health.record(provider.id, { ok: false, latencyMs: latency, errorCode: "UNKNOWN_ERROR" });
+                    errors.push(`${provider.id}:non_json_response`);
+                    continue;
+                }
+
                 this.health.record(provider.id, { ok: true, latencyMs: latency });
 
-                const usage = this.usageFrom(res);
                 return {
                     provider: res.provider,
                     model: res.model,
                     content: res.content,
-                    structuredData: this.tryParseJson(res.content),
+                    structuredData,
                     confidence: this.confidenceFrom(res.content),
                     latencyMs: latency,
                     tokenUsage: usage,

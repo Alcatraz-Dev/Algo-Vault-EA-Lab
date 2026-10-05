@@ -10,8 +10,14 @@ import {
     addCents,
     pctOf,
     pctOfCents,
-    roundHalfAwayFromZero,
 } from "./money";
+import { arenaSymbolSpec } from "./execution";
+import {
+    effectiveAggregateRiskPct,
+    effectiveNotionalMultiple,
+    netExposureCents,
+    sumOpenRiskCents,
+} from "./sizing";
 import type {
     ChallengeAttempt,
     ChallengeMetrics,
@@ -129,13 +135,39 @@ export function computeMetrics(inputs: MetricInputs): ChallengeMetrics {
     const distanceToTargetPct = Math.max(0, policy.profitTargetPct - totalReturnPct);
 
     const drawdownUsed = Math.min(100, (ddPct / Math.max(policy.maxDrawdownPct, 0.01)) * 100);
-    const exposure = openTrades.reduce((sum, trade) => {
-        const mark = markByTrade.get(trade.tradeId);
-        const price = mark?.markPriceMicros ?? trade.entryPriceMicros;
-        const priceUnits = price / 1_000_000;
-        const size = trade.sizeCentiLots / 100;
-        return sum + roundHalfAwayFromZero(priceUnits * size * contractSizeFor(trade) * 100);
-    }, 0);
+
+    // ── Exposure: NET per instrument, summed to the account total ────────
+    // Long 0.5 + short 0.5 on one instrument is flat, not 1.0 of exposure. The
+    // old sum-of-notionals model read hedged books as fully loaded and
+    // rejected legitimate entries against the leverage ceiling.
+    const markPriceOf = (trade: ChallengeTrade): number =>
+        markByTrade.get(trade.tradeId)?.markPriceMicros ?? trade.entryPriceMicros;
+    const symbolExposureCents: Record<string, number> = {};
+    const symbolNetExposureCents: Record<string, number> = {};
+    for (const symbol of Array.from(new Set(openTrades.map((trade) => trade.symbol.toUpperCase())))) {
+        const sameSymbol = openTrades.filter((trade) => trade.symbol.toUpperCase() === symbol);
+        const longLots = sameSymbol.filter((t) => t.side === "long").reduce((sum, t) => sum + t.sizeCentiLots, 0);
+        const shortLots = sameSymbol.filter((t) => t.side === "short").reduce((sum, t) => sum + t.sizeCentiLots, 0);
+        if (longLots === 0 && shortLots === 0) continue;
+        const netCentiLots = longLots - shortLots;
+        const netNotionalCents = netExposureCents({
+            priceMicros: markPriceOf(sameSymbol[0]),
+            centiLotsBySide: { long: longLots, short: shortLots },
+            contractSize: contractSizeFor(sameSymbol[0]),
+        });
+        symbolExposureCents[symbol] = netNotionalCents;
+        symbolNetExposureCents[symbol] = Math.sign(netCentiLots) * netNotionalCents;
+    }
+    const exposure = Object.values(symbolExposureCents).reduce((sum, value) => sum + value, 0);
+
+    // ── Open risk: the sizing budget ─────────────────────────────────────
+    const openRiskCents = sumOpenRiskCents(openTrades);
+    const maxAggregateRiskPct = effectiveAggregateRiskPct(policy);
+    const openRiskUsedPct = equityCents > 0 ? (openRiskCents / equityCents) * 100 : 0;
+    const remainingRiskBudgetCents = Math.max(
+        0,
+        pctOfCents(equityCents, maxAggregateRiskPct) - openRiskCents
+    );
 
     const staleMarks = openTrades.some((t) => {
         const mark = markByTrade.get(t.tradeId);
@@ -174,9 +206,16 @@ export function computeMetrics(inputs: MetricInputs): ChallengeMetrics {
         maxDailyTrades: policy.maxDailyTrades,
         openPositions: openTrades.length,
         openExposureCents: exposure,
+        openRiskCents,
+        openRiskUsedPct,
+        maxAggregateRiskPct,
+        remainingRiskBudgetCents,
+        symbolExposureCents,
+        symbolNetExposureCents,
         maxLeverageRatio: policy.leveragePolicy.maxLeverageRatio,
         leverageUsedPct:
             equityCents > 0 ? Math.round((exposure / equityCents) * policy.leveragePolicy.maxLeverageRatio * 100) / 100 : 0,
+        maxPositionNotionalMultiple: effectiveNotionalMultiple(policy),
         timeRemainingMs: Math.max(0, attempt.expiresAt - now),
         expired: now >= attempt.expiresAt,
         equityCurve: equityCurve ?? [],
@@ -194,7 +233,7 @@ export function registerContractSizeResolver(resolver: (symbol: string) => numbe
 }
 
 function contractSizeFor(trade: { symbol: string }): number {
-    return contractSizeResolver ? contractSizeResolver(trade.symbol) : 100_000;
+    return contractSizeResolver?.(trade.symbol) ?? arenaSymbolSpec(trade.symbol)?.contractSize ?? 100_000;
 }
 
 // ──────────── Consistency ────────────────────────────────────────────────────

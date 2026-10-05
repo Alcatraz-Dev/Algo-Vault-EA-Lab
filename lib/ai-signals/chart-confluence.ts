@@ -20,6 +20,7 @@
  */
 
 import { MarketCandle } from "@/lib/market-data/types";
+import { detectSmartMoney, inferTimeframe, indicatorPrimitives } from "@/lib/market-core";
 import type { SignalDirection } from "./types";
 
 // ── level model (mirrors the chart's price-line overlays) ────────────────────
@@ -109,62 +110,44 @@ function computeVwapValue(candles: MarketCandle[]): number | null {
     return Number.isFinite(last) ? last : null;
 }
 
-/** Chart-local EMA: seed with SMA(period) then classic smoothing. */
+/**
+ * EMA through the ONE indicator engine kernel (SMA-seeded, `null` until the
+ * seed window fills) — identical to the value the chart plots.
+ */
 function emaValue(values: number[], period: number): number | null {
-    if (values.length < period) return null;
-    const k = 2 / (period + 1);
-    let prev = values.slice(0, period).reduce((s, v) => s + v, 0) / period;
-    for (let i = period; i < values.length; i++) {
-        prev = values[i] * k + prev * (1 - k);
-    }
-    return prev;
+    if (values.length === 0) return null;
+    const runtime = indicatorPrimitives.emaRuntime(period);
+    const state = runtime.initialState();
+    const rows = values.map((v, i) =>
+        runtime.step(state, { timestamp: i, open: v, high: v, low: v, close: v, volume: 0 }).value,
+    );
+    const last = rows[rows.length - 1];
+    return last === undefined ? null : last;
 }
 
 /**
- * Equal highs/lows — swing prices clustered within the chart's tight
- * tolerance (range × 0.0004), needing ≥2 touches (the chart's EQH/EQL rule).
+ * Equal highs/lows via the ONE Smart Money engine (confirmed swing clusters
+ * within the documented relative tolerance) — the same EQH/EQL pools the
+ * chart's liquidity layer draws.
  */
 function computeEqualLevels(candles: MarketCandle[]): { eqh: number[]; eql: number[] } {
-    if (candles.length < 7) return { eqh: [], eql: [] };
-    const leftRight = 2;
-    const highs: number[] = [];
-    const lows: number[] = [];
-    for (let i = leftRight; i < candles.length - leftRight; i++) {
-        const c = candles[i];
-        let isHigh = true;
-        let isLow = true;
-        for (let j = i - leftRight; j <= i + leftRight; j++) {
-            if (j === i) continue;
-            if (candles[j].high >= c.high) isHigh = false;
-            if (candles[j].low <= c.low) isLow = false;
-        }
-        if (isHigh) highs.push(c.high);
-        if (isLow) lows.push(c.low);
+    const detection = detectSmartMoney(candles, {
+        symbol: "N/A",
+        timeframe: inferTimeframe(candles),
+        structure: false,
+        liquidity: true,
+        zones: false,
+        orderBlocks: false,
+        sessions: false,
+    });
+    const eqh: number[] = [];
+    const eql: number[] = [];
+    for (const pool of detection.pools) {
+        if (pool.price === undefined) continue;
+        if (pool.kind === "equal_highs") eqh.push(pool.price);
+        else if (pool.kind === "equal_lows") eql.push(pool.price);
     }
-    const range = Math.max(...candles.map((c) => c.high)) - Math.min(...candles.map((c) => c.low));
-    if (range <= 0) return { eqh: [], eql: [] };
-    const tol = range * 0.0004;
-
-    const cluster = (points: number[]): number[] => {
-        const sorted = [...points].sort((a, b) => a - b);
-        const out: number[] = [];
-        let bucket: number[] = [];
-        const flush = () => {
-            if (bucket.length >= 2) out.push(bucket.reduce((s, v) => s + v, 0) / bucket.length);
-            bucket = [];
-        };
-        for (const p of sorted) {
-            if (bucket.length === 0 || Math.abs(p - bucket[bucket.length - 1]) <= tol) bucket.push(p);
-            else {
-                flush();
-                bucket = [p];
-            }
-        }
-        flush();
-        return out;
-    };
-
-    return { eqh: cluster(highs), eql: cluster(lows) };
+    return { eqh, eql };
 }
 
 /** Daily floor-trader pivots from the previous UTC day (chart's exact rule). */

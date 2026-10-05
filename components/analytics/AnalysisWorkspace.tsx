@@ -24,9 +24,7 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 import { useLiveQuote } from "@/hooks/useLiveCandles";
-import { ProTerminalChart } from "@/components/pro-scalping-terminal/ProTerminalChart";
-import { defaultLayerState, staticLayerAvailability, type ChartLayerId } from "@/components/pro-scalping-terminal/chart-layers";
-import { LayerPicker } from "@/components/pro-scalping-terminal/LayerPicker";
+import { ProTerminalChartWorkspace } from "@/components/pro-scalping-terminal/ProTerminalChartWorkspace";
 
 import MarketHeader from "@/components/analytics/MarketHeader";
 import MarketStructurePanel from "@/components/analytics/MarketStructurePanel";
@@ -177,22 +175,6 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
     const [selectedAccount, setSelectedAccount] = useState<MT5Account | null>(null);
     const [positions, setPositions] = useState<MT5Position[]>([]);
     const [positionsLoading, setPositionsLoading] = useState(false);
-    const [layersOpen, setLayersOpen] = useState(false);
-    const [chartLayers, setChartLayers] = useState<Record<ChartLayerId, boolean>>(() => ({
-        // Full layer map from the shared vocabulary (keeps every layer id
-        // defined), with this workspace's defaults applied over it.
-        ...defaultLayerState(),
-        volume: true,
-        vwap: true,
-        sessionLevels: false,
-        prevDayHighLow: false,
-        supportResistance: false,
-        fvg: true,
-        orderBlocks: false,
-        bosChoch: false,
-        liquidityLevels: false,
-        equalHighsLows: false,
-    }));
     const [intelligence, setIntelligence] = useState<import("@/lib/ai/analysis/intelligence").AdvancedAnalysisResult | null>(null);
     // Live price for the Bid/Ask cards — polls the shared quote endpoint so
     // the header numbers tick between full analytics refreshes (which stay on
@@ -445,34 +427,21 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                                 </div>
                             )}
 
-                            {/* Real OHLC chart with engine-backed overlays (shared with the Pro Scalping Terminal) */}
+                            {/* Real OHLC chart with engine-backed overlays (shared Pro Terminal chart workspace) */}
                             <div className="space-y-2">
                                 <div className="flex flex-wrap items-center gap-1.5">
-                                    <button
-                                        type="button"
-                                        onClick={() => setLayersOpen((o) => !o)}
-                                        aria-expanded={layersOpen}
-                                        className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                                    >
+                                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground">
                                         <Layers size={13} />
-                                        Overlays
-                                        <span className="font-mono text-[10px]">{Object.values(chartLayers).filter(Boolean).length}</span>
-                                    </button>
-                                    <span className="rounded-full bg-muted px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
-                                        {ohlcData?.candleCount ?? 0} candles
+                                        <span className="font-mono">{ohlcData?.candleCount ?? 0} candles</span>
                                     </span>
-                                    {layersOpen ? (
-                                        <div className="rounded-lg border border-border bg-card p-2">
-                                            <LayerPicker compact layers={chartLayers} availability={staticLayerAvailability()} onToggle={(id) => setChartLayers((prev) => ({ ...prev, [id]: !prev[id] }))} />
-                                        </div>
-                                    ) : null}
                                 </div>
-                                <ProTerminalChart
-                                    symbol={symbol}
-                                    timeframe={timeframe}
-                                    layers={chartLayers}
+                                <ProTerminalChartWorkspace
+                                    initialSymbol={symbol}
+                                    initialTimeframe={timeframe}
                                     analysis={intelligence}
                                     height={440}
+                                    hideWatchlist
+                                    storageScope="analysis-workspace"
                                 />
                             </div>
 

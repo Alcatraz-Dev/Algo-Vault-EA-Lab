@@ -122,7 +122,7 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
                 UPGRADE
               </span>
             )}
-            <Link href="/account/scalping" className="inline-flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1.5 text-[10px] font-semibold text-foreground hover:bg-muted/80 hover:text-primary transition">
+            <Link href="/account/scalping-terminal-lite" className="inline-flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1.5 text-[10px] font-semibold text-foreground hover:bg-muted/80 hover:text-primary transition">
               TERMINAL <ArrowUpRight size={10} />
             </Link>
           </div>
@@ -151,7 +151,7 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
             <div className="rounded-lg border border-dashed border-border px-3 py-4 text-center">
               <p className="text-xs font-medium text-foreground">Sign in for live scanner output</p>
               <p className="text-[10px] text-muted-foreground mt-1">Signals are produced per account by the deterministic scanner.</p>
-              <Link href="/login?redirect=/account/scalping" className="mt-2 inline-flex items-center gap-1 rounded-lg bg-foreground px-3 py-1.5 text-[10px] font-semibold text-background transition hover:opacity-90">
+              <Link href="/login?redirect=/account/scalping-terminal-lite" className="mt-2 inline-flex items-center gap-1 rounded-lg bg-foreground px-3 py-1.5 text-[10px] font-semibold text-background transition hover:opacity-90">
                 SIGN IN <ArrowUpRight size={10} />
               </Link>
             </div>
@@ -200,7 +200,7 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
           <span>•</span>
           <span>Signals: {signedIn && !error ? `${signals.length}/6` : "—"}</span>
           <span>•</span>
-          <span className="text-amber-400">Full terminal: /account/scalping</span>
+          <span className="text-amber-400">Full terminal: /account/scalping-terminal-lite</span>
         </div>
       </div>
     </div>

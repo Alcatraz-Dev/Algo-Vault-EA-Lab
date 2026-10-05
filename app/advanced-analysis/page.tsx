@@ -1,8 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
-import { AppShell, type NavGroup } from "@/components/layout/AppShell";
+import { AppShell } from "@/components/layout/AppShell";
 import { APP_NAV } from "@/components/layout/app-nav";
+import { ProTerminalChartWorkspace } from "@/components/pro-scalping-terminal/ProTerminalChartWorkspace";
+import { ToolBadge } from "@/components/tools/tier-ui";
+import Link from "next/link";
+import { ArrowLeft, Crown } from "lucide-react";
 
 import {  buildPerformanceCards } from "@/components/market-intelligence/backtest/PerformanceOverview";
 import {  buildLimitationsString } from "@/components/market-intelligence/backtest/LimitationsPanel";
@@ -13,8 +17,50 @@ export default function AdvancedAnalysisPage() {
   const limitations = buildLimitationsString();
 
   return (
-    <AppShell navGroups={nav} title="Market Intelligence — Advanced Analysis Terminal" subtitle="Market Analysis · Smart Money · Backtest · Replay · AI" maxWidth="max-w-[1600px]">
+    <AppShell
+      navGroups={nav}
+      title="Advanced Analysis Terminal"
+      subtitle="Market Analysis · Smart Money · Backtest · Replay · AI"
+      eyebrow={
+        <div className="flex items-center gap-2">
+          <ToolBadge kind="pro" size="sm" />
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            Full Pro workspace · chart + replay + intelligence
+          </span>
+        </div>
+      }
+      maxWidth="max-w-[1600px]"
+    >
       <div className="flex flex-col gap-4">
+        {/* Honest Pro anchor — every panel below is gated at the UI layer. */}
+        <div className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/[0.1] via-card to-primary/[0.04] p-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <ToolBadge kind="pro" size="sm" />
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Included with Pro</span>
+            </div>
+            <p className="mt-2 text-sm font-semibold text-foreground">
+              Pro adds the chart, Smart Money overlays, replay, order flow, intelligence fabric and trade journaling that the Lite terminal doesn't expose.
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Compare against the Lite path:{" "}
+              <Link href="/account/lite-scalping-terminal" className="text-primary underline-offset-2 hover:underline">
+                /account/lite-scalping-terminal
+              </Link>
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
+            <Crown className="size-3" /> Active Pro
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Link href="/account/lite-scalping-terminal" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="size-3.5" /> AI Scalping Terminal (Lite)
+          </Link>
+          <span className="text-xs text-muted-foreground/50">/</span>
+          <span className="text-xs font-medium text-foreground">Advanced Analysis</span>
+        </div>
         {/* Header */}
         <div className="flex items-center justify-between px-2 py-2 border border-border/20 rounded-xl bg-card/20">
           <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -32,24 +78,14 @@ export default function AdvancedAnalysisPage() {
 
         {/* Main workspace grid: chart + analysis */}
         <div className="grid lg:grid-cols-[1fr_320px] gap-4">
-          {/* Chart Workspace */}
-          <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-bold">Chart Workspace</h2>
-              <div className="flex gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-                <span className="rounded border border-border/30 px-1.5 py-0.5">Candles</span>
-                <span className="rounded border border-border/30 px-1.5 py-0.5">Structure</span>
-                <span className="rounded border border-border/30 px-1.5 py-0.5">Liquidity</span>
-                <span className="rounded border border-border/30 px-1.5 py-0.5">FVG</span>
-                <span className="rounded border border-border/30 px-1.5 py-0.5">OB</span>
-                <span className="rounded border border-border/30 px-1.5 py-0.5">Sessions</span>
-              </div>
-            </div>
-            <div className="h-[460px] w-full rounded-xl border border-border/20 bg-background/30 flex items-center justify-center text-sm text-muted-foreground relative">
-              Professional trading chart workspace
-              <div className="absolute bottom-2 left-2 text-[10px] text-muted-foreground">Existing ChartAdapter · Smart Money · Session Overlays</div>
-            </div>
-          </div>
+          {/* Chart Workspace — the shared Pro Terminal chart with full
+              toolbars, drawing tools, layer picker, fullscreen and watchlist. */}
+          <ProTerminalChartWorkspace
+            initialSymbol="XAUUSD"
+            initialTimeframe="M5"
+            height={460}
+            storageScope="advanced-analysis"
+          />
 
           {/* Analysis Panels */}
           <div className="flex flex-col gap-4">

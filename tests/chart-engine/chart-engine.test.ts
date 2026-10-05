@@ -24,7 +24,7 @@ import {
 } from "../../lib/chart-engine/timeframe";
 import { toChartCandle, chartCandleToMarketCandle, candleKey, type ChartCandle } from "../../lib/chart-engine/candle";
 import { applyHistory, applyTick, isChronological, enforceChronology } from "../../lib/chart-engine/candle-aggregator";
-import { ChartDataEngine, type ChartDataSources, type HistoryPage } from "../../lib/chart-engine/chart-data-engine";
+import { ChartDataEngine, type ChartDataSources } from "../../lib/chart-engine/chart-data-engine";
 import {
     isAtLiveEdge,
     zoomAt,
@@ -40,7 +40,7 @@ import {
 import { InteractionController } from "../../lib/chart-engine/interactions";
 import { computeStructureOverlay, structureOverlayLayer, computeIndicatorSeries } from "../../lib/chart-engine/overlay-contract";
 import { TailTracker } from "../../lib/chart-engine/indicators";
-import { barIndexForTime, shiftLogicalRangeForPrepend } from "../../lib/chart-engine/coordinate-mapping";
+import { barIndexForTime, countPrependedBars, shiftLogicalRangeForPrepend } from "../../lib/chart-engine/coordinate-mapping";
 import { createAdaptiveApiDataSources } from "../../lib/chart-engine/data-sources";
 
 let passed = 0;
@@ -592,6 +592,8 @@ check("prepend viewport compensation shifts by newly prepended bars only", () =>
     const shifted = shiftLogicalRangeForPrepend({ from: 12.25, to: 42.75 }, 400, 650);
     assertEqual(shifted, { from: 262.25, to: 292.75 });
     assertEqual(shiftLogicalRangeForPrepend({ from: 5, to: 20 }, 400, 350), { from: 5, to: 20 });
+    assertEqual(countPrependedBars([{ time: 1 }, { time: 2 }, { time: 5 }, { time: 9 }], 5), 2);
+    assertEqual(countPrependedBars([{ time: 1 }, { time: 2 }], 0), 0);
 });
 
 console.log("InteractionController");
@@ -657,7 +659,15 @@ check("indicator series align 1:1 with candles (EMA/SMA/RSI)", () => {
     const [ema20] = computeIndicatorSeries(s, ["ema20"]);
     assertEqual(ema20.values.length, 60);
     assert(ema20.values[59] !== null && Number.isFinite(ema20.values[59] as number), "EMA finite at tail");
-    assert(ema20.values[0] !== null, "EMA seeds from bar 0");
+    // Canonical EMA (lib/market-core v1.0.0): SMA-seeded, null during the
+    // warmup window — never a fabricated value at bar 0.
+    assert(ema20.values[0] === null, "EMA is null before its seed window fills");
+    const closes = s.slice(0, 20).map((c) => c.close);
+    const seed = closes.reduce((a, b) => a + b, 0) / 20;
+    assertEqual(ema20.values[19], seed, "EMA seeds with SMA(period) at index period-1");
+    assert(ema20.values[20] !== null, "EMA emits from index period onward");
+    const [rsi14] = computeIndicatorSeries(s, ["rsi"]);
+    assert(rsi14.values[13] === null && rsi14.values[14] !== null, "RSI warmup is period bars");
 });
 check("structure overlay exposes deterministic BOS/CHoCH/swing events", () => {
     // Ramp up then dump: guarantees swings + BOS.

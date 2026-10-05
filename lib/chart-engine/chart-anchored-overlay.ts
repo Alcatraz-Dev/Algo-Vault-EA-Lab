@@ -353,6 +353,7 @@ export class ChartAnchoredOverlay {
         }
 
         // hbar: price-anchored horizontal bar, right-aligned.
+        if (item.high <= item.low) return null;
         const yLow = series.priceToCoordinate(item.low);
         const yHigh = series.priceToCoordinate(item.high);
         if (yLow === null || yHigh === null) return null;

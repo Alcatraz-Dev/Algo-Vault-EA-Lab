@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { onValue, ref, off } from "firebase/database";
@@ -8,38 +8,31 @@ import { auth, database } from "@/lib/firebase";
 import AccountShell from "@/components/account/AccountShell";
 import AccountHeader, { TradingAccount } from "@/components/trading/AccountHeader";
 import ConnectionStatus from "@/components/trading/ConnectionStatus";
-import Watchlist from "@/components/trading/Watchlist";
 import OrderPanel from "@/components/trading/OrderPanel";
 import OpenPositions, { Position } from "@/components/trading/OpenPositions";
 import PendingOrders, { PendingOrder } from "@/components/trading/PendingOrders";
 import ExecutionLog, { ExecutionLogEntry } from "@/components/trading/ExecutionLog";
-import { ProTerminalChart } from "@/components/pro-scalping-terminal/ProTerminalChart";
-import { LayerPicker } from "@/components/pro-scalping-terminal/LayerPicker";
+import { ProTerminalChartWorkspace } from "@/components/pro-scalping-terminal/ProTerminalChartWorkspace";
 import {
-    CHART_LAYERS,
-    TERMINAL_TIMEFRAMES,
-    type ChartLayerId,
-} from "@/components/pro-scalping-terminal/chart-layers";
-import type { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
+    normalisePendingOrderType,
+    partialCloseVolume,
+    tradeFillFromExecution,
+    type ChartPositionView,
+    type ChartPendingOrderView,
+    type ChartTradeFill,
+} from "@/components/pro-scalping-terminal/chart-settings";
 import { cn } from "@/lib/utils";
 import {
     Lock,
     RefreshCw,
-    SlidersHorizontal,
     BarChart2,
     ListOrdered,
     History,
-    ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 type Tab = "positions" | "orders" | "history";
-
-const cleanSymbol = (s: string): SupportedSymbol => {
-    const raw = s.replace(/^(FX|CRYPTO|INDICES|FOREX):/, "");
-    return (raw as SupportedSymbol) || "XAUUSD";
-};
 
 export default function AccountTradingPage() {
     const router = useRouter();
@@ -55,30 +48,8 @@ export default function AccountTradingPage() {
     const [executionLogs, setExecutionLogs] = useState<ExecutionLogEntry[]>([]);
 
     const [selectedSymbol, setSelectedSymbol] = useState("XAUUSD");
-    const [timeframe, setTimeframe] = useState<Timeframe>("M5");
     const [activeTab, setActiveTab] = useState<Tab>("positions");
     const [refreshing, setRefreshing] = useState(false);
-
-    // Chart layers state
-    const [layersOpen, setLayersOpen] = useState(false);
-    const [layers, setLayers] = useState<Record<ChartLayerId, boolean>>(() => {
-        const init: Partial<Record<ChartLayerId, boolean>> = {};
-        for (const l of CHART_LAYERS) {
-            init[l.id] = l.defaultOn && l.available;
-        }
-        return init as Record<ChartLayerId, boolean>;
-    });
-
-    const layerAvailability = useRef<Record<ChartLayerId, boolean>>(
-        CHART_LAYERS.reduce(
-            (acc, l) => ({ ...acc, [l.id]: l.available }),
-            {} as Record<ChartLayerId, boolean>
-        )
-    ).current;
-
-    const toggleLayer = (id: ChartLayerId) => {
-        setLayers((prev) => ({ ...prev, [id]: !prev[id] }));
-    };
 
     // Auth listener
     useEffect(() => {
@@ -325,6 +296,96 @@ export default function AccountTradingPage() {
         }
     };
 
+    // ── chart trade views ───────────────────────────────────────────
+    // Real execution data reshaped for the chart: positions become
+    // entry/SL/TP level lines, pending orders become buy/sell limit lines,
+    // and executed fills become entry/exit markers.
+    const chartPositions = useMemo<ChartPositionView[]>(
+        () =>
+            positions.map((p) => ({
+                ticket: p.ticket,
+                symbol: p.symbol,
+                side: p.type === "SELL" ? "SELL" : "BUY",
+                volume: p.volume,
+                entry: p.openPrice,
+                current: p.currentPrice,
+                sl: p.sl || null,
+                tp: p.tp || null,
+                profit: p.profit,
+                openedAt: p.openedAt,
+            })),
+        [positions]
+    );
+
+    const chartOrders = useMemo<ChartPendingOrderView[]>(
+        () =>
+            orders.flatMap((o) => {
+                const type = normalisePendingOrderType(o.type);
+                if (!type) return [];
+                return [
+                    {
+                        ticket: o.ticket,
+                        symbol: o.symbol,
+                        type,
+                        volume: o.volume,
+                        price: o.price,
+                        sl: o.sl || null,
+                        tp: o.tp || null,
+                        status: o.status,
+                    },
+                ];
+            }),
+        [orders]
+    );
+
+    const chartHistory = useMemo<ChartTradeFill[]>(
+        () =>
+            executionLogs
+                // Only genuinely executed fills count as trade history —
+                // failed/rejected gateway attempts never draw on the chart.
+                .filter((l) => !l.errorCode && Number.isFinite(l.executionPrice) && l.executionPrice > 0)
+                .slice(0, 200)
+                .flatMap((l) => {
+                    const fill = tradeFillFromExecution({
+                        id: l.clientOrderId,
+                        action: l.action,
+                        executedAt: l.executedAt || l.createdAt,
+                        price: l.executionPrice,
+                        symbol: l.symbol,
+                        volume: l.volume,
+                        profit: null,
+                    });
+                    return fill ? [fill] : [];
+                }),
+        [executionLogs]
+    );
+
+    // Close N% of a position from the chart's trade strip: rounds down to
+    // the 0.01 lot step and falls back to a full close for dust remainders.
+    const handleClosePositionPercent = async (ticket: string, percent: number) => {
+        if (!firebaseUser) return;
+        const pos = positions.find((p) => p.ticket === ticket);
+        if (!pos) return;
+        const { mode, volume } = partialCloseVolume(pos.volume, percent);
+        try {
+            const token = await firebaseUser.getIdToken();
+            await fetch("/api/trading/orders", {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body:
+                    mode === "full"
+                        ? JSON.stringify({ ticket, action: "close" })
+                        : JSON.stringify({ ticket, action: "partial_close", volume }),
+            });
+            handleRefresh();
+        } catch {
+            // Ignore
+        }
+    };
+
     if (loading) {
         return (
             <AccountShell title="Trading Terminal" subtitle="Live account trading, charts & orders">
@@ -366,8 +427,6 @@ export default function AccountTradingPage() {
         );
     }
 
-    const cleanedSymbol = cleanSymbol(selectedSymbol);
-
     return (
         <AccountShell title="Trading Terminal" subtitle="Live MT5 account trading, real-time candles & orders">
             <div className="flex flex-col gap-6">
@@ -401,81 +460,27 @@ export default function AccountTradingPage() {
                 {/* Main Trading Area */}
                 <div className="grid gap-6 xl:grid-cols-4">
 
-                    {/* Chart & Layer Controls (3/4 width on xl) */}
-                    <div className="flex flex-col gap-3 xl:col-span-3">
-                        {/* Top Chart Toolbar */}
-                        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-sm">
-                            <div className="flex items-center gap-3">
-                                <Badge variant="outline" className="font-mono font-bold text-sm bg-primary/10 text-primary border-primary/20">
-                                    {cleanedSymbol}
-                                </Badge>
-
-                                {/* Timeframe Picker */}
-                                <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-1">
-                                    {TERMINAL_TIMEFRAMES.map((tf) => (
-                                        <button
-                                            key={tf}
-                                            type="button"
-                                            onClick={() => setTimeframe(tf)}
-                                            className={cn(
-                                                "rounded-md px-2.5 py-1 text-xs font-mono font-semibold transition-all",
-                                                timeframe === tf
-                                                    ? "bg-primary text-primary-foreground shadow-sm"
-                                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                                            )}
-                                        >
-                                            {tf}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                {/* Layer Picker Toggle */}
-                                <Button
-                                    size="sm"
-                                    variant={layersOpen ? "default" : "outline"}
-                                    onClick={() => setLayersOpen(!layersOpen)}
-                                    className="h-8 gap-1.5 text-xs font-medium"
-                                >
-                                    <SlidersHorizontal className="size-3.5" />
-                                    <span>Chart Layers</span>
-                                    <ChevronDown className={cn("size-3 transition-transform", layersOpen && "rotate-180")} />
-                                </Button>
-                            </div>
-                        </div>
-
-                        {/* Collapsible Layer Picker */}
-                        {layersOpen && (
-                            <div className="rounded-xl border border-border bg-card p-3 shadow-sm">
-                                <LayerPicker
-                                    layers={layers}
-                                    availability={layerAvailability}
-                                    onToggle={toggleLayer}
-                                    compact
-                                />
-                            </div>
-                        )}
-
-                        {/* Scalping Pro Terminal Chart */}
-                        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-md">
-                            <ProTerminalChart
-                                symbol={cleanedSymbol}
-                                timeframe={timeframe}
-                                layers={layers}
-                                analysis={null}
-                                token={userToken}
-                                height={520}
-                            />
-                        </div>
+                    {/* Pro Terminal chart workspace (3/4 width on xl).
+                        All toolbars, drawing tools, layer picker, fullscreen,
+                        and per-symbol persistence live in the workspace — this
+                        page only contributes the Order Panel + Watchlist
+                        context. */}
+                    <div className="xl:col-span-3">
+                        <ProTerminalChartWorkspace
+                            initialSymbol={selectedSymbol}
+                            token={userToken}
+                            storageScope="account-trading"
+                            hideWatchlist
+                            positions={chartPositions}
+                            pendingOrders={chartOrders}
+                            tradeHistory={chartHistory}
+                            onClosePosition={handleClosePositionPercent}
+                            onCancelOrder={handleCancelOrder}
+                        />
                     </div>
 
-                    {/* Side Panel: Watchlist & Order Panel */}
+                    {/* Side Panel: Order Panel */}
                     <div className="flex flex-col gap-4 xl:col-span-1">
-                        <Watchlist
-                            selectedSymbol={selectedSymbol}
-                            onSelect={(sym) => setSelectedSymbol(sym)}
-                        />
                         <OrderPanel
                             account={account}
                             symbol={selectedSymbol}

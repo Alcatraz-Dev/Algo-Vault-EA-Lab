@@ -50,6 +50,12 @@ jobs:
       - name: Strategy Lab suite
         run: node scripts/jiti-tsrun.mjs lib/strategy-lab/tests/run-tests.ts
 
+      - name: Strategy Engine suite (Phase 4)
+        run: npm run test:strategy-engine
+
+      - name: Strategy Research suite
+        run: node scripts/jiti-tsrun.mjs lib/strategy-research/__tests__/run-research-tests.ts
+
       - name: AI Signals suite
         run: node scripts/jiti-tsrun.mjs lib/ai-signals/__tests__/run-ai-signals-tests.ts
 

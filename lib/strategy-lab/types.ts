@@ -298,6 +298,7 @@ export type RuleGroup =
     | "volatility"
     | "price_action"
     | "confirmation"
+    | "indicator"
     | "custom";
 
 export type StrategyRule = {
@@ -310,6 +311,8 @@ export type StrategyRule = {
     value: string | number | boolean | string[];
     negate?: boolean;
     groupLogic: "AND" | "OR";
+    /** Only for group "indicator": which indicator (rsi | ema_cross | close_vs_ema20 | atr). */
+    indicator?: "rsi" | "ema_cross" | "close_vs_ema20" | "atr";
 };
 
 export type SLMode = "atr" | "level";

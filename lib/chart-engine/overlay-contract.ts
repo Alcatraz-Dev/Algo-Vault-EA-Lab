@@ -1,15 +1,17 @@
 import type { ChartCandle } from "./candle";
-import type { MarketStructureEvent, Timeframe } from "../market-data/types";
-import { detectStructure, getOverallStructureBias } from "../analytics/market-structure";
+import type { Timeframe } from "../market-data/types";
+import { indicatorRegistry } from "../market-core/registry";
+import { IndicatorEngine } from "../market-core/indicators/engine";
+import { detectSmartMoney } from "../market-core/smart-money/engine";
 
 /**
- * Overlay & indicator contracts — Phases 14/15/16/18.
+ * Overlay & indicator contracts — Phases 14/15/16/18 + Phase 3 consolidation.
  *
  * Indicators and overlays NEVER touch canvas or React. They receive canonical
  * candles and return pure data series/zones/events; the renderer draws them.
- * This is the seam that lets Smart Money, AI and drawing tools attach without
- * coupling business logic to the chart, and lets replay/backtest drive the
- * same layers with a historical candle source.
+ * Since Phase 3 all indicator math and all Smart Money structure detection
+ * delegate to the ONE Market Intelligence Core (`lib/market-core`) — this
+ * module is only the chart-facing adapter (series shape + colors).
  */
 
 // ── indicator series (Phase 14) ─────────────────────────────────────────────
@@ -37,11 +39,66 @@ export interface IndicatorDefinition {
 }
 
 /**
- * Registry of deterministic indicator implementations. All math delegates to
- * lib/analytics/indicators.ts — the same functions Market Intelligence uses —
- * so a plotted line always equals the platform's measured value (no duplicate
- * indicator implementations).
+ * Registry of deterministic indicator implementations. The chart keeps its
+ * legacy ids/colors here, but every `compute` delegates to the core
+ * IndicatorEngine (`lib/market-core/indicators`) so a plotted line always
+ * equals the platform's measured value — no duplicate indicator math.
  */
+interface ChartIndicatorBinding {
+    /** Core registry id (`ema`, `sma`, `rsi`, …). */
+    coreId: string;
+    /** Core output key to plot. */
+    output: string;
+    engineCache: WeakMap<readonly ChartCandle[], Map<string, Array<number | null>>>;
+}
+
+const coreBindings = new Map<IndicatorId, ChartIndicatorBinding>();
+
+function bindCore(id: IndicatorId, coreId: string, output: string): void {
+    coreBindings.set(id, { coreId, output, engineCache: new WeakMap() });
+}
+
+bindCore("ema20", "ema", "value");
+bindCore("ema50", "ema", "value");
+bindCore("sma20", "sma", "value");
+bindCore("rsi", "rsi", "value");
+
+/** Compute one legacy chart indicator through the core engine (memoized). */
+function computeThroughCore(
+    candles: readonly ChartCandle[],
+    id: IndicatorId,
+    params: Record<string, number>,
+): Array<number | null> {
+    const binding = coreBindings.get(id);
+    if (!binding) return new Array(candles.length).fill(null);
+    const def = indicatorRegistry.get(binding.coreId);
+    if (!def) return new Array(candles.length).fill(null);
+
+    let byKey = binding.engineCache.get(candles);
+    if (!byKey) {
+        byKey = new Map();
+        binding.engineCache.set(candles, byKey);
+    }
+    const cacheKey = `${binding.coreId}|${JSON.stringify(params)}`;
+    const cached = byKey.get(cacheKey);
+    if (cached) return cached;
+
+    const first = candles[0];
+    const engine = new IndicatorEngine({
+        symbol: first?.symbol ?? "UNKNOWN",
+        timeframe: first?.timeframe ?? "M5",
+        indicators: [{ id: binding.coreId, params }],
+    });
+    engine.setSeries(candles);
+    const aligned = engine.getOutputAligned(
+        { id: binding.coreId, params },
+        binding.output,
+        candles.map((c) => c.timestamp),
+    );
+    byKey.set(cacheKey, aligned);
+    return aligned;
+}
+
 export const CHART_INDICATORS: Record<IndicatorId, IndicatorDefinition> = {
     ema20: {
         id: "ema20",
@@ -49,7 +106,7 @@ export const CHART_INDICATORS: Record<IndicatorId, IndicatorDefinition> = {
         color: "#38bdf8",
         overlay: true,
         params: { period: 20 },
-        compute: (candles, p) => emaOver(candles.map((c) => c.close), p.period),
+        compute: (candles, p) => computeThroughCore(candles, "ema20", p),
     },
     ema50: {
         id: "ema50",
@@ -57,7 +114,7 @@ export const CHART_INDICATORS: Record<IndicatorId, IndicatorDefinition> = {
         color: "#a78bfa",
         overlay: true,
         params: { period: 50 },
-        compute: (candles, p) => emaOver(candles.map((c) => c.close), p.period),
+        compute: (candles, p) => computeThroughCore(candles, "ema50", p),
     },
     sma20: {
         id: "sma20",
@@ -65,7 +122,7 @@ export const CHART_INDICATORS: Record<IndicatorId, IndicatorDefinition> = {
         color: "#94a3b8",
         overlay: true,
         params: { period: 20 },
-        compute: (candles, p) => smaOver(candles.map((c) => c.close), p.period),
+        compute: (candles, p) => computeThroughCore(candles, "sma20", p),
     },
     rsi: {
         id: "rsi",
@@ -73,58 +130,9 @@ export const CHART_INDICATORS: Record<IndicatorId, IndicatorDefinition> = {
         color: "#c084fc",
         overlay: false,
         params: { period: 14 },
-        compute: (candles, p) => rsiOver(candles.map((c) => c.close), p.period),
+        compute: (candles, p) => computeThroughCore(candles, "rsi", p),
     },
 };
-
-function emaOver(values: number[], period: number): Array<number | null> {
-    const out: Array<number | null> = new Array(values.length).fill(null);
-    if (period <= 0 || values.length === 0) return out;
-    const k = 2 / (period + 1);
-    let prev = values[0];
-    out[0] = prev;
-    for (let i = 1; i < values.length; i++) {
-        prev = values[i] * k + prev * (1 - k);
-        out[i] = prev;
-    }
-    return out;
-}
-
-function smaOver(values: number[], period: number): Array<number | null> {
-    const out: Array<number | null> = new Array(values.length).fill(null);
-    if (period <= 0 || values.length < period) return out;
-    let sum = 0;
-    for (let i = 0; i < values.length; i++) {
-        sum += values[i];
-        if (i >= period) sum -= values[i - period];
-        if (i >= period - 1) out[i] = sum / period;
-    }
-    return out;
-}
-
-function rsiOver(values: number[], period: number): Array<number | null> {
-    const out: Array<number | null> = new Array(values.length).fill(null);
-    if (values.length <= period) return out;
-    let avgGain = 0;
-    let avgLoss = 0;
-    for (let i = 1; i <= period; i++) {
-        const change = values[i] - values[i - 1];
-        if (change >= 0) avgGain += change;
-        else avgLoss -= change;
-    }
-    avgGain /= period;
-    avgLoss /= period;
-    out[period] = avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss);
-    for (let i = period + 1; i < values.length; i++) {
-        const change = values[i] - values[i - 1];
-        const gain = change > 0 ? change : 0;
-        const loss = change < 0 ? -change : 0;
-        avgGain = (avgGain * (period - 1) + gain) / period;
-        avgLoss = (avgLoss * (period - 1) + loss) / period;
-        out[i] = avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss);
-    }
-    return out;
-}
 
 /** Compute an enabled indicator set over a candle snapshot. */
 export function computeIndicatorSeries(
@@ -165,43 +173,62 @@ export interface StructureOverlayEvent {
 /**
  * Deterministic structure overlay source.
  *
- * Wraps the canonical `detectStructure` engine used by Market Intelligence
- * (lib/analytics/market-structure.ts) so the chart draws exactly what the
- * engines measure — no chart-local reimplementation, no LLM output, fully
- * deterministic and evidence-based.
+ * Since Phase 3 this delegates to the ONE Smart Money engine
+ * (`lib/market-core/smart-money`) — the same detector the dashboard, the
+ * backtester, alerts and the AI context consume. The chart therefore draws
+ * exactly what the engines measure: no chart-local reimplementation, no LLM
+ * output, fully deterministic, timestamp-anchored and confirmation-aware.
+ *
+ * `bias` is derived from the most recent break directions.
  */
 export function computeStructureOverlay(
     candles: readonly ChartCandle[],
     timeframe: Timeframe,
 ): { events: StructureOverlayEvent[]; bias: "bullish" | "bearish" | "neutral" } {
-    const marketCandles = candles.map((c) => ({
-        timestamp: c.timestamp,
-        open: c.open,
-        high: c.high,
-        low: c.low,
-        close: c.close,
-    }));
-    const events = detectStructure(marketCandles, timeframe);
-    const bias = getOverallStructureBias(events);
-
-    const enriched: StructureOverlayEvent[] = events.map((e) => {
-        const dir = e.direction === "bullish" ? 1 : -1;
-        let kind: StructureOverlayEvent["kind"] = e.type === "BOS" ? "BOS" : e.type === "CHOCH" ? "CHOCH" : e.type === "swing_high" ? "swing_high" : "swing_low";
-        // HH/HL/LH/LL refinement relative to the previous same-side swing.
-        if (e.type === "swing_high" && e.brokenLevel === undefined) {
-            void dir;
-        }
-        return {
-            kind,
-            direction: e.direction as "bullish" | "bearish",
-            price: e.price,
-            timestamp: e.timestamp,
-            ...(e.brokenLevel !== undefined ? { brokenLevel: e.brokenLevel } : {}),
-            id: e.id,
-        };
+    if (candles.length === 0) return { events: [], bias: "neutral" };
+    const symbol = candles[0].symbol ?? "UNKNOWN";
+    const detection = detectSmartMoney(candles, {
+        symbol,
+        timeframe,
+        structure: true,
+        liquidity: false,
+        zones: false,
+        orderBlocks: false,
+        sessions: false,
     });
 
-    return { events: enriched, bias };
+    const kindMap: Record<string, StructureOverlayEvent["kind"]> = {
+        bos: "BOS",
+        choch: "CHOCH",
+        hh: "HH",
+        hl: "HL",
+        lh: "LH",
+        ll: "LL",
+        swing_high: "swing_high",
+        swing_low: "swing_low",
+    };
+
+    const events: StructureOverlayEvent[] = [];
+    for (const obj of detection.objects) {
+        const kind = kindMap[obj.kind];
+        if (!kind) continue;
+        const brokenLevel =
+            obj.kind === "bos" || obj.kind === "choch"
+                ? typeof obj.metadata?.brokenLevel === "number"
+                    ? obj.metadata.brokenLevel
+                    : undefined
+                : undefined;
+        events.push({
+            kind,
+            direction: obj.direction === "bearish" ? "bearish" : "bullish",
+            price: obj.price ?? obj.priceHigh ?? 0,
+            timestamp: obj.detectedAt,
+            ...(brokenLevel !== undefined ? { brokenLevel } : {}),
+            id: obj.id,
+        });
+    }
+
+    return { events, bias: detection.structure.bias };
 }
 
 // ── generic overlay layer contract (Phases 15/16/17) ────────────────────────

@@ -1,4 +1,4 @@
-import type { MarketCandle, SupportedSymbol, Timeframe } from "@/lib/market-data/types";
+import type { MarketCandle, SupportedSymbol } from "@/lib/market-data/types";
 import type { ChartCandle, ChartTick } from "./candle";
 import { toChartCandle } from "./candle";
 import { applyHistory, applyTick, enforceChronology, isChronological } from "./candle-aggregator";

@@ -1,64 +1,52 @@
 import { MarketCandle } from "../market-data/types";
 import { calculateATR } from "./volatility";
+import {
+    atrRuntime,
+    bollingerRuntime,
+    emaRuntime,
+    rsiRuntime,
+    smaRuntime,
+} from "../market-core/indicators/primitives";
+import { alignedIndicatorSeries } from "../market-core/indicators/engine";
 
 /**
  * Deterministic technical indicator calculations over OHLCV candles.
  *
- * These are used to compute indicator values that the browser cannot expose
- * (TradingView renders indicator plots on canvas), so the chart context can be
- * enriched with REAL calculated values instead of asking the user to type them.
+ * Phase 3: every formula here is a THIN ADAPTER over the ONE indicator
+ * engine in `lib/market-core/indicators` — the same math the chart plots,
+ * the backtester consumes and the AI reads. No second implementation of a
+ * formula lives in this file; the legacy NaN-warmup array shape is kept at
+ * the boundary so existing consumers do not change.
+ *
+ * Canonical semantics (v1.0.0, docs/market-intelligence-core.md):
+ *  - core rows are `null` during warmup; this adapter maps null → NaN,
+ *  - EMA seed = SMA of the first `period` values (MetaTrader/TradingView
+ *    convention) instead of a bar-0 seeded transient.
  */
 
 export type IndicatorValue = number | null;
 
+/** Synthetic single-field candle for the value-level kernels. */
+function valCandle(value: number): { timestamp: number; open: number; high: number; low: number; close: number; volume: number } {
+    return { timestamp: 0, open: value, high: value, low: value, close: value, volume: 0 };
+}
+
 export function sma(values: number[], period: number): number[] {
-    const out: number[] = new Array(values.length).fill(Number.NaN);
-    if (period <= 0 || values.length < period) return out;
-    let sum = 0;
-    for (let i = 0; i < values.length; i++) {
-        sum += values[i];
-        if (i >= period) sum -= values[i - period];
-        if (i >= period - 1) out[i] = sum / period;
-    }
-    return out;
+    const runtime = smaRuntime(period);
+    const state = runtime.initialState();
+    return values.map((v) => runtime.step(state, valCandle(v)).value ?? Number.NaN);
 }
 
 export function ema(values: number[], period: number): number[] {
-    const out: number[] = new Array(values.length).fill(Number.NaN);
-    if (period <= 0 || values.length === 0) return out;
-    const k = 2 / (period + 1);
-    let prev = values[0];
-    out[0] = prev;
-    for (let i = 1; i < values.length; i++) {
-        prev = values[i] * k + prev * (1 - k);
-        out[i] = prev;
-    }
-    return out;
+    const runtime = emaRuntime(period);
+    const state = runtime.initialState();
+    return values.map((v) => runtime.step(state, valCandle(v)).value ?? Number.NaN);
 }
 
 export function rsi(values: number[], period = 14): number[] {
-    const out: number[] = new Array(values.length).fill(Number.NaN);
-    if (values.length <= period) return out;
-    let avgGain = 0;
-    let avgLoss = 0;
-    for (let i = 1; i <= period; i++) {
-        const change = values[i] - values[i - 1];
-        if (change >= 0) avgGain += change;
-        else avgLoss -= change;
-    }
-    avgGain /= period;
-    avgLoss /= period;
-    const first = avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss);
-    out[period] = first;
-    for (let i = period + 1; i < values.length; i++) {
-        const change = values[i] - values[i - 1];
-        const gain = change > 0 ? change : 0;
-        const loss = change < 0 ? -change : 0;
-        avgGain = (avgGain * (period - 1) + gain) / period;
-        avgLoss = (avgLoss * (period - 1) + loss) / period;
-        out[i] = avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss);
-    }
-    return out;
+    const runtime = rsiRuntime(period);
+    const state = runtime.initialState();
+    return values.map((v) => runtime.step(state, valCandle(v)).value ?? Number.NaN);
 }
 
 export function macd(
@@ -74,7 +62,9 @@ export function macd(
         if (Number.isNaN(v) || Number.isNaN(s)) return Number.NaN;
         return v - s;
     });
-    const signal = ema(macdLine.map((v) => (Number.isNaN(v) ? 0 : v)), signalPeriod);
+    // The signal EMA consumes only VALID macd values (NaN rows are skipped
+    // by the core kernel) so it never seeds on placeholder zeros.
+    const signal = ema(macdLine.map((v) => v), signalPeriod);
     const histogram = macdLine.map((v, i) => {
         const s = signal[i];
         if (Number.isNaN(v) || Number.isNaN(s)) return Number.NaN;
@@ -88,17 +78,16 @@ export function bollingerBands(
     period = 20,
     stdDev = 2
 ): { upper: number[]; middle: number[]; lower: number[] } {
-    const middle = sma(values, period);
-    const upper: number[] = new Array(values.length).fill(Number.NaN);
-    const lower: number[] = new Array(values.length).fill(Number.NaN);
-    for (let i = period - 1; i < values.length; i++) {
-        const slice = values.slice(i - period + 1, i + 1);
-        const mean = middle[i];
-        if (Number.isNaN(mean)) continue;
-        const variance = slice.reduce((acc, v) => acc + (v - mean) ** 2, 0) / period;
-        const sd = Math.sqrt(variance);
-        upper[i] = mean + stdDev * sd;
-        lower[i] = mean - stdDev * sd;
+    const runtime = bollingerRuntime(period, stdDev);
+    const state = runtime.initialState();
+    const upper: number[] = [];
+    const middle: number[] = [];
+    const lower: number[] = [];
+    for (const v of values) {
+        const row = runtime.step(state, valCandle(v));
+        upper.push(row.upper ?? Number.NaN);
+        middle.push(row.middle ?? Number.NaN);
+        lower.push(row.lower ?? Number.NaN);
     }
     return { upper, middle, lower };
 }
@@ -143,30 +132,9 @@ export function supertrend(
 }
 
 export function atrSeries(candles: MarketCandle[], period = 14): (number | null)[] {
-    const n = candles.length;
-    const out: (number | null)[] = new Array(n).fill(null);
-    if (n < 2) return out;
-    const trs: number[] = [];
-    for (let i = 0; i < n; i++) {
-        if (i === 0) {
-            trs.push(candles[i].high - candles[i].low);
-            continue;
-        }
-        const pc = candles[i - 1].close;
-        const tr = Math.max(
-            candles[i].high - candles[i].low,
-            Math.abs(candles[i].high - pc),
-            Math.abs(candles[i].low - pc)
-        );
-        trs.push(tr);
-    }
-    let sum = 0;
-    for (let i = 0; i < period; i++) sum += trs[i];
-    out[period - 1] = sum / period;
-    for (let i = period; i < n; i++) {
-        out[i] = (out[i - 1]! * (period - 1) + trs[i]) / period;
-    }
-    return out;
+    const runtime = atrRuntime(period);
+    const state = runtime.initialState();
+    return candles.map((c) => runtime.step(state, c).value);
 }
 
 export interface IndicatorSnapshot {
@@ -228,18 +196,21 @@ export function computeIndicatorSnapshot(candles: MarketCandle[]): IndicatorSnap
     };
 }
 
+/**
+ * Latest session VWAP from the ONE indicator engine (UTC-day anchored).
+ *
+ * The previous implementation averaged the ENTIRE loaded history, so the
+ * number depended on how much history happened to be loaded — not a VWAP.
+ * Session anchoring matches the chart's VWAP line and lib/analytics/vwap.
+ */
 function calculateVWAPLatest(candles: MarketCandle[]): number | null {
     if (candles.length === 0) return null;
-    let cumVol = 0;
-    let cumPV = 0;
-    for (const c of candles) {
-        const typical = (c.high + c.low + c.close) / 3;
-        const vol = c.volume ?? 1;
-        cumPV += typical * vol;
-        cumVol += vol;
+    const rows = alignedIndicatorSeries(candles, { id: "vwap" }, "value");
+    for (let i = rows.length - 1; i >= 0; i--) {
+        const v = rows[i];
+        if (v !== null && Number.isFinite(v)) return v;
     }
-    if (cumVol === 0) return null;
-    return cumPV / cumVol;
+    return null;
 }
 
 export function computeSeriesIndicator(

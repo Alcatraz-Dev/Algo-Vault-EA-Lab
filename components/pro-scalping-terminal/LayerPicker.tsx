@@ -51,7 +51,7 @@ export function LayerPicker({ layers, availability, onToggle, compact = false }:
                                     setExpandedId((cur) => (cur === l.id ? null : l.id));
                                 }
                             }}
-                            disabled={false}
+
                             aria-pressed={available ? layers[l.id] : undefined}
                             aria-expanded={!available && expandedId === l.id}
                             title={available ? l.label : `${l.label} — click for details`}

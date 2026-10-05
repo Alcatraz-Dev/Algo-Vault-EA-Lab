@@ -91,6 +91,8 @@ function makeCandles(n: number): MarketCandle[] {
         candles.push({ timestamp: t, open, high, low, close, volume: 100 + rnd() * 50 });
         price = close;
         t += 15 * 60 * 1000;
+        // Skip weekends: markets are closed Sat/Sun (weekday-only feed).
+        while (new Date(t).getUTCDay() === 0 || new Date(t).getUTCDay() === 6) t += 15 * 60 * 1000;
     }
     return candles;
 }

@@ -8,6 +8,50 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
+ * BUY/SELL only when structure and higher-timeframe bias agree; anything
+ * else (missing, neutral, conflicting) proposes HOLD.
+ */
+function proposedDirectionFrom(ctx: { structure?: { bias?: string } | null; htf?: { bias?: string } | null }): "BUY" | "SELL" | "HOLD" {
+    const structure = ctx.structure?.bias?.toLowerCase();
+    const htf = ctx.htf?.bias?.toLowerCase();
+    if (structure === "bullish" && htf !== "bearish") return "BUY";
+    if (structure === "bearish" && htf !== "bullish") return "SELL";
+    return "HOLD";
+}
+
+// ── Decision cache ───────────────────────────────────────────────────────────
+// Every orchestration spends scarce free-tier AI quota (Gemini ≈20/day,
+// OpenRouter ≈50/day) while the terminal polls continuously. Decisions are
+// therefore reused per symbol+timeframe for a short TTL; a failed (AI-
+// unavailable) decision is cached for much less so recovery shows up fast.
+const DECISION_CACHE = new Map<string, { at: number; payload: unknown; ttlMs: number }>();
+const DECISION_CACHE_MAX = 200;
+
+function decisionTtlMs(): number {
+    const raw = Number(process.env.AI_SCALPING_DECISION_TTL_MS || "");
+    return Number.isFinite(raw) && raw > 0 ? raw : 180_000;
+}
+
+function cachedDecision(key: string): { at: number; payload: unknown } | null {
+    const hit = DECISION_CACHE.get(key);
+    if (!hit) return null;
+    if (Date.now() - hit.at > hit.ttlMs) {
+        DECISION_CACHE.delete(key);
+        return null;
+    }
+    return { at: hit.at, payload: hit.payload };
+}
+
+function storeDecision(key: string, payload: unknown, ttlMs: number): void {
+    if (DECISION_CACHE.size >= DECISION_CACHE_MAX) {
+        // Drop the oldest entry — the map is tiny and insertion-ordered.
+        const oldest = DECISION_CACHE.keys().next().value;
+        if (oldest !== undefined) DECISION_CACHE.delete(oldest);
+    }
+    DECISION_CACHE.set(key, { at: Date.now(), payload, ttlMs });
+}
+
+/**
  * GET /api/scalping/intelligence?symbol=XAUUSD&timeframe=M5
  * Unified Intelligence Fabric decision state for the Pro Scalping Terminal.
  *
@@ -86,16 +130,27 @@ export async function GET(req: Request) {
             undefined,
         );
 
+        // Serve a recent decision without spending AI quota again.
+        const cacheKey = `${symbol}:${timeframe}`;
+        const hit = cachedDecision(cacheKey);
+        if (hit) {
+            return NextResponse.json({ ...(hit.payload as Record<string, unknown>), cachedAt: hit.at });
+        }
+
         const decision = await orchestrateDecision({
             ctx,
-            proposedDirection: "HOLD",
+            // Deterministic proposal from the SAME facts the panel displays
+            // (structure + HTF bias). Jev validates it and may veto it to
+            // HOLD; the risk engine below still gates everything. A flat or
+            // conflicting context proposes HOLD — nothing is invented.
+            proposedDirection: proposedDirectionFrom(ctx),
             userId: uid,
             userTier: "pro",
             skipLLM: false,
         });
 
-        return NextResponse.json({
-            success: true,
+        const body = {
+            success: true as const,
             symbol,
             timeframe,
             decision: {
@@ -114,7 +169,12 @@ export async function GET(req: Request) {
             },
             versions: INTELLIGENCE_VERSION,
             flags: intelligenceFlagSnapshot(),
-        });
+        };
+
+        const ttl = decision.validationStatus === "AI_UNAVAILABLE" ? 30_000 : decisionTtlMs();
+        storeDecision(cacheKey, body, ttl);
+
+        return NextResponse.json({ ...body, cachedAt: Date.now() });
     } catch (err) {
         console.error("[api/scalping/intelligence] error:", err instanceof Error ? err.message : err);
         return NextResponse.json({ success: false, error: "INTERNAL_ERROR" }, { status: 500 });

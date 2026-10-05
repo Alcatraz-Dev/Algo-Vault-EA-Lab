@@ -140,6 +140,15 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Status pulse for the dashboard signal-core badge: a ring that breathes
+   outward from the verdict circle and fades. Ends invisible under
+   prefers-reduced-motion, leaving the static core ring. */
+@keyframes core-ping {
+  0% { transform: scale(0.7); opacity: 0.8; }
+  70% { opacity: 0.1; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
 @keyframes slide-up {
   from { opacity: 0; transform: translateY(100%); }
   to { opacity: 1; transform: translateY(0); }
@@ -586,6 +595,7 @@
 @media (prefers-reduced-motion: reduce) {
   .flow-trail,
   .flow-pulse,
+  .animate-core-ping,
   .pipeline-node,
   .stage-orbit::before,
   .shimmer-overlay::before,
@@ -698,6 +708,9 @@ body {
   }
   .animate-page-enter {
     animation: page-enter 240ms ease-out both;
+  }
+  .animate-core-ping {
+    animation: core-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
   }
 }
 

@@ -25,6 +25,7 @@ import {
    Gift,
    GitBranch,
    Globe,
+   LayoutDashboard,
    LineChart,
    LogOut,
    Menu,
@@ -56,6 +57,15 @@ import { AppShell, type NavGroup } from "@/components/layout/AppShell";
 
 const ACCOUNT_NAV: NavGroup[] = [
   {
+    // Overview leads the sidebar: home and the custom dashboard are the two
+    // entry points users open most, before any category below.
+    label: "Overview",
+    items: [
+      { icon: LayoutDashboard, label: "Account Home", href: "/account" },
+      { icon: LayoutDashboard, label: "Custom Dashboard", href: "/dashboard" },
+    ],
+  },
+  {
     label: "Account",
     items: [
       { icon: CreditCard, label: "Purchases", href: "/account/purchases" },
@@ -64,7 +74,7 @@ const ACCOUNT_NAV: NavGroup[] = [
       { icon: Globe, label: "Trading Access", href: "/account/trading-access" },
       { icon: Gift, label: "Affiliates", href: "/account/affiliate" },
       { icon: Zap, label: "Upgrade", href: "/pricing" },
-      { icon: Zap, label: "Scalping Terminal", href: "/account/scalping", badge: "PRO" },
+      { icon: Zap, label: "Scalping Terminal (Lite)", href: "/account/lite-scalping-terminal", badge: "LITE" },
       { icon: Zap, label: "Pro Scalping Terminal", href: "/account/scalping-terminal", badge: "PRO" },
       { icon: Settings, label: "Settings", href: "/account/settings" },
       { icon: Activity, label: "Account Health", href: "/account/account-health" },
@@ -147,6 +157,8 @@ export default function AccountShell({
   subtitle,
   eyebrow,
   onBack,
+  hideSidebar,
+  fullscreen,
   headerActions: extraHeaderActions,
 }: {
   children: React.ReactNode;
@@ -157,6 +169,10 @@ export default function AccountShell({
   onBack?: () => void;
   /** Extra content injected into the topbar alongside the status pill. */
   headerActions?: React.ReactNode;
+  /** Hide the account sidebar; let the page own the full viewport. */
+  hideSidebar?: boolean;
+  /** Edge-to-edge content: no sidebar, no max width, compact padding. */
+  fullscreen?: boolean;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -220,6 +236,8 @@ export default function AccountShell({
       maxWidth="max-w-7xl"
       navSearch={navSearch}
       onNavSearch={setNavSearch}
+      hideSidebar={hideSidebar}
+      fullscreen={fullscreen}
     >
       {children}
     </AppShell>

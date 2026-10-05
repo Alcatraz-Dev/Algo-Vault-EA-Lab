@@ -41,24 +41,24 @@ import ThemeToggle from "@/components/theme/theme-toggle";
 const NAV_ITEMS = [
   { icon: Zap, label: "AI Signals", href: "/signals" },
   { icon: Activity, label: "Scanner", href: "/scanner" },
-  { icon: Brain, label: "AI Copilot", href: "/ai-copilot" },
-  { icon: Sparkles, label: "Insights", href: "/insights" },
-  { icon: GitBranch, label: "Workflow Automation", href: "/workflows" },
-  { icon: Clock, label: "AI History", href: "/ai-historical" },
+  { icon: Brain, label: "AI Copilot", href: "/ai-copilot", pro: true },
+  { icon: Sparkles, label: "Insights", href: "/insights", pro: true },
+  { icon: GitBranch, label: "Workflow Automation", href: "/workflows", pro: true },
+  { icon: Clock, label: "AI History", href: "/ai-historical", pro: true },
   { icon: FileText, label: "Reports", href: "/report-generator" },
   { icon: Eye, label: "Signal Transparency", href: "/signal-transparency" },
   { icon: Shield, label: "Verified Perf", href: "/verified-performance" },
-  { icon: Trophy, label: "Performance Arena", href: "/performance-arena" },
+  { icon: Trophy, label: "Performance Arena", href: "/performance-arena", pro: true },
   { icon: CreditCard, label: "Purchases", href: "/account/purchases" },
   { icon: FileKey2, label: "Licenses", href: "/account/licenses" },
   { icon: Sparkles, label: "TradingView", href: "/account/tradingview" },
   { icon: LineChart, label: "Live", href: "/live", badge: "●" },
-  { icon: BarChart3, label: "Backtests", href: "/backtests" },
-  { icon: Copy, label: "Copy Trading", href: "/copy-trading" },
+  { icon: BarChart3, label: "Backtests", href: "/backtests", pro: true },
+  { icon: Copy, label: "Copy Trading", href: "/copy-trading", pro: true },
   { icon: Radio, label: "Sessions", href: "/tools/sessions" },
   { icon: Wallet, label: "Compare", href: "/compare" },
   { icon: Gift, label: "Affiliates", href: "/account/affiliate" },
-  { icon: Calculator, label: "Tools", href: "/account/tools" },
+  { icon: Calculator, label: "Tools", href: "/tools" },
   { icon: Target, label: "Goals", href: "/goals" },
   { icon: Settings, label: "Settings", href: "/account/settings" },
 ];
@@ -135,7 +135,7 @@ export default function SiteNavbar() {
 
         {/* Desktop Nav */}
         <div className="hidden items-center gap-1 md:flex">
-          {NAV_ITEMS.map(({ icon: Icon, label, href, badge }) => (
+          {NAV_ITEMS.map(({ icon: Icon, label, href, badge, pro }) => (
             <Link
               key={href}
               href={href}
@@ -148,6 +148,11 @@ export default function SiteNavbar() {
               <Icon size={14} />
               <span className="inline-flex items-center gap-1.5">
                 {label}
+                {pro ? (
+                  <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider text-primary">
+                    Pro
+                  </span>
+                ) : null}
                 {badge && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
               </span>
             </Link>
@@ -209,19 +214,26 @@ export default function SiteNavbar() {
               <X size={16} />
             </button>
             <nav className="space-y-1">
-              {NAV_ITEMS.map(({ icon: Icon, label, href }) => (
+              {NAV_ITEMS.map(({ icon: Icon, label, href, pro }) => (
                 <Link
                   key={href}
                   href={href}
                   onClick={() => setMobileOpen(false)}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
+                  className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
                     isActive(href)
                       ? "bg-accent-muted font-semibold text-primary"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
-                  <Icon size={16} />
-                  {label}
+                  <span className="flex items-center gap-3">
+                    <Icon size={16} />
+                    {label}
+                  </span>
+                  {pro ? (
+                    <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider text-primary">
+                      Pro
+                    </span>
+                  ) : null}
                 </Link>
               ))}
               {PRO_NAV_ITEMS.map(({ icon: Icon, label, href }) => (

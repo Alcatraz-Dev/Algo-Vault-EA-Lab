@@ -24,6 +24,10 @@ interface OrderBody {
     orderId?: unknown;
     tradeId?: unknown;
     clientRequestId?: unknown;
+    /** Partial close: absolute lot amount (mutually exclusive with percent). */
+    closeLots?: unknown;
+    /** Partial close: percent of the position to close. */
+    percent?: unknown;
 }
 
 // Auth: bearer token. The client submits INTENT only (symbol/side/size/stop).
@@ -46,11 +50,24 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             if (typeof body.tradeId !== "string" || !body.tradeId) {
                 return arenaJson({ error: "tradeId is required to close a position.", code: "INVALID_BODY" }, 400);
             }
+            // Omitting both closeLots and percent closes the whole position.
+            const closeLots = body.closeLots === undefined || body.closeLots === null ? undefined : Number(body.closeLots);
+            const percent = body.percent === undefined || body.percent === null ? undefined : Number(body.percent);
+            if (closeLots !== undefined && (!Number.isFinite(closeLots) || closeLots <= 0)) {
+                return arenaJson({ error: "closeLots must be a positive number.", code: "INVALID_BODY" }, 400);
+            }
+            if (percent !== undefined && (!Number.isFinite(percent) || percent <= 0 || percent > 100)) {
+                return arenaJson({ error: "percent must be greater than 0 and at most 100.", code: "INVALID_BODY" }, 400);
+            }
+            if (closeLots !== undefined && percent !== undefined) {
+                return arenaJson({ error: "Provide closeLots or percent, not both.", code: "INVALID_BODY" }, 400);
+            }
             const state = await closePosition(
                 auth.uid,
                 attemptId,
                 body.tradeId,
-                typeof body.clientRequestId === "string" ? body.clientRequestId : undefined
+                typeof body.clientRequestId === "string" ? body.clientRequestId : undefined,
+                closeLots !== undefined || percent !== undefined ? { lots: closeLots, percent } : undefined
             );
             return arenaJson({ state });
         }
@@ -95,7 +112,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             clientRequestId: typeof body.clientRequestId === "string" ? body.clientRequestId : undefined,
         });
 
-        return arenaJson({ trade: result.trade, duplicate: result.duplicate, state: result.state }, result.duplicate ? 200 : 201);
+        return arenaJson(
+            {
+                trade: result.trade,
+                duplicate: result.duplicate,
+                reduced: result.reduced,
+                reducedCentiLots: result.reducedCentiLots,
+                state: result.state,
+            },
+            result.duplicate ? 200 : 201
+        );
     } catch (error) {
         if (error instanceof ArenaError && error.code === "RULE_VIOLATION") {
             return arenaJson({ error: error.message, code: error.code, violations: error.details }, 422);

@@ -14,6 +14,43 @@ import type {
     LeaderboardPolicy,
 } from "./types";
 
+// ──────────── Policy normalization (backwards compatibility) ────────────────
+
+/**
+ * Fill in fields added after a policy was first persisted.
+ *
+ * Challenge policies are stored in RTDB and snapshotted immutably onto each
+ * attempt at join time, so a definition saved before a field existed would
+ * otherwise fail validation or produce `NaN` in a rule. Normalization is
+ * additive only: every value already present is left exactly as configured,
+ * so an admin's intent is never rewritten underneath them.
+ */
+export function normalizeChallengePolicy(policy: ChallengePolicy): ChallengePolicy {
+    const maxRiskPerTradePct =
+        Number.isFinite(policy.maxRiskPerTradePct) && policy.maxRiskPerTradePct > 0 ? policy.maxRiskPerTradePct : 2;
+    return {
+        ...policy,
+        maxRiskPerTradePct,
+        // 3× the per-trade cap: enough room to run several correlated
+        // positions, tight enough that the drawdown envelope still governs.
+        maxAggregateRiskPctOfEquity:
+            Number.isFinite(policy.maxAggregateRiskPctOfEquity) && policy.maxAggregateRiskPctOfEquity > 0
+                ? policy.maxAggregateRiskPctOfEquity
+                : maxRiskPerTradePct * 3,
+        // Per-instrument net notional ceiling in × equity. 10× leaves room
+        // for a normal leveraged book under a 20× account cap while still
+        // preventing all exposure landing in a single instrument.
+        maxPositionNotionalMultiple:
+            Number.isFinite(policy.maxPositionNotionalMultiple) && policy.maxPositionNotionalMultiple > 0
+                ? policy.maxPositionNotionalMultiple
+                : 10,
+    };
+}
+
+export function normalizeDefinition<T extends ChallengeDefinition>(definition: T): T {
+    return { ...definition, policy: normalizeChallengePolicy(definition.policy) };
+}
+
 // ──────────── Policy validation (server-side, fail-closed) ───────────────────
 
 export interface PolicyValidation {
@@ -21,7 +58,8 @@ export interface PolicyValidation {
     errors: string[];
 }
 
-export function validateChallengePolicy(policy: ChallengePolicy): PolicyValidation {
+export function validateChallengePolicy(input: ChallengePolicy): PolicyValidation {
+    const policy = normalizeChallengePolicy(input);
     const errors: string[] = [];
     const positive = (name: string, value: number, max = 1_000_000) => {
         if (!Number.isFinite(value) || value <= 0 || value > max) {
@@ -55,7 +93,11 @@ export function validateChallengePolicy(policy: ChallengePolicy): PolicyValidati
     intAtLeast("maxConcurrentPositions", policy.maxConcurrentPositions, 1);
     intAtLeast("maxDailyTrades", policy.maxDailyTrades, 1);
     positive("maxRiskPerTradePct", policy.maxRiskPerTradePct, 100);
-    positive("maxPositionPctOfEquity", policy.maxPositionPctOfEquity, 100_000);
+    positive("maxAggregateRiskPctOfEquity", policy.maxAggregateRiskPctOfEquity, 1_000);
+    positive("maxPositionNotionalMultiple", policy.maxPositionNotionalMultiple, 100_000);
+    if (policy.maxAggregateRiskPctOfEquity < policy.maxRiskPerTradePct) {
+        errors.push("maxAggregateRiskPctOfEquity must be at least maxRiskPerTradePct, otherwise a single legal trade is always rejected.");
+    }
     positive("leveragePolicy.maxLeverageRatio", policy.leveragePolicy.maxLeverageRatio, 1000);
     positive("positionSizePolicy.maxSizeLots", policy.positionSizePolicy.maxSizeLots, 10_000);
     positive("positionSizePolicy.stepLots", policy.positionSizePolicy.stepLots, 100);
@@ -151,6 +193,12 @@ function basePolicy(overrides: Partial<ChallengePolicy>): ChallengePolicy {
         maxConcurrentPositions: 5,
         maxDailyTrades: 20,
         maxRiskPerTradePct: 2,
+        maxAggregateRiskPctOfEquity: 6,
+        maxPositionNotionalMultiple: 10,
+        // Legacy field kept for stored policies; see
+        // ChallengePolicy.maxPositionPctOfEquity and ./sizing. The effective
+        // per-instrument ceiling is max(10, 25/100) = 10× equity, i.e. the
+        // old 25%-of-equity notional cap no longer throttles normal sizing.
         maxPositionPctOfEquity: 25,
         positionSizePolicy: { maxSizeLots: 5, stepLots: 0.01 },
         consistency: {

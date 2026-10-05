@@ -6,10 +6,9 @@ import { auth } from "@/lib/firebase";
 import ProGate from "@/components/subscription/ProGate";
 import TradingViewChart from "@/components/tradingview/TradingViewChart";
 import MarketReplay from "@/components/tradingview/MarketReplay";
-import { ProTerminalChart } from "@/components/pro-scalping-terminal/ProTerminalChart";
+import { ProTerminalChartWorkspace } from "@/components/pro-scalping-terminal/ProTerminalChartWorkspace";
 import { ProTerminalReplay } from "@/components/pro-scalping-terminal/ProTerminalReplay";
-import { defaultLayerState, staticLayerAvailability, type ChartLayerId } from "@/components/pro-scalping-terminal/chart-layers";
-import { LayerPicker } from "@/components/pro-scalping-terminal/LayerPicker";
+import { defaultLayerState } from "@/components/pro-scalping-terminal/chart-layers";
 import { SUPPORTED_SYMBOLS, type SupportedSymbol } from "@/lib/market-data/types";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -515,7 +514,9 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
     // shared with the Pro Scalping Terminal chart engine.
     const [chartSymbol, setChartSymbol] = useState<SupportedSymbol>("XAUUSD");
     const [chartTimeframe, setChartTimeframe] = useState<"M1" | "M5" | "M15" | "M30" | "H1" | "H4" | "D1">("M15");
-    const [chartLayers, setChartLayers] = useState<Record<ChartLayerId, boolean>>(defaultLayerState);
+    // Initial layer map (current values — workspace owns its own per-symbol
+    // persistence, so this is the seed only).
+    const [chartLayers] = useState(defaultLayerState);
     // Pine study overlays computed from the real chart candles (plots, hlines,
     // plotshapes) — rendered by the Pro Terminal chart engine.
     const [studyOverlay, setStudyOverlay] = useState<PineStudyOverlay | null>(null);
@@ -523,7 +524,6 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
     // runs against these same bars so overlays align 1:1 with what is drawn.
     const chartCandlesRef = useRef<Array<{ timestamp: number; open: number; high: number; low: number; close: number; volume?: number }>>([]);
     const [chartCandlesVersion, setChartCandlesVersion] = useState(0);
-    const [layersOpen, setLayersOpen] = useState(false);
     const [useRealChart, setUseRealChart] = useState(true);
     const [authToken, setAuthToken] = useState<string | null>(null);
 
@@ -1509,27 +1509,12 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                         </div>
                         <button
                             type="button"
-                            onClick={() => setLayersOpen((o) => !o)}
-                            aria-expanded={layersOpen}
-                            className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                        >
-                            <Layers size={12} />
-                            Overlays
-                            <span className="font-mono text-[10px]">{Object.values(chartLayers).filter(Boolean).length}</span>
-                        </button>
-                        <button
-                            type="button"
                             onClick={() => setUseRealChart((v) => !v)}
                             className="rounded-md border border-border bg-background px-2 py-1 text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground"
                             title="Toggle between the real candle chart and the TradingView embed"
                         >
                             {useRealChart ? "TradingView embed" : "Real candles"}
                         </button>
-                        {layersOpen ? (
-                            <div className="rounded-md border border-border bg-background p-1.5">
-                                <LayerPicker compact layers={chartLayers} availability={staticLayerAvailability()} onToggle={(id) => setChartLayers((prev) => ({ ...prev, [id]: !prev[id] }))} />
-                            </div>
-                        ) : null}
                     </div>
                     {mode === "replay" && useRealChart ? (
                         <div className="p-2">
@@ -1541,18 +1526,19 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                         </div>
                     ) : useRealChart ? (
                         <div className="p-2">
-                            <ProTerminalChart
-                                symbol={chartSymbol}
-                                timeframe={chartTimeframe}
-                                layers={chartLayers}
-                                analysis={null}
-                                token={authToken}
-                                height={480}
+                            <ProTerminalChartWorkspace
+                                initialSymbol={chartSymbol}
+                                initialTimeframe={chartTimeframe}
+                                initialLayers={chartLayers}
                                 studyOverlay={studyOverlay}
                                 onCandlesChange={(candles) => {
                                     chartCandlesRef.current = candles;
                                     setChartCandlesVersion((v) => v + 1);
                                 }}
+                                token={authToken}
+                                height={480}
+                                hideWatchlist
+                                storageScope="pine-workspace"
                             />
                         </div>
                     ) : (

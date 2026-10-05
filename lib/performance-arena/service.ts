@@ -32,7 +32,7 @@ import {
     takeProfitHit,
 } from "./execution";
 import { computeMetrics, dayKeyOf, dailyPnlSeries } from "./metrics";
-import { evaluateAccountRules, evaluatePreTrade } from "./rules";
+import { evaluateAccountRules, evaluatePreTrade, type OrderIntent } from "./rules";
 import { applyTransition, InvalidTransitionError } from "./state-machine";
 import {
     evaluateSettlement,
@@ -55,7 +55,7 @@ import { runFraudDetections, detectImpossibleExecution, type FraudDetectionConte
 import { buildLeaderboardEntries, buildLeaderboardSnapshot } from "./leaderboard";
 import { buildTraderProfile, type ProfileHistoryItem } from "./profile";
 import * as store from "./store";
-import { toPriceMicros, plannedRiskCents } from "./money";
+import { toPriceMicros, plannedRiskCents, roundHalfAwayFromZero, centiLotsToNumber } from "./money";
 import { getSymbolSpec } from "@/lib/ai-signals/symbol-specs";
 import {
     ARENA_DISCLAIMERS,
@@ -75,6 +75,8 @@ import {
     type PerformanceReport,
     type RuleEvent,
     type TraderPerformanceProfile,
+    type TradeExitReason,
+    type TradeFillCosts,
     type VirtualAccount,
 } from "./types";
 
@@ -855,7 +857,15 @@ export interface AttemptState {
     account: VirtualAccount;
     metrics: ChallengeMetrics;
     openPositions: MarkedTrade[];
+    /** Last 25 trades, newest first — the history table. */
     recentTrades: ChallengeTrade[];
+    /**
+     * EVERY closed trade, oldest first. The performance panel's statistics
+     * (win rate, profit factor, streaks, daily P&L) are only meaningful over
+     * the full set; deriving them from the 25-row history table would silently
+     * understate them as a challenge accumulates history.
+     */
+    closedTrades: ChallengeTrade[];
     recentEvents: ChallengeEvent[];
     guardian: GuardianInsight[];
     requirements: PassRequirement[];
@@ -933,6 +943,7 @@ export async function getAttemptState(uid: string, attemptId: string): Promise<A
             metrics,
             openPositions: [],
             recentTrades: trades.slice(-25).reverse(),
+            closedTrades: closedTrades.slice().sort((a, b) => (a.closedAt ?? 0) - (b.closedAt ?? 0)),
             recentEvents: await store.listEvents(uid, attemptId, 50),
             guardian: [],
             requirements: passRequirements({ policy: attempt.policy, metrics, openPositionCount: 0 }),
@@ -1085,6 +1096,7 @@ export async function getAttemptState(uid: string, attemptId: string): Promise<A
             };
         }),
         recentTrades: trades.slice(-25).reverse(),
+        closedTrades: closedTrades.slice().sort((a, b) => (a.closedAt ?? 0) - (b.closedAt ?? 0)),
         recentEvents: await store.listEvents(uid, attemptId, 50),
         guardian,
         requirements: passRequirements({ policy: attempt.policy, metrics, openPositionCount: openTrades.length }),
@@ -1102,6 +1114,202 @@ export async function getAttemptState(uid: string, attemptId: string): Promise<A
     };
 }
 
+// ──────────── One-way netting: reductions ───────────────────────────────────
+//
+// The arena nets per instrument, exactly like an MT5 netting account: a sell
+// against an open long FLATTENS it instead of stacking a second, opposite
+// position. Without this, "sell" on a symbol you already hold long was treated
+// as a brand-new entry and was rejected by the same sizing rules that had
+// permitted the original buy — the account could get into a position it was
+// not allowed to leave.
+//
+// Costs are charged once, round-trip, at entry. A partial close therefore
+// splits them pro-rata and hands the residual to the surviving trade, so the
+// slices of a position always sum back to the original gross PnL and cost.
+
+/** Split a trade's round-trip costs between a closed slice and the remainder. */
+function splitTradeCosts(costs: TradeFillCosts, closeCentiLots: number, totalCentiLots: number): { closed: TradeFillCosts; remaining: TradeFillCosts } {
+    if (closeCentiLots >= totalCentiLots) {
+        return { closed: costs, remaining: { spreadCostCents: 0, slippageCostCents: 0, commissionCents: 0 } };
+    }
+    const share = (value: number) => roundHalfAwayFromZero((value * closeCentiLots) / totalCentiLots);
+    const closed = {
+        spreadCostCents: share(costs.spreadCostCents),
+        slippageCostCents: share(costs.slippageCostCents),
+        commissionCents: share(costs.commissionCents),
+    };
+    return {
+        closed,
+        remaining: {
+            spreadCostCents: costs.spreadCostCents - closed.spreadCostCents,
+            slippageCostCents: costs.slippageCostCents - closed.slippageCostCents,
+            commissionCents: costs.commissionCents - closed.commissionCents,
+        },
+    };
+}
+
+function totalCostCentsOf(costs: TradeFillCosts): number {
+    return Math.max(0, costs.spreadCostCents + costs.slippageCostCents + costs.commissionCents);
+}
+
+export interface ReductionResult {
+    closedCentiLots: number;
+    netPnLCents: number;
+    /** Deterministic suffix used for any partial-close slice records. */
+    sliceSuffix: string;
+    /** True when nothing at all was closed (no opposite exposure). */
+    noop: boolean;
+}
+
+/**
+ * Close up to `closeCentiLots` of the exposure opposite to `orderSide` on
+ * `symbol`, oldest position first (FIFO). This is the ONLY path that closes
+ * positions — the explicit "close" action, an opposing market order and a
+ * chart percentage-close all funnel through it, so accounting can never
+ * diverge between them.
+ */
+async function reduceExposure(params: {
+    uid: string;
+    attempt: ChallengeAttempt;
+    symbol: string;
+    orderSide: "long" | "short";
+    closeCentiLots: number;
+    quote: ArenaQuote;
+    exitReason: TradeExitReason;
+    now: number;
+    clientRequestId?: string;
+}): Promise<ReductionResult> {
+    const { uid, attempt, symbol, orderSide, closeCentiLots, quote, exitReason, now } = params;
+    const spec = arenaSymbolSpec(symbol);
+    if (!spec) throw new ArenaError(400, "UNKNOWN_SYMBOL", "Execution specification unavailable for this instrument.");
+
+    const oppositeSide = orderSide === "long" ? "short" : "long";
+    const openOpposite = (await store.listTrades(uid, attempt.id))
+        .filter((trade) => trade.status === "open" && trade.symbol === symbol && trade.side === oppositeSide)
+        .sort((a, b) => a.entryAt - b.entryAt);
+
+    const available = openOpposite.reduce((sum, trade) => sum + trade.sizeCentiLots, 0);
+    const sliceSuffix = params.clientRequestId ? store.rtdbKey(params.clientRequestId) : store.newArenaId("slice");
+    if (available === 0 || closeCentiLots <= 0) {
+        return { closedCentiLots: 0, netPnLCents: 0, sliceSuffix, noop: true };
+    }
+
+    const account = await store.getAccount(uid, attempt.id);
+    if (!account) throw new ArenaError(500, "ACCOUNT_MISSING", "Virtual account missing.");
+
+    let realizedDelta = 0;
+    let remaining = Math.min(closeCentiLots, available);
+    let sliceIndex = 0;
+
+    for (const trade of openOpposite) {
+        if (remaining <= 0) break;
+        const closeLots = Math.min(remaining, trade.sizeCentiLots);
+        remaining -= closeLots;
+        sliceIndex += 1;
+
+        const exit = computeExit({
+            side: trade.side,
+            entryPriceMicros: trade.entryPriceMicros,
+            sizeCentiLots: closeLots,
+            contractSize: spec.contractSize,
+            quotePrice: quote.price,
+            costs: trade.costs,
+        });
+        const { closed: closedCosts, remaining: remainingCosts } = splitTradeCosts(trade.costs, closeLots, trade.sizeCentiLots);
+        const netPnLCents = exit.grossPnLCents - totalCostCentsOf(closedCosts);
+        realizedDelta += netPnLCents;
+
+        const isFullClose = closeLots >= trade.sizeCentiLots;
+        const closedTrade: ChallengeTrade = {
+            ...trade,
+            // A partial slice is its own immutable record so the closed
+            // history stays auditable; a full close reuses the trade id.
+            tradeId: isFullClose ? trade.tradeId : `${trade.tradeId}_p${sliceIndex}_${sliceSuffix}`,
+            sizeCentiLots: closeLots,
+            costs: closedCosts,
+            status: "closed",
+            closedAt: now,
+            exitPriceMicros: exit.exitPriceMicros,
+            exitQuoteAt: quote.timestamp,
+            exitReason: isFullClose ? exitReason : "partial_close",
+            realizedPnLCents: netPnLCents,
+            updatedAt: now,
+        };
+        await store.saveTrade(closedTrade);
+
+        if (!isFullClose) {
+            // Shrink the survivor and hand it the residual costs + risk.
+            const remainingLots = trade.sizeCentiLots - closeLots;
+            const remainingRisk = trade.stopLossMicros === null
+                ? null
+                : plannedRiskCents({
+                    side: trade.side,
+                    entryPriceMicros: trade.entryPriceMicros,
+                    stopLossMicros: trade.stopLossMicros,
+                    sizeCentiLots: remainingLots,
+                    contractSize: spec.contractSize,
+                    costCents: totalCostCentsOf(remainingCosts),
+                });
+            await store.saveTrade({
+                ...trade,
+                sizeCentiLots: remainingLots,
+                costs: remainingCosts,
+                riskCents: remainingRisk,
+                clientRequestId: trade.clientRequestId,
+                updatedAt: now,
+            });
+        }
+
+        await persistEvent(uid, {
+            eventId: nextEventId("evt"),
+            attemptId: attempt.id,
+            type: isFullClose ? "TRADE_CLOSED" : "POSITION_REDUCED",
+            severity: "info",
+            message: isFullClose
+                ? `${trade.symbol} ${trade.side} ${centiLotsToNumber(closeLots)} lot(s) closed at ${quote.price} — net ${netPnLCents >= 0 ? "+" : ""}${(netPnLCents / 100).toFixed(2)} virtual.`
+                : `${trade.symbol} ${trade.side} reduced by ${centiLotsToNumber(closeLots)} lot(s) at ${quote.price} — net ${netPnLCents >= 0 ? "+" : ""}${(netPnLCents / 100).toFixed(2)} virtual (${centiLotsToNumber(trade.sizeCentiLots - closeLots)} lot(s) left open).`,
+            payload: {
+                tradeId: closedTrade.tradeId,
+                parentTradeId: trade.tradeId,
+                closedCentiLots: closeLots,
+                grossPnLCents: exit.grossPnLCents,
+                netPnLCents,
+                costs: closedCosts,
+                exitReason: closedTrade.exitReason,
+            },
+            timestamp: now,
+        });
+    }
+
+    const closedCentiLots = Math.min(closeCentiLots, available);
+    const realized = account.realizedPnLCents + realizedDelta;
+    const balance = account.startingBalanceCents + realized;
+
+    // Exposure is recomputed from the remaining open trades (authoritative),
+    // never incremented by a delta that may already be reflected.
+    const remainingOpen = (await store.listTrades(uid, attempt.id)).filter((trade) => trade.status === "open");
+    const exposureCents = remainingOpen.reduce((sum, trade) => {
+        const tradeSpec = arenaSymbolSpec(trade.symbol);
+        const contractSize = tradeSpec?.contractSize ?? contractSizeOf(trade.symbol);
+        return sum + roundHalfAwayFromZero((trade.entryPriceMicros / 1_000_000) * (trade.sizeCentiLots / 100) * contractSize * 100);
+    }, 0);
+
+    // Realized PnL, cash balance and gross exposure are settled here. Equity,
+    // unrealized PnL and the daily-loss base are deliberately NOT written: a
+    // partial close can leave other positions open, and markAccountToMarket is
+    // the single authority for marking them. The caller re-marks right after,
+    // so equity is never left stale (nor wrongly flattened to cash).
+    await store.saveAccount({
+        ...account,
+        realizedPnLCents: realized,
+        balanceCents: balance,
+        exposureCents,
+        updatedAt: now,
+    });
+
+    return { closedCentiLots, netPnLCents: realizedDelta, sliceSuffix, noop: closedCentiLots === 0 };
+}
+
 // ──────────── Orders ─────────────────────────────────────────────────────────
 
 export interface PlaceOrderInput {
@@ -1116,9 +1324,14 @@ export interface PlaceOrderInput {
 }
 
 export interface PlaceOrderResult {
+    /** The trade that was opened, or null when the order only reduced risk. */
     trade: ChallengeTrade | null;
     duplicate: boolean;
     state: AttemptState;
+    /** True when the order netted against existing exposure (close / flip). */
+    reduced: boolean;
+    /** Centi-lots closed by the netting leg (0 for a pure entry). */
+    reducedCentiLots: number;
 }
 
 export async function placeOrder(uid: string, attemptId: string, input: PlaceOrderInput): Promise<PlaceOrderResult> {
@@ -1133,9 +1346,9 @@ export async function placeOrder(uid: string, attemptId: string, input: PlaceOrd
     const orderType = input.orderType ?? "market";
     if (input.clientRequestId) {
         const existingTrade = await store.findTradeByClientRequestId(uid, attemptId, input.clientRequestId);
-        if (existingTrade) return { trade: existingTrade, duplicate: true, state: await getAttemptState(uid, attemptId) };
+        if (existingTrade) return { trade: existingTrade, duplicate: true, state: await getAttemptState(uid, attemptId), reduced: false, reducedCentiLots: 0 };
         const existingPending = await store.findPendingOrderByClientRequestId(uid, attemptId, input.clientRequestId);
-        if (existingPending) return { trade: null, duplicate: true, state: await getAttemptState(uid, attemptId) };
+        if (existingPending) return { trade: null, duplicate: true, state: await getAttemptState(uid, attemptId), reduced: false, reducedCentiLots: 0 };
     }
     if (orderType !== "market") {
         if (input.entryPrice == null || !Number.isFinite(input.entryPrice) || input.entryPrice <= 0) {
@@ -1197,24 +1410,111 @@ export async function placeOrder(uid: string, attemptId: string, input: PlaceOrd
         if (wrongSide) throw new ArenaError(400, "INVALID_TP", "Take-profit is on the wrong side of the current price.");
     }
 
-    const fill = computeFill({ side: input.side, sizeCentiLots: centiLots, quotePrice: quote.price, spec, policy: attempt.policy });
+    // ── One-way netting split ──────────────────────────────────────────────
+    // A sell against an open long (or a buy against an open short) first closes
+    // that exposure, exactly like a real netting account. Only the remainder
+    // opens a new position, and only the remainder is measured against the entry
+    // gates. A pure reduction opens nothing, so it can never be rejected by an
+    // entry rule — the account is always escapable.
+    const oppositeSide = input.side === "long" ? "short" : "long";
+    const nettableCentiLots = openTrades
+        .filter((trade) => trade.symbol === spec.symbol && trade.side === oppositeSide)
+        .reduce((sum, trade) => sum + trade.sizeCentiLots, 0);
+    const reductionCentiLots = Math.min(centiLots, nettableCentiLots);
+    const openCentiLots = centiLots - reductionCentiLots;
+
+    let reduction: ReductionResult | null = null;
+    if (reductionCentiLots > 0) {
+        reduction = await reduceExposure({
+            uid,
+            attempt,
+            symbol: spec.symbol,
+            orderSide: input.side,
+            closeCentiLots: reductionCentiLots,
+            quote,
+            exitReason: "manual",
+            now,
+            clientRequestId: input.clientRequestId,
+        });
+    }
+
+    // Pure reduction: the netting leg consumed the whole order. Re-mark so
+    // equity reflects any positions that survived the partial close.
+    if (openCentiLots === 0) {
+        if (!reduction || reduction.closedCentiLots === 0) {
+            throw new ArenaError(400, "NOTHING_TO_REDUCE", `No open ${oppositeSide} ${spec.symbol} position exists to reduce.`);
+        }
+        const postCloseAccount = await store.getAccount(uid, attemptId);
+        if (postCloseAccount) {
+            const survivors = (await store.listTrades(uid, attemptId)).filter((trade) => trade.status === "open");
+            const { account: reMarked, marks: reMarks, quoteAt: reQuoteAt } = await markAccountToMarket(uid, attempt, postCloseAccount, survivors, now);
+            const postMetrics = buildMetrics({
+                attempt,
+                account: reMarked,
+                openTrades: survivors,
+                closedTrades: trades.filter((t) => t.status === "closed").concat(trades.filter((t) => t.status === "open" && t.symbol === spec.symbol && t.side === oppositeSide)),
+                marks: reMarks,
+                quoteAt: reQuoteAt,
+                now,
+                equityCurve: [],
+            });
+            await persistRuleEvents(uid, attemptId, evaluateAccountRules(makeRuleContext(attempt, attempt.policy, postMetrics, now)), now);
+        }
+        return {
+            trade: null,
+            duplicate: false,
+            state: await getAttemptState(uid, attemptId),
+            reduced: true,
+            reducedCentiLots: reduction.closedCentiLots,
+        };
+    }
+
+    // Netting remainder opens: re-read state so the entry gate sees the
+    // post-reduction equity, risk and exposure, never the stale pre-fill values.
+    let gateMetrics = metrics;
+    let gateOpenCount = openTrades.length;
+    if (reduction && reduction.closedCentiLots > 0) {
+        const freshTrades = await store.listTrades(uid, attemptId);
+        const freshOpen = freshTrades.filter((t) => t.status === "open");
+        const freshAccount = await store.getAccount(uid, attemptId);
+        if (freshAccount) {
+            const { account: reMarked, marks: reMarks, quoteAt: reQuoteAt } = await markAccountToMarket(uid, attempt, freshAccount, freshOpen, now);
+            gateMetrics = buildMetrics({
+                attempt,
+                account: reMarked,
+                openTrades: freshOpen,
+                closedTrades: freshTrades.filter((t) => t.status === "closed"),
+                marks: reMarks,
+                quoteAt: reQuoteAt,
+                now,
+                equityCurve: [],
+            });
+            gateOpenCount = freshOpen.length;
+        }
+    }
+
+    const fill = computeFill({ side: input.side, sizeCentiLots: openCentiLots, quotePrice: quote.price, spec, policy: attempt.policy });
     const riskCents = fill.riskCents(stopLossMicros);
     const session = getCurrentSession(new Date(now)).current;
 
     const preTrade = evaluatePreTrade({
         attempt,
         policy: attempt.policy,
-        metrics,
+        metrics: gateMetrics,
         now,
         symbol: spec.symbol,
-        sizeCentiLots: centiLots,
+        side: input.side,
+        sizeCentiLots: openCentiLots,
         stopLossMicros,
+        takeProfitMicros,
+        entryPriceMicros: quotePriceMicros(quote.price),
         notionalCents: fill.notionalCents,
         riskCents,
-        openPositions: openTrades.length,
+        openPositions: gateOpenCount,
         quotePrice: quote.price,
         session: session === "closed" ? null : session,
         marketOpen: spec.market === "crypto" ? true : isMarketOpen(new Date(now)),
+        intent: "open",
         nextEventId: () => nextEventId("rule"),
     });
 
@@ -1253,7 +1553,7 @@ export async function placeOrder(uid: string, attemptId: string, input: PlaceOrd
         symbol: spec.symbol,
         market: spec.market,
         side: input.side,
-        sizeCentiLots: centiLots,
+        sizeCentiLots: openCentiLots,
         entryPriceMicros: fill.entryPriceMicros,
         entryAt: now,
         entryQuoteAt: quote.timestamp,
@@ -1271,9 +1571,19 @@ export async function placeOrder(uid: string, attemptId: string, input: PlaceOrd
         updatedAt: now,
     };
     const savedTrade = await store.createTradeIfAbsent(trade);
-    if (!savedTrade.created) return { trade: savedTrade.trade, duplicate: true, state: await getAttemptState(uid, attemptId) };
+    if (!savedTrade.created) {
+        return {
+            trade: savedTrade.trade,
+            duplicate: true,
+            state: await getAttemptState(uid, attemptId),
+            reduced: !!reduction && reduction.closedCentiLots > 0,
+            reducedCentiLots: reduction?.closedCentiLots ?? 0,
+        };
+    }
 
-    // Trading-day / daily-trade accounting.
+    // Trading-day / daily-trade accounting. Only the newly opened remainder
+    // counts as a trade — a netting leg that merely closed exposure must not
+    // consume the trader's daily-trade allowance.
     const dayKey = dayKeyOf(now);
     const updatedAttempt: ChallengeAttempt = {
         ...attempt,
@@ -1283,40 +1593,60 @@ export async function placeOrder(uid: string, attemptId: string, input: PlaceOrd
     };
     await store.saveAttempt(updatedAttempt);
 
+    // Fees are charged once, round-trip, at entry (the position already
+    // carries them). Exposure is recomputed from the post-fill open set so it
+    // stays authoritative even after a netting leg closed something.
+    const postFillOpen = (await store.listTrades(uid, attemptId)).filter((t) => t.status === "open");
     const updatedAccount: VirtualAccount = {
         ...marked,
+        realizedPnLCents: account.realizedPnLCents + (reduction?.netPnLCents ?? 0),
+        balanceCents: account.startingBalanceCents + account.realizedPnLCents + (reduction?.netPnLCents ?? 0),
         feesCents: marked.feesCents + fill.totalCostCents,
-        exposureCents: marked.exposureCents + fill.notionalCents,
+        exposureCents: postFillOpen.reduce((sum, t) => {
+            const tSpec = arenaSymbolSpec(t.symbol);
+            const cs = tSpec?.contractSize ?? contractSizeOf(t.symbol);
+            return sum + Math.round((t.entryPriceMicros / 1_000_000) * (t.sizeCentiLots / 100) * cs * 100);
+        }, 0),
         updatedAt: now,
     };
     await store.saveAccount(updatedAccount);
 
+    const openLots = centiLotsToNumber(openCentiLots);
     await persistEvent(uid, {
         eventId: nextEventId("evt"),
         attemptId,
         type: "TRADE_OPENED",
         severity: "info",
-        message: `${spec.symbol} ${input.side} ${input.sizeLots} lot(s) opened at ${quote.price} (virtual). Round-trip cost: $${(fill.totalCostCents / 100).toFixed(2)}.`,
+        message:
+            `${spec.symbol} ${input.side} ${openLots} lot(s) opened at ${quote.price} (virtual). Round-trip cost: $${(fill.totalCostCents / 100).toFixed(2)}.` +
+            (reduction && reduction.closedCentiLots > 0
+                ? ` Netting leg first reduced ${centiLotsToNumber(reduction.closedCentiLots)} lot(s) of opposite exposure.`
+                : ""),
         payload: {
             tradeId: trade.tradeId,
             symbol: spec.symbol,
             side: input.side,
-            sizeCentiLots: centiLots,
+            sizeCentiLots: openCentiLots,
             entryPriceMicros: fill.entryPriceMicros,
             costs: fill.costs,
             riskCents,
+            nettedCentiLots: reduction?.closedCentiLots ?? 0,
+            nettedNetPnLCents: reduction?.netPnLCents ?? 0,
         },
         timestamp: now,
     });
 
     // Post-entry rule evaluation (exposure/limits/daily-loss proximity).
-    const afterTrades = [...trades.filter((t) => t.status === "open"), trade];
+    const afterTrades = [...postFillOpen];
     const postMetrics = buildMetrics({
         attempt: updatedAttempt,
         account: updatedAccount,
         openTrades: afterTrades,
-        closedTrades,
-        marks: [...marks, { tradeId: trade.tradeId, unrealizedPnLCents: -fill.totalCostCents, markPriceMicros: fill.entryPriceMicros, quoteAt: quote.timestamp }],
+        closedTrades: trades.filter((t) => t.status === "closed"),
+        marks: [
+            ...marks.filter((m) => afterTrades.some((t) => t.tradeId === m.tradeId)),
+            { tradeId: trade.tradeId, unrealizedPnLCents: -fill.totalCostCents, markPriceMicros: fill.entryPriceMicros, quoteAt: quote.timestamp },
+        ],
         quoteAt: quote.timestamp,
         now,
         equityCurve: [],
@@ -1335,7 +1665,13 @@ export async function placeOrder(uid: string, attemptId: string, input: PlaceOrd
     };
     for (const flag of runFraudDetections({ ctx: fraudCtx })) await store.writeFraudFlag(flag);
 
-    return { trade, duplicate: false, state: await getAttemptState(uid, attemptId) };
+    return {
+        trade,
+        duplicate: false,
+        state: await getAttemptState(uid, attemptId),
+        reduced: !!reduction && reduction.closedCentiLots > 0,
+        reducedCentiLots: reduction?.closedCentiLots ?? 0,
+    };
 }
 
 async function createPendingOrder(uid: string, attemptId: string, input: PlaceOrderInput, orderType: "limit" | "stop", now: number): Promise<PlaceOrderResult> {
@@ -1377,11 +1713,19 @@ async function createPendingOrder(uid: string, attemptId: string, input: PlaceOr
     const { account: marked, marks, quoteAt } = await markAccountToMarket(uid, attempt, account, openTrades, now);
     const metrics = buildMetrics({ attempt, account: marked, openTrades, closedTrades: trades.filter((trade) => trade.status === "closed"), marks, quoteAt, now, equityCurve: [] });
     const session = getCurrentSession(new Date(now)).current;
+    // A pending order that would net against existing exposure resolves to a
+    // close at fill time, so it is gated as a reduction: entry ceilings must not
+    // block a trader from placing the order that flattens their position.
+    const pendingOppositeCentiLots = openTrades
+        .filter((trade) => trade.symbol === spec.symbol && trade.side === (input.side === "long" ? "short" : "long"))
+        .reduce((sum, trade) => sum + trade.sizeCentiLots, 0);
+    const pendingIntent: OrderIntent = pendingOppositeCentiLots >= centiLots ? "reduce" : "open";
     const preTrade = evaluatePreTrade({
-        attempt, policy: attempt.policy, metrics, now, symbol: spec.symbol, sizeCentiLots: centiLots,
-        stopLossMicros, notionalCents: reference.notionalCents, riskCents, openPositions: openTrades.length,
-        quotePrice: input.entryPrice!, session: session === "closed" ? null : session,
-        marketOpen: spec.market === "crypto" ? true : isMarketOpen(new Date(now)), nextEventId: () => nextEventId("rule"),
+        attempt, policy: attempt.policy, metrics, now, symbol: spec.symbol, side: input.side, sizeCentiLots: centiLots,
+        stopLossMicros, takeProfitMicros, entryPriceMicros, notionalCents: reference.notionalCents, riskCents,
+        openPositions: openTrades.length, quotePrice: input.entryPrice!, session: session === "closed" ? null : session,
+        marketOpen: spec.market === "crypto" ? true : isMarketOpen(new Date(now)), intent: pendingIntent,
+        nextEventId: () => nextEventId("rule"),
     });
     if (!preTrade.ok) {
         await persistEvent(uid, {
@@ -1405,7 +1749,7 @@ async function createPendingOrder(uid: string, attemptId: string, input: PlaceOr
         message: `${spec.symbol} ${input.side} ${orderType} simulated order placed at ${input.entryPrice}.`,
         payload: { orderId: pendingOrder.orderId, symbol: spec.symbol, side: input.side, orderType, entryPriceMicros }, timestamp: now,
     });
-    return { trade: null, duplicate: false, state: await getAttemptState(uid, attemptId) };
+    return { trade: null, duplicate: false, state: await getAttemptState(uid, attemptId), reduced: false, reducedCentiLots: 0 };
 }
 
 async function processPendingOrders(uid: string, attempt: ChallengeAttempt, orders: ChallengePendingOrder[], quotes: Map<string, ArenaQuote>, now: number): Promise<boolean> {
@@ -1448,12 +1792,57 @@ async function processPendingOrders(uid: string, attempt: ChallengeAttempt, orde
             const { account: marked, marks, quoteAt } = await markAccountToMarket(uid, attempt, account, openTrades, now);
             const metrics = buildMetrics({ attempt, account: marked, openTrades, closedTrades, marks, quoteAt, now, equityCurve: [] });
             const spec = arenaSymbolSpec(claim.symbol)!;
-            const fill = computeFill({ side: claim.side, sizeCentiLots: claim.sizeCentiLots, quotePrice: marketPrice, spec, policy: attempt.policy });
+
+            // One-way netting at fill time: an opposite pending order flattens
+            // open exposure instead of opening a second, opposite position. A
+            // reduction is never blocked by an entry gate, so it commits even
+            // though the same order would have been rejected as an entry.
+            const nettableCentiLots = openTrades
+                .filter((trade) => trade.symbol === claim.symbol && trade.side === (claim.side === "long" ? "short" : "long"))
+                .reduce((sum, trade) => sum + trade.sizeCentiLots, 0);
+            const reductionCentiLots = Math.min(claim.sizeCentiLots, nettableCentiLots);
+            const openCentiLots = claim.sizeCentiLots - reductionCentiLots;
+
+            let reduction: ReductionResult | null = null;
+            if (reductionCentiLots > 0) {
+                reduction = await reduceExposure({
+                    uid,
+                    attempt,
+                    symbol: claim.symbol,
+                    orderSide: claim.side,
+                    closeCentiLots: reductionCentiLots,
+                    quote,
+                    exitReason: "manual",
+                    now,
+                    clientRequestId: `pending_${claim.orderId}`,
+                });
+            }
+            if (openCentiLots === 0) {
+                // Fully netted: close exposure, cancel the remainder, done.
+                await store.savePendingOrder({
+                    ...claim,
+                    status: "filled",
+                    filledTradeId: null,
+                });
+                await persistEvent(uid, {
+                    eventId: `evt_pending_netted_${store.rtdbKey(claim.orderId)}`,
+                    attemptId: attempt.id,
+                    type: "TRADE_CLOSED",
+                    severity: "info",
+                    message: `${claim.symbol} ${claim.side} ${claim.orderType} filled and netted against open exposure — ${centiLotsToNumber(reduction?.closedCentiLots ?? 0)} lot(s) closed at ${marketPrice} (virtual).`,
+                    payload: { orderId: claim.orderId, closedCentiLots: reduction?.closedCentiLots ?? 0, netPnLCents: reduction?.netPnLCents ?? 0 },
+                    timestamp: now,
+                });
+                filledAny = true;
+                break;
+            }
+
+            const fill = computeFill({ side: claim.side, sizeCentiLots: openCentiLots, quotePrice: marketPrice, spec, policy: attempt.policy });
             const riskCents = fill.riskCents(claim.stopLossMicros);
             const candidateTradeId = claim.filledTradeId ?? store.rtdbKey(`pending-fill_${claim.orderId}`);
             const candidateTrade: ChallengeTrade = {
                 tradeId: candidateTradeId, attemptId: attempt.id, userId: uid, symbol: claim.symbol, market: claim.market, side: claim.side,
-                sizeCentiLots: claim.sizeCentiLots, entryPriceMicros: fill.entryPriceMicros, entryAt: now,
+                sizeCentiLots: openCentiLots, entryPriceMicros: fill.entryPriceMicros, entryAt: now,
                 entryQuoteAt: quote.timestamp, costs: fill.costs, stopLossMicros: claim.stopLossMicros,
                 takeProfitMicros: claim.takeProfitMicros, riskCents, status: "open", closedAt: null, exitPriceMicros: null,
                 exitQuoteAt: null, exitReason: null, realizedPnLCents: null, clientRequestId: claim.clientRequestId, updatedAt: now,
@@ -1462,11 +1851,37 @@ async function processPendingOrders(uid: string, attempt: ChallengeAttempt, orde
                 (claim.stopLossMicros === null || (claim.side === "long" ? claim.stopLossMicros < fill.entryPriceMicros : claim.stopLossMicros > fill.entryPriceMicros)) &&
                 (claim.takeProfitMicros === null || (claim.side === "long" ? claim.takeProfitMicros > fill.entryPriceMicros : claim.takeProfitMicros < fill.entryPriceMicros));
             const session = getCurrentSession(new Date(now)).current;
+            // Re-gate only the opening remainder. When a netting leg already ran
+            // the state changed, so the gate must see post-reduction metrics.
+            let gateMetrics = metrics;
+            let gateOpenCount = openTrades.length;
+            if (reduction && reduction.closedCentiLots > 0) {
+                const freshTrades = await store.listTrades(uid, attempt.id);
+                const freshOpen = freshTrades.filter((trade) => trade.status === "open");
+                const freshAccount = await store.getAccount(uid, attempt.id);
+                if (freshAccount) {
+                    const { account: reMarked, marks: reMarks, quoteAt: reQuoteAt } = await markAccountToMarket(uid, attempt, freshAccount, freshOpen, now);
+                    gateMetrics = buildMetrics({
+                        attempt,
+                        account: reMarked,
+                        openTrades: freshOpen,
+                        closedTrades: freshTrades.filter((trade) => trade.status === "closed"),
+                        marks: reMarks,
+                        quoteAt: reQuoteAt,
+                        now,
+                        equityCurve: [],
+                    });
+                    gateOpenCount = freshOpen.length;
+                }
+            }
             const preTrade = evaluatePreTrade({
-                attempt, policy: attempt.policy, metrics, now, symbol: claim.symbol, sizeCentiLots: claim.sizeCentiLots,
-                stopLossMicros: claim.stopLossMicros, notionalCents: fill.notionalCents, riskCents,
-                openPositions: openTrades.length, quotePrice: marketPrice, session: session === "closed" ? null : session,
-                marketOpen: spec.market === "crypto" ? true : isMarketOpen(new Date(now)), nextEventId: () => nextEventId("rule"),
+                attempt, policy: attempt.policy, metrics: gateMetrics, now, symbol: claim.symbol, side: claim.side,
+                sizeCentiLots: openCentiLots,
+                stopLossMicros: claim.stopLossMicros, takeProfitMicros: claim.takeProfitMicros,
+                entryPriceMicros: fill.entryPriceMicros, notionalCents: fill.notionalCents, riskCents,
+                openPositions: gateOpenCount, quotePrice: marketPrice, session: session === "closed" ? null : session,
+                marketOpen: spec.market === "crypto" ? true : isMarketOpen(new Date(now)), intent: "open",
+                nextEventId: () => nextEventId("rule"),
             });
             if (preTrade.advisories.length > 0) await persistRuleEvents(uid, attempt.id, preTrade.advisories, now);
             if (!preTrade.ok || !stopsFitFill) {
@@ -1485,8 +1900,26 @@ async function processPendingOrders(uid: string, attempt: ChallengeAttempt, orde
             const committed = await store.commitPendingFill({ uid, attemptId: attempt.id, order: claim, trade, now });
             if (!committed) continue;
             filledAny = true;
-            await persistEvent(uid, { eventId: `evt_pending_fill_${store.rtdbKey(claim.orderId)}`, attemptId: attempt.id, type: "TRADE_OPENED", severity: "info", message: `${claim.symbol} ${claim.side} ${claim.orderType} filled at ${marketPrice} (virtual).`, payload: { tradeId, orderId: claim.orderId, entryPriceMicros: fill.entryPriceMicros, costs: fill.costs }, timestamp: now });
-            void metrics;
+            await persistEvent(uid, {
+                eventId: `evt_pending_fill_${store.rtdbKey(claim.orderId)}`,
+                attemptId: attempt.id,
+                type: "TRADE_OPENED",
+                severity: "info",
+                message:
+                    `${claim.symbol} ${claim.side} ${claim.orderType} filled at ${marketPrice} (virtual) — ${centiLotsToNumber(openCentiLots)} lot(s) opened.` +
+                    (reduction && reduction.closedCentiLots > 0
+                        ? ` ${centiLotsToNumber(reduction.closedCentiLots)} lot(s) of opposite exposure netted first.`
+                        : ""),
+                payload: {
+                    tradeId,
+                    orderId: claim.orderId,
+                    entryPriceMicros: fill.entryPriceMicros,
+                    costs: fill.costs,
+                    sizeCentiLots: openCentiLots,
+                    nettedCentiLots: reduction?.closedCentiLots ?? 0,
+                },
+                timestamp: now,
+            });
             break;
         } catch (error) {
             if (!claim.filledTrade) await store.releasePendingOrderClaim(uid, attempt.id, claim.orderId, claim.processingAt ?? now);
@@ -1542,7 +1975,19 @@ export async function cancelPendingOrder(uid: string, attemptId: string, orderId
     return getAttemptState(uid, attemptId);
 }
 
-export async function closePosition(uid: string, attemptId: string, tradeId: string, clientRequestId?: string): Promise<AttemptState> {
+/**
+ * Close a position — fully by default, or partially via `size` (lot amount or
+ * percent of the position). Both delegate to `reduceExposure`, the single
+ * netting engine, so a chart "close 50%" and an opposing market order produce
+ * identical accounting.
+ */
+export async function closePosition(
+    uid: string,
+    attemptId: string,
+    tradeId: string,
+    clientRequestId?: string,
+    size?: { lots?: number; percent?: number }
+): Promise<AttemptState> {
     const now = Date.now();
     const attempt = await store.getAttempt(uid, attemptId);
     if (!attempt) throw new ArenaError(404, "ATTEMPT_NOT_FOUND", "Challenge attempt not found.");
@@ -1574,70 +2019,47 @@ export async function closePosition(uid: string, attemptId: string, tradeId: str
         throw new ArenaError(503, "MARKET_DATA_UNAVAILABLE", "Live market data is unavailable — position paused and close rejected (fail-closed).");
     }
 
-    const spec = arenaSymbolSpec(trade.symbol);
-    const contractSize = spec?.contractSize ?? contractSizeOf(trade.symbol);
-    const exit = computeExit({
-        side: trade.side,
-        entryPriceMicros: trade.entryPriceMicros,
-        sizeCentiLots: trade.sizeCentiLots,
-        contractSize,
-        quotePrice: quote.price,
-        costs: trade.costs,
-    });
+    // Resolve the requested size to centi-lots, clamped to the position.
+    const stepCentiLots = Math.max(1, Math.round(attempt.policy.positionSizePolicy.stepLots * 100));
+    let closeCentiLots = trade.sizeCentiLots;
+    if (size && (size.lots != null || size.percent != null)) {
+        const requestedCentiLots =
+            size.lots != null
+                ? Math.round(size.lots * 100)
+                : Math.round((trade.sizeCentiLots * (size.percent as number)) / 100);
+        if (!Number.isSafeInteger(requestedCentiLots) || requestedCentiLots <= 0) {
+            throw new ArenaError(400, "INVALID_SIZE", "Close size must be a positive number of lots or percent.");
+        }
+        // Snap DOWN to the lot grid so a partial close is always tradable, and
+        // never exceed the position.
+        closeCentiLots = Math.min(
+            trade.sizeCentiLots,
+            Math.max(stepCentiLots, Math.floor(requestedCentiLots / stepCentiLots) * stepCentiLots)
+        );
+    }
 
-    const closedTrade: ChallengeTrade = {
-        ...trade,
-        status: "closed",
-        closedAt: now,
-        exitPriceMicros: exit.exitPriceMicros,
-        exitQuoteAt: quote.timestamp,
+    const reduction = await reduceExposure({
+        uid,
+        attempt,
+        symbol: trade.symbol,
+        orderSide: trade.side === "long" ? "short" : "long",
+        closeCentiLots,
+        quote,
         exitReason: "manual",
-        realizedPnLCents: exit.netPnLCents,
-    };
-    await store.saveTrade(closedTrade);
-
-    const account = await store.getAccount(uid, attemptId);
-    if (!account) throw new ArenaError(500, "ACCOUNT_MISSING", "Virtual account missing.");
-    const realized = account.realizedPnLCents + exit.netPnLCents;
-    const balance = account.startingBalanceCents + realized;
-    const equity = balance; // flat after close
-    const updated: VirtualAccount = {
-        ...account,
-        realizedPnLCents: realized,
-        balanceCents: balance,
-        equityCents: equity,
-        unrealizedPnLCents: 0,
-        peakEquityCents: Math.max(account.peakEquityCents, equity),
-        dailyPnLCcents: equity - account.dayStartEquityCents,
-        updatedAt: now,
-    };
-    // Exposure recomputed from remaining open trades (authoritative).
-    const remainingOpen = (await store.listTrades(uid, attemptId)).filter((t) => t.status === "open");
-    updated.exposureCents = remainingOpen.reduce((sum, t) => {
-        const s = arenaSymbolSpec(t.symbol);
-        const cs = s?.contractSize ?? contractSizeOf(t.symbol);
-        return sum + Math.round((t.entryPriceMicros / 1_000_000) * (t.sizeCentiLots / 100) * cs * 100);
-    }, 0);
-    await store.saveAccount(updated);
-
-    await persistEvent(uid, {
-        eventId: nextEventId("evt"),
-        attemptId,
-        type: "TRADE_CLOSED",
-        severity: "info",
-        message: `${trade.symbol} ${trade.side} closed at ${quote.price} — net ${exit.netPnLCents >= 0 ? "+" : ""}${(exit.netPnLCents / 100).toFixed(2)} virtual.`,
-        payload: {
-            tradeId,
-            grossPnLCents: exit.grossPnLCents,
-            netPnLCents: exit.netPnLCents,
-            costs: trade.costs,
-            exitReason: "manual",
-        },
-        timestamp: now,
+        now,
+        clientRequestId,
     });
+    if (reduction.noop) throw new ArenaError(409, "POSITION_CHANGED", "Position was already closed — reload and retry.");
 
-    const state = await getAttemptState(uid, attemptId);
-    return state;
+    // A partial close can leave other positions open, so re-mark to keep
+    // equity, unrealized PnL and the daily-loss base correct.
+    const postAccount = await store.getAccount(uid, attemptId);
+    if (postAccount) {
+        const survivors = (await store.listTrades(uid, attemptId)).filter((t) => t.status === "open");
+        await markAccountToMarket(uid, attempt, postAccount, survivors, now);
+    }
+
+    return getAttemptState(uid, attemptId);
 }
 
 // ──────────── Cancel ─────────────────────────────────────────────────────────

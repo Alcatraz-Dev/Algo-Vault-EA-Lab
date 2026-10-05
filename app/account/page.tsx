@@ -22,6 +22,7 @@ import {
     FileText,
     Gift,
     Heart,
+    LayoutDashboard,
     Package,
     Radio,
     Settings,
@@ -358,6 +359,13 @@ export default function AccountPage() {
 
                 {/* Quick cards */}
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5" data-guide="quick-access">
+                    <QuickCard
+                        href="/dashboard"
+                        icon={<LayoutDashboard className="h-5 w-5 text-violet-400" />}
+                        iconClass="bg-violet-500/10"
+                        title="Custom Dashboard"
+                        text="Build a widget workspace from your live accounts."
+                    />
                     <QuickCard
                         href="/account/purchases"
                         icon={<Package className="h-5 w-5 text-blue-400" />}

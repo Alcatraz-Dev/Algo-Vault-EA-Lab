@@ -407,10 +407,41 @@ function stubJevEndpoint(): () => void {
     globalThis.fetch = (async () =>
         new Response(
             JSON.stringify({
-                decision: "BUY",
-                confidence: 87,
-                answers: [{ id: "structure_aligned", answer: "yes", confidence: 0.9 }],
-                reasoning_summary: "Aligned with structure and HTF.",
+                // Real POST /v1/systemone envelope (verified against the live
+                // endpoint): { code, data.result.answers } with typed answers.
+                code: 0,
+                message: "ok",
+                data: {
+                    result: {
+                        answers: {
+                            decision: {
+                                type: "choice",
+                                choice: "BUY",
+                                probabilities: { BUY: 0.9, SELL: 0.05, HOLD: 0.05 },
+                                confidence: 0.9,
+                            },
+                            evidence_strength: {
+                                type: "score",
+                                score: 3.4,
+                                legend: { "0": "Very weak", "1": "Weak", "2": "Moderate", "3": "Strong", "4": "Very strong" },
+                                probabilities: { "0": 0, "1": 0, "2": 0.1, "3": 0.8, "4": 0.1 },
+                                confidence: 0.86,
+                            },
+                            structure_aligned: { type: "noul", noul: 0.94 },
+                            htf_aligned: { type: "noul", noul: 0.9 },
+                            liquidity_swept: { type: "noul", noul: 0.82 },
+                            fvg_valid: { type: "noul", noul: 0.86 },
+                            ob_valid: { type: "noul", noul: 0.8 },
+                            volatility_ok: { type: "noul", noul: 0.78 },
+                            regime_compatible: { type: "noul", noul: 0.75 },
+                            internally_consistent: { type: "noul", noul: 0.9 },
+                            quality: { type: "noul", noul: 0.83 },
+                        },
+                        usage: { input_tokens: 612, output_tokens: 96 },
+                        elapsedMs: 140,
+                    },
+                    creditsUsed: 1,
+                },
             }),
             { status: 200, headers: { "content-type": "application/json" } },
         )) as typeof fetch;

@@ -1,326 +1,623 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { onSubscriptionChange } from "@/lib/subscription";
 import {
-    Loader2, Shield, Plus, Trash2, Settings, GripVertical, X, Layout,
-    TrendingUp, ShieldAlert, Bell, Activity, Wallet, BarChart3, Clock,
-    Brain, Activity as ActivityIcon, Target, Sparkles,
+    AlertTriangle,
+    Crown,
+    GripVertical,
+    Loader2,
+    Plus,
+    RefreshCw,
+    RotateCcw,
+    Shield,
+    Trash2,
+    X,
 } from "lucide-react";
-import Link from "next/link";
+import AccountShell from "@/components/account/AccountShell";
 import { AITeamsEntryCard } from "@/components/ai-trading-teams/entry-card";
-import SiteNavbar from "@/components/navbar/SiteNavbar";
 import { DashboardNativeAd } from "@/components/growth/DashboardNativeAd";
+import {
+    WIDGET_CATALOG,
+    WIDGET_SPEC_BY_TYPE,
+    WidgetBody,
+    WidgetPicker,
+    defaultWidgetConfig,
+    type DashboardWidget,
+    type PortfolioAccount,
+} from "@/components/dashboard/widgets";
 import { cn } from "@/lib/utils";
 
-type Widget = {
-    id: string; type: string; title: string;
-    x: number; y: number; w: number; h: number;
-    config: Record<string, unknown>;
+type DashboardConfig = {
+    id: string;
+    name: string;
+    widgets: DashboardWidget[];
+    createdAt: number;
+    updatedAt: number;
 };
 
-type DashboardConfig = { id: string; name: string; widgets: Widget[]; createdAt: number; updatedAt: number };
+const SPAN_BY_WIDTH: Record<number, string> = {
+    1: "sm:col-span-1",
+    2: "sm:col-span-2",
+    3: "sm:col-span-3",
+};
 
-function currentTimestamp(): number {
-    return Date.now();
+function normalizeWidget(widget: DashboardWidget): DashboardWidget {
+    const spec = WIDGET_SPEC_BY_TYPE[widget.type];
+    const width = spec?.widths.includes(widget.w) ? widget.w : (spec?.widths[0] ?? 1);
+    return { ...widget, w: width, h: widget.h === 2 ? 2 : 1, config: widget.config ?? {} };
 }
 
-const WIDGET_TYPES = [
-    { type: "portfolio_summary", label: "Portfolio Summary", icon: Wallet, defaultW: 2, defaultH: 1 },
-    { type: "market_score", label: "Market Score", icon: Activity, defaultW: 1, defaultH: 1 },
-    { type: "risk_gauge", label: "Risk Gauge", icon: ShieldAlert, defaultW: 1, defaultH: 1 },
-    { type: "recent_alerts", label: "Recent Alerts", icon: Bell, defaultW: 2, defaultH: 1 },
-    { type: "positions_table", label: "Open Positions", icon: BarChart3, defaultW: 3, defaultH: 1 },
-    { type: "performance_chart", label: "Performance", icon: TrendingUp, defaultW: 2, defaultH: 2 },
-    { type: "market_clock", label: "Market Clock", icon: Clock, defaultW: 1, defaultH: 1 },
-    { type: "watchlist迷你", label: "Mini Watchlist", icon: Layout, defaultW: 1, defaultH: 2 },
-];
+function newWidgetId(): string {
+    return `w_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+}
 
 export default function DashboardBuilderPage() {
+    const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
+
     const [dashboards, setDashboards] = useState<DashboardConfig[]>([]);
-    const [activeDashId, setActiveDashId] = useState("default");
-    const [loading, setLoading] = useState(true);
+    const [activeDashId, setActiveDashId] = useState<string>("");
+    const [layoutLoading, setLayoutLoading] = useState(true);
+    const [layoutError, setLayoutError] = useState<string | null>(null);
+    const [saving, setSaving] = useState(false);
+    const [savedAt, setSavedAt] = useState<number | null>(null);
+
     const [editMode, setEditMode] = useState(false);
     const [showAddWidget, setShowAddWidget] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
+    const [draggingId, setDraggingId] = useState<string | null>(null);
+    const [selectedAccountId, setSelectedAccountId] = useState("");
+    const [accounts, setAccounts] = useState<PortfolioAccount[]>([]);
+    // Pro entitlement for the advanced widgets. Read from the server-mirrored
+    // subscription record (never from a client flag) and defaults to locked, so
+    // a failed lookup can never accidentally unlock Pro data.
+    const [isPro, setIsPro] = useState(false);
+    const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
-        const unsub = onAuthStateChanged(auth, (u) => { setUser(u); setAuthLoading(false); });
+        if (authLoading || !user) return;
+
+        let cancelled = false;
+
+        void onSubscriptionChange(user.uid).then((sub) => {
+            if (!cancelled) setIsPro(sub.hasSubscription);
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [authLoading, user]);
+
+    // Account-scoped widgets (risk, positions, equity curve) need a real account id.
+    // The old code passed the literal "default", which never matches a gateway account
+    // key, so those widgets silently 404'd. Resolve the id from the live account list.
+    useEffect(() => {
+        if (authLoading || !user) return;
+
+        let cancelled = false;
+
+        void (async () => {
+            try {
+                const token = await user.getIdToken();
+                const res = await fetch("/api/analytics/accounts", {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                const json = await res.json();
+                if (cancelled || !json.success) return;
+                const list: PortfolioAccount[] = json.accounts || [];
+                setAccounts(list);
+                setSelectedAccountId((current) =>
+                    current && list.some((a) => a.accountId === current) ? current : list[0]?.accountId || ""
+                );
+            } catch {
+                if (!cancelled) setAccounts([]);
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [authLoading, user, refreshKey]);
+
+    useEffect(() => {
+        const unsub = onAuthStateChanged(auth, (u) => {
+            setUser(u);
+            setAuthLoading(false);
+        });
         return () => unsub();
     }, []);
 
-    const fetchDashboards = useCallback(async () => {
-        if (!user) return;
-        setLoading(true);
+    const loadLayouts = useCallback(async () => {
+        setLayoutLoading(true);
+        setLayoutError(null);
         try {
-            const token = await user.getIdToken();
-            const res = await fetch("/api/dashboard", { headers: { Authorization: `Bearer ${token}` } });
+            const token = await auth.currentUser?.getIdToken();
+            const res = await fetch("/api/dashboard", {
+                headers: { Authorization: `Bearer ${token}` },
+            });
             const json = await res.json();
-            if (json.success) {
-                setDashboards(json.dashboards || []);
-                if (json.dashboards?.length > 0) setActiveDashId(json.dashboards[0].id);
+            if (!res.ok || !json.success) {
+                setLayoutError(json.error || "Could not load your dashboard layout.");
+                return;
             }
-        } catch {} finally { setLoading(false); }
-    }, [user]);
+            const loaded: DashboardConfig[] = (json.dashboards || []).map((dash: DashboardConfig) => ({
+                ...dash,
+                widgets: (dash.widgets || []).map(normalizeWidget),
+            }));
+            setDashboards(loaded);
+            setActiveDashId((current) =>
+                current && loaded.some((d) => d.id === current) ? current : loaded[0]?.id || ""
+            );
+        } catch {
+            setLayoutError("Could not reach the dashboard service.");
+        } finally {
+            setLayoutLoading(false);
+        }
+    }, []);
 
-    useEffect(() => { if (user) void Promise.resolve().then(() => fetchDashboards()); }, [user, fetchDashboards]);
+    useEffect(() => {
+        if (authLoading || !user) return;
+        // Deferred like the other authed pages: the load sets state on entry, so
+        // calling it synchronously in the effect body would cascade renders.
+        void Promise.resolve().then(() => loadLayouts());
+    }, [authLoading, user, loadLayouts]);
 
-    const activeDash = dashboards.find((d) => d.id === activeDashId);
+    const activeDash = useMemo(
+        () => dashboards.find((d) => d.id === activeDashId) ?? null,
+        [dashboards, activeDashId]
+    );
+    const widgets = activeDash?.widgets ?? [];
 
-    const saveDashboard = async (widgets: Widget[]) => {
-        if (!user || !activeDashId) return;
-        const token = await user.getIdToken();
-        await fetch("/api/dashboard", {
-            method: "POST",
-            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-            body: JSON.stringify({ dashboardId: activeDashId, widgets }),
-        });
-    };
+    /** Optimistic local update, then a debounced persist. */
+    const commitWidgets = useCallback(
+        (next: DashboardWidget[]) => {
+            if (!activeDashId) return;
+            setDashboards((prev) =>
+                prev.map((d) => (d.id === activeDashId ? { ...d, widgets: next } : d))
+            );
+
+            if (saveTimer.current) clearTimeout(saveTimer.current);
+            saveTimer.current = setTimeout(async () => {
+                setSaving(true);
+                try {
+                    const token = await auth.currentUser?.getIdToken();
+                    await fetch("/api/dashboard", {
+                        method: "POST",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ dashboardId: activeDashId, widgets: next }),
+                    });
+                    setSavedAt(Date.now());
+                } finally {
+                    setSaving(false);
+                }
+            }, 400);
+        },
+        [activeDashId]
+    );
+
+    useEffect(() => {
+        return () => {
+            if (saveTimer.current) clearTimeout(saveTimer.current);
+        };
+    }, []);
 
     const addWidget = (type: string) => {
-        if (!activeDash) return;
-        const wt = WIDGET_TYPES.find((w) => w.type === type);
-        if (!wt) return;
-        const maxY = activeDash.widgets.reduce((max, w) => Math.max(max, w.y + w.h), 0);
-        const newWidget: Widget = {
-            id: `w_${currentTimestamp()}`, type, title: wt.label,
-            x: 0, y: maxY, w: wt.defaultW, h: wt.defaultH, config: {},
-        };
-        const updated = [...activeDash.widgets, newWidget];
-        setDashboards((prev) => prev.map((d) => d.id === activeDashId ? { ...d, widgets: updated } : d));
-        saveDashboard(updated);
+        const spec = WIDGET_SPEC_BY_TYPE[type];
+        if (!spec) return;
+        const width = spec.widths[0];
+        commitWidgets([
+            ...widgets,
+            normalizeWidget({
+                id: newWidgetId(),
+                type,
+                title: spec.label,
+                x: 0,
+                y: widgets.length,
+                w: width,
+                h: 1,
+                config: defaultWidgetConfig(type),
+            }),
+        ]);
         setShowAddWidget(false);
     };
 
     const removeWidget = (widgetId: string) => {
-        if (!activeDash) return;
-        const updated = activeDash.widgets.filter((w) => w.id !== widgetId);
-        setDashboards((prev) => prev.map((d) => d.id === activeDashId ? { ...d, widgets: updated } : d));
-        saveDashboard(updated);
+        commitWidgets(widgets.filter((w) => w.id !== widgetId));
     };
 
+    /** Cycles width within the widths the widget supports. */
+    const cycleWidth = (widgetId: string) => {
+        commitWidgets(
+            widgets.map((w) => {
+                if (w.id !== widgetId) return w;
+                const spec = WIDGET_SPEC_BY_TYPE[w.type];
+                if (!spec) return w;
+                const index = spec.widths.indexOf(w.w);
+                const nextWidth = spec.widths[(index + 1) % spec.widths.length];
+                return { ...w, w: nextWidth };
+            })
+        );
+    };
+
+    const cycleHeight = (widgetId: string) => {
+        commitWidgets(widgets.map((w) => (w.id === widgetId ? { ...w, h: w.h === 1 ? 2 : 1 } : w)));
+    };
+
+    const moveWidget = (fromId: string, toId: string) => {
+        if (fromId === toId) return;
+        const fromIndex = widgets.findIndex((w) => w.id === fromId);
+        const toIndex = widgets.findIndex((w) => w.id === toId);
+        if (fromIndex < 0 || toIndex < 0) return;
+
+        const next = [...widgets];
+        const [moved] = next.splice(fromIndex, 1);
+        next.splice(toIndex, 0, moved);
+        commitWidgets(next.map((w, index) => ({ ...w, y: index })));
+    };
+
+    const resetLayout = () => {
+        const seed: DashboardWidget[] = [
+            { id: newWidgetId(), type: "portfolio_summary", title: "Portfolio Summary", x: 0, y: 0, w: 3, h: 1, config: {} },
+            { id: newWidgetId(), type: "live_chart", title: "Live Chart", x: 0, y: 1, w: 3, h: 1, config: defaultWidgetConfig("live_chart") },
+            { id: newWidgetId(), type: "signal_core", title: "Signal Core", x: 0, y: 2, w: 1, h: 1, config: defaultWidgetConfig("signal_core") },
+            { id: newWidgetId(), type: "confidence_meter", title: "Signal Confidence", x: 0, y: 3, w: 1, h: 1, config: defaultWidgetConfig("confidence_meter") },
+            { id: newWidgetId(), type: "mtf_bias", title: "Multi-Timeframe Bias", x: 0, y: 4, w: 1, h: 1, config: defaultWidgetConfig("mtf_bias") },
+            { id: newWidgetId(), type: "equity_curve", title: "Equity Curve", x: 0, y: 5, w: 2, h: 1, config: {} },
+            { id: newWidgetId(), type: "market_score", title: "Market Score", x: 0, y: 6, w: 1, h: 1, config: { symbol: "XAUUSD", timeframe: "H1" } },
+            { id: newWidgetId(), type: "positions", title: "Open Positions", x: 0, y: 7, w: 2, h: 1, config: {} },
+            { id: newWidgetId(), type: "recent_alerts", title: "Recent Alerts", x: 0, y: 8, w: 1, h: 1, config: {} },
+        ];
+        commitWidgets(seed);
+    };
+
+    // Bumping refreshKey re-runs every widget fetch and the account lookup, so a
+    // single Refresh pulls fresh data everywhere without re-fetching the layout.
+    const refreshData = useCallback(() => setRefreshKey((k) => k + 1), []);
+
     if (authLoading) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><SiteNavbar /><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div></div>);
+        return (
+            <AccountShell title="Dashboard" onBack={() => router.push("/account")}>
+                <div className="flex h-[50vh] items-center justify-center">
+                    <Loader2 size={22} className="animate-spin text-primary" />
+                </div>
+            </AccountShell>
+        );
     }
 
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><SiteNavbar /><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><a href="/login" className="rounded-xl bg-violet-600 px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-violet-500 transition">Sign In</a></div></div>);
+        return (
+            <AccountShell title="Dashboard" onBack={() => router.push("/account")}>
+                <div className="flex h-[50vh] flex-col items-center justify-center gap-4">
+                    <Shield size={32} className="text-muted-foreground" />
+                    <h1 className="text-lg font-semibold text-foreground">Sign in required</h1>
+                    <a
+                        href="/login"
+                        className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/80"
+                    >
+                        Sign in
+                    </a>
+                </div>
+            </AccountShell>
+        );
     }
 
     return (
-        <div className="min-h-screen bg-background text-foreground">
-            <SiteNavbar />
-            <div className="mx-auto max-w-7xl px-4 py-8">
-                <div className="mb-6 flex items-center justify-between" data-guide="page-header">
-                    <div>
-                        <h1 className="text-2xl font-bold text-foreground">Custom Dashboard</h1>
-                        <p className="mt-1 text-sm text-muted-foreground">Build your personalized trading workspace</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <button type="button" onClick={() => setEditMode((m) => !m)} data-guide="edit-layout" className={cn("rounded-xl border px-4 py-2 text-xs font-medium transition", editMode ? "border-violet-500/40 bg-violet-500/10 text-violet-400" : "border-border/30 bg-muted text-muted-foreground hover:bg-muted/30")}>
-                            {editMode ? "Done Editing" : "Edit Layout"}
-                        </button>
-                        {editMode && (
-                            <button type="button" onClick={() => setShowAddWidget(true)} className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-xs font-semibold text-foreground hover:bg-violet-500 transition">
-                                <Plus size={14} /> Add Widget
-                            </button>
+        <AccountShell
+            title="Custom Dashboard"
+            subtitle="Build a workspace from your live accounts, positions and signals"
+            onBack={() => router.push("/account")}
+        >
+            <div className="space-y-5" data-guide="dashboard">
+                {/* Controls */}
+                <div className="flex flex-wrap items-center gap-2.5" data-guide="controls">
+                    <button
+                        type="button"
+                        onClick={refreshData}
+                        disabled={layoutLoading}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-2 text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-50"
+                    >
+                        <RefreshCw size={13} className={layoutLoading ? "animate-spin" : ""} />
+                        Refresh
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setEditMode((m) => !m)}
+                        aria-pressed={editMode}
+                        className={cn(
+                            "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-2 text-xs font-medium transition",
+                            editMode
+                                ? "border-primary/40 bg-primary/10 text-primary"
+                                : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
                         )}
-                    </div>
+                    >
+                        {editMode ? "Done editing" : "Edit layout"}
+                    </button>
+
+                    {editMode && (
+                        <>
+                            <button
+                                type="button"
+                                onClick={() => setShowAddWidget(true)}
+                                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-2.5 py-2 text-xs font-medium text-primary-foreground transition hover:bg-primary/80"
+                            >
+                                <Plus size={13} /> Add widget
+                            </button>
+                            <button
+                                type="button"
+                                onClick={resetLayout}
+                                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-2 text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                            >
+                                <RotateCcw size={13} /> Reset
+                            </button>
+                        </>
+                    )}
+
+                    <span className="ml-auto text-[11px] text-muted-foreground" aria-live="polite">
+                        {saving
+                            ? "Saving layout…"
+                            : layoutError
+                                ? "Layout not saved"
+                                : savedAt
+                                    ? `Layout saved ${new Date(savedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}`
+                                    : `${widgets.length} widget${widgets.length === 1 ? "" : "s"}`}
+                    </span>
                 </div>
+
+                {/* Account selector — account-scoped widgets follow this choice. */}
+                {accounts.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-2" data-guide="account-selector">
+                        <label
+                            htmlFor="dashboard-account"
+                            className="text-[11px] uppercase tracking-wide text-muted-foreground"
+                        >
+                            Account
+                        </label>
+                        <select
+                            id="dashboard-account"
+                            value={selectedAccountId}
+                            onChange={(e) => setSelectedAccountId(e.target.value)}
+                            className="rounded-md border border-border bg-background px-2.5 py-1.5 text-xs text-foreground outline-none transition focus:border-primary"
+                        >
+                            {accounts.map((acc) => (
+                                <option key={acc.accountId} value={acc.accountId}>
+                                    {acc.broker || acc.mt5Account || acc.accountId}
+                                    {acc.mt5Account ? ` · #${acc.mt5Account}` : ""}
+                                </option>
+                            ))}
+                        </select>
+                        <span className="text-[11px] text-muted-foreground">
+                            Risk, positions and equity widgets follow this selection.
+                        </span>
+                    </div>
+                )}
+
+                {layoutError && (
+                    <div
+                        role="alert"
+                        className="flex items-start gap-2.5 rounded-lg border border-negative/30 bg-negative/5 p-3.5"
+                    >
+                        <AlertTriangle size={15} className="mt-0.5 shrink-0 text-negative" />
+                        <div className="min-w-0 flex-1">
+                            <p className="text-[13px] font-medium text-foreground">Dashboard unavailable</p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">{layoutError}</p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={refreshData}
+                            className="shrink-0 rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                        >
+                            Retry
+                        </button>
+                    </div>
+                )}
 
                 <DashboardNativeAd />
 
-                {/* Quick Access Cards */}
-                <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-guide="quick-links">
-                    <Link href="/ai-copilot" className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-4 transition hover:bg-violet-500/10">
-                        <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-500/20"><Brain size={20} className="text-violet-400" /></div>
-                            <div><p className="text-sm font-semibold text-foreground">AI Copilot</p><p className="text-[10px] text-muted-foreground">Ask about your market &amp; accounts</p></div>
-                        </div>
-                    </Link>
-                    <Link href="/scanner" className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 transition hover:bg-emerald-500/10">
-                        <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/20"><ActivityIcon size={20} className="text-emerald-400" /></div>
-                            <div><p className="text-sm font-semibold text-foreground">Market Scanner</p><p className="text-[10px] text-muted-foreground">Scan assets across markets</p></div>
-                        </div>
-                    </Link>
-                    <Link href="/insights" className="rounded-xl border border-sky-500/20 bg-sky-500/5 p-4 transition hover:bg-sky-500/10">
-                        <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/20"><Sparkles size={20} className="text-sky-400" /></div>
-                            <div><p className="text-sm font-semibold text-foreground">AI Insights</p><p className="text-[10px] text-muted-foreground">AI-powered market insights</p></div>
-                        </div>
-                    </Link>
-                    <Link href="/account/tools" className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 transition hover:bg-amber-500/10">
-                        <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/20"><Target size={20} className="text-amber-400" /></div>
-                            <div><p className="text-sm font-semibold text-foreground">Tools</p><p className="text-[10px] text-muted-foreground">Trading calculators &amp; utilities</p></div>
-                        </div>
-                    </Link>
+                {/* Quick access */}
+                <div
+                    className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+                    data-guide="quick-links"
+                >
                     <AITeamsEntryCard context="Dashboard" compact className="sm:col-span-2 lg:col-span-4" />
                 </div>
 
-                {loading ? (
-                    <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div>
-                ) : activeDash ? (
-                    <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(3, 1fr)" }} data-guide="widgets">
-                        {activeDash.widgets.map((widget) => {
-                            const wt = WIDGET_TYPES.find((w) => w.type === widget.type);
-                            const Icon = wt?.icon || Layout;
-                            return (
-                                <div key={widget.id} className={cn("rounded-xl border bg-muted/50 p-4 relative group", editMode ? "border-violet-500/20 border-dashed" : "border-border/30", widget.w === 2 ? "col-span-2" : widget.w >= 3 ? "col-span-3" : "")}>
-                                    {editMode && (
-                                        <div className="absolute -top-2 -right-2 flex gap-1 z-10">
-                                            <button type="button" onClick={() => removeWidget(widget.id)} className="rounded-full bg-rose-500 p-1 text-foreground shadow-lg hover:bg-rose-400"><X size={10} /></button>
-                                        </div>
-                                    )}
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <Icon size={14} className="text-violet-400" />
-                                        <h3 className="text-xs font-semibold text-muted-foreground">{widget.title}</h3>
-                                        {editMode && <GripVertical size={12} className="ml-auto text-muted-foreground" />}
-                                    </div>
-                                    <WidgetRenderer type={widget.type} config={widget.config} user={user} />
-                                </div>
-                            );
-                        })}
-                        {activeDash.widgets.length === 0 && (
-                            <div className="col-span-3 rounded-xl border border-dashed border-border/30 p-16 text-center">
-                                <Layout size={32} className="mx-auto text-muted-foreground" />
-                                <p className="mt-3 text-sm text-muted-foreground">Empty dashboard. Click &quot;Edit Layout&quot; to add widgets.</p>
-                            </div>
+                {/* Widgets */}
+                {layoutLoading && widgets.length === 0 ? (
+                    <div className="flex h-64 items-center justify-center">
+                        <Loader2 size={20} className="animate-spin text-primary" />
+                    </div>
+                ) : widgets.length === 0 ? (
+                    <div className="rounded-lg border border-dashed border-border px-6 py-14 text-center">
+                        <p className="text-sm font-medium text-foreground">No widgets yet</p>
+                        <p className="mx-auto mt-1 max-w-[46ch] text-xs text-muted-foreground">
+                            {editMode
+                                ? "Add a widget to start building your workspace."
+                                : "Turn on Edit layout to add widgets for your portfolio, positions, alerts and market scores."}
+                        </p>
+                        {editMode && (
+                            <button
+                                type="button"
+                                onClick={() => setShowAddWidget(true)}
+                                className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground transition hover:bg-primary/80"
+                            >
+                                <Plus size={13} /> Add widget
+                            </button>
                         )}
                     </div>
                 ) : (
-                    <div className="rounded-xl border border-dashed border-border/30 p-16 text-center">
-                        <Layout size={32} className="mx-auto text-muted-foreground" />
-                        <p className="mt-3 text-sm text-muted-foreground">No dashboards found</p>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" data-guide="widgets">
+                        {widgets.map((widget) => {
+                            const spec = WIDGET_SPEC_BY_TYPE[widget.type];
+                            const Icon = spec?.icon ?? WidgetsFallbackIcon;
+                            return (
+                                <section
+                                    key={widget.id}
+                                    draggable={editMode}
+                                    onDragStart={() => setDraggingId(widget.id)}
+                                    onDragOver={(e) => editMode && e.preventDefault()}
+                                    onDrop={() => {
+                                        if (draggingId) moveWidget(draggingId, widget.id);
+                                        setDraggingId(null);
+                                    }}
+                                    onDragEnd={() => setDraggingId(null)}
+                                    className={cn(
+                                        "flex animate-page-enter flex-col rounded-lg border border-border bg-card shadow-sm",
+                                        widget.h === 2 && "sm:row-span-2",
+                                        SPAN_BY_WIDTH[widget.w] ?? "sm:col-span-1",
+                                        editMode && "border-dashed border-primary/40",
+                                        draggingId === widget.id && "opacity-50"
+                                    )}
+                                >
+                                    <header className="flex items-center gap-2 border-b border-border px-4 py-2.5">
+                                        {editMode && (
+                                            <GripVertical
+                                                size={13}
+                                                className="shrink-0 cursor-grab text-muted-foreground"
+                                                aria-label="Drag to reorder"
+                                            />
+                                        )}
+                                        {spec?.live ? (
+                                            <span
+                                                className="relative flex h-1.5 w-1.5 shrink-0"
+                                                title="Polling live data"
+                                            >
+                                                <span
+                                                    aria-hidden="true"
+                                                    className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-60"
+                                                />
+                                                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-positive" />
+                                            </span>
+                                        ) : null}
+                                        <Icon size={14} className="shrink-0 text-primary" />
+                                        <h2 className="min-w-0 flex-1 truncate text-[13px] font-medium text-foreground">
+                                            {widget.title}
+                                        </h2>
+                                        {editMode ? (
+                                            <div className="flex shrink-0 items-center gap-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => cycleWidth(widget.id)}
+                                                    className="rounded-md border border-border px-1.5 py-0.5 text-[11px] text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                                                    title="Change width"
+                                                >
+                                                    W
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => cycleHeight(widget.id)}
+                                                    className="rounded-md border border-border px-1.5 py-0.5 text-[11px] text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                                                    title="Change height"
+                                                >
+                                                    H
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeWidget(widget.id)}
+                                                    className="rounded-md border border-negative/30 p-1 text-negative transition hover:bg-negative/10"
+                                                    title="Remove widget"
+                                                >
+                                                    <Trash2 size={12} />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <span className="flex shrink-0 items-center gap-1.5">
+                                                {spec?.pro && (
+                                                    <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-primary">
+                                                        <Crown size={9} />
+                                                        Pro
+                                                    </span>
+                                                )}
+                                                {spec?.needsAccount && (
+                                                    <span className="rounded-full border border-border bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground">
+                                                        per account
+                                                    </span>
+                                                )}
+                                            </span>
+                                        )}
+                                    </header>
+
+                                    <div className="flex-1 p-4">
+                                        <WidgetBody
+                                            type={widget.type}
+                                            user={user}
+                                            refreshKey={refreshKey}
+                                            config={widget.config}
+                                            accountId={selectedAccountId}
+                                            isPro={isPro}
+                                        />
+                                    </div>
+                                </section>
+                            );
+                        })}
                     </div>
                 )}
 
-                {showAddWidget && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-sm">
-                        <div className="w-full max-w-md rounded-2xl border border-border/40 bg-background p-6 shadow-2xl">
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-lg font-semibold text-foreground">Add Widget</h2>
-                                <button type="button" onClick={() => setShowAddWidget(false)} className="rounded-lg p-1 text-muted-foreground hover:text-foreground"><X size={18} /></button>
-                            </div>
-                            <div className="space-y-2">
-                                {WIDGET_TYPES.map((wt) => {
-                                    const Icon = wt.icon;
-                                    return (
-                                        <button key={wt.type} type="button" onClick={() => addWidget(wt.type)} className="flex w-full items-center gap-3 rounded-xl border border-border/30 bg-muted/50 p-3 text-left transition hover:bg-muted/30">
-                                            <Icon size={16} className="text-violet-400" />
-                                            <div>
-                                                <p className="text-sm font-medium text-foreground">{wt.label}</p>
-                                                <p className="text-[10px] text-muted-foreground">{wt.defaultW}×{wt.defaultH} grid</p>
-                                            </div>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
+                {/* Catalogue reference, doubles as discovery while editing */}
+                {editMode && (
+                    <div className="rounded-lg border border-border bg-muted/30 p-4">
+                        <h3 className="text-xs font-semibold text-foreground">
+                            Available widgets ({WIDGET_CATALOG.length})
+                        </h3>
+                        <ul className="mt-2.5 grid gap-x-6 gap-y-1.5 sm:grid-cols-2">
+                            {WIDGET_CATALOG.map((spec) => {
+                                const Icon = spec.icon;
+                                const placed = widgets.some((w) => w.type === spec.type);
+                                return (
+                                    <li key={spec.type} className="flex items-start gap-2 text-[11px]">
+                                        <Icon
+                                            size={12}
+                                            className={cn("mt-0.5 shrink-0", placed ? "text-positive" : "text-muted-foreground")}
+                                        />
+                                        <span className="min-w-0">
+                                            <span className="flex flex-wrap items-center gap-1.5">
+                                                <span className="font-medium text-foreground">{spec.label}</span>
+                                                {spec.pro && (
+                                                    <span
+                                                        className={cn(
+                                                            "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-wide",
+                                                            isPro
+                                                                ? "border-positive/30 bg-positive/10 text-positive"
+                                                                : "border-primary/40 bg-primary/10 text-primary"
+                                                        )}
+                                                    >
+                                                        <Crown size={9} />
+                                                        {isPro ? "Pro · unlocked" : "Pro"}
+                                                    </span>
+                                                )}
+                                            </span>
+                                            <span className="text-muted-foreground">
+                                                {" "}
+                                                — {spec.description}
+                                            </span>
+                                        </span>
+                                    </li>
+                                );
+                            })}
+                        </ul>
                     </div>
                 )}
             </div>
-        </div>
+
+            {showAddWidget && (
+                <WidgetPicker
+                    isPro={isPro}
+                    onPick={addWidget}
+                    onClose={() => setShowAddWidget(false)}
+                />
+            )}
+        </AccountShell>
     );
 }
 
-function WidgetRenderer({ type, config, user }: { type: string; config: Record<string, unknown>; user: User }) {
-    const [data, setData] = useState<Record<string, unknown> | null>(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                const token = await user.getIdToken();
-                let endpoint = "";
-                if (type === "portfolio_summary") endpoint = "/api/analytics/portfolio";
-                else if (type === "risk_gauge") endpoint = "/api/analytics/risk?accountId=default";
-                else if (type === "recent_alerts") endpoint = "/api/alerts";
-                else if (type === "positions_table") endpoint = "/api/trading/positions";
-                else if (type === "market_score") endpoint = `/api/analytics/score?symbol=${config.symbol || "XAUUSD"}&interval=H1`;
-
-                if (endpoint) {
-                    const res = await fetch(endpoint, { headers: { Authorization: `Bearer ${await user.getIdToken()}` } });
-                    const json = await res.json();
-                    setData(json);
-                }
-            } catch {} finally { setLoading(false); }
-        };
-        fetchData();
-    }, [type, config, user]);
-
-    if (loading) return <div className="flex h-20 items-center justify-center"><Loader2 size={14} className="animate-spin text-muted-foreground" /></div>;
-
-    if (type === "portfolio_summary" && data) {
-        const d = data as any;
-        return (
-            <div className="grid grid-cols-2 gap-3">
-                <div><p className="text-[9px] uppercase text-muted-foreground">Balance</p><p className="font-mono text-sm font-bold text-foreground">${d.totalBalance?.toLocaleString()}</p></div>
-                <div><p className="text-[9px] uppercase text-muted-foreground">Equity</p><p className="font-mono text-sm font-bold text-foreground">${d.totalEquity?.toLocaleString()}</p></div>
-                <div><p className="text-[9px] uppercase text-muted-foreground">P/L</p><p className={cn("font-mono text-sm font-bold", (d.totalFloatingPnl || 0) >= 0 ? "text-emerald-400" : "text-rose-400")}>${d.totalFloatingPnl?.toFixed(2)}</p></div>
-                <div><p className="text-[9px] uppercase text-muted-foreground">Accounts</p><p className="font-mono text-sm font-bold text-foreground">{d.accountCount}</p></div>
-            </div>
-        );
-    }
-
-    if (type === "market_score" && data) {
-        const score = (data as any).score?.score || 0;
-        return (
-            <div className="text-center">
-                <div className={cn("text-4xl font-bold font-mono", score > 70 ? "text-emerald-400" : score > 40 ? "text-amber-400" : "text-rose-400")}>{score}</div>
-                <p className="text-[10px] text-muted-foreground mt-1">out of 100</p>
-            </div>
-        );
-    }
-
-    if (type === "recent_alerts" && data) {
-        const alerts = (data as any).alerts || [];
-        return (
-            <div className="space-y-2 max-h-32 overflow-y-auto">
-                {alerts.slice(0, 3).map((a: any) => (
-                    <div key={a.id} className="flex items-center gap-2 text-xs">
-                        <span className="font-mono text-foreground">{a.symbol}</span>
-                        <span className="text-muted-foreground">{a.type?.replace(/_/g, " ")}</span>
-                        <span className="ml-auto text-[10px] text-muted-foreground">{new Date(a.createdAt).toLocaleDateString()}</span>
-                    </div>
-                ))}
-                {alerts.length === 0 && <p className="text-xs text-muted-foreground text-center">No alerts</p>}
-            </div>
-        );
-    }
-
-    if (type === "risk_gauge" && data) {
-        const r = (data as any).risk || {};
-        return (
-            <div className="text-center">
-                <p className="text-3xl font-bold font-mono text-amber-400">{r.marginLevel?.toFixed(0) || 0}%</p>
-                <p className="text-[10px] text-muted-foreground mt-1">Margin Level</p>
-            </div>
-        );
-    }
-
-    if (type === "market_clock") {
-        return (
-            <div className="text-center">
-                <MarketClock />
-            </div>
-        );
-    }
-
-    return <p className="text-xs text-muted-foreground text-center">Widget data loading...</p>;
-}
-
-function MarketClock() {
-    const [time, setTime] = useState("");
-    useEffect(() => {
-        const tick = () => setTime(new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" }));
-        tick();
-        const interval = setInterval(tick, 1000);
-        return () => clearInterval(interval);
-    }, []);
-    return <p className="font-mono text-2xl font-bold text-foreground">{time}</p>;
+function WidgetsFallbackIcon({ size, className }: { size?: number; className?: string }) {
+    return <X size={size} className={className} />;
 }

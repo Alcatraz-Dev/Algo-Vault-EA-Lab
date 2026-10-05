@@ -254,7 +254,10 @@ export default function TradeReplayPage() {
                         </button>
                     </div>
 
-                    {/* Tab 1: Full TradingView Market Replay Terminal */}
+                    {/* Tab 1: Pro Terminal chart replay — same engine, toolbars,
+                        drawing tools, layer picker and fullscreen as every
+                        other page; the historical replay cursor is wired
+                        inside the chart engine. */}
                     {activeTab === "terminal" && (
                         <MarketReplay
                             studies={["MASimple@tv-basicstudies", "MAExp@tv-basicstudies", "BB@tv-basicstudies", "RSI@tv-basicstudies"]}

@@ -42,7 +42,9 @@ import {
 } from "@/lib/scalping/client";
 import { TERMINAL_TIMEFRAMES, defaultLayerState, type ChartLayerId } from "./chart-layers";
 import { LayerPicker } from "./LayerPicker";
+import ChartToolbar from "@/components/trading/ChartToolbar";
 import { fmtSignedPct, fmtTime } from "./terminal-utils";
+import type { ChartType, DrawingTool, DrawingItem } from "./ProTerminalChart";
 import {
     CalendarPanel,
     LiquidityPanel,
@@ -61,6 +63,9 @@ import { useOrderFlow } from "@/hooks/use-order-flow";
 import { useOrderFlowSettings } from "@/hooks/use-order-flow-settings";
 import { useOptionsChain } from "@/hooks/use-options-chain";
 import { useLayerAvailability } from "@/hooks/use-layer-availability";
+import { useChartSettings } from "@/hooks/use-chart-settings";
+import { useAiDrawGate } from "@/hooks/use-ai-draw-gate";
+import { withPreset } from "./chart-settings";
 import type { MarketCandle } from "@/lib/market-data/types";
 import { ProTerminalJournal } from "./ProTerminalJournal";
 import { ProTerminalChart } from "./ProTerminalChart";
@@ -85,6 +90,18 @@ export function ProScalpingTerminal() {
     const [watchlist, setWatchlist] = useState<SupportedSymbol[]>(DEFAULT_WATCHLIST);
     const [layers, setLayers] = useState<Record<ChartLayerId, boolean>>(defaultLayerState);
     const [layersOpen, setLayersOpen] = useState(false);
+    // Chart view state: type, drawing tool + objects, grid on/off, theme.
+    const [chartType, setChartType] = useState<ChartType>("candlestick");
+    const [activeDrawingTool, setActiveDrawingTool] = useState<DrawingTool>("select");
+    const [drawings, setDrawings] = useState<DrawingItem[]>([]);
+    // Shared chart settings (theme preset, colors, display, tool style) —
+    // persisted across sessions and applied to the toolbar + chart below.
+    const { settings, update: updateSettings } = useChartSettings();
+    const gridVisible = settings.display.grid;
+    const theme: "dark" | "light" = settings.preset === "light" ? "light" : "dark";
+    // Viewport reset counter (toolbar Fit) + AI Draw Pro gate.
+    const [fitSignal, setFitSignal] = useState(0);
+    const aiGate = useAiDrawGate({ token });
     const [pollMs, setPollMs] = useState<number>(30_000);
     const [tick, setTick] = useState(0);
     const [mobileView, setMobileView] = useState<"chart" | "panels">("chart");
@@ -115,7 +132,7 @@ export function ProScalpingTerminal() {
     const signals = useThrottledAuthedFetch<SignalsPayload>(signalsUrl, { minIntervalMs: 10000, enabled: !!token });
     const journal = useThrottledAuthedFetch<{ trades: unknown[] }>(journalUrl, { minIntervalMs: 60000, enabled: !!token });
     const journalTrades: TerminalTrade[] = useMemo(() => parseTrades(journal.data?.trades ?? []), [journal.data]);
-    const calendar = useCalendar();
+    const calendar = useCalendar(token);
 
     // ── TradingView MCP external context (optional, slow-poll, fail-closed) ─
     // Pure context for the TRADINGVIEW CONTEXT panel. Never feeds the chart,
@@ -131,10 +148,12 @@ export function ProScalpingTerminal() {
     // ── Unified Intelligence Fabric (slow-poll, Pro-gated, fail-open) ──────
     // AI confidence/Jev/decision-state panel. The fabric is strictly additive:
     // deterministic panels above are untouched and keep working when this is
-    // unavailable. Polls at 60s — the decision layer is slower by design.
-    const intelligenceTick = Math.floor(now / 60000);
+    // unavailable. Polls at 3 min — the decision layer is slower by design,
+    // and free-tier AI quotas (tens of requests/day) cannot back a 60s poll;
+    // the server also caches each decision per symbol+timeframe.
+    const intelligenceTick = Math.floor(now / 180_000);
     const intelligenceUrl = token ? `/api/scalping/intelligence?symbol=${symbol}&timeframe=${timeframe}&t=${intelligenceTick}` : null;
-    const intelligence = useThrottledAuthedFetch<TerminalIntelligencePayload>(intelligenceUrl, { minIntervalMs: 60000, enabled: !!token });
+    const intelligence = useThrottledAuthedFetch<TerminalIntelligencePayload>(intelligenceUrl, { minIntervalMs: 180_000, enabled: !!token });
 
     const accessError = [radar.error, analysis.error, signals.error].find((e) => e && /license|subscription|plan|access/i.test(e));
 
@@ -159,12 +178,16 @@ export function ProScalpingTerminal() {
     });
     const layerAvailability = useLayerAvailability(symbol);
 
-    // ⌘K / Ctrl+K focuses symbol search; R refreshes. Small but real keyboard support.
+    // ⌘K / Ctrl+K focuses symbol search; Escape drops the active drawing tool
+    // back to the pointer so the user can pan/zoom again.
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
                 e.preventDefault();
                 document.getElementById("pro-terminal-symbol-filter")?.focus();
+            }
+            if (e.key === "Escape") {
+                setActiveDrawingTool((t) => (t === "select" ? t : "select"));
             }
         };
         window.addEventListener("keydown", onKey);
@@ -375,6 +398,33 @@ export function ProScalpingTerminal() {
                         ) : null}
                     </div>
 
+                    <ChartToolbar
+                        chartType={chartType}
+                        onChartTypeChange={setChartType}
+                        activeDrawingTool={activeDrawingTool}
+                        onDrawingToolChange={setActiveDrawingTool}
+                        onClearDrawings={() => setDrawings([])}
+                        drawingCount={drawings.length}
+                        onToggleGrid={() =>
+                            updateSettings((prev) => ({ ...prev, display: { ...prev.display, grid: !prev.display.grid } }))
+                        }
+                        gridVisible={gridVisible}
+                        onToggleTheme={() => updateSettings((prev) => withPreset(prev, prev.preset === "light" ? "midnight" : "light"))}
+                        currentTheme={theme}
+                        settings={settings}
+                        onSettingsChange={updateSettings}
+                        onFitView={() => setFitSignal((s) => s + 1)}
+                        onUndoDrawing={() => setDrawings((d) => d.slice(0, -1))}
+                        magnet={settings.display.magnet}
+                        onToggleMagnet={() =>
+                            updateSettings((prev) => ({ ...prev, display: { ...prev.display, magnet: !prev.display.magnet } }))
+                        }
+                        aiDraw={aiGate.enabled}
+                        onToggleAiDraw={() => void aiGate.toggle()}
+                        aiDrawLocked={aiGate.locked}
+                        aiDrawChecking={aiGate.checking}
+                    />
+
                     <ProTerminalChart
                         symbol={symbol}
                         timeframe={timeframe}
@@ -385,6 +435,15 @@ export function ProScalpingTerminal() {
                         signals={signals.data?.signals ?? []}
                         orderFlowSettings={orderFlowSettings.settings}
                         optionsChain={optionsChain.available ? optionsChain : null}
+                        chartType={chartType}
+                        activeDrawingTool={activeDrawingTool}
+                        drawings={drawings}
+                        onDrawingsChange={setDrawings}
+                        gridVisible={gridVisible}
+                        theme={theme}
+                        settings={settings}
+                        fitSignal={fitSignal}
+                        aiDraw={aiGate.enabled}
                     />
 
                     <RegimeStrip analysis={analysis.data?.analysis ?? null} loading={analysis.loading} />
@@ -427,6 +486,7 @@ export function ProScalpingTerminal() {
                         error={calendar.error}
                         activeSymbol={symbol}
                         now={now}
+                        source={calendar.source}
                     />
 
                     <ProTradingViewContextPanel context={tvContextPayload} />

@@ -1,3 +1,5 @@
+"use client";
+
 import { AppShell, type NavGroup } from "@/components/layout/AppShell";
 import { APP_NAV } from "@/components/layout/app-nav";
 import { Badge } from "@/components/ui/badge";

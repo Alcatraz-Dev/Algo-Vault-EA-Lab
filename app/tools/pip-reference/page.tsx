@@ -1,8 +1,10 @@
 "use client";
 
-import { ArrowLeft, Copy, Check } from "lucide-react";
+import { Copy, Check, Crown, Sparkles, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { ToolPageShell } from "@/components/tools/ToolPageShell";
+import { cn } from "@/lib/utils";
 
 const INSTRUMENTS = [
     { symbol: "EURUSD", pipValue: 10, pipSize: "0.0001", contractSize: "100,000", digits: 5, category: "Forex Major" },
@@ -40,92 +42,133 @@ export default function PipReferencePage() {
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground selection:bg-amber-500/30">
-            <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px]" />
-                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-blue-500/10 blur-[120px]" />
+        <ToolPageShell
+            title="Pip Value Reference"
+            description="Pip size, value per lot and contract size for 18 instruments. Pro adds a custom-pair calculator for any quote / base combination."
+            badge="lite"
+            icon={Copy}
+            backHref="/tools"
+            proHeadline="Pro adds a custom-pair calculator (any base / quote) and a cross-pair pip matrix."
+            proFeatures={[
+                "Custom pair calculator (any quote / base)",
+                "Cross-pair pip matrix",
+                "Save favorites",
+                "Per-instrument lot conversion",
+            ]}
+        >
+            <div className="flex flex-wrap gap-2">
+                {categories.map((c) => (
+                    <button
+                        key={c}
+                        type="button"
+                        onClick={() => setFilter(c)}
+                        className={cn(
+                            "rounded-md px-3 py-1.5 text-[10px] font-medium transition-all",
+                            filter === c
+                                ? "bg-foreground text-background"
+                                : "bg-muted text-muted-foreground hover:text-foreground",
+                        )}
+                    >
+                        {c}
+                    </button>
+                ))}
             </div>
-            <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-muted-foreground transition">
-                    <ArrowLeft size={12} /> Back to Account
-                </Link>
 
-                <div className="mb-6" data-guide="page-header">
-                    <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Pip Value Reference</h1>
-                    <p className="mt-1.5 text-sm text-muted-foreground">Quick reference for pip values across all instruments (per 1 standard lot)</p>
-                </div>
-
-                <div className="mb-4 flex flex-wrap gap-2">
-                    {categories.map((c) => (
-                        <button
-                            key={c}
-                            type="button"
-                            onClick={() => setFilter(c)}
-                            className={`rounded-xl px-3 py-1.5 text-[10px] font-medium transition-all ${
-                                filter === c ? "bg-violet-600 text-foreground" : "text-muted-foreground hover:text-muted-foreground bg-muted"
-                            }`}
-                        >
-                            {c}
-                        </button>
-                    ))}
-                </div>
-
-                <div className="rounded-2xl border border-border/30 bg-muted/50 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="border-b border-border/30">
-                                    <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Symbol</th>
-                                    <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Category</th>
-                                    <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Pip Size</th>
-                                    <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Pip Value (1 lot)</th>
-                                    <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Contract Size</th>
-                                    <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Digits</th>
-                                    <th className="px-4 py-3 w-10"></th>
+            <div className="rounded-2xl border border-border bg-card overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b border-border">
+                                <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Symbol</th>
+                                <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Category</th>
+                                <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Pip Size</th>
+                                <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Pip Value (1 lot)</th>
+                                <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Contract Size</th>
+                                <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Digits</th>
+                                <th className="px-4 py-3 w-10"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filtered.map((inst, i) => (
+                                <tr
+                                    key={inst.symbol}
+                                    className={cn(
+                                        "border-b border-border/15 transition-colors hover:bg-muted",
+                                        i % 2 === 0 ? "bg-muted/10" : "",
+                                    )}
+                                >
+                                    <td className="px-4 py-3 font-mono text-sm font-bold text-foreground">{inst.symbol}</td>
+                                    <td className="px-4 py-3 text-[10px] text-muted-foreground">{inst.category}</td>
+                                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{inst.pipSize}</td>
+                                    <td className="px-4 py-3">
+                                        <span className="font-mono text-sm font-bold text-positive">${inst.pipValue}</span>
+                                    </td>
+                                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{inst.contractSize}</td>
+                                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{inst.digits}</td>
+                                    <td className="px-4 py-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => copyRow(inst)}
+                                            className="rounded-md p-1 text-muted-foreground transition hover:bg-primary/10 hover:text-primary"
+                                        >
+                                            {copied === inst.symbol ? <Check size={12} className="text-positive" /> : <Copy size={12} />}
+                                        </button>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {filtered.map((inst, i) => (
-                                    <tr
-                                        key={inst.symbol}
-                                        className={`border-b border-border/15 transition-colors hover:bg-muted ${
-                                            i % 2 === 0 ? "bg-muted/10" : ""
-                                        }`}
-                                    >
-                                        <td className="px-4 py-3 font-mono text-sm font-bold text-foreground">{inst.symbol}</td>
-                                        <td className="px-4 py-3 text-[10px] text-muted-foreground">{inst.category}</td>
-                                        <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{inst.pipSize}</td>
-                                        <td className="px-4 py-3">
-                                            <span className="font-mono text-sm font-bold text-emerald-400">${inst.pipValue}</span>
-                                        </td>
-                                        <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{inst.contractSize}</td>
-                                        <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{inst.digits}</td>
-                                        <td className="px-4 py-3">
-                                            <button
-                                                type="button"
-                                                onClick={() => copyRow(inst)}
-                                                className="rounded-md p-1 text-muted-foreground hover:text-violet-400 hover:bg-violet-500/10 transition"
-                                            >
-                                                {copied === inst.symbol ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div className="mt-4 rounded-xl border border-border/30 bg-muted/50 p-4">
-                    <h3 className="mb-2 text-xs font-semibold text-foreground">Formula</h3>
-                    <p className="text-[11px] text-muted-foreground font-mono">
-                        Pip Value = Contract Size × Pip Size × Lots
-                    </p>
-                    <p className="mt-1 text-[10px] text-muted-foreground">
-                        Values shown are for 1 standard lot with USD account currency. Actual value may vary based on account currency and broker.
-                    </p>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        </div>
+
+            <div className="rounded-2xl border border-border bg-card p-4">
+                <h3 className="mb-2 text-xs font-semibold text-foreground">Formula</h3>
+                <p className="font-mono text-[11px] text-muted-foreground">
+                    Pip Value = Contract Size × Pip Size × Lots
+                </p>
+                <p className="mt-1 text-[10px] text-muted-foreground">
+                    Values shown are for 1 standard lot with USD account currency. Actual value may vary based on account currency and broker.
+                </p>
+            </div>
+
+            {/* Pro upsell row */}
+            <div className="grid gap-3 md:grid-cols-3">
+                <ProTile
+                    title="Custom Pair Calculator"
+                    description="Compute pip value for any quote / base pair the curated list doesn't cover."
+                />
+                <ProTile
+                    title="Cross-Pair Matrix"
+                    description="A pip-cost matrix across all 18 instruments for portfolio comparison."
+                />
+                <ProTile
+                    title="Save Favorites"
+                    description="Pin the instruments you trade most and surface them at the top."
+                />
+            </div>
+        </ToolPageShell>
+    );
+}
+
+function ProTile({ title, description }: { title: string; description: string }) {
+    return (
+        <Link
+            href="/pricing"
+            className="group flex flex-col gap-2 rounded-2xl border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
+        >
+            <div className="flex items-center justify-between">
+                <h4 className="text-sm font-semibold text-foreground">{title}</h4>
+                <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                    <Crown className="size-2.5" />
+                    Pro
+                </span>
+            </div>
+            <p className="text-xs text-muted-foreground">{description}</p>
+            <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary transition group-hover:gap-1.5">
+                <Sparkles className="size-3" />
+                Unlock
+                <ArrowUpRight className="size-3" />
+            </span>
+        </Link>
     );
 }

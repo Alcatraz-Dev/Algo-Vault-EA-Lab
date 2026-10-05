@@ -20,13 +20,13 @@ import ThemeToggle from "@/components/theme/theme-toggle";
 import { NotificationsMenu } from "@/components/layout/NotificationsMenu";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
 export type NavItem = {
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string; size?: number }>;
   badge?: string;
+  pro?: boolean;
 };
 
 export type NavGroup = {
@@ -50,6 +50,8 @@ export function AppShell({
   maxWidth = "max-w-7xl",
   padding = true,
   role = "app",
+  hideSidebar,
+  fullscreen,
   navSearch,
   onNavSearch,
 }: {
@@ -62,7 +64,9 @@ export function AppShell({
   headerActions?: ReactNode;
   maxWidth?: string;
   padding?: boolean;
+  hideSidebar?: boolean;
   role?: "app" | "account" | "admin";
+  fullscreen?: boolean;
   /** Current sidebar search query (controlled externally). */
   navSearch?: string;
   /** Called when the user changes the sidebar search input. */
@@ -146,10 +150,7 @@ export function AppShell({
                   onClick={() => setMobileOpen(false)}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    cn(
-                      "group/item relative flex items-center gap-2.5 rounded-button px-2.5 font-medium transition-colors",
-                      role === "account" ? "h-8 text-xs" : "h-9 text-body-sm"
-                    ),
+                    "group/item relative flex h-8 items-center gap-2.5 rounded-button px-2.5 text-xs font-medium transition-colors",
                     active
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -164,15 +165,18 @@ export function AppShell({
                   />
                   <span className="truncate">{item.label}</span>
                   {item.badge ? (
-                    <Badge
-                      variant="secondary"
+                    <span
                       className={cn(
-                        "ml-auto shrink-0 font-bold tracking-wide",
-                        role === "account" ? "h-4 px-1.5 text-[9px]" : "h-5 px-2 text-micro"
+                        "ml-auto inline-flex h-4 shrink-0 items-center rounded-[4px] border px-1 text-[8px] font-bold uppercase leading-none tracking-wide",
+                        item.badge.toUpperCase() === "PRO"
+                          ? "border-amber-500/40 bg-amber-500/10 text-amber-500"
+                          : item.badge.toUpperCase() === "LITE"
+                            ? "border-primary/30 bg-primary/10 text-primary"
+                            : "border-border bg-secondary text-muted-foreground"
                       )}
                     >
                       {item.badge}
-                    </Badge>
+                    </span>
                   ) : null}
                 </Link>
               );
@@ -326,16 +330,14 @@ export function AppShell({
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       {/* Desktop sidebar */}
-      <aside
-        className={cn(
-          "sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-card lg:flex"
-        )}
-      >
-        {sidebarInner}
-      </aside>
+      {hideSidebar || fullscreen ? null : (
+        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-card lg:flex">
+          {sidebarInner}
+        </aside>
+      )}
 
       {/* Mobile drawer */}
-      {mobileOpen ? (
+      {mobileOpen && !hideSidebar && !fullscreen ? (
         <div className="fixed inset-0 z-50 flex lg:hidden">
           <div
             className="absolute inset-0 bg-background/80 backdrop-blur-sm"
@@ -362,16 +364,18 @@ export function AppShell({
         {/* Topbar */}
         <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-3 border-b border-border bg-background px-4 md:px-6" data-guide="page-header">
           <div className="flex min-w-0 items-center gap-3">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => setMobileOpen(true)}
-              className="lg:hidden"
-              aria-label="Open navigation menu"
-            >
-              <Menu size={16} />
-            </Button>
+            {hideSidebar || fullscreen ? null : (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setMobileOpen(true)}
+                className="lg:hidden"
+                aria-label="Open navigation menu"
+              >
+                <Menu size={16} />
+              </Button>
+            )}
             {onBack ? (
               <Button
                 type="button"
@@ -410,7 +414,15 @@ export function AppShell({
         </header>
 
         {/* Page content */}
-        <main className={cn("flex-1 animate-page-enter", padding && `${maxWidth} px-4 py-6 sm:px-6 lg:px-8`)}>
+        <main
+          className={cn(
+            "flex-1 animate-page-enter",
+            padding &&
+              (fullscreen
+                ? "w-full min-w-0 px-3 py-3 sm:px-4 sm:py-4"
+                : `${maxWidth} px-4 py-6 sm:px-6 lg:px-8`)
+          )}
+        >
           {children}
         </main>
       </div>

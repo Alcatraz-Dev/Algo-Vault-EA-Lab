@@ -10,7 +10,7 @@ import { useParams } from "next/navigation";
 import { ArrowLeft, RefreshCw, Timer } from "lucide-react";
 import { AppShell, type NavGroup } from "@/components/layout/AppShell";
 import { APP_NAV } from "@/components/layout/app-nav";
-import TradingChart from "@/components/tradingview/TradingChart";
+import { ProTerminalChartWorkspace } from "@/components/pro-scalping-terminal/ProTerminalChartWorkspace";
 import { Button } from "@/components/ui/button";
 import { MetricCard } from "@/components/ui/metric-card";
 import {
@@ -59,6 +59,19 @@ interface AttemptState {
 const navGroups: NavGroup[] = APP_NAV;
 const POLL_MS = 10_000;
 const CHART_INTERVAL_SECONDS: Record<string, number> = { "1m": 60, "3m": 180, "5m": 300, "15m": 900, "30m": 1800, "1h": 3600, "4h": 14400 };
+
+const ARENA_INTERVAL_TO_TIMEFRAME: Record<string, "M1" | "M5" | "M15" | "M30" | "H1" | "H4"> = {
+    "1m": "M1",
+    "5m": "M5",
+    "15m": "M15",
+    "30m": "M30",
+    "1h": "H1",
+    "3m": "M5",
+    "4h": "H4",
+};
+function intervalToTimeframe(interval: string) {
+    return ARENA_INTERVAL_TO_TIMEFRAME[interval] ?? "M5";
+}
 
 export default function ChallengeDashboardPage() {
     const params = useParams<{ attemptId: string }>();
@@ -341,25 +354,26 @@ export default function ChallengeDashboardPage() {
                                     {symbols.map((symbol) => <option key={symbol} value={symbol}>{symbol} · {marketOfSymbol(symbol)}</option>)}
                                 </select>
                                 <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-                                    <span>{chartInterval.toUpperCase()} · Native AlgoVault chart</span>
+                                    <span>{chartInterval.toUpperCase()} · Pro Terminal chart</span>
                                     <span className="rounded border border-border px-2 py-1" title={chartQuote ? `Quote timestamp ${new Date(chartQuote.timestamp).toLocaleTimeString()}` : "No current quote"}>{chartQuote && Date.now() - chartQuote.timestamp <= 60_000 ? chartQuote.price.toLocaleString(undefined, { maximumFractionDigits: 6 }) : "Quote unavailable / stale"}</span>
                                     <span aria-label="Chart marker legend" className="hidden sm:inline">Entry / SL / TP levels</span>
                                 </div>
                             </div>
-                            <TradingChart
-                                symbol={chartSymbol}
-                                interval={chartInterval}
+                            {/* The shared Pro Terminal chart workspace gives this
+                                page the same engine, drawing tools, layer
+                                picker, fullscreen and per-symbol persistence
+                                that every other page uses. */}
+                            <ProTerminalChartWorkspace
+                                initialSymbol={chartSymbol}
+                                initialTimeframe={intervalToTimeframe(chartInterval)}
+                                chartLevels={(chartPriceLines ?? []).map((line) => ({
+                                    kind: line.id.includes(":stop") ? "sl" : line.id.includes(":target") ? "tp" : "entry",
+                                    label: line.title,
+                                    price: line.price,
+                                }))}
                                 height={500}
-                                symbolOptions={symbols}
-                                showStudies={false}
-                                showEditingControls={false}
-                                showChartTypeSelector={false}
-                                showDrawingToolbar={false}
-                                showSymbolSelector={false}
-                                onSymbolChange={setChartSymbol}
-                                onIntervalChange={setChartInterval}
-                                priceLines={chartPriceLines}
-                                tradeMarkers={chartTradeMarkers}
+                                hideWatchlist
+                                storageScope={`arena-${state.attempt.id ?? "default"}`}
                             />
                         </div>
 

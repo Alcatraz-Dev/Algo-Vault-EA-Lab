@@ -139,9 +139,10 @@ export function createAdaptiveApiDataSources(): ChartDataSources {
                 before: String(beforeMs),
             });
             const body = await fetchOhlc(params);
+            if (body?.hasDeepHistory === false) deepHistory = false;
             const mapped = mapCandles(body?.candles ?? undefined, symbol, timeframe)
                 .filter((c) => c.timestamp < beforeMs);
-            return { candles: mapped, hasMore: mapped.length > 0 };
+            return { candles: mapped, hasMore: deepHistory && mapped.length > 0 };
         },
 
         async loadRange({ symbol, timeframe, fromMs, toMs }) {
@@ -153,6 +154,7 @@ export function createAdaptiveApiDataSources(): ChartDataSources {
                 limit: String(MAX_RANGE_CANDLES),
             });
             const body = await fetchOhlc(params);
+            if (body?.hasDeepHistory === false) deepHistory = false;
             const mapped = mapCandles(body?.candles ?? undefined, symbol, timeframe).filter(
                 (c) => c.timestamp >= fromMs && c.timestamp <= toMs,
             );

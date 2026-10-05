@@ -41,6 +41,31 @@ export class TradingViewMcpNotConfiguredError extends Error {
 /** Default scopes are read-only (PHASE 14: default to read-only). */
 export const DEFAULT_SCOPES = ["read"];
 
+/**
+ * Scopes are requested from the authorization server's own advertisement
+ * (metadata.scopes_supported). TradingView publishes `mcp:read` /
+ * `mcp:tools`; `TRADINGVIEW_MCP_SCOPES` overrides the request when an
+ * account needs the tool scope. Never widened automatically.
+ */
+function scopeOverride(): string[] | null {
+    const raw = (process.env.TRADINGVIEW_MCP_SCOPES || "").trim();
+    if (!raw) return null;
+    const scopes = raw.split(/[\s,]+/).filter(Boolean);
+    return scopes.length > 0 ? scopes : null;
+}
+
+function resolveScopes(metadata: OAuthServerMetadata | null): string[] {
+    const override = scopeOverride();
+    if (override) return override;
+    const supported = metadata?.scopesSupported;
+    if (!supported || supported.length === 0) return DEFAULT_SCOPES;
+    // Read-only preference: pick the advertised read scope (e.g. `mcp:read`),
+    // fall back to a literal `read`, and only then to the static default.
+    const readScope = supported.find((s) => s === "mcp:read" || s === "read" || /:read$/i.test(s));
+    if (readScope) return [readScope];
+    return DEFAULT_SCOPES.filter((s) => supported.includes(s));
+}
+
 /** Env-provided static client registration (fallback when discovery is unavailable). */
 function staticClientId(): string {
     return (process.env.TRADINGVIEW_MCP_CLIENT_ID || "").trim();
@@ -69,26 +94,155 @@ export async function fetchServerMetadata(force = false): Promise<OAuthServerMet
     if (!force && metadataCache && now - metadataCache.at < METADATA_TTL_MS) {
         return metadataCache.value;
     }
+    const value = await discoverServerMetadata();
+    metadataCache = { value, at: now, failed: value === null };
+    return value;
+}
+
+/** RFC 8414 path-inserted well-known URL for an authorization server URL. */
+function authorizationServerMetadataUrl(server: string): string {
+    const url = new URL(server);
+    const path = url.pathname.replace(/\/+$/, "");
+    return `${url.origin}/.well-known/oauth-authorization-server${path}`;
+}
+
+function parseMetadata(data: unknown): OAuthServerMetadata | null {
+    if (!data || typeof data !== "object") return null;
+    const d = data as Record<string, unknown>;
+    const str = (v: unknown) => (typeof v === "string" && v ? v : undefined);
+    const meta: OAuthServerMetadata = {
+        authorizationEndpoint: str(d.authorization_endpoint),
+        tokenEndpoint: str(d.token_endpoint),
+        revocationEndpoint: str(d.revocation_endpoint),
+        registrationEndpoint: str(d.registration_endpoint),
+        scopesSupported: Array.isArray(d.scopes_supported) ? (d.scopes_supported as string[]).filter((s) => typeof s === "string") : undefined,
+        codeChallengeMethodsSupported: Array.isArray(d.code_challenge_methods_supported)
+            ? (d.code_challenge_methods_supported as string[])
+            : undefined,
+    };
+    return meta.authorizationEndpoint && meta.tokenEndpoint ? meta : null;
+}
+
+/**
+ * Discovery chain (TradingView does NOT serve metadata on the MCP host):
+ *  1. RFC 8414 well-known on the MCP host (path-aware, then origin root),
+ *  2. RFC 8707 protected-resource metadata → `authorization_servers` →
+ *     the real authorization server's RFC 8414 document.
+ */
+async function discoverServerMetadata(): Promise<OAuthServerMetadata | null> {
+    const base = new URL(TRADINGVIEW_MCP_URL);
+    const candidates = [
+        `${base.origin}/.well-known/oauth-authorization-server${base.pathname}`,
+        `${base.origin}/.well-known/oauth-authorization-server`,
+    ];
+
     try {
-        const base = new URL(TRADINGVIEW_MCP_URL);
-        const wellKnown = `${base.origin}/.well-known/oauth-authorization-server${base.pathname}`;
-        const res = await fetch(wellKnown, { cache: "no-store", signal: AbortSignal.timeout(5_000) });
-        if (!res.ok) throw new Error(`metadata ${res.status}`);
-        const data = (await res.json()) as Record<string, unknown>;
-        const value: OAuthServerMetadata = {
-            authorizationEndpoint: typeof data.authorization_endpoint === "string" ? data.authorization_endpoint : undefined,
-            tokenEndpoint: typeof data.token_endpoint === "string" ? data.token_endpoint : undefined,
-            revocationEndpoint: typeof data.revocation_endpoint === "string" ? data.revocation_endpoint : undefined,
-            registrationEndpoint: typeof data.registration_endpoint === "string" ? data.registration_endpoint : undefined,
-            scopesSupported: Array.isArray(data.scopes_supported) ? (data.scopes_supported as string[]) : undefined,
-            codeChallengeMethodsSupported: Array.isArray(data.code_challenge_methods_supported)
-                ? (data.code_challenge_methods_supported as string[])
-                : undefined,
-        };
-        metadataCache = { value, at: now, failed: false };
-        return value;
+        const res = await fetch(`${base.origin}/.well-known/oauth-protected-resource${base.pathname}`, {
+            cache: "no-store",
+            signal: AbortSignal.timeout(5_000),
+        });
+        if (res.ok) {
+            const data = (await res.json()) as { authorization_servers?: unknown };
+            const servers = Array.isArray(data.authorization_servers) ? data.authorization_servers : [];
+            for (const server of servers) {
+                if (typeof server !== "string") continue;
+                try {
+                    candidates.push(authorizationServerMetadataUrl(server));
+                } catch {
+                    // malformed server URL — skip
+                }
+            }
+        }
     } catch {
-        metadataCache = { value: null, at: now, failed: true };
+        // resource metadata unavailable — the direct candidates still run
+    }
+
+    for (const url of candidates) {
+        try {
+            const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(5_000) });
+            if (!res.ok) continue;
+            const meta = parseMetadata(await res.json());
+            if (meta) return meta;
+        } catch {
+            // try the next candidate
+        }
+    }
+    return null;
+}
+
+// ── Dynamic client registration (RFC 7591) ───────────────────────────────
+
+interface StoredClientRegistration {
+    clientId: string;
+    /** Only persisted when the server actually issued a secret. */
+    clientSecret?: string;
+    createdAt: number;
+}
+
+const REGISTRATION_PATH = "tradingviewMcp/clientRegistration";
+let registrationCache: { at: number; value: StoredClientRegistration | null } | null = null;
+const REGISTRATION_TTL_MS = 60 * 60 * 1000;
+
+async function loadClientRegistration(): Promise<StoredClientRegistration | null> {
+    const now = Date.now();
+    if (registrationCache && now - registrationCache.at < REGISTRATION_TTL_MS) return registrationCache.value;
+    let value: StoredClientRegistration | null = null;
+    try {
+        const snap = await adminDatabase.ref(REGISTRATION_PATH).get();
+        const data = snap.val() as StoredClientRegistration | undefined;
+        if (data && typeof data.clientId === "string" && data.clientId) {
+            value = { clientId: data.clientId, clientSecret: data.clientSecret, createdAt: data.createdAt };
+        }
+    } catch {
+        value = null;
+    }
+    registrationCache = { at: now, value };
+    return value;
+}
+
+async function saveClientRegistration(reg: StoredClientRegistration): Promise<void> {
+    registrationCache = { at: Date.now(), value: reg };
+    await adminDatabase.ref(REGISTRATION_PATH).set(reg);
+}
+
+/**
+ * Register (once) an OAuth client with the authorization server when no
+ * static TRADINGVIEW_MCP_CLIENT_ID is configured. The result is persisted in
+ * RTDB so every subsequent connection reuses the same client identity.
+ */
+async function ensureClientRegistration(metadata: OAuthServerMetadata): Promise<StoredClientRegistration | null> {
+    const existing = await loadClientRegistration();
+    if (existing) return existing;
+    if (!metadata.registrationEndpoint) return null;
+
+    try {
+        const res = await fetch(metadata.registrationEndpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                client_name: "AlgoVault",
+                redirect_uris: [getRedirectUri()],
+                grant_types: ["authorization_code", "refresh_token"],
+                response_types: ["code"],
+                // Public client: PKCE (S256) authenticates the exchange, so no
+                // client secret is requested or stored.
+                token_endpoint_auth_method: "none",
+                scope: resolveScopes(metadata).join(" "),
+            }),
+            cache: "no-store",
+            signal: AbortSignal.timeout(10_000),
+        });
+        if (!res.ok) return null;
+        const data = (await res.json()) as { client_id?: unknown; client_secret?: unknown };
+        if (typeof data.client_id !== "string" || !data.client_id) return null;
+        const reg: StoredClientRegistration = {
+            clientId: data.client_id,
+            ...(typeof data.client_secret === "string" && data.client_secret ? { clientSecret: data.client_secret } : {}),
+            createdAt: Date.now(),
+        };
+        await saveClientRegistration(reg);
+        return reg;
+    } catch {
         return null;
     }
 }
@@ -108,22 +262,41 @@ export interface ResolvedOAuthConfig {
  */
 export async function resolveOAuthConfig(): Promise<ResolvedOAuthConfig> {
     const metadata = await fetchServerMetadata();
-    const clientId = staticClientId();
+    const staticId = staticClientId();
     const authEndpoint = staticAuthEndpoint() || metadata?.authorizationEndpoint || "";
     const tokenEndpoint = staticTokenEndpoint() || metadata?.tokenEndpoint || "";
 
-    if (!clientId || !authEndpoint || !tokenEndpoint) {
+    if ((!staticId && !metadata) || !authEndpoint || !tokenEndpoint) {
         throw new TradingViewMcpNotConfiguredError(
-            "TradingView MCP OAuth is not configured. Set TRADINGVIEW_MCP_CLIENT_ID (and optionally TRADINGVIEW_MCP_CLIENT_SECRET / endpoint overrides) so the authorization flow can run.",
+            "TradingView MCP OAuth metadata could not be discovered and no TRADINGVIEW_MCP_CLIENT_ID is set. " +
+                "Check outbound access to mcp.tradingview.com / www.tradingview.com, or set " +
+                "TRADINGVIEW_MCP_CLIENT_ID (and endpoint overrides) explicitly.",
         );
     }
+
+    // Client identity: static env id wins; otherwise register dynamically once
+    // (RFC 7591) and reuse the stored registration for every connection.
+    let clientId = staticId;
+    let clientSecret = staticClientSecret() || null;
+    if (!clientId) {
+        const registered = metadata ? await ensureClientRegistration(metadata) : null;
+        if (!registered) {
+            throw new TradingViewMcpNotConfiguredError(
+                "TradingView MCP client registration is unavailable (no TRADINGVIEW_MCP_CLIENT_ID and the " +
+                    "authorization server exposes no working registration endpoint).",
+            );
+        }
+        clientId = registered.clientId;
+        clientSecret = registered.clientSecret ?? null;
+    }
+
     return {
         clientId,
-        clientSecret: staticClientSecret() || null,
+        clientSecret,
         authorizationEndpoint: authEndpoint,
         tokenEndpoint,
         revocationEndpoint: staticRevocationEndpoint() || metadata?.revocationEndpoint || null,
-        scopes: DEFAULT_SCOPES,
+        scopes: resolveScopes(metadata),
     };
 }
 

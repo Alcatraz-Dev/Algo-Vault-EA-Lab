@@ -2,17 +2,22 @@
 
 /**
  * SignalTerminalChart — the full Pro Terminal chart embedded in a signal
- * detail page. Wraps ProTerminalChart with sensible signal-context defaults:
- * volume, VWAP, FVG, session levels on by default; entry / SL / TP price lines
- * drawn from the signal; symbol alias normalisation so legacy signal symbols
- * (SP500, GOLD, etc.) map to the canonical data-source names.
+ * detail page. Wraps ProTerminalChartWorkspace with signal-context defaults:
+ *
+ *   • volume, VWAP, FVG, session levels + BOS/CHoCH on by default
+ *   • Entry / SL / TP price lines drawn from the signal via chartLevels
+ *   • Symbol alias normalisation (SP500, GOLD, … → SPX500, XAUUSD, …)
+ *   • Per-signal storage scope so each signal's workspace state is independent
+ *
+ * The toolbar / drawing tools / layer picker / fullscreen toggle all come
+ * from the shared ProTerminalChartWorkspace so every signal page renders the
+ * same engine + the same set of buttons as every other page.
  */
 
-import { useMemo, useState } from "react";
-import { ProTerminalChart } from "@/components/pro-scalping-terminal/ProTerminalChart";
+import { useMemo } from "react";
+import { ProTerminalChartWorkspace } from "@/components/pro-scalping-terminal/ProTerminalChartWorkspace";
 import { defaultLayerState } from "@/components/pro-scalping-terminal/chart-layers";
 import type { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
-import type { TerminalSignal } from "@/lib/ai/scalping/radar";
 import type { AISignal } from "@/lib/ai-signals/types";
 
 // ── symbol normaliser ─────────────────────────────────────────────────────────
@@ -38,9 +43,10 @@ function normaliseTimeframe(raw: string): Timeframe {
 }
 
 // ── signal-context layer state ────────────────────────────────────────────────
-function signalLayerState() {
+function signalLayerState(): Record<string, boolean> {
+    const base = defaultLayerState();
     return {
-        ...defaultLayerState(),
+        ...base,
         volume: true,
         vwap: true,
         fvg: true,
@@ -50,56 +56,29 @@ function signalLayerState() {
     };
 }
 
-// ── adapt AISignal → TerminalSignal so price levels become chart markers ───────
-function toTerminalSignal(signal: AISignal): TerminalSignal {
-    const symbol    = normaliseSymbol(signal.symbol);
-    const timeframe = normaliseTimeframe(signal.timeframe);
-    return {
-        id:               signal.id,
-        symbol,
-        timeframe,
-        direction:        signal.direction === "BUY" ? "long" : "short",
-        entry:            signal.entry    ?? 0,
-        stop:             signal.stopLoss ?? 0,
-        target:           signal.tp1      ?? signal.tp2 ?? signal.tp3 ?? 0,
-        riskReward:       signal.riskReward ?? 0,
-        risk:             0,
-        confidence:       signal.confidence ?? 0,
-        confidenceLabel:  signal.confidence != null ? `${signal.confidence}%` : "—",
-        evidence:         [],
-        regime:           "",
-        strength:         "",
-        status:           signal.status ?? "ACTIVE",
-        createdAt:        typeof signal.createdAt === "number" ? signal.createdAt : Date.now(),
-        source:           "AI_GENERATED" as unknown as TerminalSignal["source"],
-    };
-}
-
 interface SignalTerminalChartProps {
     signal: AISignal;
     height?: number;
 }
 
 export default function SignalTerminalChart({ signal, height = 460 }: SignalTerminalChartProps) {
-    const [layers] = useState(signalLayerState);
-
-    const symbol    = normaliseSymbol(signal.symbol);
+    const symbol = normaliseSymbol(signal.symbol);
     const timeframe = normaliseTimeframe(signal.timeframe);
-
-    const signalMarkers = useMemo<TerminalSignal[]>(() => [toTerminalSignal(signal)], [signal]);
 
     // Levels the engine scored: prefer the ones persisted on the signal;
     // legacy signals without chartLevels get nothing (no fabricated levels).
     const chartLevels = useMemo(() => {
         const stored = Array.isArray((signal as { chartLevels?: Array<{ kind: string; label: string; price: number }> }).chartLevels)
-            ? signal.chartLevels
+            ? (signal as { chartLevels?: Array<{ kind: string; label: string; price: number }> }).chartLevels
             : undefined;
         return stored && stored.length > 0 ? stored : null;
     }, [signal]);
 
+    const initialLayers = useMemo(() => signalLayerState(), []);
+
     return (
         <div className="rounded-2xl border border-border/20 overflow-hidden bg-[#0b1118]">
-            {/* Header */}
+            {/* Header — keeps the signal-context branding (Entry / SL / TP legend) */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border/20">
                 <div className="flex items-center gap-2">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -130,18 +109,19 @@ export default function SignalTerminalChart({ signal, height = 460 }: SignalTerm
                 </div>
             </div>
 
-            {/* Full Pro Terminal chart — same engine used in the scalping terminal */}
-            <ProTerminalChart
-                symbol={symbol}
-                timeframe={timeframe}
-                layers={layers}
-                analysis={null}
-                token={null}
-                height={height}
-                signals={signalMarkers}
-                studyOverlay={null}
-                chartLevels={chartLevels}
-            />
+            {/* Full Pro Terminal workspace — same engine + same toolbars as the
+                scalping terminal / market-intelligence terminal / trading pages */}
+            <div className="p-2">
+                <ProTerminalChartWorkspace
+                    initialSymbol={symbol}
+                    initialTimeframe={timeframe}
+                    initialLayers={initialLayers as never}
+                    chartLevels={chartLevels}
+                    height={height}
+                    hideWatchlist
+                    storageScope={`signal-${signal.id}`}
+                />
+            </div>
         </div>
     );
 }

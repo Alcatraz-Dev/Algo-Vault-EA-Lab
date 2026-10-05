@@ -104,7 +104,8 @@ minTradingDays, maxTradingDays, maxCalendarDays,
 allowedMarkets, allowedSymbols, allowedSessions, tradingHours,
 weekendTrading, newsTrading, leveragePolicy.maxLeverageRatio,
 maxConcurrentPositions, maxDailyTrades, maxRiskPerTradePct,
-maxPositionPctOfEquity, positionSizePolicy,
+maxAggregateRiskPctOfEquity, maxPositionNotionalMultiple,
+maxPositionPctOfEquity (deprecated, see §5.1), positionSizePolicy,
 consistency { required, maxSingleDayPnlSharePct, minTradesForConsistency },
 strategyRestrictions, costModel { commissionPerLotCents, slippagePips, useTypicalSpread },
 warningUtilizationPct (default 80), dailyLossBreachAction (fail|pause),
@@ -158,9 +159,54 @@ withheld (`STALE_MARKET_DATA`) while open positions can't be marked, and the
 attempt pauses instead of corrupting results.
 
 **Pre-trade gate:** symbol/market/session/hours/weekend, position caps, daily
-trade cap, max trading days, size, per-trade risk, notional and leverage are
+trade cap, max trading days, size, risk and notional/leverage ceilings are
 validated server-side before any fill. Violations reject the order with the
 engine's own messages (HTTP 422 `RULE_VIOLATION`).
+
+### 5.1 Position sizing is risk-first
+
+Size is bounded by **planned risk at the stop**, not by notional as a fraction
+of equity. `lib/performance-arena/sizing.ts` is the single solve, imported by
+both the server gate and the order ticket, so the size a trader is shown is the
+size that is enforced.
+
+Ceilings, in precedence order:
+
+1. `maxAggregateRiskPctOfEquity` — total open risk across all positions.
+2. `maxRiskPerTradePct` — this trade's stop distance × size × contract + costs.
+3. `maxPositionNotionalMultiple` — per-instrument NET notional, × equity.
+4. `leveragePolicy.maxLeverageRatio` — account NET notional, × equity.
+5. `positionSizePolicy.maxSizeLots` / instrument max lot — hard lot cap.
+
+Notional-to-equity is not a risk measure: on a $10k account one EURUSD lot
+carries $10,000 of notional (contract size 100,000), so even a 0.01-lot order
+reads as 100% of equity while risking a few dollars. An earlier
+`maxPositionPctOfEquity` gate compared notional against 25% of equity and
+rejected essentially every ordinary order. That field is **deprecated**: it is
+still read for backwards compatibility, and the effective per-instrument
+multiple is `max(maxPositionNotionalMultiple, maxPositionPctOfEquity / 100)`,
+so a stored legacy `25` yields `max(10, 0.25) = 10×` rather than an impossible
+`0.25×`. Persisted definitions and attempt policy snapshots are normalized on
+read (`normalizeDefinition` / `normalizeChallengePolicy`), so existing attempts
+are fixed without a data migration.
+
+Consequences worth knowing:
+
+- **Risk-reducing orders bypass every sizing ceiling** (`intent: "reduce"`).
+  State, expiry, market, symbol, session and hours gates still apply. A trader
+  must always be able to get out.
+- **One-way netting per instrument.** A sell against an open long flattens or
+  scales it instead of stacking an opposite position; partial closes split
+  round-trip costs pro-rata with the residual handed to the survivor, so slices
+  sum back exactly.
+- **Ceilings solve against SIGNED exposure.** Headroom is
+  `u ≤ (M − direction·S) / v`, so selling into a long *relieves* the book and
+  gains headroom rather than consuming it. Unsigned exposure would cap a
+  de-risking order at entry size.
+- **Ceilings reject, never silently resize.** The ticket's `previewPosition`
+  reports the request (`requestedCentiLots`), the clamped size and the
+  `bindingGate`, and the rule engine names the maximum legal lot in the
+  rejection message.
 
 ---
 
@@ -332,6 +378,18 @@ definitions/[id],rewards,attempts,fraud}`.
 challenges/[id]`, `/performance-arena/attempts/[id]` (dashboard with native
 chart, order ticket, positions, rules feed, Guardian, report),
 `/performance-arena/leaderboard`, `/performance-arena/profile`.
+
+**Dashboard chart** (`/account/performance-arena/attempts/[id]`) drives the
+shared `ProTerminalChartWorkspace` as a controlled component: it owns
+symbol/timeframe and reports both back, so the order ticket can never quote a
+different instrument from the one on screen. The workspace draws the live
+account state — open positions as entry/SL/TP levels with a one-tap 25/50/75/100%
+close strip, pending orders as trigger lines with cancel, and real fills as
+entry/exit/partial markers. The ticket sizes risk-first with a live
+`previewPosition` readout (notional, risk %, stop pips, R:R, binding ceiling)
+and submits the solved size. `PerformancePanel` charts the server-persisted
+equity curve, per-UTC-day P&L against the daily-loss base, and full-set trade
+statistics over every closed trade.
 
 **Integrations:** `ChallengeContextBar` inside both Scalping Terminal pages
 (status, daily loss, drawdown, risk remaining, target progress — read-only);

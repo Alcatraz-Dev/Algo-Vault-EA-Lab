@@ -96,7 +96,27 @@ export interface ChallengePolicy {
     maxDailyTrades: number;
     /** Max planned risk (stop distance + costs) per trade, % of equity. */
     maxRiskPerTradePct: number;
-    /** Max notional per position as a % of equity. */
+    /**
+     * Max planned risk carried by ALL open positions at once, % of equity.
+     * This is the real professional sizing guard — notional alone never
+     * describes risk on a leveraged instrument.
+     */
+    maxAggregateRiskPctOfEquity: number;
+    /**
+     * Max NET notional for a single instrument, as a multiple of equity.
+     * Aggregate over that instrument's open positions (opposite lots net
+     * off), so scaling out never counts twice.
+     */
+    maxPositionNotionalMultiple: number;
+    /**
+     * @deprecated Legacy per-position notional cap expressed as a % of equity.
+     * Retained so policies persisted before the risk-based model keep working:
+     * the effective per-instrument multiple is
+     * `max(maxPositionNotionalMultiple, maxPositionPctOfEquity / 100)`
+     * (see ./sizing). Never compare notional to this value directly — a raw
+     * notional-to-equity ratio is not a risk measure and made normal FX sizing
+     * impossible (25% of a $10K account is 0.02 lots of EURUSD).
+     */
     maxPositionPctOfEquity: number;
     positionSizePolicy: { maxSizeLots: number; stepLots: number };
 
@@ -217,7 +237,7 @@ export interface VirtualAccount {
 // ──────────── Simulated trades ───────────────────────────────────────────────
 
 export type TradeStatus = "open" | "closed";
-export type TradeExitReason = "manual" | "stop_loss" | "take_profit" | "challenge_end" | "breach_close";
+export type TradeExitReason = "manual" | "partial_close" | "stop_loss" | "take_profit" | "challenge_end" | "breach_close";
 
 export interface TradeFillCosts {
     /** Round-trip spread cost charged at entry (half on each leg, combined). */
@@ -304,6 +324,7 @@ export type RuleId =
     | "MARKET_ALLOWED"
     | "POSITION_SIZE"
     | "RISK_PER_TRADE"
+    | "AGGREGATE_RISK"
     | "MAX_POSITIONS"
     | "MAX_DAILY_TRADES"
     | "LEVERAGE"
@@ -323,8 +344,10 @@ export type RuleEventType =
     | "CONSISTENCY_WARNING"
     | "TRADING_HOURS_VIOLATION"
     | "POSITION_SIZE_VIOLATION"
+    | "AGGREGATE_RISK_VIOLATION"
     | "MAX_POSITIONS_VIOLATION"
-    | "RULE_BLOCKED";
+    | "RULE_BLOCKED"
+    | "RISK_REDUCING_ALLOWED";
 
 export type RuleSeverity = "INFO" | "WARNING" | "BREACH";
 
@@ -356,6 +379,7 @@ export type ChallengeEventType =
     | "TRADE_OPENED"
     | "TRADE_CLOSED"
     | "POSITION_MODIFIED"
+    | "POSITION_REDUCED"
     | "PENDING_ORDER_PLACED"
     | "PENDING_ORDER_CANCELLED"
     | "EQUITY_MARK"
@@ -411,8 +435,25 @@ export interface ChallengeMetrics {
     maxDailyTrades: number;
     openPositions: number;
     openExposureCents: number;
+    /**
+     * Sum of every open position's planned risk at its stop, in cents.
+     * The risk-based sizing budget is derived from this, not from notional.
+     */
+    openRiskCents: number;
+    /** openRiskCents as a % of current equity. */
+    openRiskUsedPct: number;
+    /** Policy ceiling for openRiskUsedPct. */
+    maxAggregateRiskPct: number;
+    /** Cents still available to the next entry under the aggregate cap. */
+    remainingRiskBudgetCents: number;
+    /** Per-symbol absolute net notional (opposite lots net off), in cents. */
+    symbolExposureCents: Record<string, number>;
+    /** Per-symbol signed net notional: positive long, negative short. */
+    symbolNetExposureCents: Record<string, number>;
     maxLeverageRatio: number;
     leverageUsedPct: number;
+    /** Effective per-instrument notional ceiling, as a multiple of equity. */
+    maxPositionNotionalMultiple: number;
     timeRemainingMs: number;
     expired: boolean;
     equityCurve: EquityPoint[];

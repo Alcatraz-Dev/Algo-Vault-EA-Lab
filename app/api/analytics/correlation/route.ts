@@ -28,6 +28,11 @@ export async function GET(request: NextRequest) {
 
         const matrix: Record<string, Record<string, number>> = {};
 
+        // A pair with too few bars is written as 0, which is indistinguishable
+        // from a genuine zero correlation. `available` lets consumers render
+        // "unknown" instead of a misleading 0.00 without breaking the matrix.
+        const available = SYMBOLS.filter((symbol) => (ohlcvData[symbol] || []).length >= 5);
+
         for (const sym1 of SYMBOLS) {
             matrix[sym1] = {};
             for (const sym2 of SYMBOLS) {
@@ -65,7 +70,7 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        return NextResponse.json({ success: true, symbols: SYMBOLS, matrix });
+        return NextResponse.json({ success: true, symbols: SYMBOLS, available, matrix });
     } catch (err) {
         console.error("Correlation matrix error:", err);
         return NextResponse.json({ error: "Failed" }, { status: 500 });

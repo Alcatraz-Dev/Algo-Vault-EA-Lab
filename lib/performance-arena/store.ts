@@ -31,7 +31,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { adminDatabase } from "@/lib/firebase-admin";
-import { defaultChallengeDefinitions, defaultRewardPolicies } from "./policies";
+import { defaultChallengeDefinitions, defaultRewardPolicies, normalizeChallengePolicy, normalizeDefinition } from "./policies";
 import type {
     ArenaDailyAnalytics,
     ChallengeAttempt,
@@ -79,12 +79,17 @@ export async function listDefinitions(): Promise<ChallengeDefinition[]> {
         await adminDatabase.ref().update(updates);
         return seeded;
     }
-    return Object.values(val).sort((a, b) => a.policy.startingBalanceCents - b.policy.startingBalanceCents);
+    // Additive normalization on read: definitions persisted before a policy
+    // field existed still satisfy the current rule engine.
+    return Object.values(val)
+        .map(normalizeDefinition)
+        .sort((a, b) => a.policy.startingBalanceCents - b.policy.startingBalanceCents);
 }
 
 export async function getDefinition(definitionId: string): Promise<ChallengeDefinition | null> {
     const snap = await adminDatabase.ref(`${ARENA_ROOT}/definitions/${rtdbKey(definitionId)}`).get();
-    return (snap.val() as ChallengeDefinition | null) ?? null;
+    const val = (snap.val() as ChallengeDefinition | null) ?? null;
+    return val ? normalizeDefinition(val) : null;
 }
 
 export async function saveDefinition(def: ChallengeDefinition): Promise<void> {
@@ -123,14 +128,20 @@ export async function getLeaderboardPolicy(): Promise<LeaderboardPolicy | null> 
 
 export async function getAttempt(uid: string, attemptId: string): Promise<ChallengeAttempt | null> {
     const snap = await adminDatabase.ref(`${ARENA_ROOT}/attempts/${uid}/${rtdbKey(attemptId)}`).get();
-    return (snap.val() as ChallengeAttempt | null) ?? null;
+    const val = (snap.val() as ChallengeAttempt | null) ?? null;
+    // An attempt snapshots its policy at join time. Attempts opened before a
+    // policy field existed are normalized on read so in-flight challenges
+    // keep trading under the current, coherent rules instead of a stale cap.
+    return val ? { ...val, policy: normalizeChallengePolicy(val.policy) } : null;
 }
 
 export async function listAttempts(uid: string, limit = 50): Promise<ChallengeAttempt[]> {
     const snap = await adminDatabase.ref(`${ARENA_ROOT}/attempts/${uid}`).limitToLast(limit).get();
     const val = snap.val() as Record<string, ChallengeAttempt> | null;
     if (!val) return [];
-    return Object.values(val).sort((a, b) => b.startedAt - a.startedAt);
+    return Object.values(val)
+        .map((attempt) => ({ ...attempt, policy: normalizeChallengePolicy(attempt.policy) }))
+        .sort((a, b) => b.startedAt - a.startedAt);
 }
 
 export async function listAllAttempts(limit = 500): Promise<ChallengeAttempt[]> {
@@ -139,7 +150,10 @@ export async function listAllAttempts(limit = 500): Promise<ChallengeAttempt[]> 
     if (!val) return [];
     const all: ChallengeAttempt[] = [];
     for (const perUser of Object.values(val)) all.push(...Object.values(perUser));
-    return all.sort((a, b) => b.startedAt - a.startedAt).slice(0, limit);
+    return all
+        .map((attempt) => ({ ...attempt, policy: normalizeChallengePolicy(attempt.policy) }))
+        .sort((a, b) => b.startedAt - a.startedAt)
+        .slice(0, limit);
 }
 
 export async function saveAttempt(attempt: ChallengeAttempt): Promise<void> {

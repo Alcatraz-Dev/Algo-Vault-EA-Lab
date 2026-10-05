@@ -4,16 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-    ArrowLeft,
-    ArrowRight,
-    Check,
-    Crown,
-    Sparkles,
-    Star,
-    Zap,
+    ArrowLeft, ArrowRight, Check, Crown, Sparkles, Star, Zap, Lock, CircleDot,
 } from "lucide-react";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { ToolBadge } from "@/components/tools/tier-ui";
+import { TOOL_CATALOG } from "@/lib/tools-catalog";
 
 type Tier = {
     id: string;
@@ -32,18 +28,19 @@ type Tier = {
 const TIERS: Tier[] = [
     {
         id: "free",
-        name: "Free",
+        name: "Free / Lite",
         emoji: "🎯",
         price: 0,
         period: "forever",
-        description: "Perfect for exploring the platform and testing strategies.",
+        description: "The Lite versions of every public tool — useful on their own, free forever.",
         features: [
-            "Marketplace browsing",
-            "Basic backtest reports",
-            "Live performance (1 account)",
-            "Community signals",
+            "All 10 Lite trading tools (calculators, sessions, correlation…)",
+            "AI Scalping Terminal (Free) — live radar + signals + engine feed",
+            "Live performance for 1 account",
+            "Basic risk calculator (Position size + Pip value)",
+            "Free market signals",
             "Notebook (50 entries)",
-            "Basic risk calculator",
+            "Community Discord access",
         ],
         cta: "Get Started",
         ctaHref: "/register",
@@ -55,20 +52,19 @@ const TIERS: Tier[] = [
         emoji: "⚡",
         price: 29,
         period: "month",
-        description: "For serious traders who need advanced analytics and automation.",
+        description: "Unlock every Pro tool, the chart workspace, replay, persistence and AI explanations.",
         features: [
             "Everything in Free",
-            "Unlimited backtest reports",
-            "Advanced Analysis & Order Flow",
-            "Pine Script Workspace",
-            "AI Signals Engine (pro)",
-            "Copy Trading (5 masters)",
-            "Unlimited notebook entries",
-            "Profit Split Calculator",
-            "Swap Calculator",
-            "Spread Analyzer",
+            "Pro unlocks on every tool — no more Lite",
+            "AI Scalping Terminal (Free) → Pro (chart + overlays + replay + order flow + intelligence + journal)",
+            "Advanced Analysis Terminal",
+            "Market Intelligence workspace",
+            "Strategy Lab, Backtest, Walk-Forward, Monte Carlo",
+            "Copy Trading (5 verified masters)",
+            "Trade Journal with persistence",
+            "AI Copilot, AI Insights, Pro Signals",
+            "Alert Center + Pro Alerts",
             "Priority support",
-            "Custom alerts",
         ],
         cta: "Start Pro",
         ctaHref: "/account/subscribe?plan=pro",
@@ -81,7 +77,7 @@ const TIERS: Tier[] = [
         emoji: "👑",
         price: 99,
         period: "month",
-        description: "For teams and institutions managing multiple accounts.",
+        description: "For teams and institutions managing multiple accounts at scale.",
         features: [
             "Everything in Pro",
             "Unlimited live accounts",
@@ -98,6 +94,57 @@ const TIERS: Tier[] = [
         ctaHref: "/account/subscribe?plan=enterprise",
         icon: Crown,
     },
+];
+
+const COMPARISON_ROWS = [
+    { section: "Calculators & Tools" },
+    { feature: "Position Size Calculator", free: "Basic", pro: "Full", ent: "Full" },
+    { feature: "Pip Value Calculator", free: true, pro: true, ent: true },
+    { feature: "Margin Calculator", free: false, pro: true, ent: true },
+    { feature: "Swap / Rollover", free: false, pro: true, ent: true },
+    { feature: "Profit Split Calculator", free: false, pro: true, ent: true },
+    { feature: "Spread Analyzer", free: false, pro: true, ent: true },
+    { feature: "Drawdown Calculator", free: "Fixed %", pro: "Variable + Monte Carlo", ent: "Same as Pro" },
+    { feature: "Risk of Ruin", free: "Ruin %", pro: "+ Kelly + EV + Monte Carlo", ent: "Same as Pro" },
+    { feature: "Fibonacci", free: "Manual levels", pro: "Auto swing + extensions + saves", ent: "Same as Pro" },
+    { feature: "Pip Reference", free: "Curated list", pro: "+ Custom pair calc + matrix", ent: "Same as Pro" },
+    { feature: "Broker Fee Comparison", free: "Read-only table", pro: "+ Account-aware ranking + saves", ent: "Same as Pro" },
+
+    { section: "Market Intelligence" },
+    { feature: "Correlation Matrix", free: "30d daily only", pro: "+ 7d / 90d + saves + CSV", ent: "Same as Pro" },
+    { feature: "Currency Strength", free: "Single TF", pro: "+ MTF + divergence + saves", ent: "Same as Pro" },
+    { feature: "Sessions / Overlap", free: "Static grid", pro: "+ Live alerts + best-window pairs + saves", ent: "Same as Pro" },
+
+    { section: "Terminals" },
+    { feature: "AI Scalping Terminal", free: "Free: radar, signals, engine feed", pro: "Pro: chart + overlays + replay + order flow + intelligence + journal", ent: "Same as Pro" },
+    { feature: "Advanced Analysis Terminal", free: false, pro: true, ent: true },
+    { feature: "Market Intelligence workspace", free: false, pro: true, ent: true },
+
+    { section: "Strategy & Backtesting" },
+    { feature: "Strategy Lab", free: false, pro: true, ent: true },
+    { feature: "Backtesting", free: "Basic reports", pro: "Unlimited", ent: "Unlimited" },
+    { feature: "Walk-Forward Validation", free: false, pro: true, ent: true },
+    { feature: "Monte Carlo", free: false, pro: true, ent: true },
+    { feature: "Verified Performance", free: true, pro: true, ent: true },
+
+    { section: "Trading & Automation" },
+    { feature: "Live performance", free: "1 account", pro: "Unlimited", ent: "Unlimited" },
+    { feature: "Copy Trading", free: false, pro: "5 masters", ent: "Unlimited" },
+    { feature: "Workflow Automation", free: false, pro: true, ent: true },
+    { feature: "MT5 Gateway", free: false, pro: true, ent: true },
+    { feature: "Trade Replay", free: false, pro: true, ent: true },
+
+    { section: "AI & Signals" },
+    { feature: "AI Signals", free: "Basic", pro: "Pro tier", ent: "Pro tier" },
+    { feature: "AI Copilot", free: false, pro: true, ent: true },
+    { feature: "AI Insights", free: false, pro: true, ent: true },
+    { feature: "Alert Center", free: "Basic", pro: "Pro alerts", ent: "Pro alerts" },
+
+    { section: "Account" },
+    { feature: "Notebook entries", free: "50", pro: "Unlimited", ent: "Unlimited" },
+    { feature: "API access", free: false, pro: false, ent: true },
+    { feature: "Priority support", free: false, pro: true, ent: true },
+    { feature: "Dedicated account manager", free: false, pro: false, ent: true },
 ];
 
 export default function PricingPage() {
@@ -119,6 +166,9 @@ export default function PricingPage() {
         router.push(tier.ctaHref);
     };
 
+    const freeTools = TOOL_CATALOG.filter((t) => t.tier === "free");
+    const proTools = TOOL_CATALOG.filter((t) => t.tier === "pro");
+
     return (
         <main className="min-h-screen bg-background text-foreground">
             <div className="mx-auto max-w-7xl px-6 pt-4 pb-20">
@@ -134,14 +184,15 @@ export default function PricingPage() {
                 <div className="text-center mt-4" data-guide="page-header">
                     <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground">
                         <Sparkles size={13} />
-                        Simple, transparent pricing
+                        Free / Lite vs Pro, side by side
                     </div>
                     <h1 className="mt-6 text-4xl font-semibold tracking-tight md:text-5xl">
-                        Trading tools for every level
+                        Tools that earn the upgrade.
                     </h1>
-                    <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-muted-foreground">
-                        Start free. Upgrade when you need advanced analytics,
-                        automation, and real-time intelligence.
+                    <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
+                        Every public tool has a real, useful Lite path that's free forever.
+                        Pro unlocks the chart workspace, replay, persistence, AI explanations and exports on top.
+                        You only subscribe when Pro gives you something you can use every day.
                     </p>
                 </div>
 
@@ -154,13 +205,13 @@ export default function PricingPage() {
                                 key={tier.id}
                                 className={`relative flex flex-col rounded-2xl border p-6 transition hover:shadow-lg ${
                                     tier.highlighted
-                                        ? "border-foreground bg-card shadow-xl"
+                                        ? "border-primary bg-gradient-to-b from-primary/[0.06] via-card to-card shadow-2xl"
                                         : "border-border bg-card"
                                 }`}
                             >
                                 {tier.highlighted && (
                                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                                        <span className="inline-flex items-center gap-1 rounded-full bg-foreground px-3 py-1 text-[11px] font-semibold text-background">
+                                        <span className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold text-primary-foreground">
                                             <Zap size={11} />
                                             Most Popular
                                         </span>
@@ -168,7 +219,7 @@ export default function PricingPage() {
                                 )}
 
                                 <div className="flex items-center gap-3">
-                                    <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${tier.highlighted ? "bg-foreground text-background" : "bg-muted"}`}>
+                                    <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${tier.highlighted ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
                                         <Icon size={20} />
                                     </div>
                                     <div>
@@ -184,14 +235,10 @@ export default function PricingPage() {
                                     <span className="text-sm text-muted-foreground">/{tier.period}</span>
                                 </div>
 
-                                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                                    {tier.description}
-                                </p>
-
                                 <div className="mt-6 space-y-2.5">
                                     {tier.features.map((feature, i) => (
                                         <div key={i} className="flex items-start gap-2.5">
-                                            <Check size={15} className="mt-0.5 shrink-0 text-emerald-500" />
+                                            <Check size={15} className="mt-0.5 shrink-0 text-positive" />
                                             <span className="text-sm text-muted-foreground">{feature}</span>
                                         </div>
                                     ))}
@@ -202,7 +249,7 @@ export default function PricingPage() {
                                     onClick={() => handleCta(tier)}
                                     className={`mt-8 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
                                         tier.highlighted
-                                            ? "bg-foreground text-background hover:opacity-90"
+                                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
                                             : "border border-border hover:bg-muted"
                                     }`}
                                 >
@@ -214,7 +261,59 @@ export default function PricingPage() {
                     })}
                 </div>
 
-                {/* Feature comparison */}
+                {/* Free / Pro tool showcase */}
+                <div className="mt-20">
+                    <div className="text-center">
+                        <h2 className="text-2xl font-semibold tracking-tight">See what Lite vs Pro actually means</h2>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                            Every tool we ship — and what you get for free vs with Pro.
+                        </p>
+                    </div>
+
+                    <div className="mt-8 grid gap-3 md:grid-cols-2">
+                        <div className="rounded-2xl border border-border bg-card p-5">
+                            <div className="mb-3 flex items-center justify-between">
+                                <ToolBadge kind="lite" size="md" />
+                                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{freeTools.length} tools</span>
+                            </div>
+                            <h3 className="text-sm font-semibold text-foreground">Lite (Free) — what works on day one</h3>
+                            <ul className="mt-3 space-y-1.5">
+                                {freeTools.map((tool) => (
+                                    <li key={tool.id} className="flex items-start gap-2 text-xs text-muted-foreground">
+                                        <CircleDot size={11} className="mt-0.5 shrink-0 text-muted-foreground/60" />
+                                        <span><span className="font-semibold text-foreground">{tool.title}</span> — {tool.liteFeatures[0]}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        <div className="rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/[0.07] via-card to-primary/[0.02] p-5">
+                            <div className="mb-3 flex items-center justify-between">
+                                <ToolBadge kind="pro" size="md" />
+                                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{proTools.length} tools</span>
+                            </div>
+                            <h3 className="text-sm font-semibold text-foreground">Pro — the deep workspace</h3>
+                            <ul className="mt-3 space-y-1.5">
+                                {proTools.map((tool) => (
+                                    <li key={tool.id} className="flex items-start gap-2 text-xs text-muted-foreground">
+                                        <Lock size={10} className="mt-0.5 shrink-0 text-primary" />
+                                        <span><span className="font-semibold text-foreground">{tool.title}</span> — {tool.proFeatures[0]}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div className="mt-4 text-center text-xs text-muted-foreground">
+                        See the full library with live tier badges on{" "}
+                        <Link href="/tools" className="text-primary underline-offset-2 hover:underline">
+                            /tools
+                        </Link>
+                        .
+                    </div>
+                </div>
+
+                {/* Comparison table */}
                 <div className="mt-20">
                     <h2 className="text-center text-2xl font-semibold tracking-tight">Compare plans</h2>
                     <p className="mt-2 text-center text-sm text-muted-foreground">
@@ -227,33 +326,30 @@ export default function PricingPage() {
                                 <tr>
                                     <th className="px-5 py-4 font-medium text-muted-foreground">Feature</th>
                                     <th className="px-5 py-4 text-center font-medium text-muted-foreground">Free</th>
-                                    <th className="px-5 py-4 text-center font-medium text-muted-foreground">Pro</th>
+                                    <th className="px-5 py-4 text-center font-medium text-primary">Pro</th>
                                     <th className="px-5 py-4 text-center font-medium text-muted-foreground">Enterprise</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-border">
-                                {[
-                                    { feature: "Marketplace browsing", free: true, pro: true, ent: true },
-                                    { feature: "Backtest reports", free: "Basic", pro: "Unlimited", ent: "Unlimited" },
-                                    { feature: "Live performance", free: "1 account", pro: "Unlimited", ent: "Unlimited" },
-                                    { feature: "Advanced Analysis", free: false, pro: true, ent: true },
-                                    { feature: "Order Flow", free: false, pro: true, ent: true },
-                                    { feature: "Pine Script Workspace", free: false, pro: true, ent: true },
-                                    { feature: "AI Signals (pro)", free: "Basic", pro: true, ent: true },
-                                    { feature: "Copy Trading", free: false, pro: "5 masters", ent: "Unlimited" },
-                                    { feature: "Profit Split Calculator", free: false, pro: true, ent: true },
-                                    { feature: "Swap Calculator", free: false, pro: true, ent: true },
-                                    { feature: "Spread Analyzer", free: false, pro: true, ent: true },
-                                    { feature: "API access", free: false, pro: false, ent: true },
-                                    { feature: "Priority support", free: false, pro: true, ent: true },
-                                ].map((row, i) => (
-                                    <tr key={i} className="hover:bg-muted/20">
-                                        <td className="px-5 py-3.5 font-medium">{row.feature}</td>
-                                        <td className="px-5 py-3.5 text-center">{renderCell(row.free)}</td>
-                                        <td className="px-5 py-3.5 text-center font-medium text-foreground">{renderCell(row.pro)}</td>
-                                        <td className="px-5 py-3.5 text-center">{renderCell(row.ent)}</td>
-                                    </tr>
-                                ))}
+                            <tbody>
+                                {COMPARISON_ROWS.map((row, i) => {
+                                    if ("section" in row) {
+                                        return (
+                                            <tr key={`section-${i}`} className="border-b border-border bg-muted/40">
+                                                <td colSpan={4} className="px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-foreground">
+                                                    {row.section}
+                                                </td>
+                                            </tr>
+                                        );
+                                    }
+                                    return (
+                                        <tr key={i} className="border-b border-border/50 hover:bg-muted/20">
+                                            <td className="px-5 py-3.5 font-medium">{row.feature}</td>
+                                            <td className="px-5 py-3.5 text-center text-xs text-muted-foreground">{renderCell(row.free)}</td>
+                                            <td className="px-5 py-3.5 text-center text-xs font-semibold text-primary">{renderCell(row.pro)}</td>
+                                            <td className="px-5 py-3.5 text-center text-xs text-muted-foreground">{renderCell(row.ent)}</td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
@@ -262,10 +358,12 @@ export default function PricingPage() {
                 {/* FAQ */}
                 <div className="mt-20 grid gap-4 md:grid-cols-2">
                     {[
-                        { q: "Can I downgrade later?", a: "Yes, you can downgrade from Pro to Free at any time from your account settings." },
-                        { q: "What payment methods do you accept?", a: "We accept all major credit cards via Stripe. Enterprise plans support invoice billing." },
-                        { q: "Is there a free trial?", a: "The Free plan is always free. Pro features are available with a subscription." },
-                        { q: "Do I get a refund?", a: "We offer refunds within 14 days of purchase for monthly subscriptions." },
+                        { q: "What's the difference between Free and Lite?", a: "On this site, 'Free' and 'Lite' are the same tier. Every free tool is the Lite path of a tool — useful, just less complete than Pro." },
+                        { q: "What do I get on Free?", a: "All 10 Lite trading tools, the Free AI Scalping Terminal (live radar, qualifying signals, deterministic engine feed), 1 live performance account, basic signals and a 50-entry notebook. Free forever, no card required." },
+                        { q: "What's specifically in Pro?", a: "The Pro Scalping Terminal (chart + overlays + replay + order flow + intelligence + journal), Advanced Analysis, Market Intelligence, Strategy Lab, Backtest, Walk-Forward, Monte Carlo, AI Copilot, AI Insights, Copy Trading (5 masters), Pro Signals, Alert Center, and persistence / exports on every tool." },
+                        { q: "Can I downgrade later?", a: "Yes — downgrade from Pro to Free at any time. Your saved data is preserved." },
+                        { q: "What payment methods do you accept?", a: "All major credit cards via Stripe. Enterprise plans support invoice billing." },
+                        { q: "Do you offer refunds?", a: "Yes — within 14 days of purchase for monthly subscriptions, no questions asked." },
                     ].map((item, i) => (
                         <div key={i} className="rounded-xl border border-border bg-card p-5">
                             <h3 className="font-semibold">{item.q}</h3>
@@ -280,8 +378,8 @@ export default function PricingPage() {
 
 function renderCell(value: boolean | string) {
     if (typeof value === "boolean") {
-        if (value) return <span className="text-emerald-500"><Check size={16} /></span>;
-        return <span className="text-muted-foreground">—</span>;
+        if (value) return <span className="inline-flex justify-center text-positive"><Check size={16} /></span>;
+        return <span className="text-muted-foreground/40">—</span>;
     }
-    return <span className="text-sm">{value}</span>;
+    return <span>{value}</span>;
 }

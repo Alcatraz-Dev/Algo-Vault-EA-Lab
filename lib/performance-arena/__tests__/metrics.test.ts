@@ -45,6 +45,37 @@ export async function runMetricsTests(): Promise<boolean> {
     s.check(metrics.dataQuality === "fresh", "fresh quote → fresh data");
     s.check(metrics.targetProgressPct === 0, "target progress 0");
     s.check(metrics.distanceToTargetPct === policy.profitTargetPct, "distance = full target");
+    s.check(metrics.openExposureCents === 0, "flat account has no exposure");
+
+    s.section("Net exposure by symbol");
+    const eurLong = makeOpenTrade({ tradeId: "eur_long", side: "long", sizeCentiLots: 100, entryPriceMicros: 1_100_000 });
+    const eurShort = makeOpenTrade({ tradeId: "eur_short", side: "short", sizeCentiLots: 40, entryPriceMicros: 1_100_000 });
+    const goldLong = makeOpenTrade({
+        tradeId: "gold_long",
+        symbol: "XAUUSD",
+        market: "metals",
+        side: "long",
+        sizeCentiLots: 100,
+        entryPriceMicros: 2_000_000_000,
+    });
+    const exposures = computeMetrics({
+        attempt,
+        account,
+        policy,
+        openTrades: [eurLong, eurShort, goldLong],
+        closedTrades: [],
+        marks: [
+            { tradeId: "eur_long", unrealizedPnLCents: 0, markPriceMicros: 1_100_000, quoteAt: NOW },
+            { tradeId: "eur_short", unrealizedPnLCents: 0, markPriceMicros: 1_100_000, quoteAt: NOW },
+            { tradeId: "gold_long", unrealizedPnLCents: 0, markPriceMicros: 2_000_000_000, quoteAt: NOW },
+        ],
+        quoteAt: NOW,
+        now: NOW,
+    });
+    s.check(exposures.symbolExposureCents.EURUSD === 6_600_000, "opposite EURUSD sides net to 0.60 lots");
+    s.check(exposures.symbolNetExposureCents.EURUSD === 6_600_000, "net long exposure is signed positively");
+    s.check(exposures.symbolExposureCents.XAUUSD === 20_000_000, "XAUUSD uses its instrument contract size, not the FX fallback");
+    s.check(exposures.openExposureCents === 26_600_000, "account exposure sums per-symbol net positions");
 
     s.section("Daily loss usage is a PERCENT OF THE ALLOWANCE");
     const lossAccount = makeAccount(policy, { balanceCents: starting - 400_000, realizedPnLCents: -400_000 });
