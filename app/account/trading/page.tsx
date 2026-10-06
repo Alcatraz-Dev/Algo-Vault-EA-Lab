@@ -3,10 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { onValue, ref, off } from "firebase/database";
+import { onValue, ref } from "firebase/database";
 import { auth, database } from "@/lib/firebase";
 import AccountShell from "@/components/account/AccountShell";
-import AccountHeader, { TradingAccount } from "@/components/trading/AccountHeader";
+import { TradingAccount } from "@/components/trading/AccountHeader";
 import ConnectionStatus from "@/components/trading/ConnectionStatus";
 import OrderPanel from "@/components/trading/OrderPanel";
 import OpenPositions, { Position } from "@/components/trading/OpenPositions";
@@ -28,6 +28,9 @@ import {
     BarChart2,
     ListOrdered,
     History,
+    ChevronDown,
+    Monitor,
+    Box,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -42,7 +45,16 @@ export default function AccountTradingPage() {
     const [loading, setLoading] = useState(true);
     const [hasAccess, setHasAccess] = useState<boolean | null>(null);
 
-    const [account, setAccount] = useState<TradingAccount | null>(null);
+    // Per-account RTDB state. Each node is keyed by account id so switching
+    // accounts does not leak one account's live positions/orders into another.
+    const [accounts, setAccounts] = useState<TradingAccount[]>([]);
+    const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+
+    const selectedAccount = useMemo(
+        () => accounts.find((a) => a.accountId === selectedAccountId) ?? null,
+        [accounts, selectedAccountId]
+    );
+
     const [positions, setPositions] = useState<Position[]>([]);
     const [orders, setOrders] = useState<PendingOrder[]>([]);
     const [executionLogs, setExecutionLogs] = useState<ExecutionLogEntry[]>([]);
@@ -96,117 +108,311 @@ export default function AccountTradingPage() {
         checkAccess();
     }, [firebaseUser]);
 
-    // RTDB Listeners for account, positions, orders, execution
+    // RTDB listener for the account ledger — the source of truth for which
+    // accounts exist and which one is selected.
     useEffect(() => {
         if (!firebaseUser || !hasAccess) return;
 
         const uid = firebaseUser.uid;
 
-        const accountRef = ref(database, `trading_accounts/${uid}`);
-        onValue(accountRef, (snap) => {
+        const accountsRef = ref(database, `trading_accounts/${uid}`);
+        const accountsUnsub = onValue(accountsRef, (snap) => {
             const val = snap.val();
-            if (val) {
-                const firstKey = Object.keys(val)[0];
-                const accData = val[firstKey];
-                if (accData) {
-                    setAccount({
-                        accountId: firstKey,
-                        mt5Account: accData.mt5Account || accData.account_id || firstKey,
-                        broker: accData.broker || "MetaTrader 5",
-                        server: accData.server || "Live Server",
-                        currency: accData.currency || "USD",
-                        leverage: accData.leverage ? `1:${accData.leverage}` : "1:100",
-                        balance: accData.balance || 0,
-                        equity: accData.equity || accData.balance || 0,
-                        margin: accData.margin || 0,
-                        freeMargin: accData.freeMargin || accData.balance || 0,
-                        marginLevel: accData.marginLevel || 0,
-                        status: accData.status || "connected",
-                        lastHeartbeatAt: accData.lastHeartbeatAt || Date.now(),
-                        gatewayVersion: accData.gatewayVersion || "v2.4.0",
-                    });
+            if (!val || typeof val !== "object") {
+                setAccounts([]);
+                return;
+            }
+
+            const list = Object.entries(val)
+                .map(([accountId, accData]) => {
+                    if (!accData || typeof accData !== "object") return null;
+                    const raw = accData as Record<string, unknown>;
+                    return {
+                        accountId,
+                        mt5Account:
+                            (raw.mt5Account as string | undefined) ||
+                            (raw.account_id as string | undefined) ||
+                            accountId,
+                        broker:
+                            (raw.broker as string | undefined) ||
+                            "MetaTrader 5",
+                        server:
+                            (raw.server as string | undefined) ||
+                            "Live Server",
+                        currency:
+                            (raw.currency as string | undefined) ||
+                            "USD",
+                        leverage: raw.leverage
+                            ? `1:${raw.leverage}`
+                            : "1:100",
+                        // Numeric fields are `number | null` on TradingAccount:
+                        // null means the gateway has not reported the value
+                        // yet and must never be rendered as a fabricated $0.00.
+                        balance: toNumberOrNull(raw.balance),
+                        equity:
+                            toNumberOrNull(raw.equity) ??
+                            toNumberOrNull(raw.balance),
+                        margin: toNumberOrNull(raw.margin),
+                        freeMargin:
+                            toNumberOrNull(raw.freeMargin) ??
+                            toNumberOrNull(raw.balance),
+                        marginLevel: toNumberOrNull(raw.marginLevel),
+                        status: normalizeAccountStatus(raw.status),
+                        lastHeartbeatAt:
+                            raw.lastHeartbeatAt === undefined
+                                ? Date.now()
+                                : Number(raw.lastHeartbeatAt) ||
+                                  Date.now(),
+                        gatewayVersion:
+                            (raw.gatewayVersion as string | undefined) ||
+                            "v2.4.0",
+                    };
+                })
+                .filter(
+                    (a): a is NonNullable<typeof a> => a !== null
+                );
+
+            setAccounts(list);
+
+            // Persist selection across reloads only while the account still
+            // exists. A stale selection falls back to the first account.
+            if (list.length > 0) {
+                const previouslySelected = selectedAccountId;
+                const stillExists = list.some(
+                    (a) => a?.accountId === previouslySelected
+                );
+                const fallback = stillExists
+                    ? previouslySelected
+                    : list[0]?.accountId ?? null;
+                if (fallback) setSelectedAccountId(fallback);
+            }
+        });
+
+        // Live trading state is scoped to the selected account so switching
+        // accounts does not leak one account's positions/orders/events.
+        const scopeRef = (accountId: string) =>
+            `trading_positions/${uid}/${accountId}`;
+        const ordersScopedRef = (accountId: string) =>
+            `trading_orders/${uid}/${accountId}`;
+        const logsScopedRef = (accountId: string) =>
+            `trading_executions/${uid}/${accountId}`;
+
+        let posUnsub: (() => void) | undefined;
+        let ordUnsub: (() => void) | undefined;
+        let logUnsub: (() => void) | undefined;
+
+        const attachScopedListeners = (accountId: string) => {
+            if (posUnsub) posUnsub();
+            if (ordUnsub) ordUnsub();
+            if (logUnsub) logUnsub();
+
+            posUnsub = onValue(
+                ref(database, scopeRef(accountId)),
+                (snap) => {
+                    const val = snap.val();
+                    if (val) {
+                        const posList: Position[] = Object.entries(val).map(
+                            ([ticket, p]) => {
+                                const raw = p as Record<string, unknown>;
+                                return {
+                                    ticket,
+                                    symbol:
+                                        (raw.symbol as string | undefined) ||
+                                        "XAUUSD",
+                                    type:
+                                        raw.type === "SELL"
+                                            ? "SELL"
+                                            : "BUY",
+                                    volume:
+                                        raw.volume === undefined
+                                            ? 0.01
+                                            : Number(raw.volume) || 0.01,
+                                    openPrice:
+                                        raw.openPrice === undefined
+                                            ? 0
+                                            : Number(raw.openPrice) || 0,
+                                currentPrice:
+                                    raw.currentPrice === undefined
+                                        ? Number(raw.openPrice) || 0
+                                        : Number(raw.currentPrice) ||
+                                          Number(raw.openPrice) ||
+                                          0,
+                                sl: raw.sl === undefined
+                                    ? 0
+                                    : Number(raw.sl) || 0,
+                                tp: raw.tp === undefined
+                                    ? 0
+                                    : Number(raw.tp) || 0,
+                                profit:
+                                    raw.profit === undefined
+                                        ? 0
+                                        : Number(raw.profit) || 0,
+                                swap:
+                                    raw.swap === undefined
+                                        ? 0
+                                        : Number(raw.swap) || 0,
+                                magic:
+                                    raw.magic === undefined
+                                        ? 0
+                                        : Number(raw.magic) || 0,
+                                openedAt:
+                                    raw.openTime === undefined
+                                        ? raw.openedAt === undefined
+                                            ? Date.now()
+                                            : Number(raw.openedAt) ||
+                                              Date.now()
+                                        : Number(raw.openTime) ||
+                                          Number(raw.openedAt) ||
+                                          Date.now(),
+                                };
+                            }
+                        );
+                        setPositions(posList);
+                    } else {
+                        setPositions([]);
+                    }
                 }
-            }
-        });
+            );
+            ordUnsub = onValue(
+                ref(database, ordersScopedRef(accountId)),
+                (snap) => {
+                    const val = snap.val();
+                    if (val) {
+                        const ordList: PendingOrder[] =
+                            Object.entries(val).map(([ticket, o]) => {
+                                const raw = o as Record<string, unknown>;
+                                return {
+                                    ticket,
+                                    symbol:
+                                        (raw.symbol as string | undefined) ||
+                                        "XAUUSD",
+                                    type: (raw.type as string | undefined) ||
+                                        "BUY_LIMIT",
+                                    volume:
+                                        raw.volume === undefined
+                                            ? 0.01
+                                            : Number(raw.volume) || 0.01,
+                                    price:
+                                        raw.price === undefined
+                                            ? 0
+                                            : Number(raw.price) || 0,
+                                    sl: raw.sl === undefined
+                                        ? 0
+                                        : Number(raw.sl) || 0,
+                                    tp: raw.tp === undefined
+                                        ? 0
+                                        : Number(raw.tp) || 0,
+                                    status:
+                                        (raw.status as string | undefined) ||
+                                        (raw.state as string | undefined) ||
+                                        "PLACED",
+                                    updatedAt:
+                                        raw.updatedAt === undefined
+                                            ? raw.placedTime === undefined
+                                                ? Date.now()
+                                                : Number(raw.placedTime) ||
+                                                  Date.now()
+                                            : Number(raw.updatedAt) ||
+                                              Number(raw.placedTime) ||
+                                              Date.now(),
+                                };
+                            });
+                        setOrders(ordList);
+                    } else {
+                        setOrders([]);
+                    }
+                }
+            );
+            logUnsub = onValue(
+                ref(database, logsScopedRef(accountId)),
+                (snap) => {
+                    const val = snap.val();
+                    if (val) {
+                        const logList: ExecutionLogEntry[] =
+                            Object.entries(val)
+                                .map(([id, l]) => {
+                                    const raw = l as Record<string, unknown>;
+                                    return {
+                                        clientOrderId:
+                                            (raw.clientOrderId as string | undefined) ||
+                                            id,
+                                        accountId,
+                                        action:
+                                            (raw.action as string | undefined) ||
+                                            (raw.type as string | undefined) ||
+                                            "ORDER",
+                                        symbol:
+                                            (raw.symbol as string | undefined) ||
+                                            "XAUUSD",
+                                        volume:
+                                            raw.volume === undefined
+                                                ? 0.01
+                                                : Number(raw.volume) || 0.01,
+                                        status:
+                                            (raw.status as string | undefined) ||
+                                            "FILLED",
+                                        mt5Ticket:
+                                            (raw.mt5Ticket as string | undefined) ||
+                                            (raw.ticket as string | undefined) ||
+                                            id,
+                                        executionPrice:
+                                            raw.executionPrice === undefined
+                                                ? raw.price === undefined
+                                                    ? 0
+                                                    : Number(raw.price) || 0
+                                                : Number(raw.executionPrice) ||
+                                                  Number(raw.price) ||
+                                                  0,
+                                        errorCode:
+                                            raw.errorCode === undefined
+                                                ? 0
+                                                : Number(raw.errorCode) || 0,
+                                        errorMessage:
+                                            (raw.errorMessage as string | undefined) ||
+                                            (raw.message as string | undefined) ||
+                                            "Executed",
+                                        createdAt:
+                                            raw.createdAt === undefined
+                                                ? raw.timestamp === undefined
+                                                    ? Date.now()
+                                                    : Number(raw.timestamp) ||
+                                                      Date.now()
+                                                : Number(raw.createdAt) ||
+                                                  Number(raw.timestamp) ||
+                                                  Date.now(),
+                                        executedAt:
+                                            raw.executedAt === undefined
+                                                ? raw.timestamp === undefined
+                                                    ? Date.now()
+                                                    : Number(raw.timestamp) ||
+                                                      Date.now()
+                                                : Number(raw.executedAt) ||
+                                                  Number(raw.timestamp) ||
+                                                  Date.now(),
+                                    };
+                                })
+                                .sort(
+                                    (a, b) => b.createdAt - a.createdAt
+                                );
+                        setExecutionLogs(logList);
+                    } else {
+                        setExecutionLogs([]);
+                    }
+                }
+            );
+        };
 
-        const posRef = ref(database, `trading_positions/${uid}`);
-        onValue(posRef, (snap) => {
-            const val = snap.val();
-            if (val) {
-                const posList: Position[] = Object.entries(val).map(([ticket, p]: [string, any]) => ({
-                    ticket,
-                    symbol: p.symbol || "XAUUSD",
-                    type: p.type === "SELL" ? "SELL" : "BUY",
-                    volume: p.volume || 0.01,
-                    openPrice: p.openPrice || 0,
-                    currentPrice: p.currentPrice || p.openPrice || 0,
-                    sl: p.sl || 0,
-                    tp: p.tp || 0,
-                    profit: p.profit || 0,
-                    swap: p.swap || 0,
-                    magic: p.magic || 0,
-                    openedAt: p.openTime || p.openedAt || Date.now(),
-                }));
-                setPositions(posList);
-            } else {
-                setPositions([]);
-            }
-        });
-
-        const ordersRef = ref(database, `trading_orders/${uid}`);
-        onValue(ordersRef, (snap) => {
-            const val = snap.val();
-            if (val) {
-                const ordList: PendingOrder[] = Object.entries(val).map(([ticket, o]: [string, any]) => ({
-                    ticket,
-                    symbol: o.symbol || "XAUUSD",
-                    type: o.type || "BUY_LIMIT",
-                    volume: o.volume || 0.01,
-                    price: o.price || 0,
-                    sl: o.sl || 0,
-                    tp: o.tp || 0,
-                    status: o.status || o.state || "PLACED",
-                    updatedAt: o.updatedAt || o.placedTime || Date.now(),
-                }));
-                setOrders(ordList);
-            } else {
-                setOrders([]);
-            }
-        });
-
-        const logsRef = ref(database, `trading_executions/${uid}`);
-        onValue(logsRef, (snap) => {
-            const val = snap.val();
-            if (val) {
-                const logList: ExecutionLogEntry[] = Object.entries(val)
-                    .map(([id, l]: [string, any]) => ({
-                        clientOrderId: l.clientOrderId || id,
-                        accountId: uid,
-                        action: l.action || l.type || "ORDER",
-                        symbol: l.symbol || "XAUUSD",
-                        volume: l.volume || 0.01,
-                        status: l.status || "FILLED",
-                        mt5Ticket: l.mt5Ticket || l.ticket || id,
-                        executionPrice: l.executionPrice || l.price || 0,
-                        errorCode: l.errorCode || 0,
-                        errorMessage: l.errorMessage || l.message || "Executed",
-                        createdAt: l.createdAt || l.timestamp || Date.now(),
-                        executedAt: l.executedAt || l.timestamp || Date.now(),
-                    }))
-                    .sort((a, b) => b.createdAt - a.createdAt);
-                setExecutionLogs(logList);
-            } else {
-                setExecutionLogs([]);
-            }
-        });
+        if (selectedAccountId) {
+            attachScopedListeners(selectedAccountId);
+        }
 
         return () => {
-            off(accountRef);
-            off(posRef);
-            off(ordersRef);
-            off(logsRef);
+            accountsUnsub();
+            posUnsub?.();
+            ordUnsub?.();
+            logUnsub?.();
         };
-    }, [firebaseUser, hasAccess]);
+    }, [firebaseUser, hasAccess, selectedAccountId]);
 
     const handleRefresh = async () => {
         setRefreshing(true);
@@ -214,7 +420,9 @@ export default function AccountTradingPage() {
             if (firebaseUser) {
                 const token = await firebaseUser.getIdToken();
                 await fetch("/api/trading/access", {
-                    headers: { Authorization: `Bearer ${token}` },
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
                 });
             }
         } catch {
@@ -224,8 +432,12 @@ export default function AccountTradingPage() {
         }
     };
 
+    const selectAccount = (accountId: string) => {
+        setSelectedAccountId(accountId);
+    };
+
     const handleClosePosition = async (ticket: string) => {
-        if (!firebaseUser) return;
+        if (!firebaseUser || !selectedAccountId) return;
         try {
             const token = await firebaseUser.getIdToken();
             await fetch("/api/trading/orders", {
@@ -234,7 +446,11 @@ export default function AccountTradingPage() {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ ticket, action: "close" }),
+                body: JSON.stringify({
+                    accountId: selectedAccountId,
+                    ticket,
+                    action: "close",
+                }),
             });
             handleRefresh();
         } catch {
@@ -242,8 +458,11 @@ export default function AccountTradingPage() {
         }
     };
 
-    const handlePartialClosePosition = async (ticket: string, volume: number) => {
-        if (!firebaseUser) return;
+    const handlePartialClosePosition = async (
+        ticket: string,
+        volume: number
+    ) => {
+        if (!firebaseUser || !selectedAccountId) return;
         try {
             const token = await firebaseUser.getIdToken();
             await fetch("/api/trading/orders", {
@@ -252,7 +471,12 @@ export default function AccountTradingPage() {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ ticket, action: "partial_close", volume }),
+                body: JSON.stringify({
+                    accountId: selectedAccountId,
+                    ticket,
+                    action: "partial_close",
+                    volume,
+                }),
             });
             handleRefresh();
         } catch {
@@ -260,8 +484,12 @@ export default function AccountTradingPage() {
         }
     };
 
-    const handleModifyPosition = async (ticket: string, sl: number, tp: number) => {
-        if (!firebaseUser) return;
+    const handleModifyPosition = async (
+        ticket: string,
+        sl: number,
+        tp: number
+    ) => {
+        if (!firebaseUser || !selectedAccountId) return;
         try {
             const token = await firebaseUser.getIdToken();
             await fetch("/api/trading/orders", {
@@ -270,7 +498,12 @@ export default function AccountTradingPage() {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ ticket, sl, tp }),
+                body: JSON.stringify({
+                    accountId: selectedAccountId,
+                    ticket,
+                    sl,
+                    tp,
+                }),
             });
             handleRefresh();
         } catch {
@@ -279,7 +512,7 @@ export default function AccountTradingPage() {
     };
 
     const handleCancelOrder = async (ticket: string) => {
-        if (!firebaseUser) return;
+        if (!firebaseUser || !selectedAccountId) return;
         try {
             const token = await firebaseUser.getIdToken();
             await fetch("/api/trading/orders", {
@@ -288,7 +521,11 @@ export default function AccountTradingPage() {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ ticket, action: "cancel_order" }),
+                body: JSON.stringify({
+                    accountId: selectedAccountId,
+                    ticket,
+                    action: "cancel_order",
+                }),
             });
             handleRefresh();
         } catch {
@@ -343,7 +580,12 @@ export default function AccountTradingPage() {
             executionLogs
                 // Only genuinely executed fills count as trade history —
                 // failed/rejected gateway attempts never draw on the chart.
-                .filter((l) => !l.errorCode && Number.isFinite(l.executionPrice) && l.executionPrice > 0)
+                .filter(
+                    (l) =>
+                        !l.errorCode &&
+                        Number.isFinite(l.executionPrice) &&
+                        l.executionPrice > 0
+                )
                 .slice(0, 200)
                 .flatMap((l) => {
                     const fill = tradeFillFromExecution({
@@ -362,8 +604,11 @@ export default function AccountTradingPage() {
 
     // Close N% of a position from the chart's trade strip: rounds down to
     // the 0.01 lot step and falls back to a full close for dust remainders.
-    const handleClosePositionPercent = async (ticket: string, percent: number) => {
-        if (!firebaseUser) return;
+    const handleClosePositionPercent = async (
+        ticket: string,
+        percent: number
+    ) => {
+        if (!firebaseUser || !selectedAccountId) return;
         const pos = positions.find((p) => p.ticket === ticket);
         if (!pos) return;
         const { mode, volume } = partialCloseVolume(pos.volume, percent);
@@ -375,10 +620,13 @@ export default function AccountTradingPage() {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body:
-                    mode === "full"
-                        ? JSON.stringify({ ticket, action: "close" })
-                        : JSON.stringify({ ticket, action: "partial_close", volume }),
+                body: JSON.stringify({
+                    accountId: selectedAccountId,
+                    ticket,
+                    action:
+                        mode === "full" ? "close" : "partial_close",
+                    ...(mode !== "full" ? { volume } : {}),
+                }),
             });
             handleRefresh();
         } catch {
@@ -388,7 +636,10 @@ export default function AccountTradingPage() {
 
     if (loading) {
         return (
-            <AccountShell title="Trading Terminal" subtitle="Live account trading, charts & orders">
+            <AccountShell
+                title="Trading Terminal"
+                subtitle="Live account trading, charts & orders"
+            >
                 <div className="flex h-64 flex-col items-center justify-center gap-3 text-muted-foreground">
                     <RefreshCw className="size-6 animate-spin text-primary" />
                     <p className="text-sm">Connecting to Trading Engine…</p>
@@ -399,18 +650,27 @@ export default function AccountTradingPage() {
 
     if (hasAccess === false) {
         return (
-            <AccountShell title="Trading Terminal" subtitle="Live account trading, charts & orders">
+            <AccountShell
+                title="Trading Terminal"
+                subtitle="Live account trading, charts & orders"
+            >
                 <div className="mx-auto my-8 max-w-xl rounded-2xl border border-border bg-card p-8 text-center shadow-lg">
                     <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500">
                         <Lock className="size-7" />
                     </div>
-                    <h2 className="text-xl font-bold text-foreground">Trading Access License Required</h2>
+                    <h2 className="text-xl font-bold text-foreground">
+                        Trading Access License Required
+                    </h2>
                     <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-                        You need an active Trading Access License to use the live trading terminal, connect your MT5 account, and execute orders in real time.
+                        You need an active Trading Access License to use the
+                        live trading terminal, connect your MT5 account, and
+                        execute orders in real time.
                     </p>
                     <div className="mt-6 flex flex-wrap justify-center gap-3">
                         <Button
-                            onClick={() => router.push("/account/trading-access")}
+                            onClick={() =>
+                                router.push("/account/trading-access")
+                            }
                             className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
                         >
                             Get Trading Access License
@@ -427,39 +687,115 @@ export default function AccountTradingPage() {
         );
     }
 
-    return (
-        <AccountShell title="Trading Terminal" subtitle="Live MT5 account trading, real-time candles & orders">
-            <div className="flex flex-col gap-6">
+    if (accounts.length === 0) {
+        return (
+            <AccountShell
+                title="Trading Terminal"
+                subtitle="Live account trading, charts & orders"
+            >
+                <div className="mx-auto my-8 max-w-xl rounded-2xl border border-border bg-card p-8 text-center shadow-lg">
+                    <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+                        <Box className="size-7" />
+                    </div>
+                    <h2 className="text-xl font-bold text-foreground">
+                        No Trading Account Connected
+                    </h2>
+                    <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                        Connect an MT5 account through the Gateway EA, then
+                        switch back to this terminal to trade.
+                    </p>
+                    <div className="mt-6 flex flex-wrap justify-center gap-3">
+                        <Button
+                            onClick={() =>
+                                router.push("/account/trading-access")
+                            }
+                            className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+                        >
+                            Connect Trading Account
+                        </Button>
+                    </div>
+                </div>
+            </AccountShell>
+        );
+    }
 
+    if (!selectedAccountId) {
+        return (
+            <AccountShell
+                title="Trading Terminal"
+                subtitle="Live account trading, charts & orders"
+            >
+                <div className="mx-auto my-8 max-w-xl rounded-2xl border border-border bg-card p-8 text-center shadow-lg">
+                    <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+                        <Monitor className="size-7" />
+                    </div>
+                    <h2 className="text-xl font-bold text-foreground">
+                        Select a Trading Account
+                    </h2>
+                    <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                        Choose which connected MT5 account this terminal
+                        should trade against.
+                    </p>
+                </div>
+            </AccountShell>
+        );
+    }
+
+    return (
+        <AccountShell
+            title="Trading Terminal"
+            subtitle="Live MT5 account trading, real-time candles & orders"
+        >
+            <div className="flex flex-col gap-6">
                 {/* Account & Connection Bar */}
                 <div className="grid gap-4 lg:grid-cols-4">
                     <div className="lg:col-span-3">
-                        <AccountHeader account={account} loading={loading} />
+                        <div className="rounded-xl border border-border bg-card p-4">
+                            <div className="mb-4 flex items-center justify-between">
+                                <span className="text-xs font-medium text-muted-foreground">
+                                    Active Account
+                                </span>
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={handleRefresh}
+                                    disabled={refreshing}
+                                    className="h-7 px-2 text-xs"
+                                >
+                                    <RefreshCw
+                                        className={cn(
+                                            "size-3.5 mr-1",
+                                            refreshing &&
+                                                "animate-spin"
+                                        )}
+                                    />
+                                    Sync
+                                </Button>
+                            </div>
+                            <AccountSwitcher
+                                accounts={accounts}
+                                selectedAccountId={selectedAccountId}
+                                onSelect={selectAccount}
+                            />
+                        </div>
                     </div>
                     <div className="flex flex-col justify-between rounded-xl border border-border bg-card p-4">
                         <div className="flex items-center justify-between">
-                            <span className="text-xs font-medium text-muted-foreground">Gateway Sync</span>
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={handleRefresh}
-                                disabled={refreshing}
-                                className="h-7 px-2 text-xs"
-                            >
-                                <RefreshCw className={cn("size-3.5 mr-1", refreshing && "animate-spin")} />
-                                Sync
-                            </Button>
+                            <span className="text-xs font-medium text-muted-foreground">
+                                Gateway Sync
+                            </span>
                         </div>
                         <ConnectionStatus
-                            status={account?.status || "offline"}
-                            lastHeartbeat={account?.lastHeartbeatAt || 0}
+                            status={selectedAccount?.status || "offline"}
+                            lastHeartbeat={
+                                selectedAccount?.lastHeartbeatAt || 0
+                            }
                         />
                     </div>
                 </div>
 
                 {/* Main Trading Area */}
                 <div className="grid gap-6 xl:grid-cols-4">
-
                     {/* Pro Terminal chart workspace (3/4 width on xl).
                         All toolbars, drawing tools, layer picker, fullscreen,
                         and per-symbol persistence live in the workspace — this
@@ -483,11 +819,9 @@ export default function AccountTradingPage() {
                     {/* Side Panel: Order Panel */}
                     <div className="flex flex-col gap-4 xl:col-span-1">
                         <OrderPanel
-                            account={account}
+                            account={selectedAccount}
                             symbol={selectedSymbol}
-                            onOrderPlaced={() => {
-                                handleRefresh();
-                            }}
+                            onOrderPlaced={() => handleRefresh()}
                         />
                     </div>
                 </div>
@@ -498,7 +832,9 @@ export default function AccountTradingPage() {
                         <div className="flex gap-2">
                             <button
                                 type="button"
-                                onClick={() => setActiveTab("positions")}
+                                onClick={() =>
+                                    setActiveTab("positions")
+                                }
                                 className={cn(
                                     "flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors",
                                     activeTab === "positions"
@@ -508,14 +844,19 @@ export default function AccountTradingPage() {
                             >
                                 <BarChart2 className="size-4" />
                                 <span>Positions</span>
-                                <Badge variant="secondary" className="ml-1 text-xs">
+                                <Badge
+                                    variant="secondary"
+                                    className="ml-1 text-xs"
+                                >
                                     {positions.length}
                                 </Badge>
                             </button>
 
                             <button
                                 type="button"
-                                onClick={() => setActiveTab("orders")}
+                                onClick={() =>
+                                    setActiveTab("orders")
+                                }
                                 className={cn(
                                     "flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors",
                                     activeTab === "orders"
@@ -525,14 +866,19 @@ export default function AccountTradingPage() {
                             >
                                 <ListOrdered className="size-4" />
                                 <span>Pending Orders</span>
-                                <Badge variant="secondary" className="ml-1 text-xs">
+                                <Badge
+                                    variant="secondary"
+                                    className="ml-1 text-xs"
+                                >
                                     {orders.length}
                                 </Badge>
                             </button>
 
                             <button
                                 type="button"
-                                onClick={() => setActiveTab("history")}
+                                onClick={() =>
+                                    setActiveTab("history")
+                                }
                                 className={cn(
                                     "flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors",
                                     activeTab === "history"
@@ -542,7 +888,10 @@ export default function AccountTradingPage() {
                             >
                                 <History className="size-4" />
                                 <span>Execution Log</span>
-                                <Badge variant="secondary" className="ml-1 text-xs">
+                                <Badge
+                                    variant="secondary"
+                                    className="ml-1 text-xs"
+                                >
                                     {executionLogs.length}
                                 </Badge>
                             </button>
@@ -569,8 +918,152 @@ export default function AccountTradingPage() {
                         )}
                     </div>
                 </div>
-
             </div>
         </AccountShell>
+    );
+}
+
+/** Coerce a gateway value to a number; `null` when it is missing/unreported. */
+function toNumberOrNull(value: unknown): number | null {
+    if (value === undefined || value === null || value === "") return null;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+}
+
+function normalizeAccountStatus(
+    value: unknown
+): TradingAccount["status"] {
+    if (typeof value !== "string") return "unknown";
+    const lower = value.toLowerCase();
+    if (lower === "connected") return "connected";
+    if (lower === "offline") return "offline";
+    if (lower === "unauthorized") return "unauthorized";
+    if (lower === "license_expired") return "license_expired";
+    if (lower === "disabled") return "disabled";
+    return "unknown";
+}
+
+function AccountSwitcher({
+    accounts,
+    selectedAccountId,
+    onSelect,
+}: {
+    accounts: TradingAccount[];
+    selectedAccountId: string | null;
+    onSelect: (accountId: string) => void;
+}) {
+    const selected = accounts.find(
+        (a) => a.accountId === selectedAccountId
+    ) ?? accounts[0] ?? null;
+
+    const [open, setOpen] = useState(false);
+
+    // Custom dropdown (rather than a native <select>) so each option can show
+    // the account's broker, login, server and live connection dot.
+    return (
+        <div className="relative">
+            <button
+                type="button"
+                className="flex w-full items-center gap-3 rounded-lg border border-border bg-card px-3 py-2 text-left transition hover:bg-muted"
+                onClick={() => setOpen((o) => !o)}
+            >
+                <StatusDot
+                    status={selected?.status ?? "unknown"}
+                    lastHeartbeat={selected?.lastHeartbeatAt ?? 0}
+                />
+                <div className="min-w-0">
+                    <p className="text-sm font-semibold truncate">
+                        {selected?.broker ?? "No account"}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                        {selected?.mt5Account} · {selected?.server}
+                    </p>
+                </div>
+                <ChevronDown
+                    className={cn(
+                        "ml-2 size-4 text-muted-foreground transition-transform",
+                        open && "rotate-180"
+                    )}
+                />
+            </button>
+            {open && (
+                <>
+                    <div
+                        className="fixed inset-0 z-10"
+                        aria-hidden
+                        onClick={() => setOpen(false)}
+                    />
+                    <div
+                        className="absolute left-0 right-0 z-20 mt-1 overflow-auto rounded-xl border border-border bg-card p-2 shadow-xl"
+                        role="listbox"
+                    >
+                        {accounts.map((acc) => (
+                            <div
+                                key={acc.accountId}
+                                role="option"
+                                aria-selected={acc.accountId === selectedAccountId}
+                                className={cn(
+                                    "flex items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-muted",
+                                    acc.accountId === selectedAccountId &&
+                                        "bg-muted"
+                                )}
+                                onClick={() => {
+                                    onSelect(acc.accountId);
+                                    setOpen(false);
+                                }}
+                            >
+                                <StatusDot
+                                    status={acc.status}
+                                    lastHeartbeat={acc.lastHeartbeatAt}
+                                />
+                                <div className="min-w-0">
+                                    <p className="text-sm font-semibold">
+                                        {acc.broker}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {acc.mt5Account} · {acc.server}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </>
+            )}
+        </div>
+    );
+}
+
+/** Indirection keeps `Date.now` out of render (react-hooks/purity), matching
+ *  the pattern used by `components/trading/AccountHeader`. */
+function currentTimestamp(): number {
+    return Date.now();
+}
+
+function StatusDot({
+    status,
+    lastHeartbeat,
+}: {
+    status: TradingAccount["status"];
+    lastHeartbeat: number;
+}) {
+    const age = Math.floor((currentTimestamp() - lastHeartbeat) / 1000);
+    const isConnected = status === "connected" && age < 120;
+
+    return (
+        <span className="relative flex h-2.5 w-2.5">
+            {isConnected && (
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+            )}
+            <span
+                className={cn(
+                    "relative inline-flex h-2.5 w-2.5 rounded-full",
+                    isConnected
+                        ? "bg-emerald-500"
+                        : status === "offline"
+                          ? "bg-rose-500"
+                          : "bg-amber-500"
+                )}
+            />
+        </span>
     );
 }
