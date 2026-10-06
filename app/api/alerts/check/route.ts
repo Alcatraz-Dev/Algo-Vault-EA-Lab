@@ -1,5 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDatabase } from "@/lib/firebase-admin";
+import {
+    evaluateCrossAssetAlert,
+    type CrossAssetAlert,
+} from "@/lib/cross-asset/alerts";
+import { loadLatestSnapshot } from "@/lib/cross-asset/store";
+import type { MarketGraphSnapshot } from "@/lib/cross-asset/types";
+
+/** Phase 16 §36 — alert types evaluated against the stored market graph. */
+const CROSS_ASSET_TYPES = new Set([
+    "correlation_above",
+    "correlation_below",
+    "relationship_flip",
+    "regime_change",
+    "volatility_expand",
+    "correlated_exposure",
+]);
 
 type Alert = {
     id: string;
@@ -39,14 +55,52 @@ export async function GET(request: NextRequest) {
         let checked = 0;
         let triggered = 0;
 
+        // Phase 16 §36: the stored graph is read AT MOST once per check run and
+        // only when a cross-asset alert exists. No graph → those alerts stay
+        // silent with a recorded reason instead of firing on absent data (§45).
+        let graphSnapshot: MarketGraphSnapshot | null | undefined;
+        const alertEntries: Array<[string, string, Alert]> = [];
         for (const [userId, userAlerts] of Object.entries(allAlerts)) {
             for (const [alertId, alertData] of Object.entries(userAlerts as Record<string, Alert>)) {
-                const alert = alertData;
+                alertEntries.push([userId, alertId, alertData]);
+            }
+        }
+        const needsGraph = alertEntries.some(([, , a]) => !a.triggered && CROSS_ASSET_TYPES.has(a.type));
+        if (needsGraph) {
+            graphSnapshot = await loadLatestSnapshot("global").catch(() => null);
+        }
+
+        for (const [userId, alertId, alert] of alertEntries) {
                 if (alert.triggered) continue;
 
                 checked++;
 
                 try {
+                    if (CROSS_ASSET_TYPES.has(alert.type)) {
+                        const evaluation = evaluateCrossAssetAlert(
+                            alert as unknown as CrossAssetAlert,
+                            graphSnapshot ?? null,
+                            Date.now()
+                        );
+                        if (!evaluation.triggered) continue;
+
+                        await adminDatabase.ref(`alerts/${userId}/${alertId}`).update({
+                            triggered: true,
+                            triggeredAt: Date.now(),
+                            triggerReason: evaluation.reason,
+                        });
+                        await adminDatabase.ref(`notifications/${userId}`).push({
+                            title: `Cross-asset alert: ${alert.symbol}`,
+                            message: evaluation.message ?? alert.message,
+                            level: "info",
+                            link: "/cross-asset",
+                            read: false,
+                            createdAt: Date.now(),
+                        });
+                        triggered++;
+                        continue;
+                    }
+
                     const priceRes = await fetch(`https://biquote.io/api/${alert.symbol}/ohlc?interval=1h&limit=2`);
                     if (!priceRes.ok) continue;
 
@@ -85,7 +139,6 @@ export async function GET(request: NextRequest) {
                         triggered++;
                     }
                 } catch {}
-            }
         }
 
         return NextResponse.json({ success: true, checked, triggered, timestamp: Date.now() });

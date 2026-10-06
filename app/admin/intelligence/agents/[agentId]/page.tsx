@@ -22,6 +22,8 @@ const ROLE_LABELS: Record<AgentRole, string> = {
     verification: "Verification",
     synthesis: "Synthesis",
     notification: "Notification",
+    "cross-asset": "Cross-Asset",
+    supervisor: "Supervisor",
     custom: "Custom",
 };
 

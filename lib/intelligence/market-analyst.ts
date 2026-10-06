@@ -31,6 +31,8 @@ export interface AnalystInput {
   smartMoney?: unknown;
   setupMemory?: unknown;
   strategy?: unknown;
+  /** Phase 16 §28 — structured cross-asset context (relationships, regime, impact). */
+  crossAsset?: unknown;
   positions?: unknown[];
   orders?: unknown[];
   account?: unknown;
@@ -68,6 +70,44 @@ function buildEvidenceFromFacts(input: AnalystInput): { bullish: EvidenceItem[];
 
   if (snap?.volatility?.state === "low") neu.push({ source: "volatility", claim: "Low volatility — range conditions likely", direction: "neutral", confidence: 0.5 });
   else if (snap?.volatility?.state === "high") neu.push({ source: "volatility", claim: "High volatility — wider stops needed", direction: "neutral", confidence: 0.55 });
+
+  /* Cross-asset context (Phase 16 §28). Structured, measured, always neutral
+     confluence: it never swings the action by itself (§57). */
+  const cross = input.crossAsset as {
+    relationships?: Array<{ symbol?: string; coefficient?: number | null; stability?: string }>;
+    regime?: { activeStates?: string[] } | null;
+    portfolioImpact?: { relatedExposureWeight?: number; correlatedHoldings?: string[] } | null;
+    limitations?: string[];
+  } | null | undefined;
+  if (cross && typeof cross === "object") {
+    for (const rel of (cross.relationships ?? []).slice(0, 3)) {
+      if (typeof rel?.coefficient !== "number") continue;
+      neu.push({
+        source: "cross_asset_relationship",
+        claim: `${input.symbol} ↔ ${rel.symbol} rolling correlation ${rel.coefficient.toFixed(2)} (stability ${rel.stability ?? "UNKNOWN"}) — measured association, not a signal`,
+        direction: "neutral",
+        confidence: 0.6,
+      });
+    }
+    const states = cross.regime?.activeStates ?? [];
+    if (states.length > 0) {
+      neu.push({
+        source: "cross_asset_regime",
+        claim: `Global regime: ${states.join(", ")} (multi-axis measurement)`,
+        direction: "neutral",
+        confidence: 0.6,
+      });
+    }
+    const weight = cross.portfolioImpact?.relatedExposureWeight;
+    if (typeof weight === "number" && weight > 0) {
+      neu.push({
+        source: "cross_asset_portfolio",
+        claim: `${(weight * 100).toFixed(1)}% of gross exposure sits in positions correlated with ${input.symbol}`,
+        direction: "neutral",
+        confidence: 0.6,
+      });
+    }
+  }
 
   return { bullish: bull, bearish: bear, neutral: neu };
 }
@@ -125,6 +165,7 @@ function buildLimitations(input: AnalystInput, ctxUsable: ReturnType<typeof mark
   if (!ctxUsable.ok) limits.push((ctxUsable as { ok: false; reason: string }).reason);
   if ((input.dataAgeMs ?? 0) > 120_000) limits.push("Market data is stale; analysis reflects past state, not current.");
   if (input.setupMemory) limits.push("Setup Memory state may not fully reflect live conditions.");
+  if (input.crossAsset) limits.push("Cross-asset context is measured historical association only — it is confluence, never causation or prediction (Phase 16 §56/§57).");
   return limits;
 }
 

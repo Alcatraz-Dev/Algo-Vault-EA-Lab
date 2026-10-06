@@ -94,6 +94,14 @@ export interface ChartDataEngineOptions {
 
 const TICK_STAMP_EPSILON_MS = 1500;
 
+/**
+ * Minimum wait before re-attempting a repair for the SAME hole. One attempt
+ * per hole, then a cooldown — a provider that cannot fill a range must not be
+ * polled for it on every health sweep (retry storm), but a later retry can
+ * still heal a hole the shallow window covered in the meantime.
+ */
+const REPAIR_RETRY_MS = 60_000;
+
 export class ChartDataEngine {
     readonly seriesKey: string;
     private readonly symbol: string;
@@ -119,6 +127,7 @@ export class ChartDataEngine {
     private repairInFlight = false;
     private lastRequestedOldest: number | null = null;
     private repairAttemptFor: number | null = null;
+    private repairAttemptAt = 0;
     private healthTimer: ReturnType<typeof setInterval> | null = null;
     private listeners = new Set<(e: EngineEvent) => void>();
     private currentAbort: AbortController | null = null;
@@ -334,9 +343,16 @@ export class ChartDataEngine {
         if (!result.changed) return;
 
         this.commitCandles(result.series, "tick");
-        const quality = this.deriveQuality(tick.timestamp);
+        // Freshness answers "is data arriving?", so it is stamped at ARRIVAL.
+        // Providers stamp the forming bar with its OPEN time (up to a full
+        // period old), which graded a perfectly healthy feed as "delayed" for
+        // most of every bar and then flipped it back to live — the visible
+        // delayed → paused → live oscillation. The provider stamp still
+        // buckets the candle (applyTick above); this only grades the feed.
+        const arrivedAt = Date.now();
+        const quality = this.deriveQuality(arrivedAt);
         this.setStatus({
-            lastTickAt: Math.max(this.status.lastTickAt, tick.timestamp),
+            lastTickAt: Math.max(this.status.lastTickAt, arrivedAt),
             quality,
             // A working tick stream proves the connection recovered.
             connection: this.status.connection === "reconnecting" || this.status.connection === "error" ? "live" : this.status.connection,
@@ -402,40 +418,93 @@ export class ChartDataEngine {
         if (gaps.length === 0) return false;
 
         const gap = gaps[0];
-        if (!this.sources.loadRange) {
-            this.setStatus({ quality: "gap_detected", gapsDetected: this.status.gapsDetected + 1 });
+        // Avoid retry storms on a hole the provider cannot fill: one attempt
+        // per hole, then a cooldown before trying the same range again.
+        if (
+            this.repairAttemptFor === gap.fromMs &&
+            Date.now() - this.repairAttemptAt < REPAIR_RETRY_MS
+        ) {
             return false;
         }
-        // Avoid retry storms on a hole the provider simply cannot fill.
-        if (this.repairAttemptFor === gap.fromMs) return false;
 
         this.repairInFlight = true;
         this.repairAttemptFor = gap.fromMs;
+        this.repairAttemptAt = Date.now();
         this.setStatus({ quality: "synchronizing" });
         try {
-            const page = await this.sources.loadRange({
-                symbol: this.symbol,
-                timeframe: this.timeframe,
-                fromMs: gap.fromMs,
-                toMs: gap.toMs,
-            });
-            if (this.destroyed) return false;
-            if (page.candles.length > 0) {
-                const result = applyHistory(this.candles, page.candles);
-                this.commitCandles(enforceChronology(result.series), "repair");
+            let filled = false;
+            if (this.sources.loadRange) {
+                try {
+                    const page = await this.sources.loadRange({
+                        symbol: this.symbol,
+                        timeframe: this.timeframe,
+                        fromMs: gap.fromMs,
+                        toMs: gap.toMs,
+                    });
+                    if (this.destroyed) return false;
+                    if (page.candles.length > 0) {
+                        const result = applyHistory(this.candles, page.candles);
+                        this.commitCandles(enforceChronology(result.series), "repair");
+                        filled = true;
+                    }
+                } catch {
+                    // Range fill failed — the newest-page refill below can
+                    // still cover holes inside the shallow window.
+                }
             }
+            if (!filled) {
+                // Shallow providers (Biquote) answer no range queries, but
+                // their newest page still contains recent bars — refill from
+                // it so a hole the feed missed while quotes were down heals
+                // instead of latching the chart into a permanent GAP state.
+                filled = await this.refillFromNewest();
+            }
+
             const remaining = this.detectGaps().length;
             this.setStatus({
                 quality: remaining > 0 ? "gap_detected" : this.deriveQuality(),
                 gapsDetected: this.status.gapsDetected + 1,
                 candlesLoaded: this.candles.length,
+                oldestLoadedTimestamp: this.candles[0]?.timestamp ?? null,
             });
-            return page.candles.length > 0;
+            return filled;
         } catch {
             if (!this.destroyed) this.setStatus({ quality: "gap_detected" });
             return false;
         } finally {
             this.repairInFlight = false;
+        }
+    }
+
+    /**
+     * Newest-page refill — the fallback for providers that cannot answer a
+     * range query. A hole inside the shallow window is present in the newest
+     * page too, so re-fetching and merging it heals the gap (and the pause it
+     * would otherwise keep re-triggering).
+     */
+    private async refillFromNewest(): Promise<boolean> {
+        if (this.destroyed) return false;
+        try {
+            const page = await this.sources.loadLatest({
+                symbol: this.symbol,
+                timeframe: this.timeframe,
+                limit: this.pageSize,
+            });
+            if (this.destroyed || page.candles.length === 0) return false;
+            const result = applyHistory(this.candles, page.candles);
+            const changed =
+                result.series.length !== this.candles.length ||
+                result.series.some((c, i) => c !== this.candles[i]);
+            if (!changed) return false;
+            this.commitCandles(enforceChronology(result.series), "repair");
+            this.setStatus({
+                lastHistoryLoadAt: Date.now(),
+                candlesLoaded: this.candles.length,
+                oldestLoadedTimestamp: this.candles[0]?.timestamp ?? null,
+            });
+            return true;
+        } catch {
+            return false;
         }
     }
 

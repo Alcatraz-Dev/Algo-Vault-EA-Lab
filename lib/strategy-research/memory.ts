@@ -82,12 +82,33 @@ export function buildCandidateMemoryRecord(
 /**
  * Persists the memory record mission-scoped + into the platform setup tree.
  * Returns the record id (also stored on the candidate as memoryRecordId).
+ *
+ * Phase 16 §40 — before persisting, the current cross-asset context is frozen
+ * onto the record (one bounded read of the stored graph; the graph is never
+ * recomputed here). Capture failure is recorded as `status: UNAVAILABLE` with
+ * a reason — honest absence, never a silent omission — and never blocks the
+ * memory write itself.
  */
 export async function persistCandidateMemory(
     mission: ResearchMission,
     candidate: ResearchCandidate
 ): Promise<string> {
-    const record = buildCandidateMemoryRecord(mission, candidate);
+    const base = buildCandidateMemoryRecord(mission, candidate);
+    let crossAsset = base.crossAsset;
+    if (!crossAsset) {
+        try {
+            const { captureSetupCrossAssetSnapshot } = await import("../cross-asset/service");
+            crossAsset = await captureSetupCrossAssetSnapshot({ symbol: base.symbol });
+        } catch {
+            crossAsset = undefined;
+        }
+        crossAsset ??= {
+            capturedAt: Date.now(),
+            status: "UNAVAILABLE",
+            reason: "Cross-asset snapshot capture failed for this setup.",
+        };
+    }
+    const record: SetupMemoryRecord = { ...base, crossAsset };
     await saveResearchMemoryRecord(mission.uid, mission.id, record);
     return record.id;
 }

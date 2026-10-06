@@ -36,6 +36,8 @@ export type AgentRole =
     | "verification"
     | "synthesis"
     | "notification"
+    | "cross-asset"
+    | "supervisor"
     | "custom";
 
 /**
@@ -270,6 +272,12 @@ export type WorkflowContext = {
     news: { incoming: unknown[]; relevant: unknown[] };
     /** Strategy fingerprint context — only when strategy_data granted. */
     strategy: Record<string, unknown>;
+    /**
+     * Latest Global Cross-Asset Intelligence Graph (Phase 16 §33) — populated
+     * server-side from the stored market graph snapshot, never from client
+     * input. `null` when no snapshot exists; agents must fail closed on null.
+     */
+    crossAsset?: unknown;
     /** Mutable variables produced by branches/agents during the run. */
     variables: Record<string, unknown>;
     /** Flags raised by conditional branches. */

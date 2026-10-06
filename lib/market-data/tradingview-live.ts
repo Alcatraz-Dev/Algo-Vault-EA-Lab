@@ -285,8 +285,20 @@ class TradingViewLivePriceCache {
     private readonly inFlight = new Map<string, Promise<TradingViewLivePrice | null>>();
 
     private static readonly TTL_MS = 5000;
+    /**
+     * How long past expiry a FAILED refresh may keep serving the last real
+     * quote. Stale-but-real beats nothing: a provider blip must read as a
+     * slightly old price, never as "no data" — otherwise every chart poller
+     * loses its tick stream and the chart flaps between live and paused.
+     */
+    private static readonly STALE_SERVE_MS = 30_000;
 
-    async get(symbol: string, forceRefresh = false): Promise<TradingViewLivePrice | null> {
+    async get(
+        symbol: string,
+        opts?: boolean | { forceRefresh?: boolean; timeoutMs?: number },
+    ): Promise<TradingViewLivePrice | null> {
+        const forceRefresh = typeof opts === "boolean" ? opts : (opts?.forceRefresh ?? false);
+        const timeoutMs = typeof opts === "object" ? opts.timeoutMs : undefined;
         const key = symbol.trim().toUpperCase();
         const now = Date.now();
         const cached = this.cache.get(key);
@@ -295,8 +307,33 @@ class TradingViewLivePriceCache {
         }
 
         const existing = this.inFlight.get(key);
-        if (existing) return existing;
+        const request = existing ?? this.startFetch(key, symbol);
+        if (!timeoutMs || timeoutMs <= 0) return request;
 
+        // Deadline: callers that poll (chart ticks) must never inherit the
+        // upstream worst case — 8 s timeouts × retries × two providers. After
+        // `timeoutMs` we answer with the last real quote (or null) while the
+        // fetch keeps running in the background and warms the cache for the
+        // next poll.
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const deadline = new Promise<TradingViewLivePrice | null>((resolve) => {
+            timer = setTimeout(() => {
+                const latest = this.cache.get(key);
+                const freshEnough =
+                    latest !== undefined &&
+                    Date.now() - latest.expiresAt <= TradingViewLivePriceCache.TTL_MS + TradingViewLivePriceCache.STALE_SERVE_MS;
+                resolve(freshEnough ? latest.price : null);
+            }, timeoutMs);
+        });
+        try {
+            return await Promise.race([request, deadline]);
+        } finally {
+            if (timer !== undefined) clearTimeout(timer);
+        }
+    }
+
+    /** Fetch (or join an in-flight fetch) and store the outcome. */
+    private startFetch(key: string, symbol: string): Promise<TradingViewLivePrice | null> {
         const request = fetchTradingViewLivePrice(symbol)
             .then((price) => {
                 if (price) {
@@ -304,8 +341,18 @@ class TradingViewLivePriceCache {
                         price,
                         expiresAt: Date.now() + TradingViewLivePriceCache.TTL_MS,
                     });
+                    return price;
                 }
-                return price;
+                // Refresh failed — serve the previous quote while it is still
+                // plausibly recent instead of dropping the caller to null.
+                const stale = this.cache.get(key);
+                if (
+                    stale !== undefined &&
+                    Date.now() - stale.expiresAt <= TradingViewLivePriceCache.TTL_MS + TradingViewLivePriceCache.STALE_SERVE_MS
+                ) {
+                    return stale.price;
+                }
+                return null;
             })
             .finally(() => {
                 this.inFlight.delete(key);

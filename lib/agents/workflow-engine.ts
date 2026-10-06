@@ -205,6 +205,7 @@ export async function executeWorkflow(
         risk: initialContext.risk || { drawdownPercent: 0, exposureRatio: 0, positionCount: 0, correlatedExposure: 0, symbols: [] },
         news: initialContext.news || { incoming: [], relevant: [] },
         strategy: initialContext.strategy || {},
+        crossAsset: initialContext.crossAsset ?? null,
         variables: {},
         flags: [],
         agentOutputs: {},
@@ -575,6 +576,15 @@ import { newsAgent } from "./implementations/news";
 import { criticAgent } from "./implementations/critic";
 import { verificationAgent } from "./implementations/verification";
 import { synthesizer } from "./implementations/synthesis";
+import {
+    globalMarketAnalyst,
+    relationshipAnalyst,
+    correlationAgent,
+    regimeAgent,
+    portfolioContextAgent,
+    crossAssetResearchAgent,
+    globalIntelligenceSupervisor,
+} from "./implementations/cross-asset";
 
 export function registerBuiltInExecutors(): void {
     registerAgentExecutor("market-scout", marketScout);
@@ -588,6 +598,14 @@ export function registerBuiltInExecutors(): void {
     registerAgentExecutor("critic", criticAgent);
     registerAgentExecutor("verification", verificationAgent);
     registerAgentExecutor("synthesis", synthesizer);
+    // Phase 16 §33 — cross-asset team (READ_ONLY, one graph, one runtime).
+    registerAgentExecutor("global-market-analyst", globalMarketAnalyst);
+    registerAgentExecutor("relationship-analyst", relationshipAnalyst);
+    registerAgentExecutor("correlation-agent", correlationAgent);
+    registerAgentExecutor("regime-agent", regimeAgent);
+    registerAgentExecutor("portfolio-context-agent", portfolioContextAgent);
+    registerAgentExecutor("cross-asset-research-agent", crossAssetResearchAgent);
+    registerAgentExecutor("global-intelligence-supervisor", globalIntelligenceSupervisor);
 }
 
 registerBuiltInExecutors();

@@ -208,6 +208,8 @@ export interface EngineVersions {
     intelligence?: string;
     research?: string;
     aiRouter?: string;
+    /** Phase 16 — Global Cross-Asset Intelligence Graph engine. */
+    crossAsset?: string;
 }
 
 // ── Cost metadata ───────────────────────────────────────────────────────────

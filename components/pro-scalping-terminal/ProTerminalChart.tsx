@@ -431,8 +431,22 @@ const DRAWING_TOOL_HINTS: Record<DrawingTool, string> = {
 /** Panning within this many bars of the loaded window's left edge triggers an older-page load. */
 const HISTORY_LOAD_THRESHOLD_BARS = 6;
 
-/** How long the in-chart market open/close notice stays on screen. */
-const MARKET_NOTICE_MS = 15_000;
+/**
+ * How long the in-chart market open/close notice stays on screen. Kept short:
+ * the notice announces a phase *transition* (it must be caught and then get
+ * out of the way), it does not park over the candles for a quarter minute.
+ */
+const MARKET_NOTICE_MS = 4_000;
+
+/**
+ * A feed-based pause (quiet feed / missing bars) has to persist this long
+ * before the chart freezes. One slow poll or one gap sweep must not flip the
+ * chart between paused and live — every flip re-arms the market notice and
+ * stalls the chart for a beat (the visible "delay → pause → back live"
+ * stutter). Calendar closes are clock facts and still apply immediately; a
+ * feed that recovers resumes immediately too.
+ */
+const FEED_PAUSE_GRACE_MS = 10_000;
 
 /** UTC weekday label for the market-hours tooltip (0 = Sunday). */
 const UTC_DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
@@ -1023,9 +1037,6 @@ export function ProTerminalChart({
     // seconds) and rolls into the next bar on its own, so the countdown never
     // sticks at 00:00:00. Market phase is a *clock* fact, not market data.
     const nowMs = useSyncExternalStore(subscribeClock, getClockSnapshot, getServerClockSnapshot);
-    // 0 is the server's "no clock yet" value — until the client clock ticks the
-    // chip shows the phase without a time, so hydration never disagrees.
-    const clockLive = nowMs > 0;
     // Canonical interval for the bar/market math (chart timeframes only; the
     // terminal never renders D1/W1).
     const intervalMs = isChartTimeframe(timeframe) ? TIMEFRAME_MS[timeframe] : 3_600_000;
@@ -1050,7 +1061,7 @@ export function ProTerminalChart({
     // the feed going quiet (the chart engine's own "stale" verdict — no tick
     // for its staleness window). A metals or index session can end mid-week
     // without the calendar changing, so silence is the only honest evidence.
-    const session = resolveSession({
+    const rawSession = resolveSession({
         calendarOpen: marketOpen,
         feedStale: liveQuality === "stale",
         // A mid-week session break (metals/indices) shows up as candles the
@@ -1059,6 +1070,37 @@ export function ProTerminalChart({
         feedGap: liveQuality === "gap_detected",
         alwaysOpen: cryptoSymbol,
     });
+
+    // ── Feed-based pause grace ─────────────────────────────────────────
+    // The feed verdict can flip on every health sweep while the quotes API is
+    // merely flaky (delayed → gap → live), and every flip would freeze the
+    // chart and re-arm the market notice below. So a *feed* reason only pauses
+    // once it has held for FEED_PAUSE_GRACE_MS; the calendar reason and a
+    // recovery apply immediately. Measured on the shared 250 ms clock with the
+    // same "adjust state during render" pattern the pause snapshot below uses
+    // — no timer, no effect, and the 250 ms tick is what re-evaluates it.
+    const rawSessionReason: PauseReason = rawSession.reason;
+    const [feedPauseSince, setFeedPauseSince] = useState<number | null>(null);
+    if (rawSessionReason === null || rawSessionReason === "calendar-close") {
+        // Healthy (or a clock fact): drop any held feed pause at once.
+        if (feedPauseSince !== null) setFeedPauseSince(null);
+    } else if (feedPauseSince === null) {
+        // Start counting; 0 means "the client clock has not ticked yet" and
+        // is re-based below the moment it does, so grace never elapses on a
+        // frozen clock.
+        setFeedPauseSince(nowMs);
+    } else if (feedPauseSince === 0 && nowMs > 0) {
+        setFeedPauseSince(nowMs);
+    }
+    const feedPauseHeld =
+        feedPauseSince !== null && feedPauseSince > 0 && nowMs - feedPauseSince >= FEED_PAUSE_GRACE_MS;
+
+    const session =
+        rawSessionReason === null || rawSessionReason === "calendar-close"
+            ? rawSession // healthy → open now; calendar → closed now
+            : feedPauseHeld
+                ? rawSession // feed stayed bad past the grace → paused
+                : { open: true, reason: null }; // inside the grace window
     const sessionOpen = session.open;
     const pauseReason: PauseReason = session.reason;
 
@@ -3650,10 +3692,12 @@ export function ProTerminalChart({
                 <span className="rounded border border-primary/30 bg-primary/10 px-1 py-0.5 font-mono text-[10px] font-bold text-primary">
                     {timeframe}
                 </span>
-                {/* Market hours + countdown chip. Always visible so the trader
-                    never has to guess whether the chart is live: green while
-                    trading, amber inside the last 15 minutes of the session,
-                    slate with the time to the next open once closed. */}
+                {/* Market session chip — OPEN / CLOSED (plus why). Always
+                    visible so the trader never has to guess whether the chart
+                    is live: green while trading, amber inside the last 15
+                    minutes of the session, slate once closed. The bar-close
+                    countdown is NOT repeated here — it already rides the
+                    price-axis tag on the chart itself. */}
                 <span
                     className={cn(
                         "inline-flex items-center gap-1.5 rounded-full border px-1.5 py-0.5 font-mono text-[10px] font-semibold",
@@ -3682,11 +3726,6 @@ export function ProTerminalChart({
                         )}
                     />
                     {sessionOpen ? "OPEN" : pauseReason === "feed-quiet" ? "NO TICKETS" : pauseReason === "feed-gap" ? "NO DATA" : "CLOSED"}
-                    {clockLive && cfg.display.showBarCloseCountdown ? (
-                        <span className="tabular-nums text-muted-foreground">
-                            · {displayCaption} {displayClock}
-                        </span>
-                    ) : null}
                 </span>
                 {hover ? (
                     <span className="font-mono tabular-nums text-muted-foreground">

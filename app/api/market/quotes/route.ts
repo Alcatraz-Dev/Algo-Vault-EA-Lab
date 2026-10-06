@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SUPPORTED_SYMBOLS, type SupportedSymbol } from "@/lib/market-data/types";
-import { fetchTradingViewLivePrice, toTradingViewSymbol } from "@/lib/market-data/tradingview-live";
+import { SUPPORTED_SYMBOLS } from "@/lib/market-data/types";
+import { tradingViewLivePriceCache } from "@/lib/market-data/tradingview-live";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/**
+ * Per-symbol response deadline. The chart polls this route every 2 s, so a
+ * poll may not inherit the upstream worst case (8 s timeouts × retries × two
+ * providers): after this budget the route answers with the last real quote
+ * from the shared cache (or omits the symbol) while the refresh keeps running
+ * server-side. This is what keeps the feed reading LIVE instead of oscillating
+ * delayed → paused → live.
+ */
+const QUOTE_DEADLINE_MS = 2500;
 
 const SYMBOL_SET = new Set<string>(SUPPORTED_SYMBOLS as readonly string[]);
 
@@ -58,7 +68,11 @@ export async function GET(request: NextRequest) {
             if (!SYMBOL_SET.has(canonical)) {
                 return { symbol: rawSymbol, quote: null as null | { price: number; change?: number; changePercent?: number; timestamp: number; provider: string } };
             }
-            const quote = await fetchTradingViewLivePrice(toTradingViewSymbol(canonical as SupportedSymbol));
+
+            // Shared cache: concurrent pollers (several charts, several tabs)
+            // join one in-flight upstream fetch, and a provider blip is masked
+            // by the last real quote instead of dropping the tick stream.
+            const quote = await tradingViewLivePriceCache.get(canonical, { timeoutMs: QUOTE_DEADLINE_MS });
             if (!quote) {
                 return { symbol: rawSymbol, quote: null };
             }

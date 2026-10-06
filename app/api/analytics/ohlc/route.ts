@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateSymbol, validateTimeframe } from "@/lib/market-data/validation";
 import { fetchCandles } from "@/lib/market-data/normalizer";
-import { fetchTradingViewLivePrice } from "@/lib/market-data/tradingview-live";
+import { tradingViewLivePriceCache } from "@/lib/market-data/tradingview-live";
 import { hasTwelveDataApiKey } from "@/lib/market-data/twelvedata/config";
 import { fetchDeepHistoryPage } from "@/lib/market-data/twelvedata/candle-bridge";
 import { SUPPORTED_SYMBOLS, type MarketCandle } from "@/lib/market-data/types";
@@ -108,7 +108,10 @@ export async function GET(request: NextRequest) {
         let price: number | null = null;
         let quoteTs: number | undefined;
         if (!pagingRequested) {
-            const livePrice = await fetchTradingViewLivePrice(symbol);
+            // Shared cache + deadline: this endpoint is also what the chart's
+            // gap repair and reload paths call, so a slow provider here must
+            // not stall the whole history response.
+            const livePrice = await tradingViewLivePriceCache.get(symbol, { timeoutMs: 3000 });
             price = livePrice?.price ?? null;
             quoteTs = livePrice?.timestamp;
         }

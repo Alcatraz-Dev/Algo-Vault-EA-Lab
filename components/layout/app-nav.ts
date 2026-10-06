@@ -20,6 +20,7 @@ import {
   LayoutDashboard,
   Layers,
   MonitorPlay,
+  Network,
   Newspaper,
   Radio,
   Receipt,
@@ -65,6 +66,7 @@ export const APP_NAV: NavGroup[] = [
       { href: "/charts", label: "Charts", icon: CandlestickChart },
       { href: "/economic-calendar", label: "Economic Calendar", icon: Newspaper },
       { href: "/risk", label: "Risk Analysis", icon: Shield, pro: true },
+      { href: "/cross-asset", label: "Market Relationships", icon: Network, pro: true },
     ],
   },
   {

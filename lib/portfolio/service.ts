@@ -182,6 +182,12 @@ export interface SymbolMarketData {
 /**
  * Fetch candles for one symbol through the existing market-data engine.
  * Returns UNAVAILABLE rather than fabricating candles.
+ *
+ * Provider fallback (Phase 16): when TwelveData cannot serve the window (daily
+ * credit limit, outage), the loader falls back to the Biquote OHLC endpoint —
+ * the same source the signals/alerts layer already uses — so correlation and
+ * cross-asset intelligence degrade to a second REAL source before they report
+ * INSUFFICIENT_DATA. Both sources are real market data; neither is simulated.
  */
 export async function loadSymbolSeries(
     symbol: string,
@@ -207,6 +213,11 @@ export async function loadSymbolSeries(
     }
 
     if (candles.length < 20) {
+        const fallback = await fetchBiquoteCandles(normalized, timeframe, limit).catch(() => null);
+        if (fallback && fallback.length >= 20) candles.splice(0, candles.length, ...fallback);
+    }
+
+    if (candles.length < 20) {
         return {
             series: null,
             latest: candles.length > 0 ? { price: candles[candles.length - 1].close, timestamp: candles[candles.length - 1].timestamp } : null,
@@ -224,6 +235,79 @@ export async function loadSymbolSeries(
         latest: { price: candles[candles.length - 1].close, timestamp: candles[candles.length - 1].timestamp },
         status: "AVAILABLE",
     };
+}
+
+/** Biquote OHLC intervals per platform timeframe. */
+const BIQUOTE_INTERVALS: Partial<Record<Timeframe, string>> = {
+    M1: "1m",
+    M5: "5m",
+    M15: "15m",
+    M30: "30m",
+    H1: "1h",
+    H4: "4h",
+    D1: "1d",
+    W1: "1w",
+};
+
+/**
+ * Real candles from the Biquote OHLC endpoint (ascending order, ≥ 20 bars or
+ * null). Used ONLY as a fallback when the primary provider cannot serve the
+ * window — never as a synthetic source. Provider symbol aliases are tried in
+ * order; the first response with enough bars wins.
+ */
+const BIQUOTE_ALIASES: Record<string, string> = {
+    SPX500: "US500",
+    SP500: "US500",
+};
+
+async function fetchBiquoteCandles(
+    symbol: string,
+    timeframe: Timeframe,
+    limit: number
+): Promise<MarketCandle[] | null> {
+    const interval = BIQUOTE_INTERVALS[timeframe];
+    if (!interval) return null;
+    const candidates = Array.from(
+        new Set([symbol, BIQUOTE_ALIASES[symbol] ?? ""].filter(Boolean))
+    );
+    for (const candidate of candidates) {
+        const candles = await fetchBiquoteCandlesFor(candidate, interval, limit).catch(() => null);
+        if (candles && candles.length >= 20) return candles;
+    }
+    return null;
+}
+
+async function fetchBiquoteCandlesFor(
+    providerSymbol: string,
+    interval: string,
+    limit: number
+): Promise<MarketCandle[] | null> {
+    const res = await fetch(
+        `https://biquote.io/api/${encodeURIComponent(providerSymbol)}/ohlc?interval=${interval}&limit=${Math.max(20, Math.min(limit, 1000))}`,
+        { headers: { accept: "application/json" } }
+    ).catch(() => null);
+    if (!res || !res.ok) return null;
+    const data = (await res.json().catch(() => null)) as {
+        bars?: Array<{ openTime?: string; open?: number | string; high?: number | string; low?: number | string; close?: number | string }>;
+    } | null;
+    const bars = Array.isArray(data?.bars) ? data.bars : [];
+    const candles: MarketCandle[] = [];
+    for (const bar of bars) {
+        const timestamp = bar.openTime ? Date.parse(bar.openTime) : NaN;
+        const close = Number(bar.close);
+        if (!Number.isFinite(timestamp) || !Number.isFinite(close) || close <= 0) continue;
+        candles.push({
+            timestamp,
+            open: Number(bar.open ?? close),
+            high: Number(bar.high ?? close),
+            low: Number(bar.low ?? close),
+            close,
+        });
+    }
+    candles.sort((a, b) => a.timestamp - b.timestamp);
+    // De-duplicate identical timestamps (defensive: partial pages can overlap).
+    const deduped = candles.filter((c, i) => i === 0 || c.timestamp !== candles[i - 1].timestamp);
+    return deduped.length >= 20 ? deduped : null;
 }
 
 /* ── Strategy inputs ──────────────────────────────────────────────────────── */

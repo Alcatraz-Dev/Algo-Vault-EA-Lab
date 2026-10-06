@@ -34,6 +34,7 @@
     "test:marketing-agent": "JITI_TSCONFIG_PATHS=1 jiti lib/marketing-agent/__tests__/run-marketing-agent-tests.ts",
     "test:market-core": "node scripts/jiti-tsrun.mjs tests/market-core/market-core.test.ts",
     "test:portfolio": "node scripts/jiti-tsrun.mjs lib/portfolio/__tests__/run-portfolio-tests.ts",
+    "test:cross-asset": "node scripts/jiti-tsrun.mjs lib/cross-asset/__tests__/run-cross-asset-tests.ts",
     "test:portfolio-security": "node scripts/jiti-tsrun.mjs lib/portfolio/__tests__/run-portfolio-security-tests.ts",
     "test:terminal": "node scripts/jiti-tsrun.mjs lib/terminal/__tests__/run-terminal-tests.ts",
     "test:trading": "node scripts/jiti-tsrun.mjs lib/trading/__tests__/run-trading-tests.ts",

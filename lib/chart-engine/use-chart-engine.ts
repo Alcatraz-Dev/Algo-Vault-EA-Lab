@@ -76,6 +76,13 @@ function subscribeEngine(
     pollMs: number,
     notify: () => void,
 ): () => void {
+    // React may re-run subscribe with the SAME entry object (StrictMode
+    // remount, effect re-run). If its cleanup had already dropped the entry
+    // from the pool, re-adopt it so a later mount cannot create a second
+    // engine for a series this one is still polling.
+    const key = poolKey(symbol, timeframe);
+    if (enginePool.get(key) !== entry) enginePool.set(key, entry);
+
     const unsubscribe = entry.engine.subscribe(() => notify());
     entry.refs += 1;
     entry.engine.start();
@@ -84,9 +91,18 @@ function subscribeEngine(
         unsubscribe();
         entry.refs -= 1;
         if (entry.refs <= 0) {
-            if (entry.pollTimer !== null) clearInterval(entry.pollTimer);
+            if (entry.pollTimer !== null) {
+                clearInterval(entry.pollTimer);
+                // MUST be nulled: `ensurePoller` early-returns on a non-null
+                // id, so a cleared-but-still-set id left every later subscribe
+                // to this entry with an engine that NEVER polls again — ticks
+                // stop, quality degrades to stale/gap, the chart pauses, and a
+                // later remount brings it back. That is the whole
+                // "delay → pause → back live" cycle.
+                entry.pollTimer = null;
+            }
             entry.engine.destroy();
-            enginePool.delete(poolKey(symbol, timeframe));
+            if (enginePool.get(key) === entry) enginePool.delete(key);
         }
     };
 }

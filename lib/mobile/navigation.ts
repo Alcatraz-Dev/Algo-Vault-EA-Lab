@@ -19,6 +19,7 @@ import type { LucideIcon } from "lucide-react";
 import {
     Bell,
     ChartNoAxesCombined,
+    Globe,
     House,
     NotebookPen,
     Radar,
@@ -109,6 +110,14 @@ export const INTELLIGENCE_DESTINATIONS: readonly IntelligenceDestination[] = [
         icon: ShieldAlert,
         pro: false,
         purpose: "Exposure, drawdown, limits and kill-switch state.",
+    },
+    {
+        id: "market-context",
+        href: "/mobile/market-context",
+        label: "Market Context",
+        icon: Globe,
+        pro: true,
+        purpose: "Simplified cross-asset view: regime, top relationships, correlation changes and portfolio impact.",
     },
 ];
 

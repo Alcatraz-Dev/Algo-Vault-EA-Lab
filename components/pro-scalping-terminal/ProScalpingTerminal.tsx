@@ -44,6 +44,7 @@ import { TERMINAL_TIMEFRAMES, defaultLayerState, type ChartLayerId } from "./cha
 import { LayerPicker } from "./LayerPicker";
 import ChartToolbar from "@/components/trading/ChartToolbar";
 import { fmtSignedPct, fmtTime } from "./terminal-utils";
+import { CrossAssetPanel } from "./CrossAssetPanel";
 import type { ChartType, DrawingTool, DrawingItem } from "./ProTerminalChart";
 import {
     CalendarPanel,
@@ -508,6 +509,7 @@ export function ProScalpingTerminal() {
                         loading={intelligence.loading}
                         pro={!intelligence.error || !/PRO_REQUIRED|UNAUTHENTICATED|403|401/.test(intelligence.error)}
                     />
+                    <CrossAssetPanel symbol={symbol} token={token} />
                     <SignalsMiniPanel
                         signals={signals.data?.signals ?? []}
                         rejected={signals.data?.rejected ?? []}

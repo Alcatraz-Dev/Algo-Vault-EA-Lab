@@ -21,6 +21,7 @@ import {
     formatContextFacts,
     sanitizeChatContext,
 } from "@/lib/terminal/chat-context";
+import { getSymbolCrossAssetContext } from "@/lib/cross-asset/service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,6 +29,14 @@ export const dynamic = "force-dynamic";
 const MAX_QUESTION = 1_500;
 const MAX_HISTORY = 8;
 const FREE_TURNS = 6;
+
+/**
+ * Phase 16 §29 — questions that deserve cross-asset facts. Gating on intent
+ * keeps ordinary chart questions on the fast path; only relationship/regime
+ * questions pay for the graph computation (which is cached for 5 minutes).
+ */
+const WANTS_CROSS_ASSET =
+    /\b(correlat\w*|regime|dollar|relationship|related|cross[- ]?asset|global market|risk[- ]?on|risk[- ]?off|moving with|driving|driven by|cluster|what else)\b/i;
 
 interface Turn {
     role: "user" | "assistant";
@@ -77,6 +86,40 @@ export async function POST(request: NextRequest) {
 
         const facts = formatContextFacts(context);
 
+        // Phase 16 §29: attach measured cross-asset facts when the question is
+        // about relationships/regime. Fail-closed: if the engine cannot answer,
+        // the block says so instead of being omitted silently.
+        let crossAssetBlock = "";
+        if (WANTS_CROSS_ASSET.test(question)) {
+            try {
+                const cross = await getSymbolCrossAssetContext({
+                    symbol: context.market.symbol,
+                    focusSymbol: context.market.symbol,
+                    timeframe: context.market.timeframe || "H1",
+                    tier: isPro ? "PRO" : "FREE",
+                    userId: user.uid,
+                    leadLag: false,
+                });
+                const lines = cross.narrative.map((n) => n.text);
+                const rels = cross.relationships
+                    .slice(0, 6)
+                    .map((r) => `  ${r.symbol.padEnd(8)} ${r.coefficient === null ? "n/a" : r.coefficient.toFixed(2)}  ${r.stability} (${r.term}, n=${r.sampleSize})`);
+                crossAssetBlock = [
+                    "",
+                    "DETERMINISTIC CROSS-ASSET FACTS (measured by the AlgoVault relationship engine — treat as market truth, not as advice)",
+                    "=======================================================================================================",
+                    ...(rels.length > 0 ? [`Measured relationships for ${cross.symbol} (window ${cross.window.bars} ${cross.window.timeframe}):`, ...rels] : [`No relationship for ${cross.symbol} passed the |ρ| ≥ 0.3 threshold in this window.`]),
+                    "",
+                    ...lines,
+                    ...(cross.limitations.length > 0 ? ["", `Limitations: ${cross.limitations.join(" ")}`] : []),
+                    "=======================================================================================================",
+                ].join("\n");
+            } catch {
+                crossAssetBlock =
+                    "\nCROSS-ASSET FACTS UNAVAILABLE: the relationship engine could not answer this request — say so plainly rather than guessing relationships.\n";
+            }
+        }
+
         const messages = [
             ...history.map((t) => ({ role: t.role, content: t.content })),
             {
@@ -85,6 +128,7 @@ export async function POST(request: NextRequest) {
                     "DETERMINISTIC FACTS (produced by AlgoVault engines — treat as the only market truth)",
                     "==================================================================================",
                     facts,
+                    crossAssetBlock,
                     "==================================================================================",
                     "USER QUESTION",
                     question,

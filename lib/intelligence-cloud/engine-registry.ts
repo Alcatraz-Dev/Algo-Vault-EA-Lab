@@ -21,6 +21,7 @@ import {
     STRATEGY_ENGINE_VERSION,
 } from "@/lib/strategy-engine/versioning";
 import { PORTFOLIO_CONTRACT_VERSION } from "@/lib/portfolio/versioning";
+import { RELATIONSHIP_ENGINE_VERSION, REGIME_ENGINE_VERSION } from "@/lib/cross-asset/versions";
 import type { EngineVersions } from "./contracts";
 
 /** Sentinel for an engine that does not publish a version constant. */
@@ -38,6 +39,7 @@ export type EngineId =
     | "portfolio"
     | "research"
     | "intelligence"
+    | "cross-asset"
     | "ai-router";
 
 export interface EngineVersionRecord {
@@ -114,6 +116,13 @@ export const ENGINE_REGISTRY: EngineVersionRecord[] = [
         versioned: false,
     },
     {
+        id: "cross-asset",
+        name: "Cross-Asset Intelligence Graph",
+        version: RELATIONSHIP_ENGINE_VERSION,
+        sourcePath: "lib/cross-asset/versions.ts (RELATIONSHIP_ENGINE_VERSION)",
+        versioned: true,
+    },
+    {
         id: "intelligence",
         name: "Intelligence Cloud Facade",
         version: INTELLIGENCE_FACADE_VERSION,
@@ -171,6 +180,7 @@ export function buildEngineVersions(
     if (wanted("strategy-engine")) versions.strategy = getEngineVersion("strategy-engine");
     if (wanted("risk")) versions.risk = getEngineVersion("risk");
     if (wanted("research")) versions.research = getEngineVersion("research");
+    if (wanted("cross-asset")) versions.crossAsset = `${RELATIONSHIP_ENGINE_VERSION}/regime-${REGIME_ENGINE_VERSION}`;
     if (wanted("intelligence")) versions.intelligence = INTELLIGENCE_FACADE_VERSION;
     if (wanted("ai-router")) versions.aiRouter = getEngineVersion("ai-router");
     return versions;
