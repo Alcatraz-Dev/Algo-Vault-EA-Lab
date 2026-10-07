@@ -21,6 +21,11 @@ import OpenPositions from "@/components/trading/OpenPositions";
 import PendingOrders from "@/components/trading/PendingOrders";
 import AccountHeader from "@/components/trading/AccountHeader";
 import { TradingProviderStatus } from "./TradingProviderStatus";
+import {
+    executeUnified,
+    newClientRequestId,
+    type UnifiedExecutePayload,
+} from "@/lib/trading/unified/client";
 import { useTerminal } from "./TerminalContext";
 import { useTerminalData } from "./TerminalData";
 import { PanelErrorBoundary } from "./PanelErrorBoundary";
@@ -35,39 +40,60 @@ const TABS: Array<{ id: Tab; label: string; icon: typeof TrendingUp }> = [
 
 export function AccountPanel() {
     const [tab, setTab] = useState<Tab>("positions");
+    const [actionError, setActionError] = useState<string | null>(null);
     const { state } = useTerminal();
     const data = useTerminalData();
     const token = data.token;
+    const accountId = data.account?.accountId ?? null;
     const hasAccount = !!data.account;
 
-    const mutate = async (init: RequestInit) => {
-        if (!token || !hasAccount) return;
+    /**
+     * All mutations go through the Unified Trading API — the same canonical
+     * pipeline as every other Pro Terminal surface. Percentage partial close
+     * is % of CURRENT position volume, computed server-side.
+     */
+    const runUnified = async (
+        payload: Omit<UnifiedExecutePayload, "clientRequestId">,
+        describe: string
+    ): Promise<void> => {
+        if (!token || !accountId) return;
+        setActionError(null);
         try {
-            await fetch("/api/trading/orders", {
-                ...init,
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                    ...(init.headers ?? {}),
-                },
-            });
-        } catch {
-            // The gateway is the only source of truth for fills; a failed
-            // call changes nothing on screen.
+            const result = await executeUnified(
+                { ...payload, clientRequestId: newClientRequestId("pt") },
+                token
+            );
+            if (result.status === "EXECUTED_PENDING_SYNC") {
+                setActionError(`${describe}: executed — syncing on the next snapshot.`);
+            }
+        } catch (error) {
+            setActionError(`${describe}: ${error instanceof Error ? error.message : "execution failed."}`);
         }
     };
 
     const handleClose = (ticket: string) =>
-        mutate({ method: "DELETE", body: JSON.stringify({ ticket, action: "close" }) });
+        runUnified({ accountId: accountId!, executionType: "CLOSE_POSITION", positionId: ticket }, `Close ${ticket}`);
 
-    const handlePartialClose = (ticket: string, volume: number) =>
-        mutate({ method: "DELETE", body: JSON.stringify({ ticket, action: "partial_close", volume }) });
+    const handlePartialClose = (ticket: string, percentage: number) =>
+        runUnified(
+            { accountId: accountId!, executionType: "PARTIAL_CLOSE", positionId: ticket, percentage },
+            `Partial close ${percentage}% of ${ticket}`
+        );
 
-    const handleModify = (ticket: string, sl: number, tp: number) =>
-        mutate({ method: "PATCH", body: JSON.stringify({ ticket, sl, tp }) });
+    const handleModify = (ticket: string, sl: number | null, tp: number | null) =>
+        runUnified(
+            {
+                accountId: accountId!,
+                executionType: "MODIFY_POSITION",
+                positionId: ticket,
+                stopLoss: sl,
+                takeProfit: tp,
+            },
+            `Modify ${ticket}`
+        );
 
     const handleCancel = (ticket: string) =>
-        mutate({ method: "DELETE", body: JSON.stringify({ ticket, action: "cancel_order" }) });
+        runUnified({ accountId: accountId!, executionType: "CANCEL_ORDER", orderId: ticket }, `Cancel ${ticket}`);
 
     const counts = { positions: data.positions.length, orders: data.orders.length };
 
@@ -137,12 +163,26 @@ export function AccountPanel() {
                         </p>
                     ) : (
                         <>
+                            {actionError ? (
+                                <div className="mb-3 flex items-start justify-between gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+                                    <span>{actionError}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setActionError(null)}
+                                        className="shrink-0 rounded px-1 opacity-70 transition hover:opacity-100"
+                                        aria-label="Dismiss"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ) : null}
                             {tab === "positions" ? (
                                 <OpenPositions
                                     positions={data.positions}
                                     onClose={handleClose}
                                     onPartialClose={handlePartialClose}
                                     onModify={handleModify}
+                                    onActionError={setActionError}
                                 />
                             ) : null}
                             {tab === "orders" ? <PendingOrders orders={data.orders} onCancel={handleCancel} /> : null}

@@ -46,6 +46,9 @@ export async function runUnifiedTradingTests(): Promise<boolean> {
         persistResult: store.persistResult,
         persistAccount: store.persistAccount,
         audit: store.audit,
+        // Licensed by default; the license-gate section injects a denying
+        // probe to prove the gate is enforced server-side.
+        entitlement: async () => true,
         now: () => now,
     };
     const service = new UnifiedTradingService({ registry, ...shared });
@@ -85,6 +88,109 @@ export async function runUnifiedTradingTests(): Promise<boolean> {
         ...shared,
     });
 
+    /**
+     * MT5 adapter stub that owns the `gateway_` namespace and reports a healthy
+     * DEMO account. Its `execute` reproduces the verification race: the broker
+     * confirms the fill (ticket + price) before the synced position mirror
+     * exists. The service must surface EXECUTED_PENDING_SYNC, never FAILED.
+     */
+    const syncStore = createFakeStore();
+    let syncMode: "PENDING_SYNC" | "TRANSPORT_FAIL" = "PENDING_SYNC";
+    const syncAccount: TradingAccount = {
+        id: "gateway_777001",
+        userId: "user-sync",
+        provider: "MT5",
+        environment: "DEMO",
+        externalAccountId: "777001",
+        brokerName: "Demo Broker",
+        serverName: "Demo-Server",
+        currency: "USD",
+        leverage: 100,
+        connection: "CONNECTED",
+        providerStatus: "ONLINE",
+        metrics: {
+            balance: 10_000,
+            equity: 10_000,
+            margin: 0,
+            freeMargin: 10_000,
+            marginLevel: null,
+            floatingPnl: 0,
+            positionsCount: 0,
+            ordersCount: 0,
+            currency: "USD",
+            updatedAt: now,
+        },
+        connectedAt: now,
+        lastHeartbeatAt: now,
+        lastSyncAt: now,
+        connectionError: null,
+        gatewayVersion: "1.3.0",
+    };
+    const syncStub: TradingProviderAdapter = {
+        provider: "MT5",
+        descriptor: {
+            provider: "MT5",
+            environments: ["DEMO"],
+            available: true,
+            operational: true,
+            label: "MT5 pending-sync stub",
+            note: null,
+        },
+        matchesAccountId: (accountId: string) => accountId.startsWith("gateway_"),
+        healthCheck: async () => ({ ok: true, value: { status: "ONLINE" as const, checkedAt: now } }),
+        getConnectionStatus: async () => ({ ok: false, error: tradingError("ACCOUNT_NOT_FOUND", "stub") }),
+        getAccount: async (userId: string, accountId: string): Promise<TradingResult<TradingAccount>> =>
+            userId === "user-sync" && accountId === "gateway_777001"
+                ? { ok: true, value: syncAccount }
+                : { ok: false, error: tradingError("ACCOUNT_NOT_FOUND", "Account is not registered for this user.") },
+        getPositions: async () => ({ ok: true, value: [] }),
+        getOrders: async () => ({ ok: true, value: [] }),
+        getDeals: async () => ({ ok: true, value: [] }),
+        getHistory: async () => ({ ok: true, value: { deals: [], orders: [], truncated: false } }),
+        getSymbols: async () => ({ ok: true, value: [] }),
+        getQuote: async () => ({ ok: false, error: tradingError("UNSUPPORTED_OPERATION", "stub") }),
+        getQuotes: async () => ({ ok: true, value: [] }),
+        getCandles: async () => ({ ok: true, value: [] }),
+        execute: async ({ request }) => {
+            if (syncMode === "TRANSPORT_FAIL") {
+                return { ok: false, error: tradingError("PROVIDER_UNAVAILABLE", "Gateway link dropped before dispatch.") };
+            }
+            return {
+                ok: true,
+                value: {
+                    clientRequestId: request.clientRequestId,
+                    correlationId: request.correlationId,
+                    accountId: request.accountId,
+                    provider: "MT5" as const,
+                    environment: request.environment,
+                    executionType: request.executionType,
+                    status: "EXECUTED_PENDING_SYNC" as const,
+                    providerRef: "TICKET-9001",
+                    filledVolume: request.volume ?? null,
+                    filledPrice: 1.10123,
+                    order: null,
+                    position: null,
+                    error: tradingError(
+                        "EXECUTION_TIMEOUT",
+                        "Executed on the broker but the account snapshot has not synced yet. The position will appear shortly."
+                    ),
+                    duplicate: false,
+                    createdAt: now,
+                    completedAt: now,
+                },
+            };
+        },
+    };
+    const syncService = new UnifiedTradingService({
+        registry: new TradingProviderRegistry([syncStub]),
+        idempotency: syncStore.idempotency,
+        persistResult: syncStore.persistResult,
+        persistAccount: syncStore.persistAccount,
+        audit: syncStore.audit,
+        entitlement: async () => true,
+        now: () => now,
+    });
+
     const base = {
         userId: "user-1",
         accountId: "mock-account",
@@ -103,6 +209,10 @@ export async function runUnifiedTradingTests(): Promise<boolean> {
     const liveClient = await service.execute({ ...base, executionType: "PLACE_ORDER", symbol: "EURUSD", side: "BUY", volume: 0.1, environment: "LIVE" });
     s.check(liveClient.result.error?.code === "LIVE_EXECUTION_DISABLED" && liveClient.httpStatus === 403, "a client-sent environment=LIVE is rejected");
     s.check(store.auditLog().some((e) => e.errorCode === "LIVE_EXECUTION_DISABLED"), "the rejection is audited");
+    provider.grantAccount("user-live", "live-account", "LIVE", 10_000);
+    const liveAccount = await service.execute({ userId: "user-live", accountId: "live-account", clientRequestId: "req-live-account", executionType: "PLACE_ORDER", symbol: "EURUSD", side: "BUY", volume: 0.1 });
+    s.check(liveAccount.result.error?.code === "LIVE_EXECUTION_DISABLED" && liveAccount.httpStatus === 403, "an account classified LIVE is refused even without a client environment hint");
+    s.check(!store.resultLog().some((r) => r.clientRequestId === "req-live-account"), "no LIVE order was ever sent to the provider");
 
     const noEnvFlag = await withEnv("MT5_DEMO_ENABLED", "false", () =>
         mt5Service.execute({ ...base, clientRequestId: "req-flag", accountId: "gateway_900001", executionType: "PLACE_ORDER", symbol: "EURUSD", side: "BUY", volume: 0.1 })
@@ -126,12 +236,40 @@ export async function runUnifiedTradingTests(): Promise<boolean> {
     const notOwned = await service.getAccount("intruder", "mock-account");
     s.check(!notOwned.ok && notOwned.error.code === "ACCOUNT_NOT_FOUND", "another user's account id is not readable");
 
+    s.section("Trading-access license gate (server-side entitlement)");
+    const unlicensedService = new UnifiedTradingService({
+        registry,
+        ...shared,
+        entitlement: async () => false,
+    });
+    const unlicensed = await unlicensedService.execute({ ...base, clientRequestId: "req-unlicensed", executionType: "PLACE_ORDER", symbol: "EURUSD", side: "BUY", volume: 0.1 });
+    s.check(unlicensed.result.error?.code === "PERMISSION_DENIED" && unlicensed.httpStatus === 403, "an unlicensed user is denied execution");
+    s.check(
+        store.auditLog().some((e) => e.action === "CONNECTION_REJECTED" && e.errorCode === "PERMISSION_DENIED"),
+        "the denial is audited as CONNECTION_REJECTED"
+    );
+    s.check(!store.resultLog().some((r) => r.clientRequestId === "req-unlicensed"), "a denied request never reaches the provider or persists a result");
+
     s.section("Market order end-to-end against the mock provider");
     const placed = await service.execute({ ...base, executionType: "PLACE_ORDER", symbol: "EURUSD", side: "BUY", volume: 0.1, stopLoss: 1.09, takeProfit: 1.12 });
     s.check(placed.result.status === "SUCCEEDED" && placed.result.position !== null, "market buy produces a provider position");
     s.check(placed.result.providerRef !== null && placed.result.filledVolume === 0.1, "provider reference and filled volume are reported");
     const positionId = placed.result.position?.id ?? "";
     s.check(store.resultLog().length === 1 && store.resultLog()[0].status === "SUCCEEDED", "the execution result is persisted");
+
+    const sellFixture = "sell-account";
+    provider.grantAccount("user-sell", sellFixture, "DEMO", 10_000);
+    const sellPlaced = await service.execute({
+        userId: "user-sell",
+        accountId: sellFixture,
+        clientRequestId: "req-sell",
+        executionType: "PLACE_ORDER",
+        symbol: "EURUSD",
+        side: "SELL",
+        volume: 0.1,
+    });
+    s.check(sellPlaced.result.status === "SUCCEEDED" && sellPlaced.result.position?.side === "SELL", "a sell market order produces a SELL position");
+    s.check(sellPlaced.result.filledVolume === 0.1, "the sell reports its filled volume");
 
     s.section("Idempotency — a duplicate request never creates a second trade");
     const duplicate = await service.execute({ ...base, executionType: "PLACE_ORDER", symbol: "EURUSD", side: "BUY", volume: 0.1, stopLoss: 1.09, takeProfit: 1.12 });
@@ -201,6 +339,44 @@ export async function runUnifiedTradingTests(): Promise<boolean> {
     const closeDeal = provider.dealList().filter((d) => d.comment?.includes("partial close")).at(-1);
     s.check(closeDeal?.volume === 0.3 && closeDeal?.profit === 30, "the realized deal is the closed portion (+30), never a synthetic loss");
     s.check(closeDeal?.profit !== -70 && closeDeal?.profit !== 100 - 30, "no artificial negative trade is created");
+
+    // Percentage is % of CURRENT POSITION VOLUME — never of profit or balance.
+    const halfAccount = "half-account";
+    provider.grantAccount("user-half", halfAccount, "DEMO", 10_000);
+    const halfSeeded = provider.seedPosition({
+        accountId: halfAccount,
+        symbol: "EURUSD",
+        side: "BUY",
+        volume: 0.2,
+        entryPrice: 1.1,
+        currentPrice: 1.105,
+        stopLoss: null,
+        takeProfit: null,
+        profit: 50,
+        swap: 0,
+        commission: 0,
+        openedAt: now,
+        magicNumber: 0,
+        comment: null,
+    });
+    const half = await service.execute({
+        userId: "user-half",
+        accountId: halfAccount,
+        clientRequestId: "req-partial-50-of-020",
+        executionType: "PARTIAL_CLOSE",
+        positionId: halfSeeded.id,
+        percentage: 50,
+    });
+    s.check(half.result.status === "SUCCEEDED" && half.result.filledVolume === 0.1, "50% of a 0.20 lot position closes exactly 0.10 lot");
+    const halfRemaining = await readPositions(provider, "user-half", halfAccount);
+    s.check(halfRemaining.length === 1 && halfRemaining[0]?.volume === 0.1, "0.10 lot remains open");
+
+    const zeroPct = await service.execute({ userId: "user-half", accountId: halfAccount, clientRequestId: "req-pct-zero", executionType: "PARTIAL_CLOSE", positionId: halfSeeded.id, percentage: 0 });
+    s.check(zeroPct.result.status === "REJECTED" && zeroPct.result.error?.code === "INVALID_VOLUME", "a 0% partial close is rejected");
+    const overPct = await service.execute({ userId: "user-half", accountId: halfAccount, clientRequestId: "req-pct-over", executionType: "PARTIAL_CLOSE", positionId: halfSeeded.id, percentage: 150 });
+    s.check(overPct.result.status === "REJECTED" && overPct.result.error?.code === "INVALID_VOLUME", "a percentage above 100 is rejected");
+    const missingPct = await service.execute({ userId: "user-half", accountId: halfAccount, clientRequestId: "req-pct-missing", executionType: "PARTIAL_CLOSE", positionId: halfSeeded.id });
+    s.check(missingPct.result.status === "REJECTED" && missingPct.result.error?.code === "INVALID_REQUEST", "a partial close without a percentage is rejected");
 
     s.section("Partial close volume rounding and edge cases");
     const plan = planPartialClose({ openVolume: 0.37, percentage: 33, spec: { symbol: "X", minVolume: 0.01, maxVolume: 100, volumeStep: 0.01, digits: 5 } });
@@ -277,6 +453,49 @@ export async function runUnifiedTradingTests(): Promise<boolean> {
     s.check(mapMt5Retcode(10020) === "INSUFFICIENT_MARGIN", "TRADE_RETCODE_NO_MONEY maps to INSUFFICIENT_MARGIN");
     s.check(mapMt5Retcode(10019) === "MARKET_CLOSED", "TRADE_RETCODE_MARKET_CLOSED maps to MARKET_CLOSED");
     s.check(mapMt5Retcode(99999) === "UNKNOWN_PROVIDER_ERROR", "an unknown retcode collapses to UNKNOWN_PROVIDER_ERROR");
+
+    s.section("Provider-confirmed fill before the snapshot syncs (the race fix)");
+    const pending = await syncService.execute({
+        userId: "user-sync",
+        accountId: "gateway_777001",
+        clientRequestId: "req-pending-sync",
+        executionType: "PLACE_ORDER",
+        symbol: "EURUSD",
+        side: "BUY",
+        volume: 0.1,
+    });
+    s.check(pending.result.status === "EXECUTED_PENDING_SYNC" && pending.httpStatus === 200, "a confirmed fill with a late snapshot is an outcome (200), never FAILED");
+    s.check(pending.result.providerRef === "TICKET-9001" && pending.result.filledVolume === 0.1, "the broker ticket and filled volume are still reported");
+    s.check(pending.result.error?.code === "EXECUTION_TIMEOUT", "the pending-sync outcome explains the sync delay without losing the fill");
+    s.check(
+        syncStore.auditLog().some((e) => e.action === "EXECUTION_PENDING_SYNC" && e.providerRef === "TICKET-9001"),
+        "the pending-sync outcome is audited with the provider reference"
+    );
+    s.check(syncStore.resultLog().some((r) => r.status === "EXECUTED_PENDING_SYNC"), "the pending-sync result is persisted for reconciliation");
+    const replayPending = await syncService.execute({
+        userId: "user-sync",
+        accountId: "gateway_777001",
+        clientRequestId: "req-pending-sync",
+        executionType: "PLACE_ORDER",
+        symbol: "EURUSD",
+        side: "BUY",
+        volume: 0.1,
+    });
+    s.check(replayPending.result.duplicate === true && replayPending.result.status === "EXECUTED_PENDING_SYNC", "replaying the key returns the same confirmed outcome, never a second trade");
+
+    syncMode = "TRANSPORT_FAIL";
+    const transportFail = await syncService.execute({
+        userId: "user-sync",
+        accountId: "gateway_777001",
+        clientRequestId: "req-transport-fail",
+        executionType: "PLACE_ORDER",
+        symbol: "EURUSD",
+        side: "BUY",
+        volume: 0.1,
+    });
+    s.check(transportFail.result.status === "FAILED" && transportFail.httpStatus === 503, "a transport failure is still FAILED with a non-2xx status");
+    s.check(syncStore.auditLog().some((e) => e.action === "EXECUTION_FAILED"), "a transport failure is audited as EXECUTION_FAILED");
+    syncMode = "PENDING_SYNC";
 
     s.section("Audit trail covers every outcome without secrets");
     const events: AuditEventInput[] = store.auditLog();

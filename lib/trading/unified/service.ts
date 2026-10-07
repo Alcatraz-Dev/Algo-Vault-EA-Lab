@@ -46,6 +46,7 @@ import {
     appendAuditEvent,
 } from "./store";
 import { isUnifiedTradingEnabled, isMt5DemoEnabled, isDemoExecutionMode } from "../feature-flags";
+import { hasActiveTradingLicense } from "@/lib/gateway";
 
 export interface UnifiedExecutionOutcome {
     result: TradingExecutionResult;
@@ -67,6 +68,8 @@ export interface UnifiedTradingDeps {
     persistResult?: typeof saveExecutionResult;
     persistAccount?: typeof saveUnifiedAccount;
     audit?: typeof appendAuditEvent;
+    /** Trading-access entitlement probe; defaults to `hasActiveTradingLicense`. */
+    entitlement?: (userId: string) => Promise<boolean>;
     now?: () => number;
 }
 
@@ -101,6 +104,7 @@ export class UnifiedTradingService {
     private readonly persistResult: typeof saveExecutionResult;
     private readonly persistAccount: typeof saveUnifiedAccount;
     private readonly audit: typeof appendAuditEvent;
+    private readonly entitlement: (userId: string) => Promise<boolean>;
     private readonly now: () => number;
 
     constructor(private readonly deps: UnifiedTradingDeps) {
@@ -108,6 +112,7 @@ export class UnifiedTradingService {
         this.persistResult = deps.persistResult ?? saveExecutionResult;
         this.persistAccount = deps.persistAccount ?? saveUnifiedAccount;
         this.audit = deps.audit ?? appendAuditEvent;
+        this.entitlement = deps.entitlement ?? hasActiveTradingLicense;
         this.now = deps.now ?? (() => Date.now());
     }
 
@@ -236,6 +241,8 @@ export class UnifiedTradingService {
             result: null,
             errorCode: null as TradingAuditEvent["errorCode"],
             source: input.source ?? null,
+            executionType: input.executionType ?? null,
+            requestedPercentage: input.percentage ?? null,
         };
 
         const reject = (
@@ -295,6 +302,17 @@ export class UnifiedTradingService {
             return reject(adapterResult.error, "CONNECTION_REJECTED");
         }
         const adapter = adapterResult.value;
+
+        // 3b. Trading access / license gate — the same entitlement the legacy
+        //     /api/trading/orders route and the gateway EA enforce. Executed
+        //     server-side so a Pro Terminal client can never bypass it.
+        const licensed = await this.entitlement(input.userId);
+        if (!licensed) {
+            return reject(
+                tradingError("PERMISSION_DENIED", "No active trading access license."),
+                "CONNECTION_REJECTED"
+            );
+        }
         const auditBase: typeof baseAudit = { ...baseAudit, provider };
 
         // 4. Ownership + account state (server-side read, not client-supplied).
@@ -530,9 +548,11 @@ export class UnifiedTradingService {
         const action: TradingAuditAction =
             result.status === "SUCCEEDED"
                 ? "EXECUTION_SUCCEEDED"
-                : result.status === "REJECTED"
-                  ? "EXECUTION_REJECTED"
-                  : "EXECUTION_FAILED";
+                : result.status === "EXECUTED_PENDING_SYNC"
+                  ? "EXECUTION_PENDING_SYNC"
+                  : result.status === "REJECTED"
+                    ? "EXECUTION_REJECTED"
+                    : "EXECUTION_FAILED";
 
         await this.persistResult(request.userId, result);
         void this.writeAudit({
@@ -543,11 +563,18 @@ export class UnifiedTradingService {
             requestStatus: "ACCEPTED",
             result: result.status,
             errorCode: result.error?.code ?? null,
+            providerRef: result.providerRef ?? null,
         });
 
         return {
             result,
-            httpStatus: result.status === "SUCCEEDED" ? 200 : errorCodeToStatus(result.error ?? tradingError("ORDER_REJECTED", "Order rejected.")),
+            // EXECUTED_PENDING_SYNC is an outcome, not an error: the provider
+            // confirmed the fill and only the local mirror is late. 200 with
+            // the status payload keeps retries (which idempotency already
+            // absorbs) from ever re-submitting a confirmed trade.
+            httpStatus: result.status === "SUCCEEDED" || result.status === "EXECUTED_PENDING_SYNC"
+                ? 200
+                : errorCodeToStatus(result.error ?? tradingError("ORDER_REJECTED", "Order rejected.")),
         };
     }
 
@@ -683,7 +710,12 @@ export class UnifiedTradingService {
             environment: request.environment,
             clientRequestId: request.clientRequestId,
             correlationId,
-            action: status === "SUCCEEDED" ? "EXECUTION_SUCCEEDED" : "EXECUTION_REJECTED",
+            action:
+                status === "SUCCEEDED"
+                    ? "EXECUTION_SUCCEEDED"
+                    : status === "FAILED"
+                      ? "EXECUTION_FAILED"
+                      : "EXECUTION_REJECTED",
             symbol: request.symbol ?? null,
             volume: request.volume ?? null,
             requestStatus: "ACCEPTED",
@@ -691,6 +723,8 @@ export class UnifiedTradingService {
             result: status,
             errorCode: error.code,
             source: request.source ?? null,
+            executionType: request.executionType,
+            requestedPercentage: request.percentage ?? null,
         });
         return result;
     }

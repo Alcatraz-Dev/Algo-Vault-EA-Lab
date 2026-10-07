@@ -21,11 +21,9 @@ import type {
   MarketRegime,
   MarketScore,
   MultiTimeframeBias,
-  SmartMoneyEvent,
-  LiquidityLevel,
-  LiquiditySweep,
   Zone,
 } from "@/lib/market-data/types";
+import type { SmartMoneyEvent } from "@/lib/market-intelligence/types";
 import type { WorkspaceId } from "@/lib/terminal/types";
 import type { SetupMemoryRecord } from "@/lib/market-intelligence/memory/types";
 import type {
@@ -33,11 +31,7 @@ import type {
   ResearchCandidate,
   ResearchEvent,
 } from "@/lib/strategy-research/types";
-import type {
-  BacktestResult,
-  Strategy,
-  StrategyVersionManifest,
-} from "@/lib/strategy-lab/types";
+import type { BacktestResult, Strategy } from "@/lib/strategy-lab/types";
 import type { RiskLimits } from "@/lib/risk/risk-engine";
 import type { DataFreshness, FreshnessDescriptor } from "@/lib/mobile/contracts";
 
@@ -218,13 +212,30 @@ export interface IntelligenceOSContext {
       atr: number | null;
       atrPercent: number | null;
       state: "low" | "normal" | "high" | "extreme" | null;
-    };
+    } | null;
     structure:
       | { trend: "bullish" | "bearish" | "range" | "neutral" | "unknown"; lastEvent?: SmartMoneyEvent | null }
       | null;
     liquidity: {
-      levels: LiquidityLevel[];
-      sweeps: LiquiditySweep[];
+      /**
+       * Levels rebuilt from the market slice. `type` is the raw label stored
+       * in RTDB, so it is modeled as a plain string rather than the canonical
+       * `LiquidityLevel["type"]` union (the store does not guarantee it).
+       */
+      levels: Array<{
+        id: string;
+        type: string;
+        price: number;
+        strength: number;
+        timeframe: Timeframe;
+        timestamp: number;
+      }>;
+      /**
+       * Sweeps exactly as stored on the market slice (`side`/`level`/
+       * `timestamp`) — not the canonical `LiquiditySweep` shape, which the
+       * RTDB record does not carry.
+       */
+      sweeps: MarketSlice["sweeps"];
     };
     zones: Zone[];
     score: MarketScore | null;
@@ -338,7 +349,11 @@ export interface MarketSlice {
     | "post_market"
     | "unknown"
     | null;
-  volatility: { atr: number; atrPercent: number; state: string } | null;
+  volatility: {
+    atr: number;
+    atrPercent: number;
+    state: "low" | "normal" | "high" | "extreme";
+  } | null;
   fvgCount: number;
   activeFvg: number;
   orderBlockCount: number;
@@ -719,18 +734,18 @@ function dataFreshnessEvents(
 ): IntelligenceEvent[] {
   const events: IntelligenceEvent[] = [];
   const stale = Object.values(marketSlices).filter(
-    (m): m is MarketSlice => m !== null && !m.freshness.fresh && m.freshness.status !== "live"
+    (m): m is MarketSlice => m !== null && m.freshness.freshness !== "live"
   );
-  if (risk.status !== "unavailable" && risk.executionFreshness && !risk.executionFreshness.fresh) {
+  if (risk.status !== "unavailable" && risk.executionFreshness && risk.executionFreshness.freshness !== "live") {
     events.push({
       id: `fresh:exec:${now()}`,
       type: "DATA_STALE",
-      priority: risk.risk?.status === "halted" ? "CRITICAL" : "HIGH",
+      priority: risk.status === "halted" ? "CRITICAL" : "HIGH",
       timestamp: now(),
       source: "system",
       title: "Market data stale for live execution",
       summary: "Live execution is gated because market data freshness is not live.",
-      evidence: [`data age ${risk.executionFreshness.dataAgeMs ?? "?"}ms`],
+      evidence: [`data age ${Math.max(0, now() - risk.executionFreshness.dataTimestamp)}ms`],
       reason: "Fail-closed freshness gate active.",
       actions: [
         { id: "open-market", label: "Open market view", safety: "READ_ONLY", target: { kind: "route", href: "/market-intelligence" } },
@@ -748,8 +763,8 @@ function dataFreshnessEvents(
         timestamp: now(),
         source: "market",
         title: `${m.symbol} ${m.timeframe} data stale`,
-        summary: `Market data for ${m.symbol} is ${m.freshness.status}.`,
-        evidence: [`provider ${m.provider}`, `data age ${m.freshness.dataAgeMs}ms`],
+        summary: `Market data for ${m.symbol} is ${m.freshness.freshness}.`,
+        evidence: [`provider ${m.provider}`, `data age ${Math.max(0, now() - m.freshness.dataTimestamp)}ms`],
         reason: "Canonical freshness is not live.",
         actions: [
           {
@@ -1004,7 +1019,7 @@ function aggregateMarket(
     timeframe: selectedSlice?.timeframe ?? selectedTimeframe,
     session: selectedSlice?.session ?? null,
     regime: selectedSlice?.regime ?? null,
-    regimeConfidence: selectedSlice?.freshness.fresh ? null : null,
+    regimeConfidence: null,
     volatility: selectedSlice?.volatility ?? null,
     structure:
       selectedSlice && selectedSlice.structure

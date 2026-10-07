@@ -16,8 +16,28 @@ export interface CompiledStrategyResult {
   warnings: string[];
 }
 
+/** Raw condition shape carried by a draft before validation into a Strategy. */
+interface StrategyConditionDraft {
+  type: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Draft input accepted by the compiler: a partial canonical Strategy plus the
+ * raw draft fields (instruments / entry & exit conditions) that validation
+ * checks before the result is folded into a Strategy.
+ */
+type StrategyCompileInput = Omit<Partial<Strategy>, "stopLoss" | "version" | "timeframes"> & {
+  timeframes?: Strategy["timeframes"] | string[];
+  instruments?: Array<{ symbol: string; timeframe: string }>;
+  entryConditions?: StrategyConditionDraft[];
+  exitConditions?: StrategyConditionDraft[];
+  stopLoss?: Strategy["stopLoss"] | { type?: string; value?: number };
+  version?: number | string;
+};
+
 export function compileToCanonicalDefinition(
-  input: Partial<Strategy>
+  input: StrategyCompileInput
 ): CompiledStrategyResult {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -35,7 +55,7 @@ export function compileToCanonicalDefinition(
   if (!input.instruments || input.instruments.length === 0) {
     errors.push("No instruments defined.");
   }
-  if (input.timeframes && input.timeframes.length === 0) {
+  if (input.timeframes && Array.isArray(input.timeframes) && input.timeframes.length === 0) {
     errors.push("Timeframes array is empty.");
   }
 

@@ -53,6 +53,28 @@ function formatRelativeTime(timestamp: number): string {
     return `${Math.floor(diff / 86400)}d ago`;
 }
 
+/** Normalize a raw RTDB account record so missing fields never break rendering. */
+function normalizeConnectedAccount(
+    accountId: string,
+    raw: unknown
+): ConnectedAccount {
+    const r = (raw && typeof raw === "object" ? raw : {}) as Record<
+        string,
+        unknown
+    >;
+    return {
+        accountId,
+        mt5Account: String(r.mt5Account ?? r.account_id ?? accountId),
+        broker: String(r.broker ?? r.company ?? "MetaTrader 5"),
+        server: String(r.server ?? ""),
+        status: String(r.status ?? "unknown"),
+        balance: Number(r.balance ?? 0) || 0,
+        equity: Number(r.equity ?? r.balance ?? 0) || 0,
+        lastHeartbeatAt: Number(r.lastHeartbeatAt ?? 0) || 0,
+        gatewayVersion: String(r.gatewayVersion ?? ""),
+    };
+}
+
 function StatusDot({ status }: { status: string }) {
     const isActive = status === "connected";
     return (
@@ -158,11 +180,15 @@ export default function TradingAccessPage() {
         const unsubscribeRealtime = onValue(accountsRef, (snap) => {
             if (cancelled) return;
             const val = snap.val();
-            if (val) {
-                const list = Array.isArray(val)
-                    ? val
-                    : Object.values(val);
-                setAccounts(list as ConnectedAccount[]);
+            if (val && typeof val === "object") {
+                const list = Object.entries(
+                    val as Record<string, unknown>
+                ).map(([accountId, raw]) =>
+                    normalizeConnectedAccount(accountId, raw)
+                );
+                setAccounts(list);
+            } else {
+                setAccounts([]);
             }
         });
 
@@ -326,20 +352,43 @@ export default function TradingAccessPage() {
                     explicitly NOT IMPLEMENTED future connectors. */}
                 <ProviderConnectionCard />
 
-                {/* Connected Accounts */}
-                {license?.status === "active" && (
-                    <div className="rounded-2xl border border-border bg-muted/30 p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h2 className="font-semibold">Connected Accounts</h2>
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    MT5 accounts linked via the Gateway EA
-                                </p>
-                            </div>
-                            <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground">
-                                {accounts.length} account{accounts.length !== 1 ? "s" : ""}
-                            </span>
+                {/* Trading Accounts — always visible. When the gateway has
+                    linked at least one MT5 account the section shows a live
+                    Connected status, independent of the license state. */}
+                <div className="rounded-2xl border border-border bg-muted/30 p-6">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <h2 className="font-semibold">Trading Accounts</h2>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                MT5 accounts linked via the Gateway EA
+                            </p>
                         </div>
+                        <span
+                            className={cn(
+                                "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold",
+                                accounts.length > 0
+                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                    : "bg-muted text-muted-foreground"
+                            )}
+                        >
+                            {accounts.length > 0 ? (
+                                <>
+                                    <StatusDot status="connected" />
+                                    Connected · {accounts.length} account{accounts.length !== 1 ? "s" : ""}
+                                </>
+                            ) : (
+                                "Not connected"
+                            )}
+                        </span>
+                    </div>
+
+                    {license?.status !== "active" && accounts.length > 0 && (
+                        <p className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+                            Your trading access license is not active — these
+                            accounts stay connected, but an active license is
+                            required to trade from the terminal.
+                        </p>
+                    )}
 
                         {accounts.length === 0 ? (
                             <div className="mt-6 flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-10 text-center">
@@ -438,7 +487,6 @@ export default function TradingAccessPage() {
                             </div>
                         )}
                     </div>
-                )}
 
                 {/* Gateway Download & Setup */}
                 {license?.status === "active" && (

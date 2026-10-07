@@ -127,6 +127,14 @@ export interface Mt5DemoProviderConfig {
     /** Max time to wait for the EA execution report (default 20s). */
     executionTimeoutMs: number;
     pollIntervalMs: number;
+    /**
+     * Extra window (on top of executionTimeoutMs) granted to the RTDB snapshot
+     * sync after a provider-confirmed fill. The EA reports the fill immediately;
+     * its NEXT snapshot (30s cadence) is what makes the ticket appear in
+     * `trading_positions`. Default 12s keeps total worst-case latency bounded
+     * while absorbing the normal report→snapshot gap.
+     */
+    verificationTimeoutMs: number;
     clock: () => number;
 }
 
@@ -140,6 +148,7 @@ export function mt5DemoConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Mt5D
         heartbeatDegradedMs: int("UNIFIED_TRADING_HEARTBEAT_DEGRADED_MS", 45_000),
         executionTimeoutMs: int("UNIFIED_TRADING_EXECUTION_TIMEOUT_MS", 20_000),
         pollIntervalMs: int("UNIFIED_TRADING_EXECUTION_POLL_MS", 750),
+        verificationTimeoutMs: int("UNIFIED_TRADING_VERIFICATION_TIMEOUT_MS", 12_000),
         clock: () => Date.now(),
     };
 }
@@ -532,19 +541,43 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
             });
         }
 
-        // VERIFY at the provider: the ticket must exist in the synced state.
-        const verified = await this.verifyAtProvider(request.userId, request.accountId, str(report.mt5Ticket), state);
-        if (!verified.ok) {
-            return finish({ status: "FAILED", error: verified.error, providerRef: str(report.mt5Ticket) });
+        // Provider confirmed the fill — now verify against SYNCED state.
+        // The snapshot may not have arrived yet (the EA reports fills
+        // immediately but positions sync on its snapshot cadence), so this
+        // POLLS the synced state instead of checking it exactly once.
+        const verified = await this.verifyInSyncedState(
+            request.userId,
+            request.accountId,
+            str(report.mt5Ticket),
+            state
+        );
+
+        if (verified.ok) {
+            return finish({
+                status: "SUCCEEDED",
+                providerRef: str(report.mt5Ticket),
+                filledVolume: num(report.volume) ?? input.volume ?? null,
+                filledPrice: num(report.executionPrice),
+                order: verified.order,
+                position: verified.position,
+            });
         }
 
+        // The provider (the EA itself) confirmed the trade executed, but the
+        // synced snapshot has not caught up within the verification window.
+        // This is NOT a failure: returning FAILED here is exactly the race
+        // that used to turn real MT5 trades into fake 502s. The dedicated
+        // EXECUTED_PENDING_SYNC status tells the terminal the trade is real
+        // and the position mirror will appear on the next snapshot.
         return finish({
-            status: "SUCCEEDED",
+            status: "EXECUTED_PENDING_SYNC",
             providerRef: str(report.mt5Ticket),
             filledVolume: num(report.volume) ?? input.volume ?? null,
             filledPrice: num(report.executionPrice),
-            order: verified.order,
-            position: verified.position,
+            error: tradingError(
+                "EXECUTION_TIMEOUT",
+                "Executed on the broker but the account snapshot has not synced yet. The position will appear shortly."
+            ),
         });
     }
 
@@ -665,46 +698,61 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
     }
 
     /**
-     * Confirms the reported ticket exists in the provider's synced state.
-     * A report we cannot verify is a failure, never a success.
+     * Confirms the reported ticket exists in the provider's SYNCED state,
+     * polling until the snapshot catches up or the verification window closes.
+     *
+     * Race this fixes: the EA reports a fill to /gateway/execution the moment
+     * CTrade returns, but `trading_positions` only updates on the EA's next
+     * snapshot (30s cadence). A single-shot check used to run BEFORE that
+     * snapshot landed and mis-verified a real fill as a failure. Reads are
+     * capped: at most ceil(window/pollInterval) position/order reads per
+     * execution, with a short extra settle delay after the first attempt.
+     *
+     * A report we can never verify is still a failure — never a fabricated
+     * success.
      */
-    private async verifyAtProvider(
+    private async verifyInSyncedState(
         userId: string,
         accountId: string,
         mt5Ticket: string | null,
         state: TradingOrderState
     ): Promise<
         | { ok: true; order: TradingOrder | null; position: TradingPosition | null }
-        | { ok: false; error: ReturnType<typeof tradingError> }
+        | { ok: false }
     > {
         if (!mt5Ticket) {
-            return {
-                ok: false,
-                error: tradingError(
-                    "UNKNOWN_PROVIDER_ERROR",
-                    "The gateway reported an execution without a provider ticket; not verified."
-                ),
-            };
+            // No ticket: nothing to verify. CANCELLED/REJECTED reports are
+            // final states that need no verification; anything else is
+            // unverifiable.
+            return state === "REJECTED" || state === "CANCELLED" ? { ok: true, order: null, position: null } : { ok: false };
         }
-        const positions = await this.getPositions(userId, accountId);
-        const position = positions.ok
-            ? positions.value.find((p) => p.providerRef === mt5Ticket || p.id === mt5Ticket) ?? null
-            : null;
-        const orders = await this.getOrders(userId, accountId);
-        const order = orders.ok
-            ? orders.value.find((o) => o.providerRef === mt5Ticket || o.id === mt5Ticket) ?? null
-            : null;
 
-        if (position || order) return { ok: true, order, position };
-        if (state === "REJECTED" || state === "CANCELLED") return { ok: true, order, position };
+        const deadline = this.config.clock() + this.config.verificationTimeoutMs;
+        let attempt = 0;
+        while (true) {
+            attempt += 1;
+            const [positions, orders] = await Promise.all([
+                this.getPositions(userId, accountId),
+                this.getOrders(userId, accountId),
+            ]);
+            const position = positions.ok
+                ? positions.value.find((p) => p.providerRef === mt5Ticket || p.id === mt5Ticket) ?? null
+                : null;
+            const order = orders.ok
+                ? orders.value.find((o) => o.providerRef === mt5Ticket || o.id === mt5Ticket) ?? null
+                : null;
 
-        return {
-            ok: false,
-            error: tradingError(
-                "UNKNOWN_PROVIDER_ERROR",
-                "The gateway reported an execution that could not be verified in synced account state."
-            ),
-        };
+            if (position || order) return { ok: true, order, position };
+            if (state === "REJECTED" || state === "CANCELLED") return { ok: true, order, position };
+            if (this.config.clock() >= deadline) return { ok: false };
+
+            // After the first miss, give the snapshot writer a short head start
+            // before the second read; subsequent polls use the plain interval.
+            const delayMs = attempt === 1 ? Math.max(this.config.pollIntervalMs, 2_000) : this.config.pollIntervalMs;
+            const nextCheck = this.config.clock() + delayMs;
+            if (nextCheck > deadline) return { ok: false };
+            await sleep(delayMs);
+        }
     }
 }
 

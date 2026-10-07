@@ -214,6 +214,45 @@ export async function POST(request: NextRequest) {
             if (await isCopiedSnapshotPosition(userId, accountNumber, ticket)) continue;
 
             const closedPos = prevPositions[ticket] as Record<string, unknown> | undefined;
+
+            // ── Closed-trade history (real-time) ─────────────────────────
+            // A position that disappeared from a snapshot is a close. Persist
+            // the last observed gateway state so the terminal's Trade History
+            // tab updates in real time with the close price, realized P/L and
+            // the close % (price move in the trade direction).
+            const openPrice = Number(closedPos?.openPrice || 0);
+            const closePrice = Number(closedPos?.currentPrice || 0);
+            const direction =
+                String(closedPos?.type || "BUY").toUpperCase() === "SELL" ? -1 : 1;
+            const priceMovePct =
+                openPrice > 0 && closePrice > 0
+                    ? Math.round(
+                          ((closePrice - openPrice) / openPrice) *
+                              100 *
+                              direction *
+                              100
+                      ) / 100
+                    : null;
+
+            await adminDatabase
+                .ref(`trading_history/${userId}/${accountId}/${ticket}`)
+                .set({
+                    ticket,
+                    symbol: String(closedPos?.symbol || ""),
+                    type: String(closedPos?.type || ""),
+                    volume: Number(closedPos?.volume || 0),
+                    openPrice,
+                    closePrice,
+                    profit: Number(closedPos?.profit || 0),
+                    swap: Number(closedPos?.swap || 0),
+                    magic: String(closedPos?.magic ?? ""),
+                    comment: String(closedPos?.comment || ""),
+                    openedAt: Number(closedPos?.openedAt || 0),
+                    closedAt: now,
+                    closeSource: "gateway_snapshot",
+                    priceMovePct,
+                });
+
             if (isBotOwned(closedPos)) {
                 // Bot-owned position closed: index a trade so the bot's stats
                 // reflect realized P/L. Profit is the last floating value the
@@ -256,6 +295,36 @@ export async function POST(request: NextRequest) {
                 masterTicket: ticket,
                 notify: true,
             });
+        }
+
+        // Cap the per-account history so snapshots cannot grow it without
+        // bound. Newest 200 closed trades are kept, by close time.
+        if (removedTickets.length > 0) {
+            const histSnap = await adminDatabase
+                .ref(`trading_history/${userId}/${accountId}`)
+                .get();
+            const hist = (histSnap.val() || {}) as Record<
+                string,
+                { closedAt?: number } | undefined
+            >;
+            const histKeys = Object.keys(hist);
+            if (histKeys.length > 200) {
+                const oldestFirst = histKeys.sort(
+                    (a, b) =>
+                        Number(hist[a]?.closedAt || 0) -
+                        Number(hist[b]?.closedAt || 0)
+                );
+                const removals: Record<string, null> = {};
+                for (const key of oldestFirst.slice(
+                    0,
+                    histKeys.length - 200
+                )) {
+                    removals[key] = null;
+                }
+                await adminDatabase
+                    .ref(`trading_history/${userId}/${accountId}`)
+                    .update(removals);
+            }
         }
 
         return NextResponse.json(

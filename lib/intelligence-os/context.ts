@@ -16,11 +16,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticate, errMessage } from "@/lib/admin-auth";
 import { adminDatabase } from "@/lib/firebase-admin";
-import { SUPPORTED_SYMBOLS } from "@/lib/market-data/types";
+import { SUPPORTED_SYMBOLS, type SupportedSymbol } from "@/lib/market-data/types";
 import { WorkspaceId } from "@/lib/terminal/types";
 import { SetupMemoryRecord } from "@/lib/market-intelligence/memory/types";
-import { DefaultNotes, type ResearchMission, type ResearchCandidate, type ResearchEvent } from "@/lib/strategy-research/types";
-import type { SafeSchema } from "@/lib/strategy-lab/types";
+import { type ResearchMission, type ResearchCandidate, type ResearchEvent } from "@/lib/strategy-research/types";
 import { brokerLimitsFromAccount, type RiskLimits } from "@/lib/risk/risk-engine";
 import {
   assembleContext,
@@ -178,7 +177,7 @@ async function readMarketSlices(uid: string): Promise<Record<string, MarketSlice
     const raw = snap.val() as Record<string, unknown>;
     const out: Record<string, MarketSlice | null> = {};
     for (const [key, value] of Object.entries(raw)) {
-      const m = value as Record<unknown, unknown>;
+      const m = value as Record<string, unknown>;
       if (!m || m.available !== true) {
         out[key] = null;
         continue;
@@ -192,10 +191,10 @@ async function readMarketSlices(uid: string): Promise<Record<string, MarketSlice
         symbol,
         timeframe: normalizeTimeframe(String(m.timeframe ?? "M5")) ?? "M5",
         freshness: freshnessFromMap(m),
-        price: toNumber(m.price),
-        bid: toNumber(m.bid),
-        ask: toNumber(m.ask),
-        spread: toNumber(m.spread),
+        price: toNumber(m.price) ?? null,
+        bid: toNumber(m.bid) ?? null,
+        ask: toNumber(m.ask) ?? null,
+        spread: toNumber(m.spread) ?? null,
         trend: trendFromMap(m),
         structure: m.structure ? String(m.structure) : null,
         regime: regimeFromMap(m),
@@ -206,14 +205,14 @@ async function readMarketSlices(uid: string): Promise<Record<string, MarketSlice
         activeFvg: toNumber(m.activeFvg) ?? 0,
         orderBlockCount: toNumber(m.orderBlockCount) ?? 0,
         sweeps: Array.isArray(m.sweeps)
-          ? m.sweeps.slice(-3).map((s) => ({
+          ? m.sweeps.slice(-3).map((s: Record<string, unknown>) => ({
               side: String(s.side ?? ""),
               level: toNumber(s.level) ?? 0,
               timestamp: toNumber(s.timestamp) ?? 0,
             }))
           : [],
         liquidityLevels: Array.isArray(m.liquidityLevels)
-          ? m.liquidityLevels.slice(0, 5).map((l) => ({
+          ? m.liquidityLevels.slice(0, 5).map((l: Record<string, unknown>) => ({
               price: toNumber(l.price) ?? 0,
               type: String(l.type ?? ""),
               strength: toNumber(l.strength) ?? 0,
@@ -229,25 +228,34 @@ async function readMarketSlices(uid: string): Promise<Record<string, MarketSlice
   }
 }
 
-function freshnessFromMap(m: Record<unknown, unknown>): FreshnessDescriptor {
-  const status = (m.freshness?.status as DataFreshness) ?? "stale";
+/** Narrow an unknown RTDB value to a plain map, or undefined when it is not an object. */
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : undefined;
+}
+
+function freshnessFromMap(m: Record<string, unknown>): FreshnessDescriptor {
+  const f = asRecord(m.freshness);
+  const status = (f?.status as DataFreshness | undefined) ?? "stale";
+  const source = f?.source;
   return {
     freshness: (FRESHNESS_LABEL[status] ? status : "stale") as DataFreshness,
-    dataTimestamp: toNumber(m.freshness?.dataAgeMs) ?? 0,
+    dataTimestamp: toNumber(f?.dataAgeMs) ?? 0,
     evaluatedAt: Date.now(),
-    source: m.freshness?.source ? String(m.freshness.source) : "unknown",
-    fromCache: m.freshness?.fromCache === true,
-    providerDelayMs: toNumber(m.freshness?.providerDelayMs),
+    source: source ? String(source) : "unknown",
+    fromCache: f?.fromCache === true,
+    providerDelayMs: toNumber(f?.providerDelayMs),
   };
 }
 
-function trendFromMap(m: Record<unknown, unknown>): "bullish" | "bearish" | "neutral" | null {
+function trendFromMap(m: Record<string, unknown>): "bullish" | "bearish" | "neutral" | null {
   const t = String(m.trend ?? "").toLowerCase();
   if (t === "bullish" || t === "bearish" || t === "neutral") return t as "bullish" | "bearish" | "neutral";
   return null;
 }
 
-function regimeFromMap(m: Record<unknown, unknown>): "trending_bullish" | "trending_bearish" | "ranging" | "breakout" | "high_volatility" | "low_volatility" | "transitional" | null {
+function regimeFromMap(m: Record<string, unknown>): "trending_bullish" | "trending_bearish" | "ranging" | "breakout" | "high_volatility" | "low_volatility" | "transitional" | null {
   const r = String(m.regime ?? "").toLowerCase();
   if (
     r === "trending_bullish" ||
@@ -263,22 +271,22 @@ function regimeFromMap(m: Record<unknown, unknown>): "trending_bullish" | "trend
   return null;
 }
 
-function sessionFromMap(m: Record<unknown, unknown>): "asian" | "london" | "new_york" | "overlap" | "closed" | null {
+function sessionFromMap(m: Record<string, unknown>): "asian" | "london" | "new_york" | "overlap" | "closed" | null {
   const s = String(m.session ?? "").toLowerCase();
   if (s === "asian" || s === "london" || s === "new_york" || s === "overlap" || s === "closed") return s as "asian" | "london" | "new_york" | "overlap" | "closed";
   return null;
 }
 
-function marketStatusFromMap(m: Record<unknown, unknown>): "open" | "closed" | "pre_market" | "post_market" | "unknown" | null {
+function marketStatusFromMap(m: Record<string, unknown>): "open" | "closed" | "pre_market" | "post_market" | "unknown" | null {
   const s = String(m.marketStatus ?? "").toLowerCase();
   if (s === "open" || s === "closed" || s === "pre_market" || s === "post_market") return s as "open" | "closed" | "pre_market" | "post_market";
   return null;
 }
 
-function volatilityFromMap(m: Record<unknown, unknown>): { atr: number; atrPercent: number; state: string } | null {
+function volatilityFromMap(m: Record<string, unknown>): { atr: number; atrPercent: number; state: "low" | "normal" | "high" | "extreme" } | null {
   const v = m.volatility;
   if (!v || typeof v !== "object") return null;
-  const vol = v as Record<unknown, unknown>;
+  const vol = v as Record<string, unknown>;
   const atr = toNumber(vol.atr);
   const atrPercent = toNumber(vol.atrPercent);
   const state = String(vol.state ?? "").toLowerCase();
@@ -329,7 +337,7 @@ async function readStrategies(uid: string): Promise<StrategySummary[] | null> {
     const raw = snap.val() as Record<string, StrategyDoc>;
     const items = Object.entries(raw)
       .map(([id, doc]) => {
-        const m = doc.metrics as Record<unknown, unknown> | undefined;
+        const m = doc.metrics as Record<string, unknown> | undefined;
         return {
           id: doc.id ?? id,
           name: doc.name ?? id,
@@ -366,7 +374,7 @@ function healthFromMap(value: unknown): StrategySummary["health"] {
 }
 
 function performanceFromMap(
-  m: Record<unknown, unknown> | undefined,
+  m: Record<string, unknown> | undefined,
   oosExpectancy: unknown,
   baselineExpectancy: unknown
 ): StrategySummary["recentPerformance"] {
@@ -401,6 +409,7 @@ function riskStateFromMap(value: unknown): "normal" | "caution" | "restricted" |
 // ── Risk ───────────────────────────────────────────────────────────────────────
 
 interface AccountDoc {
+  [key: string]: unknown;
   balance?: number;
   equity?: number;
   margin?: number;
@@ -477,25 +486,21 @@ async function readRisk(uid: string): Promise<AggregationDeps["risk"] | null> {
 function deriveRiskStatus(
   equity: number,
   limits: RiskLimits,
-  openPositions: number
+  openPositions: number,
+  balance?: number
 ): "normal" | "caution" | "restricted" | "halted" | "unavailable" {
   if (!Number.isFinite(equity) || equity <= 0) return "unavailable";
   if (limits.emergencyStop) return "halted";
   if (!limits) return "unavailable";
 
-  const balance = balanceOrZero(first.balance);
-  const equityVal = balanceOrZero(first.equity);
+  const balanceVal = balance ?? equity;
+  const equityVal = equity;
   const drawdownPercent = balanceVal > 0 ? Math.max(0, ((balanceVal - equityVal) / balanceVal) * 100) : 0;
 
   if (limits.maxDrawdownPercent !== undefined && drawdownPercent >= limits.maxDrawdownPercent) return "halted";
   if (limits.maxDrawdownPercent !== undefined && drawdownPercent >= limits.maxDrawdownPercent * 0.75) return "restricted";
   if (limits.maxOpenPositions !== undefined && openPositions >= limits.maxOpenPositions) return "restricted";
   return "normal";
-}
-
-function balanceOrZero(value: unknown): number {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : 0;
 }
 
 function unavailableRisk(): AggregationDeps["risk"] {
@@ -532,7 +537,7 @@ async function readPositions(uid: string): Promise<AggregationDeps["positions"] 
     if (!snap.exists()) return null;
     const raw = snap.val() as Record<string, PositionDoc>;
     const open: PositionSummary[] = Object.entries(raw)
-      .map(([id, p]) => {
+      .map(([id, p]): PositionSummary => {
         const side = String(p.side ?? "").toUpperCase();
         return {
           id: p.id ?? id,
@@ -540,8 +545,8 @@ async function readPositions(uid: string): Promise<AggregationDeps["positions"] 
           side: side === "LONG" ? "LONG" : side === "SHORT" ? "SHORT" : "LONG",
           size: toNumber(p.size) ?? 0,
           entryPrice: toNumber(p.entryPrice) ?? 0,
-          currentPrice: toNumber(p.currentPrice),
-          unrealizedPnL: toNumber(p.unrealizedPnL),
+          currentPrice: toNumber(p.currentPrice) ?? null,
+          unrealizedPnL: toNumber(p.unrealizedPnL) ?? null,
           strategyId: p.strategyId ? String(p.strategyId) : null,
           openedAt: toNumber(p.openedAt),
         };
@@ -571,16 +576,18 @@ async function readResearch(uid: string): Promise<AggregationDeps["research"] | 
       .slice(0, MAX_MISSIONS);
 
     const candidatesSnap = await adminDatabase.ref(`strategy_research/${uid}/candidates`).get().catch(() => null);
-    const candidates = (candidatesSnap?.val() as Record<string, ResearchCandidate> | undefined)?.values()
-      ? Object.values(candidatesSnap.val() as Record<string, ResearchCandidate>)
+    const candidatesVal = candidatesSnap?.val() as Record<string, ResearchCandidate> | undefined;
+    const candidates = candidatesVal
+      ? Object.values(candidatesVal)
           .filter((c): c is ResearchCandidate => !!c)
           .sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))
           .slice(0, MAX_CANDIDATES)
       : [];
 
     const eventsSnap = await adminDatabase.ref(`strategy_research/${uid}/events`).get().catch(() => null);
-    const events = (eventsSnap?.val() as Record<string, ResearchEvent> | undefined)?.values()
-      ? Object.values(eventsSnap.val() as Record<string, ResearchEvent>)
+    const eventsVal = eventsSnap?.val() as Record<string, ResearchEvent> | undefined;
+    const events = eventsVal
+      ? Object.values(eventsVal)
           .filter((e): e is ResearchEvent => !!e)
           .sort((a, b) => (b.at ?? 0) - (a.at ?? 0))
           .slice(0, 20)

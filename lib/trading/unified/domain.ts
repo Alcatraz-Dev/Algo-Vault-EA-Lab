@@ -273,7 +273,33 @@ export type TradingExecutionStatus =
     | "SUCCEEDED"
     | "REJECTED"
     | "DUPLICATE"
-    | "FAILED";
+    | "FAILED"
+    /**
+     * Provider-confirmed execution whose synced ticket had not appeared in
+     * the account snapshot before the verification timeout. The trade IS
+     * real (the provider confirmed it); only the local mirror is late.
+     * Never rendered as a failure — see UNIFIED_TRADING.md §6b.
+     */
+    | "EXECUTED_PENDING_SYNC";
+
+/**
+ * User-facing execution pipeline states. This is the ONLY vocabulary the Pro
+ * Terminal renders: it maps from `TradingExecutionStatus` (+ in-flight client
+ * phases) and is never invented in a component. `VALIDATING`/`QUEUED`/
+ * `SUBMITTED`/`EXECUTING` are client-side phases; every terminal state comes
+ * from the server result.
+ */
+export type TradingExecutionPhase =
+    | "VALIDATING"
+    | "QUEUED"
+    | "SUBMITTED"
+    | "EXECUTING"
+    | "FILLED"
+    | "PARTIALLY_FILLED"
+    | "REJECTED"
+    | "FAILED"
+    | "EXECUTED_PENDING_SYNC"
+    | "CANCELLED";
 
 export interface TradingExecutionResult {
     clientRequestId: string;
@@ -341,7 +367,8 @@ export type TradingAuditAction =
     | "EXECUTION_SUCCEEDED"
     | "EXECUTION_REJECTED"
     | "EXECUTION_DUPLICATE"
-    | "EXECUTION_FAILED";
+    | "EXECUTION_FAILED"
+    | "EXECUTION_PENDING_SYNC";
 
 export interface TradingAuditEvent {
     eventId: string;
@@ -359,5 +386,11 @@ export interface TradingAuditEvent {
     result: TradingExecutionStatus | null;
     errorCode: TradingErrorCode | null;
     source: string | null;
+    /** Execution verb of the audited request (PLACE_ORDER, PARTIAL_CLOSE, …). */
+    executionType?: TradingExecutionType | null;
+    /** Requested partial-close percentage, when the request carried one. */
+    requestedPercentage?: number | null;
+    /** Provider ticket once known (never a credential). */
+    providerRef?: string | null;
     timestamp: number;
 }

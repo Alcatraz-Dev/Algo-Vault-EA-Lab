@@ -73,7 +73,12 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(
             {
-                success: result.status === "SUCCEEDED",
+                // EXECUTED_PENDING_SYNC is a real provider-confirmed outcome:
+                // the trade executed and only the synced position mirror is
+                // late. Reporting it as success=false would invite a retry
+                // that idempotency would have to absorb — the truth is in
+                // result.status, which the terminal renders verbatim.
+                success: result.status === "SUCCEEDED" || result.status === "EXECUTED_PENDING_SYNC",
                 duplicate: result.duplicate,
                 result,
             },

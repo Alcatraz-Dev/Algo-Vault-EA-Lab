@@ -258,6 +258,12 @@
         ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
     },
+    "trading_history": {
+      "$userId": {
+        ".read": "auth != null && auth.uid === $userId",
+        ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+      }
+    },
     "trading_logs": {
       "$userId": {
         ".read": "auth != null && auth.uid === $userId",

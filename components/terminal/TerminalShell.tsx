@@ -31,15 +31,18 @@ import {
     SlidersHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getSymbolSpec } from "@/lib/ai-signals/symbol-specs";
 import { ProTerminalChartWorkspace } from "@/components/pro-scalping-terminal/ProTerminalChartWorkspace";
 import {
     normalisePendingOrderType,
-    partialCloseVolume,
     type ChartPositionView,
     type ChartPendingOrderView,
     type ChartTradeFill,
 } from "@/components/pro-scalping-terminal/chart-settings";
+import {
+    executeUnified,
+    newClientRequestId,
+    type UnifiedExecutePayload,
+} from "@/lib/trading/unified/client";
 import type { PanelId } from "@/lib/terminal/types";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { TerminalTopBar } from "./TerminalTopBar";
@@ -138,13 +141,18 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
     const [actionError, setActionError] = useState<string | null>(null);
 
     /**
-     * Every mutation reports its real outcome. A rejected close previously
-     * vanished into an empty catch, leaving the position on screen with no
-     * indication that nothing had happened. Gateway acknowledgements remain
-     * the only source of "filled", so we say what we actually know.
+     * Every mutation goes through the Unified Trading API
+     * (`POST /api/trading/execute` → UnifiedTradingService) and reports its
+     * real outcome. The legacy `/api/trading/orders` queue is no longer used
+     * by the terminal. Percentage partial close is a share of the position's
+     * CURRENT VOLUME — computed and re-validated server-side (min lot / lot
+     * step aware), never derived from profit.
      */
     const act = useCallback(
-        async (init: RequestInit, describe: string): Promise<boolean> => {
+        async (
+            payload: Omit<UnifiedExecutePayload, "clientRequestId">,
+            describe: string
+        ): Promise<boolean> => {
             if (!authToken) {
                 setActionError("Not signed in — no order was sent.");
                 return false;
@@ -159,20 +167,16 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
             }
             setActionError(null);
             try {
-                const res = await fetch("/api/trading/orders", {
-                    ...init,
-                    headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
-                });
-                if (!res.ok) {
-                    const detail = await res.json().catch(() => null);
-                    setActionError(
-                        detail?.error ? `${describe} failed: ${detail.error}` : `${describe} failed (${res.status}).`
-                    );
-                    return false;
+                const result = await executeUnified(
+                    { ...payload, clientRequestId: newClientRequestId("pt") },
+                    authToken
+                );
+                if (result.status === "EXECUTED_PENDING_SYNC") {
+                    setActionError(`${describe}: executed on the broker — position syncs on the next account snapshot.`);
                 }
                 return true;
-            } catch {
-                setActionError(`${describe} could not reach the execution gateway — nothing was sent.`);
+            } catch (error) {
+                setActionError(`${describe}: ${error instanceof Error ? error.message : "execution failed."}`);
                 return false;
             }
         },
@@ -181,11 +185,6 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
 
     const positions = data.positions;
 
-    /**
-     * Volume partial close. The percentage is a share of the position SIZE,
-     * never a share of profit — the lot step comes from the instrument spec so
-     * the clamped quantity is actually tradable on that instrument.
-     */
     const handleClosePercent = useCallback(
         (ticket: string, percent: number) => {
             const pos = positions.find((p) => p.ticket === ticket);
@@ -193,26 +192,33 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                 setActionError(`Position ${ticket} is no longer open.`);
                 return;
             }
-            const spec = getSymbolSpec(pos.symbol);
-            const step = spec?.lotStep ?? 0.01;
-            const { mode, volume } = partialCloseVolume(pos.volume, percent, step);
-            const label = mode === "full" ? `Close ${pos.symbol} position` : `Close ${volume} lot of ${pos.symbol}`;
+            if (percent >= 100) {
+                void act(
+                    { accountId: data.account!.accountId, executionType: "CLOSE_POSITION", positionId: ticket },
+                    `Close ${pos.symbol} position`
+                );
+                return;
+            }
             void act(
                 {
-                    method: "DELETE",
-                    body: JSON.stringify(
-                        mode === "full" ? { ticket, action: "close" } : { ticket, action: "partial_close", volume }
-                    ),
+                    accountId: data.account!.accountId,
+                    executionType: "PARTIAL_CLOSE",
+                    positionId: ticket,
+                    percentage: percent,
                 },
-                label
+                `Partial close ${percent}% of ${pos.symbol}`
             );
         },
-        [positions, act]
+        [positions, act, data.account]
     );
 
     const handleCancelOrder = useCallback(
-        (ticket: string) => void act({ method: "DELETE", body: JSON.stringify({ ticket, action: "cancel_order" }) }, "Cancel order"),
-        [act]
+        (ticket: string) =>
+            void act(
+                { accountId: data.account!.accountId, executionType: "CANCEL_ORDER", orderId: ticket },
+                "Cancel order"
+            ),
+        [act, data.account]
     );
 
     const visible = (id: PanelId) => state.panels[id]?.visible !== false;
@@ -364,6 +370,11 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
 
                 <main className="flex min-w-0 flex-col gap-3">
                     {chartNode}
+                    {actionError ? (
+                        <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+                            {actionError}
+                        </p>
+                    ) : null}
                     {visible("account") ? <AccountPanel /> : null}
                 </main>
 
@@ -398,7 +409,16 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                         {visible("events") ? <EventFeed now={now} /> : null}
                     </>
                 ) : null}
-                {mobileTab === "account" ? <AccountPanel /> : null}
+                {mobileTab === "account" ? (
+                    <>
+                        {actionError ? (
+                            <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+                                {actionError}
+                            </p>
+                        ) : null}
+                        <AccountPanel />
+                    </>
+                ) : null}
                 {mobileTab === "chat" ? <TradingChat now={now} /> : null}
             </div>
 

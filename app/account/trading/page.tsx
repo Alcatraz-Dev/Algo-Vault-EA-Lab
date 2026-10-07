@@ -15,13 +15,23 @@ import ExecutionLog, { ExecutionLogEntry } from "@/components/trading/ExecutionL
 import { ProTerminalChartWorkspace } from "@/components/pro-scalping-terminal/ProTerminalChartWorkspace";
 import {
     normalisePendingOrderType,
-    partialCloseVolume,
     tradeFillFromExecution,
     type ChartPositionView,
     type ChartPendingOrderView,
     type ChartTradeFill,
 } from "@/components/pro-scalping-terminal/chart-settings";
+import { MetricCard } from "@/components/ui/metric-card";
+import { LimitBar } from "@/components/performance-arena/primitives";
+import TradeHistory, {
+    type ClosedTrade,
+} from "@/components/trading/TradeHistory";
 import { cn } from "@/lib/utils";
+import {
+    executeUnified,
+    newClientRequestId,
+    friendlyMessage,
+} from "@/lib/trading/unified/client";
+import type { TradingExecutionResult } from "@/lib/trading/unified/domain";
 import {
     Lock,
     RefreshCw,
@@ -31,11 +41,18 @@ import {
     ChevronDown,
     Monitor,
     Box,
+    Wallet,
+    LineChart,
+    TrendingUp,
+    Gauge,
+    Layers,
+    Trophy,
+    ScrollText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-type Tab = "positions" | "orders" | "history";
+type Tab = "positions" | "orders" | "history" | "log";
 
 export default function AccountTradingPage() {
     const router = useRouter();
@@ -58,6 +75,10 @@ export default function AccountTradingPage() {
     const [positions, setPositions] = useState<Position[]>([]);
     const [orders, setOrders] = useState<PendingOrder[]>([]);
     const [executionLogs, setExecutionLogs] = useState<ExecutionLogEntry[]>([]);
+    const [closedTrades, setClosedTrades] = useState<ClosedTrade[]>([]);
+    // Last Unified execution outcome, shown verbatim (never a fake fill).
+    const [lastExecution, setLastExecution] = useState<TradingExecutionResult | null>(null);
+    const [actionError, setActionError] = useState<string | null>(null);
 
     const [selectedSymbol, setSelectedSymbol] = useState("XAUUSD");
     const [activeTab, setActiveTab] = useState<Tab>("positions");
@@ -194,17 +215,26 @@ export default function AccountTradingPage() {
             `trading_positions/${uid}/${accountId}`;
         const ordersScopedRef = (accountId: string) =>
             `trading_orders/${uid}/${accountId}`;
+        // Execution reports are persisted per account by the gateway
+        // execution endpoint under the client-readable `trading_logs` rules.
         const logsScopedRef = (accountId: string) =>
-            `trading_executions/${uid}/${accountId}`;
+            `trading_logs/${uid}/${accountId}`;
+        // Closed trades are persisted by the gateway snapshot diff — every
+        // position that leaves an MT5 snapshot is recorded with its close
+        // price, realized P/L and close %, and streams here in real time.
+        const historyScopedRef = (accountId: string) =>
+            `trading_history/${uid}/${accountId}`;
 
         let posUnsub: (() => void) | undefined;
         let ordUnsub: (() => void) | undefined;
         let logUnsub: (() => void) | undefined;
+        let histUnsub: (() => void) | undefined;
 
         const attachScopedListeners = (accountId: string) => {
             if (posUnsub) posUnsub();
             if (ordUnsub) ordUnsub();
             if (logUnsub) logUnsub();
+            if (histUnsub) histUnsub();
 
             posUnsub = onValue(
                 ref(database, scopeRef(accountId)),
@@ -400,6 +430,65 @@ export default function AccountTradingPage() {
                     }
                 }
             );
+            histUnsub = onValue(
+                ref(database, historyScopedRef(accountId)),
+                (snap) => {
+                    const val = snap.val();
+                    if (val) {
+                        const histList: ClosedTrade[] = Object.entries(
+                            val
+                        ).map(([ticket, t]) => {
+                            const raw = t as Record<string, unknown>;
+                            return {
+                                ticket,
+                                symbol:
+                                    (raw.symbol as string | undefined) || "—",
+                                type:
+                                    (raw.type as string | undefined) || "BUY",
+                                volume:
+                                    raw.volume === undefined
+                                        ? 0
+                                        : Number(raw.volume) || 0,
+                                openPrice:
+                                    raw.openPrice === undefined
+                                        ? 0
+                                        : Number(raw.openPrice) || 0,
+                                closePrice:
+                                    raw.closePrice === undefined
+                                        ? 0
+                                        : Number(raw.closePrice) || 0,
+                                profit:
+                                    raw.profit === undefined
+                                        ? 0
+                                        : Number(raw.profit) || 0,
+                                swap:
+                                    raw.swap === undefined
+                                        ? 0
+                                        : Number(raw.swap) || 0,
+                                openedAt:
+                                    raw.openedAt === undefined
+                                        ? 0
+                                        : Number(raw.openedAt) || 0,
+                                closedAt:
+                                    raw.closedAt === undefined
+                                        ? Date.now()
+                                        : Number(raw.closedAt) || Date.now(),
+                                closeSource:
+                                    (raw.closeSource as string | undefined) ||
+                                    "gateway_snapshot",
+                                priceMovePct:
+                                    raw.priceMovePct === undefined ||
+                                    raw.priceMovePct === null
+                                        ? null
+                                        : Number(raw.priceMovePct),
+                            };
+                        });
+                        setClosedTrades(histList);
+                    } else {
+                        setClosedTrades([]);
+                    }
+                }
+            );
         };
 
         if (selectedAccountId) {
@@ -411,6 +500,7 @@ export default function AccountTradingPage() {
             posUnsub?.();
             ordUnsub?.();
             logUnsub?.();
+            histUnsub?.();
         };
     }, [firebaseUser, hasAccess, selectedAccountId]);
 
@@ -436,102 +526,77 @@ export default function AccountTradingPage() {
         setSelectedAccountId(accountId);
     };
 
-    const handleClosePosition = async (ticket: string) => {
-        if (!firebaseUser || !selectedAccountId) return;
-        try {
-            const token = await firebaseUser.getIdToken();
-            await fetch("/api/trading/orders", {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    accountId: selectedAccountId,
-                    ticket,
-                    action: "close",
-                }),
-            });
-            handleRefresh();
-        } catch {
-            // Ignore
-        }
-    };
-
-    const handlePartialClosePosition = async (
-        ticket: string,
-        volume: number
+    /**
+     * Unified Trading API is the canonical Pro Terminal execution path.
+     * The legacy `/api/trading/orders` queue is NOT used for these actions:
+     * every submission carries a fresh idempotency key and returns the
+     * server-verified execution state, which is surfaced verbatim.
+     */
+    const runUnified = async (
+        payload: Omit<Parameters<typeof executeUnified>[0], "clientRequestId">,
+        describe: string
     ) => {
         if (!firebaseUser || !selectedAccountId) return;
+        setActionError(null);
         try {
             const token = await firebaseUser.getIdToken();
-            await fetch("/api/trading/orders", {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    accountId: selectedAccountId,
-                    ticket,
-                    action: "partial_close",
-                    volume,
-                }),
-            });
+            const result = await executeUnified(
+                { ...payload, clientRequestId: newClientRequestId("pt") },
+                token
+            );
+            setLastExecution(result);
+            if (result.status === "EXECUTED_PENDING_SYNC") {
+                setActionError(
+                    `${describe}: executed on the broker — position syncs on the next account snapshot.`
+                );
+            }
             handleRefresh();
-        } catch {
-            // Ignore
+        } catch (err) {
+            const message = err instanceof Error ? err.message : friendlyMessage("UNKNOWN_PROVIDER_ERROR");
+            setActionError(`${describe}: ${message}`);
         }
     };
 
-    const handleModifyPosition = async (
+    const handleClosePosition = (ticket: string) =>
+        runUnified(
+            { accountId: selectedAccountId!, executionType: "CLOSE_POSITION", positionId: ticket },
+            `Close ${ticket}`
+        );
+
+    /** percentage is % of the position's CURRENT VOLUME — the server computes
+     *  the provider-valid close volume (min lot / lot step aware). */
+    const handlePartialClosePosition = (ticket: string, percentage: number) =>
+        runUnified(
+            {
+                accountId: selectedAccountId!,
+                executionType: "PARTIAL_CLOSE",
+                positionId: ticket,
+                percentage,
+            },
+            `Partial close ${percentage}% of ${ticket}`
+        );
+
+    const handleModifyPosition = (
         ticket: string,
-        sl: number,
-        tp: number
-    ) => {
-        if (!firebaseUser || !selectedAccountId) return;
-        try {
-            const token = await firebaseUser.getIdToken();
-            await fetch("/api/trading/orders", {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    accountId: selectedAccountId,
-                    ticket,
-                    sl,
-                    tp,
-                }),
-            });
-            handleRefresh();
-        } catch {
-            // Ignore
-        }
-    };
+        sl: number | null,
+        tp: number | null
+    ) =>
+        runUnified(
+            {
+                accountId: selectedAccountId!,
+                executionType: "MODIFY_POSITION",
+                positionId: ticket,
+                stopLoss: sl,
+                takeProfit: tp,
+            },
+            `Modify ${ticket}`
+        );
 
-    const handleCancelOrder = async (ticket: string) => {
-        if (!firebaseUser || !selectedAccountId) return;
-        try {
-            const token = await firebaseUser.getIdToken();
-            await fetch("/api/trading/orders", {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    accountId: selectedAccountId,
-                    ticket,
-                    action: "cancel_order",
-                }),
-            });
-            handleRefresh();
-        } catch {
-            // Ignore
-        }
-    };
+    const handleCancelOrder = (ticket: string) =>
+        runUnified(
+            { accountId: selectedAccountId!, executionType: "CANCEL_ORDER", orderId: ticket },
+            `Cancel order ${ticket}`
+        );
 
     // ── chart trade views ───────────────────────────────────────────
     // Real execution data reshaped for the chart: positions become
@@ -602,36 +667,78 @@ export default function AccountTradingPage() {
         [executionLogs]
     );
 
-    // Close N% of a position from the chart's trade strip: rounds down to
-    // the 0.01 lot step and falls back to a full close for dust remainders.
-    const handleClosePositionPercent = async (
-        ticket: string,
-        percent: number
-    ) => {
+    // ── Account header metrics (arena-style) ─────────────────────────
+    // Every value comes from the gateway heartbeat; `null` means the gateway
+    // has not reported it yet and is rendered honestly as "—".
+    const balance = selectedAccount?.balance ?? null;
+    const equity = selectedAccount?.equity ?? null;
+    const margin = selectedAccount?.margin ?? null;
+    const freeMargin = selectedAccount?.freeMargin ?? null;
+    const marginLevel = selectedAccount?.marginLevel ?? null;
+
+    const floatingPnl =
+        balance !== null && equity !== null ? equity - balance : null;
+    const floatingPnlPct =
+        floatingPnl !== null && balance !== null && balance > 0
+            ? (floatingPnl / balance) * 100
+            : null;
+    const marginUtilPct =
+        margin !== null && equity !== null && equity > 0
+            ? (margin / equity) * 100
+            : null;
+
+    // Realized session stats from the real-time closed-trade ledger.
+    const historyStats = useMemo(() => {
+        let wins = 0;
+        let losses = 0;
+        let net = 0;
+        let pctSum = 0;
+        let pctCount = 0;
+        for (const t of closedTrades) {
+            const pnl = Number(t.profit || 0) + Number(t.swap || 0);
+            net += pnl;
+            if (pnl > 0) wins += 1;
+            else if (pnl < 0) losses += 1;
+            if (t.priceMovePct !== null && Number.isFinite(t.priceMovePct)) {
+                pctSum += t.priceMovePct;
+                pctCount += 1;
+            }
+        }
+        return {
+            wins,
+            losses,
+            net,
+            total: closedTrades.length,
+            winRatePct: wins + losses > 0 ? (wins / (wins + losses)) * 100 : null,
+            avgClosePct: pctCount > 0 ? pctSum / pctCount : null,
+        };
+    }, [closedTrades]);
+
+    // Open book: aggregate exposure + best/worst floating position.
+    const openBook = useMemo(() => {
+        const totalLots = positions.reduce((s, p) => s + (p.volume || 0), 0);
+        const floating = positions.reduce((s, p) => s + (p.profit || 0), 0);
+        let best: Position | null = null;
+        let worst: Position | null = null;
+        for (const p of positions) {
+            if (!best || p.profit > best.profit) best = p;
+            if (!worst || p.profit < worst.profit) worst = p;
+        }
+        return { totalLots, floating, best, worst };
+    }, [positions]);
+
+    // Close N% of a position from the chart's trade strip. Percentage is of
+    // the CURRENT POSITION VOLUME — computed and validated server-side by the
+    // Unified service (min lot / lot step aware); no client volume math.
+    const handleClosePositionPercent = (ticket: string, percent: number) => {
         if (!firebaseUser || !selectedAccountId) return;
         const pos = positions.find((p) => p.ticket === ticket);
         if (!pos) return;
-        const { mode, volume } = partialCloseVolume(pos.volume, percent);
-        try {
-            const token = await firebaseUser.getIdToken();
-            await fetch("/api/trading/orders", {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    accountId: selectedAccountId,
-                    ticket,
-                    action:
-                        mode === "full" ? "close" : "partial_close",
-                    ...(mode !== "full" ? { volume } : {}),
-                }),
-            });
-            handleRefresh();
-        } catch {
-            // Ignore
+        if (percent >= 100) {
+            void handleClosePosition(ticket);
+            return;
         }
+        void handlePartialClosePosition(ticket, percent);
     };
 
     if (loading) {
@@ -794,6 +901,227 @@ export default function AccountTradingPage() {
                     </div>
                 </div>
 
+                {/* Header metrics — the same pattern as the Performance Arena
+                    challenge dashboard: mono numbers, honest "—" while the
+                    gateway has not reported a value. */}
+                <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+                    <MetricCard
+                        label="Balance"
+                        icon={<Wallet className="size-3.5" />}
+                        value={balance !== null ? fmtMoney(balance) : "—"}
+                        footnote={
+                            balance === null
+                                ? "Awaiting gateway report"
+                                : `Currency ${selectedAccount?.currency ?? "USD"}`
+                        }
+                    />
+                    <MetricCard
+                        label="Equity"
+                        icon={<LineChart className="size-3.5" />}
+                        value={equity !== null ? fmtMoney(equity) : "—"}
+                        footnote={
+                            floatingPnl !== null
+                                ? `floating ${fmtSignedMoney(floatingPnl)}`
+                                : undefined
+                        }
+                    />
+                    <MetricCard
+                        label="Floating P/L"
+                        icon={<TrendingUp className="size-3.5" />}
+                        value={
+                            floatingPnl !== null
+                                ? fmtSignedMoney(floatingPnl)
+                                : "—"
+                        }
+                        delta={
+                            floatingPnlPct !== null
+                                ? `${fmtSignedPct(floatingPnlPct)} of balance`
+                                : undefined
+                        }
+                        deltaTone={
+                            floatingPnl === null
+                                ? "neutral"
+                                : floatingPnl >= 0
+                                  ? "up"
+                                  : "down"
+                        }
+                        footnote={`${positions.length} open · ${fmtNumber(openBook.totalLots)} lots`}
+                    />
+                    <MetricCard
+                        label="Margin Level"
+                        icon={<Gauge className="size-3.5" />}
+                        value={
+                            marginLevel !== null
+                                ? `${fmtNumber(marginLevel, 1)}%`
+                                : "—"
+                        }
+                        delta={
+                            marginLevel !== null && marginLevel < 200
+                                ? "Below 200% comfort threshold"
+                                : undefined
+                        }
+                        deltaTone={
+                            marginLevel !== null && marginLevel < 200
+                                ? "warning"
+                                : "neutral"
+                        }
+                        footnote="equity / margin"
+                    />
+                    <MetricCard
+                        label="Free Margin"
+                        icon={<Layers className="size-3.5" />}
+                        value={
+                            freeMargin !== null ? fmtMoney(freeMargin) : "—"
+                        }
+                        footnote={
+                            margin !== null && margin > 0
+                                ? `${fmtMoney(margin)} in use`
+                                : undefined
+                        }
+                    />
+                    <MetricCard
+                        label="Win Rate"
+                        icon={<Trophy className="size-3.5" />}
+                        value={
+                            historyStats.winRatePct !== null
+                                ? `${historyStats.winRatePct.toFixed(1)}%`
+                                : "—"
+                        }
+                        footnote={`${historyStats.total} closed · net ${fmtSignedMoney(historyStats.net)}`}
+                    />
+                </div>
+
+                {/* Risk & realized performance — limit bars like the challenge
+                    page, fed by live gateway accounting and the closed-trade
+                    ledger. */}
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    <div className="space-y-3 rounded-lg border border-border bg-card p-4">
+                        <LimitBar
+                            label="Margin utilization"
+                            usedPct={marginUtilPct ?? 0}
+                            tone={
+                                marginUtilPct !== null && marginUtilPct >= 80
+                                    ? "negative"
+                                    : "warning"
+                            }
+                            detail={
+                                marginUtilPct !== null
+                                    ? `${fmtMoney(margin ?? 0)} used of ${fmtMoney(equity ?? 0)} equity`
+                                    : "Awaiting gateway report"
+                            }
+                        />
+                        <LimitBar
+                            label="Floating P/L (% of balance)"
+                            usedPct={Math.min(
+                                100,
+                                Math.abs(floatingPnlPct ?? 0)
+                            )}
+                            tone={
+                                (floatingPnlPct ?? 0) >= 0
+                                    ? "positive"
+                                    : "negative"
+                            }
+                            detail={
+                                floatingPnlPct !== null
+                                    ? `${fmtSignedPct(floatingPnlPct)} unrealized`
+                                    : "Awaiting gateway report"
+                            }
+                        />
+                        <div className="space-y-1 border-t border-border pt-2 text-xs text-muted-foreground">
+                            <div className="flex justify-between">
+                                <span>Gateway</span>
+                                <span className="font-mono">
+                                    {selectedAccount?.gatewayVersion ?? "—"}
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Connection</span>
+                                <span className="font-mono capitalize">
+                                    {selectedAccount?.status ?? "unknown"}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-3 rounded-lg border border-border bg-card p-4">
+                        <p className="text-xs font-medium text-muted-foreground">
+                            Realized performance · live
+                        </p>
+                        <LimitBar
+                            label="Win rate"
+                            usedPct={historyStats.winRatePct ?? 0}
+                            tone="info"
+                            detail={`${historyStats.wins}W / ${historyStats.losses}L of ${historyStats.total} closed trades`}
+                        />
+                        <div className="space-y-1 text-xs text-muted-foreground">
+                            <div className="flex justify-between">
+                                <span>Net realized P/L</span>
+                                <span
+                                    className={cn(
+                                        "font-mono font-semibold",
+                                        historyStats.net >= 0
+                                            ? "text-emerald-500"
+                                            : "text-rose-500"
+                                    )}
+                                >
+                                    {fmtSignedMoney(historyStats.net)}
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Avg close %</span>
+                                <span className="font-mono">
+                                    {historyStats.avgClosePct !== null
+                                        ? fmtSignedPct(historyStats.avgClosePct)
+                                        : "—"}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-3 rounded-lg border border-border bg-card p-4">
+                        <p className="text-xs font-medium text-muted-foreground">
+                            Open book
+                        </p>
+                        <div className="space-y-1 text-xs text-muted-foreground">
+                            <div className="flex justify-between">
+                                <span>Total lots</span>
+                                <span className="font-mono">
+                                    {fmtNumber(openBook.totalLots)}
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Floating P/L</span>
+                                <span
+                                    className={cn(
+                                        "font-mono font-semibold",
+                                        openBook.floating >= 0
+                                            ? "text-emerald-500"
+                                            : "text-rose-500"
+                                    )}
+                                >
+                                    {fmtSignedMoney(openBook.floating)}
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Top winner</span>
+                                <span className="font-mono">
+                                    {openBook.best && openBook.best.profit > 0
+                                        ? `${openBook.best.symbol} ${fmtSignedMoney(openBook.best.profit)}`
+                                        : "—"}
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Top loser</span>
+                                <span className="font-mono">
+                                    {openBook.worst && openBook.worst.profit < 0
+                                        ? `${openBook.worst.symbol} ${fmtSignedMoney(openBook.worst.profit)}`
+                                        : "—"}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Main Trading Area */}
                 <div className="grid gap-6 xl:grid-cols-4">
                     {/* Pro Terminal chart workspace (3/4 width on xl).
@@ -887,6 +1215,26 @@ export default function AccountTradingPage() {
                                 )}
                             >
                                 <History className="size-4" />
+                                <span>Trade History</span>
+                                <Badge
+                                    variant="secondary"
+                                    className="ml-1 text-xs"
+                                >
+                                    {closedTrades.length}
+                                </Badge>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab("log")}
+                                className={cn(
+                                    "flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors",
+                                    activeTab === "log"
+                                        ? "border-primary text-primary"
+                                        : "border-transparent text-muted-foreground hover:text-foreground"
+                                )}
+                            >
+                                <ScrollText className="size-4" />
                                 <span>Execution Log</span>
                                 <Badge
                                     variant="secondary"
@@ -899,12 +1247,36 @@ export default function AccountTradingPage() {
                     </div>
 
                     <div className="p-4">
+                        {actionError ? (
+                            <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+                                {actionError}
+                            </p>
+                        ) : null}
+                        {lastExecution ? (
+                            <p className="mb-3 text-[11px] text-muted-foreground">
+                                Last execution:{" "}
+                                {lastExecution.status === "SUCCEEDED"
+                                    ? "filled"
+                                    : lastExecution.status === "EXECUTED_PENDING_SYNC"
+                                      ? "executed — syncing position"
+                                      : lastExecution.status === "REJECTED"
+                                        ? "rejected"
+                                        : lastExecution.status === "FAILED"
+                                          ? "failed"
+                                          : lastExecution.status.toLowerCase()}
+                                {lastExecution.filledVolume ? ` ${lastExecution.filledVolume} lots` : ""}
+                                {lastExecution.position?.symbol || lastExecution.order?.symbol ? ` ${lastExecution.position?.symbol ?? lastExecution.order?.symbol}` : ""}
+                                {lastExecution.filledPrice ? ` @ ${lastExecution.filledPrice}` : ""}
+                                {lastExecution.providerRef ? ` · ticket ${lastExecution.providerRef}` : ""}
+                            </p>
+                        ) : null}
                         {activeTab === "positions" && (
                             <OpenPositions
                                 positions={positions}
                                 onClose={handleClosePosition}
                                 onPartialClose={handlePartialClosePosition}
                                 onModify={handleModifyPosition}
+                                onActionError={setActionError}
                             />
                         )}
                         {activeTab === "orders" && (
@@ -914,6 +1286,9 @@ export default function AccountTradingPage() {
                             />
                         )}
                         {activeTab === "history" && (
+                            <TradeHistory trades={closedTrades} />
+                        )}
+                        {activeTab === "log" && (
                             <ExecutionLog logs={executionLogs} />
                         )}
                     </div>
@@ -921,6 +1296,32 @@ export default function AccountTradingPage() {
             </div>
         </AccountShell>
     );
+}
+
+/** Money formatting for header metrics (mono tabular numerals in JSX). */
+function fmtMoney(value: number): string {
+    return `$${value.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    })}`;
+}
+
+function fmtSignedMoney(value: number): string {
+    return `${value >= 0 ? "+" : "−"}$${Math.abs(value).toLocaleString(
+        "en-US",
+        { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+    )}`;
+}
+
+function fmtSignedPct(value: number): string {
+    return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+}
+
+function fmtNumber(value: number, decimals = 2): string {
+    return value.toLocaleString("en-US", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+    });
 }
 
 /** Coerce a gateway value to a number; `null` when it is missing/unreported. */

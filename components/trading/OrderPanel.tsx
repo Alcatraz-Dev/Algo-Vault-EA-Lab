@@ -1,6 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+/**
+ * Pro Terminal order ticket — Unified Trading API edition.
+ *
+ * Every submission goes to `POST /api/trading/execute` → UnifiedTradingService.
+ * The panel renders the SERVER's execution states verbatim:
+ *
+ *   Submitting… → Submitted → Filled
+ *                            → Executed — syncing position
+ *                            → Rejected (reason)
+ *                            → Failed (reason)
+ *
+ * There is no `setTimeout`, no optimistic "Filled", and no fabricated price:
+ * the ticket, execution price and volume shown are the values the server
+ * verified at the provider. Idempotency: one `clientRequestId` is minted per
+ * logical order and the submit button is disabled while that request is in
+ * flight, so double clicks and network retries cannot place two trades.
+ */
+
+import { useMemo, useRef, useState } from "react";
 import { auth } from "@/lib/firebase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,19 +31,53 @@ import {
   AlertTriangle,
   Zap,
   Shield,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TradingAccount } from "./AccountHeader";
+import {
+  executeUnified,
+  newClientRequestId,
+  friendlyMessage,
+  PHASE_LABEL,
+  PHASE_TONE,
+  phaseFromStatus,
+  UnifiedExecutionError,
+  type ClientDisplayPhase,
+} from "@/lib/trading/unified/client";
+import type {
+  TradingExecutionResult,
+  TradingExecutionType,
+} from "@/lib/trading/unified/domain";
 
 type OrderType = "market" | "limit" | "stop";
 type OrderSide = "BUY" | "SELL";
-type OrderStatus = "idle" | "pending" | "queued" | "executing" | "filled" | "rejected";
+
+/** The terminal-visible state of the last submission attempt. */
+interface TicketState {
+  phase: ClientDisplayPhase;
+  clientRequestId: string | null;
+  result: TradingExecutionResult | null;
+  error: string | null;
+  /** The idempotency key that produced a terminal outcome — never resubmitted. */
+}
 
 function formatCurrency(value: number): string {
   return value.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+}
+
+function formatPrice(value: number | null): string {
+  if (value === null || !Number.isFinite(value) || value <= 0) return "—";
+  // Broker-agnostic precision: show what the provider actually reported.
+  return value < 10 ? value.toFixed(5) : value.toFixed(2);
+}
+
+function formatTime(ts: number | null): string {
+  if (!ts) return "—";
+  return new Date(ts).toLocaleTimeString("en-US", { hour12: false });
 }
 
 export default function OrderPanel({
@@ -37,21 +89,33 @@ export default function OrderPanel({
   onOrderPlaced: (clientOrderId: string) => void;
   symbol?: string;
 }) {
-  const [symbol, setSymbol] = useState(initialSymbol || "XAUUSD");
+  const [symbol, setSymbol] = useState(
+    initialSymbol ? initialSymbol.replace(/^(FX|CRYPTO|INDICES|FOREX):/, "") : "XAUUSD"
+  );
+  const [lastInitialSymbol, setLastInitialSymbol] = useState(initialSymbol);
 
-  useEffect(() => {
+  // Prop-sync without an effect: when the chart changes the symbol we adjust
+  // state during render (React's documented pattern) instead of setState-in-
+  // effect, which would cascade an extra render.
+  if (initialSymbol !== lastInitialSymbol) {
+    setLastInitialSymbol(initialSymbol);
     if (initialSymbol) {
       setSymbol(initialSymbol.replace(/^(FX|CRYPTO|INDICES|FOREX):/, ""));
     }
-  }, [initialSymbol]);
+  }
   const [side, setSide] = useState<OrderSide>("BUY");
   const [volume, setVolume] = useState("0.01");
   const [orderType, setOrderType] = useState<OrderType>("market");
   const [price, setPrice] = useState("");
   const [stopLoss, setStopLoss] = useState("");
   const [takeProfit, setTakeProfit] = useState("");
-  const [status, setStatus] = useState<OrderStatus>("idle");
+  const [ticket, setTicket] = useState<TicketState | null>(null);
   const [error, setError] = useState("");
+
+  /** In-flight marker state drives the disabled button; the ref is the
+   *  synchronous double-click guard inside the submit handler. */
+  const [inFlight, setInFlight] = useState(false);
+  const inFlightKey = useRef<string | null>(null);
 
   const parsedVolume = parseFloat(volume) || 0;
   const parsedSL = parseFloat(stopLoss) || 0;
@@ -65,78 +129,138 @@ export default function OrderPanel({
 
   const estimatedMargin =
     parsedVolume > 0 && account
-      ? parsedVolume * (parsedPrice || account.balance) / parseFloat(account.leverage || "100")
+      ? parsedVolume * (parsedPrice || account.balance || 0) /
+        (parseFloat(account.leverage || "100") || 100)
       : 0;
 
-  const isProcessing = ["pending", "queued", "executing"].includes(status);
-  const canSubmit = account?.status === "connected" && parsedVolume >= 0.01 && !isProcessing;
+  const processing = ticket !== null && PHASE_TONE[ticket.phase] === "progress";
+  const canSubmit =
+    account?.status === "connected" &&
+    parsedVolume >= 0.01 &&
+    !processing &&
+    !inFlight;
 
   async function handleSubmit() {
-    if (!canSubmit) return;
+    if (!canSubmit || !account) return;
+    if (inFlightKey.current !== null) return; // synchronous double-click guard
     setError("");
-    setStatus("pending");
 
+    const clientRequestId = newClientRequestId("pt");
+    inFlightKey.current = clientRequestId;
+    setInFlight(true);
+    setTicket({ phase: "SUBMITTING", clientRequestId, result: null, error: null });
+
+    const executionType: TradingExecutionType = "PLACE_ORDER";
     try {
       const user = auth.currentUser;
-      if (!user) throw new Error("Not authenticated");
+      if (!user) throw new UnifiedExecutionError("Not authenticated.", { code: "PERMISSION_DENIED", status: 0, result: null });
       const token = await user.getIdToken();
 
-      const clientOrderId = `coid_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-
-      const res = await fetch("/api/trading/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          clientOrderId,
-          accountId: account!.accountId,
+      const result = await executeUnified(
+        {
+          accountId: account.accountId,
+          clientRequestId,
+          executionType,
           symbol: symbol.toUpperCase(),
-          action: side,
+          side,
           volume: parsedVolume,
-          price: orderType !== "market" ? parsedPrice : undefined,
-          sl: parsedSL > 0 ? parsedSL : undefined,
-          tp: parsedTP > 0 ? parsedTP : undefined,
-          orderType,
-        }),
+          kind: orderType === "market" ? "MARKET" : orderType === "limit" ? "LIMIT" : "STOP",
+          price: orderType !== "market" && parsedPrice > 0 ? parsedPrice : null,
+          stopLoss: parsedSL > 0 ? parsedSL : null,
+          takeProfit: parsedTP > 0 ? parsedTP : null,
+        },
+        token
+      );
+
+      // The server's terminal state, verbatim — no upgrade, no timeout.
+      setTicket({
+        phase: phaseFromStatus(result.status),
+        clientRequestId,
+        result,
+        error: null,
       });
-
-      setStatus("queued");
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || `Order failed (${res.status})`);
-      }
-
-      setStatus("executing");
-      setTimeout(() => {
-        setStatus("filled");
-        onOrderPlaced(clientOrderId);
-        setTimeout(() => setStatus("idle"), 3000);
-      }, 1500);
-    } catch (err: any) {
-      setStatus("rejected");
-      setError(err?.message || "Order failed");
+      onOrderPlaced(result.clientRequestId);
+    } catch (err) {
+      const message =
+        err instanceof UnifiedExecutionError
+          ? err.message
+          : friendlyMessage("UNKNOWN_PROVIDER_ERROR");
+      setError(message);
+      setTicket((prev) => (prev ? { ...prev, phase: "FAILED", error: message } : prev));
+    } finally {
+      inFlightKey.current = null;
+      setInFlight(false);
     }
   }
 
-  const statusBadge = () => {
-    switch (status) {
-      case "pending":
-        return <Badge className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">Pending</Badge>;
-      case "queued":
-        return <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400">Queued</Badge>;
-      case "executing":
-        return <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400">Executing</Badge>;
-      case "filled":
-        return <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">Filled</Badge>;
-      case "rejected":
-        return <Badge className="bg-rose-500/10 text-rose-600 dark:text-rose-400">Rejected</Badge>;
-      default:
-        return null;
-    }
-  };
+  const statusBadge = ticket ? (
+    <Badge
+      className={cn(
+        "gap-1",
+        PHASE_TONE[ticket.phase] === "good" && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+        PHASE_TONE[ticket.phase] === "progress" && "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+        PHASE_TONE[ticket.phase] === "bad" && "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+        PHASE_TONE[ticket.phase] === "warn" && "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+        PHASE_TONE[ticket.phase] === "neutral" && "bg-muted text-muted-foreground"
+      )}
+    >
+      {PHASE_TONE[ticket.phase] === "progress" ? (
+        <Loader2 className="size-3 animate-spin" />
+      ) : null}
+      {PHASE_LABEL[ticket.phase]}
+    </Badge>
+  ) : null;
+
+  const executionDetails = useMemo(() => {
+    if (!ticket?.result) return null;
+    const r = ticket.result;
+    return (
+      <div className="space-y-1.5 rounded-none border border-border bg-muted/40 px-3 py-2 text-[11px] leading-4">
+        <div className="flex justify-between gap-2">
+          <span className="text-muted-foreground">Symbol</span>
+          <span className="font-mono font-medium">{r.executionType === "PLACE_ORDER" ? symbol.toUpperCase() : "—"}</span>
+        </div>
+        <div className="flex justify-between gap-2">
+          <span className="text-muted-foreground">Side / Type</span>
+          <span className="font-mono font-medium">
+            {side} · {r.executionType}
+          </span>
+        </div>
+        <div className="flex justify-between gap-2">
+          <span className="text-muted-foreground">Volume</span>
+          <span className="font-mono font-medium">
+            {r.filledVolume !== null ? `${r.filledVolume} lots` : `${parsedVolume} lots (requested)`}
+          </span>
+        </div>
+        <div className="flex justify-between gap-2">
+          <span className="text-muted-foreground">Ticket</span>
+          <span className="font-mono font-medium">{r.providerRef ?? "pending sync"}</span>
+        </div>
+        <div className="flex justify-between gap-2">
+          <span className="text-muted-foreground">Exec. price</span>
+          <span className="font-mono font-medium">{formatPrice(r.filledPrice)}</span>
+        </div>
+        <div className="flex justify-between gap-2">
+          <span className="text-muted-foreground">Provider / Account</span>
+          <span className="font-mono font-medium">
+            {r.provider} · {account?.mt5Account ?? r.accountId}
+          </span>
+        </div>
+        <div className="flex justify-between gap-2">
+          <span className="text-muted-foreground">Time</span>
+          <span className="font-mono font-medium">
+            {formatTime(r.completedAt ?? r.createdAt)}
+          </span>
+        </div>
+        {r.status === "EXECUTED_PENDING_SYNC" ? (
+          <p className="pt-1 text-amber-600 dark:text-amber-400">
+            Executed on the broker — the position will appear when the next
+            account snapshot syncs.
+          </p>
+        ) : null}
+      </div>
+    );
+  }, [ticket, symbol, side, parsedVolume, account]);
 
   return (
     <Card>
@@ -146,7 +270,7 @@ export default function OrderPanel({
             <Zap size={14} />
             Place Order
           </span>
-          {statusBadge()}
+          {statusBadge}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -157,7 +281,7 @@ export default function OrderPanel({
             value={symbol}
             onChange={(e) => setSymbol(e.target.value.toUpperCase())}
             placeholder="XAUUSD"
-            disabled={isProcessing}
+            disabled={processing}
           />
         </div>
 
@@ -167,7 +291,7 @@ export default function OrderPanel({
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              disabled={isProcessing}
+              disabled={processing}
               onClick={() => setSide("BUY")}
               className={cn(
                 "flex items-center justify-center gap-2 rounded-none border py-2 text-sm font-semibold transition-all",
@@ -181,7 +305,7 @@ export default function OrderPanel({
             </button>
             <button
               type="button"
-              disabled={isProcessing}
+              disabled={processing}
               onClick={() => setSide("SELL")}
               className={cn(
                 "flex items-center justify-center gap-2 rounded-none border py-2 text-sm font-semibold transition-all",
@@ -205,7 +329,7 @@ export default function OrderPanel({
             onChange={(e) => setVolume(e.target.value)}
             step="0.01"
             min="0.01"
-            disabled={isProcessing}
+            disabled={processing}
           />
         </div>
 
@@ -217,7 +341,7 @@ export default function OrderPanel({
               <button
                 key={type}
                 type="button"
-                disabled={isProcessing}
+                disabled={processing}
                 onClick={() => setOrderType(type)}
                 className={cn(
                   "rounded-none px-2 py-1.5 text-xs font-medium capitalize transition-all",
@@ -242,7 +366,7 @@ export default function OrderPanel({
               onChange={(e) => setPrice(e.target.value)}
               placeholder="0.00"
               step="0.01"
-              disabled={isProcessing}
+              disabled={processing}
             />
           </div>
         )}
@@ -257,7 +381,7 @@ export default function OrderPanel({
               onChange={(e) => setStopLoss(e.target.value)}
               placeholder="0.00"
               step="0.01"
-              disabled={isProcessing}
+              disabled={processing}
             />
           </div>
           <div className="space-y-1.5">
@@ -268,7 +392,7 @@ export default function OrderPanel({
               onChange={(e) => setTakeProfit(e.target.value)}
               placeholder="0.00"
               step="0.01"
-              disabled={isProcessing}
+              disabled={processing}
             />
           </div>
         </div>
@@ -303,6 +427,8 @@ export default function OrderPanel({
           </div>
         )}
 
+        {executionDetails}
+
         <Button
           onClick={handleSubmit}
           disabled={!canSubmit}
@@ -313,8 +439,14 @@ export default function OrderPanel({
               : "bg-rose-600 text-foreground hover:bg-rose-700"
           )}
         >
-          {isProcessing ? "Processing..." : `PLACE ${side} ORDER`}
+          {processing ? "Submitting…" : `PLACE ${side} ORDER`}
         </Button>
+
+        <p className="text-[10px] leading-4 text-muted-foreground">
+          Orders execute on your connected <span className="font-medium">DEMO</span> account
+          through the AlgoVault Unified Trading API. Fills are confirmed by the
+          broker, never simulated.
+        </p>
       </CardContent>
     </Card>
   );

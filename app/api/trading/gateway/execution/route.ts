@@ -56,6 +56,16 @@ export async function POST(request: NextRequest) {
             ? "rejected"
             : "filled";
 
+        // The originating order request scopes the report to the account and
+        // carries the action context (BUY/SELL/CLOSE/…) for the terminal's
+        // Execution Log tab.
+        const orderSnap = await adminDatabase
+            .ref(`trading_order_requests/${userId}/${clientOrderId}`)
+            .get();
+        const orderData = (orderSnap.val() || {}) as Record<string, unknown>;
+        const orderAccountId =
+            String(orderData.accountId || body.accountId || "").trim();
+
         await adminDatabase
             .ref(`trading_order_requests/${userId}/${clientOrderId}`)
             .update({
@@ -86,12 +96,34 @@ export async function POST(request: NextRequest) {
                     createdAt: now,
                 });
 
+            // Per-account execution log under the client-readable
+            // `trading_logs` ruleset — the live terminal's Execution Log tab
+            // subscribes here in real time (including rejections).
+            if (orderAccountId) {
+                await adminDatabase
+                    .ref(
+                        `trading_logs/${userId}/${orderAccountId}/${clientOrderId}`
+                    )
+                    .set({
+                        clientOrderId,
+                        accountId: orderAccountId,
+                        action:
+                            String(orderData.action || "").toUpperCase() ||
+                            "ORDER",
+                        symbol: symbol || String(orderData.symbol || ""),
+                        volume: volume || Number(orderData.volume || 0),
+                        status,
+                        mt5Ticket,
+                        executionPrice,
+                        errorCode: retcode,
+                        errorMessage: errorMessage || "Executed",
+                        createdAt: now,
+                        executedAt: timestamp || now,
+                    });
+            }
+
             // Reconcile copy-trading: if this was a copied order, record
             // the real MT5 ticket and update the mt5_orders ledger too.
-            const orderSnap = await adminDatabase
-                .ref(`trading_order_requests/${userId}/${clientOrderId}`)
-                .get();
-            const orderData = orderSnap.val() || {};
             if (orderData.source === "copy_follower") {
                 const followerMt5 = String(orderData.followerMt5Account || "").trim();
                 if (followerMt5) {

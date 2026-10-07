@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticate } from "@/lib/admin-auth";
+import { adminDatabase } from "@/lib/firebase-admin";
 import { createUnifiedTradingService, providerCatalog } from "@/lib/trading/unified/server";
 import { httpStatusForTradingError } from "@/lib/trading/unified/errors";
 import { unifiedTradingFlagSnapshot } from "@/lib/trading/feature-flags";
 import { listUnifiedAccounts } from "@/lib/trading/unified/store";
+import { MT5_ACCOUNT_PREFIX } from "@/lib/trading/unified/mt5-demo-provider";
 
 export const runtime = "nodejs";
 
@@ -34,11 +36,36 @@ export async function GET(request: NextRequest) {
             })
         );
 
+        // ── Gateway-linked MT5 accounts ──────────────────────────────────
+        // The Gateway EA registers accounts straight into
+        // `trading_accounts/{uid}` while only the explicit connect flow
+        // writes the unified projection. Any gateway account missing from
+        // the projection is read through the MT5 adapter (which projects it
+        // on read), so the provider card reflects the real heartbeat state
+        // instead of a false "No account connected".
+        const gatewaySnap = await adminDatabase
+            .ref(`trading_accounts/${token.uid}`)
+            .get();
+        const gatewayData = (gatewaySnap.val() || {}) as Record<string, unknown>;
+        const projectedIds = new Set(accounts.map((record) => record.id));
+        const gatewayIds = Object.keys(gatewayData).filter(
+            (id) => id.startsWith(MT5_ACCOUNT_PREFIX) && !projectedIds.has(id)
+        );
+
+        const gatewayAccounts = await Promise.all(
+            gatewayIds.map(async (accountId) => {
+                const result = await service.getAccount(token.uid, accountId);
+                return result.ok ? result.value : null;
+            })
+        );
+
         return NextResponse.json({
             success: true,
             providers: providerCatalog(),
             flags: unifiedTradingFlagSnapshot(),
-            accounts: live.filter((account) => account !== null),
+            accounts: [...live, ...gatewayAccounts].filter(
+                (account) => account !== null
+            ),
             // The projection may hold accounts whose provider read failed
             // (deleted records). Surfacing the raw count keeps the UI honest
             // instead of silently shrinking the list.

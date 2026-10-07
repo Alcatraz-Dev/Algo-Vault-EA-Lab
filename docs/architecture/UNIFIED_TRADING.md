@@ -43,6 +43,12 @@ Nothing above the provider layer knows a broker exists. Adding cTrader later
 means writing one adapter — not touching the terminal, the chart, the AI
 surfaces, the risk engine or the UI.
 
+**The Pro Terminal is now the primary professional trading interface.** Every
+action it offers — place order, modify SL/TP, partial close, full close, cancel
+— goes through `POST /api/trading/execute` → `UnifiedTradingService`. The
+legacy `/api/trading/orders` queue is retained unchanged for the Chrome
+extension and gateway compatibility; it is not used by the terminal.
+
 ---
 
 ## 2. What already existed (and was reused, not rewritten)
@@ -74,6 +80,8 @@ surfaces, the risk engine or the UI.
 | `lib/trading/unified/mock-provider.ts` | `MockTradingProvider` for tests (never production). |
 | `lib/trading/unified/service.ts` | The fail-closed execution pipeline. |
 | `lib/trading/unified/store.ts` | RTDB idempotency, execution results, unified account projection, audit trail. |
+| `lib/trading/unified/client.ts` | Browser client for the Pro Terminal: `executeUnified`, fresh idempotency keys, phase labels/tones. Never polls, never fakes a fill. |
+| `lib/trading/unified/ids.ts` | Crypto-strong random ids (`crypto.getRandomValues`) for `clientRequestId`. |
 | `lib/trading/unified/server.ts` | Server-only composition root (`createUnifiedTradingService`, `providerCatalog`). |
 | `app/api/trading/accounts/route.ts` | `GET` accounts + provider catalog, `PUT` connection state. |
 | `app/api/trading/execute/route.ts` | The single execution endpoint for every channel. |
@@ -115,6 +123,8 @@ Trading Request
  → Account Ownership     accountId is read server-side; the client cannot name an account it does not own
  → Provider Resolution   adapter is chosen by the account-id NAMESPACE (gateway_ ⇒ MT5), never by client input
  → Feature Flags         UNIFIED_TRADING_ENABLED / MT5_DEMO_ENABLED
+ → License Gate          hasActiveTradingLicense(userId) — the same entitlement the
+                         legacy route and gateway EA enforce; injectable for tests
  → Demo Enforcement      provider-reported environment must be DEMO
  → Connection State      STALE / DISCONNECTED ⇒ refuse
  → Target Resolution     position/order must exist on that account
@@ -127,9 +137,35 @@ Trading Request
 
 **Refusal conditions (never fall back to a fake fill):** disconnected account,
 stale heartbeat, unknown provider, non-DEMO environment, unauthorized caller,
-account not owned, unavailable symbol, trading disabled, risk rejection,
-unverifiable provider response, conflicting idempotency key, incomplete server
-configuration, or a deployment not configured demo-only.
+missing trading license, account not owned, unavailable symbol, trading
+disabled, risk rejection, unverifiable provider response, conflicting
+idempotency key, incomplete server configuration, or a deployment not
+configured demo-only.
+
+### Execution states (terminal vocabulary)
+
+`TradingExecutionStatus` (server terminal states) and the phases the Pro
+Terminal renders:
+
+| Status | Meaning | HTTP | Audit action |
+|---|---|---|---|
+| `SUCCEEDED` | Provider-verified fill, position/order synced | 200 | `EXECUTION_SUCCEEDED` |
+| `EXECUTED_PENDING_SYNC` | **The broker confirmed the fill** (ticket + price + volume captured) but the synced position mirror has not appeared yet | 200 | `EXECUTION_PENDING_SYNC` |
+| `REJECTED` | Refused before or at the provider (validation, risk, demo-only, idempotency, provider rejection) | 4xx | `EXECUTION_REJECTED` |
+| `FAILED` | Execution attempt failed with **no** provider confirmation (transport error, no ticket) | 5xx | `EXECUTION_FAILED` |
+| `ACCEPTED` | Claimed, result pending | — | — |
+
+The race this fixes: previously, a provider-confirmed fill whose snapshot had
+not synced within the verification window was classified `FAILED`, inviting a
+retry that could double a real position. The MT5 adapter now polls the synced
+position/order state (`verifyInSyncedState`, up to
+`UNIFIED_TRADING_VERIFICATION_TIMEOUT_MS`, first retry ≥ 2s) and returns
+`EXECUTED_PENDING_SYNC` with `providerRef`/`filledVolume`/`filledPrice` when
+the broker's report arrived but the mirror did not. A terminal state without a
+provider confirmation is still `FAILED`.
+
+Audit events carry `executionType`, `requestedPercentage` (for partial closes)
+and `providerRef` (the broker ticket) in addition to the base fields.
 
 ---
 
@@ -153,9 +189,11 @@ cannot both execute.
 
 ## 7. Partial close semantics
 
-Partial close is a **volume** operation. For a position of 1.00 lot with +100
-floating P/L, closing 30% means closing ~0.30 lot and realizing the P/L that
-slice earned (+30). The remainder keeps 0.70 lot and +70.
+Partial close is a **volume** operation. The percentage is always a share of
+the position's **CURRENT VOLUME** — never of profit or balance. For a position
+of 1.00 lot with +100 floating P/L, closing 30% means closing ~0.30 lot and
+realizing the P/L that slice earned (+30). The remainder keeps 0.70 lot and
++70. 50% of a 0.20 lot position closes exactly 0.10 lot, whatever the P/L.
 
 It is **never** `$100 − 30% = $70 booked as a −$30 loss`.
 
@@ -221,6 +259,7 @@ orders on the gateway snapshot cadence (30s), audit only on execution events.
 | `UNIFIED_TRADING_HEARTBEAT_STALE_MS` | `90000` | DEGRADED → STALE (execution blocked). |
 | `UNIFIED_TRADING_EXECUTION_TIMEOUT_MS` | `20000` | Max wait for the EA execution report. |
 | `UNIFIED_TRADING_EXECUTION_POLL_MS` | `750` | Poll interval while waiting for the report. |
+| `UNIFIED_TRADING_VERIFICATION_TIMEOUT_MS` | `12000` | Max wait for the synced position mirror after a provider-confirmed fill; beyond it the outcome is `EXECUTED_PENDING_SYNC`, never `FAILED`. |
 
 Hard-off, not configurable: `MT4_DEMO_ENABLED`, `CTRADER_DEMO_ENABLED`,
 `TRADINGVIEW_EXECUTION_ENABLED`, `ALGOVAULT_BROKER_ENABLED`, and live trading.
@@ -260,27 +299,38 @@ Use the smallest volume the symbol allows (0.01 lot on EURUSD).
 | 10 | Close | `CLOSE_POSITION` → position gone, deal in history |
 | 11 | History | `GET /api/trading/accounts` history reflects the fill |
 | 12 | Idempotency | Replay the same `clientRequestId` → `duplicate: true`, no second trade |
-| 13 | Disconnect | Stop the EA → state becomes `STALE`, then execution returns 409 |
+| 13 | Slow snapshot (optional) | Stop the EA right after step 5 until `UNIFIED_TRADING_VERIFICATION_TIMEOUT_MS` elapses → result must be `EXECUTED_PENDING_SYNC` (HTTP 200, ticket in `providerRef`), **not** `FAILED`; after the EA restarts the position appears on the next snapshot |
+| 14 | Disconnect | Stop the EA → state becomes `STALE`, then execution returns 409 |
 
 **These steps have NOT been executed against a live MT5 terminal in this
-phase** (no MT5 installation or demo credentials in this environment). They are
-a documented procedure, not a verified result.
+phase.** The gateway protocol was previously verified end-to-end with a real
+MT5 demo account, but the Pro-Terminal rewiring itself was verified in this
+session only by automated tests (`npm run test:unified-trading`, 86 checks),
+typecheck and lint — **no manual MT5 terminal test was performed here** (no MT5
+installation or demo credentials in this environment). The table above is a
+documented procedure, not a verified result.
 
 ---
 
 ## 12. Testing
 
 ```
-npm run test:unified-trading   # 66 checks
-npm run test:trading           # existing provider-neutral suite (unchanged)
+npm run test:unified-trading   # 86 checks
+npm run test:trading           # provider-neutral suite (32 checks)
 ```
 
 `lib/trading/unified/__tests__/unified-trading.test.ts` covers the provider
-interface, the service pipeline, account ownership, demo-only enforcement,
-feature-flag blocking, idempotency (replay / conflict / in-flight), risk
-rejection, position and order retrieval, partial close correctness and volume
-rounding, provider error normalization, disconnect, stale connections,
-execution verification and audit logging.
+interface, the service pipeline, account ownership, the trading-license gate
+(allow and deny), demo-only enforcement (client-sent `environment: "LIVE"` and
+an account classified LIVE), feature-flag blocking, idempotency (replay /
+conflict / in-flight), risk rejection, position and order retrieval, BUY and
+SELL market execution, partial close correctness (30% of 1.00 and 50% of 0.20
+— percentage of current volume) and percentage/volume validation, full close,
+order cancel, provider error normalization, disconnect, stale connections,
+execution verification — including the **provider-confirmed-before-snapshot
+race**: a stub adapter returning `EXECUTED_PENDING_SYNC` must map to HTTP 200,
+audit `EXECUTION_PENDING_SYNC` and a replayable persisted result, while a
+transport failure stays `FAILED` with a non-2xx status — and audit logging.
 
 The partial-close test is explicit about the failure mode this phase is meant
 to prevent:
@@ -356,4 +406,6 @@ rewrite.
 | `PROVIDER_NOT_CONFIGURED` | Flag off or adapter missing | Check `MT5_DEMO_ENABLED` |
 | `DUPLICATE_REQUEST` | Key reused or still in flight | Use a new `clientRequestId` per logical order |
 | `EXECUTION_TIMEOUT` | EA did not confirm | Check terminal logs and that auto-trading is enabled |
+| `EXECUTED_PENDING_SYNC` | Broker confirmed the fill; the synced mirror is late | Nothing to fix — the position appears on the next snapshot; never re-submit the same `clientRequestId` |
+| `PERMISSION_DENIED` (403) on execute | No active trading access license | Activate Trading Access on `/account/trading-access` |
 | Order reported but no position | Verification failed | Inspect the audit event; nothing was faked |

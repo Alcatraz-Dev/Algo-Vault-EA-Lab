@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
     // declares its own limits so downstream prompts cannot over-claim.
     const matchingStrategies = strats
       .map((s) => {
-        const spec = (s.spec as Record<string, unknown>) | undefined;
+        const spec = typeof s.spec === "object" && s.spec !== null ? (s.spec as Record<string, unknown>) : undefined;
         const sSymbol = String(s.symbol || "").toUpperCase();
         const sTimeframe = String(spec?.timeframe || s.timeframe || "").toUpperCase();
         const reasons: string[] = [];

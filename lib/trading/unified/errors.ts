@@ -42,6 +42,40 @@ export interface TradingErrorInit {
     providerRetcode?: number | null;
 }
 
+/**
+ * Short, actionable message per code for the Pro Terminal. Longer context
+ * stays in the audit log; this is the one line the user sees.
+ */
+const USER_FACING_MESSAGE: Record<TradingErrorCode, string> = {
+    ACCOUNT_NOT_CONNECTED: "Trading account is not connected. Open the gateway EA and reconnect.",
+    ACCOUNT_NOT_FOUND: "Trading account or position was not found on this account.",
+    PROVIDER_UNAVAILABLE: "Trading provider is temporarily unavailable. Try again shortly.",
+    PROVIDER_STALE: "MT5 Gateway is stale — execution is blocked until the terminal reconnects.",
+    INVALID_SYMBOL: "Invalid symbol for this account.",
+    INVALID_VOLUME: "Invalid volume for this symbol.",
+    INSUFFICIENT_MARGIN: "Insufficient margin for this trade.",
+    MARKET_CLOSED: "The market is closed for this symbol.",
+    ORDER_REJECTED: "The broker rejected the order.",
+    EXECUTION_TIMEOUT: "Execution timed out — the gateway did not confirm in time. Check the terminal before retrying.",
+    DUPLICATE_REQUEST: "This order was already submitted. Wait for the original result.",
+    PERMISSION_DENIED: "You do not have permission to trade on this account.",
+    LIVE_EXECUTION_DISABLED: "Live execution is disabled. Only demo accounts can trade on AlgoVault.",
+    RISK_REJECTED: "The risk engine rejected this request.",
+    UNKNOWN_PROVIDER_ERROR: "The provider reported an unexpected error.",
+    INVALID_REQUEST: "The order request is invalid.",
+    UNSUPPORTED_OPERATION: "This action is not supported by the connected provider.",
+    PROVIDER_NOT_CONFIGURED: "No trading provider is configured for this account.",
+    TRADING_DISABLED: "Trading is disabled on this platform.",
+};
+
+export function userFacingMessage(code: TradingErrorCode, detail?: string | null): string {
+    const base = USER_FACING_MESSAGE[code] ?? "The order could not be executed.";
+    // A provider rejection reason (e.g. an MT5 retcode text) is appended so
+    // the user learns WHY, without ever exposing stack traces or internals.
+    const extra = detail && detail !== base ? ` (${detail})` : "";
+    return `${base}${extra}`;
+}
+
 export function tradingError(
     code: TradingErrorCode,
     message: string,

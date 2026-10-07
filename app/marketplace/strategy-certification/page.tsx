@@ -5,7 +5,7 @@ import { generateDueDiligence } from "@/lib/intelligence-cloud/marketplace-due-d
 
 export default function StrategyCertificationPage() {
   // Conceptual — would be driven by real strategy ID and backtest results
-  const dueDiligence = generateDueDiligence("str-001", "v2.1.3");
+  const dueDiligence = generateDueDiligence({ strategyId: "str-001", strategyVersion: "v2.1.3" });
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-10 space-y-10">
@@ -33,12 +33,13 @@ export default function StrategyCertificationPage() {
           <h3 className="font-semibold">Due Diligence Details</h3>
           <div className="grid md:grid-cols-2 gap-3 text-sm">
             <Detail label="Verification" value={dueDiligence.verificationStatus} />
-            <Detail label="Backtest Quality" value={`${dueDiligence.backtestQuality}/100`} />
-            <Detail label="OOS Quality" value={`${dueDiligence.oosQuality}/100`} />
-            <Detail label="WFA Stability" value={`${dueDiligence.walkForwardStability}/100`} />
-            <Detail label="Monte Carlo" value={`${dueDiligence.monteCarloRobustness}/100`} />
-            <Detail label="Drawdown" value={`${dueDiligence.drawdown}%`} />
-            <Detail label="Sample Size" value={`${dueDiligence.sampleSize} trades`} />
+            <Detail label="Backtest Trades" value={dueDiligence.backtest ? String(dueDiligence.backtest.trades) : "Not measured"} />
+            <Detail label="Net Return" value={dueDiligence.backtest?.netReturnPercent !== undefined ? `${dueDiligence.backtest.netReturnPercent}%` : "Not measured"} />
+            <Detail label="OOS" value={dueDiligence.oos ? (dueDiligence.oos.passed ? "Passed" : "Not passed") : "Not measured"} />
+            <Detail label="WFA Stability" value={dueDiligence.walkForward?.stability !== undefined ? `${dueDiligence.walkForward.stability}/100` : "Not measured"} />
+            <Detail label="Monte Carlo" value={dueDiligence.monteCarlo ? `${dueDiligence.monteCarlo.survivorshipRate ?? "—"}% survivorship` : "Not measured"} />
+            <Detail label="Max Drawdown" value={dueDiligence.backtest?.maxDrawdownPercent !== undefined ? `${dueDiligence.backtest.maxDrawdownPercent}%` : "Not measured"} />
+            <Detail label="Sample Size" value={dueDiligence.sampleSize !== undefined ? `${dueDiligence.sampleSize} trades` : "Not measured"} />
           </div>
         </div>
 
