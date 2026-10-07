@@ -126,6 +126,8 @@ export async function runUnifiedTradingTests(): Promise<boolean> {
         connectionError: null,
         gatewayVersion: "1.3.0",
     };
+    /** Counts real provider executions — proves idempotency never re-executes. */
+    let syncExecuteCalls = 0;
     const syncStub: TradingProviderAdapter = {
         provider: "MT5",
         descriptor: {
@@ -152,6 +154,7 @@ export async function runUnifiedTradingTests(): Promise<boolean> {
         getQuotes: async () => ({ ok: true, value: [] }),
         getCandles: async () => ({ ok: true, value: [] }),
         execute: async ({ request }) => {
+            syncExecuteCalls += 1;
             if (syncMode === "TRANSPORT_FAIL") {
                 return { ok: false, error: tradingError("PROVIDER_UNAVAILABLE", "Gateway link dropped before dispatch.") };
             }
@@ -472,6 +475,42 @@ export async function runUnifiedTradingTests(): Promise<boolean> {
         "the pending-sync outcome is audited with the provider reference"
     );
     s.check(syncStore.resultLog().some((r) => r.status === "EXECUTED_PENDING_SYNC"), "the pending-sync result is persisted for reconciliation");
+    s.check(syncExecuteCalls === 1, "exactly one provider execution for the pending-sync request");
+
+    // Full lifecycle + observability: provider confirmed → position not yet
+    // synced → PENDING_SYNC → HTTP 200 → audit → persisted result.
+    const pendingLifecycle = syncStore.auditLog().filter((e) => e.clientRequestId === "req-pending-sync");
+    s.check(
+        pendingLifecycle[0]?.action === "EXECUTION_ACCEPTED" && pendingLifecycle[1]?.action === "EXECUTION_PENDING_SYNC",
+        "the audit records the full lifecycle: EXECUTION_ACCEPTED → EXECUTION_PENDING_SYNC"
+    );
+    const pendingEvent = pendingLifecycle.find((e) => e.action === "EXECUTION_PENDING_SYNC");
+    s.check(
+        pendingEvent?.providerRef === "TICKET-9001" &&
+            pendingEvent?.symbol === "EURUSD" &&
+            pendingEvent?.volume === 0.1 &&
+            pendingEvent?.accountId === "gateway_777001" &&
+            pendingEvent?.environment === "DEMO",
+        "the audit event retains ticket, account, symbol, volume and environment for debugging"
+    );
+    s.check(typeof pendingEvent?.timestamp === "number", "the pending-sync audit event is timestamped");
+    const persistedPending = syncStore.resultLog().find((r) => r.clientRequestId === "req-pending-sync");
+    s.check(
+        persistedPending?.providerRef === "TICKET-9001" && persistedPending?.filledVolume === 0.1 && persistedPending?.filledPrice === 1.10123,
+        "the persisted result keeps providerRef, filled volume and filled price"
+    );
+    s.check(
+        persistedPending?.accountId === "gateway_777001" &&
+            persistedPending?.environment === "DEMO" &&
+            typeof persistedPending?.createdAt === "number" &&
+            typeof persistedPending?.completedAt === "number",
+        "the persisted result is scoped to the account and DEMO environment and is timestamped"
+    );
+    s.check(
+        !/(authorization|private_key|firebase_private|bearer\s)/i.test(JSON.stringify(syncStore.auditLog())),
+        "no credentials or auth headers are ever logged for pending-sync executions"
+    );
+
     const replayPending = await syncService.execute({
         userId: "user-sync",
         accountId: "gateway_777001",
@@ -482,6 +521,12 @@ export async function runUnifiedTradingTests(): Promise<boolean> {
         volume: 0.1,
     });
     s.check(replayPending.result.duplicate === true && replayPending.result.status === "EXECUTED_PENDING_SYNC", "replaying the key returns the same confirmed outcome, never a second trade");
+    s.check(replayPending.httpStatus === 200, "the replayed pending-sync result is also HTTP 200");
+    s.check(
+        replayPending.result.providerRef === "TICKET-9001" && replayPending.result.filledVolume === 0.1,
+        "the replay carries the original ticket and filled volume"
+    );
+    s.check(syncExecuteCalls === 1, "a delayed snapshot + replay still yields ONE provider execution — never a double trade");
 
     syncMode = "TRANSPORT_FAIL";
     const transportFail = await syncService.execute({
@@ -494,7 +539,14 @@ export async function runUnifiedTradingTests(): Promise<boolean> {
         volume: 0.1,
     });
     s.check(transportFail.result.status === "FAILED" && transportFail.httpStatus === 503, "a transport failure is still FAILED with a non-2xx status");
-    s.check(syncStore.auditLog().some((e) => e.action === "EXECUTION_FAILED"), "a transport failure is audited as EXECUTION_FAILED");
+    s.check(
+        transportFail.result.providerRef === null && transportFail.result.status !== "SUCCEEDED",
+        "an unconfirmed execution never claims a fill or a ticket — distinct from EXECUTED_PENDING_SYNC"
+    );
+    s.check(
+        syncStore.auditLog().some((e) => e.action === "EXECUTION_FAILED" && e.clientRequestId === "req-transport-fail"),
+        "a transport failure is audited as EXECUTION_FAILED"
+    );
     syncMode = "PENDING_SYNC";
 
     s.section("Audit trail covers every outcome without secrets");

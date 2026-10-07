@@ -305,17 +305,54 @@ Use the smallest volume the symbol allows (0.01 lot on EURUSD).
 **These steps have NOT been executed against a live MT5 terminal in this
 phase.** The gateway protocol was previously verified end-to-end with a real
 MT5 demo account, but the Pro-Terminal rewiring itself was verified in this
-session only by automated tests (`npm run test:unified-trading`, 86 checks),
+session only by automated tests (`npm run test:unified-trading`, 136 checks —
+including the provider-level verification-polling suite),
 typecheck and lint — **no manual MT5 terminal test was performed here** (no MT5
 installation or demo credentials in this environment). The table above is a
 documented procedure, not a verified result.
+
+### Manual verification-polling tests (A / B / C) — NOT EXECUTED in CI
+
+CI has no MT5 terminal. These are the exact manual procedures for the real
+gateway/provider integration; the automated suite only proves the deterministic
+polling behavior against a fake RTDB.
+
+**Test A — normal execution**
+
+1. Connect a MT5 **demo** account (steps 1–4 above) and confirm the EA panel
+   shows `connected` with a fresh heartbeat.
+2. `POST /api/trading/execute` with `{ "executionType": "PLACE_ORDER",
+   "symbol": "EURUSD", "side": "BUY", "volume": 0.01, "clientRequestId":
+   "<new 8+ char id>" }`.
+3. Expected: HTTP 200, `result.status = "SUCCEEDED"`, `providerRef` = the MT5
+   ticket.
+4. Expected: the MT5 position appears on the next snapshot, the AlgoVault
+   position appears, and there is exactly ONE position for that ticket.
+
+**Test B — delayed snapshot**
+
+1. In the EA, set `SnapshotInterval = 30` (slower than the execution
+   confirmation, which arrives within a few seconds) and re-attach it.
+2. Repeat Test A's request with a **new** `clientRequestId`.
+3. Expected: the provider confirms the fill first → AlgoVault returns
+   `EXECUTED_PENDING_SYNC` (HTTP 200, ticket in `providerRef`) — **not**
+   `FAILED`.
+4. Wait for the next snapshot → the position appears. It must NOT be
+   duplicated: still exactly one position for that ticket.
+
+**Test C — replay**
+
+1. Repeat Test B's request with the **same** `clientRequestId` and the same
+   payload.
+2. Expected: the same execution result with `duplicate: true` (HTTP 200) and
+   **no second MT5 position** — one provider execution total.
 
 ---
 
 ## 12. Testing
 
 ```
-npm run test:unified-trading   # 86 checks
+npm run test:unified-trading   # 136 checks (97 service-level + 39 provider-level)
 npm run test:trading           # provider-neutral suite (32 checks)
 ```
 
@@ -331,6 +368,32 @@ execution verification — including the **provider-confirmed-before-snapshot
 race**: a stub adapter returning `EXECUTED_PENDING_SYNC` must map to HTTP 200,
 audit `EXECUTION_PENDING_SYNC` and a replayable persisted result, while a
 transport failure stays `FAILED` with a non-2xx status — and audit logging.
+The pending-sync section also pins the full lifecycle (provider confirmed →
+position not yet synced → `EXECUTED_PENDING_SYNC` → HTTP 200 → audit →
+persisted result → same-`clientRequestId` replay returning the same result)
+with a provider-execution counter proving the replay never re-executes.
+
+`lib/trading/unified/__tests__/mt5-provider-verification.test.ts` drives the
+**real `Mt5DemoProvider`** (not a stub) end-to-end through `execute()` →
+`awaitExecutionReport()` → `verifyInSyncedState()` against a controlled
+in-memory fake of the RTDB admin database with per-path read counters and a
+virtual clock — no Firebase account, no MT5 terminal, no wall-clock sleeps:
+
+| Scenario | Expected | Position reads |
+|---|---|---|
+| Snapshot arrives on the 2nd poll (T0 report → T1 miss → T2 hit) | `SUCCEEDED`, never `FAILED` | ≥ 2 (exactly 2) |
+| Position already visible on the first attempt | `SUCCEEDED` | 1 |
+| Position never appears (verification timeout overridden to a tiny test value) | `EXECUTED_PENDING_SYNC`, never a fake `SUCCEEDED`, never `FAILED` | ≥ 2 until the deadline |
+| RTDB holds ticket 999999 instead of 123456 | polls until timeout; the unrelated position is never accepted | ≥ 2 |
+| Same ticket under a different account | not verified; the other account's namespace is never read | 0 outside the target |
+| Ticket + symbol + volume consistent (EURUSD 0.20) | `SUCCEEDED` (verification is ticket-scoped — the existing contract) | 1 |
+| EA execution report never arrives (transport failure) | `FAILED`, no ticket invented, command enqueued once | ≥ 2 on the report poll |
+
+Configuration checks pin `UNIFIED_TRADING_EXECUTION_TIMEOUT_MS` /
+`UNIFIED_TRADING_EXECUTION_POLL_MS` / `UNIFIED_TRADING_VERIFICATION_TIMEOUT_MS`
+as three distinct knobs with unchanged production defaults (20000 / 750 /
+12000), sane fallbacks for invalid values, and documentation in
+`.env.example`.
 
 The partial-close test is explicit about the failure mode this phase is meant
 to prevent:

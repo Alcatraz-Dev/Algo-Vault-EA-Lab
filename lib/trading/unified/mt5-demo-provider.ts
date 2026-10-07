@@ -119,6 +119,22 @@ function decodeExecutionState(value: unknown): TradingOrderState {
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
+/**
+ * Minimal RTDB surface this adapter uses, structurally satisfied by the
+ * Firebase admin SDK (`adminDatabase`).
+ *
+ * Exists so tests can drive verification against a controlled in-memory
+ * database WITHOUT a Firebase account. It is a test seam only: the production
+ * constructor default is the real `adminDatabase`, so production behavior is
+ * byte-for-byte unchanged.
+ */
+export interface Mt5ProviderDatabase {
+    ref(path: string): {
+        get(): Promise<{ exists(): boolean; val(): unknown }>;
+        set(value: unknown): Promise<unknown>;
+    };
+}
+
 export interface Mt5DemoProviderConfig {
     /** Heartbeat age after which the connection is considered stale (default 90s). */
     heartbeatStaleMs: number;
@@ -136,6 +152,13 @@ export interface Mt5DemoProviderConfig {
      */
     verificationTimeoutMs: number;
     clock: () => number;
+    /**
+     * Delay primitive used between poll iterations. Defaults to real
+     * `setTimeout`; tests inject a virtual-time sleep paired with `clock` so
+     * verification polling is deterministic (no arbitrary wall-clock sleeps).
+     * Production behavior is unchanged.
+     */
+    sleep?: (ms: number) => Promise<void>;
 }
 
 export function mt5DemoConfigFromEnv(env: NodeJS.ProcessEnv = process.env): Mt5DemoProviderConfig {
@@ -165,14 +188,21 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
         note: "Executes through the AlgoVaultTradeGateway EA command queue. Demo accounts only.",
     };
 
-    constructor(private readonly config: Mt5DemoProviderConfig = mt5DemoConfigFromEnv()) {}
+    private readonly delay: (ms: number) => Promise<void>;
+
+    constructor(
+        private readonly config: Mt5DemoProviderConfig = mt5DemoConfigFromEnv(),
+        private readonly database: Mt5ProviderDatabase = adminDatabase
+    ) {
+        this.delay = config.sleep ?? sleep;
+    }
 
     matchesAccountId(accountId: string): boolean {
         return isMt5AccountId(accountId);
     }
 
     private async rawAccount(userId: string, accountId: string): Promise<Record<string, unknown> | null> {
-        const snap = await adminDatabase.ref(`trading_accounts/${userId}/${accountId}`).get();
+        const snap = await this.database.ref(`trading_accounts/${userId}/${accountId}`).get();
         if (!snap.exists()) return null;
         const value = snap.val();
         return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
@@ -276,7 +306,7 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
     }
 
     async getPositions(userId: string, accountId: string): Promise<TradingResult<TradingPosition[]>> {
-        const snap = await adminDatabase.ref(`trading_positions/${userId}/${accountId}`).get();
+        const snap = await this.database.ref(`trading_positions/${userId}/${accountId}`).get();
         const data = snap.val();
         if (!data || typeof data !== "object") return { ok: true, value: [] };
         const positions: TradingPosition[] = [];
@@ -308,7 +338,7 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
     }
 
     async getOrders(userId: string, accountId: string): Promise<TradingResult<TradingOrder[]>> {
-        const snap = await adminDatabase.ref(`trading_orders/${userId}/${accountId}`).get();
+        const snap = await this.database.ref(`trading_orders/${userId}/${accountId}`).get();
         const data = snap.val();
         if (!data || typeof data !== "object") return { ok: true, value: [] };
         const orders: TradingOrder[] = [];
@@ -360,7 +390,7 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
         const orders = await this.getOrders(userId, accountId);
         if (!orders.ok) return orders;
 
-        const requestsSnap = await adminDatabase.ref(`trading_order_requests/${userId}`).get();
+        const requestsSnap = await this.database.ref(`trading_order_requests/${userId}`).get();
         const raw = requestsSnap.val();
         const requests = raw && typeof raw === "object" ? (raw as Record<string, Record<string, unknown>>) : {};
         const executed: TradingOrder[] = [];
@@ -512,7 +542,7 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
 
         // Enqueue on the EXISTING gateway command queue. The EA picks queued
         // commands up on its next poll.
-        await adminDatabase
+        await this.database
             .ref(`trading_order_requests/${request.userId}/${request.clientRequestId}`)
             .set({ ...command, clientRequestId: request.clientRequestId, correlationId: request.correlationId, status: "queued", createdAt: now, updatedAt: now });
 
@@ -680,7 +710,7 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
         userId: string,
         clientRequestId: string
     ): Promise<Record<string, unknown> | null> {
-        const ref = adminDatabase.ref(`trading_order_requests/${userId}/${clientRequestId}`);
+        const ref = this.database.ref(`trading_order_requests/${userId}/${clientRequestId}`);
         const deadline = this.config.clock() + this.config.executionTimeoutMs;
         while (this.config.clock() < deadline) {
             const snap = await ref.get();
@@ -692,7 +722,7 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
                     return record;
                 }
             }
-            await sleep(this.config.pollIntervalMs);
+            await this.delay(this.config.pollIntervalMs);
         }
         return null;
     }
@@ -751,7 +781,7 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
             const delayMs = attempt === 1 ? Math.max(this.config.pollIntervalMs, 2_000) : this.config.pollIntervalMs;
             const nextCheck = this.config.clock() + delayMs;
             if (nextCheck > deadline) return { ok: false };
-            await sleep(delayMs);
+            await this.delay(delayMs);
         }
     }
 }
