@@ -151,6 +151,15 @@ export class MockTradingProvider implements TradingProviderAdapter {
     private readonly accountIdByUser = new Map<string, string>();
     private seq = 0;
 
+    /**
+     * Deterministic count of adapter executions.
+     *
+     * The execution-safety invariant of every idempotency test: after N
+     * duplicate/concurrent/replayed requests sharing one idempotency key,
+     * `executeCount` must be exactly 1 — never derived from HTTP responses.
+     */
+    executeCount = 0;
+
     /** Test controls. */
     connectionOverride: "ONLINE" | "STALE" | "OFFLINE" = "ONLINE";
     failNextExecutionWith: TradingError | null = null;
@@ -462,6 +471,7 @@ export class MockTradingProvider implements TradingProviderAdapter {
     // ── execution ────────────────────────────────────────────────────────────
 
     async execute(input: AdapterExecutionInput): Promise<TradingResult<TradingExecutionResult>> {
+        this.executeCount += 1;
         const request = input.request;
         const base: MockExecutionBase = {
             clientRequestId: request.clientRequestId,

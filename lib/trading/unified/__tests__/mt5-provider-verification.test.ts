@@ -26,8 +26,10 @@ import {
     mt5DemoConfigFromEnv,
     type Mt5DemoProviderConfig,
 } from "@/lib/trading/unified/mt5-demo-provider";
-import type { AdapterExecutionInput, TradingResult } from "@/lib/trading/unified/adapter";
+import { TradingProviderRegistry, type AdapterExecutionInput, type TradingResult } from "@/lib/trading/unified/adapter";
+import { UnifiedTradingService, type ExecuteInput } from "@/lib/trading/unified/service";
 import type { TradingAccount, TradingExecutionRequest, TradingExecutionResult } from "@/lib/trading/unified/domain";
+import { createFakeStore } from "./fakes";
 
 const T0 = 1_700_000_000_000;
 const USER = "user-verify";
@@ -266,6 +268,22 @@ function installEaReport(db: FakeRtdb, input: AdapterExecutionInput, spec: EaRep
     });
 }
 
+/**
+ * `Mt5DemoProvider` with a deterministic execution counter.
+ *
+ * Execution-safety tests assert on this instead of HTTP responses: every
+ * `execute()` call = one enqueued MT5 command = one provider execution.
+ * No production behavior is changed — only the count is observed.
+ */
+class CountingMt5DemoProvider extends Mt5DemoProvider {
+    executeCount = 0;
+
+    async execute(input: AdapterExecutionInput): Promise<TradingResult<TradingExecutionResult>> {
+        this.executeCount += 1;
+        return super.execute(input);
+    }
+}
+
 interface Scenario {
     db: FakeRtdb;
     clock: VirtualClock;
@@ -418,6 +436,155 @@ export async function runMt5ProviderVerificationTests(): Promise<boolean> {
     s.check(transportResult?.error?.code === "EXECUTION_TIMEOUT", "the failure is reported as EXECUTION_TIMEOUT");
     s.check(transport.db.readCount(transportRequestPath) >= 2, "the execution-report poll loop actually polled before timing out");
     s.check(transport.db.writeCount(transportRequestPath) === 1, "the command was enqueued exactly once");
+
+    s.section("Late EA report — T0 submit → T3 window expires → T4 report arrives late");
+    // The report is intentionally delayed PAST the execution waiting window:
+    // no onWrite hook fires during execute(), so awaitExecutionReport polls
+    // until the (virtual) deadline and returns null.
+    const late = scenario({ eaReport: false });
+    const lateRequestPath = requestPath(late.input.request.clientRequestId);
+    // T0–T2: command queued once; the report poll loop runs inside the window.
+    const lateOutcome = await late.provider.execute(late.input);
+    const lateResult = valueOf(lateOutcome);
+    // T3: the configured waiting boundary is reached with no confirmation.
+    s.check(lateOutcome.ok && lateResult?.status === "FAILED", "T3: at the waiting-window boundary the provider had not confirmed — FAILED, per the existing production contract");
+    s.check(lateResult?.error?.code === "EXECUTION_TIMEOUT", "the boundary expiry is surfaced as EXECUTION_TIMEOUT");
+    s.check(lateResult?.providerRef === null, "no ticket is invented before provider confirmation");
+    s.check(
+        lateResult?.status !== "EXECUTED_PENDING_SYNC" && lateResult?.status !== "ACCEPTED" && lateResult?.status !== "SUCCEEDED",
+        "an unconfirmed window is NOT EXECUTED_PENDING_SYNC/ACCEPTED/SUCCEEDED — those require provider confirmation"
+    );
+    s.check(late.db.writeCount(lateRequestPath) === 1, "exactly ONE MT5 command was enqueued (T0)");
+    const readsAtSettle = late.db.readCount(lateRequestPath);
+
+    // T4: the EA execution report arrives LATE — ticket, execution price,
+    // volume and provider reference — written on top of the queued command,
+    // exactly as /api/trading/gateway/execution would after the deadline.
+    const queued = await late.db.ref(lateRequestPath).get();
+    const lateReport = {
+        ...(queued.val() as Record<string, unknown>),
+        status: "filled",
+        mt5Ticket: Number(TICKET),
+        volume: 0.01,
+        executionPrice: 1.165,
+        providerRef: TICKET,
+        executedAt: late.clock.now(),
+        errorMessage: null,
+    };
+    late.db.seed(lateRequestPath, lateReport);
+    late.db.seed(`trading_order_requests/${USER}`, { [late.input.request.clientRequestId]: lateReport });
+    late.db.seed(pPath, positionEntry());
+
+    s.check(
+        late.db.readCount(lateRequestPath) === readsAtSettle + 1,
+        "the late report wakes nothing: the only new command read is the test's own inspection — no watcher re-polls after settlement"
+    );
+    s.check(late.db.writeCount(lateRequestPath) === 1, "the late report never triggers a second command enqueue");
+    const lateHistory = await late.provider.getHistory(USER, ACCOUNT_ID);
+    s.check(
+        lateHistory.ok && lateHistory.value.orders.some((o) => o.providerRef === TICKET && o.state === "FILLED" && o.volume === 0.01 && o.price === 1.165),
+        "the late report is handled consistently: it surfaces as a FILLED order (ticket, volume, price) in the existing execution history"
+    );
+    const latePositions = await late.provider.getPositions(USER, ACCOUNT_ID);
+    s.check(latePositions.ok && latePositions.value.length === 1, "the late report resolves to exactly ONE position — never a duplicate");
+
+    s.section("Late report + client retries — one execution, one command, one canonical result");
+    // Full-stack: the REAL Mt5DemoProvider behind the REAL UnifiedTradingService
+    // (fake RTDB + virtual clock + fake idempotency store mirroring the RTDB
+    // transaction shape). The client submits, the EA report never arrives in
+    // time, then the client retries the SAME clientOrderId while the late
+    // report lands — the scenario that must never double-execute.
+    const svcClock = createVirtualClock(T0);
+    const svcDb = createFakeRtdb();
+    seedGatewayAccount(svcDb, svcClock);
+    const svcProvider = new CountingMt5DemoProvider(
+        testConfig(svcClock, { executionTimeoutMs: 3_000 }),
+        svcDb
+    );
+    const svcStore = createFakeStore();
+    const svcService = new UnifiedTradingService({
+        registry: new TradingProviderRegistry([svcProvider]),
+        idempotency: svcStore.idempotency,
+        persistResult: svcStore.persistResult,
+        persistAccount: svcStore.persistAccount,
+        audit: svcStore.audit,
+        entitlement: async () => true,
+        now: svcClock.now,
+    });
+    const svcKey = "req-late-report-0001";
+    const svcInput: ExecuteInput = {
+        userId: USER,
+        accountId: ACCOUNT_ID,
+        clientRequestId: svcKey,
+        executionType: "PLACE_ORDER",
+        symbol: "EURUSD",
+        side: "BUY",
+        volume: 0.01,
+    };
+    const svcRequestPath = requestPath(svcKey);
+
+    // T0–T3: no EA report inside the window → the service settles FAILED.
+    const first = await svcService.execute({ ...svcInput });
+    s.check(
+        first.result.status === "FAILED" && first.httpStatus === 504 && first.result.error?.code === "EXECUTION_TIMEOUT",
+        "T3: an unconfirmed waiting window settles as FAILED / EXECUTION_TIMEOUT / 504 — the existing production contract"
+    );
+    s.check(first.result.providerRef === null, "no provider reference exists before the provider confirms");
+    s.check(svcProvider.executeCount === 1, "T0–T3: providerExecutionCount = 1 (one command, one execution attempt)");
+    s.check(svcDb.writeCount(svcRequestPath) === 1, "T0–T3: exactly one MT5 command was enqueued");
+
+    // T4: the late report (ticket + execution price + volume + provider ref)
+    // arrives, and the broker snapshot shows the position.
+    const svcQueued = await svcDb.ref(svcRequestPath).get();
+    const svcLateReport = {
+        ...(svcQueued.val() as Record<string, unknown>),
+        status: "filled",
+        mt5Ticket: Number(TICKET),
+        volume: 0.01,
+        executionPrice: 1.165,
+        providerRef: TICKET,
+        executedAt: svcClock.now(),
+        errorMessage: null,
+    };
+    svcDb.seed(svcRequestPath, svcLateReport);
+    svcDb.seed(`trading_order_requests/${USER}`, { [svcKey]: svcLateReport });
+    svcDb.seed(positionsPath(), positionEntry());
+
+    // The client retries the SAME clientOrderId — 5 concurrent retries.
+    const retries = await Promise.all(
+        Array.from({ length: 5 }, () => svcService.execute({ ...svcInput }))
+    );
+    s.check(
+        retries.every((r) => r.result.duplicate === true && r.result.status === "FAILED" && r.httpStatus === 200),
+        "every retry replays the SAME canonical result (FAILED + duplicate marker) — a late report never revises a settled result"
+    );
+    s.check(
+        retries.every(
+            (r) =>
+                r.result.clientRequestId === svcKey &&
+                r.result.providerRef === first.result.providerRef &&
+                r.result.error?.code === first.result.error?.code
+        ),
+        "all retries converge on one canonical result: same key, same state, no fabricated ticket"
+    );
+    s.check(
+        svcProvider.executeCount === 1,
+        "providerExecutionCount = 1 — a late EA report must never cause a second provider execution"
+    );
+    s.check(svcDb.writeCount(svcRequestPath) === 1, "no duplicate MT5 command after the late report and the retries");
+    s.check(
+        svcStore.resultLog().filter((r) => r.clientRequestId === svcKey).length === 1,
+        "one canonical execution result is persisted"
+    );
+    const svcPositions = await svcProvider.getPositions(USER, ACCOUNT_ID);
+    s.check(
+        svcPositions.ok && svcPositions.value.length === 1 && svcPositions.value[0]?.providerRef === TICKET,
+        "no duplicate position: the snapshot holds exactly the one late-reported trade (ticket 123456)"
+    );
+    const svcAudits = svcStore.auditLog().filter((e) => e.clientRequestId === svcKey);
+    s.check(svcAudits.filter((e) => e.action === "EXECUTION_ACCEPTED").length === 1, "one EXECUTION_ACCEPTED — the idempotency key was claimed once");
+    s.check(svcAudits.filter((e) => e.action === "EXECUTION_FAILED").length === 1, "one EXECUTION_FAILED — one settlement");
+    s.check(svcAudits.filter((e) => e.action === "EXECUTION_DUPLICATE").length === 5, "each of the 5 late retries is audited as EXECUTION_DUPLICATE");
 
     s.section("Configuration: three distinct knobs, loaded and documented");
     const mapped = mt5DemoConfigFromEnv({

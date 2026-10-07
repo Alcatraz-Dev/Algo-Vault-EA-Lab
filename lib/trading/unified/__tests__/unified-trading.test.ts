@@ -1,7 +1,7 @@
 import { createSuite } from "@/lib/performance-arena/__tests__/harness";
 import { TradingProviderRegistry } from "@/lib/trading/unified/adapter";
 import { MockTradingProvider } from "@/lib/trading/unified/mock-provider";
-import { UnifiedTradingService } from "@/lib/trading/unified/service";
+import { UnifiedTradingService, type ExecuteInput } from "@/lib/trading/unified/service";
 import { planPartialClose, proportionalProfit, roundVolume, VolumeError } from "@/lib/trading/unified/volume";
 import { mapMt5Retcode, tradingError } from "@/lib/trading/unified/errors";
 import { classifyMt5Environment } from "@/lib/trading/unified/mt5-demo-provider";
@@ -560,6 +560,209 @@ export async function runUnifiedTradingTests(): Promise<boolean> {
     s.section("Persisted results round-trip");
     const persisted = store.resultLog().at(-1);
     s.check(Boolean(persisted) && typeof (persisted as TradingExecutionResult).clientRequestId === "string", "results carry the client request id for reconciliation");
+
+    // ── Execution-safety: concurrency, conflict, isolation ──────────────────
+    // These sections run against FRESH stores/providers so their counters are
+    // exact. Every request below goes through the real service pipeline —
+    // flags → ownership → entitlement → risk → idempotency claim → provider —
+    // and the idempotency claim is the real boundary being exercised: the
+    // winner is decided by the claim, never by ordering the requests apart.
+
+    s.section("Concurrent idempotency — 10 identical requests converge on ONE execution");
+    const concStore = createFakeStore();
+    const concProvider = new MockTradingProvider({ clock: () => now, userId: "user-conc", accountId: "conc-account" });
+    const concService = new UnifiedTradingService({
+        registry: new TradingProviderRegistry([concProvider]),
+        idempotency: concStore.idempotency,
+        persistResult: concStore.persistResult,
+        persistAccount: concStore.persistAccount,
+        audit: concStore.audit,
+        entitlement: async () => true,
+        now: () => now,
+    });
+    const concRequest: ExecuteInput = {
+        userId: "user-conc",
+        accountId: "conc-account",
+        clientRequestId: "req-concurrent-0001",
+        executionType: "PLACE_ORDER",
+        symbol: "EURUSD",
+        side: "BUY",
+        volume: 0.01,
+    };
+    const concurrentWave = await Promise.all(
+        Array.from({ length: 10 }, () => concService.execute({ ...concRequest }))
+    );
+    s.check(
+        concProvider.executeCount === 1,
+        "10 concurrent identical requests yield providerExecutionCount = 1 (never 10)"
+    );
+    const concWinners = concurrentWave.filter((r) => r.result.status === "SUCCEEDED" && r.result.duplicate !== true);
+    s.check(concWinners.length === 1, "exactly one request wins the idempotency claim and executes");
+    const concReplays = concurrentWave.filter((r) => r.result.duplicate === true);
+    const concInFlight = concurrentWave.filter((r) => r.result.error?.code === "DUPLICATE_REQUEST" && r.result.duplicate !== true);
+    s.check(
+        concReplays.length + concInFlight.length === 9,
+        `the other 9 converge without re-executing (${concInFlight.length} in-flight refusals + ${concReplays.length} replays)`
+    );
+    s.check(
+        concInFlight.every((r) => r.httpStatus === 409),
+        "an in-flight duplicate keeps the existing contract: 409 DUPLICATE_REQUEST, never a second submission"
+    );
+    const concCanonical = concWinners[0]?.result;
+    s.check(Boolean(concCanonical?.providerRef), "the canonical execution carries one provider reference");
+    s.check(
+        concReplays.every(
+            (r) =>
+                r.result.providerRef === concCanonical?.providerRef &&
+                r.result.status === concCanonical?.status &&
+                r.result.filledVolume === concCanonical?.filledVolume &&
+                r.result.filledPrice === concCanonical?.filledPrice &&
+                r.result.clientRequestId === concRequest.clientRequestId &&
+                r.result.accountId === concRequest.accountId
+        ),
+        "every replay converges on the same canonical result (providerRef, state, price, volume)"
+    );
+    s.check(
+        concStore.resultLog().filter((r) => r.clientRequestId === concRequest.clientRequestId).length === 1,
+        "exactly ONE canonical execution result is persisted for the key"
+    );
+    s.check(
+        (await readPositions(concProvider, "user-conc", "conc-account")).length === 1,
+        "exactly one position exists — no duplicate trade"
+    );
+    const concAudits = concStore.auditLog().filter((e) => e.clientRequestId === concRequest.clientRequestId);
+    s.check(concAudits.filter((e) => e.action === "EXECUTION_ACCEPTED").length === 1, "one EXECUTION_ACCEPTED — the claim was taken exactly once");
+    s.check(concAudits.filter((e) => e.action === "EXECUTION_SUCCEEDED").length === 1, "one EXECUTION_SUCCEEDED — one provider execution");
+    s.check(concAudits.filter((e) => e.action === "EXECUTION_DUPLICATE").length === 9, "the 9 non-executing requests are audited as EXECUTION_DUPLICATE");
+
+    // Post-settle: 10 more concurrent requests on the SAME key. Now the
+    // original is complete, so the existing replay-marker semantics apply:
+    // every one of them returns the identical canonical result with
+    // `duplicate: true`, and the provider is never touched again.
+    const replayWave = await Promise.all(
+        Array.from({ length: 10 }, () => concService.execute({ ...concRequest }))
+    );
+    s.check(
+        replayWave.every((r) => r.result.duplicate === true && r.result.status === "SUCCEEDED" && r.httpStatus === 200),
+        "10 concurrent post-settle retries all replay the canonical result with the duplicate marker (HTTP 200)"
+    );
+    s.check(
+        new Set(replayWave.map((r) => r.result.providerRef)).size === 1 && replayWave.every((r) => r.result.providerRef === concCanonical?.providerRef),
+        "all concurrent replays carry the same executionId/providerRef/ticket/state/price/volume"
+    );
+    s.check(
+        concProvider.executeCount === 1,
+        "20 requests on one idempotency key still yield providerExecutionCount = 1"
+    );
+    s.check(
+        concStore.resultLog().filter((r) => r.clientRequestId === concRequest.clientRequestId).length === 1,
+        "a replay never overwrites or re-persists the canonical result"
+    );
+
+    s.section("Concurrent conflict — same clientOrderId, different payload, never both trades");
+    const cfltStore = createFakeStore();
+    const cfltProvider = new MockTradingProvider({ clock: () => now, userId: "user-cflt", accountId: "cflt-account" });
+    const cfltService = new UnifiedTradingService({
+        registry: new TradingProviderRegistry([cfltProvider]),
+        idempotency: cfltStore.idempotency,
+        persistResult: cfltStore.persistResult,
+        persistAccount: cfltStore.persistAccount,
+        audit: cfltStore.audit,
+        entitlement: async () => true,
+        now: () => now,
+    });
+    const cfltKey: ExecuteInput = {
+        userId: "user-cflt",
+        accountId: "cflt-account",
+        clientRequestId: "req-conflict-0001",
+        executionType: "PLACE_ORDER",
+        symbol: "EURUSD",
+        volume: 0.01,
+    };
+    const [cfltBuy, cfltSell] = await Promise.all([
+        cfltService.execute({ ...cfltKey, side: "BUY" }),
+        cfltService.execute({ ...cfltKey, side: "SELL" }),
+    ]);
+    s.check(
+        cfltProvider.executeCount === 1,
+        "conflicting concurrent requests yield ONE provider execution — never both trades"
+    );
+    s.check(cfltBuy.result.status === "SUCCEEDED", "one canonical request (BUY 0.01) wins the idempotency claim");
+    s.check(
+        cfltSell.result.error?.code === "DUPLICATE_REQUEST" && cfltSell.httpStatus === 409,
+        "the conflicting request (SELL 0.01) is rejected as an idempotency conflict"
+    );
+    const cfltPositions = await readPositions(cfltProvider, "user-cflt", "cflt-account");
+    s.check(
+        cfltPositions.length === 1 && cfltPositions[0]?.side === "BUY",
+        "only the winning BUY position exists — the SELL was never executed"
+    );
+    s.check(
+        cfltStore.resultLog().filter((r) => r.clientRequestId === cfltKey.clientRequestId).length === 1,
+        "one canonical persisted result for the contested key"
+    );
+    const cfltLate = await cfltService.execute({ ...cfltKey, side: "SELL" });
+    s.check(
+        cfltLate.result.error?.code === "DUPLICATE_REQUEST" && cfltProvider.executeCount === 1,
+        "a post-settlement conflicting retry is still a conflict — still no second execution"
+    );
+
+    s.section("Account isolation — idempotency keys are scoped per user");
+    const isoStore = createFakeStore();
+    const isoProvider = new MockTradingProvider({ clock: () => now });
+    isoProvider.grantAccount("user-iso-a", "iso-account-a", "DEMO", 10_000);
+    isoProvider.grantAccount("user-iso-b", "iso-account-b", "DEMO", 10_000);
+    const isoService = new UnifiedTradingService({
+        registry: new TradingProviderRegistry([isoProvider]),
+        idempotency: isoStore.idempotency,
+        persistResult: isoStore.persistResult,
+        persistAccount: isoStore.persistAccount,
+        audit: isoStore.audit,
+        entitlement: async () => true,
+        now: () => now,
+    });
+    const sharedKey = "req-iso-shared-0001";
+    const isoInput = (userId: string, accountId: string, clientRequestId: string): ExecuteInput => ({
+        userId,
+        accountId,
+        clientRequestId,
+        executionType: "PLACE_ORDER",
+        symbol: "EURUSD",
+        side: "BUY",
+        volume: 0.01,
+    });
+    const isoA = await isoService.execute(isoInput("user-iso-a", "iso-account-a", sharedKey));
+    const isoB = await isoService.execute(isoInput("user-iso-b", "iso-account-b", sharedKey));
+    s.check(
+        isoA.result.status === "SUCCEEDED" && isoB.result.status === "SUCCEEDED",
+        "the same clientOrderId under two users/accounts does NOT collide — both execute"
+    );
+    s.check(
+        isoProvider.executeCount === 2,
+        "idempotency is user-scoped: 2 isolated users, 2 legitimate provider executions"
+    );
+    s.check(
+        isoA.result.providerRef !== null && isoA.result.providerRef !== isoB.result.providerRef,
+        "the two trades carry distinct provider tickets"
+    );
+    const isoReplayA = await isoService.execute(isoInput("user-iso-a", "iso-account-a", sharedKey));
+    s.check(
+        isoReplayA.result.duplicate === true &&
+            isoReplayA.result.providerRef === isoA.result.providerRef &&
+            isoReplayA.result.accountId === "iso-account-a",
+        "user A's replay returns user A's canonical result — never user B's"
+    );
+    s.check(isoProvider.executeCount === 2, "the cross-user replay still executes nothing new");
+    s.check(
+        (await readPositions(isoProvider, "user-iso-a", "iso-account-a")).length === 1 &&
+            (await readPositions(isoProvider, "user-iso-b", "iso-account-b")).length === 1,
+        "each account holds exactly its own position"
+    );
+    const isoCross = await isoService.execute(isoInput("user-iso-a", "iso-account-b", "req-iso-cross-0001"));
+    s.check(
+        isoCross.result.error?.code === "ACCOUNT_NOT_FOUND" && isoProvider.executeCount === 2,
+        "a user cannot execute against another user's account — ownership is checked before anything else"
+    );
 
     return s.finish();
 }
