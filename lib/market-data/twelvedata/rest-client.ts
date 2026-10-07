@@ -97,6 +97,30 @@ function isTwelveDataError(data: unknown): data is TwelveDataError {
   );
 }
 
+/**
+ * Why a Twelve Data request ended the way it did.
+ *
+ * Callers that must distinguish "the provider has no more data" (a genuine
+ * history boundary) from "the provider could not answer right now" (rate
+ * limit, auth, network) need the outcome, not just `null`.
+ */
+export type TwelveDataOutcome =
+  | "ok"            // a successful payload came back
+  | "rate_limited"  // HTTP 429 / credit exhaustion — transient
+  | "auth"          // missing/invalid key or plan problem
+  | "api_error"     // provider-level error body (may still mean "no data")
+  | "network"       // non-OK HTTP or network failure after retries
+  | "missing_key";  // no TWELVE_DATA_API_KEY configured
+
+export type TwelveDataResult<T> = {
+  data: T | null;
+  outcome: TwelveDataOutcome;
+  /** Provider error code when the response body carried one. */
+  code?: number;
+  /** Provider error message when the response body carried one. */
+  message?: string;
+};
+
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -106,10 +130,25 @@ export async function twelveDataFetch<T>(
   params: Record<string, string>,
   options?: { retries?: number; timeoutMs?: number }
 ): Promise<T | null> {
+  const result = await twelveDataFetchDetailed<T>(endpoint, params, options);
+  return result.data;
+}
+
+/**
+ * Outcome-aware variant of {@link twelveDataFetch}. Same request/retry
+ * semantics — it additionally reports WHY the request produced nothing so
+ * history paging can differentiate an exhausted series from a transient
+ * provider failure instead of latching "no more history".
+ */
+export async function twelveDataFetchDetailed<T>(
+  endpoint: string,
+  params: Record<string, string>,
+  options?: { retries?: number; timeoutMs?: number }
+): Promise<TwelveDataResult<T>> {
   const apiKey = getTwelveDataApiKey();
   if (!apiKey) {
     console.warn("[twelvedata] Missing TWELVE_DATA_API_KEY");
-    return null;
+    return { data: null, outcome: "missing_key" };
   }
 
   const url = new URL(`${TWELVE_DATA_CONFIG.restBaseUrl}${endpoint}`);
@@ -144,17 +183,17 @@ export async function twelveDataFetch<T>(
           await delay(Math.min(retryAfter * 1000, 5000));
           continue;
         }
-        return null;
+        return { data: null, outcome: "rate_limited" };
       }
 
       if (response.status === 401) {
         console.error("[twelvedata] Invalid API key (401)");
-        return null;
+        return { data: null, outcome: "auth" };
       }
 
       if (response.status === 403) {
         console.error("[twelvedata] Forbidden (403) - plan upgrade required");
-        return null;
+        return { data: null, outcome: "auth" };
       }
 
       if (!response.ok) {
@@ -167,10 +206,10 @@ export async function twelveDataFetch<T>(
 
       if (isTwelveDataError(data)) {
         console.warn("[twelvedata] API error", { code: data.code, message: data.message });
-        return null;
+        return { data: null, outcome: "api_error", code: data.code, message: data.message };
       }
 
-      return data;
+      return { data, outcome: "ok" };
     } catch (error) {
       clearTimeout(timer);
       lastError = error;
@@ -182,7 +221,7 @@ export async function twelveDataFetch<T>(
     endpoint,
     error: lastError instanceof Error ? lastError.message : String(lastError),
   });
-  return null;
+  return { data: null, outcome: "network" };
 }
 
 /**
@@ -210,6 +249,17 @@ export async function fetchTimeSeries(
   outputsize: number,
   options?: { startDate?: string; endDate?: string }
 ): Promise<TimeSeriesResponse | null> {
+  const result = await fetchTimeSeriesWithOutcome(tdSymbol, interval, outputsize, options);
+  return result.data;
+}
+
+/** Outcome-aware time-series fetch (same request shape as fetchTimeSeries). */
+export async function fetchTimeSeriesWithOutcome(
+  tdSymbol: string,
+  interval: string,
+  outputsize: number,
+  options?: { startDate?: string; endDate?: string }
+): Promise<TwelveDataResult<TimeSeriesResponse>> {
   const params: Record<string, string> = {
     symbol: tdSymbol,
     interval,
@@ -219,7 +269,7 @@ export async function fetchTimeSeries(
   if (options?.startDate) params.start_date = options.startDate;
   if (options?.endDate) params.end_date = options.endDate;
 
-  return twelveDataFetch<TimeSeriesResponse>("/time_series", params);
+  return twelveDataFetchDetailed<TimeSeriesResponse>("/time_series", params);
 }
 
 export async function fetchQuote(tdSymbol: string): Promise<QuoteResponse | null> {

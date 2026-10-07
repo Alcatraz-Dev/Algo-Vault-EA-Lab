@@ -661,6 +661,394 @@ check("nothing is paused while ticks are flowing and the week is open", () => {
     assertEqual(running.reason, null);
 });
 
+// ══════════════════════════════════════════════════════════════════
+// Phase 0 — contract-fix regression tests
+// ══════════════════════════════════════════════════════════════════
+
+const readSource = (rel: string): string => fs.readFileSync(path.resolve(__dirname, "..", rel), "utf8");
+const CHART_SOURCE = readSource("components/pro-scalping-terminal/ProTerminalChart.tsx");
+const DRAWING_UTILS_SOURCE = readSource("components/pro-scalping-terminal/drawing-utils.ts");
+const WORKSPACE_SOURCE = readSource("components/pro-scalping-terminal/ProTerminalChartWorkspace.tsx");
+const SHELL_SOURCE = readSource("components/terminal/TerminalShell.tsx");
+const TERMINAL_DATA_SOURCE = readSource("components/terminal/TerminalData.tsx");
+const ROUTE_SOURCE = readSource("app/api/analytics/ohlc/route.ts");
+const TOOLBAR_SOURCE = readSource("components/trading/ChartToolbar.tsx");
+const ENGINE_SOURCE = readSource("lib/chart-engine/chart-data-engine.ts");
+
+console.log("Phase 0: history limit contract");
+check("explicit valid client limit wins over the timeframe default", () => {
+    // M15's default is 400 — an explicit request must survive it.
+    assertEqual(resolveOhlcLimit("M15", 1500), 1500, "explicit limit honored");
+    assertEqual(resolveOhlcLimit("H1", 1800), 1800, "explicit limit beats H1 default (200)");
+    assertEqual(resolveOhlcLimit("D1", 300), 300, "explicit limit beats D1 default (120)");
+});
+check("limit is clamped to the safe server window", () => {
+    assertEqual(clampOhlcLimit(9999), OHLC_MAX_LIMIT, "clamped to max");
+    assertEqual(clampOhlcLimit(1), OHLC_MIN_LIMIT, "clamped to min");
+    assertEqual(clampOhlcLimit("2500"), OHLC_MAX_LIMIT, "string over-max clamps");
+    assertEqual(clampOhlcLimit(750.9), 750, "floored");
+    assertEqual(clampOhlcLimit("abc"), null, "unparsable → null");
+    assertEqual(clampOhlcLimit(""), null, "empty → null");
+    assertEqual(clampOhlcLimit(null), null, "absent → null");
+});
+check("default behavior still works when no limit is provided", () => {
+    assertEqual(resolveOhlcLimit("M1"), 500);
+    assertEqual(resolveOhlcLimit("M15"), 400);
+    assertEqual(resolveOhlcLimit("H1"), 200);
+    assertEqual(resolveOhlcLimit("D1"), 120);
+    assertEqual(timeframeToLimit("H4"), 150, "timeframe table unchanged");
+});
+check("ohlc route honors the explicit limit and clamps server-side", () => {
+    assert(ROUTE_SOURCE.includes("clampOhlcLimit(rawLimit)"), "route clamps raw limit");
+    assert(ROUTE_SOURCE.includes("?? timeframeToLimit(timeframe)"), "timeframe table is only the fallback");
+    assert(ROUTE_SOURCE.includes("const MAX_LIMIT = OHLC_MAX_LIMIT"), "server max is authoritative");
+    assert(!/Number\(rawLimit\) \|\| 400/.test(ROUTE_SOURCE), "legacy '|| 400' override removed");
+    assert(ROUTE_SOURCE.includes("fetchCandles(symbol, timeframe, { limit })"), "effective limit passed to provider pipeline");
+});
+check("deep paging (before/from/to) still passes the limit through", () => {
+    assert(ROUTE_SOURCE.includes("fetchDeepHistoryPage(symbol, timeframe, { beforeMs: before, limit })"), "range fill carries limit");
+    // Phase 1: page-back uses the outcome-aware variant so a transient
+    // provider failure is never reported as "no more history" — the limit
+    // and exclusive beforeMs cursor must still be carried through.
+    assert(ROUTE_SOURCE.includes("fetchDeepHistoryPageDetailed(symbol, timeframe, { beforeMs: Number(beforeParam), limit })"), "page-back carries limit via the outcome-aware fetch");
+    assert(ROUTE_SOURCE.includes("fromParam") && ROUTE_SOURCE.includes("toParam"), "from/to preserved");
+    assert(ROUTE_SOURCE.includes("hasDeepHistory"), "deep-history contract preserved");
+    assert(ROUTE_SOURCE.includes("historyBoundary"), "page-back reports exhausted vs unavailable");
+});
+check("finaliseCandles: ascending order, no duplicate opens (first wins)", () => {
+    const out = finaliseCandles([
+        { timestamp: 3000, open: 3, high: 3, low: 3, close: 3 },
+        { timestamp: 1000, open: 1, high: 1, low: 1, close: 1 },
+        { timestamp: 2000, open: 2, high: 2, low: 2, close: 2 },
+        { timestamp: 2000, open: 99, high: 99, low: 99, close: 99 },
+    ]);
+    assertEqual(out.map((c) => c.timestamp), [1000, 2000, 3000], "ascending + deduped");
+    assertEqual(out[1].open, 2, "first occurrence wins on duplicate");
+});
+
+console.log("Phase 0: coordinate contract");
+check("resolveMarketPointToPixel returns null when either axis is unresolvable", () => {
+    const chart = { timeScale: () => ({ timeToCoordinate: (t: Time) => (Number(t) === 1_700_000_000 ? 42 : null) }) };
+    const series = { priceToCoordinate: (p: number) => (p > 0 ? 7 : null) };
+    const ok = resolveMarketPointToPixel({ time: 1_700_000_000_000, price: 100 }, chart, series);
+    assertEqual(ok, { x: 42, y: 7 }, "both axes resolve → pixel");
+    assertEqual(resolveMarketPointToPixel({ time: 1_700_000_060_000, price: 100 }, chart, series), null, "unresolvable time → null, never x=0");
+    assertEqual(resolveMarketPointToPixel({ time: 1_700_000_000_000, price: -1 }, chart, series), null, "unresolvable price → null, never y=0");
+    assertEqual(resolveMarketPointToPixel({ time: 1_700_000_000_000, price: 100 }, null, series), null, "missing chart → null");
+    assertEqual(resolveMarketPointToPixel({ time: 1_700_000_000_000, price: 100 }, chart, null), null, "missing series → null");
+    const throwing = { timeScale: () => ({ timeToCoordinate: () => { throw new Error("not ready"); } }) };
+    assertEqual(resolveMarketPointToPixel({ time: 1, price: 1 }, throwing, series), null, "throwing transform → null, no crash");
+});
+check("timeframe switch: unresolvable drawing stays persisted and returns when resolvable", () => {
+    const d: DrawingItem = {
+        id: "d1",
+        type: "trendline",
+        points: [{ time: 1_700_000_000_000, price: 100 }, { time: 1_700_000_300_000, price: 110 }],
+    };
+    const before = JSON.stringify(d);
+    // New timeframe: candle opens don't match the stored timestamps → hidden.
+    const m5Chart = { timeScale: () => ({ timeToCoordinate: () => null }) };
+    const series = { priceToCoordinate: () => 5 };
+    assertEqual(resolveMarketPointToPixel(d.points[0], m5Chart, series), null, "hidden while unresolvable");
+    // Stored market data untouched by the failed resolution.
+    assertEqual(JSON.stringify(d), before, "market coordinates never mutated");
+    // Original timeframe returns → visible again automatically.
+    const resolved = resolveMarketPointToPixel(d.points[0], { timeScale: () => ({ timeToCoordinate: () => 12 }) }, series);
+    assertEqual(resolved, { x: 12, y: 5 }, "renders again once resolvable");
+});
+check("chart source has no timeToCoordinate/priceToCoordinate ?? 0 fallbacks", () => {
+    const re = /(?:timeToCoordinate|priceToCoordinate)\([\s\S]{0,150}?\?\?\s*0/g;
+    assert(re.exec(CHART_SOURCE) === null, "ProTerminalChart: no ?? 0 coordinate fallback");
+    assert(re.exec(DRAWING_UTILS_SOURCE) === null, "drawing-utils: no ?? 0 coordinate fallback");
+});
+check("unresolved drawing is skipped by hit-testing (continue on null)", () => {
+    assert(CHART_SOURCE.includes("if (!a || !b) continue;"), "hit-test path skips unresolvable objects");
+    assert(CHART_SOURCE.includes("if (!a || !b) return null;"), "render path skips unresolvable objects");
+});
+
+console.log("Phase 0: drawing tools");
+check("hand never commits a drawing; select neither; placement needs a drag", () => {
+    assertEqual(toolCommitsDrawing("hand", 100), false, "hand never commits");
+    assertEqual(toolCommitsDrawing("hand", 0), false, "hand never commits, zero drag");
+    assertEqual(toolCommitsDrawing("select", 100), false, "select never commits");
+    assertEqual(toolCommitsDrawing("horizontal", 0), true, "click-placed line commits without drag");
+    assertEqual(toolCommitsDrawing("text", 0), true, "text commits without drag");
+    assertEqual(toolCommitsDrawing("trendline", 20), true, "drag commits");
+    assertEqual(toolCommitsDrawing("trendline", 2), false, "sub-threshold jitter doesn't commit");
+    assert(CHART_SOURCE.includes('if (tool === "hand")'), "pointer-down early-returns for hand");
+    assert(CHART_SOURCE.includes("toolCommitsDrawing(dp.tool, dist)"), "pointer-up gates commit on toolCommitsDrawing");
+});
+check("triangle: deterministic third vertex, real polygon renderer", () => {
+    assertEqual(triangleVertices(10, 20, 110, 80), [[10, 20], [110, 80], [10, 80]], "third vertex derived from the two stored points");
+    assert(CHART_SOURCE.includes('d.type === "triangle"') && CHART_SOURCE.includes("<polygon"), "triangle render branch exists");
+    const g: DrawingGeom = { x1: 10, y1: 20, x2: 110, y2: 80, width: 400, height: 300, fontSize: 12 };
+    assert(hitTestDrawing("triangle", g, 10, 50, 8), "hits the left edge (x1…y2)");
+    assert(hitTestDrawing("triangle", g, 60, 50, 8), "hits the diagonal");
+    assert(!hitTestDrawing("triangle", g, 40, 60, 8), "interior stays free for panning");
+    assert(TOOLBAR_SOURCE.includes('id: "triangle"'), "toolbar exposes the triangle tool");
+    assert(TOOLBAR_SOURCE.includes('id: "ray"'), "toolbar exposes the ray tool");
+});
+check("ray extends from anchor toward p2 to the container boundary", () => {
+    // Anchor (50,100) toward (150,140) in 800×600: dx=100,dy=40 → hits x=800 first (t=7.5 → y=400).
+    const end = extendRayToBounds(50, 100, 150, 140, 800, 600);
+    assert(end !== null, "ray resolves");
+    assert(end !== null && end.x === 800, "extends to right boundary");
+    assert(end !== null && end.y === 400, "direction from the two market points");
+    // Backward ray: p2 left of anchor → extends to x=0.
+    const back = extendRayToBounds(150, 140, 50, 100, 800, 600);
+    assert(back !== null && back.x === 0, "backward ray reaches left boundary");
+    // Degenerate direction → null (never a fake segment).
+    assertEqual(extendRayToBounds(50, 100, 50, 100, 800, 600), null, "degenerate ray → null");
+    // Hit-test measures against the SAME extended geometry.
+    const g: DrawingGeom = { x1: 50, y1: 100, x2: 150, y2: 140, width: 800, height: 600, fontSize: 12 };
+    assert(hitTestDrawing("ray", g, 700, 360, 8), "hit far past p2 on the extended ray");
+    assert(!hitTestDrawing("ray", g, 700, 100, 8), "off-axis point misses");
+    assert(CHART_SOURCE.includes("extendRayToBounds("), "renderer uses the shared extension helper");
+});
+
+console.log("Phase 0: fibonacci shared source of truth");
+check("resolvedFiboLevels: drawing override > configured > defaults", () => {
+    assertEqual(resolvedFiboLevels(null, null), [...DEFAULT_FIBO_LEVELS], "falls back to defaults");
+    assertEqual(resolvedFiboLevels(null, [0, 0.5, 1]), [0, 0.5, 1], "configured wins over defaults");
+    assertEqual(resolvedFiboLevels({ fiboLevels: [0, 0.25, 1] }, [0, 0.5, 1]), [0, 0.25, 1], "drawing override wins over configured");
+    // Invalid arrays (< 2 finite) fall through instead of rendering garbage.
+    assertEqual(resolvedFiboLevels({ fiboLevels: [0.5] }, [0, 1]), [0, 1], "single-level override rejected");
+    assertEqual(resolvedFiboLevels({ fiboLevels: [Number.NaN, Infinity] }, null), [...DEFAULT_FIBO_LEVELS], "all-invalid → defaults");
+});
+check("custom fibo levels affect BOTH rendering geometry and hit-testing", () => {
+    const levels = resolvedFiboLevels({ fiboLevels: [0, 0.5, 1] }, [0, 0.382, 0.618, 1]);
+    assertEqual(levels, [0, 0.5, 1], "shared resolver picks the custom set");
+    const g: DrawingGeom = { x1: 0, y1: 100, x2: 200, y2: 300, width: 400, height: 400, fontSize: 12, fiboLevels: levels };
+    // y = y1 + diff*level → 0.5 → y=200 (a custom level that isn't in the default set).
+    assert(hitTestDrawing("fibo", g, 100, 200, 6), "hits the custom 50% level");
+    // y = 100 + 200*0.382 = 176.4 — present only in the OLD default list.
+    assert(!hitTestDrawing("fibo", g, 100, 176.4, 6), "misses a level absent from the custom set");
+    // Same geometry, default levels → the opposite verdict: shared source of truth.
+    const gd: DrawingGeom = { ...g, fiboLevels: [...DEFAULT_FIBO_LEVELS] };
+    assert(hitTestDrawing("fibo", gd, 100, 176.4, 6), "default set hits its own 38.2% level");
+    // Chart renderer + hit-test both call the same helper.
+    assert(CHART_SOURCE.includes("resolvedFiboLevels(d, cfg.tools.fiboLevels)"), "renderer resolves levels via helper");
+    assert(CHART_SOURCE.includes("resolvedFiboLevels(d, cfgRef.current.tools.fiboLevels)"), "hit-test resolves levels via helper");
+    assert(!/const FIB\w* = \[0, 0\.236/.test(DRAWING_UTILS_SOURCE), "no hardcoded level array in hit-testing");
+});
+
+console.log("Phase 0: layer truth");
+check("only explicit true renders — missing/off keys are OFF", () => {
+    assertEqual(isLayerOn(null, "vwap"), false, "null state → off");
+    assertEqual(isLayerOn({}, "ema9"), false, "missing key → off");
+    assertEqual(isLayerOn({ vwap: false }, "vwap"), false, "explicit false → off");
+    assertEqual(isLayerOn({ vwap: true }, "vwap"), true, "explicit true → on");
+});
+check("default layer state is clean (no indicator on by default)", () => {
+    const d = defaultLayerState();
+    assertEqual(d.vwap, false, "VWAP off by default");
+    assertEqual(d.ema9, false, "EMA9 off by default");
+    assertEqual(d.ema20, false, "EMA20 off by default");
+    assertEqual(CHART_LAYERS.every((l) => l.defaultOn === false), true, "every layer defaults off");
+});
+check("EMA9/EMA20/VWAP visibility is bound to its layer config", () => {
+    assert(CHART_SOURCE.includes('visible: isLayerOn(layers, "vwap")'), "VWAP visibility follows layers.vwap");
+    assert(CHART_SOURCE.includes('visible: isLayerOn(layers, "ema9")'), "EMA9 visibility follows layers.ema9");
+    assert(CHART_SOURCE.includes('visible: isLayerOn(layers, "ema20")'), "EMA20 visibility follows layers.ema20");
+});
+check("capability truthfulness: available ⇒ implemented ⇒ bound in the chart", () => {
+    const boundLayer = (id: string): boolean =>
+        new RegExp(`layers\\.${id}\\b|isLayerOn\\(layers, "${id}"\\)`).test(CHART_SOURCE);
+    for (const l of CHART_LAYERS) {
+        const cap = layerCapability(l.id);
+        if (l.available) {
+            assertEqual(cap, "implemented", `${l.id} is available so it must be implemented`);
+            const bound = new RegExp(`layers\\.${l.id}\\b|isLayerOn\\(layers, "${l.id}"\\)`).test(CHART_SOURCE);
+            assert(bound, `${l.id} is available but has no binding in ProTerminalChart`);
+        } else {
+            // Unavailable layers are either explicitly planned/unsupported or
+            // per-symbol gated (gex has a renderer, enabled only for some symbols).
+            if (cap === "implemented") {
+                assert(l.id === "gex", `${l.id} is unavailable but neither planned nor per-symbol gated`);
+            }
+        }
+        if (cap !== "implemented") {
+            assertEqual(l.available, false, `${l.id} capability=${cap} must not be advertised as available`);
+            assert(LAYER_REQUIREMENTS[l.id] !== undefined, `${l.id} planned layer needs a requirements entry`);
+            assertEqual(boundLayer(l.id), false, `${l.id} planned ⇒ no render binding in the chart`);
+        }
+    }
+});
+check("ema9 layer exists and is selectable", () => {
+    const ema9 = CHART_LAYERS.find((l) => l.id === "ema9");
+    assert(ema9 !== undefined, "ema9 layer declared");
+    assertEqual(layerCapability("ema9"), "implemented", "ema9 has a real renderer");
+});
+
+console.log("Phase 0: position callbacks + trade history wiring");
+check("onPositionSelect chain: Shell → Workspace → Chart, semantic only", () => {
+    assert(SHELL_SOURCE.includes("onPositionSelect={handlePositionSelect}"), "Shell forwards its handler");
+    assert(WORKSPACE_SOURCE.includes("onPositionSelect={onPositionSelect}"), "Workspace forwards the prop");
+    assert(CHART_SOURCE.includes("onPositionSelectRef.current?.("), "Chart emits the callback");
+    assert(!CHART_SOURCE.includes("/api/trading/execute"), "Chart never calls the execute endpoint");
+    assert(!WORKSPACE_SOURCE.includes("/api/trading/execute"), "Workspace never calls the execute endpoint");
+});
+check("onModifyPositionStops chain: ticket + changed stop, no execution in the chart", () => {
+    assert(SHELL_SOURCE.includes("onModifyPositionStops={handleModifyPositionStops}"), "Shell forwards its handler");
+    assert(WORKSPACE_SOURCE.includes("onModifyPositionStops={onModifyPositionStops}"), "Workspace forwards the prop");
+    assert(CHART_SOURCE.includes("onModifyPositionStopsRef.current?.(dragged.ticket"), "Chart emits ticket + stops");
+    // Host-side commit goes through the frozen Unified Trading path.
+    assert(SHELL_SOURCE.includes('executionType: "MODIFY_POSITION"'), "Shell routes through Unified Trading MODIFY_POSITION");
+    assert(SHELL_SOURCE.includes("positionId: ticket"), "host passes the position identity");
+});
+check("chartHistory derives from real execution logs — not hardcoded empty", () => {
+    assert(!/chartHistory\s*=\s*\[\s*\]/.test(SHELL_SOURCE), "no hard-coded chartHistory = []");
+    assert(SHELL_SOURCE.includes("data.executionLogs"), "Shell reads executionLogs from context");
+    assert(SHELL_SOURCE.includes("tradeFillFromExecution"), "reuses the existing execution → fill mapping");
+    assert(SHELL_SOURCE.includes("!l.errorCode"), "failed executions excluded");
+    assert(SHELL_SOURCE.includes("l.executionPrice > 0"), "invalid prices excluded");
+    assert(SHELL_SOURCE.includes("tradeHistory={chartHistory}"), "history is actually passed to the chart");
+});
+check("execution logs are per-account from RTDB trading_logs/{uid}/{accountId}", () => {
+    assert(TERMINAL_DATA_SOURCE.includes("trading_logs/"), "listens on trading_logs path");
+    assert(TERMINAL_DATA_SOURCE.includes("${uid}/${accountId}"), "account-scoped — isolation preserved");
+    assert(TERMINAL_DATA_SOURCE.includes("executionLogs"), "exposed on the context");
+});
+
+console.log("Phase 0: reconciliation wiring");
+check("resync() reconciles instead of a full reload when data exists", () => {
+    assert(ENGINE_SOURCE.includes("this.reconcile(page.candles)"), "resync invokes reconcile");
+    assert(ENGINE_SOURCE.includes("if (this.candles.length === 0)"), "empty dataset keeps the initial-load path");
+    assert(ENGINE_SOURCE.includes("this.commitCandles(enforceChronology(result.series), \"reconcile\")"), "reconcile commits through chronology enforcement");
+    // No viewport reset: reconcile doesn't touch visible-range APIs.
+    const reconcileBody = ENGINE_SOURCE.slice(ENGINE_SOURCE.indexOf("reconcile(providerCandles"), ENGINE_SOURCE.indexOf("detectGaps"));
+    assert(!/setVisibleRange|scrollToPosition|scrollToRealTime/.test(reconcileBody), "reconcile never resets the viewport");
+});
+
+// ── Phase 0 async checks (queued; summary printed by runQueuedAsyncChecks) ──
+
+const P0_HOUR = 3_600_000;
+function p0Series(n: number, startMs: number, price = 100): ChartCandle[] {
+    const out: ChartCandle[] = [];
+    for (let i = 0; i < n; i++) {
+        out.push({
+            timestamp: startMs + i * P0_HOUR,
+            open: price + i,
+            high: price + i + 1,
+            low: price + i - 1,
+            close: price + i + 0.5,
+            volume: 10 + i,
+            symbol: "XAUUSD",
+            timeframe: "H1",
+            finalized: true,
+        });
+    }
+    return out;
+}
+async function p0WaitUntil(pred: () => boolean, ms = 1000): Promise<void> {
+    const t0 = Date.now();
+    while (!pred() && Date.now() - t0 < ms) await new Promise((r) => setTimeout(r, 10));
+    if (!pred()) throw new Error("condition not met within " + ms + "ms");
+}
+
+checkAsync("resync reconciles: no dupes, no chronology break, no viewport reset", async () => {
+    const base = Date.UTC(2026, 0, 5, 0); // fixed past Monday 00:00
+    let latestCalls = 0;
+    const sources: ChartDataSources = {
+        loadLatest: async () => {
+            latestCalls += 1;
+            // First load: 10 bars. On resync: overlapping page with a corrected
+            // close on bar #7 plus two genuinely new bars.
+            const candles = p0Series(latestCalls === 1 ? 10 : 12, base);
+            if (latestCalls > 1) candles[7] = { ...candles[7], close: 555, high: 556 };
+            return { candles, hasMore: false };
+        },
+        loadOlder: async () => ({ candles: [], hasMore: false }),
+    };
+    const engine = new ChartDataEngine(sources, {
+        symbol: "XAUUSD",
+        timeframe: "H1",
+        pageSize: 12,
+        healthIntervalMs: 60_000,
+    });
+    try {
+        engine.start();
+        await p0WaitUntil(() => engine.getCandles().length === 10);
+        const before = engine.getCandles();
+        const beforeFirst = before[0].timestamp;
+
+        await engine.resync();
+        const after = [...engine.getCandles()];
+
+        // No duplicate timestamps.
+        assertEqual(new Set(after.map((c) => c.timestamp)).size, after.length, "no duplicate candles");
+        // Chronology strictly ascending (no regression in candle chronology).
+        for (let i = 1; i < after.length; i++) {
+            assert(after[i].timestamp > after[i - 1].timestamp, `chronology holds at index ${i}`);
+        }
+        // Deep history preserved — no viewport/dataset reset.
+        assertEqual(after[0].timestamp, beforeFirst, "oldest candle unchanged (no reload)");
+        assert(after.length >= before.length, "dataset preserved or grown");
+        // Provider correction applied and new bars merged in.
+        assert(after.some((c) => c.close === 555), "provider correction wins on its bucket");
+        assertEqual(after.length, 12, "two new bars merged");
+        // No future leakage: every bar at or before the last known open.
+        const lastOpen = after[after.length - 1].timestamp;
+        assert(after.every((c) => c.timestamp <= lastOpen), "no bar beyond the newest known open");
+        assertEqual(engine.getStatus().connection, "live", "back to live after reconcile");
+        assertEqual(engine.getStatus().reconnects, 1, "reconnect counted");
+        assert(latestCalls === 2, "exactly one fresh page fetched (no polling loop added)");
+    } finally {
+        engine.destroy();
+    }
+});
+
+checkAsync("loadOlder prepend: viewport history grows without dropping bars", async () => {
+    const base = Date.UTC(2026, 0, 5, 0);
+    const sources: ChartDataSources = {
+        loadLatest: async () => ({ candles: p0Series(5, base), hasMore: true }),
+        loadOlder: async ({ beforeMs }) => ({
+            candles: p0Series(5, beforeMs - 5 * P0_HOUR).filter((c) => c.timestamp < beforeMs),
+            hasMore: false,
+        }),
+    };
+    const engine = new ChartDataEngine(sources, {
+        symbol: "XAUUSD",
+        timeframe: "H1",
+        pageSize: 5,
+        healthIntervalMs: 60_000,
+    });
+    try {
+        engine.start();
+        await p0WaitUntil(() => engine.getCandles().length === 5);
+        const firsts = engine.getCandles()[0].timestamp;
+        const ok = await engine.loadOlder();
+        assert(ok, "older page loaded");
+        const after = [...engine.getCandles()];
+        assertEqual(after.length, 10, "five prepended");
+        assert(after[0].timestamp < firsts, "older bars land at the front");
+        for (let i = 1; i < after.length; i++) {
+            assert(after[i].timestamp > after[i - 1].timestamp, `prepend keeps chronology at ${i}`);
+        }
+    } finally {
+        engine.destroy();
+    }
+});
+
+checkAsync("explicit limit reaches the provider URL (clamped at the server max)", async () => {
+    const originalFetch = globalThis.fetch;
+    const seen: string[] = [];
+    globalThis.fetch = (async (url: unknown) => {
+        seen.push(String(url));
+        return new Response(JSON.stringify({ bars: [] }), { status: 200 });
+    }) as typeof fetch;
+    try {
+        await fetchCandlesWithProvider("XAUUSD", "M15", { limit: 1500 });
+        assert(seen.some((u) => u.includes("limit=1500")), `explicit 1500 reaches provider: ${seen[0] ?? "(none)"}`);
+        await fetchCandlesWithProvider("XAUUSD", "H1", {});
+        assert(seen.some((u) => u.includes("limit=200")), "H1 default used when absent");
+        await fetchCandlesWithProvider("XAUUSD", "D1", { limit: 99_999 });
+        assert(seen.some((u) => u.includes("limit=2000")), "over-max clamped to 2000 at the provider boundary");
+    } finally {
+        globalThis.fetch = originalFetch;
+    }
+});
+
 async function runQueuedAsyncChecks(): Promise<void> {
     for (const t of asyncChecks) {
         try {

@@ -1,7 +1,6 @@
 import type { MarketCandle, SupportedSymbol } from "@/lib/market-data/types";
-import type { ChartCandle, ChartTick } from "./candle";
-import { toChartCandle } from "./candle";
-import { applyHistory, applyTick, enforceChronology, isChronological } from "./candle-aggregator";
+import { candlesEqual, toChartCandle, type ChartCandle, type ChartTick } from "./candle";
+import { applyHistory, applyTick, enforceChronology, indexAtOrBefore, isChronological } from "./candle-aggregator";
 import { candleOpenTime, expectedCandleOpens, type ChartTimeframe } from "./timeframe";
 
 /**
@@ -45,6 +44,17 @@ export type ChartEngineStatus = {
     candlesLoaded: number;
     oldestLoadedTimestamp: number | null;
     hasMoreHistory: boolean;
+    /**
+     * Why (or why not) more history can be loaded — Phase 1 failure semantics.
+     *  unknown       → nothing probed yet
+     *  has_more      → the provider reports more pages
+     *  exhausted     → the provider authoritatively has nothing older
+     *  unavailable   → history is temporarily unavailable (rate limit,
+     *                  auth, network). NOT a boundary: the engine backs off
+     *                  for a cooldown, then retries — it never latches
+     *                  hasMoreHistory=false on a transient failure.
+     */
+    historyAvailability: HistoryAvailability;
     loadingOlder: boolean;
     gapsDetected: number;
     duplicatesDropped: number;
@@ -52,10 +62,18 @@ export type ChartEngineStatus = {
     reconnects: number;
 };
 
+export type HistoryAvailability = "unknown" | "has_more" | "exhausted" | "unavailable";
+
 export interface HistoryPage {
     candles: ChartCandle[];
     /** False when the provider exhausted history before `beforeMs`. */
     hasMore: boolean;
+    /**
+     * Optional explicit boundary from the data source. When present it wins
+     * over the empty-page heuristic so a transient provider failure is never
+     * reported as "no more history".
+     */
+    boundary?: "more" | "exhausted" | "unavailable";
 }
 
 /** Boundary the engine uses to obtain candles — the only touchpoint with I/O. */
@@ -102,6 +120,46 @@ const TICK_STAMP_EPSILON_MS = 1500;
  */
 const REPAIR_RETRY_MS = 60_000;
 
+/**
+ * Phase 1 bounded history prefetch: a threshold crossing fetches at most
+ * this many pages (each one engine pageSize — never one enormous request).
+ */
+const MAX_PREFETCH_PAGES = 3;
+
+/**
+ * Scroll-back buffer a prefetch aims for. Converted to a page count through
+ * the engine's own pageSize, so the bound is derived rather than hardcoded
+ * per call site: pages = clamp(ceil(PREFETCH_TARGET_BARS / pageSize), 1, 3).
+ */
+const PREFETCH_TARGET_BARS = 1000;
+
+/**
+ * Backoff before re-attempting history after a transient failure (network,
+ * rate limit, provider outage). During the cooldown the engine reports
+ * "temporarily unavailable" — hasMoreHistory stays true and no request is
+ * issued — so the chart neither latches "no more history" nor hammers the
+ * provider on every scroll event.
+ */
+const HISTORY_RETRY_COOLDOWN_MS = 20_000;
+
+/**
+ * True when the series differs in length, in any candle's values, or in a
+ * finalize flag. Used to skip snapshot publication for no-op merges (an
+ * identical provider response or an all-duplicate history page must not
+ * notify React subscribers).
+ */
+function seriesDiffers(next: readonly ChartCandle[], prev: readonly ChartCandle[]): boolean {
+    if (next.length !== prev.length) return true;
+    for (let i = 0; i < next.length; i++) {
+        const a = next[i];
+        const b = prev[i];
+        if (a === b) continue;
+        if (a.finalized !== b.finalized) return true;
+        if (!candlesEqual(a, b)) return true;
+    }
+    return false;
+}
+
 export class ChartDataEngine {
     readonly seriesKey: string;
     private readonly symbol: string;
@@ -128,9 +186,14 @@ export class ChartDataEngine {
     private lastRequestedOldest: number | null = null;
     private repairAttemptFor: number | null = null;
     private repairAttemptAt = 0;
+    /** Earliest time a history request may be retried after a failure. */
+    private historyRetryAt = 0;
+    /** When the in-flight reconcile/resync request began (wall clock). */
+    private reconcileRequestStartedAt = 0;
     private healthTimer: ReturnType<typeof setInterval> | null = null;
     private listeners = new Set<(e: EngineEvent) => void>();
-    private currentAbort: AbortController | null = null;
+    /** Every in-flight I/O request — aborted together on epoch changes. */
+    private activeRequests = new Set<AbortController>();
 
     constructor(sources: ChartDataSources, options: ChartDataEngineOptions) {
         this.sources = sources;
@@ -152,6 +215,7 @@ export class ChartDataEngine {
             candlesLoaded: 0,
             oldestLoadedTimestamp: null,
             hasMoreHistory: true,
+            historyAvailability: "unknown",
             loadingOlder: false,
             gapsDetected: 0,
             duplicatesDropped: 0,
@@ -217,18 +281,35 @@ export class ChartDataEngine {
             clearInterval(this.healthTimer);
             this.healthTimer = null;
         }
-        this.currentAbort?.abort();
+        this.abortActiveRequests();
         this.listeners.clear();
+    }
+
+    // ── request/abort bookkeeping ───────────────────────────────────────────────
+    /** Register an in-flight request so epoch changes can cancel it. */
+    private beginRequest(): AbortController {
+        const controller = new AbortController();
+        this.activeRequests.add(controller);
+        return controller;
+    }
+
+    private endRequest(controller: AbortController): void {
+        this.activeRequests.delete(controller);
+    }
+
+    /** Cancel every in-flight request (epoch change: load/resync/destroy). */
+    private abortActiveRequests(): void {
+        for (const controller of this.activeRequests) controller.abort();
+        this.activeRequests.clear();
     }
 
     // ── history ─────────────────────────────────────────────────────────────
     async loadInitial(): Promise<void> {
         const gen = ++this.generation;
-        this.currentAbort?.abort();
-        const abort = new AbortController();
-        this.currentAbort = abort;
+        this.abortActiveRequests();
+        const abort = this.beginRequest();
 
-        this.setStatus({ connection: "loading", quality: "synchronizing", error: null });
+        this.setStatus({ connection: "loading", quality: "synchronizing", error: null, loadingOlder: false });
 
         try {
             const page = await this.sources.loadLatest({
@@ -248,6 +329,7 @@ export class ChartDataEngine {
                 candlesLoaded: this.candles.length,
                 oldestLoadedTimestamp: this.candles[0]?.timestamp ?? null,
                 hasMoreHistory: page.hasMore,
+                historyAvailability: page.hasMore ? "has_more" : "exhausted",
                 rowsRejected: result.rejected,
                 duplicatesDropped: result.duplicates,
                 error: null,
@@ -265,6 +347,8 @@ export class ChartDataEngine {
                 quality: "stale",
                 error: err instanceof Error ? err.message : "Failed to load chart history.",
             });
+        } finally {
+            this.endRequest(abort);
         }
     }
 
@@ -286,6 +370,9 @@ export class ChartDataEngine {
             connection: "reconnecting",
             quality: "synchronizing",
             reconnects: s.reconnects + 1,
+            // A new epoch begins: any in-flight older-page load is cancelled
+            // and its stale result must not leave loadingOlder latched.
+            loadingOlder: false,
         }));
         if (this.candles.length === 0) {
             await this.loadInitial();
@@ -296,12 +383,19 @@ export class ChartDataEngine {
         // Reconcile path — mirrors loadInitial's generation/status contract so
         // an in-flight older-page load cannot commit after the reconnect.
         const gen = ++this.generation;
-        this.currentAbort?.abort();
+        this.abortActiveRequests();
+        const abort = this.beginRequest();
+        // Marks when the provider snapshot began: a live tick arriving after
+        // this moment is NEWER than the page and stays authoritative for the
+        // forming bucket (see reconcile).
+        const requestStartedAt = Date.now();
+        this.reconcileRequestStartedAt = requestStartedAt;
         try {
             const page = await this.sources.loadLatest({
                 symbol: this.symbol,
                 timeframe: this.timeframe,
                 limit: this.pageSize,
+                signal: abort.signal,
             });
             if (this.destroyed || gen !== this.generation) return;
             this.reconcile(page.candles);
@@ -312,6 +406,7 @@ export class ChartDataEngine {
                 candlesLoaded: this.candles.length,
                 oldestLoadedTimestamp: this.candles[0]?.timestamp ?? null,
                 hasMoreHistory: page.hasMore,
+                historyAvailability: page.hasMore ? "has_more" : "exhausted",
                 error: null,
             });
         } catch (err) {
@@ -321,57 +416,167 @@ export class ChartDataEngine {
                 quality: "stale",
                 error: err instanceof Error ? err.message : "Failed to load chart history.",
             });
+        } finally {
+            // Only clear our own marker — a superseded resync must not wipe
+            // the marker of a newer one still in flight.
+            if (this.reconcileRequestStartedAt === requestStartedAt) {
+                this.reconcileRequestStartedAt = 0;
+            }
+            this.endRequest(abort);
         }
         // After the reload/reconcile, repair any hole between what we kept and
         // the fresh page.
         await this.detectAndRepairGaps();
     }
 
-    /** Prepend one older page; preserves existing candles (no viewport jump). */
-    async loadOlder(): Promise<boolean> {
+    /**
+     * Bounded prefetch page count for one history-threshold crossing,
+     * derived from the engine's own page size:
+     *
+     *   pages = clamp(ceil(PREFETCH_TARGET_BARS / pageSize), 1, MAX_PREFETCH_PAGES)
+     *
+     * so a threshold crossing buffers roughly PREFETCH_TARGET_BARS candles
+     * through `pageSize × boundedPrefetchPages` requests instead of one
+     * enormous request — and never more than MAX_PREFETCH_PAGES round trips.
+     */
+    get prefetchPages(): number {
+        const size = Math.max(1, this.pageSize);
+        return Math.min(MAX_PREFETCH_PAGES, Math.max(1, Math.ceil(PREFETCH_TARGET_BARS / size)));
+    }
+
+    /**
+     * Prepend older history pages; preserves existing candles (no viewport jump).
+     *
+     * Phase 1 batch prefetch: when `options.pages > 1` (the scroll-threshold
+     * path passes `prefetchPages`), pages are fetched SEQUENTIALLY with a
+     * shared cursor, merged, deduped and committed as ONE canonical update —
+     * a single snapshot publication and a single renderer viewport
+     * compensation for the whole batch, never one per page.
+     *
+     * Failure semantics: a transient provider failure sets
+     * historyAvailability="unavailable" with a cooldown — it NEVER latches
+     * hasMoreHistory=false (only an authoritative empty/exhausted page does).
+     */
+    async loadOlder(options?: { pages?: number }): Promise<boolean> {
         if (this.destroyed || this.status.loadingOlder) return false;
         if (!this.status.hasMoreHistory) return false;
+        // Back off after a transient failure instead of hammering the
+        // provider on every scroll event (history stays available).
+        if (this.status.historyAvailability === "unavailable" && Date.now() < this.historyRetryAt) {
+            return false;
+        }
         const oldest = this.candles[0]?.timestamp;
         if (oldest === undefined) return false;
         // Don't re-request the same boundary twice (dedupe against double-scroll).
         if (this.lastRequestedOldest === oldest && this.historyInFlight) return false;
 
+        const pagesWanted = Math.min(MAX_PREFETCH_PAGES, Math.max(1, Math.floor(options?.pages ?? 1)));
         const gen = this.generation;
+        const abort = this.beginRequest();
         this.historyInFlight = true;
         this.lastRequestedOldest = oldest;
         this.setStatus({ loadingOlder: true });
-        try {
-            const page = await this.sources.loadOlder({
-                symbol: this.symbol,
-                timeframe: this.timeframe,
-                beforeMs: oldest,
-                limit: this.pageSize,
-            });
-            if (this.destroyed || gen !== this.generation) return false;
 
-            if (page.candles.length === 0) {
-                this.setStatus({ hasMoreHistory: false, loadingOlder: false });
+        try {
+            let cursor = oldest;
+            const incoming: ChartCandle[] = [];
+            let boundary: "more" | "exhausted" | "unavailable" | undefined;
+            let lastHasMore = false;
+
+            for (let page = 0; page < pagesWanted; page++) {
+                const result = await this.sources.loadOlder({
+                    symbol: this.symbol,
+                    timeframe: this.timeframe,
+                    beforeMs: cursor,
+                    limit: this.pageSize,
+                    signal: abort.signal,
+                });
+                // A stale/aborted request must never mutate the new chart
+                // state (symbol/timeframe switch, resync, destroy).
+                if (this.destroyed || gen !== this.generation) return false;
+
+                if (result.boundary !== undefined) boundary = result.boundary;
+                lastHasMore = result.hasMore;
+                if (result.candles.length === 0) break; // authoritative end (or failure, per boundary)
+
+                const pageOldest = Math.min(...result.candles.map((c) => c.timestamp));
+                if (!(pageOldest < cursor)) break; // no forward progress — stop
+                incoming.push(...result.candles);
+                cursor = pageOldest;
+
+                if (!result.hasMore) break;
+                if (result.boundary === "exhausted") break;
+            }
+
+            // ── resolve history availability (Phase 1 failure semantics) ──
+            let availability: HistoryAvailability;
+            if (boundary === "unavailable") {
+                // Transient provider failure — NOT a history boundary. Keep
+                // hasMoreHistory true and back off for a cooldown.
+                availability = "unavailable";
+                this.historyRetryAt = Date.now() + HISTORY_RETRY_COOLDOWN_MS;
+            } else if (
+                boundary === "more" &&
+                incoming.length > 0
+            ) {
+                availability = "has_more";
+            } else if (
+                incoming.length === 0 ||
+                boundary === "exhausted" ||
+                !lastHasMore
+            ) {
+                // Empty page without a failure marker / explicit exhaustion /
+                // short last page: the honest end of available history.
+                availability = "exhausted";
+            } else {
+                availability = "has_more";
+            }
+
+            const hasMoreNext = availability === "has_more" || availability === "unavailable";
+
+            if (incoming.length === 0) {
+                this.setStatus({
+                    loadingOlder: false,
+                    hasMoreHistory: hasMoreNext,
+                    historyAvailability: availability,
+                });
                 return false;
             }
 
-            const result = applyHistory(this.candles, page.candles);
-            this.commitCandles(enforceChronology(result.series), "history");
+            const result = applyHistory(this.candles, incoming);
+            const changed = seriesDiffers(result.series, this.candles);
+            if (changed) {
+                this.commitCandles(enforceChronology(result.series), "history");
+            }
             this.setStatus({
                 loadingOlder: false,
-                hasMoreHistory: page.hasMore,
+                hasMoreHistory: hasMoreNext,
+                historyAvailability: availability,
                 candlesLoaded: this.candles.length,
                 oldestLoadedTimestamp: this.candles[0]?.timestamp ?? null,
                 duplicatesDropped: this.status.duplicatesDropped + result.duplicates,
                 rowsRejected: this.status.rowsRejected + result.rejected,
             });
-            return true;
+            return changed;
         } catch {
-            if (!this.destroyed && gen === this.generation) {
-                this.setStatus({ loadingOlder: false });
+            if (this.destroyed || gen !== this.generation) {
+                // Stale/aborted: no mutation. The epoch that superseded this
+                // request (loadInitial/resync) already reset loadingOlder.
+                return false;
             }
+            // Transient failure (network/HTTP error): history is temporarily
+            // unavailable — back off and retry later instead of latching
+            // "no more history".
+            this.historyRetryAt = Date.now() + HISTORY_RETRY_COOLDOWN_MS;
+            this.setStatus({
+                loadingOlder: false,
+                historyAvailability: "unavailable",
+                hasMoreHistory: true,
+            });
             return false;
         } finally {
             this.historyInFlight = false;
+            this.endRequest(abort);
         }
     }
 
@@ -383,6 +588,11 @@ export class ChartDataEngine {
     ingestTick(tick: ChartTick | null | undefined): void {
         if (this.destroyed || !tick) return;
         if (!Number.isFinite(tick.price) || tick.price <= 0 || !Number.isFinite(tick.timestamp)) return;
+        // Hard no-future-leakage backstop: a tick stamped beyond the current
+        // clock (beyond a small skew epsilon) must never open a candle bucket
+        // in the future. quoteToTick already clamps at the transport
+        // boundary; this guards the engine itself.
+        if (tick.timestamp > Date.now() + TICK_STAMP_EPSILON_MS) return;
 
         const result = applyTick(this.candles, tick, this.timeframe);
         if (!result.changed) return;
@@ -408,6 +618,16 @@ export class ChartDataEngine {
     /**
      * Merge a full provider candle list (reconcile). Provider bars win over
      * quote-merged tails for already-known buckets; unknown buckets backfill.
+     *
+     * Phase 1 canonical rules:
+     *  - HISTORY is authoritative for closed/previous bars.
+     *  - LIVE ticks are authoritative for the CURRENT FORMING bar until
+     *    history confirms it: a tick that arrived after this reconcile's
+     *    provider request started is newer than the page, so the forming
+     *    close is not walked backwards (high/low take the union).
+     *  - Never duplicates, never backwards timestamps, never candles newer
+     *    than the provider response, never client-clock inventions.
+     *  - A response identical to the current series publishes nothing.
      */
     reconcile(providerCandles: MarketCandle[]): void {
         if (this.destroyed || providerCandles.length === 0) return;
@@ -416,10 +636,46 @@ export class ChartDataEngine {
             .filter((c): c is ChartCandle => c !== null);
         if (canonical.length === 0) return;
 
+        const prevLast = this.candles.length > 0 ? this.candles[this.candles.length - 1] : null;
+        const providerNewest = canonical[canonical.length - 1].timestamp;
+
         const result = applyHistory(this.candles, canonical);
-        const changed =
-            result.series.length !== this.candles.length ||
-            result.series.some((c, i) => c !== this.candles[i]);
+
+        // HISTORY is authoritative for closed bars: a provider page that
+        // extends beyond our tail confirms our former forming bucket closed
+        // — finalize it wherever it sits after the merge. (Values identical
+        // to the provider's own row: only the state flag changes.)
+        if (prevLast && providerNewest > prevLast.timestamp) {
+            const idx = indexAtOrBefore(result.series, prevLast.timestamp);
+            if (idx >= 0 && result.series[idx].timestamp === prevLast.timestamp && !result.series[idx].finalized) {
+                result.series[idx] = { ...result.series[idx], finalized: true };
+            }
+        }
+
+        // A tick newer than the provider request stays authoritative for the
+        // still-forming bucket (response-arriving-after-newer-tick race).
+        const liveNewerThanPage =
+            this.reconcileRequestStartedAt > 0 &&
+            this.status.lastTickAt >= this.reconcileRequestStartedAt;
+        if (liveNewerThanPage && this.candles.length > 0 && result.series.length > 0) {
+            const liveLast = this.candles[this.candles.length - 1];
+            const idx = result.series.length - 1;
+            const mergedLast = result.series[idx];
+            if (mergedLast.timestamp === liveLast.timestamp) {
+                result.series[idx] = {
+                    ...mergedLast,
+                    high: Math.max(mergedLast.high, liveLast.high),
+                    low: Math.min(mergedLast.low, liveLast.low),
+                    close: liveLast.close,
+                    volume: Math.max(mergedLast.volume ?? 0, liveLast.volume ?? 0),
+                    finalized: liveLast.finalized,
+                };
+            }
+        }
+
+        // Publish only when candle VALUES actually changed — an identical
+        // provider response must not churn React snapshots.
+        const changed = seriesDiffers(result.series, this.candles);
         if (!changed) return;
 
         this.commitCandles(enforceChronology(result.series), "reconcile");
@@ -475,6 +731,11 @@ export class ChartDataEngine {
         this.repairInFlight = true;
         this.repairAttemptFor = gap.fromMs;
         this.repairAttemptAt = Date.now();
+        // Repair is generation-scoped: a resync/switch that bumps the
+        // generation cancels this attempt so stale data can never land in
+        // the new epoch.
+        const gen = this.generation;
+        const abort = this.beginRequest();
         this.setStatus({ quality: "synchronizing" });
         try {
             let filled = false;
@@ -485,11 +746,14 @@ export class ChartDataEngine {
                         timeframe: this.timeframe,
                         fromMs: gap.fromMs,
                         toMs: gap.toMs,
+                        signal: abort.signal,
                     });
-                    if (this.destroyed) return false;
+                    if (this.destroyed || gen !== this.generation) return false;
                     if (page.candles.length > 0) {
                         const result = applyHistory(this.candles, page.candles);
-                        this.commitCandles(enforceChronology(result.series), "repair");
+                        if (seriesDiffers(result.series, this.candles)) {
+                            this.commitCandles(enforceChronology(result.series), "repair");
+                        }
                         filled = true;
                     }
                 } catch {
@@ -497,13 +761,14 @@ export class ChartDataEngine {
                     // still cover holes inside the shallow window.
                 }
             }
-            if (!filled) {
+            if (!filled && !this.destroyed && gen === this.generation) {
                 // Shallow providers (Biquote) answer no range queries, but
                 // their newest page still contains recent bars — refill from
                 // it so a hole the feed missed while quotes were down heals
                 // instead of latching the chart into a permanent GAP state.
-                filled = await this.refillFromNewest();
+                filled = await this.refillFromNewest(gen, abort.signal);
             }
+            if (this.destroyed || gen !== this.generation) return false;
 
             const remaining = this.detectGaps().length;
             this.setStatus({
@@ -518,6 +783,7 @@ export class ChartDataEngine {
             return false;
         } finally {
             this.repairInFlight = false;
+            this.endRequest(abort);
         }
     }
 
@@ -527,15 +793,17 @@ export class ChartDataEngine {
      * page too, so re-fetching and merging it heals the gap (and the pause it
      * would otherwise keep re-triggering).
      */
-    private async refillFromNewest(): Promise<boolean> {
+    private async refillFromNewest(gen: number, signal?: AbortSignal): Promise<boolean> {
         if (this.destroyed) return false;
         try {
             const page = await this.sources.loadLatest({
                 symbol: this.symbol,
                 timeframe: this.timeframe,
                 limit: this.pageSize,
+                signal,
             });
-            if (this.destroyed || page.candles.length === 0) return false;
+            if (this.destroyed || gen !== this.generation) return false;
+            if (page.candles.length === 0) return false;
             const result = applyHistory(this.candles, page.candles);
             const changed =
                 result.series.length !== this.candles.length ||

@@ -10,17 +10,21 @@
  * No duplicate agent runtime.
  */
 
+import { AIRouter, defaultRouter } from "@/lib/ai/router";
+import { resolveCandelOwner, requireCandelReadable, requireCandelCanReadAccount } from "../authorization";
+import {
+  getCandelInstance,
+  getCandelTemplate,
+  getCandelAccountBindings,
+} from "../workspace/database";
+import { TOOL_REGISTRY, isToolAllowed, isRiskLevelAcceptable } from "../../agentic-trading-intelligence/tool-registry";
+import type { AgentPermission, AgentRiskLevel } from "../../agentic-trading-intelligence/contracts";
 import type {
   CandelInstance,
   CandelTemplate,
   CandelPermissions,
-  CandelRole,
   AccountBinding,
 } from "../types";
-import { resolveCandelOwner, requireCandelReadable, requireCandelCanReadAccount } from "../authorization";
-import { getCandelAccountBindings } from "../workspace/database";
-import { TOOL_REGISTRY, isToolAllowed, isRiskLevelAcceptable } from "../../agentic-trading-intelligence/tool-registry";
-import type { AgentPermission, AgentRiskLevel } from "../../agentic-trading-intelligence/contracts";
 
 // ─── Candel agent adapter ───────────────────────────────────────────────────
 export class CandelAgentAdapter {
@@ -142,6 +146,61 @@ export class CandelAgentAdapter {
   /** Resolve Candel owner (server-enforced) */
   async resolveOwner(): Promise<string | null> {
     return resolveCandelOwner(this.candelId);
+  }
+
+  /** Handle a user message through the multi-agent engine */
+  async handleMessage(message: string): Promise<string> {
+    // Bridge to the existing AlgoVault Multi-Agent Intelligence Engine
+    // via the existing AI router. The Candel instance's template
+    // capabilities and tools constrain what the agent may do.
+    try {
+      const contract = buildCandelAgentContract(
+        this.candelId,
+        this.userId,
+        this.template,
+        this.instance
+      );
+      const response = await defaultRouter.chat(
+        {
+          messages: [{ role: "user", content: message }],
+          systemPrompt: contract.systemInstructions,
+          responseFormat: "text",
+        },
+        {
+          sourceId: this.candelId,
+          userId: this.userId,
+        }
+      );
+      if (!response.success) {
+        const err = (response as any).error || "unknown error";
+        return `Agent execution blocked: ${err}`;
+      }
+      return String(response.content || "").trim();
+    } catch (error) {
+      console.error("[CandelAdapter handleMessage]", error);
+      return `Error processing your message: ${error instanceof Error ? error.message : String(error)}`;
+    }
+  }
+}
+
+/** Run a Candel: load instance + bindings + build adapter */
+export async function runCandelAgent(userId: string, candelId: string) {
+  try {
+    const instance = await getCandelInstance(candelId);
+    if (!instance) return null;
+    await requireCandelReadable(candelId, userId);
+    const template = await getCandelTemplate(instance.templateId);
+    if (!template) return null;
+    const accountBindings = await getCandelAccountBindings(candelId);
+    return new CandelAgentAdapter(
+      candelId,
+      userId,
+      template,
+      instance,
+      accountBindings,
+    );
+  } catch {
+    return null;
   }
 }
 

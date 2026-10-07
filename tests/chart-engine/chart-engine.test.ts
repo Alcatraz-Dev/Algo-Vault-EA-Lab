@@ -41,7 +41,11 @@ import { InteractionController } from "../../lib/chart-engine/interactions";
 import { computeStructureOverlay, structureOverlayLayer, computeIndicatorSeries } from "../../lib/chart-engine/overlay-contract";
 import { TailTracker } from "../../lib/chart-engine/indicators";
 import { barIndexForTime, countPrependedBars, shiftLogicalRangeForPrepend } from "../../lib/chart-engine/coordinate-mapping";
-import { createAdaptiveApiDataSources } from "../../lib/chart-engine/data-sources";
+import { createAdaptiveApiDataSources, createApiDataSources, quoteToTick } from "../../lib/chart-engine/data-sources";
+import { __enginePoolSnapshot, __subscribeEngineForTest } from "../../lib/chart-engine/use-chart-engine";
+import { fetchDeepHistoryPageDetailed } from "../../lib/market-data/twelvedata/candle-bridge";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 let passed = 0;
 let failed = 0;
@@ -90,6 +94,29 @@ function assertEqual(actual: unknown, expected: unknown, message = ""): void {
 // Allow legacy one-argument assert calls from earlier drafts.
 function assert1(condition: unknown): void {
     assert(condition, "condition failed");
+}
+
+/**
+ * Async checks run concurrently (Promise.all), but they share one global
+ * fetch. Serialize every fetch-stubbing check through this chain so stubs
+ * never overlap and clobber each other's responses.
+ */
+let fetchStubChain: Promise<void> = Promise.resolve();
+async function withFetchStub<T>(stub: typeof fetch, body: () => Promise<T>): Promise<T> {
+    const previous = fetchStubChain;
+    let release!: () => void;
+    fetchStubChain = new Promise<void>((r) => {
+        release = r;
+    });
+    await previous;
+    const original = globalThis.fetch;
+    globalThis.fetch = stub;
+    try {
+        return await body();
+    } finally {
+        globalThis.fetch = original;
+        release();
+    }
 }
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -379,10 +406,9 @@ check("initial load, gap detection and repair fill the hole", async () => {
 });
 
 check("adaptive API source enables paging from the canonical capability response", async () => {
-    const originalFetch = globalThis.fetch;
     const seen: string[] = [];
     const base = Date.UTC(2026, 8, 23, 13, 0);
-    globalThis.fetch = (async (input: RequestInfo | URL) => {
+    const stub = (async (input: RequestInfo | URL) => {
         const url = String(input);
         seen.push(url);
         if (!url.includes("before=")) {
@@ -396,7 +422,7 @@ check("adaptive API source enables paging from the canonical capability response
             candles: [{ timestamp: base, open: 98, high: 101, low: 97, close: 100, volume: 4 }],
         }), { status: 200 });
     }) as typeof fetch;
-    try {
+    await withFetchStub(stub, async () => {
         const source = createAdaptiveApiDataSources();
         const latest = await source.loadLatest({ symbol: "XAUUSD", timeframe: H1, limit: 100 });
         assertEqual(latest.hasMore, true, "latest page learns deep-history capability");
@@ -404,9 +430,7 @@ check("adaptive API source enables paging from the canonical capability response
         assertEqual(older.candles.length, 1);
         assert(older.candles[0].timestamp < base + HOUR, "only strictly older bars accepted");
         assert(seen[1].includes(`before=${base + HOUR}`), "older request carries exclusive cursor");
-    } finally {
-        globalThis.fetch = originalFetch;
-    }
+    });
 });
 check("loadOlder prepends without duplicating or dropping candles", async () => {
     let olderCalls = 0;
@@ -721,6 +745,875 @@ check("aggregation never needs future candles (streaming fold)", () => {
         stepwise.push([s[s.length - 1].high, s[s.length - 1].low, s[s.length - 1].close]);
     }
     assertEqual(stepwise[4], [12, 10, 12], "running H/L/C only reflect past ticks");
+});
+
+// ── Phase 1: data pipeline (prefetch, cancellation, reconciliation, …) ─────
+
+const P1_BASE = Date.UTC(2026, 0, 5, 0); // fixed past Monday 00:00
+const ENGINE_SOURCE = readFileSync(resolve(__dirname, "../../lib/chart-engine/chart-data-engine.ts"), "utf8");
+
+async function p1Sleep(ms: number): Promise<void> {
+    await new Promise((r) => setTimeout(r, ms));
+}
+
+console.log("Phase 1: bounded prefetch, batch prepend, viewport");
+check("bounded prefetch: ≤ max pages, merged into ONE canonical update", async () => {
+    const pageSize = 10;
+    let olderCalls = 0;
+    const engine = new ChartDataEngine(
+        {
+            async loadLatest() {
+                return { candles: series(pageSize, P1_BASE, H1), hasMore: true };
+            },
+            async loadOlder(req) {
+                olderCalls += 1;
+                // Inclusive boundary row (like a provider's inclusive end_date)
+                // to exercise dedupe across pages.
+                return {
+                    candles: series(pageSize, req.beforeMs - (pageSize - 1) * HOUR, H1),
+                    hasMore: true,
+                };
+            },
+        },
+        { symbol: "XAUUSD", timeframe: H1, pageSize, healthIntervalMs: 60_000 }
+    );
+    let candleEvents = 0;
+    engine.subscribe((e) => {
+        if (e.type === "candles") candleEvents += 1;
+    });
+    try {
+        engine.start();
+        await waitUntil(() => engine.getCandles().length === pageSize);
+
+        assert(engine.prefetchPages >= 1 && engine.prefetchPages <= 3, "prefetch page count derived and bounded");
+        const oldestBefore = engine.getCandles()[0].timestamp;
+        candleEvents = 0;
+
+        const ok = await engine.loadOlder({ pages: engine.prefetchPages });
+        assert(ok, "batch prepend committed");
+        assertEqual(olderCalls, 3, "at most MAX_PREFETCH_PAGES requests per crossing");
+        assertEqual(candleEvents, 1, "ONE snapshot publication for the whole batch");
+
+        const after = engine.getCandles();
+        assertEqual(after.length, pageSize + 3 * (pageSize - 1), "merged without duplicates (one row/page overlap)");
+        assert(after[0].timestamp < oldestBefore, "older bars land at the front");
+        for (let i = 1; i < after.length; i++) {
+            assert(after[i].timestamp > after[i - 1].timestamp, `prepend keeps ascending chronology at ${i}`);
+        }
+        assertEqual(engine.getStatus().duplicatesDropped, 3, "boundary overlap rows counted as duplicates");
+        assertEqual(engine.getStatus().loadingOlder, false);
+        assertEqual(engine.getStatus().hasMoreHistory, true, "provider still reports more after a full batch");
+    } finally {
+        engine.destroy();
+    }
+});
+
+check("batch prepend compensates the viewport exactly once (no jump, no zoom change)", async () => {
+    const pageSize = 10;
+    const engine = new ChartDataEngine(
+        {
+            async loadLatest() {
+                return { candles: series(pageSize, P1_BASE, H1), hasMore: true };
+            },
+            async loadOlder(req) {
+                return { candles: series(pageSize, req.beforeMs - (pageSize - 1) * HOUR, H1), hasMore: true };
+            },
+        },
+        { symbol: "XAUUSD", timeframe: H1, pageSize, healthIntervalMs: 60_000 }
+    );
+    try {
+        engine.start();
+        await waitUntil(() => engine.getCandles().length === pageSize);
+
+        // Renderer-equivalent capture BEFORE the batch.
+        const before = engine.getCandles().map((c) => ({ time: c.timestamp }));
+        const previousFirstTime = before[0].time;
+        const range = { from: 3.5, to: 8.5 };
+
+        await engine.loadOlder({ pages: engine.prefetchPages });
+        const after = engine.getCandles().map((c) => ({ time: c.timestamp }));
+
+        // One compensation pass over the whole batch (the renderer does this
+        // once per dataset push — the batch commits exactly once).
+        const added = countPrependedBars(after, previousFirstTime);
+        assertEqual(added, 27, "all prepended bars counted in a single pass");
+        const shifted = shiftLogicalRangeForPrepend(range, 0, added);
+        assertEqual(shifted.to - shifted.from, range.to - range.from, "visible span (zoom) unchanged");
+        const candleAt = (bars: { time: number }[], idx: number) => bars[Math.floor(idx)]?.time;
+        assertEqual(
+            candleAt(after, shifted.from),
+            candleAt(before, range.from),
+            "the same market candle stays at the same screen position"
+        );
+        assert(
+            !/fitContent|scrollToRealTime|setVisibleRange/.test(ENGINE_SOURCE),
+            "engine never resets the viewport"
+        );
+    } finally {
+        engine.destroy();
+    }
+});
+
+check("default loadOlder stays a single page (explicit opt-in for prefetch)", async () => {
+    let olderCalls = 0;
+    const engine = mkEngine({
+        async loadLatest() {
+            return { candles: series(5, P1_BASE, H1), hasMore: true };
+        },
+        async loadOlder(req) {
+            olderCalls += 1;
+            return { candles: series(5, req.beforeMs - 5 * HOUR, H1).filter((c) => c.timestamp < req.beforeMs), hasMore: true };
+        },
+    });
+    try {
+        engine.start();
+        await waitUntil(() => engine.getCandles().length === 5);
+        const ok = await engine.loadOlder();
+        assert(ok, "single page loaded");
+        assertEqual(olderCalls, 1, "no prefetch unless pages are requested");
+        assertEqual(engine.getCandles().length, 10);
+    } finally {
+        engine.destroy();
+    }
+});
+
+console.log("Phase 1: provider request safety (platform ≠ provider limit)");
+check("client data source clamps every history request to the server max (2000)", async () => {
+    const urls: string[] = [];
+    const stub = (async (input: RequestInfo | URL) => {
+        urls.push(String(input));
+        return new Response(JSON.stringify({ success: true, hasDeepHistory: true, candles: [], historyBoundary: "more" }), { status: 200 });
+    }) as typeof fetch;
+    await withFetchStub(stub, async () => {
+        const src = createApiDataSources(true);
+        await src.loadLatest({ symbol: "XAUUSD", timeframe: H1, limit: 9999 });
+        await src.loadOlder({ symbol: "XAUUSD", timeframe: H1, beforeMs: P1_BASE, limit: 9999 });
+        assert(urls[0].includes("limit=2000"), `newest page clamped: ${urls[0]}`);
+        assert(urls[1].includes("limit=2000"), `older page clamped: ${urls[1]}`);
+        assert(urls[1].includes(`before=${P1_BASE}`), "exclusive cursor carried");
+    });
+});
+
+check("Twelve Data provider request stays within the provider bound; outcomes map to boundaries", async () => {
+    const originalKey = process.env.TWELVE_DATA_API_KEY;
+    process.env.TWELVE_DATA_API_KEY = "test-key";
+    const urls: string[] = [];
+    const values = Array.from({ length: 11 }, (_, i) => ({
+        datetime: new Date(P1_BASE - (i + 1) * HOUR).toISOString(),
+        open: "100",
+        high: "101",
+        low: "99",
+        close: "100.5",
+        volume: "10",
+    }));
+    const okStub = (async (input: RequestInfo | URL) => {
+        urls.push(String(input));
+        return new Response(JSON.stringify({ status: "ok", values }), { status: 200 });
+    }) as typeof fetch;
+    try {
+        await withFetchStub(okStub, async () => {
+            // 1. Request size: a 2000-candle platform request becomes ONE bounded
+            //    provider request (outputsize limit+1 ≤ provider max 5000).
+            await fetchDeepHistoryPageDetailed("XAUUSD", "H1", { beforeMs: P1_BASE, limit: 2000 });
+            assertEqual(urls.length, 1);
+            const outSize = Number(new URL(urls[0]).searchParams.get("outputsize"));
+            assertEqual(outSize, 2001, "boundary row requested via limit+1");
+            assert(outSize <= 5000, "provider request size bounded");
+
+            // 2. Full page → more history likely exists.
+            const full = await fetchDeepHistoryPageDetailed("XAUUSD", "H1", { beforeMs: P1_BASE, limit: 10 });
+            assertEqual(full.boundary, "more", "full provider page → more");
+            assertEqual(full.candles?.length, 11);
+        });
+
+        // 3. Rate limit is NOT a history boundary.
+        const limitedStub = (async () =>
+            new Response(JSON.stringify({ status: "error", code: 429, message: "You have reached the limit" }), { status: 200 })) as typeof fetch;
+        await withFetchStub(limitedStub, async () => {
+            const limited = await fetchDeepHistoryPageDetailed("XAUUSD", "H1", { beforeMs: P1_BASE, limit: 10 });
+            assertEqual(limited.boundary, "unavailable", "rate limit ≠ no more history");
+        });
+
+        // 4. Provider "no data" IS a genuine boundary.
+        const emptyStub = (async () =>
+            new Response(JSON.stringify({ status: "error", code: 400, message: "No data found" }), { status: 200 })) as typeof fetch;
+        await withFetchStub(emptyStub, async () => {
+            const empty = await fetchDeepHistoryPageDetailed("XAUUSD", "H1", { beforeMs: P1_BASE, limit: 10 });
+            assertEqual(empty.boundary, "exhausted", "provider no-data → genuine boundary");
+        });
+
+        // 5. Missing API key → unavailable, no request issued.
+        delete process.env.TWELVE_DATA_API_KEY;
+        await withFetchStub(okStub, async () => {
+            const callsBefore = urls.length;
+            const noKey = await fetchDeepHistoryPageDetailed("XAUUSD", "H1", { beforeMs: P1_BASE, limit: 10 });
+            assertEqual(noKey.boundary, "unavailable", "missing key ≠ exhausted");
+            assertEqual(urls.length, callsBefore, "no provider request without a key");
+        });
+    } finally {
+        if (originalKey === undefined) delete process.env.TWELVE_DATA_API_KEY;
+        else process.env.TWELVE_DATA_API_KEY = originalKey;
+    }
+});
+
+check("data source surfaces historyBoundary and forwards the abort signal", async () => {
+    let seenSignal: AbortSignal | undefined;
+    let seenUrl = "";
+    const stub = (async (input: RequestInfo | URL, init?: RequestInit) => {
+        seenUrl = String(input);
+        seenSignal = (init?.signal as AbortSignal | undefined) ?? undefined;
+        return new Response(
+            JSON.stringify({ success: true, hasDeepHistory: true, candles: [], historyBoundary: "unavailable" }),
+            { status: 200 }
+        );
+    }) as typeof fetch;
+    await withFetchStub(stub, async () => {
+        const src = createApiDataSources(true);
+        const controller = new AbortController();
+        const page = await src.loadOlder({
+            symbol: "XAUUSD",
+            timeframe: H1,
+            beforeMs: P1_BASE,
+            limit: 100,
+            signal: controller.signal,
+        });
+        assertEqual(page.boundary, "unavailable", "server boundary passed through");
+        assertEqual(page.hasMore, false);
+        assert(seenSignal === controller.signal, "abort signal forwarded to fetch");
+        assert(seenUrl.includes(`before=${P1_BASE}`), "cursor carried");
+    });
+    // Adaptive source short-circuits BEFORE probing: "unavailable", not exhaustion.
+    const adaptive = createAdaptiveApiDataSources();
+    const early = await adaptive.loadOlder({ symbol: "XAUUSD", timeframe: H1, beforeMs: P1_BASE, limit: 100 });
+    assertEqual(early.boundary, "unavailable", "pre-probe short-circuit is never reported as exhaustion");
+});
+
+console.log("Phase 1: history request cancellation");
+check("symbol switch during loadOlder: request aborts, stale page never publishes", async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((r) => {
+        release = r;
+    });
+    let sawSignal: AbortSignal | undefined;
+    const engine = mkEngine({
+        async loadLatest() {
+            return { candles: series(5, P1_BASE, H1), hasMore: true };
+        },
+        async loadOlder(req) {
+            sawSignal = req.signal;
+            await gate;
+            return { candles: series(5, req.beforeMs - 5 * HOUR, H1).filter((c) => c.timestamp < req.beforeMs), hasMore: false };
+        },
+    });
+    let published = 0;
+    engine.subscribe(() => {
+        published += 1;
+    });
+    try {
+        engine.start();
+        await waitUntil(() => engine.getCandles().length === 5);
+        const pending = engine.loadOlder();
+        await waitUntil(() => sawSignal !== undefined);
+        const eventsAtDestroy = published;
+        engine.destroy(); // symbol switch tears the pooled engine down
+        release();
+        const ok = await pending;
+        assertEqual(ok, false, "stale loadOlder reports nothing");
+        assert(sawSignal!.aborted, "in-flight request aborted on teardown");
+        assertEqual(published, eventsAtDestroy, "aborted request never publishes");
+        assertEqual(engine.getCandles().length, 5, "candle state untouched by the stale page");
+    } catch (err) {
+        engine.destroy();
+        throw err;
+    }
+});
+
+check("timeframe switch during loadOlder: the new timeframe engine stays uncontaminated", async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((r) => {
+        release = r;
+    });
+    let started = false;
+    const h1 = mkEngine({
+        async loadLatest() {
+            return { candles: series(5, P1_BASE, H1), hasMore: true };
+        },
+        async loadOlder(req) {
+            started = true;
+            await gate;
+            return { candles: series(5, req.beforeMs - 5 * HOUR, H1).filter((c) => c.timestamp < req.beforeMs), hasMore: false };
+        },
+    });
+    const m5 = mkEngine(
+        { async loadLatest() { return { candles: series(4, P1_BASE, "M5"), hasMore: false }; } },
+        { timeframe: "M5" }
+    );
+    try {
+        h1.start();
+        await waitUntil(() => h1.getCandles().length === 5);
+        m5.start();
+        await waitUntil(() => m5.getCandles().length === 4);
+
+        const pending = h1.loadOlder();
+        await waitUntil(() => started);
+        h1.destroy(); // user switched H1 → M5
+        release();
+        assertEqual(await pending, false, "stale H1 page rejected");
+
+        assertEqual(m5.getCandles().length, 4, "M5 engine untouched");
+        assert(m5.getCandles().every((c) => c.timeframe === "M5"), "only M5 candles present");
+    } finally {
+        h1.destroy();
+        m5.destroy();
+    }
+});
+
+check("resync during loadOlder: stale page rejected, loadingOlder never latches", async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((r) => {
+        release = r;
+    });
+    let slowCalls = 0;
+    const engine = mkEngine({
+        async loadLatest() {
+            return { candles: series(5, P1_BASE, H1), hasMore: true };
+        },
+        async loadOlder(req) {
+            slowCalls += 1;
+            await gate;
+            return { candles: series(5, req.beforeMs - 5 * HOUR, H1).filter((c) => c.timestamp < req.beforeMs), hasMore: true };
+        },
+    });
+    try {
+        engine.start();
+        await waitUntil(() => engine.getCandles().length === 5);
+
+        const pending = engine.loadOlder();
+        await waitUntil(() => slowCalls === 1);
+        const resyncP = engine.resync();
+        release();
+        const [ok] = await Promise.all([pending, resyncP]);
+
+        assertEqual(ok, false, "stale older page rejected");
+        assertEqual(engine.getStatus().loadingOlder, false, "loadingOlder reset by the new epoch (no latch)");
+        assertEqual(engine.getCandles().length, 5, "stale prepend never committed");
+
+        // The engine still accepts history loads after the interrupted one.
+        const ok2 = await engine.loadOlder();
+        assert(ok2, "loadOlder works again after the resync");
+        assertEqual(engine.getCandles().length, 10);
+    } finally {
+        engine.destroy();
+    }
+});
+
+console.log("Phase 1: reconciliation");
+check("A. historical correction applied; deep bars keep identity (no wholesale swap)", async () => {
+    const base = series(5, P1_BASE, H1);
+    const engine = mkEngine({
+        async loadLatest() {
+            return { candles: base, hasMore: false };
+        },
+    });
+    try {
+        engine.start();
+        await waitUntil(() => engine.getCandles().length === 5);
+        const before = engine.getCandles();
+
+        // Provider page covers only the newest three bars, with a correction.
+        const page = [base[2], { ...base[3], close: 777, high: 777 }, base[4]];
+        engine.reconcile(page);
+        const after = engine.getCandles();
+
+        assertEqual(after[3].close, 777, "provider correction wins on its bucket");
+        assert(after[0] === before[0] && after[1] === before[1], "bars outside the page keep identity (incremental render path)");
+        assertEqual(after.length, 5, "correction never adds or drops bars");
+        for (let i = 1; i < after.length; i++) {
+            assert(after[i].timestamp > after[i - 1].timestamp, `chronology at ${i}`);
+        }
+    } finally {
+        engine.destroy();
+    }
+});
+
+check("B. missing historical candle backfilled by a provider response", async () => {
+    const engine = mkEngine({
+        async loadLatest() {
+            return { candles: series(5, P1_BASE, H1), hasMore: false };
+        },
+    });
+    try {
+        engine.start();
+        await waitUntil(() => engine.getCandles().length === 5);
+        const olderBar = { ...series(1, P1_BASE - HOUR, H1)[0] };
+        engine.reconcile([...series(5, P1_BASE, H1), olderBar]);
+        const after = engine.getCandles();
+        assertEqual(after.length, 6, "missing bar inserted");
+        assertEqual(after[0].timestamp, P1_BASE - HOUR, "inserted at the right position");
+        for (let i = 1; i < after.length; i++) {
+            assert(after[i].timestamp > after[i - 1].timestamp, `chronology at ${i}`);
+        }
+    } finally {
+        engine.destroy();
+    }
+});
+
+check("C. duplicate provider response publishes no snapshot", async () => {
+    const page = series(5, P1_BASE, H1);
+    const engine = mkEngine({
+        async loadLatest() {
+            return { candles: page, hasMore: false };
+        },
+    });
+    try {
+        engine.start();
+        await waitUntil(() => engine.getCandles().length === 5);
+        let events = 0;
+        engine.subscribe((e) => {
+            if (e.type === "candles") events += 1;
+        });
+        engine.reconcile([...page]); // identical values
+        assertEqual(events, 0, "identical reconcile → no publication");
+        assertEqual(engine.getCandles().length, 5);
+    } finally {
+        engine.destroy();
+    }
+});
+
+check("D. forming candle corrected by history (history authoritative pre-close)", async () => {
+    const base = series(4, P1_BASE, H1);
+    base[3] = { ...base[3], finalized: false }; // forming tail
+    const engine = mkEngine({
+        async loadLatest() {
+            return { candles: base, hasMore: false };
+        },
+    });
+    try {
+        engine.start();
+        await waitUntil(() => engine.getCandles().length === 4);
+        engine.reconcile([...base.slice(0, 3), { ...base[3], close: 999, high: 999 }]);
+        const last = engine.getCandles()[3];
+        assertEqual(last.close, 999, "provider correction applied to the forming bucket");
+        assertEqual(last.finalized, false, "still forming (same bucket)");
+    } finally {
+        engine.destroy();
+    }
+});
+
+check("E. new completed candle: provider extends the series and closes our tail", async () => {
+    const base = series(4, P1_BASE, H1);
+    base[3] = { ...base[3], finalized: false };
+    const engine = mkEngine({
+        async loadLatest() {
+            return { candles: base, hasMore: false };
+        },
+    });
+    try {
+        engine.start();
+        await waitUntil(() => engine.getCandles().length === 4);
+        const newer = { timestamp: P1_BASE + 4 * HOUR, open: 104, high: 106, low: 103, close: 105, volume: 9, symbol: "XAUUSD", timeframe: "H1" };
+        engine.reconcile([...base, newer]);
+        const after = engine.getCandles();
+        assertEqual(after.length, 5, "new completed candle appended");
+        assertEqual(after[3].finalized, true, "our forming tail finalized by history");
+        assertEqual(after[4].timestamp, P1_BASE + 4 * HOUR, "newest bar is the provider's");
+        assert(after[4].timestamp > after[3].timestamp, "no timestamp moved backwards");
+    } finally {
+        engine.destroy();
+    }
+});
+
+check("F. response arriving after a newer tick keeps the live forming close", async () => {
+    let call = 0;
+    let release!: () => void;
+    const gate = new Promise<void>((r) => {
+        release = r;
+    });
+    const formingTs = P1_BASE + 4 * HOUR;
+    const engine = new ChartDataEngine(
+        {
+            async loadLatest() {
+                call += 1;
+                if (call === 1) return { candles: series(5, P1_BASE, H1), hasMore: false };
+                await gate; // slow resync page — fetched BEFORE the tick below
+                return { candles: series(5, P1_BASE, H1), hasMore: false };
+            },
+            async loadOlder() {
+                return { candles: [], hasMore: false };
+            },
+        },
+        { symbol: "XAUUSD", timeframe: H1, pageSize: 5, healthIntervalMs: 60_000 }
+    );
+    try {
+        engine.start();
+        await waitUntil(() => engine.getCandles().length === 5);
+        const providerHigh = engine.getCandles()[4].high;
+
+        const resyncP = engine.resync();
+        // Live tick lands while the provider page is still in flight.
+        engine.ingestTick({ price: 140, timestamp: formingTs + 60_000 });
+        release();
+        await resyncP;
+
+        const last = engine.getCandles()[4];
+        assertEqual(last.close, 140, "newer tick stays authoritative for the forming bar");
+        assert(last.high >= 140 && last.high >= providerHigh, "high keeps the union of both observations");
+        assertEqual(last.timestamp, formingTs, "same bucket — no new candle invented");
+    } finally {
+        engine.destroy();
+    }
+});
+
+check("G. late response from an older generation never lands", async () => {
+    let call = 0;
+    let release!: () => void;
+    const gate = new Promise<void>((r) => {
+        release = r;
+    });
+    const engine = new ChartDataEngine(
+        {
+            async loadLatest() {
+                call += 1;
+                if (call === 2) {
+                    await gate; // FIRST resync — will be superseded
+                    return { candles: series(6, P1_BASE, H1), hasMore: false };
+                }
+                return { candles: series(5, P1_BASE, H1), hasMore: false };
+            },
+            async loadOlder() {
+                return { candles: [], hasMore: false };
+            },
+        },
+        { symbol: "XAUUSD", timeframe: H1, pageSize: 6, healthIntervalMs: 60_000 }
+    );
+    try {
+        engine.start();
+        await waitUntil(() => engine.getCandles().length === 5);
+
+        const first = engine.resync();
+        await waitUntil(() => call === 2);
+        const second = engine.resync(); // supersedes the in-flight one
+        await second;
+        release();
+        await first;
+
+        assertEqual(engine.getCandles().length, 5, "stale 6-bar page rejected");
+        assert(!engine.getCandles().some((c) => c.timestamp === P1_BASE + 5 * HOUR), "no bar from the superseded response");
+        assertEqual(engine.getStatus().connection, "live");
+        assertEqual(engine.getStatus().reconnects, 2, "both reconnects counted");
+    } finally {
+        engine.destroy();
+    }
+});
+
+console.log("Phase 1: gap repair cooldown and failure semantics");
+check("21/22. gap repair is cooldown-gated and never runs twice concurrently", async () => {
+    const holeFrom = Date.UTC(2026, 8, 23, 10, 0);
+    let rangeCalls = 0;
+    const all = [...series(2, holeFrom - 2 * HOUR, H1), ...series(2, holeFrom + 4 * HOUR, H1)];
+    const engine = mkEngine({
+        async loadLatest() {
+            return { candles: all, hasMore: false };
+        },
+        async loadRange() {
+            rangeCalls += 1;
+            return { candles: [], hasMore: false }; // provider cannot fill
+        },
+    });
+    try {
+        engine.start();
+        await waitUntil(() => engine.getCandles().length === 4);
+        assert(engine.detectGaps().length > 0, "hole present");
+
+        const [r1, r2] = await Promise.all([engine.detectAndRepairGaps(), engine.detectAndRepairGaps()]);
+        assertEqual(rangeCalls, 1, "concurrent repairs collapse into one request");
+        assertEqual(r1 || r2, false, "unfillable hole is not reported as filled");
+
+        const r3 = await engine.detectAndRepairGaps();
+        assertEqual(r3, false, "cooldown blocks an immediate retry");
+        assertEqual(rangeCalls, 1, "no retry storm inside the cooldown window");
+
+        // After the cooldown the engine tries again — failure is not permanent.
+        const realNow = Date.now;
+        Date.now = (() => realNow() + 61_000) as typeof Date.now;
+        try {
+            await engine.detectAndRepairGaps();
+            assertEqual(rangeCalls, 2, "retry allowed after cooldown");
+        } finally {
+            Date.now = realNow;
+        }
+    } finally {
+        engine.destroy();
+    }
+});
+
+check("23. temporary provider failure keeps candles and health intact", async () => {
+    let rangeCalls = 0;
+    let latestCalls = 0;
+    const holeFrom = Date.UTC(2026, 8, 23, 10, 0);
+    const all = [...series(2, holeFrom - 2 * HOUR, H1), ...series(2, holeFrom + 4 * HOUR, H1)];
+    const engine = mkEngine({
+        async loadLatest() {
+            latestCalls += 1;
+            if (latestCalls === 1) return { candles: all, hasMore: false };
+            throw new Error("provider down"); // refill fallback fails too
+        },
+        async loadRange() {
+            rangeCalls += 1;
+            throw new Error("rate limited");
+        },
+    });
+    try {
+        engine.start();
+        await waitUntil(() => engine.getCandles().length === 4);
+        assert(engine.detectGaps().length > 0, "hole still visible");
+
+        const repaired = await engine.detectAndRepairGaps();
+        assertEqual(repaired, false, "failed repair reports false, not fake success");
+        assertEqual(engine.getCandles().length, 4, "candles survive a failed repair");
+        assert(rangeCalls >= 1, "range path attempted");
+        assertEqual(latestCalls, 2, "refill fallback attempted after the range failure");
+        assertEqual(engine.getStatus().quality, "gap_detected", "feed honestly reports the hole");
+        assertEqual(engine.getStatus().connection, "live", "connection state not destroyed by repair failure");
+    } finally {
+        engine.destroy();
+    }
+});
+
+check("13-failure. transient history failure ≠ exhaustion (cooldown, then retry)", async () => {
+    let olderCalls = 0;
+    let failNext = true;
+    const engine = mkEngine({
+        async loadLatest() {
+            return { candles: series(5, P1_BASE, H1), hasMore: true };
+        },
+        async loadOlder(req) {
+            olderCalls += 1;
+            if (failNext) throw new Error("rate limited");
+            return { candles: series(5, req.beforeMs - 5 * HOUR, H1).filter((c) => c.timestamp < req.beforeMs), hasMore: true };
+        },
+    });
+    try {
+        engine.start();
+        await waitUntil(() => engine.getCandles().length === 5);
+
+        const ok1 = await engine.loadOlder();
+        assertEqual(ok1, false);
+        const s = engine.getStatus();
+        assertEqual(s.historyAvailability, "unavailable", "classified as temporarily unavailable");
+        assertEqual(s.hasMoreHistory, true, "NOT latched to 'no more history'");
+        assertEqual(s.loadingOlder, false);
+
+        const ok2 = await engine.loadOlder();
+        assertEqual(ok2, false, "cooldown returns immediately");
+        assertEqual(olderCalls, 1, "cooldown prevents a retry storm");
+
+        const realNow = Date.now;
+        Date.now = (() => realNow() + 25_000) as typeof Date.now;
+        try {
+            failNext = false;
+            const ok3 = await engine.loadOlder();
+            assert(ok3, "history loadable again after the cooldown");
+        } finally {
+            Date.now = realNow;
+        }
+        assertEqual(engine.getStatus().hasMoreHistory, true);
+        assert(engine.getCandles().length === 10, "recovered page committed");
+    } finally {
+        engine.destroy();
+    }
+});
+
+check("24. genuine exhaustion latches the boundary and stops requesting", async () => {
+    let olderCalls = 0;
+    const engine = mkEngine({
+        async loadLatest() {
+            return { candles: series(5, P1_BASE, H1), hasMore: true };
+        },
+        async loadOlder() {
+            olderCalls += 1;
+            return { candles: [], hasMore: false, boundary: "exhausted" as const };
+        },
+    });
+    try {
+        engine.start();
+        await waitUntil(() => engine.getCandles().length === 5);
+        const ok = await engine.loadOlder();
+        assertEqual(ok, false);
+        assertEqual(engine.getStatus().hasMoreHistory, false, "real boundary latched");
+        assertEqual(engine.getStatus().historyAvailability, "exhausted");
+        const ok2 = await engine.loadOlder();
+        assertEqual(ok2, false);
+        assertEqual(olderCalls, 1, "no further requests after exhaustion");
+    } finally {
+        engine.destroy();
+    }
+});
+
+console.log("Phase 1: snapshot publication");
+check("29/30. identical tick → no snapshot; stale tick → no mutation", async () => {
+    const engine = mkEngine({
+        async loadLatest() {
+            return { candles: series(3, P1_BASE, H1), hasMore: false };
+        },
+    });
+    try {
+        engine.start();
+        await waitUntil(() => engine.getCandles().length === 3);
+        let events = 0;
+        engine.subscribe((e) => {
+            if (e.type === "candles") events += 1;
+        });
+        const last = engine.getCandles()[2];
+
+        engine.ingestTick({ price: last.close, timestamp: last.timestamp + 60_000 });
+        assertEqual(events, 0, "identical tick publishes nothing");
+
+        engine.ingestTick({ price: 5, timestamp: last.timestamp - HOUR }); // older bucket
+        assertEqual(events, 0, "stale tick publishes nothing");
+        assertEqual(engine.getCandles().length, 3, "series untouched");
+        assertEqual(engine.getCandles()[2].close, last.close);
+    } finally {
+        engine.destroy();
+    }
+});
+
+check("31. all-duplicate history page publishes nothing and reports honestly", async () => {
+    const page = series(5, P1_BASE, H1);
+    const engine = mkEngine({
+        async loadLatest() {
+            return { candles: page, hasMore: true };
+        },
+        async loadOlder() {
+            return { candles: page, hasMore: false }; // fully overlapping page
+        },
+    });
+    try {
+        engine.start();
+        await waitUntil(() => engine.getCandles().length === 5);
+        let events = 0;
+        engine.subscribe((e) => {
+            if (e.type === "candles") events += 1;
+        });
+        const ok = await engine.loadOlder();
+        assertEqual(ok, false, "no new candles arrived");
+        assertEqual(events, 0, "no unnecessary publication");
+        assertEqual(engine.getCandles().length, 5, "nothing changed");
+        assertEqual(engine.getStatus().loadingOlder, false);
+    } finally {
+        engine.destroy();
+    }
+});
+
+console.log("Phase 1: pooled polling (one poller per symbol|timeframe)");
+check("25/26/27/28. shared poller, ref-counted cleanup, no duplicate on reconnect", async () => {
+    let quoteHits = 0;
+    const stub = (async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.includes("/api/analytics/ohlc")) {
+            return new Response(
+                JSON.stringify({ success: true, hasDeepHistory: false, candles: series(3, P1_BASE, H1) }),
+                { status: 200 }
+            );
+        }
+        quoteHits += 1;
+        return new Response(JSON.stringify({ quotes: { XAUUSD: { price: 100, timestamp: Date.now() } } }), { status: 200 });
+    }) as typeof fetch;
+    await withFetchStub(stub, async () => {
+        try {
+        const un1 = __subscribeEngineForTest("XAUUSD", "H1", 60_000, () => {});
+        await waitUntil(() => (__enginePoolSnapshot("XAUUSD", "H1")?.quoteFetches ?? 0) >= 1, 1000);
+        const snap1 = __enginePoolSnapshot("XAUUSD", "H1")!;
+        assertEqual(snap1.refs, 1);
+        assert(snap1.polling, "poller running");
+        assertEqual(snap1.quoteFetches, 1, "one immediate fetch on first subscribe");
+
+        // Second subscriber (e.g. another chart or account context): same
+        // symbol|timeframe — shares the SAME engine and poller.
+        const un2 = __subscribeEngineForTest("XAUUSD", "H1", 60_000, () => {});
+        await p1Sleep(60);
+        const snap2 = __enginePoolSnapshot("XAUUSD", "H1")!;
+        assertEqual(snap2.refs, 2, "shared entry, ref-counted");
+        assertEqual(snap2.quoteFetches, 1, "second subscriber adds NO extra poller");
+        assert(quoteHits <= 1, `one quote endpoint hit for two subscribers (got ${quoteHits})`);
+
+        // Reconnect must not spawn a duplicate timer.
+        await snap2.engine.resync();
+        await p1Sleep(60);
+        const snap3 = __enginePoolSnapshot("XAUUSD", "H1")!;
+        assertEqual(snap3.quoteFetches, 1, "resync does not create a second poller");
+        assert(snap3.polling, "still polling after reconnect");
+
+        // Timeframe isolation: no M5 engine exists from H1 subscriptions.
+        assertEqual(__enginePoolSnapshot("XAUUSD", "M5"), null, "timeframe isolation");
+
+        // Teardown after the last subscriber.
+        un1();
+        const mid = __enginePoolSnapshot("XAUUSD", "H1")!;
+        assertEqual(mid.refs, 1, "still alive while one subscriber remains");
+        assert(mid.polling, "poller stops only after the LAST subscriber");
+        un2();
+        assertEqual(__enginePoolSnapshot("XAUUSD", "H1"), null, "engine destroyed and removed from the pool");
+        const hitsAfterTeardown = quoteHits;
+        await p1Sleep(60);
+        assertEqual(quoteHits, hitsAfterTeardown, "no polling after teardown");
+        } finally {
+            // Best-effort cleanup if the check failed midway.
+            try {
+                __enginePoolSnapshot("XAUUSD", "H1")?.engine.destroy();
+            } catch {
+                // already gone
+            }
+        }
+    });
+});
+
+console.log("Phase 1: symbol/timeframe isolation");
+check("32/33. exhaustion and prefetch never leak across engines", async () => {
+    const a = mkEngine(
+        {
+            async loadLatest() { return { candles: series(5, P1_BASE, H1), hasMore: true }; },
+            async loadOlder() { return { candles: [], hasMore: false, boundary: "exhausted" as const }; },
+        },
+        { symbol: "XAUUSD" }
+    );
+    const b = mkEngine(
+        {
+            async loadLatest() { return { candles: series(5, P1_BASE, H1), hasMore: true }; },
+            async loadOlder(req) { return { candles: series(5, req.beforeMs - 5 * HOUR, H1).filter((c) => c.timestamp < req.beforeMs), hasMore: true }; },
+        },
+        { symbol: "EURUSD" }
+    );
+    try {
+        a.start();
+        b.start();
+        await waitUntil(() => a.getCandles().length === 5 && b.getCandles().length === 5);
+
+        await a.loadOlder();
+        assertEqual(a.getStatus().hasMoreHistory, false, "A exhausted");
+        assertEqual(a.getStatus().historyAvailability, "exhausted");
+        assertEqual(b.getStatus().hasMoreHistory, true, "B unaffected by A's exhaustion");
+
+        const okB = await b.loadOlder();
+        assert(okB, "B still pages history");
+        assertEqual(b.getCandles().length, 10);
+        assertEqual(a.getCandles().length, 5, "B's page never lands in A");
+        assertEqual(b.getStatus().historyAvailability, "has_more");
+    } finally {
+        a.destroy();
+        b.destroy();
+    }
+});
+
+console.log("Phase 1: no future leakage at the tick boundary");
+check("quoteToTick clamps future provider stamps — no future candle buckets", () => {
+    const now = Date.UTC(2026, 8, 23, 12, 0);
+    const future = quoteToTick({ price: 100, timestamp: now + 120_000 }, "XAUUSD", now);
+    assertEqual(future!.timestamp, now, "future stamp clamped to now");
+    const past = quoteToTick({ price: 100, timestamp: now - 60_000 }, "XAUUSD", now);
+    assertEqual(past!.timestamp, now - 60_000, "past stamps pass through");
+    assertEqual(quoteToTick(undefined, "XAUUSD", now), null, "missing quote → null, never synthesized");
+    assertEqual(quoteToTick({ price: 0, timestamp: now }, "XAUUSD", now), null, "invalid price → null");
 });
 
 // Await async checks, then report.

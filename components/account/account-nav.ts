@@ -1,0 +1,158 @@
+import type { NavGroup } from "@/components/layout/AppShell";
+import {
+  Activity,
+  AlertTriangle,
+  ArrowLeft,
+  BarChart3,
+  Bell,
+  Bot,
+  Brain,
+  Calculator,
+  Calendar,
+  Code,
+  Copy,
+  CreditCard,
+  Crown,
+  DollarSign,
+  FileCode2,
+  FileKey2,
+  FileText,
+  FlaskConical,
+  Gift,
+  GitBranch,
+  Globe,
+  LayoutDashboard,
+  LineChart,
+  LogOut,
+  Menu,
+  MonitorSmartphone,
+  Plug,
+  Radio,
+  Search,
+  Settings,
+  Cpu,
+  RotateCcw,
+  Shield,
+  Target,
+  Tag,
+  Trophy,
+  TrendingUp,
+  Users,
+  Wallet,
+  X,
+  Zap,
+  Terminal,
+} from "lucide-react";
+
+/**
+ * ACCOUNT_NAV — Account sidebar navigation.
+ *
+ * Integrated with the native AlgoVaultaccount sidebar. Candels apper
+ * under an "AI Workspace" group, alongside the existing AI/agent
+ * functionality (AI Trading Teams, AI Copilot, Agents, Market
+ * Intelligence), without creating a second sidebar.
+ */
+export const ACCOUNT_NAV: NavGroup[] = [
+  {
+    label: "Overview",
+    items: [
+      { icon: LayoutDashboard, label: "Account Home", href: "/account" },
+      { icon: LayoutDashboard, label: "Custom Dashboard", href: "/dashboard" },
+    ],
+  },
+  {
+    label: "Account",
+    items: [
+      { icon: CreditCard, label: "Purchases", href: "/account/purchases" },
+      { icon: FileKey2, label: "Licenses", href: "/account/licenses" },
+      { icon: FileCode2, label: "Set Files", href: "/account/setfiles" },
+      { icon: Globe, label: "Trading Access", href: "/account/trading-access" },
+      { icon: Gift, label: "Affiliates", href: "/account/affiliate" },
+      { icon: Zap, label: "Upgrade", href: "/pricing" },
+      { icon: Zap, label: "Scalping Terminal (Lite)", href: "/account/lite-scalping-terminal", badge: "LITE" },
+      { icon: Zap, label: "Pro Scalping Terminal", href: "/account/scalping-terminal", badge: "PRO" },
+      { icon: Settings, label: "Settings", href: "/account/settings" },
+      { icon: Activity, label: "Account Health", href: "/account/account-health" },
+      { icon: MonitorSmartphone, label: "Pro Trading Extension", href: "/account/pro-trading-extension", badge: "PRO" },
+      { icon: Trophy, label: "Performance Arena", href: "/account/performance-arena" },
+    ],
+  },
+  {
+    label: "Tools",
+    items: [
+      { icon: Calculator, label: "Calculators", href: "/tools/calculators" },
+      { icon: Target, label: "Goals", href: "/goals" },
+      { icon: Bell, label: "Alerts", href: "/alerts" },
+      { icon: Zap, label: "Tool Alerts", href: "/alerts/tools" },
+      { icon: Bell, label: "Alert History", href: "/alerts/history" },
+      { icon: Tag, label: "Trade Tags", href: "/tags" },
+      { icon: Globe, label: "Pip Reference", href: "/tools/pip-reference" },
+      { icon: DollarSign, label: "Broker Fees", href: "/tools/broker-fees" },
+      { icon: Globe, label: "Session Overlap", href: "/tools/overlap" },
+    ],
+  },
+  {
+    label: "Developer",
+    items: [
+      { icon: Code, label: "Dashboard", href: "/developer/dashboard" },
+      { icon: Crown, label: "Subscription", href: "/developer/subscription" },
+    ],
+  },
+  {
+    label: "AI Workspace",
+    items: [
+      { icon: Bot, label: "Candels", href: "/account/candels", badge: "AI" },
+      { icon: FileText, label: "Workspace", href: "/account/candels/workspace" },
+      { icon: Brain, label: "Memory", href: "/account/candels/memory" },
+      { icon: Activity, label: "Activity", href: "/account/candels/activity" },
+      { icon: GitBranch, label: "Automations", href: "/account/candels/automations" },
+    ],
+  },
+  {
+    label: "Intelligence",
+    items: [
+      { icon: Users, label: "AI Trading Teams", href: "/account/ai-trading-teams", badge: "PRO" },
+      { icon: Plug, label: "My Plugins", href: "/account/plugins" },
+      { icon: Cpu, label: "Active Agents", href: "/account/agents" },
+      { icon: BarChart3, label: "Analysis", href: "/account/analysis" },
+      { icon: BarChart3, label: "Market Intelligence", href: "/account/market-intelligence", badge: "PRO" },
+    ],
+  },
+  {
+    label: "Analytics",
+    items: [
+      { icon: FileText, label: "Statement", href: "/statement" },
+      { icon: TrendingUp, label: "Spreads", href: "/spreads" },
+      { icon: Zap, label: "News", href: "/news" },
+      { icon: Calendar, label: "Economic Calendar", href: "/economic-calendar" },
+      { icon: Globe, label: "Sessions", href: "/tools/sessions" },
+      { icon: TrendingUp, label: "Fibonacci", href: "/tools/fibonacci" },
+      { icon: Target, label: "Currency Strength", href: "/tools/currency-strength" },
+      { icon: AlertTriangle, label: "Risk of Ruin", href: "/tools/risk-of-ruin" },
+      { icon: Activity, label: "Equity Curve", href: "/equity-curve" },
+    ],
+  },
+  {
+    label: "Trading",
+    items: [
+      { icon: Terminal, label: "Trading Terminal", href: "/account/trading" },
+      { icon: Zap, label: "AI Execution", href: "/account/ai-execution" },
+      { icon: Bot, label: "My Bots", href: "/account/bots" },
+      { icon: GitBranch, label: "Workflow Automation", href: "/account/workflows", badge: "PRO" },
+      { icon: Zap, label: "AI Signals", href: "/signals" },
+      { icon: LineChart, label: "Trading Studio", href: "/account/tradingview" },
+      { icon: RotateCcw, label: "Trade Replay", href: "/trade-replay" },
+      { icon: FlaskConical, label: "Strategy Lab", href: "/strategy-lab" },
+      { icon: Target, label: "Smart Management", href: "/trade-management" },
+      { icon: Bell, label: "Alert Center", href: "/alert-center" },
+      { icon: BarChart3, label: "Backtests", href: "/backtests" },
+      { icon: Radio, label: "Live Performance", href: "/live-performance" },
+      { icon: Shield, label: "Verified Performance", href: "/verified-performance" },
+      { icon: Activity, label: "Live Intelligence", href: "/account/live" },
+      { icon: Globe, label: "Live Map", href: "/account/livemap" },
+      { icon: Copy, label: "Copy Trading", href: "/copy-trading" },
+      { icon: Wallet, label: "Compare Brokers", href: "/compare" },
+      { icon: Activity, label: "Scanner", href: "/scanner" },
+    ],
+  },
+];

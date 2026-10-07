@@ -25,6 +25,8 @@ type PoolEntry = {
     pollTimer: ReturnType<typeof setInterval> | null;
     pollBusy: boolean;
     lastTickAt: number;
+    /** How many quote fetches this pool entry has issued (test observability). */
+    quoteFetches: number;
 };
 const enginePool = new Map<string, PoolEntry>();
 let deepHistoryFlag: boolean | null = null;
@@ -38,6 +40,7 @@ const EMPTY_STATUS: ChartEngineStatus = Object.freeze({
     candlesLoaded: 0,
     oldestLoadedTimestamp: null,
     hasMoreHistory: false,
+    historyAvailability: "unknown",
     loadingOlder: false,
     gapsDetected: 0,
     duplicatesDropped: 0,
@@ -63,7 +66,7 @@ function getEngineEntry(symbol: string, timeframe: ChartTimeframe, pageSize: num
             timeframe,
             pageSize,
         });
-        entry = { engine, refs: 0, pollTimer: null, pollBusy: false, lastTickAt: 0 };
+        entry = { engine, refs: 0, pollTimer: null, pollBusy: false, lastTickAt: 0, quoteFetches: 0 };
         enginePool.set(key, entry);
     }
     return entry;
@@ -114,6 +117,7 @@ function ensurePoller(entry: PoolEntry, symbol: string, timeframe: ChartTimefram
         if (entry.pollBusy) return;
         entry.pollBusy = true;
         try {
+            entry.quoteFetches += 1;
             const res = await fetch(`/api/market/quotes?symbols=${encodeURIComponent(symbol.toUpperCase())}`, {
                 cache: "no-store",
             });
@@ -195,7 +199,10 @@ export function useChartEngine(
 
     const loadOlder = useCallback(async () => {
         if (!entry) return false;
-        return entry.engine.loadOlder();
+        // Phase 1 scroll-back prefetch: the threshold path buffers a bounded
+        // batch of pages per crossing (pageSize × prefetchPages, capped) and
+        // commits them as ONE canonical update.
+        return entry.engine.loadOlder({ pages: entry.engine.prefetchPages });
     }, [entry]);
 
     const resync = useCallback(async () => {
@@ -245,4 +252,41 @@ export function useEngineDeepHistoryProbe(): boolean {
         };
     }, []);
     return deep;
+}
+
+// ── Phase 1 test support (polling/pool audit) ────────────────────────────────
+// These accessors exist so the pooling contract can be verified without
+// mounting React: one engine + one quote poller per symbol|timeframe, shared
+// by every subscriber, torn down after the last one leaves.
+
+export type EnginePoolSnapshot = {
+    /** Active subscribers (React hook instances) on this pooled engine. */
+    refs: number;
+    /** True while the shared quote poller timer is running. */
+    polling: boolean;
+    /** Quote fetches issued by this pool entry since creation. */
+    quoteFetches: number;
+    /** The pooled engine itself (test access for resync/status inspection). */
+    engine: ChartDataEngine;
+};
+
+/** Introspect the pooled engine for a series (null when not pooled). */
+export function __enginePoolSnapshot(symbol: string, timeframe: string): EnginePoolSnapshot | null {
+    const entry = enginePool.get(poolKey(symbol, timeframe));
+    if (!entry) return null;
+    return { refs: entry.refs, polling: entry.pollTimer !== null, quoteFetches: entry.quoteFetches, engine: entry.engine };
+}
+
+/**
+ * Subscribe exactly like useChartEngine does, without React. Returns the
+ * unsubscribe function (same ref-counting/teardown semantics).
+ */
+export function __subscribeEngineForTest(
+    symbol: string,
+    timeframe: ChartTimeframe,
+    pollMs: number,
+    notify: () => void,
+): () => void {
+    const entry = getEngineEntry(symbol, timeframe, 400);
+    return subscribeEngine(entry, symbol.toUpperCase(), timeframe, pollMs, notify);
 }

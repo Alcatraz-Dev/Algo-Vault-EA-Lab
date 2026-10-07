@@ -21,7 +21,23 @@ type OhlcResponse = {
     success?: boolean;
     candles?: MarketCandle[];
     error?: string;
+    /** Page-back only: why the page was empty (or that more data likely exists). */
+    historyBoundary?: string;
 };
+
+/**
+ * History-page boundary reported by the canonical OHLC endpoint.
+ *
+ *  more        → full page; older data likely exists
+ *  exhausted   → provider authoritatively has nothing older
+ *  unavailable → provider could not answer (rate limit/auth/network/…);
+ *                the chart must NOT treat this as the end of history
+ */
+export type HistoryBoundary = "more" | "exhausted" | "unavailable";
+
+function parseBoundary(raw: string | undefined): HistoryBoundary | undefined {
+    return raw === "more" || raw === "exhausted" || raw === "unavailable" ? raw : undefined;
+}
 
 function mapCandles(raw: MarketCandle[] | undefined, symbol: string, timeframe: ChartTimeframe): ChartCandle[] {
     if (!raw?.length) return [];
@@ -36,7 +52,7 @@ function mapCandles(raw: MarketCandle[] | undefined, symbol: string, timeframe: 
 async function fetchOhlc(
     params: URLSearchParams,
     signal?: AbortSignal,
-): Promise<{ candles: MarketCandle[] | null; hasDeepHistory: boolean } | null> {
+): Promise<{ candles: MarketCandle[] | null; hasDeepHistory: boolean; historyBoundary?: HistoryBoundary } | null> {
     const res = await fetch(`/api/analytics/ohlc?${params.toString()}`, {
         cache: "no-store",
         signal,
@@ -45,7 +61,11 @@ async function fetchOhlc(
         throw new Error(`OHLC request failed (${res.status})`);
     }
     const body = (await res.json()) as (OhlcResponse & { hasDeepHistory?: boolean }) | null;
-    return { candles: body?.candles ?? null, hasDeepHistory: body?.hasDeepHistory === true };
+    return {
+        candles: body?.candles ?? null,
+        hasDeepHistory: body?.hasDeepHistory === true,
+        historyBoundary: parseBoundary(body?.historyBoundary),
+    };
 }
 
 /**
@@ -71,23 +91,27 @@ export function createApiDataSources(hasDeepHistory: boolean): ChartDataSources 
             return { candles: mapped, hasMore: hasDeepHistory && mapped.length > 0 };
         },
 
-        async loadOlder({ symbol, timeframe, beforeMs, limit }) {
-            if (!hasDeepHistory) return { candles: [], hasMore: false };
+        async loadOlder({ symbol, timeframe, beforeMs, limit, signal }) {
+            if (!hasDeepHistory) return { candles: [], hasMore: false, boundary: "unavailable" as const };
             const params = new URLSearchParams({
                 symbol: symbol.toUpperCase(),
                 timeframe,
                 limit: String(Math.min(Math.max(limit, 50), MAX_HISTORY_CANDLES)),
                 before: String(beforeMs),
             });
-            const candles = await fetchOhlc(params);
-            const mapped = mapCandles(candles?.candles ?? undefined, symbol, timeframe)
+            const body = await fetchOhlc(params, signal);
+            const mapped = mapCandles(body?.candles ?? undefined, symbol, timeframe)
                 // Strictly older than the boundary — dedupe is enforced by the
                 // engine, but avoid re-accepting the boundary candle.
                 .filter((c) => c.timestamp < beforeMs);
-            return { candles: mapped, hasMore: mapped.length > 0 };
+            return {
+                candles: mapped,
+                hasMore: mapped.length > 0,
+                boundary: body?.historyBoundary,
+            };
         },
 
-        async loadRange({ symbol, timeframe, fromMs, toMs }) {
+        async loadRange({ symbol, timeframe, fromMs, toMs, signal }) {
             const params = new URLSearchParams({
                 symbol: symbol.toUpperCase(),
                 timeframe,
@@ -95,7 +119,7 @@ export function createApiDataSources(hasDeepHistory: boolean): ChartDataSources 
                 to: String(toMs),
                 limit: String(MAX_RANGE_CANDLES),
             });
-            const candles = await fetchOhlc(params);
+            const candles = await fetchOhlc(params, signal);
             const mapped = mapCandles(candles?.candles ?? undefined, symbol, timeframe).filter(
                 (c) => c.timestamp >= fromMs && c.timestamp <= toMs,
             );
@@ -130,22 +154,26 @@ export function createAdaptiveApiDataSources(): ChartDataSources {
             return { candles: mapped, hasMore: deepHistory && mapped.length > 0 };
         },
 
-        async loadOlder({ symbol, timeframe, beforeMs, limit }) {
-            if (!deepHistory) return { candles: [], hasMore: false };
+        async loadOlder({ symbol, timeframe, beforeMs, limit, signal }) {
+            if (!deepHistory) return { candles: [], hasMore: false, boundary: "unavailable" as const };
             const params = new URLSearchParams({
                 symbol: symbol.toUpperCase(),
                 timeframe,
                 limit: String(Math.min(Math.max(limit, 50), MAX_HISTORY_CANDLES)),
                 before: String(beforeMs),
             });
-            const body = await fetchOhlc(params);
+            const body = await fetchOhlc(params, signal);
             if (body?.hasDeepHistory === false) deepHistory = false;
             const mapped = mapCandles(body?.candles ?? undefined, symbol, timeframe)
                 .filter((c) => c.timestamp < beforeMs);
-            return { candles: mapped, hasMore: deepHistory && mapped.length > 0 };
+            return {
+                candles: mapped,
+                hasMore: deepHistory && mapped.length > 0,
+                boundary: body?.historyBoundary,
+            };
         },
 
-        async loadRange({ symbol, timeframe, fromMs, toMs }) {
+        async loadRange({ symbol, timeframe, fromMs, toMs, signal }) {
             const params = new URLSearchParams({
                 symbol: symbol.toUpperCase(),
                 timeframe,
@@ -153,7 +181,7 @@ export function createAdaptiveApiDataSources(): ChartDataSources {
                 to: String(toMs),
                 limit: String(MAX_RANGE_CANDLES),
             });
-            const body = await fetchOhlc(params);
+            const body = await fetchOhlc(params, signal);
             if (body?.hasDeepHistory === false) deepHistory = false;
             const mapped = mapCandles(body?.candles ?? undefined, symbol, timeframe).filter(
                 (c) => c.timestamp >= fromMs && c.timestamp <= toMs,
@@ -173,10 +201,12 @@ export function quoteToTick(
     nowMs = Date.now(),
 ): { price: number; timestamp: number } | null {
     if (!quote || !Number.isFinite(quote.price) || quote.price <= 0) return null;
-    // Provider timestamps that are absurdly old or in the future are clamped
-    // to now for bucketing, but the price is used as-is.
+    // No-future-leakage hard rule: a quote stamped in the future (provider
+    // clock skew) is clamped to now so a tick can never open a candle bucket
+    // beyond the current one. Stamps that are absurdly old are likewise
+    // clamped to now for bucketing; the price is used as-is.
     let ts = Number.isFinite(quote.timestamp) ? quote.timestamp : nowMs;
-    if (ts <= 0 || ts > nowMs + 60_000) ts = nowMs;
+    if (ts <= 0 || ts > nowMs) ts = nowMs;
     void symbol;
     return { price: quote.price, timestamp: ts };
 }

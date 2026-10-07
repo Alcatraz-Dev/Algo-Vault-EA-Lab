@@ -8,7 +8,7 @@ import {
 } from "@/lib/market-data/normalizer";
 import { tradingViewLivePriceCache } from "@/lib/market-data/tradingview-live";
 import { hasTwelveDataApiKey } from "@/lib/market-data/twelvedata/config";
-import { fetchDeepHistoryPage } from "@/lib/market-data/twelvedata/candle-bridge";
+import { fetchDeepHistoryPage, fetchDeepHistoryPageDetailed } from "@/lib/market-data/twelvedata/candle-bridge";
 import { SUPPORTED_SYMBOLS, type MarketCandle } from "@/lib/market-data/types";
 
 export const runtime = "nodejs";
@@ -37,6 +37,11 @@ const MAX_LIMIT = OHLC_MAX_LIMIT;
  * `hasDeepHistory` tells the client which of the first two modes can deliver
  * more data. No candles are ever synthesized: an empty page is an honest
  * empty page.
+ *
+ * `historyBoundary` (page-back responses) tells the client WHY a page was
+ * empty: "exhausted" = the provider has nothing older (a real boundary),
+ * "unavailable" = the provider could not answer (rate limit, auth,
+ * network) — the chart must NOT treat that as the end of history.
  */
 export async function GET(request: NextRequest) {
     try {
@@ -79,6 +84,8 @@ export async function GET(request: NextRequest) {
         const pagingRequested = beforeParam !== null || fromParam !== null || toParam !== null;
 
         let candles: MarketCandle[] = [];
+        /** "more" | "exhausted" | "unavailable" — only on page-back responses. */
+        let historyBoundary: "more" | "exhausted" | "unavailable" | undefined;
 
         if (pagingRequested && deepAvailable) {
             // Deep-history path (Twelve Data). Range fill wins over page-back.
@@ -89,12 +96,18 @@ export async function GET(request: NextRequest) {
                 const page = await fetchDeepHistoryPage(symbol, timeframe, { beforeMs: before, limit });
                 candles = (page ?? []).filter((c) => c.timestamp >= fromMs && c.timestamp <= toMs);
             } else if (beforeParam !== null && Number.isFinite(Number(beforeParam))) {
-                const page = await fetchDeepHistoryPage(symbol, timeframe, { beforeMs: Number(beforeParam), limit });
-                candles = page ?? [];
+                // Outcome-aware: an empty page must distinguish a genuine
+                // history boundary from a transient provider failure so the
+                // chart never latches "no more history" on a rate limit.
+                const detail = await fetchDeepHistoryPageDetailed(symbol, timeframe, { beforeMs: Number(beforeParam), limit });
+                candles = detail.candles ?? [];
+                historyBoundary = detail.boundary;
             }
         } else if (pagingRequested) {
             // Paging requested but no deep provider configured: report the
-            // boundary honestly instead of returning duplicated shallow data.
+            // capability gap honestly instead of returning duplicated
+            // shallow data. "unavailable" (not "exhausted"): the chart may
+            // start paging the moment a provider is configured.
             return NextResponse.json({
                 success: true,
                 symbol,
@@ -102,6 +115,7 @@ export async function GET(request: NextRequest) {
                 candles: [],
                 candleCount: 0,
                 hasDeepHistory: false,
+                historyBoundary: "unavailable",
                 timestamp: Date.now(),
             });
         } else {
@@ -150,6 +164,7 @@ export async function GET(request: NextRequest) {
             } : null,
             candleCount: sliced.length,
             hasDeepHistory: deepAvailable,
+            ...(historyBoundary ? { historyBoundary } : {}),
             timestamp: Date.now(),
         });
     } catch (err) {

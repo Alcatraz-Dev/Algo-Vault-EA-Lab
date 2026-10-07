@@ -355,6 +355,18 @@ export async function deleteCandelProposal(proposalId: string, candelId: string,
     .remove();
 }
 
+// ─── Activity (audit events) ─────────────────────────────────────────────────
+
+export async function saveCandelActivity(activity: CandelActivity): Promise<void> {
+  await adminDatabase
+    .ref(`candelActivity/${activity.userId}/${activity.candelId}/${activity.id}`)
+    .set(deepClean(activity));
+}
+
+export async function deleteCandelActivity(candelId: string, userId: string): Promise<void> {
+  await adminDatabase.ref(`candelActivity/${userId}/${candelId}`).remove();
+}
+
 // ─── Account context (server-scoped read-only view) ─────────────────────────
 
 export async function getCandelAccountContext(candelId: string, userId: string, accountId: string): Promise<CandelAccountContext | null> {
