@@ -61,7 +61,8 @@ import {
     type SmartMoneyDetection,
 } from "@/lib/market-core";
 import { ChartAnchoredOverlay, type AnchoredItem } from "@/lib/chart-engine/chart-anchored-overlay";
-import { barIndexForTime, countPrependedBars, shiftLogicalRangeForPrepend } from "@/lib/chart-engine/coordinate-mapping";
+import { barIndexForTime, type LogicalRange } from "@/lib/chart-engine/coordinate-mapping";
+import { FOCUS_HALF_BARS, ViewportController, type ViewportSnapshot } from "@/lib/chart-engine/viewport";
 import { useOrderFlow } from "@/hooks/use-order-flow";
 import type { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 import type { AdvancedAnalysisResult } from "@/lib/ai/analysis/intelligence";
@@ -854,11 +855,15 @@ export function ProTerminalChart({
     // series/markers whenever the payload (or the candles) change.
     const aiOverlay = aiOverlayProp;
 
-    // ── live-follow state (Phase 6) ───────────────────────────────────────
-    // When the user is at the live edge the chart follows new candles
-    // (scrollToRealTime on every append). Any manual drag/zoom away from the
-    // edge disengages following; the Go-to-Live chip re-engages it.
-    const [followLive, setFollowLive] = useState(true);
+    // ── viewport state machine (Phase 2) ───────────────────────────────────
+    // One ViewportController owns ALL viewport behavior for this chart
+    // instance: live-follow, user pan, prepend/repair compensation, focus and
+    // symbol/timeframe resets. It is mutable and lives outside React, so
+    // pan/zoom/scroll events never re-render the chart — only the Go-to-Live
+    // chip subscribes, and only when the follow flag actually flips.
+    const viewportRef = useRef<ViewportController | null>(null);
+    if (viewportRef.current === null) viewportRef.current = new ViewportController();
+    const viewport = viewportRef.current;
     const [showGoLive, setShowGoLive] = useState(false);
     const [olderLoading, setOlderLoading] = useState(false);
 
@@ -1309,6 +1314,7 @@ export function ProTerminalChart({
         lastKeyRef.current = "";
         lastPushedBarRef.current = null;
         lastPushedCandlesRef.current = [];
+        viewport.reset("initial");
 
         const initialTheme = document.documentElement.dataset.chartTheme === "light" ? "light" : "dark";
         const t = THEME_OPTIONS[initialTheme];
@@ -1362,6 +1368,7 @@ export function ProTerminalChart({
             },
         });
         chartRef.current = chart;
+        viewport.attach(chart.timeScale());
 
         // TradingView-style theme switch is driven by the chart toolbar and
         // persisted per-symbol; `autoSize` + transparent-swap is unreliable
@@ -1508,41 +1515,41 @@ export function ProTerminalChart({
             }
         });
 
-        // ── live-follow interaction wiring (Phase 6/11) ────────────────────
-        // Manual scroll/zoom away from the newest candle pauses following;
-        // the visible Go-to-Live chip restores it. Panning back to the edge
-        // re-engages automatically.
+        // ── viewport wiring (Phase 2) ───────────────────────────────────────
+        // The controller classifies every range change (following live vs
+        // user-panned) with its logical live-edge rule; this component only
+        // subscribes to follow-state FLIPS for the Go-to-Live chip. Panning
+        // back to the edge re-engages following automatically.
         const timeScale = chart.timeScale();
-        const handleVisibleRange = () => {
+        const handleVisibleRange = (range: LogicalRange | null) => {
             // The SVG overlay (drawings + the AI direction badge) positions
             // itself from chart coordinates, so any pan/zoom invalidates those
             // pixels. One state bump re-renders it in step with the canvas.
             setViewportTick((t) => t + 1);
-            try {
-                const range = timeScale.getVisibleLogicalRange();
-                const bars = lastBarCountRef.current;
-                if (range === null || bars <= 0) return;
-                const atEdge = range.to >= bars - 1.5;
-                setShowGoLive(!atEdge);
-                setFollowLive(atEdge);
-                // ── progressive historical loading (Phase 3) ────────────────
-                // Reaching the left edge of the loaded window prepends the
-                // next older page, so the user can scroll back through the
-                // full provider history naturally (never hard-limited).
-                if (range.from <= HISTORY_LOAD_THRESHOLD_BARS) {
-                    olderPageRequestRef.current?.();
-                }
-            } catch {
-                // range not available yet
+            viewport.handleRangeChange(range);
+            // ── progressive historical loading (Phase 3) ────────────────────
+            // Reaching the left edge of the loaded window prepends the next
+            // older page — never while a programmatic viewport op (prepend
+            // compensation, focus, reset) owns the range.
+            if (!range || viewport.isProgrammatic()) return;
+            if (lastBarCountRef.current <= 0) return;
+            if (range.from <= HISTORY_LOAD_THRESHOLD_BARS) {
+                olderPageRequestRef.current?.();
             }
         };
         timeScale.subscribeVisibleLogicalRangeChange(handleVisibleRange);
+        const unsubscribeViewport = viewport.subscribe((following) => {
+            setShowGoLive(!following);
+        });
 
         // Publish the live handles for the SVG drawing overlay's render-time
         // coordinate conversion (state, not refs — refs can't be read in render).
         setChartHandles({ chart, cs: candleSeriesRef.current });
 
         return () => {
+            timeScale.unsubscribeVisibleLogicalRangeChange(handleVisibleRange);
+            unsubscribeViewport();
+            viewport.detach();
             anchoredOverlayRef.current?.destroy();
             anchoredOverlayRef.current = null;
             for (const plugin of [studyMarkersRef.current, structureMarkersRef.current, signalMarkersRef.current, orderFlowMarkersRef.current, historyMarkersRef.current, aiDrawMarkersRef.current, psarMarkersRef.current]) {
@@ -1629,10 +1636,13 @@ export function ProTerminalChart({
             if (entry) {
                 setContainerSize({ w: entry.contentRect.width, h: entry.contentRect.height });
             }
+            // Resize must never reset the chart: the controller re-asserts the
+            // live edge only while following; a panned viewport is left alone.
+            viewport.handleResize();
         });
         ro.observe(el);
         return () => ro.disconnect();
-    }, []);    // ── Chart settings application (theme colors / grid / trade display) ────
+    }, [viewport]);    // ── Chart settings application (theme colors / grid / trade display) ────
     // Applies the toolbar's resolved settings to the live chart. Pure view
     // options — no data refetch, no viewport change (except re-enabling the
     // price auto-scale the user explicitly asked for).
@@ -2306,6 +2316,7 @@ export function ProTerminalChart({
             lastPushedCandlesRef.current = [];
             lastBarCountRef.current = 0;
             firstPushedTimeRef.current = null;
+            viewport.handleDataMutation(0);
             return;
         }
 
@@ -2325,10 +2336,9 @@ export function ProTerminalChart({
         const prev = bars.length > 1 ? bars[bars.length - 2] : null;
 
         // Prepend detection: the same series grew at the FRONT (an older
-        // history page arrived). lightweight-charts setData replaces all
-        // bars, which would otherwise re-anchor the viewport — so the
-        // logical range is captured and shifted by the prepend size to keep
-        // the exact same candles on screen (no jump, no re-zoom).
+        // history page arrived). The viewport compensation itself is
+        // centralized in the ViewportController — one market-anchored shift per
+        // canonical commit (see the commit block below).
         const prepended =
             key === lastKeyRef.current &&
             bars.length > lastBarCountRef.current &&
@@ -2336,20 +2346,6 @@ export function ProTerminalChart({
             bars[0].time < firstPushedTimeRef.current &&
             lastPushedBarRef.current !== null &&
             bars[bars.length - 1].time >= lastPushedBarRef.current.time;
-        let restoreRange: { from: number; to: number } | null = null;
-        if (prepended) {
-            try {
-                const range = chartRef.current?.timeScale().getVisibleLogicalRange();
-                if (range) {
-                    const prependCount = countPrependedBars(bars, firstPushedTimeRef.current!);
-                    if (prependCount > 0) {
-                        restoreRange = shiftLogicalRangeForPrepend(range, 0, prependCount);
-                    }
-                }
-            } catch {
-                restoreRange = null;
-            }
-        }
 
         // Tick-only path: same instrument/timeframe, history length stable or
         // grown by exactly one bar, and the visible change is confined to the
@@ -2402,19 +2398,51 @@ export function ProTerminalChart({
             pushLineTail(vw, vwapVals);
             pushLineTail(e9, ema(closes, 9));
             pushLineTail(e20, ema(closes, 20));
+            // A new bar appended at the tail: keep the live edge while
+            // following; a user-panned viewport receives no mutating call.
+            // Forming-candle-only updates (same bar count) touch nothing.
+            if (bars.length > previousCount) {
+                viewport.handleDataAppend(previousCount, bars.length);
+            }
             lastPushedBarRef.current = { time: last.time, open: last.open, high: last.high, low: last.low, close: last.close };
             lastPushedCandlesRef.current = candles.map((c) => ({ ...c }));
             lastBarCountRef.current = bars.length;
             return;
         }
 
-        cs.setData(bars);
-        if (restoreRange) {
-            try {
-                chartRef.current?.timeScale().setVisibleLogicalRange(restoreRange);
-            } catch {
-                // timescale not ready — the default view is acceptable
+        // ── viewport-authoritative commit (Phase 2) ─────────────────────────
+        // Context change (symbol/timeframe): never restore the old context's
+        // logical range — reset (epoch bump) and run the single initial-fit
+        // policy after the new data is in. Same context: capture the market
+        // anchors BEFORE the swap, then apply exactly ONE compensation after
+        // the commit (0 shift ⇒ zero viewport mutations, so duplicate rows and
+        // OHLC-only corrections never move the view).
+        const keyChanged = key !== lastKeyRef.current;
+        let snapshot: ViewportSnapshot | null = null;
+        if (keyChanged) {
+            const prevKey = lastKeyRef.current;
+            const prevTimeframe = prevKey.includes("|") ? prevKey.split("|")[1] : "";
+            viewport.reset(prevKey === "" ? "initial" : prevTimeframe !== timeframe ? "timeframe" : "symbol");
+        } else if (previousCount > 0) {
+            // Mirror of the exact series pushed last commit (deduped, seconds)
+            // so snapshot indices align with lightweight-charts' bar indices.
+            const previousTimes: number[] = [];
+            const seenPrevious = new Set<number>();
+            for (const c of previousCandles) {
+                const t = Math.floor(c.timestamp / 1000);
+                if (seenPrevious.has(t)) continue;
+                seenPrevious.add(t);
+                previousTimes.push(t);
             }
+            snapshot = prepended ? viewport.prependStarted(previousTimes) : viewport.capture(previousTimes);
+        }
+
+        cs.setData(bars);
+        viewport.setBarCount(bars.length);
+        if (snapshot) {
+            const newTimes = bars.map((b) => b.time);
+            if (prepended) viewport.prependCompleted(snapshot, newTimes);
+            else viewport.restore(snapshot, newTimes);
         }
         vs.setData(
             bars.map((bar, i) => {
@@ -2441,32 +2469,30 @@ export function ProTerminalChart({
         pushEma(e9, 9);
         pushEma(e20, 20);
 
-        // Only auto-fit when the dataset itself changed (symbol/timeframe
-        // switch or a reconcile that added closed bars). Live tick updates to
-        // the forming bar keep the current viewport so the last candle moves
-        // in place instead of the chart re-zooming every 2 seconds. Prepends
-        // keep the user's scroll position (restoreRange above).
-        const barCountChanged = bars.length !== lastBarCountRef.current;
-        const appended = barCountChanged && bars.length > lastBarCountRef.current && key === lastKeyRef.current && !prepended && stableHistoryPrefix;
-        if (key !== lastKeyRef.current || (barCountChanged && !appended && !prepended)) {
-            chartRef.current?.timeScale().fitContent();
-            lastKeyRef.current = key;
+        // ── viewport classification for this commit (Phase 2) ───────────────
+        // fitContent happens ONLY via the initial-fit policy on a context
+        // change. Appends re-assert the live edge only while following;
+        // reconciliations, gap repairs, OHLC corrections and duplicate rows
+        // keep the captured market anchor and never fit — and a panned
+        // viewport receives zero mutating calls. Live tick updates to the
+        // forming bar return through the tail path above without any call.
+        const barCountChanged = bars.length !== previousCount;
+        const appended = barCountChanged && bars.length > previousCount && !keyChanged && !prepended && stableHistoryPrefix;
+        if (keyChanged || (previousCount === 0 && bars.length > 0)) {
+            // Context change (epoch already bumped above) or a dataset
+            // returning after an empty feed — the single initial-fit policy.
+            viewport.initialFit();
+        } else if (appended) {
+            viewport.handleDataAppend(previousCount, bars.length);
+        } else {
+            viewport.handleDataMutation(bars.length);
         }
-        // Live follow (Phase 6): when the user is at the live edge, keep the
-        // newest candle glued to the right margin as new candles append. When
-        // they scrolled away, the viewport is theirs — never yanked back.
-        if (appended && followLive) {
-            try {
-                chartRef.current?.timeScale().scrollToRealTime();
-            } catch {
-                // timescale not ready
-            }
-        }
+        lastKeyRef.current = key;
         lastBarCountRef.current = bars.length;
         firstPushedTimeRef.current = bars[0].time;
         lastPushedBarRef.current = { time: last.time, open: last.open, high: last.high, low: last.low, close: last.close };
         lastPushedCandlesRef.current = candles.map((c) => ({ ...c }));
-    }, [candles, symbol, timeframe, followLive]);
+    }, [candles, symbol, timeframe, viewport]);
 
     // ── Pine study overlays ─────────────────────────────────────────────
     // Recreate the study series whenever the applied script (or its pane
@@ -3077,11 +3103,13 @@ export function ProTerminalChart({
             if (cfgRef.current.display.autoScale) {
                 chart.priceScale("right").applyOptions({ autoScale: true });
             }
-            chart.timeScale().fitContent();
+            // Toolbar Fit is an explicit user action — routed through the one
+            // viewport authority, which re-evaluates follow from the result.
+            viewport.refit();
         } catch {
             // chart not ready
         }
-    }, [fitSignal]);
+    }, [fitSignal, viewport]);
 
     // ── Event → chart navigation (Phase 5 §32) ────────────────────────────
     // The request may arrive before the new symbol's candles have loaded, so
@@ -3101,12 +3129,11 @@ export function ProTerminalChart({
         pendingFocusRef.current = null;
         try {
             const spanMs = isChartTimeframe(timeframe) ? TIMEFRAME_MS[timeframe] : TIMEFRAME_MS.M5;
-            const half = Math.max(300, Math.floor((spanMs * 12) / 1000));
-            const centre = Math.floor(pending.time / 1000);
-            chart.timeScale().setVisibleRange({
-                from: (centre - half) as UTCTimestamp,
-                to: (centre + half) as UTCTimestamp,
-            });
+            // Focus is centralized in the viewport controller: it lands the
+            // ±12-bar window on the target (logical coordinates) and then
+            // explicitly re-evaluates follow — a historical target transitions
+            // to USER_PANNED, the live area stays FOLLOWING_LIVE.
+            viewport.focus({ timeMs: pending.time, bars: candles, intervalMs: spanMs });
 
             const cs = candleSeriesRef.current;
             if (cs) {
@@ -3134,7 +3161,7 @@ export function ProTerminalChart({
         } catch {
             // chart not ready — the next data render retries from the pending ref
         }
-    }, [focusRequest?.seq, candles.length, timeframe]);
+    }, [focusRequest?.seq, candles.length, timeframe, viewport]);
 
     // Static price-line overlays (session, prev day, S/R, equal H/L, liquidity).
     useEffect(() => {
@@ -3985,16 +4012,12 @@ export function ProTerminalChart({
         };
     }, [hasMoreHistory, olderLoading, loadOlder]);
 
-    // Go to Live: jump to the newest candle and re-enable following.
+    // Go to Live: explicit transition back into live-follow via the viewport
+    // controller (scrolls to the newest candle and flips the follow flag).
     const handleGoLive = useCallback(() => {
-        setFollowLive(true);
+        viewport.enterLiveFollow();
         setShowGoLive(false);
-        try {
-            chartRef.current?.timeScale().scrollToRealTime();
-        } catch {
-            // chart not ready
-        }
-    }, []);
+    }, [viewport]);
 
     return (
         <div className="relative min-w-0 overflow-hidden rounded-lg border border-border bg-card" data-chart-container>

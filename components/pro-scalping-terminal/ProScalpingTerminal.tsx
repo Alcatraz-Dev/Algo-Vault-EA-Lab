@@ -31,6 +31,7 @@ import {
     WifiOff,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CandelToolbarButton } from "./CandelToolbar";
 import type { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 import { RADAR_SYMBOLS } from "@/lib/ai/scalping/watchlist";
 import type { RadarResult, TerminalSignal } from "@/lib/ai/scalping/radar";
@@ -268,6 +269,11 @@ export function ProScalpingTerminal() {
                 ) : null}
 
                 <div className="ml-auto flex flex-wrap items-center gap-1.5">
+                    <CandelToolbarButton
+                        symbol={symbol}
+                        timeframe={timeframe}
+                        openPanel={() => {}}
+                    />
                     <button
                         type="button"
                         onClick={() => setPollMs((p) => (p === 0 ? 30_000 : 0))}
