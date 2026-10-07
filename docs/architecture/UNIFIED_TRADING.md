@@ -187,6 +187,62 @@ cannot both execute.
 
 ---
 
+## 6b. Late execution reports (post-timeout reconciliation)
+
+Two late outcomes exist and are deliberately NOT the same thing:
+
+- **`EXECUTED_PENDING_SYNC`** (§5): the broker confirmed the fill *inside*
+  the waiting window; only the synced position mirror is late. HTTP 200.
+- **`FAILED` / `EXECUTION_TIMEOUT`**: no provider confirmation *inside* the
+  waiting window. HTTP 504, `providerRef: null`. This canonical result is
+  terminal — it is never revised afterwards.
+
+The second case can still be followed by a late EA report: the EA executes
+the trade at T2, but the execution report only lands at T4, after the
+execution already settled. The actual MT5 trade therefore exists even though
+the client saw `FAILED`.
+
+**Reconciliation model (observational only).** There is no second ingestion
+mechanism: the late report rides the *existing* gateway execution route
+(`POST /api/trading/gateway/execution`), which `.update()`s the same command
+node the adapter enqueued at T0 —
+`trading_order_requests/{uid}/{clientRequestId}` — adding `status: "filled"`,
+`mt5Ticket`, `executionPrice`, `volume`, `symbol`, `executedAt`. That node is
+already the source `getHistory()` derives executed orders from, so the actual
+fill becomes visible in the history/read model with no new persistence system
+(RTDB only, same namespaces, user/account-scoped).
+
+What reconciliation never does: enqueue another MT5 command, call
+`provider.execute()`, retry the command, mutate the settled
+`tradingExecutionResults/{uid}/{clientRequestId}` record, re-claim the
+idempotency key, touch risk/license/demo-only checks, or write positions
+(`trading_positions` stays the EA snapshot's alone).
+
+**Identity matching.** A report is matched by the strongest identifiers the
+production contract carries: the authenticated gateway token's `userId`
+namespace + the `clientRequestId` node key + the `accountId` **stored on the
+command node by the server at enqueue time**. The report body can never
+rebind `userId` or `accountId`, and a report whose command node does not
+exist has no stored `accountId` — it reconciles nowhere. Matching by symbol,
+volume or timestamp proximity alone never happens.
+
+**What the client sees** (one `clientRequestId`, two truths):
+
+| Surface | Content |
+|---|---|
+| `tradingExecutionResults/{uid}/{clientRequestId}` (canonical, §5/§6) | `FAILED` / `EXECUTION_TIMEOUT`, `providerRef: null` — immutable |
+| `getHistory()` / execution history | `FILLED` order with `providerRef` = MT5 ticket, execution price, volume, filled time |
+| Replays of the same key | the same canonical `FAILED` result with `duplicate: true` (§6); conflicts still 409 |
+
+This is verified by the deterministic late-report suite in
+`mt5-provider-verification.test.ts` (TEST 1–7): late report after timeout,
+replay after reconciliation, conflicting replay, wrong-user report,
+wrong-account report, duplicate report, and insufficient identity — each
+asserting no second execution, no second command, no duplicate position and
+an immutable canonical result.
+
+---
+
 ## 7. Partial close semantics
 
 Partial close is a **volume** operation. The percentage is always a share of
@@ -352,7 +408,7 @@ polling behavior against a fake RTDB.
 ## 12. Testing
 
 ```
-npm run test:unified-trading   # 136 checks (97 service-level + 39 provider-level)
+npm run test:unified-trading   # 237 checks (125 service-level + 112 provider-level)
 npm run test:trading           # provider-neutral suite (32 checks)
 ```
 
@@ -388,6 +444,8 @@ virtual clock — no Firebase account, no MT5 terminal, no wall-clock sleeps:
 | Same ticket under a different account | not verified; the other account's namespace is never read | 0 outside the target |
 | Ticket + symbol + volume consistent (EURUSD 0.20) | `SUCCEEDED` (verification is ticket-scoped — the existing contract) | 1 |
 | EA execution report never arrives (transport failure) | `FAILED`, no ticket invented, command enqueued once | ≥ 2 on the report poll |
+| Late EA report after the timeout (T4, §6b) | canonical result stays `FAILED` / `EXECUTION_TIMEOUT`; the fill appears in `getHistory()`; no second execution/command/position | — |
+| Replay / conflicting replay / wrong user / wrong account / duplicate / identity-less late report | reconciliation idempotent and identity-scoped; nothing crosses a namespace or account | — |
 
 Configuration checks pin `UNIFIED_TRADING_EXECUTION_TIMEOUT_MS` /
 `UNIFIED_TRADING_EXECUTION_POLL_MS` / `UNIFIED_TRADING_VERIFICATION_TIMEOUT_MS`
