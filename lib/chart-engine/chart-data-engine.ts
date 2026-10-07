@@ -268,7 +268,17 @@ export class ChartDataEngine {
         }
     }
 
-    /** Force a full resync (reconnect, manual refresh). */
+    /**
+     * Force a full resync (reconnect, manual refresh).
+     *
+     * With an EMPTY dataset this is the initial canonical load. With data on
+     * screen it RECONCILES instead: the fresh newest page is merged through
+     * `reconcile()` so provider bars stay authoritative for the buckets they
+     * cover, deep paged history and the live-merged forming bar survive the
+     * reconnect, no duplicate bars can appear (applyHistory dedupes by candle
+     * key + enforceChronology on commit), and the viewport is not reset by a
+     * wholesale dataset swap. Gap repair still runs afterwards.
+     */
     async resync(): Promise<void> {
         if (this.destroyed) return;
         this.setStatus((s) => ({
@@ -277,8 +287,43 @@ export class ChartDataEngine {
             quality: "synchronizing",
             reconnects: s.reconnects + 1,
         }));
-        await this.loadInitial();
-        // After reload, repair any hole between what we kept and the fresh page.
+        if (this.candles.length === 0) {
+            await this.loadInitial();
+            await this.detectAndRepairGaps();
+            return;
+        }
+
+        // Reconcile path — mirrors loadInitial's generation/status contract so
+        // an in-flight older-page load cannot commit after the reconnect.
+        const gen = ++this.generation;
+        this.currentAbort?.abort();
+        try {
+            const page = await this.sources.loadLatest({
+                symbol: this.symbol,
+                timeframe: this.timeframe,
+                limit: this.pageSize,
+            });
+            if (this.destroyed || gen !== this.generation) return;
+            this.reconcile(page.candles);
+            this.setStatus({
+                connection: "live",
+                quality: this.deriveQuality(),
+                lastHistoryLoadAt: Date.now(),
+                candlesLoaded: this.candles.length,
+                oldestLoadedTimestamp: this.candles[0]?.timestamp ?? null,
+                hasMoreHistory: page.hasMore,
+                error: null,
+            });
+        } catch (err) {
+            if (this.destroyed || gen !== this.generation) return;
+            this.setStatus({
+                connection: "error",
+                quality: "stale",
+                error: err instanceof Error ? err.message : "Failed to load chart history.",
+            });
+        }
+        // After the reload/reconcile, repair any hole between what we kept and
+        // the fresh page.
         await this.detectAndRepairGaps();
     }
 

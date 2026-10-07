@@ -34,6 +34,7 @@ export type ChartLayerId =
     | "rsiPane"
     | "macdPane"
     // Moving averages & Technical Overlay Indicators
+    | "ema9"
     | "ema20"
     | "ema50"
     | "ema200"
@@ -94,6 +95,7 @@ export const CHART_LAYERS: ChartLayerDef[] = [
     { id: "dailyPivots", label: "Pivots", defaultOn: false, available: true },
     { id: "rsiPane", label: "RSI pane", defaultOn: false, available: true },
     { id: "macdPane", label: "MACD pane", defaultOn: false, available: true },
+    { id: "ema9", label: "EMA 9", defaultOn: false, available: true },
     { id: "ema20", label: "EMA 20", defaultOn: false, available: true },
     { id: "ema50", label: "EMA 50", defaultOn: false, available: true },
     { id: "ema200", label: "EMA 200", defaultOn: false, available: true },
@@ -207,6 +209,37 @@ export function staticLayerAvailability(): Record<ChartLayerId, boolean> {
     return Object.fromEntries(CHART_LAYERS.map((l) => [l.id, l.available])) as Record<ChartLayerId, boolean>;
 }
 
+// ── capability truthfulness ────────────────────────────────────────────────
+//
+// `available: true` is a PROMISE to the user: the chart has a renderer for
+// this layer. `LayerCapability` makes that promise explicit and testable:
+//
+//   implemented — ProTerminalChart renders it from real candle data.
+//   planned     — no renderer yet; the toggle must stay visibly disabled and
+//                 LAYER_REQUIREMENTS explains what would unlock it.
+//   unsupported — cannot be rendered for this data class at all.
+//
+// The chart-upgrades test suite enforces the invariants:
+//   available  ⇒ capability === "implemented"
+//   capability !== "implemented" ⇒ !available ∧ LAYER_REQUIREMENTS entry
+//   every available layer is actually bound in ProTerminalChart (`layers.<id>`).
+
+export type LayerCapability = "implemented" | "planned" | "unsupported";
+
+/** Renderer capability for layers that are NOT implemented yet. */
+export const LAYER_CAPABILITY: Partial<Record<ChartLayerId, LayerCapability>> = {
+    footprint: "planned",
+    imbalances: "planned",
+    largeTrades: "planned",
+    liquidity: "planned",
+    heatmap: "planned",
+};
+
+/** Capability of the chart's own renderer for one layer (default: implemented). */
+export function layerCapability(id: ChartLayerId): LayerCapability {
+    return LAYER_CAPABILITY[id] ?? "implemented";
+}
+
 /**
  * Layers whose availability is resolved per-symbol at render time (data
  * source is wired, but only for certain symbols). The picker intersects this
@@ -226,6 +259,19 @@ export const CHART_LAYER_IDS = CHART_LAYERS.map((l) => l.id);
 
 export function defaultLayerState(): Record<ChartLayerId, boolean> {
     return Object.fromEntries(CHART_LAYERS.map((l) => [l.id, l.defaultOn])) as Record<ChartLayerId, boolean>;
+}
+
+/**
+ * Layer on/off verdict used by every renderer binding: only an explicit
+ * `true` renders. Missing keys (older persisted state written before a layer
+ * existed) resolve to OFF — a hidden layer may never draw, and an unknown key
+ * may never silently enable one.
+ */
+export function isLayerOn(
+    layers: Partial<Record<ChartLayerId, boolean>> | null | undefined,
+    id: ChartLayerId,
+): boolean {
+    return layers?.[id] === true;
 }
 
 /** Execution timeframes offered in the terminal toolbar. */

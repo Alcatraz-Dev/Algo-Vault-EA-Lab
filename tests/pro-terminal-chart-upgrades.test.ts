@@ -38,16 +38,44 @@ import {
 import { isMarketTradableAt } from "../lib/chart-engine/timeframe";
 import {
     MAGNET_TOOLS,
+    extendRayToBounds,
     hitTestDrawing,
     removeDrawingById,
+    resolveMarketPointToPixel,
+    resolvedFiboLevels,
     snapToOHLC,
+    toolCommitsDrawing,
     translateDrawingByMarketDelta,
+    triangleVertices,
     undoLastDrawing,
     updateDrawingColor,
     updateDrawingLabel,
     type DrawingGeom,
 } from "../components/pro-scalping-terminal/drawing-utils";
+import {
+    CHART_LAYERS,
+    LAYER_REQUIREMENTS,
+    defaultLayerState,
+    isLayerOn,
+    layerCapability,
+    type ChartLayerId,
+} from "../components/pro-scalping-terminal/chart-layers";
+import {
+    OHLC_MAX_LIMIT,
+    OHLC_MIN_LIMIT,
+    clampOhlcLimit,
+    fetchCandlesWithProvider,
+    finaliseCandles,
+    resolveOhlcLimit,
+    timeframeToLimit,
+} from "../lib/market-data/normalizer";
+import { createApiDataSources } from "../lib/chart-engine/data-sources";
+import { ChartDataEngine, type ChartDataSources } from "../lib/chart-engine/chart-data-engine";
+import type { ChartCandle } from "../lib/chart-engine/candle";
+import type { Time } from "lightweight-charts";
 import type { DrawingItem } from "../components/pro-scalping-terminal/ProTerminalChart";
+import fs from "node:fs";
+import path from "node:path";
 
 let passed = 0;
 let failed = 0;
@@ -62,6 +90,12 @@ function check(name: string, fn: () => void) {
         console.error(`  ✗ ${name}`);
         console.error(`    ${err instanceof Error ? err.message : String(err)}`);
     }
+}
+
+/** Async variant — queued and awaited before the final summary. */
+const asyncChecks: Array<{ name: string; fn: () => Promise<void> }> = [];
+function checkAsync(name: string, fn: () => Promise<void>): void {
+    asyncChecks.push({ name, fn });
 }
 
 function assert(condition: unknown, message: string): void {
@@ -627,5 +661,19 @@ check("nothing is paused while ticks are flowing and the week is open", () => {
     assertEqual(running.reason, null);
 });
 
-console.log(`\n${passed} passed, ${failed} failed`);
-if (failed > 0) process.exit(1);
+async function runQueuedAsyncChecks(): Promise<void> {
+    for (const t of asyncChecks) {
+        try {
+            await t.fn();
+            passed += 1;
+            console.log(`  ✓ ${t.name}`);
+        } catch (err) {
+            failed += 1;
+            console.error(`  ✗ ${t.name}`);
+            console.error(`    ${err instanceof Error ? err.message : String(err)}`);
+        }
+    }
+    console.log(`\n${passed} passed, ${failed} failed`);
+    if (failed > 0) process.exit(1);
+}
+void runQueuedAsyncChecks();

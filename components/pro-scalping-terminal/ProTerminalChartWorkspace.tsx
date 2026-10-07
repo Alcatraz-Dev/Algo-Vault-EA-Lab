@@ -173,6 +173,21 @@ export interface ProTerminalChartWorkspaceProps {
     /** Cancel a pending order from the chart's trade strip. */
     onCancelOrder?: (ticket: string) => void;
     /**
+     * Fired when the user clicks a drawn position (entry/SL/TP line) on the
+     * chart. The chart only EMITS the ticket — surfacing the position editor
+     * is the host's job.
+     */
+    onPositionSelect?: (ticket: string) => void;
+    /**
+     * Fired when the user drags a position's SL or TP line to a new price.
+     * The chart emits identity + which stop changed + the new price; the host
+     * decides how (or whether) to execute it through Unified Trading.
+     */
+    onModifyPositionStops?: (
+        ticket: string,
+        stops: { stopLoss?: number | null; takeProfit?: number | null }
+    ) => void;
+    /**
      * Fired when the user picks a different instrument in the chart (watchlist
      * or symbol control). Hosts that pair a chart with an order ticket MUST
      * handle this — otherwise the ticket keeps quoting one symbol while the
@@ -216,6 +231,8 @@ export function ProTerminalChartWorkspace({
     tradeHistory = [],
     onClosePosition,
     onCancelOrder,
+    onPositionSelect,
+    onModifyPositionStops,
     onSymbolChange,
     onTimeframeChange,
     focusRequest = null,
@@ -634,6 +651,8 @@ export function ProTerminalChartWorkspace({
                         onAiPlanChange={onAiPlanChange}
                         onClosePosition={onClosePosition}
                         onCancelOrder={onCancelOrder}
+                        onPositionSelect={onPositionSelect}
+                        onModifyPositionStops={onModifyPositionStops}
                     />
                 </div>
                 {hideWatchlist ? null : (

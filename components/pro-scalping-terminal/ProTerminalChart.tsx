@@ -65,7 +65,7 @@ import { barIndexForTime, countPrependedBars, shiftLogicalRangeForPrepend } from
 import { useOrderFlow } from "@/hooks/use-order-flow";
 import type { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 import type { AdvancedAnalysisResult } from "@/lib/ai/analysis/intelligence";
-import type { ChartLayerId } from "./chart-layers";
+import { isLayerOn, type ChartLayerId } from "./chart-layers";
 import type { PineStudyOverlay } from "./pine-overlays";
 import type { TerminalSignal } from "@/lib/ai/scalping/radar";
 import { fmtPrice } from "./terminal-utils";
@@ -80,10 +80,17 @@ import {
 } from "./chart-settings";
 import {
     MAGNET_TOOLS,
+    extendRayToBounds,
     hitTestDrawing,
     removeDrawingById,
+    resolveMarketPointToPixel,
+    resolvePriceY,
+    resolveTimeX,
+    resolvedFiboLevels,
     snapToOHLC,
+    toolCommitsDrawing,
     translateDrawingByMarketDelta,
+    triangleVertices,
     undoLastDrawing,
     updateDrawingColor,
     updateDrawingLabel,
@@ -141,6 +148,13 @@ export type DrawingItem = {
     points: DrawingPoint[];
     label?: string;
     color?: string;
+    /**
+     * Optional per-drawing Fibonacci levels (fractions). Absent on every
+     * stored drawing today — resolution falls back to the user's configured
+     * tool levels — but the model accepts it so per-drawing editing can be
+     * added later without a migration (existing 2-point drawings unaffected).
+     */
+    fiboLevels?: readonly number[];
     /** Stroke width captured when the drawing was placed (tool settings). */
     width?: number;
     /** Stroke style captured when the drawing was placed (tool settings). */
@@ -413,10 +427,31 @@ const THEME_OPTIONS = {
 
 const PINE_PANE_STRETCH = 0.35;
 
+/**
+ * Phase 0 layer renderers — EMA/SMA overlays that run through the ONE core
+ * indicator engine (`alignedIndicatorSeries` → `lib/market-core`). EMA 20 is
+ * intentionally absent: it is fed by the chart's existing `ema20Ref` series.
+ * Kept at module scope so the create/remove effect and the data-feed effect
+ * share one definition of "what renders for this layer".
+ */
+const MA_LAYER_SERIES: Record<
+    string,
+    { core: "ema" | "sma"; period: number; color: string }
+> = {
+    ema50: { core: "ema", period: 50, color: "#fb7185" },
+    ema200: { core: "ema", period: 200, color: "#f59e0b" },
+    sma20: { core: "sma", period: 20, color: "#94a3b8" },
+    sma50: { core: "sma", period: 50, color: "#22d3ee" },
+    sma200: { core: "sma", period: 200, color: "#60a5fa" },
+};
+
+/** Layers (ChartLayerId keys) whose series are managed by MA_LAYER_SERIES. */
+const MA_LAYER_IDS = Object.keys(MA_LAYER_SERIES) as ChartLayerId[];
+
 /** In-chart hint shown while a drawing tool is active (bottom-center chip). */
 const DRAWING_TOOL_HINTS: Record<DrawingTool, string> = {
     select: "Click an object to select · Del removes it",
-    hand: "Drag to move a drawing · click to release",
+    hand: "Drag to pan the chart — the hand never creates drawings",
     trendline: "Drag between two points",
     arrow: "Drag from origin to target (arrow drawn at target)",
     horizontal: "Click to place a price level",
@@ -426,7 +461,7 @@ const DRAWING_TOOL_HINTS: Record<DrawingTool, string> = {
     rectangle: "Drag to mark a zone",
     text: "Click, type a label, Enter saves",
     ruler: "Drag to measure price / time",
-    triangle: "Drag to draw arrow / triangle",
+    triangle: "Drag to draw a triangle (right-angled on the drag diagonal)",
 };
 /** Panning within this many bars of the loaded window's left edge triggers an older-page load. */
 const HISTORY_LOAD_THRESHOLD_BARS = 6;
@@ -727,6 +762,15 @@ export function ProTerminalChart({
     const kcSeriesRef = useRef<{ mid: ISeriesApi<"Line">; upper: ISeriesApi<"Line">; lower: ISeriesApi<"Line"> } | null>(null);
     const dcSeriesRef = useRef<{ upper: ISeriesApi<"Line">; lower: ISeriesApi<"Line">; mid: ISeriesApi<"Line"> } | null>(null);
     const stSeriesRef = useRef<{ line: ISeriesApi<"Line">; pane: number | null } | null>(null);
+    // Phase 0 layer renderers (same create/remove pattern as BB/KC/DC):
+    // EMA/SMA overlays, Ichimoku cloud edges, stochastic & ATR panes.
+    const maLayerSeriesRef = useRef<Record<string, ISeriesApi<"Line">> | null>(null);
+    const ichiSeriesRef = useRef<{ spanA: ISeriesApi<"Line">; spanB: ISeriesApi<"Line"> } | null>(null);
+    const stochSeriesRef = useRef<{ k: ISeriesApi<"Line">; d: ISeriesApi<"Line">; pane: number | null; lines: IPriceLine[] } | null>(null);
+    const atrSeriesRef = useRef<{ line: ISeriesApi<"Line">; pane: number | null } | null>(null);
+    // Parabolic SAR — dot markers on the candle series, rebuilt with the data
+    // feed while the layer is on and emptied when it is off.
+    const psarMarkersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
     // Viewport guard: keeps the user's zoom/scroll position while live ticks
     // move the forming bar, only auto-fitting when the symbol/timeframe or
     // history length actually changes (like a regular market chart).
@@ -744,6 +788,8 @@ export function ProTerminalChart({
     const stPaneOwnedRef = useRef<number | null>(null);
     const rsiPaneOwnedRef = useRef<number | null>(null);
     const macdPaneOwnedRef = useRef<number | null>(null);
+    const stochPaneOwnedRef = useRef<number | null>(null);
+    const atrPaneOwnedRef = useRef<number | null>(null);
     // Estimated delta pane (candle-direction proxy — clearly labelled, never
     // presented as bid/ask delta).
     const deltaPaneOwnedRef = useRef<number | null>(null);
@@ -978,7 +1024,15 @@ export function ProTerminalChart({
         ? drawingElements.find((d) => d.id === textEdit.id) ?? null
         : null;
 
-    /** Screen coordinates of a drawing's anchor points (null when unready). */
+    /**
+     * Screen coordinates of a drawing's anchor points — null when any
+     * REQUIRED coordinate is unresolvable, so callers hide the object instead
+     * of pinning it to a fabricated pixel. The drawing's stored market data is
+     * never mutated; it renders again as soon as the transforms resolve.
+     *
+     * Horizontal lines only need the price axis (their cross-axis span is the
+     * container by definition); vertical lines only need the time axis.
+     */
     const drawingScreenPos = (
         d: DrawingItem | null | undefined
     ): { x1: number; y1: number; x2: number; y2: number } | null => {
@@ -988,15 +1042,20 @@ export function ProTerminalChart({
         try {
             const p1 = d.points[0];
             const p2 = d.points[1];
-            const x1 = p1.time
-                ? chart.timeScale().timeToCoordinate(Math.floor(p1.time / 1000) as UTCTimestamp) ?? 0
-                : 0;
-            const y1 = cs.priceToCoordinate(p1.price) ?? 0;
-            const x2 = p2.time
-                ? chart.timeScale().timeToCoordinate(Math.floor(p2.time / 1000) as UTCTimestamp) ?? 0
-                : containerSize.w;
-            const y2 = cs.priceToCoordinate(p2.price) ?? 0;
-            return { x1, y1, x2, y2 };
+            if (d.type === "horizontal") {
+                const y = resolvePriceY(p1.price, cs);
+                if (y === null) return null;
+                return { x1: 0, y1: y, x2: containerSize.w, y2: y };
+            }
+            if (d.type === "vertical") {
+                const x = resolveTimeX(p1.time, chart);
+                if (x === null) return null;
+                return { x1: x, y1: 0, x2: x, y2: containerSize.h };
+            }
+            const a = resolveMarketPointToPixel(p1, chart, cs);
+            const b = resolveMarketPointToPixel(p2, chart, cs);
+            if (!a || !b) return null;
+            return { x1: a.x, y1: a.y, x2: b.x, y2: b.y };
         } catch {
             return null;
         }
@@ -1486,9 +1545,10 @@ export function ProTerminalChart({
         return () => {
             anchoredOverlayRef.current?.destroy();
             anchoredOverlayRef.current = null;
-            for (const plugin of [studyMarkersRef.current, structureMarkersRef.current, signalMarkersRef.current, orderFlowMarkersRef.current, historyMarkersRef.current, aiDrawMarkersRef.current]) {
+            for (const plugin of [studyMarkersRef.current, structureMarkersRef.current, signalMarkersRef.current, orderFlowMarkersRef.current, historyMarkersRef.current, aiDrawMarkersRef.current, psarMarkersRef.current]) {
                 plugin?.detach();
             }
+            psarMarkersRef.current = null;
             studyMarkersRef.current = null;
             structureMarkersRef.current = null;
             signalMarkersRef.current = null;
@@ -1521,12 +1581,18 @@ export function ProTerminalChart({
             kcSeriesRef.current = null;
             dcSeriesRef.current = null;
             stSeriesRef.current = null;
+            maLayerSeriesRef.current = null;
+            ichiSeriesRef.current = null;
+            stochSeriesRef.current = null;
+            atrSeriesRef.current = null;
             haSeriesRef.current = null;
             rsiSeriesRef.current = null;
             macdSeriesRef.current = null;
             stPaneOwnedRef.current = null;
             rsiPaneOwnedRef.current = null;
             macdPaneOwnedRef.current = null;
+            stochPaneOwnedRef.current = null;
+            atrPaneOwnedRef.current = null;
             deltaPaneOwnedRef.current = null;
             deltaSeriesRef.current = null;
             gexLinesRef.current = [];
@@ -1542,6 +1608,17 @@ export function ProTerminalChart({
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // ── Layer truth: EMA9 / EMA20 / VWAP render ONLY when their layer is on ──
+    // Declared AFTER the chart-creation effect (effects run in declaration
+    // order), so on mount the series exist by the time this applies the
+    // layer state — including a hydrated "on" state from localStorage. The
+    // data feed keeps the hidden series warm, so a toggle paints instantly.
+    useEffect(() => {
+        vwapSeriesRef.current?.applyOptions({ visible: isLayerOn(layers, "vwap") });
+        ema9Ref.current?.applyOptions({ visible: isLayerOn(layers, "ema9") });
+        ema20Ref.current?.applyOptions({ visible: isLayerOn(layers, "ema20") });
+    }, [layers.vwap, layers.ema9, layers.ema20]);
 
     // ── Resize observer — track container dimensions for SVG overlay ──────
     useEffect(() => {
@@ -1853,18 +1930,15 @@ export function ProTerminalChart({
             } catch { return candlesMirrorRef.current[0]?.timestamp ?? Date.now(); }
         };
 
-        /** Newest-first hit test: which placed drawing is under the cursor? */
+        /**
+         * Newest-first hit test: which placed drawing is under the cursor?
+         * An unresolvable coordinate skips the object entirely — hit-testing
+         * never invents a pixel, never matches a hidden drawing, and never
+         * mutates the drawing's market data.
+         */
         const hitTestAt = (x: number, y: number, w: number, h: number): DrawingItem | null => {
             const cs = candleSeriesRef.current;
             if (!cs) return null;
-            const priceToY = (p: number) => {
-                try { return cs.priceToCoordinate(p) ?? 0; } catch { return 0; }
-            };
-            const timeToX = (t: number) => {
-                try {
-                    return chart.timeScale().timeToCoordinate(Math.floor(t / 1000) as UTCTimestamp) ?? 0;
-                } catch { return 0; }
-            };
             const fontSize = cfgRef.current.tools.fontSize;
             const list = drawingsRef.current;
             for (let i = list.length - 1; i >= 0; i--) {
@@ -1872,15 +1946,38 @@ export function ProTerminalChart({
                 if (d.points.length < 2) continue;
                 const p1 = d.points[0];
                 const p2 = d.points[1];
+                let x1: number;
+                let y1: number;
+                let x2: number;
+                let y2: number;
+                if (d.type === "horizontal") {
+                    const y = resolvePriceY(p1.price, cs);
+                    if (y === null) continue;
+                    x1 = 0; y1 = y; x2 = w; y2 = y;
+                } else if (d.type === "vertical") {
+                    const xLine = resolveTimeX(p1.time, chart);
+                    if (xLine === null) continue;
+                    x1 = xLine; y1 = 0; x2 = xLine; y2 = h;
+                } else {
+                    const a = resolveMarketPointToPixel(p1, chart, cs);
+                    const b = resolveMarketPointToPixel(p2, chart, cs);
+                    if (!a || !b) continue;
+                    x1 = a.x; y1 = a.y; x2 = b.x; y2 = b.y;
+                }
                 const geom: DrawingGeom = {
-                    x1: p1.time ? timeToX(p1.time) : 0,
-                    y1: priceToY(p1.price),
-                    x2: p2.time ? timeToX(p2.time) : w,
-                    y2: priceToY(p2.price),
+                    x1,
+                    y1,
+                    x2,
+                    y2,
                     width: w,
                     height: h,
                     fontSize,
                     label: d.label,
+                    // Shared source of truth with the renderer — a customized
+                    // retracement is hit exactly where it is drawn.
+                    ...(d.type === "fibo"
+                        ? { fiboLevels: resolvedFiboLevels(d, cfgRef.current.tools.fiboLevels) }
+                        : {}),
                 };
                 if (hitTestDrawing(d.type, geom, x, y)) return d;
             }
@@ -2004,6 +2101,15 @@ export function ProTerminalChart({
                 }
                 return;
             }
+            if (tool === "hand") {
+                // Hand is viewport-only: it never starts a drawing gesture and
+                // never preventDefault()s — lightweight-charts' native
+                // pressed-drag scrolling pans the chart, and pointer-up below
+                // finds no in-progress gesture to commit.
+                drawingInProgressRef.current = null;
+                setDrawingPreview(null);
+                return;
+            }
             // Active drawing tools own the gesture; suppress canvas pan/scale
             // before the event reaches lightweight-charts target listeners.
             e.preventDefault();
@@ -2118,9 +2224,10 @@ export function ProTerminalChart({
                 setSelectedDrawingId(dp.moveId);
                 return;
             }
-            if (dist > 4 || dp.tool === "horizontal" || dp.tool === "text") {
+            if (toolCommitsDrawing(dp.tool, dist)) {
                 // Capture the user's current tool style (color + width from
                 // the settings panel) so each drawing keeps its own look.
+                // (toolCommitsDrawing: select/hand can never persist a drawing.)
                 const toolStyle = cfgRef.current.tools;
                 const newDrawing: DrawingItem = {
                     id: `d_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
@@ -3165,20 +3272,19 @@ export function ProTerminalChart({
                 low: b.low,
                 high: b.high,
                 widthFrac: b.volume / maxVol,
-                style: {
-                    background: b.price === p.poc
+                style: {                    background: b.price === p.poc
                         ? "rgba(245, 158, 11, 0.55)"
-                        : p.hvn.includes(b.price)
-                            ? "rgba(56, 189, 248, 0.30)"
-                            : p.lvn.includes(b.price)
-                                ? "rgba(148, 163, 184, 0.12)"
-                                : "rgba(100, 116, 139, 0.22)",
+                        : layers.hvnLvn && p.hvn.includes(b.price)
+                        ? "rgba(56, 189, 248, 0.30)"
+                        : layers.hvnLvn && p.lvn.includes(b.price)
+                        ? "rgba(148, 163, 184, 0.12)"
+                        : "rgba(100, 116, 139, 0.22)",
                     ...(b.price === p.poc ? { borderRight: "2px solid #f59e0b" } : {}),
                 },
             });
         }
         return out;
-    }, [layers.volumeProfile, orderFlow.sessionProfile]);
+    }, [layers.volumeProfile, layers.hvnLvn, orderFlow.sessionProfile]);
 
     // Push the anchored item set into the coordinate bridge (data changes
     // only touch market coordinates; pixel geometry re-syncs on viewport/resize changes).
@@ -3438,7 +3544,133 @@ export function ProTerminalChart({
             const signal = addHiddenLine(chart, paneIndex, "#f59e0b");
             macdSeriesRef.current = { macd, signal, pane: paneIndex };
         }
-    }, [layers.bollingerBands, layers.keltnerChannels, layers.donchianChannels, layers.supertrend, layers.heikinAshi, layers.rsiPane, layers.macdPane, layers.delta, layers.cumulativeDelta, symbol]);
+
+        // ── EMA 50 / 200 + SMA 20 / 50 / 200 overlays (Phase 0) ──
+        // Real renderers for the previously silent layers: values fold
+        // through the ONE core indicator engine in the data feed below.
+        const maGroup = maLayerSeriesRef.current ?? {};
+        for (const layerId of MA_LAYER_IDS) {
+            const spec = MA_LAYER_SERIES[layerId];
+            const on = isLayerOn(layers, layerId);
+            if (!on && maGroup[layerId]) {
+                try {
+                    chart.removeSeries(maGroup[layerId]);
+                } catch {
+                    // already gone with the chart
+                }
+                delete maGroup[layerId];
+            } else if (on && !maGroup[layerId]) {
+                maGroup[layerId] = addHiddenLine(chart, 0, spec.color);
+            }
+        }
+        maLayerSeriesRef.current = maGroup;
+
+        // ── Ichimoku cloud edges (span A / span B on the price pane) ──
+        // The two boundary lines ARE the cloud's rendered form here; the
+        // shaded fill is a later-phase rendering concern (lightweight-charts
+        // has no between-two-lines fill primitive), never fabricated data.
+        if (!layers.ichimokuCloud) {
+            if (ichiSeriesRef.current) {
+                try {
+                    chart.removeSeries(ichiSeriesRef.current.spanA);
+                    chart.removeSeries(ichiSeriesRef.current.spanB);
+                } catch {
+                    // already gone with the chart
+                }
+                ichiSeriesRef.current = null;
+            }
+        } else if (!ichiSeriesRef.current) {
+            ichiSeriesRef.current = {
+                spanA: addHiddenLine(chart, 0, "#34d399"),
+                spanB: addHiddenLine(chart, 0, "#f472b6"),
+            };
+        }
+
+        // ── Stochastic pane (%K / %D with 20/80 guides) ──
+        if (!layers.stochasticPane) {
+            if (stochSeriesRef.current) {
+                try {
+                    chart.removeSeries(stochSeriesRef.current.k);
+                    chart.removeSeries(stochSeriesRef.current.d);
+                } catch {
+                    // already gone
+                }
+                for (const l of stochSeriesRef.current.lines) {
+                    try {
+                        stochSeriesRef.current.k.removePriceLine(l);
+                    } catch {
+                        // already gone
+                    }
+                }
+                stochSeriesRef.current = null;
+            }
+            if (stochSeriesRef.current === null && stochPaneOwnedRef.current !== null) {
+                try {
+                    chart.removePane(stochPaneOwnedRef.current);
+                } catch {
+                    // pane may hold other series
+                }
+                stochPaneOwnedRef.current = null;
+            }
+        } else if (!stochSeriesRef.current) {
+            let paneIndex = 0;
+            try {
+                paneIndex = chart.panes().length;
+                chart.addPane();
+                stochPaneOwnedRef.current = paneIndex;
+                chart.panes()[paneIndex]?.setStretchFactor(0.3);
+            } catch {
+                paneIndex = 0;
+                stochPaneOwnedRef.current = null;
+            }
+            const k = addHiddenLine(chart, paneIndex, "#38bdf8");
+            const d = addHiddenLine(chart, paneIndex, "#f59e0b");
+            const guides = [20, 80].map((v) =>
+                k.createPriceLine({
+                    price: v,
+                    color: "rgba(148, 163, 184, 0.6)",
+                    lineWidth: 1,
+                    lineStyle: LineStyle.Dashed,
+                    axisLabelVisible: false,
+                    title: `STOCH ${v}`,
+                })
+            );
+            stochSeriesRef.current = { k, d, pane: paneIndex, lines: guides };
+        }
+
+        // ── ATR pane (volatility, own pane) ──
+        if (!layers.atrPane) {
+            if (atrSeriesRef.current) {
+                try {
+                    chart.removeSeries(atrSeriesRef.current.line);
+                } catch {
+                    // already gone
+                }
+                atrSeriesRef.current = null;
+            }
+            if (atrSeriesRef.current === null && atrPaneOwnedRef.current !== null) {
+                try {
+                    chart.removePane(atrPaneOwnedRef.current);
+                } catch {
+                    // pane may hold other series
+                }
+                atrPaneOwnedRef.current = null;
+            }
+        } else if (!atrSeriesRef.current) {
+            let paneIndex = 0;
+            try {
+                paneIndex = chart.panes().length;
+                chart.addPane();
+                atrPaneOwnedRef.current = paneIndex;
+                chart.panes()[paneIndex]?.setStretchFactor(0.25);
+            } catch {
+                paneIndex = 0;
+                atrPaneOwnedRef.current = null;
+            }
+            const line = addHiddenLine(chart, paneIndex, "#a78bfa", 2);
+            atrSeriesRef.current = { line, pane: paneIndex };
+        }
+    }, [layers.bollingerBands, layers.keltnerChannels, layers.donchianChannels, layers.supertrend, layers.heikinAshi, layers.rsiPane, layers.macdPane, layers.delta, layers.cumulativeDelta, layers.ema50, layers.ema200, layers.sma20, layers.sma50, layers.sma200, layers.ichimokuCloud, layers.stochasticPane, layers.atrPane, symbol]);
 
     // Data feed for the indicator layers — recomputed only when candles change.
     useEffect(() => {
@@ -3497,6 +3729,51 @@ export function ProTerminalChart({
             feedSeries(macdSeriesRef.current.macd, candles, macdLine);
             feedSeries(macdSeriesRef.current.signal, candles, signalLine);
         }
+        // ── Phase 0 layer feeds ──
+        // EMA/SMA overlays: computed by the ONE core indicator engine
+        // (memoized per candle snapshot), never a parallel math path.
+        if (maLayerSeriesRef.current) {
+            for (const layerId of MA_LAYER_IDS) {
+                const series = maLayerSeriesRef.current[layerId];
+                if (!series) continue;
+                const spec = MA_LAYER_SERIES[layerId];
+                const values = alignedIndicatorSeries(
+                    candles,
+                    { id: spec.core, params: { period: spec.period } },
+                    "value"
+                );
+                feedSeries(series, candles, values);
+            }
+        }
+        // Ichimoku cloud edges from the same highest/lowest primitives the
+        // Pine runtime plots with (tenkan 9 / kijun 26 / span B 52).
+        if (ichiSeriesRef.current) {
+            const tenkanH = TA.highest(highs, 9);
+            const tenkanL = TA.lowest(lows, 9);
+            const kijunH = TA.highest(highs, 26);
+            const kijunL = TA.lowest(lows, 26);
+            const spanBH = TA.highest(highs, 52);
+            const spanBL = TA.lowest(lows, 52);
+            const spanA: Array<number | null> = candles.map((_, i) => {
+                const t = (tenkanH[i] + tenkanL[i]) / 2;
+                const k = (kijunH[i] + kijunL[i]) / 2;
+                return Number.isFinite(t) && Number.isFinite(k) ? (t + k) / 2 : null;
+            });
+            const spanB: Array<number | null> = candles.map((_, i) => {
+                const v = (spanBH[i] + spanBL[i]) / 2;
+                return Number.isFinite(v) ? v : null;
+            });
+            feedSeries(ichiSeriesRef.current.spanA, candles, spanA);
+            feedSeries(ichiSeriesRef.current.spanB, candles, spanB);
+        }
+        // Stochastic %K/%D and ATR — core engine outputs, pane renderers above.
+        if (stochSeriesRef.current) {
+            feedSeries(stochSeriesRef.current.k, candles, alignedIndicatorSeries(candles, { id: "stochastic" }, "k"));
+            feedSeries(stochSeriesRef.current.d, candles, alignedIndicatorSeries(candles, { id: "stochastic" }, "d"));
+        }
+        if (atrSeriesRef.current) {
+            feedSeries(atrSeriesRef.current.line, candles, alignedIndicatorSeries(candles, { id: "atr" }, "value"));
+        }
         // Estimated delta pane: per-bar directional volume histogram +
         // cumulative line. Buckets are the candles themselves, so values
         // align 1:1 with the displayed bars. When a true trade-grade delta
@@ -3527,7 +3804,42 @@ export function ProTerminalChart({
             deltaSeriesRef.current.hist.setData([]);
             deltaSeriesRef.current.line.setData([]);
         }
-    }, [candles, layers.delta, layers.cumulativeDelta, orderFlow.estimatedDelta]);
+    }, [candles, layers.delta, layers.cumulativeDelta, layers.ema50, layers.ema200, layers.sma20, layers.sma50, layers.sma200, layers.ichimokuCloud, layers.stochasticPane, layers.atrPane, orderFlow.estimatedDelta]);
+
+    // ── Parabolic SAR dots (Phase 0) ────────────────────────────────
+    // Values come from the SAME `TA.psar` kernel the Pine runtime executes,
+    // rendered as circle markers at each bar's SAR price (green while the SAR
+    // trails below price, red above). One marker plugin, rebuilt with the
+    // data feed; emptied — never left stale — when the layer is off.
+    useEffect(() => {
+        const cs = candleSeriesRef.current;
+        if (!cs) return;
+        if (!layers.parabolicSar || candles.length === 0) {
+            psarMarkersRef.current?.setMarkers([]);
+            return;
+        }
+        const highs = candles.map((c) => c.high);
+        const lows = candles.map((c) => c.low);
+        const sar = TA.psar(highs, lows);
+        const markers: SeriesMarker<Time>[] = [];
+        candles.forEach((c, i) => {
+            const v = sar[i];
+            if (!Number.isFinite(v) || v <= 0) return;
+            markers.push({
+                time: Math.floor(c.timestamp / 1000) as UTCTimestamp,
+                position: "atPriceBottom",
+                shape: "circle",
+                color: v < c.low ? cfg.colors.bull : cfg.colors.bear,
+                size: 1,
+                price: v,
+            });
+        });
+        if (psarMarkersRef.current) {
+            psarMarkersRef.current.setMarkers(markers);
+        } else {
+            psarMarkersRef.current = createSeriesMarkers(cs, markers);
+        }
+    }, [candles, layers.parabolicSar, cfg.colors.bull, cfg.colors.bear]);
 
     // ── Order Flow overlays (volume profile + behavioural events) ────────
     // POC/VAH/VAL render as price lines on the candle series; the horizontal
@@ -3880,7 +4192,14 @@ export function ProTerminalChart({
                 <div
                     ref={containerRef}
                     className="absolute inset-0"
-                    style={{ cursor: activeDrawingTool !== "select" ? "crosshair" : "default" }}
+                    style={{
+                        cursor:
+                            activeDrawingTool === "hand"
+                                ? "grab"
+                                : activeDrawingTool !== "select"
+                                    ? "crosshair"
+                                    : "default",
+                    }}
                 />
 
                 {/* SVG Drawing overlay — renders committed drawings + live preview */}
@@ -3905,22 +4224,30 @@ export function ProTerminalChart({
                         const cs = chartHandles?.cs ?? null;
                         if (!chart || !cs || d.points.length < 2) return null;
 
-                        const priceToY = (price: number): number => {
-                            try { return cs.priceToCoordinate(price) ?? 0; } catch { return 0; }
-                        };
-                        const timeToX = (timeMs: number): number => {
-                            try {
-                                const sec = Math.floor(timeMs / 1000) as UTCTimestamp;
-                                return chart.timeScale().timeToCoordinate(sec) ?? 0;
-                            } catch { return 0; }
-                        };
-
                         const p1 = d.points[0];
                         const p2 = d.points[1];
-                        const x1 = p1.time ? timeToX(p1.time) : 0;
-                        const y1 = priceToY(p1.price);
-                        const x2 = p2.time ? timeToX(p2.time) : containerSize.w;
-                        const y2 = priceToY(p2.price);
+                        // Coordinate contract: resolve every required axis or
+                        // hide the object for this frame. Never substitute a
+                        // fabricated pixel (no x=0 / y=0 pinning), never
+                        // mutate the stored market coordinates.
+                        let x1: number;
+                        let y1: number;
+                        let x2: number;
+                        let y2: number;
+                        if (d.type === "horizontal") {
+                            const y = resolvePriceY(p1.price, cs);
+                            if (y === null) return null;
+                            x1 = 0; y1 = y; x2 = containerSize.w; y2 = y;
+                        } else if (d.type === "vertical") {
+                            const x = resolveTimeX(p1.time, chart);
+                            if (x === null) return null;
+                            x1 = x; y1 = 0; x2 = x; y2 = containerSize.h;
+                        } else {
+                            const a = resolveMarketPointToPixel(p1, chart, cs);
+                            const b = resolveMarketPointToPixel(p2, chart, cs);
+                            if (!a || !b) return null;
+                            x1 = a.x; y1 = a.y; x2 = b.x; y2 = b.y;
+                        }
                         const color = d.color ?? cfg.tools.color;
                         const width = d.width ?? cfg.tools.lineWidth;
                         const lineStyle = (d.lineStyle ?? cfg.tools.lineStyle) as "solid" | "dashed" | "dotted";
@@ -3942,9 +4269,21 @@ export function ProTerminalChart({
                                 </g>
                             );
                         }
-                        if (d.type === "trendline" || d.type === "ray") {
+                        if (d.type === "trendline") {
                             return (
-                                <line key={d.id} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth={width} strokeDasharray={dash === "none" ? undefined : dash} markerEnd={d.type === "ray" ? "url(#arrow)" : undefined} />
+                                <line key={d.id} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth={width} strokeDasharray={dash === "none" ? undefined : dash} />
+                            );
+                        }
+                        if (d.type === "ray") {
+                            // True ray: anchored at the FIRST market coordinate
+                            // and extended through the second point's direction
+                            // to the container boundary on every render — the
+                            // direction comes only from the two stored market
+                            // points, so the ray follows candles through pan/zoom.
+                            const end = extendRayToBounds(x1, y1, x2, y2, containerSize.w, containerSize.h);
+                            if (!end) return null;
+                            return (
+                                <line key={d.id} x1={x1} y1={y1} x2={end.x} y2={end.y} stroke={color} strokeWidth={width} strokeDasharray={dash === "none" ? undefined : dash} markerEnd="url(#arrow)" />
                             );
                         }
                         if (d.type === "arrow") {
@@ -3965,14 +4304,32 @@ export function ProTerminalChart({
                                 <rect key={d.id} x={rx} y={ry} width={rw} height={rh} stroke={color} strokeWidth={width} fill={`${color}18`} />
                             );
                         }
+                        if (d.type === "triangle") {
+                            // Deterministic third vertex from the two stored
+                            // market points (same time as p1, same price as p2):
+                            // a real closed polygon, not a faked primitive.
+                            const [a, b, c] = triangleVertices(x1, y1, x2, y2);
+                            return (
+                                <polygon
+                                    key={d.id}
+                                    points={`${a[0]},${a[1]} ${b[0]},${b[1]} ${c[0]},${c[1]}`}
+                                    stroke={color}
+                                    strokeWidth={width}
+                                    strokeDasharray={dash === "none" ? undefined : dash}
+                                    fill={`${color}18`}
+                                />
+                            );
+                        }
                         if (d.type === "fibo") {
-                            const levels = cfg.tools.fiboLevels;
+                            // Shared source of truth with the hit-test.
+                            const levels = resolvedFiboLevels(d, cfg.tools.fiboLevels);
                             const priceDiff = p2.price - p1.price;
                             return (
                                 <g key={d.id}>
                                     {levels.map((lvl) => {
                                         const price = p1.price + priceDiff * lvl;
-                                        const yLvl = priceToY(price);
+                                        const yLvl = resolvePriceY(price, cs);
+                                        if (yLvl === null) return null;
                                         return (
                                             <g key={lvl}>
                                                 <line x1={Math.min(x1, x2)} y1={yLvl} x2={Math.max(x1, x2)} y2={yLvl} stroke={color} strokeWidth={1} strokeDasharray="4,3" opacity={0.8} />
@@ -4061,17 +4418,12 @@ export function ProTerminalChart({
                         ? (() => {
                             const chart = chartHandles.chart!;
                             const cs = chartHandles.cs!;
-                            let entryY: number;
-                            let x: number;
-                            try {
-                                entryY = cs.priceToCoordinate(aiPlan.entry) ?? 0;
-                                x = chart.timeScale().timeToCoordinate(
-                                    Math.floor(aiPlan.anchorTime / 1000) as UTCTimestamp
-                                ) ?? 0;
-                            } catch {
-                                return null;
-                            }
-                            if (!Number.isFinite(entryY) || !Number.isFinite(x)) return null;
+                            // Coordinate contract: an unresolvable anchor hides
+                            // the badge for this frame — it is never pinned to
+                            // the left edge at x=0.
+                            const entryY = resolvePriceY(aiPlan.entry, cs);
+                            const x = resolveTimeX(aiPlan.anchorTime, chart);
+                            if (entryY === null || x === null) return null;
 
                             const isLong = aiPlan.direction === "long";
                             // LONG wears the bullish colour so it reads green like
@@ -4154,15 +4506,17 @@ export function ProTerminalChart({
                             const chart = chartHandles?.chart ?? null;
                             const cs = chartHandles?.cs ?? null;
                             if (!chart || !cs) return null;
-                            const priceToY = (p: number) => { try { return cs.priceToCoordinate(p) ?? 0; } catch { return 0; } };
                             const startP = dp.startPrice;
                             const endP = (() => { try { return cs.coordinateToPrice(dp.curY) ?? startP; } catch { return startP; } })();
                             const diff = endP - startP;
-                            const levels = cfg.tools.fiboLevels;
+                            // Same resolved levels the committed drawing and
+                            // its hit-test will use.
+                            const levels = resolvedFiboLevels(null, cfg.tools.fiboLevels);
                             return (
                                 <g opacity={0.8}>
                                     {levels.map((lvl) => {
-                                        const yLvl = priceToY(startP + diff * lvl);
+                                        const yLvl = resolvePriceY(startP + diff * lvl, cs);
+                                        if (yLvl === null) return null;
                                         return (
                                             <g key={lvl}>
                                                 <line x1={Math.min(dp.startX, dp.curX)} y1={yLvl} x2={Math.max(dp.startX, dp.curX)} y2={yLvl} stroke={color} strokeWidth={1} strokeDasharray="4,3" />
@@ -4192,6 +4546,30 @@ export function ProTerminalChart({
                                     <line x1={dp.startX} y1={dp.startY} x2={dp.curX} y2={dp.curY} stroke={color} strokeWidth={width} markerEnd="url(#arrow)" />
                                     <polygon points={`${dp.curX},${dp.curY - 4} ${dp.curX - 4},${dp.curY + 3} ${dp.curX + 4},${dp.curY + 3}`} fill={color} opacity={0.85} />
                                 </g>
+                            );
+                        }
+                        if (dp.tool === "triangle") {
+                            const [a, b, c] = triangleVertices(dp.startX, dp.startY, dp.curX, dp.curY);
+                            return (
+                                <polygon
+                                    points={`${a[0]},${a[1]} ${b[0]},${b[1]} ${c[0]},${c[1]}`}
+                                    stroke={color}
+                                    strokeWidth={width}
+                                    fill={`${color}18`}
+                                    opacity={0.85}
+                                />
+                            );
+                        }
+                        if (dp.tool === "ray") {
+                            // Preview the same extension the committed ray
+                            // will render (to the container boundary).
+                            const end = extendRayToBounds(
+                                dp.startX, dp.startY, dp.curX, dp.curY,
+                                containerSize.w, containerSize.h
+                            );
+                            if (!end) return null;
+                            return (
+                                <line x1={dp.startX} y1={dp.startY} x2={end.x} y2={end.y} stroke={color} strokeWidth={width} markerEnd="url(#arrow)" opacity={0.85} />
                             );
                         }
                         // Default: trendline

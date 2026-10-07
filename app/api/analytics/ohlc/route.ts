@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateSymbol, validateTimeframe } from "@/lib/market-data/validation";
-import { fetchCandles } from "@/lib/market-data/normalizer";
+import {
+    OHLC_MAX_LIMIT,
+    clampOhlcLimit,
+    fetchCandles,
+    timeframeToLimit,
+} from "@/lib/market-data/normalizer";
 import { tradingViewLivePriceCache } from "@/lib/market-data/tradingview-live";
 import { hasTwelveDataApiKey } from "@/lib/market-data/twelvedata/config";
 import { fetchDeepHistoryPage } from "@/lib/market-data/twelvedata/candle-bridge";
@@ -9,7 +14,7 @@ import { SUPPORTED_SYMBOLS, type MarketCandle } from "@/lib/market-data/types";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MAX_LIMIT = 2000;
+const MAX_LIMIT = OHLC_MAX_LIMIT;
 
 /**
  * GET /api/analytics/ohlc — canonical chart history endpoint.
@@ -22,6 +27,12 @@ const MAX_LIMIT = 2000;
  *                      success payload — the client treats that as the
  *                      provider's history boundary, never an error)
  *  from=&to=<ms>     → explicit range fill used by gap repair
+ *
+ * `limit=<n>`      → page size for any mode: validated, clamped to
+ *                      [OHLC_MIN_LIMIT..OHLC_MAX_LIMIT] (2000) and honored
+ *                      end-to-end (it reaches the provider). Absent or
+ *                      unparsable → the timeframe-aware default. The
+ *                      timeframe table never shrinks an explicit request.
  *
  * `hasDeepHistory` tells the client which of the first two modes can deliver
  * more data. No candles are ever synthesized: an empty page is an honest
@@ -43,7 +54,6 @@ export async function GET(request: NextRequest) {
         const rawSymbol = (request.nextUrl.searchParams.get("symbol") || "XAUUSD").toUpperCase();
         const symbolParam = ALIASES[rawSymbol] ?? rawSymbol;
         const timeframeParam = request.nextUrl.searchParams.get("timeframe") || "H1";
-        const limitParam = Number(request.nextUrl.searchParams.get("limit")) || 400;
         const beforeParam = request.nextUrl.searchParams.get("before");
         const fromParam = request.nextUrl.searchParams.get("from");
         const toParam = request.nextUrl.searchParams.get("to");
@@ -58,7 +68,13 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "Invalid timeframe" }, { status: 400 });
         }
 
-        const limit = Math.min(Math.max(10, Math.floor(limitParam)), MAX_LIMIT);
+        // Explicit client limit: validated, clamped to the safe window, and
+        // honored end-to-end (it reaches the provider below). Absent or
+        // unparsable → the timeframe-aware default. The timeframe table can
+        // never shrink an explicit request.
+        const rawLimit = request.nextUrl.searchParams.get("limit");
+        const limit = (rawLimit !== null ? clampOhlcLimit(rawLimit) : null)
+            ?? timeframeToLimit(timeframe);
         const deepAvailable = hasTwelveDataApiKey();
         const pagingRequested = beforeParam !== null || fromParam !== null || toParam !== null;
 
@@ -89,7 +105,7 @@ export async function GET(request: NextRequest) {
                 timestamp: Date.now(),
             });
         } else {
-            candles = await fetchCandles(symbol, timeframe);
+            candles = await fetchCandles(symbol, timeframe, { limit });
         }
 
         if (!pagingRequested && candles.length === 0) {

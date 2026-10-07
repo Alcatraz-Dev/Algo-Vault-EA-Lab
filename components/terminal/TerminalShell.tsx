@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 import { ProTerminalChartWorkspace } from "@/components/pro-scalping-terminal/ProTerminalChartWorkspace";
 import {
     normalisePendingOrderType,
+    tradeFillFromExecution,
     type ChartPositionView,
     type ChartPendingOrderView,
     type ChartTradeFill,
@@ -129,8 +130,33 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
     );
 
     // Chart history is derived from what the gateway actually acknowledged —
-    // it stays empty when the terminal has no execution history to show.
-    const chartHistory = useMemo<ChartTradeFill[]>(() => [], []);
+    // the SAME execution-log → fill mapping the account trading page uses
+    // (failed/rejected attempts never draw; the chart still filters by the
+    // active symbol). Empty only when the terminal truly has no fills.
+    const chartHistory = useMemo<ChartTradeFill[]>(
+        () =>
+            data.executionLogs
+                .filter(
+                    (l) =>
+                        !l.errorCode &&
+                        Number.isFinite(l.executionPrice) &&
+                        l.executionPrice > 0
+                )
+                .slice(0, 200)
+                .flatMap((l) => {
+                    const fill = tradeFillFromExecution({
+                        id: l.clientOrderId,
+                        action: l.action,
+                        executedAt: l.executedAt || l.createdAt,
+                        price: l.executionPrice,
+                        symbol: l.symbol,
+                        volume: l.volume,
+                        profit: null,
+                    });
+                    return fill ? [fill] : [];
+                }),
+        [data.executionLogs]
+    );
 
     const tradingLocked = data.risk?.status === "HALTED";
     const authToken = data.token;
@@ -139,6 +165,9 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
     // Fail closed: no session, no account, or a halted risk engine means the
     // terminal cannot move money (Phase 5 §20 / §27).
     const [actionError, setActionError] = useState<string | null>(null);
+    // Ticket the user selected by clicking a position line on the chart —
+    // surfaced by the host (the chart only emits the identifier).
+    const [selectedPositionTicket, setSelectedPositionTicket] = useState<string | null>(null);
 
     /**
      * Every mutation goes through the Unified Trading API
@@ -223,6 +252,53 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
 
     const visible = (id: PanelId) => state.panels[id]?.visible !== false;
 
+    /**
+     * SL/TP drag commit from the chart: merge the dragged stop with the
+     * position's other current stop and run it through the SAME frozen
+     * Unified Trading path the account page uses (MODIFY_POSITION). The chart
+     * itself never executes anything.
+     */
+    const handleModifyPositionStops = useCallback(
+        (ticket: string, stops: { stopLoss?: number | null; takeProfit?: number | null }) => {
+            if (!data.account) {
+                setActionError("No trading account is linked to this terminal.");
+                return;
+            }
+            const pos = positions.find((p) => p.ticket === ticket);
+            if (!pos) {
+                setActionError(`Position ${ticket} is no longer open.`);
+                return;
+            }
+            const stopLoss = stops.stopLoss ?? (pos.sl > 0 ? pos.sl : null);
+            const takeProfit = stops.takeProfit ?? (pos.tp > 0 ? pos.tp : null);
+            void act(
+                {
+                    accountId: data.account.accountId,
+                    executionType: "MODIFY_POSITION",
+                    positionId: ticket,
+                    stopLoss: stopLoss !== null && stopLoss > 0 ? stopLoss : null,
+                    takeProfit: takeProfit !== null && takeProfit > 0 ? takeProfit : null,
+                },
+                `Modify stops for ${pos.symbol}`
+            );
+        },
+        [positions, act, data.account]
+    );
+
+    /**
+     * Position click from the chart: host-side selection only — make sure the
+     * account panel is visible and show which ticket the chart picked. No
+     * execution behavior is invented here.
+     */
+    const handlePositionSelect = useCallback(
+        (ticket: string) => {
+            setSelectedPositionTicket(ticket);
+            if (!visible("account")) togglePanel("account");
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [state.panels, togglePanel]
+    );
+
     // Memoised so the shell's 1s freshness clock never re-renders the chart
     // subtree — the chart only changes when its inputs change (Phase 5 §37).
     const chartNode = useMemo(
@@ -240,6 +316,8 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                     tradeHistory={chartHistory}
                     onClosePosition={handleClosePercent}
                     onCancelOrder={handleCancelOrder}
+                    onPositionSelect={handlePositionSelect}
+                    onModifyPositionStops={handleModifyPositionStops}
                     onSymbolChange={setSymbol}
                     onTimeframeChange={setTimeframe}
                     focusRequest={focus}
@@ -261,6 +339,8 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
             chartHistory,
             handleClosePercent,
             handleCancelOrder,
+            handlePositionSelect,
+            handleModifyPositionStops,
             setSymbol,
             setTimeframe,
             focus,
@@ -370,6 +450,22 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
 
                 <main className="flex min-w-0 flex-col gap-3">
                     {chartNode}
+                    {selectedPositionTicket ? (
+                        <p className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
+                            <span>
+                                Position{" "}
+                                <span className="font-mono font-semibold text-foreground">{selectedPositionTicket}</span>{" "}
+                                selected on the chart — manage it in the account panel below.
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => setSelectedPositionTicket(null)}
+                                className="ml-auto rounded border border-border px-1.5 py-0.5 text-[10px] transition hover:bg-muted"
+                            >
+                                Dismiss
+                            </button>
+                        </p>
+                    ) : null}
                     {actionError ? (
                         <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
                             {actionError}

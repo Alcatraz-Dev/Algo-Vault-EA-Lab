@@ -24,6 +24,7 @@ import type { Position } from "@/components/trading/OpenPositions";
 import type { PendingOrder } from "@/components/trading/PendingOrders";
 import type { TradingAccount } from "@/components/trading/AccountHeader";
 import type { TerminalEvent } from "@/lib/terminal/types";
+import type { ExecutionLogEntry } from "@/components/trading/ExecutionLog";
 import { deriveAccountMode } from "@/lib/terminal/account";
 import {
     buildEventFeed,
@@ -91,6 +92,8 @@ export interface TerminalDataValue {
     account: TradingAccount | null;
     positions: Position[];
     orders: PendingOrder[];
+    /** Gateway execution logs for the selected account (chart fill source). */
+    executionLogs: ExecutionLogEntry[];
     accountLoading: boolean;
     risk: RiskPayload | null;
     riskError: string | null;
@@ -159,6 +162,7 @@ export function TerminalDataProvider({ children }: { children: ReactNode }) {
     const [account, setAccount] = useState<TradingAccount | null>(null);
     const [positions, setPositions] = useState<Position[]>([]);
     const [orders, setOrders] = useState<PendingOrder[]>([]);
+    const [executionLogs, setExecutionLogs] = useState<ExecutionLogEntry[]>([]);
     const [accountLoading, setAccountLoading] = useState(true);
 
     /* eslint-disable react-hooks/set-state-in-effect -- Firebase auth/RTDB listeners: subscriptions can only be attached after the resolved session changes, and the callbacks that follow are the sanctioned place for setState. */
@@ -167,6 +171,7 @@ export function TerminalDataProvider({ children }: { children: ReactNode }) {
             setAccount(null);
             setPositions([]);
             setOrders([]);
+            setExecutionLogs([]);
             setAccountLoading(false);
             setAccountMode("unknown");
             return;
@@ -177,6 +182,47 @@ export function TerminalDataProvider({ children }: { children: ReactNode }) {
         const posRef = ref(database, `trading_positions/${uid}`);
         const ordersRef = ref(database, `trading_orders/${uid}`);
 
+        // Execution logs are persisted PER ACCOUNT by the gateway execution
+        // endpoint (`trading_logs/${uid}/${accountId}` — same path and mapping
+        // the account trading page uses), so they attach once the account id
+        // is known and never leak another account's fills into the chart.
+        let logsUnsub: (() => void) | null = null;
+        let logsAccountId: string | null = null;
+        const attachLogListener = (accountId: string) => {
+            logsUnsub?.();
+            logsUnsub = onValue(ref(database, `trading_logs/${uid}/${accountId}`), (snap) => {
+                const val = snap.val() as Record<string, Record<string, unknown>> | null;
+                if (!val) {
+                    setExecutionLogs([]);
+                    return;
+                }
+                setExecutionLogs(
+                    Object.entries(val).map(([id, l]) => {
+                        const raw = l as Record<string, unknown>;
+                        const num = (value: unknown): number =>
+                            value === undefined || value === null || value === "" ? 0 : Number(value) || 0;
+                        return {
+                            clientOrderId: (raw.clientOrderId as string | undefined) || id,
+                            accountId,
+                            action: (raw.action as string | undefined) || (raw.type as string | undefined) || "ORDER",
+                            symbol: (raw.symbol as string | undefined) || "XAUUSD",
+                            volume: num(raw.volume) || 0.01,
+                            status: (raw.status as string | undefined) || "FILLED",
+                            mt5Ticket: (raw.mt5Ticket as string | undefined) || (raw.ticket as string | undefined) || id,
+                            executionPrice: num(raw.executionPrice) || num(raw.price),
+                            errorCode: num(raw.errorCode),
+                            errorMessage:
+                                (raw.errorMessage as string | undefined) ||
+                                (raw.message as string | undefined) ||
+                                "Executed",
+                            createdAt: num(raw.createdAt) || num(raw.timestamp) || Date.now(),
+                            executedAt: num(raw.executedAt) || num(raw.timestamp) || Date.now(),
+                        };
+                    })
+                );
+            });
+        };
+
         const unsubs = [
             onValue(accountRef, (snap) => {
                 const val = snap.val() as Record<string, Record<string, unknown>> | null;
@@ -185,6 +231,12 @@ export function TerminalDataProvider({ children }: { children: ReactNode }) {
                 if (!acc) {
                     setAccount(null);
                     setAccountMode("unknown");
+                    if (logsAccountId !== null) {
+                        logsUnsub?.();
+                        logsUnsub = null;
+                        logsAccountId = null;
+                        setExecutionLogs([]);
+                    }
                 } else {
                     const hb = Number(acc.lastHeartbeatAt) || 0;
                     // Absent broker fields stay null. `|| 0` / `|| "connected"`
@@ -218,6 +270,13 @@ export function TerminalDataProvider({ children }: { children: ReactNode }) {
                         gatewayVersion: String(acc.gatewayVersion || ""),
                     });
                     setAccountMode(deriveAccountMode(acc));
+                    // Attach (or keep) the per-account execution-log
+                    // subscription — re-attach only when the ACCOUNT changes,
+                    // never on every heartbeat snapshot.
+                    if (firstKey && firstKey !== logsAccountId) {
+                        logsAccountId = firstKey;
+                        attachLogListener(firstKey);
+                    }
                 }
                 setAccountLoading(false);
             }),
@@ -268,6 +327,7 @@ export function TerminalDataProvider({ children }: { children: ReactNode }) {
         const teardown = unsubs;
         return () => {
             for (const u of teardown) u();
+            logsUnsub?.();
         };
     }, [user, setAccountMode]);
     /* eslint-enable react-hooks/set-state-in-effect */
@@ -323,6 +383,7 @@ export function TerminalDataProvider({ children }: { children: ReactNode }) {
             account,
             positions,
             orders,
+            executionLogs,
             accountLoading,
             risk: risk.data,
             riskError: risk.error,
@@ -348,6 +409,7 @@ export function TerminalDataProvider({ children }: { children: ReactNode }) {
             account,
             positions,
             orders,
+            executionLogs,
             accountLoading,
             risk.data,
             risk.error,

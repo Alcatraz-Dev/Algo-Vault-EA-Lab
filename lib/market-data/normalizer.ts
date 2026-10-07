@@ -123,7 +123,36 @@ export interface CandleFetchResult {
     provider: MarketDataProvider | null;
 }
 
-function timeframeToLimit(tf: Timeframe): number {
+/**
+ * Canonical page ordering: strictly ascending by open time, no duplicate
+ * timestamps (first occurrence wins). Every provider path funnels through
+ * here so the API contract "ascending, deduped" holds regardless of the
+ * order or quirks of the upstream response.
+ */
+export function finaliseCandles(candles: MarketCandle[]): MarketCandle[] {
+    const sorted = [...candles].sort((a, b) => a.timestamp - b.timestamp);
+    const out: MarketCandle[] = [];
+    for (const candle of sorted) {
+        const prev = out[out.length - 1];
+        if (prev && prev.timestamp === candle.timestamp) continue;
+        out.push(candle);
+    }
+    return out;
+}
+
+/**
+ * Server-side bounds for one OHLC page. The server stays authoritative:
+ * an explicit client `limit` is honored only after clamping to this window.
+ */
+export const OHLC_MIN_LIMIT = 10;
+export const OHLC_MAX_LIMIT = 2000;
+
+/**
+ * Timeframe-aware DEFAULT page size, used only when the client does not
+ * supply an explicit (valid) limit. Never applied on top of an explicit
+ * request — `resolveOhlcLimit` is the single entry point for that rule.
+ */
+export function timeframeToLimit(tf: Timeframe): number {
     switch (tf) {
         case "M1": return 500;
         case "M3": return 500;
@@ -135,6 +164,27 @@ function timeframeToLimit(tf: Timeframe): number {
         case "D1": return 120;
         default: return 200;
     }
+}
+
+/**
+ * Validate + clamp an EXPLICIT client limit. Returns null when the value is
+ * absent/not a finite number (caller falls back to the timeframe default) —
+ * an unparsable value never silently becomes a different number.
+ */
+export function clampOhlcLimit(value: unknown): number | null {
+    if (value === null || value === undefined || value === "") return null;
+    const parsed = typeof value === "number" ? value : Number(value);
+    if (!Number.isFinite(parsed)) return null;
+    return Math.min(Math.max(OHLC_MIN_LIMIT, Math.floor(parsed)), OHLC_MAX_LIMIT);
+}
+
+/**
+ * Resolve the effective page limit: an explicit valid client limit (clamped
+ * to the safe window) always wins over the timeframe default.
+ * EXPLICIT VALID CLIENT LIMIT > TIMEFRAME DEFAULT.
+ */
+export function resolveOhlcLimit(timeframe: Timeframe, requested?: unknown): number {
+    return clampOhlcLimit(requested) ?? timeframeToLimit(timeframe);
 }
 
 /**
@@ -166,17 +216,18 @@ async function fetchFromBiquote(
     );
     if (!data?.bars?.length) return null;
 
-    const candles = data.bars
-        .map((bar) => normalizeBar(
-            Date.parse(bar.openTime),
-            bar.open,
-            bar.high,
-            bar.low,
-            bar.close,
-            bar.volume ?? bar.tickVolume
-        ))
-        .filter((candle): candle is MarketCandle => candle !== null)
-        .sort((a, b) => a.timestamp - b.timestamp);
+    const candles = finaliseCandles(
+        data.bars
+            .map((bar) => normalizeBar(
+                Date.parse(bar.openTime),
+                bar.open,
+                bar.high,
+                bar.low,
+                bar.close,
+                bar.volume ?? bar.tickVolume
+            ))
+            .filter((candle): candle is MarketCandle => candle !== null)
+    );
 
     return candles.length > 0 ? candles : null;
 }
@@ -184,9 +235,11 @@ async function fetchFromBiquote(
 export async function fetchCandlesWithProvider(
     symbol: SupportedSymbol,
     timeframe: Timeframe,
-    options?: { from?: number; to?: number }
+    options?: { from?: number; to?: number; limit?: number }
 ): Promise<CandleFetchResult> {
-    const limit = timeframeToLimit(timeframe);
+    // An explicit (already validated) limit from the API route wins over the
+    // timeframe default — timeframeToLimit no longer silently overrides it.
+    const limit = clampOhlcLimit(options?.limit) ?? timeframeToLimit(timeframe);
 
     const biquoteCandles = await fetchFromBiquote(symbol, timeframe, limit);
     if (biquoteCandles?.length) {
@@ -203,23 +256,24 @@ export async function fetchCandlesWithProvider(
 export async function fetchCandles(
     symbol: SupportedSymbol,
     timeframe: Timeframe,
-    options?: { from?: number; to?: number }
+    options?: { from?: number; to?: number; limit?: number }
 ): Promise<MarketCandle[]> {
     return (await fetchCandlesWithProvider(symbol, timeframe, options)).candles;
 }
 
 export function normalizeCandles(raw: BiquoteBar[]): MarketCandle[] {
-    return raw
-        .map((bar) => normalizeBar(
-            Date.parse(bar.openTime),
-            bar.open,
-            bar.high,
-            bar.low,
-            bar.close,
-            bar.volume ?? bar.tickVolume
-        ))
-        .filter((candle): candle is MarketCandle => candle !== null)
-        .sort((a, b) => a.timestamp - b.timestamp);
+    return finaliseCandles(
+        raw
+            .map((bar) => normalizeBar(
+                Date.parse(bar.openTime),
+                bar.open,
+                bar.high,
+                bar.low,
+                bar.close,
+                bar.volume ?? bar.tickVolume
+            ))
+            .filter((candle): candle is MarketCandle => candle !== null)
+    );
 }
 
 export function getLastPrice(candles: MarketCandle[]): number {
