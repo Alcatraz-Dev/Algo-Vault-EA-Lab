@@ -1,12 +1,18 @@
 /**
  * TradingView Execution Bridge — authenticated API surface.
  *
- * Everything privileged (order submission, order/position management, audit,
- * journal sync) goes through the AlgoVault server, which performs its own
- * entitlement checks (`authenticate` + `hasActiveTradingLicense` on
- * `/api/trading/orders`, Firebase ID token on every `/api/extension/*`
- * route). The client-side Pro check below is defense in depth only — it is
- * never the sole gate.
+ * Order submission and order/position management live in
+ * `@/api/unified-trading` (`POST /api/trading/execute` → UnifiedTradingService,
+ * which enforces the license gate, the risk engine, DEMO-only execution and
+ * idempotency server-side). Execution History reads through
+ * `getUnifiedTradingHistory` (`GET /api/trading/history`) in
+ * `@/api/unified-trading` as well. This module keeps the supporting
+ * surfaces: the capability/account probe, the audit trail and the journal
+ * sync.
+ *
+ * Every route here is authenticated with the caller's Firebase ID token; the
+ * client-side Pro check below is defense in depth only — it is never the sole
+ * gate.
  *
  * SECURITY: this module only ever sends safe order metadata. No passwords,
  * API keys, cookies, tokens (other than the caller's own Firebase auth
@@ -17,10 +23,8 @@ import { getAuthToken } from "@/storage/storage";
 import { getProAccess } from "@/api/pro";
 import type {
   ExecutionAuditRecord,
-  ExecutionLifecycleStatus,
   JournalSyncPayload,
 } from "@/types/execution";
-import type { OrderRequestRow } from "@/api/algovault";
 
 /* ── shared fetcher ─────────────────────────────────────────────────── */
 
@@ -155,89 +159,8 @@ export function postJournalSync(payload: JournalSyncPayload): Promise<JournalSyn
   return postJson<JournalSyncResponse>("/api/extension/journal-sync", safe);
 }
 
-/* ── gateway order management (real MT5 execution) ──────────────────── */
+/* ── lifecycle helpers ──────────────────────────────────────────────── */
 
-export interface GatewayOrderCommand {
-  accountId: string;
-  clientOrderId: string;
-  symbol: string;
-  action:
-    | "BUY"
-    | "SELL"
-    | "BUY_LIMIT"
-    | "SELL_LIMIT"
-    | "BUY_STOP"
-    | "SELL_STOP"
-    | "MODIFY"
-    | "CLOSE"
-    | "PARTIAL_CLOSE"
-    | "CANCEL";
-  volume?: number;
-  price?: number;
-  sl?: number;
-  tp?: number;
-  /** MT5 position/order ticket for MODIFY / CLOSE / CANCEL. */
-  ticket?: number;
-  comment?: string;
-}
-
-export interface GatewayOrderResponse {
-  success: boolean;
-  duplicate?: boolean;
-  order?: { clientOrderId: string; status: string; [k: string]: unknown };
-  error?: string;
-}
-
-/**
- * Queue an order on the AlgoVault MT5 Gateway. Returns as soon as the server
- * ACCEPTS the request — it never claims a fill; the caller must poll
- * `getOrderStatus(clientOrderId)` for the real outcome.
- */
-export function submitGatewayOrder(command: GatewayOrderCommand): Promise<GatewayOrderResponse> {
-  return postJson<GatewayOrderResponse>("/api/trading/orders", command);
-}
-
-export function cancelGatewayOrder(command: {
-  accountId: string;
-  clientOrderId: string;
-  symbol: string;
-  ticket?: number;
-}): Promise<GatewayOrderResponse> {
-  return submitGatewayOrder({ ...command, action: "CANCEL" });
-}
-
-export function modifyGatewayPosition(command: {
-  accountId: string;
-  clientOrderId: string;
-  symbol: string;
-  ticket?: number;
-  sl?: number;
-  tp?: number;
-}): Promise<GatewayOrderResponse> {
-  return submitGatewayOrder({ ...command, action: "MODIFY" });
-}
-
-export function closeGatewayPosition(command: {
-  accountId: string;
-  clientOrderId: string;
-  symbol: string;
-  ticket?: number;
-  volume?: number;
-}): Promise<GatewayOrderResponse> {
-  return submitGatewayOrder({ ...command, action: "CLOSE" });
-}
-
-/* ── order history / pending views (real gateway rows) ──────────────── */
-
-export async function fetchOrderRequests(accountId?: string): Promise<OrderRequestRow[]> {
-  const params = accountId ? `?accountId=${encodeURIComponent(accountId)}` : "";
-  const data = await getJson<{ orders?: OrderRequestRow[] }>(`/api/trading/orders${params}`);
-  return Array.isArray(data.orders) ? data.orders : [];
-}
-
-/* ── lifecycle helpers (shared vocabulary with the gateway) ─────────── */
-
-const PENDING_STATUSES = new Set(["queued", "executing", "submitted", "pending"]);
 const TERMINAL_STATUSES = new Set([
   "filled",
   "partially_filled",
@@ -248,33 +171,6 @@ const TERMINAL_STATUSES = new Set([
   "timeout",
 ]);
 
-export function isPendingOrderStatus(status: string): boolean {
-  return PENDING_STATUSES.has(String(status || "").toLowerCase());
-}
-
 export function isTerminalOrderStatus(status: string): boolean {
   return TERMINAL_STATUSES.has(String(status || "").toLowerCase());
-}
-
-/** Map a gateway order-request status onto the bridge lifecycle vocabulary. */
-export function mapGatewayOrderStatus(status: string): ExecutionLifecycleStatus {
-  switch (String(status || "").toLowerCase()) {
-    case "queued":
-    case "executing":
-    case "submitted":
-    case "pending":
-      return "ACCEPTED";
-    case "filled":
-      return "FILLED";
-    case "partially_filled":
-      return "PARTIALLY_FILLED";
-    case "cancelled":
-    case "canceled":
-      return "CANCELLED";
-    case "rejected":
-    case "failed":
-      return "REJECTED";
-    default:
-      return "UNKNOWN";
-  }
 }

@@ -7,20 +7,24 @@
  *     (`READ_TOOLS_ONLY = true`). It exposes quotes, OHLCV, technicals,
  *     screeners, news, fundamentals, calendars, watchlists and alerts — and
  *     NO account, broker, order, position or execution tool.
- *   • Real execution exists through the AlgoVault MT5 Gateway
- *     (`POST /api/trading/orders` → gateway EA → `GET /api/trading/orders`
- *     execution reports), which is server-entitled and idempotent.
+ *   • Real execution exists through the AlgoVault Unified Trading API
+ *     (`POST /api/trading/execute` → UnifiedTradingService → provider adapter),
+ *     which is server-entitled, DEMO-only and idempotent. The legacy gateway
+ *     order-request queue is NEVER used for execution from the Extension.
  *
  * SAFETY INVARIANTS ENFORCED HERE (never simulated, never silent):
  *   1. No order leaves this adapter without an explicit user confirmation.
  *   2. LIVE (or unreported) account modes additionally require a live
  *      acknowledgement captured immediately before submission.
- *   3. A fill is only reported after the gateway confirms it; a timeout or
- *      transport failure yields `UNKNOWN` + the mandated safety message and
- *      the request id is marked *uncertain* so it can never be auto-retried.
- *   4. Request ids are idempotent and persisted, so double-clicks, React
- *      re-renders, extension reloads and duplicated events cannot double
- *      submit.
+ *   3. A fill is only reported when the SERVER reports an executed result.
+ *      The Unified Trading API answers with the provider-verified outcome, so
+ *      there is no client polling and no client-invented status; a transport
+ *      failure yields `UNKNOWN` + the mandated safety message.
+ *   4. The client request id is the Unified Trading idempotency key: it is
+ *      minted once per logical user action and REUSED on every retry of that
+ *      same action, so the server's idempotency claim — never a client guess —
+ *      is what prevents a double trade. Settled ids are additionally refused
+ *      locally to protect against double-clicks and extension reloads.
  *   5. Risk math never invents a price, balance or exposure — if a real
  *      reference price is missing the result is "not calculable".
  */
@@ -43,60 +47,31 @@ import {
   RISK_NOT_CALCULABLE_MESSAGE,
 } from "@/types/execution";
 import {
-  ApiHttpError,
   assertExecutionEntitlement,
-  mapGatewayOrderStatus,
   postExecutionAudit,
   postJournalSync,
-  submitGatewayOrder,
-  type GatewayOrderCommand,
 } from "@/api/execution";
-import { getOrderStatus, type OrderStatus } from "@/api/algovault";
-
-/* ── typed failure modes (definitive vs. uncertain) ─────────────────── */
-
-/** The server definitively refused the request — the order was NOT accepted. */
-export class OrderNotAcceptedError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "OrderNotAcceptedError";
-  }
-}
-
-/** The outcome cannot be determined (5xx / network) — never auto-retry. */
-export class SubmissionUncertainError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "SubmissionUncertainError";
-  }
-}
+import {
+  executeUnifiedTrading,
+  newClientRequestId,
+  runUnifiedExecution,
+  type UnifiedExecutionPayload,
+  type UnifiedExecutionResult,
+  type UnifiedOutcomeStatus,
+} from "@/api/unified-trading";
 
 /* ── injectable transport ───────────────────────────────────────────── */
 
 export interface ExecutionTransport {
-  submitOrder(command: GatewayOrderCommand): Promise<{ duplicate?: boolean }>;
-  getOrderStatus(clientOrderId: string): Promise<OrderStatus | null>;
+  /** One call to the Unified Trading API; resolves with the server's result. */
+  execute(payload: UnifiedExecutionPayload): Promise<UnifiedExecutionResult>;
   postAudit(record: ExecutionAuditRecord): Promise<void>;
   postJournal(payload: JournalSyncPayload): Promise<{ entryId: string }>;
   now(): number;
-  sleep(ms: number): Promise<void>;
 }
 
 const defaultTransport: ExecutionTransport = {
-  submitOrder: async (command) => {
-    try {
-      return await submitGatewayOrder(command);
-    } catch (err) {
-      if (err instanceof ApiHttpError) {
-        // 4xx = the server refused it, so the order was definitively NOT
-        // accepted. 5xx / network = outcome unknown — never auto-retried.
-        if (err.status >= 400 && err.status < 500) throw new OrderNotAcceptedError(err.message);
-        throw new SubmissionUncertainError(err.message);
-      }
-      throw new SubmissionUncertainError(err instanceof Error ? err.message : "network_error");
-    }
-  },
-  getOrderStatus: (id) => getOrderStatus(id),
+  execute: (payload) => executeUnifiedTrading(payload),
   postAudit: async (record) => {
     try {
       await postExecutionAudit(record);
@@ -109,22 +84,24 @@ const defaultTransport: ExecutionTransport = {
     return { entryId: res.entryId };
   },
   now: () => Date.now(),
-  sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
 };
 
 export interface AdapterOptions {
   transport?: ExecutionTransport;
   checkEntitlement?: () => Promise<void>;
-  /** Max time to wait for a real gateway execution report. */
-  pollTimeoutMs?: number;
-  pollIntervalMs?: number;
   /** Max risk (% of balance) the guard will accept. */
   maxRiskPercent?: number;
 }
 
 /* ── idempotency store (survives re-renders + extension reloads) ────── */
 
-export type RequestIdState = "accepted" | "uncertain";
+/**
+ * `settled` — the server reported a terminal, provider-confirmed outcome, so
+ * the id is refused locally (replaying it would re-display an old trade).
+ * `uncertain` — no verdict was reached; a retry MUST resend this same id so
+ * the server's idempotency claim decides.
+ */
+export type RequestIdState = "settled" | "uncertain";
 
 interface IdempotencyRecord {
   state: RequestIdState;
@@ -217,19 +194,65 @@ export async function resetExecutionIdempotency(
 
 const inflightRequestIds = new Set<string>();
 
-/** Unique idempotency key for one prepared ticket. */
+/**
+ * Unique Unified Trading idempotency key for ONE logical user action.
+ *
+ * Thin alias over the API client's generator so ticket/view code and the
+ * client can never drift apart on the key format. Mint it when the action is
+ * prepared and reuse it for every retry of that same action.
+ */
 export function newRequestId(prefix = "req"): string {
-  const rand = Math.random().toString(36).slice(2, 8);
-  return `${prefix}-${Date.now().toString(36)}-${rand}`;
+  return newClientRequestId(prefix);
 }
 
-/* ── action mapping (normalized intent → real gateway action) ───────── */
+/* ── intent mapping (normalized intent → Unified Trading request) ───── */
 
-export function gatewayActionFor(intent: NormalizedOrderIntent): GatewayOrderCommand["action"] {
-  const side = intent.side === "SELL" ? "SELL" : "BUY";
-  if (intent.orderType === "LIMIT") return side === "SELL" ? "SELL_LIMIT" : "BUY_LIMIT";
-  if (intent.orderType === "STOP") return side === "SELL" ? "SELL_STOP" : "BUY_STOP";
-  return side;
+/**
+ * Maps a normalized ticket intent onto the Unified Trading contract.
+ *
+ * Nothing provider-specific is produced: the account namespace selects the
+ * provider server-side, the environment is DEMO-only server-side, and the
+ * limit/stop kind is the application-level `kind` (never `BUY_LIMIT` or any
+ * other broker action name).
+ */
+export function buildUnifiedExecutionPayload(
+  intent: NormalizedOrderIntent,
+  account: TradingViewAccountInfo
+): UnifiedExecutionPayload {
+  const isPending = intent.orderType === "LIMIT" || intent.orderType === "STOP";
+  return {
+    accountId: account.accountId ?? intent.accountId ?? "",
+    // The idempotency key: stable for the lifetime of the ticket, reused on
+    // every retry of this same logical order.
+    clientRequestId: intent.requestId,
+    executionType: "PLACE_ORDER",
+    symbol: intent.symbol.trim().toUpperCase(),
+    side: intent.side === "SELL" ? "SELL" : "BUY",
+    volume: Number(intent.quantity),
+    kind: intent.orderType,
+    price: isPending ? (intent.price ?? null) : null,
+    stopLoss: intent.stopLoss ?? null,
+    takeProfit: intent.takeProfit ?? null,
+  };
+}
+
+/** Unified result status → the bridge lifecycle vocabulary (never invented). */
+export function lifecycleForUnifiedStatus(status: UnifiedOutcomeStatus): ExecutionLifecycleStatus {
+  switch (status) {
+    case "SUCCEEDED":
+      return "FILLED";
+    case "EXECUTED_PENDING_SYNC":
+      return "EXECUTED_PENDING_SYNC";
+    case "FAILED":
+      return "FAILED";
+    case "REJECTED":
+      return "REJECTED";
+    case "DUPLICATE":
+    case "ACCEPTED":
+      return "ACCEPTED";
+    default:
+      return "UNKNOWN";
+  }
 }
 
 /* ── adapter ────────────────────────────────────────────────────────── */
@@ -237,15 +260,11 @@ export function gatewayActionFor(intent: NormalizedOrderIntent): GatewayOrderCom
 export class TradingViewExecutionAdapter {
   private readonly transport: ExecutionTransport;
   private readonly checkEntitlement: () => Promise<void>;
-  private readonly pollTimeoutMs: number;
-  private readonly pollIntervalMs: number;
   private readonly maxRiskPercent: number;
 
   constructor(options: AdapterOptions = {}) {
     this.transport = options.transport ?? defaultTransport;
     this.checkEntitlement = options.checkEntitlement ?? (() => assertExecutionEntitlement());
-    this.pollTimeoutMs = options.pollTimeoutMs ?? 90_000;
-    this.pollIntervalMs = options.pollIntervalMs ?? 1_500;
     this.maxRiskPercent = options.maxRiskPercent ?? 10;
   }
 
@@ -669,14 +688,14 @@ export class TradingViewExecutionAdapter {
       );
     }
 
-    // 3. Idempotency / duplicate protection (§25).
+    // 3. Local idempotency guard (§25). Only a SETTLED id is refused here: an
+    //    uncertain outcome MUST be retried with the SAME clientRequestId so the
+    //    server's idempotency claim decides — never a freshly minted key.
     const prior = lookupRequestId(intent.requestId);
-    if (prior) {
-      const base =
-        prior.state === "uncertain"
-          ? `Duplicate order request detected (${intent.requestId}). ${EXECUTION_UNCONFIRMED_MESSAGE}`
-          : `Duplicate order request detected (${intent.requestId}). The original request was already processed.`;
-      return reject(base);
+    if (prior && prior.state === "settled") {
+      return reject(
+        `Duplicate order request detected (${intent.requestId}). The original request was already processed.`
+      );
     }
 
     // 4. Capability gate (§4): never pretend an unsupported execution path.
@@ -720,187 +739,72 @@ export class TradingViewExecutionAdapter {
 
     this.timelineEvent(timeline, "SUBMITTING");
 
-    try {
-      // 8. Dispatch to the real gateway with a stable idempotency key.
-      const command: GatewayOrderCommand = {
-        accountId: account.accountId || "",
-        clientOrderId: intent.requestId,
-        symbol: intent.symbol.trim().toUpperCase(),
-        action: gatewayActionFor(intent),
-        volume: Number(intent.quantity),
-        ...(intent.orderType !== "MARKET" && intent.price ? { price: Number(intent.price) } : {}),
-        ...(intent.stopLoss ? { sl: Number(intent.stopLoss) } : {}),
-        ...(intent.takeProfit ? { tp: Number(intent.takeProfit) } : {}),
-        comment: "AlgoVault Pro TV Bridge",
-      };
+    // 8. Dispatch through the Unified Trading API with the stable idempotency
+    //    key. The server answers with the provider-verified outcome, so this
+    //    adapter never polls and never invents a status.
+    const payload = buildUnifiedExecutionPayload(intent, account);
+    const outcome = await runUnifiedExecution(payload, (request) =>
+      this.transport.execute(request)
+    );
 
-      let submitResponse: { duplicate?: boolean } | null = null;
-      try {
-        submitResponse = await this.transport.submitOrder(command);
-      } catch (err) {
-        if (err instanceof OrderNotAcceptedError) {
-          // Definitively not accepted — a fresh user request may retry safely.
-          return reject(`Order was not accepted: ${err.message}`);
-        }
-        // Anything else (5xx / network) leaves the outcome unknown (§24).
-        const message =
-          err instanceof SubmissionUncertainError
-            ? err.message
-            : err instanceof Error
-            ? err.message
-            : "Transport failure while submitting the order.";
-        await recordRequestId(intent.requestId, "uncertain");
-        const result = this.buildResult({
-          requestId: intent.requestId,
-          status: "UNKNOWN",
-          account,
-          timeline,
-          error: `${EXECUTION_UNCONFIRMED_MESSAGE} (${message})`,
-          uncertain: true,
-        });
-        await this.sendAudit(intent, account, result);
-        return result;
-      }
+    const status = lifecycleForUnifiedStatus(outcome.status);
+    const providerRef = outcome.result?.providerRef ?? null;
+    this.timelineEvent(
+      timeline,
+      status,
+      outcome.duplicate ? "duplicate of an earlier accepted request" : outcome.message
+    );
 
-      await recordRequestId(intent.requestId, "accepted");
-      this.timelineEvent(
-        timeline,
-        "ACCEPTED",
-        submitResponse?.duplicate ? "duplicate of an earlier accepted request" : null
-      );
-
-      // 9. Poll for the real execution report (§12) — no status is invented.
-      const outcome = await this.waitForExecutionReport(intent.requestId, timeline);
-      this.timelineEvent(timeline, outcome.status, outcome.rawStatusText);
-
-      if (outcome.status === "UNKNOWN") {
-        const result = this.buildResult({
-          requestId: intent.requestId,
-          status: "UNKNOWN",
-          account,
-          timeline,
-          error: EXECUTION_UNCONFIRMED_MESSAGE,
-          uncertain: true,
-          orderId: intent.requestId,
-        });
-        await recordRequestId(intent.requestId, "uncertain");
-        await this.sendAudit(intent, account, result);
-        return result;
-      }
-
-      const confirmed = outcome.status === "FILLED" || outcome.status === "PARTIALLY_FILLED" || outcome.status === "REJECTED" || outcome.status === "CANCELLED";
-      const receipt: TradeReceipt | null =
-        outcome.status === "FILLED" || outcome.status === "PARTIALLY_FILLED"
-          ? {
-              orderId: intent.requestId,
-              symbol: intent.symbol.trim().toUpperCase(),
-              side: intent.side,
-              quantity: Number(intent.quantity),
-              broker: account.broker || "Connected gateway",
-              accountReference: account.accountIdMasked || account.accountId || "—",
-              executionPrice: outcome.executionPrice,
-              timestamp: outcome.at ?? this.transport.now(),
-              mode: account.mode,
-              brokerTicket: outcome.brokerTicket,
-              strategyId: intent.strategyId ?? null,
-              strategyName: intent.strategyName ?? null,
-              setupId: intent.setupId ?? null,
-              analysisId: intent.analysisId ?? null,
-              timeframe: intent.timeframe ?? null,
-              status: outcome.status,
-              journalSynced: false,
-            }
-          : null;
-
-      const result = this.buildResult({
-        requestId: intent.requestId,
-        status: outcome.status,
-        account,
-        timeline,
-        error: outcome.error,
-        orderId: intent.requestId,
-        executionPrice: outcome.executionPrice,
-        filledQuantity: outcome.filledQuantity,
-        brokerTicket: outcome.brokerTicket,
-        confirmed,
-        rawStatusText: outcome.rawStatusText,
-        receipt,
-      });
-      await this.sendAudit(intent, account, result);
-      return result;
-    } finally {
-      inflightRequestIds.delete(intent.requestId);
-    }
-  }
-
-  /** Poll the gateway until a real terminal report arrives or time runs out. */
-  private async waitForExecutionReport(
-    clientOrderId: string,
-    timeline: ExecutionStatusEvent[]
-  ): Promise<{
-    status: ExecutionLifecycleStatus;
-    executionPrice: number | null;
-    filledQuantity: number | null;
-    brokerTicket: string | null;
-    error: string | null;
-    rawStatusText: string | null;
-    at: number | null;
-  }> {
-    const deadline = this.transport.now() + this.pollTimeoutMs;
-    let lastSeen: OrderStatus | null = null;
-
-    while (this.transport.now() < deadline) {
-      let status: OrderStatus | null = null;
-      try {
-        status = await this.transport.getOrderStatus(clientOrderId);
-      } catch {
-        status = null; // transient poll error — keep trying until the deadline
-      }
-      if (status) {
-        lastSeen = status;
-        const mapped = mapGatewayOrderStatus(status.status);
-        if (mapped !== "UNKNOWN" && mapped !== "ACCEPTED") {
-          return {
-            status: mapped,
-            executionPrice:
-              typeof status.executionPrice === "number" && status.executionPrice > 0
-                ? status.executionPrice
-                : null,
-            filledQuantity: null,
-            brokerTicket: status.mt5Ticket ?? null,
-            error: status.errorMessage ?? null,
-            rawStatusText: status.status,
-            at: this.transport.now(),
-          };
-        }
-        this.timelineEvent(timeline, "ACCEPTED", status.status);
-      }
-      await this.transport.sleep(this.pollIntervalMs);
+    if (outcome.ok) {
+      // The provider confirmed it — this id may never be replayed.
+      await recordRequestId(intent.requestId, "settled");
+    } else if (outcome.uncertain) {
+      // No verdict: the retry path must reuse this exact id.
+      await recordRequestId(intent.requestId, "uncertain");
     }
 
-    if (lastSeen) {
-      // Still queued/executing after the deadline — outcome unknown (§24).
-      this.timelineEvent(timeline, "UNKNOWN", `no terminal report within ${this.pollTimeoutMs}ms`);
-      return {
-        status: "UNKNOWN",
-        executionPrice: null,
-        filledQuantity: null,
-        brokerTicket: null,
-        error: `No execution report for ${clientOrderId} (last seen: ${lastSeen.status}).`,
-        rawStatusText: lastSeen.status,
-        at: null,
-      };
-    }
-    this.timelineEvent(timeline, "UNKNOWN", "order status never became visible");
-    return {
-      status: "UNKNOWN",
-      executionPrice: null,
-      filledQuantity: null,
-      brokerTicket: null,
-      error: "The execution status endpoint never returned this order.",
-      rawStatusText: null,
-      at: null,
-    };
+    const receipt: TradeReceipt | null =
+      outcome.status === "SUCCEEDED"
+        ? {
+            orderId: intent.requestId,
+            symbol: intent.symbol.trim().toUpperCase(),
+            side: intent.side,
+            quantity: outcome.result?.filledVolume ?? Number(intent.quantity),
+            broker: account.broker || "Connected gateway",
+            accountReference: account.accountIdMasked || account.accountId || "—",
+            executionPrice: outcome.result?.filledPrice ?? null,
+            timestamp: outcome.result?.completedAt ?? this.transport.now(),
+            mode: account.mode,
+            brokerTicket: providerRef,
+            strategyId: intent.strategyId ?? null,
+            strategyName: intent.strategyName ?? null,
+            setupId: intent.setupId ?? null,
+            analysisId: intent.analysisId ?? null,
+            timeframe: intent.timeframe ?? null,
+            status: "FILLED",
+            journalSynced: false,
+          }
+        : null;
+
+    const result = this.buildResult({
+      requestId: intent.requestId,
+      status,
+      account,
+      timeline,
+      // A provider-confirmed outcome carries no error; every other state shows
+      // the server's own words (or the mandated unconfirmed message).
+      error: outcome.ok ? null : outcome.message,
+      orderId: providerRef ?? intent.requestId,
+      executionPrice: outcome.result?.filledPrice ?? null,
+      filledQuantity: outcome.result?.filledVolume ?? null,
+      brokerTicket: providerRef,
+      uncertain: outcome.uncertain,
+      confirmed: outcome.ok || status === "REJECTED" || status === "FAILED",
+      rawStatusText: outcome.status,
+      receipt,
+    });
+    await this.sendAudit(intent, account, result);
+    return result;
   }
 
   /* ── journal sync (§14) ───────────────────────────────────────────── */

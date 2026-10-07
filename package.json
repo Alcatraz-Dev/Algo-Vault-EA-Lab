@@ -39,6 +39,7 @@
     "test:terminal": "node scripts/jiti-tsrun.mjs lib/terminal/__tests__/run-terminal-tests.ts",
     "test:trading": "node scripts/jiti-tsrun.mjs lib/trading/__tests__/run-trading-tests.ts",
     "test:unified-trading": "node scripts/jiti-tsrun.mjs lib/trading/unified/__tests__/run-unified-trading-tests.ts",
+    "test:trading-history": "node scripts/jiti-tsrun.mjs lib/trading/unified/__tests__/run-history-read-tests.ts",
     "test:chart-engine": "node scripts/jiti-tsrun.mjs tests/chart-engine/chart-engine.test.ts",
     "test:mobile": "node scripts/jiti-tsrun.mjs tests/mobile/phase11.test.ts",
     "test:dashboard-charts": "node scripts/jiti-tsrun.mjs tests/dashboard/trend-projection.test.ts",

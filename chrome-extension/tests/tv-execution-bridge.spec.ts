@@ -1,15 +1,17 @@
 import { test, expect } from "@playwright/test";
 import {
   TradingViewExecutionAdapter,
-  OrderNotAcceptedError,
-  SubmissionUncertainError,
   resetExecutionIdempotency,
-  gatewayActionFor,
+  buildUnifiedExecutionPayload,
+  lifecycleForUnifiedStatus,
   newRequestId,
   type ExecutionTransport,
 } from "../src/services/execution-adapter";
-import type { GatewayOrderCommand } from "../src/api/execution";
-import { mapGatewayOrderStatus } from "../src/api/execution";
+import {
+  UnifiedTradingError,
+  type UnifiedExecutionPayload,
+  type UnifiedExecutionResult,
+} from "../src/api/unified-trading";
 import {
   buildOrderIntent,
   evaluateTicketGating,
@@ -30,7 +32,6 @@ import {
   type TradingViewAccountInfo,
 } from "../src/types/execution";
 import { DEFAULT_FLAGS } from "../src/services/pro-service";
-import type { OrderStatus } from "../src/api/algovault";
 
 /* ── fixtures ──────────────────────────────────────────────────────── */
 
@@ -78,40 +79,71 @@ function makeIntent(overrides: Partial<NormalizedOrderIntent> = {}): NormalizedO
   };
 }
 
-interface FakeSubmit {
-  kind: "ok" | "duplicate" | "definitive" | "uncertain";
-  message?: string;
+/**
+ * Builds the exact envelope `POST /api/trading/execute` returns for a request,
+ * so these tests assert against the REAL Unified Trading contract instead of a
+ * mock shape invented for the Extension.
+ */
+function unifiedResult(
+  payload: UnifiedExecutionPayload,
+  result: Partial<UnifiedExecutionResult> = {}
+): UnifiedExecutionResult {
+  return {
+    clientRequestId: payload.clientRequestId,
+    correlationId: `corr-${payload.clientRequestId}`,
+    accountId: payload.accountId,
+    provider: "MT5",
+    environment: "DEMO",
+    executionType: payload.executionType,
+    status: "SUCCEEDED",
+    providerRef: null,
+    filledVolume: null,
+    filledPrice: null,
+    order: null,
+    position: null,
+    error: null,
+    duplicate: false,
+    createdAt: 1_000_000,
+    completedAt: 1_000_100,
+    ...result,
+  };
 }
 
-function makeTransport(options: {
-  submit?: FakeSubmit;
-  statuses?: Array<OrderStatus | null>;
+/** A server refusal: the full envelope plus the HTTP status the route sets. */
+function rejection(
+  payload: UnifiedExecutionPayload,
+  code: string,
+  message: string,
+  httpStatus: number
+): UnifiedTradingError {
+  return new UnifiedTradingError(message, {
+    code,
+    status: httpStatus,
+    result: unifiedResult(payload, { status: "REJECTED", error: { code, message } }),
+  });
+}
+
+interface ExecuteOptions {
+  /** Fake server behaviour; defaults to a provider-confirmed fill. */
+  execute?: (payload: UnifiedExecutionPayload) => Promise<UnifiedExecutionResult>;
   journalError?: boolean;
-} = {}) {
+}
+
+function makeTransport(options: ExecuteOptions = {}) {
   let clock = 1_000_000;
-  const submitted: GatewayOrderCommand[] = [];
+  const submitted: UnifiedExecutionPayload[] = [];
   const audits: ExecutionAuditRecord[] = [];
   const journals: JournalSyncPayload[] = [];
-  const statuses = options.statuses ?? [];
-  let statusIdx = 0;
 
   const transport: ExecutionTransport = {
-    submitOrder: async (command) => {
-      submitted.push(command);
-      const submit = options.submit ?? { kind: "ok" as const };
-      if (submit.kind === "definitive") {
-        throw new OrderNotAcceptedError(submit.message ?? "Order was not accepted by the server.");
-      }
-      if (submit.kind === "uncertain") {
-        throw new SubmissionUncertainError(submit.message ?? "Gateway timeout");
-      }
-      return { duplicate: submit.kind === "duplicate" };
-    },
-    getOrderStatus: async () => {
-      if (statuses.length === 0) return null;
-      const value = statuses[Math.min(statusIdx, statuses.length - 1)];
-      statusIdx += 1;
-      return value;
+    execute: async (payload) => {
+      submitted.push(payload);
+      if (options.execute) return options.execute(payload);
+      return unifiedResult(payload, {
+        filledVolume: payload.volume ?? null,
+        filledPrice: 1.1012,
+        providerRef: "889900",
+      });
     },
     postAudit: async (record) => {
       audits.push(record);
@@ -122,23 +154,13 @@ function makeTransport(options: {
       return { entryId: "entry-1" };
     },
     now: () => clock,
-    sleep: async () => {
-      clock += 1000;
-    },
   };
 
   return { transport, submitted, audits, journals };
 }
 
 function makeAdapter(
-  options: {
-    submit?: FakeSubmit;
-    statuses?: Array<OrderStatus | null>;
-    journalError?: boolean;
-    entitlementError?: string;
-    pollTimeoutMs?: number;
-    maxRiskPercent?: number;
-  } = {}
+  options: ExecuteOptions & { entitlementError?: string; maxRiskPercent?: number } = {}
 ) {
   const harness = makeTransport(options);
   const adapter = new TradingViewExecutionAdapter({
@@ -148,8 +170,6 @@ function makeAdapter(
           throw new Error(options.entitlementError);
         }
       : async () => undefined,
-    pollTimeoutMs: options.pollTimeoutMs ?? 5_000,
-    pollIntervalMs: 1_000,
     maxRiskPercent: options.maxRiskPercent ?? 10,
   });
   return { adapter, ...harness };
@@ -194,24 +214,51 @@ test.describe("execution capability detection", () => {
     expect(spec.pricePrecision).toBeNull();
   });
 
-  test("gateway order actions map to real MT5 commands", () => {
-    expect(gatewayActionFor(makeIntent({ side: "BUY", orderType: "MARKET" }))).toBe("BUY");
-    expect(gatewayActionFor(makeIntent({ side: "SELL", orderType: "MARKET" }))).toBe("SELL");
-    expect(gatewayActionFor(makeIntent({ side: "BUY", orderType: "LIMIT" }))).toBe("BUY_LIMIT");
-    expect(gatewayActionFor(makeIntent({ side: "SELL", orderType: "LIMIT" }))).toBe("SELL_LIMIT");
-    expect(gatewayActionFor(makeIntent({ side: "BUY", orderType: "STOP" }))).toBe("BUY_STOP");
-    expect(gatewayActionFor(makeIntent({ side: "SELL", orderType: "STOP" }))).toBe("SELL_STOP");
+  test("an intent maps onto the provider-neutral Unified Trading contract", () => {
+    const intent = makeIntent({
+      side: "SELL",
+      orderType: "LIMIT",
+      price: 1.1,
+      stopLoss: 1.12,
+      takeProfit: 1.05,
+    });
+    const payload = buildUnifiedExecutionPayload(intent, makeAccount());
+
+    expect(payload.executionType).toBe("PLACE_ORDER");
+    expect(payload.clientRequestId).toBe(intent.requestId);
+    expect(payload.accountId).toBe("gateway_4410293");
+    expect(payload.symbol).toBe("EURUSD");
+    expect(payload.side).toBe("SELL");
+    expect(payload.kind).toBe("LIMIT");
+    expect(payload.volume).toBe(0.1);
+    expect(payload.price).toBe(1.1);
+    expect(payload.stopLoss).toBe(1.12);
+    expect(payload.takeProfit).toBe(1.05);
+
+    // The Extension never names a provider, an environment or a live/demo mode.
+    const keys = Object.keys(payload);
+    for (const forbidden of ["provider", "environment", "userId", "ticket", "mode"]) {
+      expect(keys).not.toContain(forbidden);
+    }
   });
 
-  test("gateway order statuses map to the bridge lifecycle", () => {
-    expect(mapGatewayOrderStatus("queued")).toBe("ACCEPTED");
-    expect(mapGatewayOrderStatus("executing")).toBe("ACCEPTED");
-    expect(mapGatewayOrderStatus("filled")).toBe("FILLED");
-    expect(mapGatewayOrderStatus("partially_filled")).toBe("PARTIALLY_FILLED");
-    expect(mapGatewayOrderStatus("rejected")).toBe("REJECTED");
-    expect(mapGatewayOrderStatus("failed")).toBe("REJECTED");
-    expect(mapGatewayOrderStatus("cancelled")).toBe("CANCELLED");
-    expect(mapGatewayOrderStatus("something_else")).toBe("UNKNOWN");
+  test("a market intent sends no entry price and the MARKET kind", () => {
+    const payload = buildUnifiedExecutionPayload(
+      makeIntent({ side: "BUY", orderType: "MARKET", price: 1.1 }),
+      makeAccount()
+    );
+    expect(payload.kind).toBe("MARKET");
+    expect(payload.price).toBeNull();
+  });
+
+  test("Unified Trading statuses map to the bridge lifecycle", () => {
+    expect(lifecycleForUnifiedStatus("SUCCEEDED")).toBe("FILLED");
+    expect(lifecycleForUnifiedStatus("EXECUTED_PENDING_SYNC")).toBe("EXECUTED_PENDING_SYNC");
+    expect(lifecycleForUnifiedStatus("ACCEPTED")).toBe("ACCEPTED");
+    expect(lifecycleForUnifiedStatus("DUPLICATE")).toBe("ACCEPTED");
+    expect(lifecycleForUnifiedStatus("REJECTED")).toBe("REJECTED");
+    expect(lifecycleForUnifiedStatus("FAILED")).toBe("FAILED");
+    expect(lifecycleForUnifiedStatus("UNKNOWN")).toBe("UNKNOWN");
   });
 });
 
@@ -548,14 +595,14 @@ test.describe("order submission lifecycle", () => {
     expect(submitted).toHaveLength(0);
   });
 
-  test("submits a real gateway command and reports only confirmed fills", async () => {
-    const { adapter, submitted, audits } = makeAdapter({
-      statuses: [
-        { status: "queued" },
-        { status: "filled", executionPrice: 1.1012, mt5Ticket: "889900" },
-      ],
+  test("submits ONE Unified Trading request and reports only the server-confirmed fill", async () => {
+    const { adapter, submitted, audits } = makeAdapter();
+    const intent = makeIntent({
+      orderType: "LIMIT",
+      price: 1.1,
+      stopLoss: 1.09,
+      strategyName: "Liquidity Sweep Pro",
     });
-    const intent = makeIntent({ orderType: "LIMIT", price: 1.1, stopLoss: 1.09, strategyName: "Liquidity Sweep Pro" });
     const result = await adapter.submitOrder(intent, makeAccount(), {
       userConfirmed: true,
       liveAcknowledged: true,
@@ -563,6 +610,7 @@ test.describe("order submission lifecycle", () => {
 
     expect(result.status).toBe("FILLED");
     expect(result.confirmed).toBe(true);
+    expect(result.uncertain).toBe(false);
     expect(result.executionPrice).toBe(1.1012);
     expect(result.brokerTicket).toBe("889900");
     expect(result.receipt).not.toBeNull();
@@ -570,16 +618,18 @@ test.describe("order submission lifecycle", () => {
     expect(result.receipt?.strategyName).toBe("Liquidity Sweep Pro");
 
     expect(submitted).toHaveLength(1);
-    expect(submitted[0].clientOrderId).toBe(intent.requestId);
+    expect(submitted[0].clientRequestId).toBe(intent.requestId);
     expect(submitted[0].accountId).toBe("gateway_4410293");
-    expect(submitted[0].action).toBe("BUY_LIMIT");
-    expect(submitted[0].sl).toBe(1.09);
+    expect(submitted[0].executionType).toBe("PLACE_ORDER");
+    expect(submitted[0].kind).toBe("LIMIT");
+    expect(submitted[0].stopLoss).toBe(1.09);
     expect(submitted[0].price).toBe(1.1);
 
+    // There is no ACCEPTED step: the API already answers with the verified
+    // outcome, so nothing between SUBMITTING and FILLED is invented.
     expect(result.statusTimeline.map((e) => e.status)).toEqual([
       "PREPARING",
       "SUBMITTING",
-      "ACCEPTED",
       "FILLED",
     ]);
 
@@ -588,11 +638,14 @@ test.describe("order submission lifecycle", () => {
     expect(audits[0].requestId).toBe(intent.requestId);
   });
 
-  test("surfaces a broker rejection exactly as reported", async () => {
+  test("surfaces the server's rejection reason verbatim and may be re-prepared", async () => {
     const { adapter, submitted } = makeAdapter({
-      statuses: [{ status: "rejected", errorMessage: "Not enough money" }],
+      execute: async (payload) => {
+        throw rejection(payload, "ORDER_REJECTED", "Not enough money", 422);
+      },
     });
-    const result = await adapter.submitOrder(makeIntent(), makeAccount(), {
+    const intent = makeIntent();
+    const result = await adapter.submitOrder(intent, makeAccount(), {
       userConfirmed: true,
       liveAcknowledged: true,
     });
@@ -602,51 +655,70 @@ test.describe("order submission lifecycle", () => {
     expect(result.receipt).toBeNull();
     expect(result.confirmed).toBe(true);
     expect(submitted).toHaveLength(1);
+
+    // The server refused it, so nothing was traded: a new attempt is allowed
+    // and must NOT be swallowed by the local duplicate guard.
+    const second = await adapter.submitOrder(intent, makeAccount(), {
+      userConfirmed: true,
+      liveAcknowledged: true,
+    });
+    expect(second.error ?? "").not.toContain("Duplicate order request detected");
+    expect(submitted).toHaveLength(2);
+    expect(submitted[1].clientRequestId).toBe(intent.requestId);
   });
 
-  test("reports partial fills with their real status", async () => {
+  test("EXECUTED_PENDING_SYNC is a real execution, never a failure", async () => {
     const { adapter } = makeAdapter({
-      statuses: [{ status: "partially_filled", executionPrice: 1.1015 }],
+      execute: async (payload) =>
+        unifiedResult(payload, {
+          status: "EXECUTED_PENDING_SYNC",
+          providerRef: "889901",
+          filledPrice: 1.1015,
+          filledVolume: 0.1,
+        }),
     });
     const result = await adapter.submitOrder(makeIntent(), makeAccount(), {
       userConfirmed: true,
       liveAcknowledged: true,
     });
-    expect(result.status).toBe("PARTIALLY_FILLED");
-    expect(result.receipt?.status).toBe("PARTIALLY_FILLED");
+
+    expect(result.status).toBe("EXECUTED_PENDING_SYNC");
+    expect(result.confirmed).toBe(true);
+    expect(result.uncertain).toBe(false);
+    expect(result.error).toBeNull();
+    expect(result.brokerTicket).toBe("889901");
+    // The synced position is late, so no receipt is offered yet.
+    expect(result.receipt).toBeNull();
   });
 
-  test("timeout yields UNKNOWN with the mandated safety message and blocks retries", async () => {
-    const { adapter, submitted } = makeAdapter({
-      statuses: [{ status: "queued" }],
-      pollTimeoutMs: 3_000,
+  test("a provider failure reported as FAILED is rendered as FAILED", async () => {
+    const { adapter } = makeAdapter({
+      execute: async (payload) => {
+        throw new UnifiedTradingError("gateway exploded", {
+          code: "UNKNOWN_PROVIDER_ERROR",
+          status: 502,
+          result: unifiedResult(payload, {
+            status: "FAILED",
+            error: { code: "UNKNOWN_PROVIDER_ERROR", message: "gateway exploded" },
+          }),
+        });
+      },
     });
-    const intent = makeIntent();
-
-    const first = await adapter.submitOrder(intent, makeAccount(), {
+    const result = await adapter.submitOrder(makeIntent(), makeAccount(), {
       userConfirmed: true,
       liveAcknowledged: true,
     });
 
-    expect(first.status).toBe("UNKNOWN");
-    expect(first.uncertain).toBe(true);
-    expect(first.error).toBe(EXECUTION_UNCONFIRMED_MESSAGE);
-    expect(first.receipt).toBeNull();
-
-    // Automatic / accidental retry with the same id must be refused.
-    const second = await adapter.submitOrder(intent, makeAccount(), {
-      userConfirmed: true,
-      liveAcknowledged: true,
-    });
-    expect(second.status).toBe("REJECTED");
-    expect(second.error).toContain("Duplicate order request detected");
-    expect(second.error).toContain(EXECUTION_UNCONFIRMED_MESSAGE);
-    expect(submitted).toHaveLength(1);
+    expect(result.status).toBe("FAILED");
+    expect(result.error).toBe("gateway exploded");
+    expect(result.receipt).toBeNull();
   });
 
-  test("network failure during submission is treated as uncertain, never retried", async () => {
+  test("a transport failure yields UNKNOWN with the mandated safety message", async () => {
     const { adapter, submitted, audits } = makeAdapter({
-      submit: { kind: "uncertain", message: "connection reset" },
+      execute: async () => {
+        throw new UnifiedTradingError("connection reset", { code: "NETWORK", status: 0 });
+      },
     });
     const intent = makeIntent();
 
@@ -656,39 +728,64 @@ test.describe("order submission lifecycle", () => {
     });
     expect(result.status).toBe("UNKNOWN");
     expect(result.uncertain).toBe(true);
-    expect(result.error).toContain(EXECUTION_UNCONFIRMED_MESSAGE);
+    expect(result.error).toBe(EXECUTION_UNCONFIRMED_MESSAGE);
+    expect(result.receipt).toBeNull();
     expect(audits[0].result).toBe("UNKNOWN");
 
+    // The retry MUST reuse the same idempotency key so the server decides.
     const retry = await adapter.submitOrder(intent, makeAccount(), {
       userConfirmed: true,
       liveAcknowledged: true,
     });
-    expect(retry.status).toBe("REJECTED");
-    expect(submitted).toHaveLength(1);
+    expect(retry.status).toBe("UNKNOWN");
+    expect(retry.error).not.toContain("Duplicate order request detected");
+    expect(submitted).toHaveLength(2);
+    expect(new Set(submitted.map((p) => p.clientRequestId)).size).toBe(1);
   });
 
-  test("a definitive server refusal is reported as REJECTED and may be re-prepared", async () => {
-    const { adapter, submitted } = makeAdapter({
-      submit: { kind: "definitive", message: "No active trading access license." },
+  test("an execution timeout is treated as an unknown outcome", async () => {
+    const { adapter } = makeAdapter({
+      execute: async (payload) => {
+        throw new UnifiedTradingError("gateway did not confirm in time", {
+          code: "EXECUTION_TIMEOUT",
+          status: 504,
+          result: unifiedResult(payload, {
+            status: "FAILED",
+            error: { code: "EXECUTION_TIMEOUT", message: "gateway did not confirm in time" },
+          }),
+        });
+      },
     });
-    const intent = makeIntent();
-
-    const result = await adapter.submitOrder(intent, makeAccount(), {
+    const result = await adapter.submitOrder(makeIntent(), makeAccount(), {
       userConfirmed: true,
       liveAcknowledged: true,
     });
-    expect(result.status).toBe("REJECTED");
-    expect(result.error).toContain("No active trading access license");
-    expect(result.error).not.toContain("Duplicate order request detected");
 
-    // The order provably never reached the venue, so a new attempt is allowed
-    // (it must NOT be refused as a duplicate).
-    const second = await adapter.submitOrder(intent, makeAccount(), {
+    expect(result.status).toBe("UNKNOWN");
+    expect(result.uncertain).toBe(true);
+    expect(result.error).toContain(EXECUTION_UNCONFIRMED_MESSAGE);
+  });
+
+  test("a 409 duplicate in flight is reported as accepted, awaiting confirmation", async () => {
+    const { adapter } = makeAdapter({
+      execute: async (payload) => {
+        throw rejection(
+          payload,
+          "DUPLICATE_REQUEST",
+          "An identical request is already in flight. Wait for the original result.",
+          409
+        );
+      },
+    });
+    const result = await adapter.submitOrder(makeIntent(), makeAccount(), {
       userConfirmed: true,
       liveAcknowledged: true,
     });
-    expect(second.error ?? "").not.toContain("Duplicate order request detected");
-    expect(submitted).toHaveLength(2);
+
+    expect(result.status).toBe("ACCEPTED");
+    expect(result.error).toBe("Order accepted — waiting for broker confirmation");
+    expect(result.receipt).toBeNull();
+    expect(result.uncertain).toBe(false);
   });
 
   test("unsupported execution returns UNAVAILABLE without touching the transport", async () => {
@@ -742,21 +839,34 @@ test.describe("order submission lifecycle", () => {
   });
 
   test("a duplicate click while in flight never dispatches twice", async () => {
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
     const { adapter, submitted } = makeAdapter({
-      statuses: [{ status: "queued" }, { status: "filled", executionPrice: 1.1 }],
-      pollTimeoutMs: 5_000,
+      execute: async (payload) => {
+        await gate;
+        return unifiedResult(payload, { filledPrice: 1.1, providerRef: "889900" });
+      },
     });
     const intent = makeIntent();
 
-    const [first, second] = await Promise.all([
-      adapter.submitOrder(intent, makeAccount(), { userConfirmed: true, liveAcknowledged: true }),
-      adapter.submitOrder(intent, makeAccount(), { userConfirmed: true, liveAcknowledged: true }),
-    ]);
+    const first = adapter.submitOrder(intent, makeAccount(), {
+      userConfirmed: true,
+      liveAcknowledged: true,
+    });
+    const second = await adapter.submitOrder(intent, makeAccount(), {
+      userConfirmed: true,
+      liveAcknowledged: true,
+    });
 
-    const statuses = [first.status, second.status];
-    expect(statuses).toContain("FILLED");
-    expect(statuses).toContain("PREPARING");
-    expect(submitted.length).toBeLessThanOrEqual(1);
+    expect(second.status).toBe("PREPARING");
+    expect(second.error).toContain("already in flight");
+
+    release();
+    const completed = await first;
+    expect(completed.status).toBe("FILLED");
+    expect(submitted).toHaveLength(1);
   });
 });
 
@@ -764,9 +874,7 @@ test.describe("order submission lifecycle", () => {
 
 test.describe("duplicate order protection", () => {
   test("a completed request id cannot be replayed", async () => {
-    const { adapter, submitted } = makeAdapter({
-      statuses: [{ status: "filled", executionPrice: 1.1 }],
-    });
+    const { adapter, submitted } = makeAdapter();
     const intent = makeIntent();
 
     const first = await adapter.submitOrder(intent, makeAccount(), {
@@ -805,9 +913,7 @@ test.describe("duplicate order protection", () => {
     };
 
     try {
-      const { adapter } = makeAdapter({
-        statuses: [{ status: "filled", executionPrice: 1.1 }],
-      });
+      const { adapter } = makeAdapter();
       const intent = makeIntent();
       await adapter.submitOrder(intent, makeAccount(), {
         userConfirmed: true,
@@ -834,9 +940,7 @@ test.describe("duplicate order protection", () => {
 
 test.describe("journal & audit integration", () => {
   test("journal payload carries the intelligence provenance", async () => {
-    const { adapter, journals } = makeAdapter({
-      statuses: [{ status: "filled", executionPrice: 1.1 }],
-    });
+    const { adapter, journals } = makeAdapter();
     const intent = makeIntent({
       strategyId: "strat-1",
       strategyName: "Liquidity Sweep Pro",
@@ -904,9 +1008,7 @@ test.describe("journal & audit integration", () => {
   });
 
   test("audit records never contain credential-shaped keys", async () => {
-    const { adapter, audits } = makeAdapter({
-      statuses: [{ status: "filled", executionPrice: 1.1 }],
-    });
+    const { adapter, audits } = makeAdapter();
     await adapter.submitOrder(makeIntent(), makeAccount(), {
       userConfirmed: true,
       liveAcknowledged: true,

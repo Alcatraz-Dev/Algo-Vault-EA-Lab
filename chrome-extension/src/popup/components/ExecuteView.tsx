@@ -1,6 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowDownUp, Crosshair, RefreshCw, RotateCcw, Wallet } from "lucide-react";
-import { placeOrder, getOrderStatus, getGatewayStatus, getRiskAnalysis, type OrderStatus } from "@/api/algovault";
+import { getGatewayStatus, getRiskAnalysis } from "@/api/algovault";
+import {
+  newClientRequestId,
+  placeOrderRequest,
+  runUnifiedExecution,
+  type UnifiedExecutionOutcome,
+} from "@/api/unified-trading";
 import { getSettings } from "@/storage/storage";
 import { mirrorSlTp, orderAction, spreadOf, validateTicket, type DemoOrderKind } from "@/services/demo-trading";
 import type { GatewayAccount, TradingViewContext } from "@/types";
@@ -35,14 +41,23 @@ const QUICK_RISK_PRESETS = [10, 25, 50, 100] as const;
 /**
  * Trade Ticket — REAL account orders only.
  *
- * • Capital is pulled live from the connected MT5 gateway account (balance +
+ * • Every submission goes to `POST /api/trading/execute` through the Unified
+ *   Trading client (`@/api/unified-trading` → UnifiedTradingService → provider
+ *   adapter). The response is AUTHORITATIVE: the outcome block below renders
+ *   the server's own status and reason. There is no polling, no optimistic
+ *   fill and no client-side timeout.
+ * • Capital is pulled live from the connected gateway account (balance +
  *   equity + free margin); sizing always uses real equity, never a typed-in
  *   number. Paper/demo trading lives in the Demo Trades panel.
- * • Order types: Market, Limit and Stop entries mapped to the gateway's
- *   MT5 actions (BUY_LIMIT, SELL_LIMIT, BUY_STOP, SELL_STOP) with
- *   wrong-side validation against the live price.
+ * • Order types: Market, Limit and Stop entries submitted as the
+ *   application-level `kind` (MARKET / LIMIT / STOP), with wrong-side
+ *   validation against the live price.
  * • Sizing: risk-% (needs SL) or fixed lots. TP assist suggests targets at
  *   1–3R from the stop distance.
+ *
+ * The ticket never sends a provider, environment/live-demo flag, userId or a
+ * raw MT5 ticket: identity comes from the auth token and the server decides
+ * the provider, the environment, the risk verdict and the execution price.
  */
 export function ExecuteView({ symbol, context, contextTimestamp, onBack }: ExecuteViewProps) {
   const displaySymbol = context?.symbol || symbol;
@@ -68,6 +83,14 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
   const [feedback, setFeedback] = useState<{ kind: "success" | "error" | "info"; msg: string } | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
 
+  /* The authoritative Unified Trading outcome — the only thing that may ever
+     claim an execution result. */
+  const [outcome, setOutcome] = useState<UnifiedExecutionOutcome | null>(null);
+  /* Unified Trading idempotency key: minted ONCE per ticket and REUSED on
+     every retry of this same logical order, so a network timeout can never
+     turn into a double trade. */
+  const [clientRequestId, setClientRequestId] = useState(() => newClientRequestId("ext"));
+
   const handleResetTicket = () => {
     setDirection("BUY");
     setOrderKind("market");
@@ -78,15 +101,13 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
     setFixedLots("0.10");
     setSizingMode("risk");
     setConfirmReset(false);
+    setOutcome(null);
+    setClientRequestId(newClientRequestId("ext"));
     setFeedback({ kind: "info", msg: "Trade ticket reset to defaults." });
   };
 
   /* Raw text is kept so partial input like "5." or "500" is never clobbered
      while typing; parse only for math. */
-  const [tracking, setTracking] = useState<
-    (OrderStatus & { clientOrderId: string }) | null
-  >(null);
-  const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   /* ── load settings + gateway accounts, then pull REAL capital ────────── */
   useEffect(() => {
@@ -222,71 +243,41 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
     setSl(slPrice.toFixed(slPrice >= 100 ? 2 : 5));
   };
 
+  /**
+   * Submits ONE execution request and renders the server's verdict.
+   * The idempotency key is NOT regenerated here: a retry of this same logical
+   * order always carries the same `clientRequestId`.
+   */
   const handleConfirm = async () => {
     setLoading(true);
     try {
       // Re-pull capital so the confirm sheet reflects the account at send time.
       if (selectedAccount) void refreshCapital();
-      const clientOrderId = `ext_${Date.now()}`;
-      const action = orderAction(orderKind, direction);
-      await placeOrder({
-        accountId,
-        symbol: displaySymbol || "",
-        action,
-        volume: calc.volume,
-        price: !market ? parseFloat(entry) || undefined : undefined,
-        sl: parseFloat(sl) || undefined,
-        tp: parseFloat(tp) || undefined,
-        clientOrderId,
-      });
-      setFeedback({ kind: "success", msg: `Order sent to Gateway (${orderKind} ${direction} ${calc.volume} lots)` });
-      setTracking({ clientOrderId, status: "queued" });
-      setShowConfirm(false);
-      setTimeout(() => setFeedback(null), 4000);
-    } catch (err) {
-      setFeedback({ kind: "error", msg: err instanceof Error ? err.message : "Order failed" });
+      const result = await runUnifiedExecution(
+        placeOrderRequest({
+          accountId,
+          clientRequestId,
+          symbol: displaySymbol || "",
+          side: direction,
+          volume: calc.volume,
+          kind: orderKind === "market" ? "MARKET" : orderKind === "limit" ? "LIMIT" : "STOP",
+          price: !market ? parseFloat(entry) || null : null,
+          stopLoss: parseFloat(sl) || null,
+          takeProfit: parseFloat(tp) || null,
+        })
+      );
+      setOutcome(result);
       setShowConfirm(false);
     } finally {
       setLoading(false);
     }
   };
 
-  const trackingActive = !!tracking && !["filled", "rejected", "failed", "timeout"].includes(tracking.status);
-
-  /* Poll the queued order until the gateway EA reports a terminal state
-     (execution report) or ~90s elapse — the ticket then shows the outcome
-     instead of a blind "order sent". */
-  useEffect(() => {
-    if (!trackingActive || !tracking) return;
-
-    const startedAt = Date.now();
-    const POLL_MS = 3000;
-    const MAX_MS = 90000;
-
-    const tick = async () => {
-      if (!tracking) return;
-      try {
-        const status = await getOrderStatus(tracking.clientOrderId);
-        if (!status) return; // order row not visible yet — keep polling
-        setTracking((t) => (t && t.clientOrderId === tracking.clientOrderId ? { ...t, ...status } : t));
-      } catch { /* transient API error — keep polling */ }
-    };
-
-    void tick();
-    pollTimerRef.current = setInterval(() => {
-      if (Date.now() - startedAt > MAX_MS) {
-        setTracking((t) => (t && t.status === "queued" ? { ...t, status: "timeout" } : t));
-        return;
-      }
-      void tick();
-    }, POLL_MS);
-
-    return () => {
-      if (pollTimerRef.current) clearInterval(pollTimerRef.current);
-      pollTimerRef.current = null;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tracking?.clientOrderId, trackingActive]);
+  /** A brand-new logical order gets a fresh idempotency key. */
+  const startNewTicket = () => {
+    setOutcome(null);
+    setClientRequestId(newClientRequestId("ext"));
+  };
 
   const fmt = (v: number | null | undefined, digits?: number) =>
     v == null ? "—" : v.toLocaleString("en-US", { minimumFractionDigits: digits ?? (v >= 100 ? 2 : 4), maximumFractionDigits: digits ?? (v >= 100 ? 2 : 4) });
@@ -582,48 +573,61 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
 
         {feedback && <Feedback kind={feedback.kind} msg={feedback.msg} />}
 
-        {/* live order status after sending */}
-        {tracking && (
+        {/* authoritative Unified Trading outcome — the server's own words */}
+        {outcome && (
           <div
             className={`rounded-lg border px-2.5 py-2 text-[10px] leading-snug transition-colors ${
-              tracking.status === "filled"
+              outcome.ok
                 ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                : tracking.status === "rejected" || tracking.status === "failed"
+                : outcome.status === "REJECTED" || outcome.status === "FAILED"
                 ? "border-rose-500/30 bg-rose-500/10 text-rose-400"
+                : outcome.status === "ACCEPTED" || outcome.pendingSync
+                ? "border-amber-500/30 bg-amber-500/10 text-amber-400"
                 : "border-edge bg-card text-ink-mute"
             }`}
           >
-            {tracking.status === "queued" && (
-              <span className="flex items-center gap-2">
-                <span className="h-2 w-2 animate-pulse-dot rounded-full bg-amber-400" />
-                Queued — waiting for the MT5 gateway to pick it up…
-              </span>
-            )}
-            {tracking.status === "executing" && (
-              <span className="flex items-center gap-2">
-                <span className="h-2 w-2 animate-pulse-dot rounded-full bg-amber-400" />
-                Executing on MT5…
-              </span>
-            )}
-            {tracking.status === "partially_filled" && (
-              <span className="flex items-center gap-2">
-                <span className="h-2 w-2 animate-pulse-dot rounded-full bg-amber-400" />
-                Partially filled…
-              </span>
-            )}
-            {tracking.status === "filled" && (
-              <span className="flex items-center gap-2">
+            <span className="flex items-center gap-2">
+              {outcome.ok ? (
                 <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                Filled{tracking.executionPrice ? ` @ ${tracking.executionPrice}` : ""}
-                {tracking.mt5Ticket ? ` · MT5 ticket #${tracking.mt5Ticket}` : ""}
+              ) : outcome.status === "REJECTED" || outcome.status === "FAILED" ? (
+                <span className="h-2 w-2 rounded-full bg-rose-400" />
+              ) : (
+                <span className="h-2 w-2 animate-pulse-dot rounded-full bg-amber-400" />
+              )}
+              <span>
+                {outcome.status === "REJECTED" || outcome.status === "FAILED"
+                  ? `✗ ${outcome.message}`
+                  : outcome.message}
+                {outcome.status === "SUCCEEDED" && outcome.result?.filledPrice != null
+                  ? ` @ ${outcome.result.filledPrice}`
+                  : ""}
+                {outcome.status === "SUCCEEDED" && outcome.result?.providerRef
+                  ? ` · ticket ${outcome.result.providerRef}`
+                  : ""}
               </span>
-            )}
-            {(tracking.status === "rejected" || tracking.status === "failed") && (
-              <span>✗ {tracking.errorMessage || "Rejected by the broker."}</span>
-            )}
-            {tracking.status === "timeout" && (
-              <span>No confirmation yet — check the MT5 terminal or the Trading dashboard.</span>
-            )}
+            </span>
+            <div className="mt-1.5">
+              {outcome.uncertain ? (
+                /* The outcome is unknown: retry the SAME logical request so the
+                   server's idempotency claim decides — never a new key. */
+                <button
+                  type="button"
+                  onClick={() => void handleConfirm()}
+                  disabled={loading || !gatewayReady}
+                  className="rounded border border-edge bg-raised px-2 py-0.5 text-[9px] font-medium text-ink-mute transition-all duration-150 hover:text-ink active:scale-95 disabled:opacity-40"
+                >
+                  Retry — same request
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={startNewTicket}
+                  className="rounded border border-edge bg-raised px-2 py-0.5 text-[9px] font-medium text-ink-mute transition-all duration-150 hover:text-ink active:scale-95"
+                >
+                  New Ticket
+                </button>
+              )}
+            </div>
           </div>
         )}
 

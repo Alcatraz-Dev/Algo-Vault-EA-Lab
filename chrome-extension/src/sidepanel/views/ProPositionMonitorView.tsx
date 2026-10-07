@@ -2,9 +2,15 @@ import React, { useEffect, useState } from "react";
 import { Activity, XCircle, TrendingUp, TrendingDown, Clock, AlertCircle, ShieldQuestion, Pencil, Sparkles } from "lucide-react";
 import type { TradingViewAccountInfo, TradingViewPosition } from "@/types/execution";
 import type { SmartAlert } from "@/types/pro";
-import { closeGatewayPosition, modifyGatewayPosition } from "@/api/execution";
+import {
+  closePositionRequest,
+  modifyPositionRequest,
+  newClientRequestId,
+  partialClosePositionRequest,
+  runUnifiedExecution,
+  type UnifiedExecutionOutcome,
+} from "@/api/unified-trading";
 import { fetchSmartAlerts } from "@/api/pro";
-import { newRequestId } from "@/services/execution-adapter";
 import { accountAgeLabel } from "@/services/tv-account-service";
 
 interface Props {
@@ -14,16 +20,47 @@ interface Props {
   timeframe?: string | null;
 }
 
+/**
+ * One prepared position action. The clientRequestId is minted ONCE when the
+ * confirmation is opened and reused on every retry of that same click, so the
+ * Unified Trading idempotency system — not a client guess — prevents a double
+ * close / double modification.
+ */
 interface PendingAction {
   type: "close" | "modify";
   positionId: string;
+  /** Idempotency key for THIS action (full close, or modify SL/TP). */
+  clientRequestId: string;
+  /**
+   * A distinct key for the partial close offered next to the full close: the
+   * two are different payloads, so they must never share one key (the server
+   * rejects a reused key with a changed body).
+   */
+  partialRequestId?: string;
+}
+
+/** User-facing line for a Unified Trading outcome (server words, never faked). */
+function outcomeLine(prefix: string, outcome: UnifiedExecutionOutcome): string {
+  if (outcome.ok) {
+    const ticket = outcome.result?.providerRef ? ` · ticket ${outcome.result.providerRef}` : "";
+    return `${prefix} — ${outcome.message}${ticket}`;
+  }
+  return `${prefix} — ${outcome.message}`;
 }
 
 /**
  * ACTIVE POSITIONS (§10) — renders only rows reported by the connected
  * gateway. P/L and current price show "—" when the source did not report
- * them; nothing is simulated. Close / modify are queued through the real
- * gateway and always require an explicit in-panel confirmation.
+ * them; nothing is simulated.
+ *
+ * Every close / modify action is submitted to the Unified Trading API
+ * (`POST /api/trading/execute` → UnifiedTradingService) after an explicit
+ * in-panel confirmation, and the panel renders the SERVER's outcome verbatim.
+ * "Close" means a full close; a partial close submits a percentage of the
+ * CURRENT POSITION VOLUME and lets the server own lot-step rounding, dust
+ * handling and full-close promotion. No provider name, environment, mode or
+ * userId is ever sent, and no MT5 ticket is used as a command — positions are
+ * addressed by their unified `positionId`.
  */
 export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, timeframe }) => {
   const [actionMsg, setActionMsg] = useState<string | null>(null);
@@ -31,6 +68,8 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
   const [busyId, setBusyId] = useState<string | null>(null);
   const [modifySl, setModifySl] = useState<string>("");
   const [modifyTp, setModifyTp] = useState<string>("");
+  /** Percentage of the CURRENT POSITION VOLUME to close. */
+  const [partialPercent, setPartialPercent] = useState<string>("50");
   const [aiUpdates, setAiUpdates] = useState<SmartAlert[] | null>(null);
 
   const positions = account.openPositions || [];
@@ -68,79 +107,102 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
 
   const startClose = (pos: TradingViewPosition) => {
     setActionMsg(null);
-    setPending({ type: "close", positionId: pos.id });
+    setPending({
+      type: "close",
+      positionId: pos.id,
+      clientRequestId: newClientRequestId("close"),
+      partialRequestId: newClientRequestId("partial"),
+    });
   };
 
   const startModify = (pos: TradingViewPosition) => {
     setActionMsg(null);
     setModifySl(pos.stopLoss !== null ? String(pos.stopLoss) : "");
     setModifyTp(pos.takeProfit !== null ? String(pos.takeProfit) : "");
-    setPending({ type: "modify", positionId: pos.id });
+    setPending({ type: "modify", positionId: pos.id, clientRequestId: newClientRequestId("modify") });
   };
 
-  const confirmClose = async (pos: TradingViewPosition) => {
+  const confirmClose = async (pos: TradingViewPosition, action: PendingAction) => {
     if (!account.accountId) {
-      setActionMsg("No execution account reference — cannot queue a close.");
+      setActionMsg("No execution account reference — cannot submit a close.");
       return;
     }
     setBusyId(pos.id);
     setActionMsg(null);
     try {
-      const res = await closeGatewayPosition({
-        accountId: account.accountId,
-        clientOrderId: newRequestId("close"),
-        symbol: pos.symbol,
-        ticket: Number(pos.id) || undefined,
-      });
-      if (res.success) {
-        setActionMsg(
-          `Close queued for ${pos.symbol} (ticket ${pos.id}). Status: ${
-            res.order?.status || "queued"
-          } — monitor the Execution History for the confirmed result.`
-        );
-        setPending(null);
-        onRefresh();
-      } else {
-        setActionMsg(`Close rejected: ${res.error || "gateway error"}`);
-      }
-    } catch (err) {
-      setActionMsg(err instanceof Error ? err.message : "Failed to queue close.");
+      // The SAME clientRequestId is reused if this click is retried.
+      const outcome = await runUnifiedExecution(
+        closePositionRequest({
+          accountId: account.accountId,
+          clientRequestId: action.clientRequestId,
+          positionId: pos.id,
+          symbol: pos.symbol,
+        })
+      );
+      setActionMsg(outcomeLine(`Close ${pos.symbol}`, outcome));
+      if (outcome.ok || outcome.status === "ACCEPTED") setPending(null);
     } finally {
       setBusyId(null);
+      onRefresh();
     }
   };
 
-  const confirmModify = async (pos: TradingViewPosition) => {
+  const confirmPartialClose = async (pos: TradingViewPosition, action: PendingAction) => {
     if (!account.accountId) {
-      setActionMsg("No execution account reference — cannot queue a modification.");
+      setActionMsg("No execution account reference — cannot submit a partial close.");
+      return;
+    }
+    const percentage = Number(partialPercent);
+    if (!Number.isFinite(percentage) || percentage <= 0 || percentage >= 100) {
+      setActionMsg("Partial close percentage must be between 1 and 99.");
       return;
     }
     setBusyId(pos.id);
     setActionMsg(null);
     try {
-      const res = await modifyGatewayPosition({
-        accountId: account.accountId,
-        clientOrderId: newRequestId("modify"),
-        symbol: pos.symbol,
-        ticket: Number(pos.id) || undefined,
-        ...(modifySl ? { sl: Number(modifySl) } : {}),
-        ...(modifyTp ? { tp: Number(modifyTp) } : {}),
-      });
-      if (res.success) {
-        setActionMsg(
-          `Modification queued for ${pos.symbol} (ticket ${pos.id}). Status: ${
-            res.order?.status || "queued"
-          }.`
-        );
-        setPending(null);
-        onRefresh();
-      } else {
-        setActionMsg(`Modification rejected: ${res.error || "gateway error"}`);
-      }
-    } catch (err) {
-      setActionMsg(err instanceof Error ? err.message : "Failed to queue modification.");
+      // The percentage is a percentage of the CURRENT POSITION VOLUME. The
+      // Extension never converts it to lots and never rounds it — the server
+      // owns lot-step rounding, dust closing and full-close promotion.
+      const outcome = await runUnifiedExecution(
+        partialClosePositionRequest({
+          accountId: account.accountId,
+          clientRequestId: action.partialRequestId ?? action.clientRequestId,
+          positionId: pos.id,
+          percentage,
+          symbol: pos.symbol,
+        })
+      );
+      setActionMsg(outcomeLine(`Partial close ${percentage}% of ${pos.symbol}`, outcome));
+      if (outcome.ok || outcome.status === "ACCEPTED") setPending(null);
     } finally {
       setBusyId(null);
+      onRefresh();
+    }
+  };
+
+  const confirmModify = async (pos: TradingViewPosition, action: PendingAction) => {
+    if (!account.accountId) {
+      setActionMsg("No execution account reference — cannot submit a modification.");
+      return;
+    }
+    setBusyId(pos.id);
+    setActionMsg(null);
+    try {
+      const outcome = await runUnifiedExecution(
+        modifyPositionRequest({
+          accountId: account.accountId,
+          clientRequestId: action.clientRequestId,
+          positionId: pos.id,
+          symbol: pos.symbol,
+          stopLoss: modifySl ? Number(modifySl) : null,
+          takeProfit: modifyTp ? Number(modifyTp) : null,
+        })
+      );
+      setActionMsg(outcomeLine(`Modify ${pos.symbol}`, outcome));
+      if (outcome.ok || outcome.status === "ACCEPTED") setPending(null);
+    } finally {
+      setBusyId(null);
+      onRefresh();
     }
   };
 
@@ -262,12 +324,25 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
                   </div>
                 </div>
 
-                {confirmTarget?.type === "close" && (
+                {confirmTarget !== null && confirmTarget.type === "close" && (
                   <div className="bg-rose-950/30 border border-rose-500/30 rounded p-2 space-y-1.5 text-rose-200">
                     <span className="block text-[11px]">
-                      Confirm closing {pos.symbol} {pos.side} {pos.quantity} (ticket {pos.id})? The
-                      request is queued to the connected gateway — it is not instant.
+                      Confirm closing {pos.symbol} {pos.side} {pos.quantity} (position {pos.id})? The
+                      request is submitted to the Unified Trading API and the broker decides the
+                      fill — it is not instant.
                     </span>
+                    <label className="flex items-center gap-2 text-[10px]">
+                      <span className="shrink-0">Partial close % of current volume</span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={99}
+                        step={1}
+                        value={partialPercent}
+                        onChange={(e) => setPartialPercent(e.target.value)}
+                        className="w-16 bg-slate-950 border border-slate-700 rounded px-2 py-1 font-mono text-slate-100"
+                      />
+                    </label>
                     <div className="flex gap-2">
                       <button
                         type="button"
@@ -279,16 +354,24 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
                       <button
                         type="button"
                         disabled={busyId === pos.id}
-                        onClick={() => confirmClose(pos)}
+                        onClick={() => confirmPartialClose(pos, confirmTarget)}
+                        className="flex-1 rounded bg-amber-600 hover:bg-amber-500 py-1 font-bold text-white disabled:opacity-50"
+                      >
+                        {busyId === pos.id ? "Submitting…" : "Confirm Partial Close"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busyId === pos.id}
+                        onClick={() => confirmClose(pos, confirmTarget)}
                         className="flex-1 rounded bg-rose-600 hover:bg-rose-500 py-1 font-bold text-white disabled:opacity-50"
                       >
-                        {busyId === pos.id ? "Queuing…" : "Confirm Close"}
+                        {busyId === pos.id ? "Submitting…" : "Confirm Close"}
                       </button>
                     </div>
                   </div>
                 )}
 
-                {confirmTarget?.type === "modify" && (
+                {confirmTarget !== null && confirmTarget.type === "modify" && (
                   <div className="bg-amber-950/30 border border-amber-500/30 rounded p-2 space-y-1.5 text-amber-200">
                     <span className="block text-[11px]">Modify stop / target for {pos.symbol}</span>
                     <div className="grid grid-cols-2 gap-2">
@@ -320,10 +403,10 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
                       <button
                         type="button"
                         disabled={busyId === pos.id || (!modifySl && !modifyTp)}
-                        onClick={() => confirmModify(pos)}
+                        onClick={() => confirmModify(pos, confirmTarget)}
                         className="flex-1 rounded bg-amber-600 hover:bg-amber-500 py-1 font-bold text-white disabled:opacity-50"
                       >
-                        {busyId === pos.id ? "Queuing…" : "Confirm Modify"}
+                        {busyId === pos.id ? "Submitting…" : "Confirm Modify"}
                       </button>
                     </div>
                   </div>

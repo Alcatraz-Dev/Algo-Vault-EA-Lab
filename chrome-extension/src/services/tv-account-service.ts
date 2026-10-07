@@ -38,9 +38,9 @@ import { createEmptyAccountInfo, maskAccountId } from "@/types/execution";
 import type { GatewayAccount, GatewayStatus } from "@/types";
 import { getAlgoVaultUrl } from "@/config/environment";
 import { getAuthToken } from "@/storage/storage";
-import { getGatewayStatus, getPositions, type OrderRequestRow } from "@/api/algovault";
+import { getGatewayStatus, getPositions } from "@/api/algovault";
+import { getUnifiedTradingHistory, type UnifiedHistoryEntry } from "@/api/unified-trading";
 import {
-  fetchOrderRequests,
   fetchTvAccountStatus,
   isTerminalOrderStatus,
   type TvAccountStatusResponse,
@@ -80,7 +80,8 @@ export interface AccountTransport {
   getGatewayStatus(): Promise<GatewayStatus>;
   getPositions(accountId: string): Promise<RawPositionRow[]>;
   getPendingOrders(accountId: string): Promise<RawPendingOrderRow[]>;
-  getOrderRequests(accountId: string): Promise<OrderRequestRow[]>;
+  /** Unified Trading execution history (GET /api/trading/history) — read-only. */
+  getExecutionHistory(accountId: string): Promise<UnifiedHistoryEntry[]>;
   getTvAccountStatus(): Promise<TvAccountStatusResponse | null>;
   readTradingViewPageSignal(): Promise<TradingViewPageAccountSignal | null>;
 }
@@ -124,7 +125,7 @@ const defaultTransport: AccountTransport = {
       return [];
     }
   },
-  getOrderRequests: (accountId) => fetchOrderRequests(accountId),
+  getExecutionHistory: (accountId) => getUnifiedTradingHistory({ accountId }),
   getTvAccountStatus: async () => {
     try {
       return await fetchTvAccountStatus();
@@ -213,26 +214,64 @@ export function normalizePendingOrderRow(
   };
 }
 
-export function normalizeExecutionHistory(rows: OrderRequestRow[]): ExecutionHistoryEntry[] {
+/**
+ * Unified Trading history → the panel's existing display rows.
+ *
+ * The display model (`ExecutionHistoryEntry`) is unchanged — only the source
+ * is now `GET /api/trading/history` (via `getUnifiedTradingHistory`) instead
+ * of the legacy gateway queue. Mapping rules, in the existing domain
+ * vocabulary and without inventing fields:
+ *   • requestId ← clientRequestId — the execution's identity,
+ *   • status    ← reconciled state: a late EA fill shows FILLED here while
+ *     the canonical `result` (e.g. FAILED/EXECUTION_TIMEOUT) stays untouched
+ *     on the entry — two truths, never merged,
+ *   • quantity  ← actual filled volume when known, else the reported volume,
+ *   • price     ← actual execution price when reported, else the requested one,
+ *   • orderId   ← provider ticket/reference,
+ *   • side      ← the execution verb (CLOSE / …) when the canonical result
+ *     carries an executionType, else BUY/SELL.
+ */
+export function normalizeUnifiedHistory(entries: UnifiedHistoryEntry[]): ExecutionHistoryEntry[] {
   const out: ExecutionHistoryEntry[] = [];
-  for (const row of rows) {
-    const status = String(row.status || "").toLowerCase();
-    if (!isTerminalOrderStatus(status) || !row.clientOrderId) continue;
+  for (const entry of entries) {
+    const state = String(entry.state || "");
+    if (!entry.clientRequestId || !isTerminalOrderStatus(state)) continue;
     out.push({
-      requestId: row.clientOrderId,
-      symbol: str(row.symbol),
-      side: str(row.action),
-      orderType: str(row.action),
-      quantity: typeof row.volume === "number" ? row.volume : null,
-      price: typeof row.price === "number" ? row.price : null,
-      status: String(row.status || ""),
-      orderId: row.mt5Ticket ? String(row.mt5Ticket) : null,
-      errorMessage: str(row.errorMessage),
-      createdAt: typeof row.createdAt === "number" ? row.createdAt : null,
-      executedAt: typeof row.executedAt === "number" ? row.executedAt : null,
+      requestId: entry.clientRequestId,
+      symbol: str(entry.symbol),
+      side: historySideLabel(entry),
+      orderType: str(entry.kind),
+      quantity:
+        typeof entry.filledVolume === "number"
+          ? entry.filledVolume
+          : typeof entry.volume === "number"
+          ? entry.volume
+          : null,
+      price: typeof entry.price === "number" ? entry.price : null,
+      status: state,
+      orderId: entry.providerRef ? String(entry.providerRef) : null,
+      errorMessage: str(entry.errorMessage),
+      createdAt: typeof entry.createdAt === "number" ? entry.createdAt : null,
+      executedAt: typeof entry.executedAt === "number" ? entry.executedAt : null,
     });
   }
   return out;
+}
+
+/** Management actions keep their verb; entries show the side. */
+function historySideLabel(entry: UnifiedHistoryEntry): string | null {
+  switch (entry.executionType) {
+    case "CLOSE_POSITION":
+      return "CLOSE";
+    case "PARTIAL_CLOSE":
+      return "PARTIAL_CLOSE";
+    case "MODIFY_POSITION":
+      return "MODIFY";
+    case "CANCEL_ORDER":
+      return "CANCEL";
+    default:
+      return str(entry.side);
+  }
 }
 
 /* ── account mode resolution ────────────────────────────────────────── */
@@ -381,7 +420,7 @@ export async function detectTradingViewAccount(
       const [positionsResult, pendingResult, historyResult] = await Promise.allSettled([
         transport.getPositions(gatewayAccount.accountId),
         transport.getPendingOrders(gatewayAccount.accountId),
-        transport.getOrderRequests(gatewayAccount.accountId),
+        transport.getExecutionHistory(gatewayAccount.accountId),
       ]);
 
       if (positionsResult.status === "fulfilled") {
@@ -395,7 +434,7 @@ export async function detectTradingViewAccount(
           .filter((p): p is TradingViewPendingOrder => p !== null);
       }
       if (historyResult.status === "fulfilled") {
-        info.executionHistory = normalizeExecutionHistory(historyResult.value);
+        info.executionHistory = normalizeUnifiedHistory(historyResult.value);
       }
 
       const failed =

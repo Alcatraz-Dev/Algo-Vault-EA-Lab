@@ -47,14 +47,21 @@ interface Props {
 
 const adapter = new TradingViewExecutionAdapter();
 
+/**
+ * Lifecycle labels rendered on the ticket. They mirror the server's Unified
+ * Trading statuses — IN FLIGHT (`ACCEPTED`) and PENDING SYNC are shown as
+ * their own states, never as a fill.
+ */
 const LIFECYCLE_LABEL: Record<string, string> = {
   PREPARING: "PREPARING",
   SUBMITTING: "SUBMITTING",
-  ACCEPTED: "ACCEPTED",
+  ACCEPTED: "ACCEPTED — WAITING FOR CONFIRMATION",
   REJECTED: "REJECTED",
+  FAILED: "FAILED",
   PARTIALLY_FILLED: "PARTIALLY FILLED",
   FILLED: "FILLED",
   CANCELLED: "CANCELLED",
+  EXECUTED_PENDING_SYNC: "EXECUTED — SYNCING POSITION",
   UNAVAILABLE: "UNAVAILABLE",
   UNKNOWN: "UNKNOWN",
 };

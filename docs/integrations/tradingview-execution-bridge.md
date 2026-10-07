@@ -25,7 +25,8 @@ Setup / Strategy → "Prepare Trade" (draft ticket)
    ▼
 User confirmation  ── Review & Confirm Trade (+ live acknowledgement)
    ▼
-TradingView Execution Bridge → AlgoVault MT5 Gateway (real order flow)
+TradingView Execution Bridge → AlgoVault Unified Trading API
+   │     POST /api/trading/execute → UnifiedTradingService → provider adapter
    ▼
 Position monitoring / pending orders / execution history
    ▼
@@ -70,23 +71,40 @@ from the beta toolset is reported as unsupported rather than assumed.
 
 ## 3. Where execution actually comes from
 
-Real execution is provided by the **AlgoVault MT5 Gateway** (an existing,
-entitled integration — not created by this feature):
+> **Migrated.** Extension execution now runs on the **Unified Trading API**
+> (`POST /api/trading/execute` → `UnifiedTradingService` → provider adapter),
+> exactly like the Pro Terminal. The extension no longer queues orders on the
+> legacy gateway route and no longer polls it. Execution History reads the
+> **Unified history API** (`GET /api/trading/history` →
+> `UnifiedTradingService.getHistory()` + the immutable execution results).
+> The legacy `/api/trading/orders` route is **retained server-side** for
+> gateway/EA compatibility; the extension has **zero runtime references** to
+> it — it neither writes nor reads it.
 
 | Step | Endpoint | Notes |
 | --- | --- | --- |
-| Queue an order | `POST /api/trading/orders` | `authenticate` + `hasActiveTradingLicense` server-side; idempotent on `clientOrderId` |
-| Gateway EA picks it up | `/api/trading/gateway/commands` (+ heartbeat) | writes `trading_order_requests/{uid}` |
-| Execution report | `/api/trading/gateway/execution` | `filled`, `partially_filled`, `rejected`, `failed` + real MT5 ticket + execution price |
-| Poll status | `GET /api/trading/orders?clientOrderId=` | used by the trade ticket lifecycle |
+| Submit an execution | `POST /api/trading/execute` | `authenticate` server-side; the service enforces account ownership, the license gate, the risk engine, DEMO-only execution and idempotency on `clientRequestId`; the response carries the provider-verified outcome |
+| Provider dispatch + report | `UnifiedTradingService` → MT5 adapter → `/api/trading/gateway/{commands,execution}` | internal to the server; the extension never speaks this protocol |
 | Positions | `GET /api/trading/positions?accountId=` | real `trading_positions/{uid}/{accountId}` rows |
 | Pending orders | `GET /api/trading/pending-orders?accountId=` | real `trading_orders/{uid}/{accountId}` rows (gateway snapshot) |
 | Account / margin | `GET /api/trading/gateway/status` | broker, account number, balance, equity, margin, free margin, margin level |
-| Order actions | `MODIFY` / `CLOSE` / `PARTIAL_CLOSE` / `CANCEL` | supported by the EA (`MQL5/AlgoVaultTradeGateway`) with `ticket` |
+| Execution history (read-only) | `GET /api/trading/history?accountId=` | Unified history entries: reconciled provider fills (ticket, execution price, filled volume, late EA reports) merged with the immutable canonical result (`state` + `result`), one entry per `clientRequestId` |
 
-Normalized actions exposed by `TradingViewExecutionAdapter`:
-**Market Buy/Sell, Limit Buy/Sell, Stop Buy/Sell, Cancel Order, Modify
-Position, Close Position.** Anything else is rejected as unsupported.
+Unified execution actions exposed to the extension (`chrome-extension/src/api/unified-trading.ts`):
+**PLACE_ORDER** (market / limit / stop), **MODIFY_POSITION**, **PARTIAL_CLOSE**
+(a percentage of the *current position volume*), **CLOSE_POSITION**,
+**CANCEL_ORDER**. Provider actions (`BUY_LIMIT`, `ticket`, …) never leave the
+server.
+
+### 3b. Idempotency (extension contract)
+
+Every request carries a `clientRequestId` minted **once per logical user
+action** and **reused on every retry** of that action — a timeout never
+produces a new key. The server's idempotency claim decides whether the retry
+replays the stored result, is refused as an in-flight duplicate (409), or
+conflicts with a different payload. The extension additionally keeps a local
+ledger of *settled* ids (`chrome.storage.local`) so a double-click or an
+extension reload cannot re-display an old trade.
 
 ## 4. Account states
 
@@ -108,16 +126,22 @@ Resolution order:
 2. **Live safety.** `LIVE` *and* `UNKNOWN` account modes require an
    acknowledgement captured immediately before submission; the first live
    execution of a session shows the stronger warning.
-3. **No invented fills.** A `FILLED` / `PARTIALLY_FILLED` result is only
-   produced from a gateway execution report. No report before the deadline →
-   `UNKNOWN` with the mandated message:
+3. **No invented fills.** A `FILLED` result is only produced from the server's
+   `SUCCEEDED`; `EXECUTED_PENDING_SYNC` renders as "Order executed — syncing
+   position"; an in-flight duplicate renders as "Order accepted — waiting for
+   broker confirmation"; a transport failure renders as `UNKNOWN` with the
+   mandated message:
    > "Execution status could not be confirmed. Check TradingView before
    > attempting another order."
-4. **No automatic retry.** `UNKNOWN` outcomes mark the request id *uncertain*
-   in a persisted ledger (memory + `chrome.storage.local`), so a double-click,
-   React re-render, duplicated event, MCP timeout or extension reload can never
-   resubmit the same order. A *definitive* 4xx refusal is reported as
-   `REJECTED` and may be deliberately re-prepared.
+   There is no client polling and no timeout-based guessing: the API answers
+   with the provider-verified outcome.
+4. **Retries reuse the idempotency key.** `UNKNOWN` outcomes mark the request
+   id *uncertain* in a persisted ledger (memory + `chrome.storage.local`), and
+   a retry of that same logical action resends the **same**
+   `clientRequestId` so the server's idempotency protects the user. A
+   *definitive* refusal (license, risk, validation, stale account) is reported
+   as `REJECTED`/`FAILED` with the server's own reason and may be deliberately
+   re-prepared; a *settled* id is refused locally.
 5. **Risk never invents numbers.** Without a real reference price the result is
    "Risk could not be calculated from available data." Missing balance,
    missing stop and above-threshold risk are surfaced, never smoothed over.
@@ -140,9 +164,14 @@ report-generator surfaces read the same path.
   positions and actions are not rendered.
 * Privileged calls additionally run `assertExecutionEntitlement()` in the
   extension (defense in depth).
-* The real gate is server-side: `/api/trading/orders` requires an
-  authenticated user **with an active trading license**, and every
-  `/api/extension/*` route requires a valid Firebase ID token.
+* The real gate is server-side: `POST /api/trading/execute` requires an
+  authenticated user **with an active trading license** (the same
+  `hasActiveTradingLicense` gate the legacy route and the EA enforce), and
+  every `/api/extension/*` route requires a valid Firebase ID token.
+* The extension never sends a provider, an environment / live-demo flag, a
+  `userId` or an MT5 ticket as a command: the server resolves the provider
+  from the account namespace, enforces DEMO-only execution and owns the
+  authoritative fill price and volume rounding.
 * Feature flags default to `false` (fail-closed) until the server reports
   them.
 
@@ -177,7 +206,8 @@ display.
 
 ## 10. Test coverage
 
-`chrome-extension/tests/tv-execution-bridge.spec.ts` and
+`chrome-extension/tests/tv-execution-bridge.spec.ts`,
+`chrome-extension/tests/unified-execution.spec.ts` and
 `chrome-extension/tests/tv-account-bridge.spec.ts` (Playwright, no network,
 no real account):
 
@@ -185,8 +215,20 @@ no real account):
 * execution capability detection (MCP read-only + gateway gates)
 * order validation (symbol/side/qty/type/price/SL/TP, venue specs, account
   state), trade ticket, confirmation gating, live acknowledgement
-* execution adapter submission: accepted / rejected / partial / timeout /
-  network failure / entitlement / risk rejection
+* Unified Trading request mapping: BUY / SELL / modify SL-TP / partial close
+  (percentage of current position volume, never a locally computed lot size) /
+  full close / cancel; no provider, environment or userId ever leaves the
+  extension
+* server response handling: `SUCCEEDED`, `EXECUTED_PENDING_SYNC`,
+  `REJECTED`, `FAILED`, 409 duplicate / in-flight, stale account, auth
+  failure, `UNKNOWN` timeout and network failure
+* idempotency: the `clientRequestId` is preserved across retries and a retry
+  never mints a new key
+* the extension contains **zero** runtime references to
+  `/api/trading/orders` — neither execution nor history touches it;
+  history reads `GET /api/trading/history` through
+  `getUnifiedTradingHistory` and the mapping is pinned by
+  `unified-execution.spec.ts` and `tv-account-bridge.spec.ts`
 * duplicate-order protection + idempotency across a simulated extension
   reload
 * position, pending-order and execution-history synchronization

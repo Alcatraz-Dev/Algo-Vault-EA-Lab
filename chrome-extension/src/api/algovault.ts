@@ -111,9 +111,13 @@ export async function getGatewayStatus(): Promise<GatewayStatus> {
   };
 }
 
-/** Raw order-request rows as stored by /api/trading/orders (real gateway
- *  lifecycle: queued → executing → filled / partially_filled / rejected /
- *  failed). Used by the Execution Bridge for pending orders + history. */
+/**
+ * Raw order-request rows as stored by the legacy gateway order-request queue
+ * (real lifecycle: queued → executing → filled / partially_filled / rejected /
+ * failed). READ ONLY — the Execution Bridge renders the history that queue
+ * already holds; it never writes to it. New executions go through
+ * `@/api/unified-trading` (`POST /api/trading/execute`).
+ */
 export interface OrderRequestRow {
   clientOrderId: string;
   accountId?: string;
@@ -131,15 +135,6 @@ export interface OrderRequestRow {
   createdAt?: number;
   executedAt?: number | null;
   updatedAt?: number | null;
-}
-
-export async function listOrderRequests(accountId?: string): Promise<OrderRequestRow[]> {
-  const params = new URLSearchParams();
-  if (accountId) params.set("accountId", accountId);
-  const data = await apiGet<{ orders?: OrderRequestRow[] }>(
-    `/api/trading/orders?${params.toString()}`
-  );
-  return Array.isArray(data.orders) ? data.orders : [];
 }
 
 export async function getOHLCData(
@@ -427,63 +422,6 @@ export async function getPositions(
     positions: unknown[];
   }>(`/api/trading/positions?accountId=${accountId}`);
   return data.positions as never[];
-}
-
-export async function placeOrder(order: {
-  accountId?: string;
-  symbol: string;
-  action: string;
-  volume: number;
-  price?: number;
-  sl?: number;
-  tp?: number;
-  clientOrderId?: string;
-  comment?: string;
-}): Promise<{ success: boolean; order?: { clientOrderId: string; status: string }; message?: string }> {
-  return apiPost("/api/trading/orders", order as Record<string, unknown>);
-}
-
-export async function cancelOrder(
-  orderId: string,
-  symbol: string
-): Promise<{ success: boolean; message?: string }> {
-  return apiPost("/api/trading/orders/cancel", { orderId, symbol });
-}
-
-export async function closePosition(
-  positionId: string,
-  symbol: string
-): Promise<{ success: boolean; message?: string }> {
-  return apiPost("/api/trading/positions/close", { positionId, symbol });
-}
-
-export interface OrderStatus {
-  status: string;
-  mt5Ticket?: string;
-  executionPrice?: number;
-  errorMessage?: string;
-}
-
-/**
- * Live status of a queued order: the gateway EA reports back through
- * /api/trading/gateway/execution, which updates the stored order with the
- * terminal status, the real MT5 ticket and the execution price. The Trade
- * Ticket polls this until a terminal state (or a timeout).
- */
-export async function getOrderStatus(clientOrderId: string): Promise<OrderStatus | null> {
-  const data = await apiGet<{
-    orders: Array<Record<string, unknown>>;
-  }>(`/api/trading/orders?clientOrderId=${encodeURIComponent(clientOrderId)}`);
-
-  const order = data.orders?.find((o) => String(o.clientOrderId || "") === clientOrderId);
-  if (!order) return null;
-
-  return {
-    status: String(order.status || ""),
-    mt5Ticket: order.mt5Ticket ? String(order.mt5Ticket) : undefined,
-    executionPrice: Number(order.executionPrice || 0) || undefined,
-    errorMessage: order.errorMessage ? String(order.errorMessage) : undefined,
-  };
 }
 
 export async function getStrategies(): Promise<

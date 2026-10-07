@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import { Clock, XCircle, FileText, AlertCircle, ShieldQuestion, RefreshCw } from "lucide-react";
 import type { TradingViewAccountInfo, TradingViewPendingOrder } from "@/types/execution";
-import { cancelGatewayOrder } from "@/api/execution";
-import { newRequestId } from "@/services/execution-adapter";
+import {
+  cancelOrderRequest,
+  newClientRequestId,
+  runUnifiedExecution,
+} from "@/api/unified-trading";
 import { accountAgeLabel } from "@/services/tv-account-service";
 
 interface Props {
@@ -14,42 +17,55 @@ interface Props {
  * PENDING ORDERS (§11) — real limit/stop orders reported by the connected
  * gateway. Cancel is supported by the gateway EA; modify of a pending order
  * is NOT (the EA only modifies open positions), so no modify action is shown.
+ *
+ * Cancel goes through the Unified Trading API (`POST /api/trading/execute` →
+ * UnifiedTradingService) and is addressed by the unified `orderId`. The legacy
+ * gateway helper `cancelGatewayOrder` (which POSTed to the legacy order queue)
+ * is retired: no code here constructs a provider action or an environment, and
+ * the outcome rendered below is the server's own. The idempotency key is minted
+ * once when the confirmation opens and reused on every retry of that action.
  */
 export const ProPendingOrdersView: React.FC<Props> = ({ account, onRefresh }) => {
   const [actionMsg, setActionMsg] = useState<string | null>(null);
-  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [confirm, setConfirm] = useState<{ orderId: string; clientRequestId: string } | null>(
+    null
+  );
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const pendingOrders = account.pendingOrders || [];
   const available = account.dataAvailability.pendingOrders;
 
-  const handleCancel = async (order: TradingViewPendingOrder) => {
+  const handleCancel = async (order: TradingViewPendingOrder, clientRequestId: string) => {
     if (!account.accountId) {
-      setActionMsg("No execution account reference — cannot queue a cancel.");
+      setActionMsg("No execution account reference — cannot cancel a pending order.");
       return;
     }
     setBusyId(order.id);
     setActionMsg(null);
     try {
-      const res = await cancelGatewayOrder({
-        accountId: account.accountId,
-        clientOrderId: newRequestId("cancel"),
-        symbol: order.symbol,
-        ticket: Number(order.id) || undefined,
-      });
-      if (res.success) {
-        setActionMsg(
-          `Cancel queued for ${order.symbol} ${order.side} ${order.orderType} (ticket ${order.id}). Status: ${
-            res.order?.status || "queued"
-          } — confirm the result in Execution History.`
-        );
-        setConfirmId(null);
-        onRefresh();
+      const outcome = await runUnifiedExecution(
+        cancelOrderRequest({
+          accountId: account.accountId,
+          clientRequestId,
+          orderId: order.id,
+          symbol: order.symbol,
+        })
+      );
+      const label = `${order.symbol} ${order.side} ${order.orderType} (ticket ${order.id})`;
+      if (outcome.pendingSync) {
+        setActionMsg(`Cancel for ${label}: Order executed — syncing position.`);
+        setConfirm(null);
+      } else if (outcome.ok) {
+        setActionMsg(`Cancel for ${label}: ${outcome.message}.`);
+        setConfirm(null);
+      } else if (outcome.status === "ACCEPTED") {
+        // The server still holds the request (duplicate / in flight): never
+        // claim a result the provider has not reported yet.
+        setActionMsg(`Cancel for ${label}: Order accepted — waiting for broker confirmation.`);
       } else {
-        setActionMsg(`Cancel rejected: ${res.error || "gateway error"}`);
+        setActionMsg(`Cancel for ${label}: ${outcome.message}`);
       }
-    } catch (err) {
-      setActionMsg(err instanceof Error ? err.message : "Failed to queue cancel.");
+      onRefresh();
     } finally {
       setBusyId(null);
     }
@@ -137,16 +153,16 @@ export const ProPendingOrdersView: React.FC<Props> = ({ account, onRefresh }) =>
                 </div>
               </div>
 
-              {confirmId === ord.id ? (
+              {confirm?.orderId === ord.id ? (
                 <div className="bg-rose-950/30 border border-rose-500/30 rounded p-2 space-y-1.5 text-rose-200">
                   <span className="block text-[11px]">
                     Cancel {ord.symbol} {ord.side} {ord.orderType} {ord.quantity} (ticket {ord.id})?
-                    This request is queued to the connected gateway.
+                    This request is submitted to the AlgoVault execution service.
                   </span>
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      onClick={() => setConfirmId(null)}
+                      onClick={() => setConfirm(null)}
                       className="flex-1 rounded border border-slate-700 bg-slate-800 py-1 text-slate-300"
                     >
                       Keep order
@@ -154,10 +170,13 @@ export const ProPendingOrdersView: React.FC<Props> = ({ account, onRefresh }) =>
                     <button
                       type="button"
                       disabled={busyId === ord.id}
-                      onClick={() => handleCancel(ord)}
+                      onClick={() => {
+                        if (!confirm) return;
+                        void handleCancel(ord, confirm.clientRequestId);
+                      }}
                       className="flex-1 rounded bg-rose-600 hover:bg-rose-500 py-1 font-bold text-white disabled:opacity-50"
                     >
-                      {busyId === ord.id ? "Queuing…" : "Confirm Cancel"}
+                      {busyId === ord.id ? "Submitting…" : "Confirm Cancel"}
                     </button>
                   </div>
                 </div>
@@ -168,7 +187,9 @@ export const ProPendingOrdersView: React.FC<Props> = ({ account, onRefresh }) =>
                     disabled={!ord.canCancel}
                     onClick={() => {
                       setActionMsg(null);
-                      setConfirmId(ord.id);
+                      // Minted ONCE per confirmation: a retry reuses this exact
+                      // key so the server's idempotency protects the user.
+                      setConfirm({ orderId: ord.id, clientRequestId: newClientRequestId("cancel") });
                     }}
                     className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-rose-300 border border-slate-700 rounded text-[10px] font-medium transition-colors flex items-center gap-1 disabled:opacity-40"
                   >

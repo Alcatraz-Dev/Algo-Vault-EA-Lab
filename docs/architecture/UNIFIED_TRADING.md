@@ -46,8 +46,14 @@ surfaces, the risk engine or the UI.
 **The Pro Terminal is now the primary professional trading interface.** Every
 action it offers — place order, modify SL/TP, partial close, full close, cancel
 — goes through `POST /api/trading/execute` → `UnifiedTradingService`. The
-legacy `/api/trading/orders` queue is retained unchanged for the Chrome
-extension and gateway compatibility; it is not used by the terminal.
+Chrome Extension uses the same backbone: every execution action it offers
+(trade ticket, modify SL/TP, partial close, full close, cancel pending order)
+is a Unified Trading request through `chrome-extension/src/api/unified-trading.ts`.
+The legacy `/api/trading/orders` queue is retained unchanged for gateway/EA
+compatibility only; no execution path in the terminal or the Extension
+writes to it, and the Extension's Execution History panel now reads the
+Unified history API (`GET /api/trading/history` →
+`lib/trading/unified/history.ts`) instead of that queue.
 
 ---
 
@@ -83,8 +89,10 @@ extension and gateway compatibility; it is not used by the terminal.
 | `lib/trading/unified/client.ts` | Browser client for the Pro Terminal: `executeUnified`, fresh idempotency keys, phase labels/tones. Never polls, never fakes a fill. |
 | `lib/trading/unified/ids.ts` | Crypto-strong random ids (`crypto.getRandomValues`) for `clientRequestId`. |
 | `lib/trading/unified/server.ts` | Server-only composition root (`createUnifiedTradingService`, `providerCatalog`). |
+| `lib/trading/unified/history.ts` | READ-only execution-history model: auth + account ownership, `getHistory()` merged with the immutable execution results, one entry per `clientRequestId`. |
 | `app/api/trading/accounts/route.ts` | `GET` accounts + provider catalog, `PUT` connection state. |
 | `app/api/trading/execute/route.ts` | The single execution endpoint for every channel. |
+| `app/api/trading/history/route.ts` | `GET` read-only execution history (the Extension's Execution History source). |
 | `app/api/admin/trading/providers/route.ts` | Admin observability. |
 | `components/trading/ProviderConnectionCard.tsx` | Provider catalog + real MT5 demo connection state. |
 | `components/terminal/TradingProviderStatus.tsx` | Pro Terminal provider state panel. |
@@ -232,6 +240,7 @@ volume or timestamp proximity alone never happens.
 |---|---|
 | `tradingExecutionResults/{uid}/{clientRequestId}` (canonical, §5/§6) | `FAILED` / `EXECUTION_TIMEOUT`, `providerRef: null` — immutable |
 | `getHistory()` / execution history | `FILLED` order with `providerRef` = MT5 ticket, execution price, volume, filled time |
+| `GET /api/trading/history` (Extension read API) | the same two truths side by side, one entry per `clientRequestId`: `state` = the reconciled fill, `result` = the immutable canonical result |
 | Replays of the same key | the same canonical `FAILED` result with `duplicate: true` (§6); conflicts still 409 |
 
 This is verified by the deterministic late-report suite in
@@ -410,6 +419,7 @@ polling behavior against a fake RTDB.
 ```
 npm run test:unified-trading   # 237 checks (125 service-level + 112 provider-level)
 npm run test:trading           # provider-neutral suite (32 checks)
+npm run test:trading-history   # Unified history read-path suite (63 checks)
 ```
 
 `lib/trading/unified/__tests__/unified-trading.test.ts` covers the provider

@@ -5,7 +5,7 @@ import {
   accountAgeLabel,
   normalizePositionRow,
   normalizePendingOrderRow,
-  normalizeExecutionHistory,
+  normalizeUnifiedHistory,
   subscribeTVAccount,
   type AccountTransport,
 } from "../src/services/tv-account-service";
@@ -15,7 +15,7 @@ import {
   type TradingViewPageAccountSignal,
 } from "../src/types/execution";
 import type { GatewayStatus } from "../src/types";
-import type { OrderRequestRow } from "../src/api/algovault";
+import type { UnifiedHistoryEntry } from "../src/api/unified-trading";
 
 /* ── fixtures ──────────────────────────────────────────────────────── */
 
@@ -86,34 +86,68 @@ const PENDING = [
   },
 ];
 
-const ORDER_REQUESTS: OrderRequestRow[] = [
+/**
+ * Unified Trading history entries as `GET /api/trading/history` returns them.
+ * Terminal states (FILLED / REJECTED) are history; a SUBMITTED command is
+ * still in flight and must not be listed — same display contract as before.
+ */
+const HISTORY_ENTRIES: UnifiedHistoryEntry[] = [
   {
-    clientOrderId: "req-filled-1",
+    clientRequestId: "req-filled-1",
+    accountId: GATEWAY_ACCOUNT.accountId,
     symbol: "XAUUSD",
-    action: "BUY",
+    side: "BUY",
+    kind: "MARKET",
+    executionType: "PLACE_ORDER",
     volume: 0.02,
+    filledVolume: 0.02,
     price: 2401.5,
-    status: "filled",
+    stopLoss: null,
+    takeProfit: null,
+    providerRef: "991100",
+    state: "FILLED",
+    result: "SUCCEEDED",
+    errorMessage: null,
     createdAt: 1_700_000_400_000,
     executedAt: 1_700_000_405_000,
-    mt5Ticket: "991100",
   },
   {
-    clientOrderId: "req-rejected-1",
+    clientRequestId: "req-rejected-1",
+    accountId: GATEWAY_ACCOUNT.accountId,
     symbol: "EURUSD",
-    action: "SELL",
+    side: "SELL",
+    kind: "MARKET",
+    executionType: "PLACE_ORDER",
     volume: 0.1,
-    status: "rejected",
+    filledVolume: null,
+    price: 1.0851,
+    stopLoss: null,
+    takeProfit: null,
+    providerRef: null,
+    state: "REJECTED",
+    result: "REJECTED",
     errorMessage: "Invalid volume",
     createdAt: 1_700_000_500_000,
+    executedAt: null,
   },
   {
-    clientOrderId: "req-still-queued",
+    clientRequestId: "req-still-queued",
+    accountId: GATEWAY_ACCOUNT.accountId,
     symbol: "GBPUSD",
-    action: "BUY",
+    side: "BUY",
+    kind: "MARKET",
+    executionType: "PLACE_ORDER",
     volume: 0.01,
-    status: "queued",
+    filledVolume: null,
+    price: null,
+    stopLoss: null,
+    takeProfit: null,
+    providerRef: null,
+    state: "SUBMITTED",
+    result: "ACCEPTED",
+    errorMessage: null,
     createdAt: 1_700_000_600_000,
+    executedAt: null,
   },
 ];
 
@@ -141,13 +175,13 @@ interface TransportOverrides {
   gateway?: GatewayStatus | Error;
   positions?: Record<string, unknown>[] | Error;
   pending?: Record<string, unknown>[] | Error;
-  orders?: OrderRequestRow[] | Error;
+  history?: UnifiedHistoryEntry[] | Error;
   server?: unknown;
   page?: TradingViewPageAccountSignal | null;
 }
 
 function makeTransport(overrides: TransportOverrides = {}) {
-  const calls = { gateway: 0, positions: 0, pending: 0, orders: 0, server: 0, page: 0 };
+  const calls = { gateway: 0, positions: 0, pending: 0, history: 0, server: 0, page: 0 };
 
   const unwrap = <T>(value: T | Error | undefined, fallback: T): T => {
     if (value instanceof Error) throw value;
@@ -167,9 +201,9 @@ function makeTransport(overrides: TransportOverrides = {}) {
       calls.pending += 1;
       return unwrap(overrides.pending, []) as never;
     },
-    getOrderRequests: async () => {
-      calls.orders += 1;
-      return unwrap(overrides.orders, []) as never;
+    getExecutionHistory: async () => {
+      calls.history += 1;
+      return unwrap(overrides.history, []) as never;
     },
     getTvAccountStatus: async () => {
       calls.server += 1;
@@ -203,7 +237,7 @@ test.describe("account detection", () => {
       gateway: gatewayStatus(),
       positions: POSITIONS,
       pending: PENDING,
-      orders: ORDER_REQUESTS,
+      history: HISTORY_ENTRIES,
     });
 
     expect(info.accountState).toBe("TRADING_ENABLED");
@@ -264,7 +298,7 @@ test.describe("account detection", () => {
   });
 
   test("execution history only lists terminal order requests", async () => {
-    const { info } = await detect({ gateway: gatewayStatus(), orders: ORDER_REQUESTS });
+    const { info } = await detect({ gateway: gatewayStatus(), history: HISTORY_ENTRIES });
 
     expect(info.executionHistory).toHaveLength(2);
     const ids = info.executionHistory.map((h) => h.requestId);
@@ -518,10 +552,69 @@ test.describe("position & order normalization", () => {
   });
 
   test("execution history ignores malformed rows", () => {
-    const rows = normalizeExecutionHistory([
-      { clientOrderId: "", status: "filled" } as OrderRequestRow,
-      { status: "filled" } as OrderRequestRow,
+    const rows = normalizeUnifiedHistory([
+      { clientRequestId: "", state: "FILLED" } as UnifiedHistoryEntry,
+      { state: "FILLED" } as UnifiedHistoryEntry,
     ]);
     expect(rows).toHaveLength(0);
+  });
+});
+
+/* ── Unified history → display model mapping ──────────────────────── */
+
+test.describe("unified history mapping", () => {
+  test("the Unified history response maps into the existing display model", () => {
+    const rows = normalizeUnifiedHistory(HISTORY_ENTRIES);
+    expect(rows).toHaveLength(2);
+
+    const [filled, rejected] = rows;
+    expect(filled.requestId).toBe("req-filled-1");
+    expect(filled.symbol).toBe("XAUUSD");
+    expect(filled.side).toBe("BUY");
+    expect(filled.orderType).toBe("MARKET");
+    // Actual filled volume, not merely the requested one.
+    expect(filled.quantity).toBe(0.02);
+    // Actual execution price reported by the provider.
+    expect(filled.price).toBe(2401.5);
+    expect(filled.status).toBe("FILLED");
+    // Provider ticket / reference.
+    expect(filled.orderId).toBe("991100");
+    expect(filled.executedAt).toBe(1_700_000_405_000);
+    expect(filled.createdAt).toBe(1_700_000_400_000);
+
+    expect(rejected.requestId).toBe("req-rejected-1");
+    expect(rejected.status).toBe("REJECTED");
+    expect(rejected.errorMessage).toBe("Invalid volume");
+    expect(rejected.orderId).toBeNull();
+    expect(rejected.quantity).toBe(0.1);
+  });
+
+  test("management actions keep their verb and in-flight states stay hidden", () => {
+    const rows = normalizeUnifiedHistory([
+      {
+        clientRequestId: "close-1",
+        accountId: GATEWAY_ACCOUNT.accountId,
+        symbol: "XAUUSD",
+        side: "BUY",
+        kind: "MARKET",
+        executionType: "CLOSE_POSITION",
+        volume: 0.02,
+        filledVolume: 0.02,
+        price: 2410,
+        stopLoss: null,
+        takeProfit: null,
+        providerRef: "991200",
+        state: "FILLED",
+        result: "SUCCEEDED",
+        errorMessage: null,
+        createdAt: 1_700_000_800_000,
+        executedAt: 1_700_000_801_000,
+      },
+      { clientRequestId: "in-flight-1", state: "SUBMITTED" } as UnifiedHistoryEntry,
+    ]);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].side).toBe("CLOSE");
+    expect(rows[0].status).toBe("FILLED");
+    expect(rows[0].orderType).toBe("MARKET");
   });
 });

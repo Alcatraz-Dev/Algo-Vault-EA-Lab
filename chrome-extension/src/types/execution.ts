@@ -17,9 +17,11 @@
  *     (`READ_TOOLS_ONLY = true`): quotes, OHLCV, technicals, screener, news,
  *     fundamentals, filings, calendars, watchlists and alerts.
  *   - It exposes NO account, broker, order, position or execution tool.
- *   - Real order execution is provided by the AlgoVault MT5 Gateway
- *     (`/api/trading/orders` + `/api/trading/gateway/execution`), which is a
- *     genuinely separate, server-entitled integration.
+ *   - Real order execution is provided by the AlgoVault Unified Trading API
+ *     (`POST /api/trading/execute` → UnifiedTradingService → provider adapter),
+ *     a genuinely separate, server-entitled integration. The Extension never
+ *     touches provider or gateway internals: it submits application-level
+ *     requests and renders the server's result verbatim.
  * Nothing in this module may ever claim a capability the sources above do not
  * provide — unknown values stay `null`, unknown states stay `UNKNOWN`.
  */
@@ -192,9 +194,16 @@ export type ExecutionLifecycleStatus =
   | "SUBMITTING"
   | "ACCEPTED"
   | "REJECTED"
+  | "FAILED"
   | "PARTIALLY_FILLED"
   | "FILLED"
   | "CANCELLED"
+  /**
+   * The provider confirmed the execution but the synced position mirror is
+   * still late (Unified Trading `EXECUTED_PENDING_SYNC`). The trade is real —
+   * it is rendered as "executed — syncing position", never as a failure.
+   */
+  | "EXECUTED_PENDING_SYNC"
   | "UNAVAILABLE"
   | "UNKNOWN";
 
