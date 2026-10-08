@@ -19,6 +19,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 import {
     AlertTriangle,
     Cpu,
@@ -32,7 +33,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CandelToolbarButton } from "./CandelToolbar";
-import type { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 import { RADAR_SYMBOLS } from "@/lib/ai/scalping/watchlist";
 import type { RadarResult, TerminalSignal } from "@/lib/ai/scalping/radar";
 import type { AdvancedAnalysisResult } from "@/lib/ai/analysis/intelligence";

@@ -189,6 +189,18 @@ export interface ViewportTimeScaleLike {
     setVisibleLogicalRange(range: LogicalRange): void;
     fitContent(): void;
     scrollToRealTime(): void;
+    /**
+     * Optional: the visible range in TIME coordinates (lightweight-charts'
+     * `ITimeScaleApi.getVisibleRange`). Used to detect a snapshot captured
+     * from an index space that already absorbed the incoming bars. Doubles
+     * as the tell between a real chart (which re-anchors logical indices
+     * natively when data prepends) and a deterministic test mock (which does
+     * not) — mocks without this method keep the classic shift contract.
+     * Typed loosely (`unknown` edges) because lightweight-charts' `Time` is a
+     * number | string | BusinessDay union; only numeric UTCTimestamps are
+     * acted on (runtime guard in captureSnapshot).
+     */
+    getVisibleRange?(): { from: unknown; to: unknown } | null;
 }
 
 /**
@@ -209,6 +221,15 @@ export interface ViewportSnapshot {
     rightIndex: number;
     /** Timestamp of the rightmost visible bar in the pre-mutation series. */
     rightTime: number;
+    /**
+     * True when the captured range was already in POST-mutation logical
+     * coordinates: the chart's index space had absorbed the incoming bars
+     * before this snapshot was taken (another series pushed the prepended
+     * data first, so the native time scale had already re-anchored). Such a
+     * snapshot is already market-anchored — applying the mirror delta on top
+     * of it would double-shift the viewport into the right margin.
+     */
+    preShifted?: boolean;
 }
 
 /**
@@ -458,6 +479,27 @@ export class ViewportController {
         if (!range) return null;
         const leftIndex = Math.min(Math.max(0, Math.floor(range.from)), previousBarTimes.length - 1);
         const rightIndex = Math.min(Math.max(0, Math.ceil(range.to) - 1), previousBarTimes.length - 1);
+        // ── pre-shifted snapshot guard ────────────────────────────────────
+        // The renderer's mirror (`previousBarTimes`) describes the series as
+        // of the LAST commit, but the chart's index space may already include
+        // the incoming bars when another candle-derived series (chart-type
+        // variants, overlay feeders) is pushed by an earlier effect in the
+        // same React commit. A real lightweight-charts time scale re-anchors
+        // logical indices natively on a front-growing data swap, so the
+        // captured range then lives in POST-mutation coordinates while the
+        // mirror is pre-mutation: shifting by the mirror delta would apply
+        // the compensation twice and push the viewport deep into the right
+        // margin. The visible TIME at the range's left edge exposes this: in
+        // a coherent snapshot it equals the mirror's bar at that index; in a
+        // pre-shifted one it is strictly OLDER (the left edge already points
+        // into the prepended region).
+        const mirrorLeftTime = previousBarTimes[leftIndex];
+        const visibleFrom = ts.getVisibleRange?.()?.from;
+        const preShifted =
+            typeof visibleFrom === "number" &&
+            Number.isFinite(visibleFrom) &&
+            Number.isFinite(mirrorLeftTime) &&
+            visibleFrom < mirrorLeftTime;
         this.lastRange = range;
         return {
             epoch: this.epoch,
@@ -466,6 +508,7 @@ export class ViewportController {
             leftTime: previousBarTimes[leftIndex],
             rightIndex,
             rightTime: previousBarTimes[rightIndex],
+            preShifted,
         };
     }
 
@@ -501,7 +544,10 @@ export class ViewportController {
         const anchorIndex = useRight ? snapshot.rightIndex : snapshot.leftIndex;
         const anchorTime = useRight ? snapshot.rightTime : snapshot.leftTime;
         const newAnchorIndex = findBarIndex(newBarTimes, anchorTime);
-        const shift = newAnchorIndex === null ? 0 : newAnchorIndex - anchorIndex;
+        // A pre-shifted snapshot is already in post-mutation coordinates —
+        // the native scale has re-anchored, so the correct compensation is
+        // exactly zero (never a second mirror-delta shift).
+        const shift = snapshot.preShifted || newAnchorIndex === null ? 0 : newAnchorIndex - anchorIndex;
         const shifted = { from: snapshot.range.from + shift, to: snapshot.range.to + shift };
         if (shift !== 0) {
             ts.setVisibleLogicalRange(shifted);

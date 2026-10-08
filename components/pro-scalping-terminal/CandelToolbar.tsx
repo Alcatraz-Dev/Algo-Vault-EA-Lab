@@ -17,7 +17,7 @@
  */
 
 import { useState } from "react";
-import { Brain, BrainCircuit, BrainCog, X, Sparkles, BarChart3 } from "lucide-react";
+import { Brain, BrainCircuit, BrainCog, X, Sparkles, BarChart3, Target, AlertTriangle, DollarSign, PlusCircle, FileText, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -124,6 +124,11 @@ export function CandelQuickActions({
     { key: "market", label: "Analyze Market", icon: BarChart3 },
     { key: "setup", label: "Find Setup", icon: BrainCog },
     { key: "structure", label: "Analyze Structure", icon: Brain },
+    { key: "risk", label: "Analyze Risk", icon: AlertTriangle },
+    { key: "move", label: "Explain Current Move", icon: Target },
+    { key: "position", label: "Review Position", icon: DollarSign },
+    { key: "compare", label: "Compare Strategy", icon: BrainCircuit },
+    { key: "proposal", label: "Prepare Trade Proposal", icon: PlusCircle },
   ];
 
   return (

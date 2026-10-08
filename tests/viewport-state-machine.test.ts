@@ -644,5 +644,90 @@ check("34. viewport operations are cleaned up on unmount", () => {
     assert(!h.vp.isProgrammatic(), "no programmatic phase left behind");
 });
 
+console.log("Pre-shifted snapshots (real-chart index space)");
+/**
+ * lightweight-charts re-anchors logical indices natively when a front-growing
+ * data swap lands (rightOffset is newest-relative). When ANOTHER candle-derived
+ * series (chart-type variants, overlay feeders) is pushed by an earlier effect
+ * in the same React commit, the canonical capture then reads the POST-prepend
+ * index space while the renderer's mirror is still pre-prepend. Compensating on
+ * top of that double-shifts the viewport deep into the right margin
+ * (browser repro: newest candle pinned at x≈1px, chart nearly blank).
+ */
+class NativeTimeScale extends MockTimeScale {
+    /** Current index space, mirroring lightweight-charts' union of series times. */
+    times: number[] = [];
+
+    getVisibleRange(): { from: number; to: number } | null {
+        const r = this.range;
+        if (!r || this.times.length === 0) return null;
+        const from = Math.max(0, Math.min(this.times.length - 1, Math.floor(r.from)));
+        const to = Math.max(0, Math.min(this.times.length - 1, Math.ceil(r.to)));
+        return { from: this.times[from], to: this.times[to] };
+    }
+
+    /** Another series pushed prepended data first: the native scale re-anchors
+     *  (shifts) the visible logical range without any controller call. */
+    externalSwap(times: number[]): void {
+        const delta = times.length - this.barCount;
+        this.times = times;
+        this.barCount = times.length;
+        const r = this.range;
+        if (r) this.userSetsRange({ from: r.from + delta, to: r.to + delta });
+    }
+}
+
+function nativeHarness(barCount: number): { ts: NativeTimeScale; vp: ViewportController } {
+    const ts = new NativeTimeScale();
+    ts.barCount = barCount;
+    ts.times = makeTimes(barCount);
+    const vp = new ViewportController();
+    ts.subscribe((range) => vp.handleRangeChange(range));
+    vp.attach(ts);
+    vp.setBarCount(barCount);
+    return { ts, vp };
+}
+
+check("35. pre-shifted snapshot from an earlier series push is not compensated twice", () => {
+    const { ts, vp } = nativeHarness(400);
+    vp.initialFit();
+    const prevTimes = makeTimes(400);
+    const newTimes = [...makeTimes(300, T0 - 300 * HOUR), ...prevTimes];
+    // Another candle-derived series pushes the prepended page FIRST: the
+    // native scale re-anchors before the canonical commit captures.
+    ts.externalSwap(newTimes);
+    assertEqual(ts.getVisibleLogicalRange(), { from: 300, to: 705 }, "native re-anchor keeps the same market area");
+    ts.resetCalls();
+    const snap = vp.prependStarted(prevTimes);
+    assert(snap !== null, "snapshot captured");
+    assertEqual(snap!.preShifted, true, "capture detects the post-prepend index space");
+    vp.setBarCount(newTimes.length);
+    const shift = vp.prependCompleted(snap!, newTimes);
+    assertEqual(shift, 0, "already market-anchored → zero compensation");
+    assertEqual(ts.calls.setVisibleLogicalRange, 0, "no second shift into the right margin");
+    const range = ts.getVisibleLogicalRange()!;
+    assertEqual(range, { from: 300, to: 705 }, "viewport untouched — same candles on screen");
+    assertEqual(newTimes[range.from], prevTimes[0], "leftmost candle identical before/after");
+    assert(vp.isFollowingLive(), "still following live");
+    assertEqual(vp.getPhase(), "FOLLOWING_LIVE", "follow state still correct");
+});
+check("36. coherent capture before the swap still compensates exactly once", () => {
+    const { ts, vp } = nativeHarness(400);
+    vp.initialFit();
+    const prevTimes = makeTimes(400);
+    const newTimes = [...makeTimes(300, T0 - 300 * HOUR), ...prevTimes];
+    const snap = vp.prependStarted(prevTimes);
+    assert(snap !== null, "snapshot captured from the pre-prepend index space");
+    assertEqual(snap!.preShifted, false, "coherent snapshot");
+    ts.externalSwap(newTimes);
+    ts.resetCalls();
+    vp.setBarCount(newTimes.length);
+    const shift = vp.prependCompleted(snap!, newTimes);
+    assertEqual(shift, 300, "shift equals the prepended bars");
+    assertEqual(ts.calls.setVisibleLogicalRange, 1, "exactly one write (re-asserting the native anchor)");
+    assertEqual(ts.getVisibleLogicalRange(), { from: 300, to: 705 }, "market area preserved");
+    assert(vp.isFollowingLive(), "still following live");
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);
