@@ -1,0 +1,23 @@
+import { createJiti } from "jiti";
+import { resolve } from "node:path";
+
+const cwd = process.cwd();
+
+const jiti = createJiti(cwd, {
+  tsconfigPaths: true,
+  jsx: true,
+  moduleCache: false,
+  beforeLoad(filename, supervisor) {
+    console.log("[probe] beforeLoad filename =", filename);
+    if (filename.includes("candel")) {
+      console.log("[probe]   -> intercepted");
+      return { source: "export function greet(){ return 'hi'; }" };
+    }
+    return supervisor();
+  },
+});
+
+console.log("about to import");
+jiti.import(resolve(cwd, "lib/candel/workspace/database.ts")).then(() => {
+  console.log("loaded ok");
+}).catch(e => console.log("ERR:", e.message));

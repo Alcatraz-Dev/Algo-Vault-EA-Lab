@@ -506,6 +506,9 @@ export interface CandelProposal {
   approvedBy?: string;
   executedAt?: number;
   executionResult?: ExecutionResult;
+  contextSymbol?: string;
+  contextTimeframe?: string;
+  contextTimestamp?: number;
 }
 
 export interface CandelEvidence {

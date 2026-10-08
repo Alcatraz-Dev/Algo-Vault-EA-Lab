@@ -667,6 +667,11 @@ check("nothing is paused while ticks are flowing and the week is open", () => {
 
 const readSource = (rel: string): string => fs.readFileSync(path.resolve(__dirname, "..", rel), "utf8");
 const CHART_SOURCE = readSource("components/pro-scalping-terminal/ProTerminalChart.tsx");
+// Phase 3E: the drawing SVG surface (the market→pixel projection and the paint
+// of every drawing type) moved out of ProTerminalChart into DrawingRenderer.
+// The drawing checks below therefore read the module that now owns that code;
+// each assertion keeps its original intent and message.
+const DRAWING_RENDERER_SOURCE = readSource("components/pro-scalping-terminal/DrawingRenderer.tsx");
 const DRAWING_UTILS_SOURCE = readSource("components/pro-scalping-terminal/drawing-utils.ts");
 const WORKSPACE_SOURCE = readSource("components/pro-scalping-terminal/ProTerminalChartWorkspace.tsx");
 const SHELL_SOURCE = readSource("components/terminal/TerminalShell.tsx");
@@ -760,10 +765,11 @@ check("chart source has no timeToCoordinate/priceToCoordinate ?? 0 fallbacks", (
     const re = /(?:timeToCoordinate|priceToCoordinate)\([\s\S]{0,150}?\?\?\s*0/g;
     assert(re.exec(CHART_SOURCE) === null, "ProTerminalChart: no ?? 0 coordinate fallback");
     assert(re.exec(DRAWING_UTILS_SOURCE) === null, "drawing-utils: no ?? 0 coordinate fallback");
+    assert(re.exec(DRAWING_RENDERER_SOURCE) === null, "DrawingRenderer: no ?? 0 coordinate fallback");
 });
 check("unresolved drawing is skipped by hit-testing (continue on null)", () => {
     assert(CHART_SOURCE.includes("if (!a || !b) continue;"), "hit-test path skips unresolvable objects");
-    assert(CHART_SOURCE.includes("if (!a || !b) return null;"), "render path skips unresolvable objects");
+    assert(DRAWING_RENDERER_SOURCE.includes("if (!a || !b) return null;"), "render path skips unresolvable objects");
 });
 
 console.log("Phase 0: drawing tools");
@@ -780,7 +786,14 @@ check("hand never commits a drawing; select neither; placement needs a drag", ()
 });
 check("triangle: deterministic third vertex, real polygon renderer", () => {
     assertEqual(triangleVertices(10, 20, 110, 80), [[10, 20], [110, 80], [10, 80]], "third vertex derived from the two stored points");
-    assert(CHART_SOURCE.includes('d.type === "triangle"') && CHART_SOURCE.includes("<polygon"), "triangle render branch exists");
+    // Phase 3E: the branch moved to DrawingRenderer and paints its polygon
+    // through `createElement` (the module stays JSX-free so the plain jiti
+    // runner can import it), so the polygon check reads the element vocabulary.
+    assert(
+        DRAWING_RENDERER_SOURCE.includes('d.type === "triangle"') &&
+            /case "triangle":[\s\S]{0,400}polygon/.test(DRAWING_RENDERER_SOURCE),
+        "triangle render branch exists"
+    );
     const g: DrawingGeom = { x1: 10, y1: 20, x2: 110, y2: 80, width: 400, height: 300, fontSize: 12 };
     assert(hitTestDrawing("triangle", g, 10, 50, 8), "hits the left edge (x1…y2)");
     assert(hitTestDrawing("triangle", g, 60, 50, 8), "hits the diagonal");
@@ -803,7 +816,7 @@ check("ray extends from anchor toward p2 to the container boundary", () => {
     const g: DrawingGeom = { x1: 50, y1: 100, x2: 150, y2: 140, width: 800, height: 600, fontSize: 12 };
     assert(hitTestDrawing("ray", g, 700, 360, 8), "hit far past p2 on the extended ray");
     assert(!hitTestDrawing("ray", g, 700, 100, 8), "off-axis point misses");
-    assert(CHART_SOURCE.includes("extendRayToBounds("), "renderer uses the shared extension helper");
+    assert(DRAWING_RENDERER_SOURCE.includes("extendRayToBounds("), "renderer uses the shared extension helper");
 });
 
 console.log("Phase 0: fibonacci shared source of truth");
@@ -827,7 +840,7 @@ check("custom fibo levels affect BOTH rendering geometry and hit-testing", () =>
     const gd: DrawingGeom = { ...g, fiboLevels: [...DEFAULT_FIBO_LEVELS] };
     assert(hitTestDrawing("fibo", gd, 100, 176.4, 6), "default set hits its own 38.2% level");
     // Chart renderer + hit-test both call the same helper.
-    assert(CHART_SOURCE.includes("resolvedFiboLevels(d, cfg.tools.fiboLevels)"), "renderer resolves levels via helper");
+    assert(DRAWING_RENDERER_SOURCE.includes("resolvedFiboLevels(d, cfg.tools.fiboLevels)"), "renderer resolves levels via helper");
     assert(CHART_SOURCE.includes("resolvedFiboLevels(d, cfgRef.current.tools.fiboLevels)"), "hit-test resolves levels via helper");
     assert(!/const FIB\w* = \[0, 0\.236/.test(DRAWING_UTILS_SOURCE), "no hardcoded level array in hit-testing");
 });
