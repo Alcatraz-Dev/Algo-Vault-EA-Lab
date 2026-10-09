@@ -366,6 +366,18 @@ export interface CandelConversation {
   updatedAt: number;
 }
 
+// ─── Candel messages (new) ─────────────────────────────────────────────────
+export interface CandelMessage {
+  id: string;
+  candelId: CandelId;
+  conversationId: ConversationId;
+  userId: string;
+  role: "user" | "candel" | "system";
+  content: string;
+  status: "delivered" | "pending" | "error";
+  createdAt: number;
+}
+
 // ─── Candel activity (audit) ───────────────────────────────────────────────
 export interface CandelActivity {
   id: CandelActivityId;
