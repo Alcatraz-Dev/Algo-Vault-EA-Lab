@@ -424,16 +424,20 @@ check("market-coordinate move translates every anchor by the same time/price del
     ]);
     assertEqual(moved.id, original.id, "identity is preserved");
     assertEqual(moved.color, original.color, "style is preserved");
-    assertEqual(original.points[0].price, 100, "source drawing remains immutable");
     assertEqual(
-        moved.points[1].price - moved.points[0].price,
-        original.points[1].price - original.points[0].price,
+        moved.points[1]!.price - moved.points[0]!.price,
+        original.points[1]!.price - original.points[0]!.price,
         "trendline price delta is preserved",
     );
     assertEqual(
-        moved.points[1].time! - moved.points[0].time!,
-        original.points[1].time! - original.points[0].time!,
+        moved.points[1]!.time! - moved.points[0]!.time!,
+        original.points[1]!.time! - original.points[0]!.time!,
         "trendline time span is preserved",
+    );
+    assertEqual(
+        original.points[0]!.price,
+        100,
+        "source drawing remains immutable",
     );
 });
 

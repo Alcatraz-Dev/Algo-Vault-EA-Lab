@@ -43,6 +43,11 @@
     // firebase/auth/react-native) that do not exist in this web app's
     // dependency tree, so the root Next.js typecheck must not descend into it.
     // Verify with: cd packages/shared && npm run typecheck.
-    "packages/shared"
+    "packages/shared",
+    // e2e is a self-contained Playwright smoke suite driven by the Playwright
+    // binary installed under chrome-extension/node_modules. The root Next.js
+    // typecheck cannot resolve `@playwright/test` here, so exclude it from the
+    // root typecheck (it is typechecked when the e2e runner invokes tsc).
+    "e2e"
   ]
 }

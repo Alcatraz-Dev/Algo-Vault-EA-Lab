@@ -528,10 +528,13 @@ export class DrawingRenderer {
         if (d.type === "fibo") {
             // Shared source of truth with the hit-test: one resolved level set.
             const levels = resolvedFiboLevels(d, cfg.tools.fiboLevels);
-            const priceDiff = p2.price - p1.price;
+            const p1p = p1.price;
+            const p2p = p2.price;
+            if (p1p == null || p2p == null) return null;
+            const priceDiff = p2p - p1p;
             const lines: Array<{ level: number; y: number }> = [];
             for (const lvl of levels) {
-                const yLvl = resolvePriceY(p1.price + priceDiff * lvl, this.series);
+                const yLvl = resolvePriceY(p1p + priceDiff * lvl, this.series);
                 if (yLvl === null) continue;
                 lines.push({ level: lvl, y: yLvl });
             }
@@ -546,6 +549,9 @@ export class DrawingRenderer {
             };
         }
         if (d.type === "ruler") {
+            const p1p = p1.price;
+            const p2p = p2.price;
+            if (p1p == null || p2p == null) return null;
             return {
                 kind: "ruler",
                 id: d.id,
@@ -553,7 +559,7 @@ export class DrawingRenderer {
                 y1,
                 x2,
                 y2,
-                delta: Math.abs(p2.price - p1.price).toFixed(2),
+                delta: Math.abs(p2p - p1p).toFixed(2),
                 color,
                 strokeWidth,
                 dash,

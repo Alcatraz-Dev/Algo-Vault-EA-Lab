@@ -157,6 +157,27 @@ export interface FakeQuery {
   equalTo(value: string | number): QuerySnapshot;
 }
 
+/** Query order-by-child helper (orderByChild().equalTo()). */
+export class FakeQueryOrder {
+  constructor(public tree: FakeRtdb, public path: string) {}
+
+  equalTo(value: string | number): { val(): unknown; get(): FakeSnapshot } {
+    const all = this.tree.ref(this.path).val();
+    const array = Array.isArray(all) ? all : [];
+    const filtered = array.filter((entry: Record<string, unknown>) => {
+      if (typeof entry !== "object" || entry === null) return false;
+      const child = (entry as Record<string, unknown>)[String(value)];
+      return child !== undefined && child !== null && String(child) === String(value);
+    });
+    return {
+      val: () => filtered,
+      // The real Firebase Admin query chain ends with .get() which returns a
+      // DataSnapshot, so the harness must provide .get() too.
+      get: () => this.tree.ref(this.path),
+    };
+  }
+}
+
 export function createFakeRtdb(): { rtdb: FakeRtdb; reset: () => void } {
   const rtdb = new FakeRtdb();
   return { rtdb, reset: () => rtdb.reset() };

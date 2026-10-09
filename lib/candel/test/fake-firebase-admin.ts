@@ -72,7 +72,7 @@ import type {
   CandelPage,
   CandelAccountContext,
 } from "@/lib/candel/types";
-import { FakeRtdb, createFakeRtdb } from "@/lib/candel/test/rtdb";
+import { FakeRtdb, createFakeRtdb, FakeSnapshot } from "@/lib/candel/test/rtdb";
 
 // ─── Per-Test RTDB container ────────────────────────────────────────────────
 
@@ -94,6 +94,27 @@ export function setupHarness() {
   const auth = new FakeAdminAuth("test-user");
   useFakeRtdb(tree, auth);
   return { tree, auth, dispose: () => useFakeRtdb(new FakeRtdb(), new FakeAdminAuth("test-user")) };
+}
+
+/** Query order-by-child helper (orderByChild().equalTo()). */
+export class FakeQueryOrder {
+  constructor(public tree: FakeRtdb, public path: string) {}
+
+  equalTo(value: string | number): { val(): unknown; get(): FakeSnapshot } {
+    const all = this.tree.ref(this.path).val();
+    const array = Array.isArray(all) ? all : [];
+    const filtered = array.filter((entry: Record<string, unknown>) => {
+      if (typeof entry !== "object" || entry === null) return false;
+      const child = (entry as Record<string, unknown>)[String(value)];
+      return child !== undefined && child !== null && String(child) === String(value);
+    });
+    return {
+      val: () => filtered,
+      // Return a FakeSnapshot so the real database code's .get().exists() and
+      // .get().val() work against the in-memory tree.
+      get: () => new FakeSnapshot(this.tree, this.path),
+    };
+  }
 }
 
 /** Real adminDatabase surface (used by routes when real Firebase is
@@ -119,7 +140,7 @@ export class FakeAdminAuth {
 export class FakeDatabaseRef {
   constructor(public tree: FakeRtdb, public path: string) {}
 
-  get(): unknown {
+  get(): FakeSnapshot {
     return this.tree.ref(this.path).val();
   }
 
@@ -135,13 +156,13 @@ export class FakeDatabaseRef {
     return this._routePush(value);
   }
 
+  orderByChild(): FakeQueryOrder {
+    return new FakeQueryOrder(this.tree, this.path);
+  }
+
   remove(): Promise<void> {
     this.tree.remove(this.path);
     return Promise.resolve();
-  }
-
-  orderByChild(): FakeQueryOrder {
-    return new FakeQueryOrder(this.tree, this.path);
   }
 
   private async _routePush(value: unknown): Promise<{ key: string }> {
@@ -224,24 +245,23 @@ export class FakeDatabaseRef {
   }
 }
 
-export class FakeQueryOrder {
-  constructor(public tree: FakeRtdb, public path: string) {}
-
-  equalTo(value: string | number): { val(): unknown } {
-    // OrderByChild + equalTo: scan all children of this.path, filter by the
-    // named child's value, return matched objects as an array.
-    const all = this.tree.ref(this.path).val();
-    const array = Array.isArray(all) ? all : [];
-    const filtered = array.filter((entry: Record<string, unknown>) => {
-      if (typeof entry !== "object" || entry === null) return false;
-      const child = (entry as Record<string, unknown>)[String(value)];
-      return child !== undefined && child !== null && String(child) === String(value);
-    });
-    return { val: () => filtered };
-  }
-}
 
 /** Runtime replacement for `adminDatabase.ref(path)` used by the harness. */
 export function ref(path: string): FakeDatabaseRef {
-  return new FakeDatabaseRef(currentTree!, path);
+  const fakeRef = new FakeDatabaseRef(currentTree!, path);
+  // Augment the ref with a `.get()` method that returns a FakeSnapshot.
+  // The real database code chains: ref(path).orderByChild().equalTo().get()
+  // so the query result must also be a FakeSnapshot.
+  const originalGet = fakeRef.get.bind(fakeRef);
+  Object.defineProperty(fakeRef, "get", {
+    value: function get(): FakeSnapshot {
+      const snap = originalGet();
+      if (snap instanceof FakeSnapshot) return snap;
+      // If get() is called directly (not via orderByChild), wrap in a snapshot.
+      return new FakeSnapshot(fakeRef.tree, fakeRef.path);
+    },
+    writable: false,
+    configurable: false,
+  });
+  return fakeRef;
 }

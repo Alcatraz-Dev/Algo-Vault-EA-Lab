@@ -338,7 +338,7 @@ export function translateDrawingByMarketDelta(
         points: drawing.points.map((point) => ({
             ...point,
             ...(point.time !== undefined ? { time: point.time + deltaTimeMs } : {}),
-            price: point.price + deltaPrice,
+            price: (point.price ?? 0) + deltaPrice,
         })),
     };
 }
