@@ -49,7 +49,6 @@ next-env.d.ts
 
 # agents
 /.agents/
-AGENTS.md/
 
 # graphify-out
 graphify-out/
@@ -58,6 +57,7 @@ graphify-out/
 firebase-debug.log
 settings.dat
 msedgewebview2.dxvk-cache
+.freebuff/
 
 # local debug logs (not evidence artifacts — see reports/)
 /agents-diag.log
