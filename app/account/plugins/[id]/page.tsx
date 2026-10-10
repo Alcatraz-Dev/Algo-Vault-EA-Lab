@@ -232,7 +232,7 @@ export default function AccountPluginDetailPage() {
             <AccountShell title="Plugin" onBack={() => router.push("/account/plugins")}>
                 <div className="grid gap-4">
                     {[1, 2, 3].map((n) => (
-                        <div key={n} className="h-32 animate-pulse rounded-2xl border border-border/30 bg-muted/50" />
+                        <div key={n} className="h-32 animate-pulse rounded-lg border border-border/30 bg-muted/50" />
                     ))}
                 </div>
             </AccountShell>
@@ -276,7 +276,7 @@ export default function AccountPluginDetailPage() {
     return (
         <AccountShell title={plugin.displayName} subtitle={`${plugin.capabilities?.length || 0} capabilities · v${installation.installedVersion || plugin.version}`} onBack={() => router.push("/account/plugins")}>
             {/* Status header */}
-            <div className="mb-5 rounded-2xl border border-border/30 bg-muted/50 p-5">
+            <div className="mb-5 rounded-lg border border-border/30 bg-muted/50 p-5">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex items-start gap-4">
                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
@@ -292,7 +292,7 @@ export default function AccountPluginDetailPage() {
                             <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground line-clamp-2">{plugin.description}</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground sm:grid-cols-4">
+                    <div className="grid grid-cols-2 gap-2 text-micro text-muted-foreground sm:grid-cols-4">
                         <MiniInfo label="Category" value={CATEGORY_LABELS[plugin.category]} />
                         <MiniInfo label="Next run" value={nextRunLabel(runtime?.nextRunAt, runtime?.status)} />
                         <MiniInfo label="Executions" value={String(installation.executions || 0)} />
@@ -320,7 +320,7 @@ export default function AccountPluginDetailPage() {
 
             {notice && (
                 <div
-                    className={`mb-5 flex items-start gap-3 rounded-2xl border p-4 ${
+                    className={`mb-5 flex items-start gap-3 rounded-lg border p-4 ${
                         notice.startsWith("Execution failed") || notice.includes("Unable") || notice.includes("failed")
                             ? "border-red-500/30 bg-red-500/10 text-red-300"
                             : "border-emerald-500/30 bg-emerald-500/10 text-emerald-100"
@@ -355,7 +355,7 @@ export default function AccountPluginDetailPage() {
             </div>
 
             {tab === "config" && (
-                <div className="rounded-2xl border border-border/30 bg-muted/50 p-6">
+                <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
                     <h3 className="text-sm font-semibold">Configuration</h3>
                     <p className="mt-1 text-xs text-muted-foreground">
                         Saving configuration moves the plugin to <span className="text-foreground">configured</span>, then you can activate it.
@@ -427,7 +427,7 @@ export default function AccountPluginDetailPage() {
                                     </button>
                                 ))}
                             </div>
-                            <p className="mt-1 text-[11px] text-muted-foreground">
+                            <p className="mt-1 text-micro text-muted-foreground">
                                 {channels.includes("webhook") ? "Webhook delivery uses your plugin webhook URL from extensions." : ""}
                             </p>
                         </Field>
@@ -514,7 +514,7 @@ export default function AccountPluginDetailPage() {
 
             {tab === "run" && (
                 <div className="grid gap-6 lg:grid-cols-2">
-                    <div className="rounded-2xl border border-border/30 bg-muted/50 p-6">
+                    <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
                         <h3 className="text-sm font-semibold">Lifecycle</h3>
                         <p className="mt-1 text-xs text-muted-foreground">Current state and scheduling details.</p>
                         <dl className="mt-5 space-y-3 text-sm">
@@ -536,7 +536,7 @@ export default function AccountPluginDetailPage() {
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-border/30 bg-muted/50 p-6">
+                    <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
                         <h3 className="text-sm font-semibold">Run now</h3>
                         <p className="mt-1 text-xs text-muted-foreground">
                             Executes immediately with your saved configuration. Manual runs do not require an active schedule.
@@ -573,25 +573,25 @@ export default function AccountPluginDetailPage() {
                     {executions.length === 0 ? (
                         <EmptyState compact icon={<Clock size={18} />} title="No executions yet" description="Run the plugin manually or wait for its scheduled run to see results here." />
                     ) : (
-                        <div className="overflow-hidden rounded-2xl border border-border/30 bg-muted/50">
+                        <div className="overflow-hidden rounded-lg border border-border/30 bg-muted/50">
                             {executions.slice(0, 20).map((exec) => (
                                 <div key={exec.id} className="flex flex-col gap-1 border-b border-border/30 p-4 last:border-0 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="min-w-0">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <StatusBadge tone={exec.status === "success" ? "positive" : "error"} label={exec.status} dot />
                                             <span className="text-xs font-medium text-foreground">Trigger: {exec.trigger}</span>
-                                            <span className="text-[11px] text-muted-foreground">{formatDate(exec.startedAt)}</span>
+                                            <span className="text-micro text-muted-foreground">{formatDate(exec.startedAt)}</span>
                                         </div>
                                         <p className="mt-1 max-w-2xl truncate text-xs text-muted-foreground">
                                             {exec.summary || exec.error || (exec.findings?.length ? `${exec.findings.length} findings` : "No summary")}
                                         </p>
                                         {exec.alerts && exec.alerts.length > 0 && (
-                                            <p className="mt-1 text-[11px] text-muted-foreground">
+                                            <p className="mt-1 text-micro text-muted-foreground">
                                                 {exec.alerts.length} alert{exec.alerts.length === 1 ? "" : "s"} generated
                                             </p>
                                         )}
                                     </div>
-                                    <span className="shrink-0 text-[11px] text-muted-foreground">{exec.durationMs}ms · {exec.symbols?.length || 0} symbols</span>
+                                    <span className="shrink-0 text-micro text-muted-foreground">{exec.durationMs}ms · {exec.symbols?.length || 0} symbols</span>
                                 </div>
                             ))}
                         </div>
@@ -602,14 +602,14 @@ export default function AccountPluginDetailPage() {
                         {logs.length === 0 ? (
                             <EmptyState compact icon={<Terminal size={18} />} title="No runtime logs" description="Logs appear after the plugin first executes." />
                         ) : (
-                            <div className="overflow-hidden rounded-2xl border border-border/30 bg-muted/50">
+                            <div className="overflow-hidden rounded-lg border border-border/30 bg-muted/50">
                                 {logs.map((log) => (
                                     <div key={log.id} className="flex items-start justify-between gap-3 border-b border-border/30 p-3 last:border-0">
                                         <div className="flex items-center gap-2 min-w-0">
                                             <span className={`h-2 w-2 shrink-0 rounded-full ${log.level === "error" ? "bg-red-400" : log.level === "warning" ? "bg-amber-400" : "bg-emerald-400"}`} />
                                             <p className="truncate text-xs text-muted-foreground">{log.message}</p>
                                         </div>
-                                        <span className="shrink-0 text-[11px] text-muted-foreground">{log.createdAt ? formatDate(log.createdAt) : ""}</span>
+                                        <span className="shrink-0 text-micro text-muted-foreground">{log.createdAt ? formatDate(log.createdAt) : ""}</span>
                                     </div>
                                 ))}
                             </div>
@@ -621,7 +621,7 @@ export default function AccountPluginDetailPage() {
                         {notifications.length === 0 ? (
                             <EmptyState compact icon={<AlertCircle size={18} />} title="No notifications" description="Alerts generated by this plugin appear here once delivered." />
                         ) : (
-                            <div className="overflow-hidden rounded-2xl border border-border/30 bg-muted/50">
+                            <div className="overflow-hidden rounded-lg border border-border/30 bg-muted/50">
                                 {notifications.map((notif) => (
                                     <div key={notif.id} className="flex items-start justify-between gap-3 border-b border-border/30 p-3 last:border-0">
                                         <div className="min-w-0">
@@ -631,7 +631,7 @@ export default function AccountPluginDetailPage() {
                                             </div>
                                             <p className="mt-1 truncate text-xs text-muted-foreground">{notif.message}</p>
                                         </div>
-                                        <div className="shrink-0 text-right text-[11px] text-muted-foreground">
+                                        <div className="shrink-0 text-right text-micro text-muted-foreground">
                                             <span>{notif.deliveredChannels?.length ? notif.deliveredChannels.join(", ") : "in-app"}</span>
                                             <br />
                                             {notif.timestamp ? formatDate(notif.timestamp) : ""}
@@ -699,7 +699,7 @@ function ActionButton({
 function MiniInfo({ label, value }: { label: string; value: string }) {
     return (
         <div className="rounded-lg border border-border/30 bg-muted/20 p-2.5">
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="text-micro uppercase tracking-wide text-muted-foreground">{label}</p>
             <p className="mt-0.5 truncate text-xs font-medium text-foreground">{value}</p>
         </div>
     );

@@ -295,11 +295,11 @@ export default function AdminWorkflowsPage() {
         <div
           className={`fixed bottom-6 right-6 z-50 rounded-xl px-4 py-3 shadow-2xl text-xs font-semibold flex items-center gap-2 border animate-in fade-in slide-in-from-bottom-2 ${
             toastMessage.isError
-              ? "bg-red-600 text-white border-red-700"
-              : "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 border-slate-700"
+              ? "bg-negative text-white border-negative"
+              : "bg-secondary text-white dark:bg-muted dark:text-foreground border-border"
           }`}
         >
-          {toastMessage.isError ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} className="text-emerald-400" />}
+          {toastMessage.isError ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} className="text-positive" />}
           {toastMessage.text}
         </div>
       )}
@@ -307,10 +307,10 @@ export default function AdminWorkflowsPage() {
       {/* Header bar */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3" data-guide="page-header">
         <div className="flex flex-wrap items-center gap-3">
-          <StatCard icon={<GitBranch size={16} className="text-violet-400" />} label="Workflows" value={workflows.length || (summary?.workflowCount ?? "—")} />
-          <StatCard icon={<Play size={16} className="text-blue-400" />} label="Total Runs" value={summary?.runsTotal ?? "—"} />
+          <StatCard icon={<GitBranch size={16} className="text-primary" />} label="Workflows" value={workflows.length || (summary?.workflowCount ?? "—")} />
+          <StatCard icon={<Play size={16} className="text-info" />} label="Total Runs" value={summary?.runsTotal ?? "—"} />
           <StatCard
-            icon={<Shield size={16} className={summary?.killSwitch ? "text-rose-500" : "text-emerald-400"} />}
+            icon={<Shield size={16} className={summary?.killSwitch ? "text-negative" : "text-positive"} />}
             label="System Safety"
             value={summary?.killSwitch ? "KILL SWITCH" : "Active"}
           />
@@ -335,23 +335,23 @@ export default function AdminWorkflowsPage() {
       </div>
 
       {summary?.killSwitchReason && (
-        <div className="mb-5 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs sm:text-sm text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-2">
-          <AlertTriangle size={18} className="shrink-0 text-rose-500" />
+        <div className="mb-5 rounded-xl border border-negative/30 bg-negative/10 px-4 py-3 text-xs sm:text-sm text-negative dark:text-negative font-semibold flex items-center gap-2">
+          <AlertTriangle size={18} className="shrink-0 text-negative" />
           <span>{summary.killSwitchReason}</span>
         </div>
       )}
 
       {/* Status breakdown grid */}
       <div className="mb-8 grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5" data-guide="stats">
-        <MiniStat label="Active" value={statusBreakdown.active ?? 0} icon={<Play size={14} className="text-emerald-500" />} />
-        <MiniStat label="Paused" value={statusBreakdown.paused ?? 0} icon={<Pause size={14} className="text-amber-500" />} />
-        <MiniStat label="Disabled" value={statusBreakdown.disabled ?? 0} icon={<X size={14} className="text-rose-500" />} />
+        <MiniStat label="Active" value={statusBreakdown.active ?? 0} icon={<Play size={14} className="text-positive" />} />
+        <MiniStat label="Paused" value={statusBreakdown.paused ?? 0} icon={<Pause size={14} className="text-warning" />} />
+        <MiniStat label="Disabled" value={statusBreakdown.disabled ?? 0} icon={<X size={14} className="text-negative" />} />
         <MiniStat label="Drafts" value={statusBreakdown.draft ?? 0} icon={<Archive size={14} className="text-muted-foreground" />} />
         <MiniStat label="Archived" value={statusBreakdown.archived ?? 0} icon={<Archive size={14} className="text-muted-foreground/50" />} />
       </div>
 
       {/* Filter and Workflow Search Section */}
-      <div className="mb-6 rounded-2xl border border-border bg-card p-4 space-y-4">
+      <div className="mb-6 rounded-lg border border-border bg-card p-4 space-y-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="relative w-full sm:w-80">
             <Search size={14} className="absolute left-3 top-3 text-muted-foreground" />
@@ -385,7 +385,7 @@ export default function AdminWorkflowsPage() {
       </div>
 
       {/* Main Workflows List */}
-      <div className="mb-8 rounded-2xl border border-border bg-card overflow-hidden" data-guide="workflows-list">
+      <div className="mb-8 rounded-lg border border-border bg-card overflow-hidden" data-guide="workflows-list">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-muted/20">
           <div>
             <h3 className="font-bold text-sm text-foreground">Workflow Definitions ({filteredWorkflows.length})</h3>
@@ -428,21 +428,21 @@ export default function AdminWorkflowsPage() {
                         tone={wf.status === "active" ? "positive" : wf.status === "paused" ? "warning" : "info"}
                         label={wf.status}
                       />
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-muted text-muted-foreground border">
+                      <span className="text-micro px-2 py-0.5 rounded bg-muted text-muted-foreground border">
                         v{wf.version || "1.0.0"}
                       </span>
                     </div>
 
                     <p className="text-xs text-muted-foreground line-clamp-1">{wf.description || "No description provided."}</p>
 
-                    <div className="flex items-center gap-4 text-[11px] text-muted-foreground flex-wrap">
+                    <div className="flex items-center gap-4 text-micro text-muted-foreground flex-wrap">
                       <span className="flex items-center gap-1">
-                        <Layers size={11} className="text-blue-500" /> {nodeCount} nodes
+                        <Layers size={11} className="text-info" /> {nodeCount} nodes
                       </span>
                       <span className="flex items-center gap-1">
-                        <Clock size={11} className="text-amber-500" /> Trigger: {wf.trigger || "manual"}
+                        <Clock size={11} className="text-warning" /> Trigger: {wf.trigger || "manual"}
                       </span>
-                      <span>ID: <code className="bg-muted px-1.5 py-0.5 rounded text-[10px]">{wf.id}</code></span>
+                      <span>ID: <code className="bg-muted px-1.5 py-0.5 rounded text-micro">{wf.id}</code></span>
                     </div>
                   </div>
 
@@ -456,7 +456,7 @@ export default function AdminWorkflowsPage() {
                       disabled={isBusy || summary?.killSwitch}
                       title="Run workflow"
                     >
-                      {isBusy ? <Loader2 size={12} className="animate-spin mr-1" /> : <Play size={12} className="mr-1 text-emerald-500" />}
+                      {isBusy ? <Loader2 size={12} className="animate-spin mr-1" /> : <Play size={12} className="mr-1 text-positive" />}
                       Run
                     </Button>
 
@@ -470,11 +470,11 @@ export default function AdminWorkflowsPage() {
                     >
                       {wf.status === "active" ? (
                         <>
-                          <Pause size={12} className="mr-1 text-amber-500" /> Pause
+                          <Pause size={12} className="mr-1 text-warning" /> Pause
                         </>
                       ) : (
                         <>
-                          <Play size={12} className="mr-1 text-emerald-500" /> Activate
+                          <Play size={12} className="mr-1 text-positive" /> Activate
                         </>
                       )}
                     </Button>
@@ -499,7 +499,7 @@ export default function AdminWorkflowsPage() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-8 w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-500/10"
+                      className="h-8 w-8 p-0 text-negative hover:text-negative hover:bg-negative/10"
                       onClick={() => handleDeleteWorkflow(wf)}
                       disabled={isBusy}
                       title="Delete workflow"
@@ -515,7 +515,7 @@ export default function AdminWorkflowsPage() {
       </div>
 
       {/* Failures & Audit Log */}
-      <div className="rounded-2xl border border-border bg-card p-5" data-guide="audit-log">
+      <div className="rounded-lg border border-border bg-card p-5" data-guide="audit-log">
         <h3 className="font-bold text-sm text-foreground mb-3">System Execution Audit Log</h3>
         <p className="text-xs text-muted-foreground mb-4">
           Recent failed executions and automated triggers monitored by the Intelligence Router.
@@ -530,9 +530,9 @@ export default function AdminWorkflowsPage() {
                     <span className="font-semibold text-foreground">{run.workflowName || run.workflowId}</span>
                     <StatusBadge tone="negative" label={run.status} />
                   </div>
-                  {run.error && <p className="text-rose-500 font-mono text-[11px] mt-0.5 truncate">{run.error}</p>}
+                  {run.error && <p className="text-negative font-mono text-micro mt-0.5 truncate">{run.error}</p>}
                 </div>
-                <span className="text-[10px] text-muted-foreground shrink-0">
+                <span className="text-micro text-muted-foreground shrink-0">
                   {new Date(run.startedAt).toLocaleTimeString()}
                 </span>
               </div>
@@ -565,7 +565,7 @@ function MiniStat({ icon, label, value }: { icon: ReactNode; label: string; valu
     <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/20 px-3.5 py-2.5">
       {icon}
       <div>
-        <p className="text-[11px] text-muted-foreground">{label}</p>
+        <p className="text-micro text-muted-foreground">{label}</p>
         <p className="text-sm font-semibold text-foreground">{value}</p>
       </div>
     </div>

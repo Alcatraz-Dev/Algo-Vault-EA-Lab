@@ -68,7 +68,7 @@ export default function TradeJournalPage() {
                     {loading ? (
                         <div className="flex h-32 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div>
                     ) : journal.length === 0 ? (
-                        <div className="rounded-2xl border border-dashed border-border/30 p-16 text-center">
+                        <div className="rounded-lg border border-dashed border-border/30 p-16 text-center">
                             <BookOpen size={32} className="mx-auto text-muted-foreground" />
                             <p className="mt-3 text-sm text-muted-foreground">No trade data yet</p>
                             <p className="mt-1 text-xs text-muted-foreground">Trade signals will appear here as you execute trades</p>
@@ -78,7 +78,7 @@ export default function TradeJournalPage() {
                             <div className="overflow-x-auto rounded-xl border border-border/30 bg-muted/50">
                                 <table className="w-full text-xs">
                                     <thead>
-                                        <tr className="border-b border-border/20 text-[10px] uppercase text-muted-foreground">
+                                        <tr className="border-b border-border/20 text-micro uppercase text-muted-foreground">
                                             <th className="px-4 py-2.5 text-left">Symbol</th>
                                             <th className="px-4 py-2.5 text-left">Direction</th>
                                             <th className="px-4 py-2.5 text-right">Entry</th>
@@ -119,7 +119,7 @@ export default function TradeJournalPage() {
                                     { label: "Winners", value: String(journal.filter((s: any) => s.result === "WIN").length), color: "text-emerald-400" },
                                 ].map((m) => (
                                     <div key={m.label} className="rounded-xl border border-border/30 bg-muted/50 p-4">
-                                        <span className="text-[10px] font-semibold uppercase text-muted-foreground">{m.label}</span>
+                                        <span className="text-micro font-semibold uppercase text-muted-foreground">{m.label}</span>
                                         <p className={cn("mt-1 font-mono text-lg font-bold", m.color)}>{m.value}</p>
                                     </div>
                                 ))}

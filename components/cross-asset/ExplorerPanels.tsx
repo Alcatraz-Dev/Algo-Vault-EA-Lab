@@ -24,7 +24,7 @@ function PanelCard({ title, hint, children }: { title: string; hint?: string; ch
         <section className="rounded-lg border border-border bg-card p-3">
             <header className="flex items-baseline justify-between gap-2">
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">{title}</h3>
-                {hint ? <span className="text-[10px] text-muted-foreground">{hint}</span> : null}
+                {hint ? <span className="text-micro text-muted-foreground">{hint}</span> : null}
             </header>
             <div className="mt-2">{children}</div>
         </section>
@@ -68,7 +68,7 @@ export function RelationshipList({
         <PanelCard title="Relationships" hint={`${own.length} measured`}>
             <table className="w-full text-xs">
                 <thead>
-                    <tr className="text-left text-[10px] uppercase tracking-wide text-muted-foreground">
+                    <tr className="text-left text-micro uppercase tracking-wide text-muted-foreground">
                         <th className="py-1">Symbol</th>
                         <th>ρ</th>
                         <th>Δ</th>
@@ -99,13 +99,13 @@ export function RelationshipList({
                                     {r.delta === null ? "—" : `${r.delta >= 0 ? "+" : ""}${r.delta.toFixed(2)}`}
                                 </td>
                                 <td>
-                                    <span className={cn("rounded px-1 py-0.5 text-[10px]", stabilityClass(r.stability))}>
+                                    <span className={cn("rounded px-1 py-0.5 text-micro", stabilityClass(r.stability))}>
                                         {r.stability}
                                     </span>
                                 </td>
                                 <td className="text-muted-foreground">{r.term.replace("_TERM", "").toLowerCase()}</td>
                                 <td className="font-mono text-muted-foreground">{r.sampleSize}</td>
-                                <td className="text-[10px] text-muted-foreground">{r.dataQuality.status}</td>
+                                <td className="text-micro text-muted-foreground">{r.dataQuality.status}</td>
                             </tr>
                         );
                     })}
@@ -157,7 +157,7 @@ export function CorrelationMatrix({
 
     return (
         <div className="overflow-x-auto">
-            <table className="font-mono text-[10px]">
+            <table className="font-mono text-micro">
                 <thead>
                     <tr>
                         <th className="p-1 text-left text-muted-foreground" />
@@ -276,7 +276,7 @@ export function RelationshipTimeline({
                     </circle>
                 ))}
             </svg>
-            <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-micro text-muted-foreground">
                 <span>
                     {new Date(first.observedAt).toISOString().slice(5, 16).replace("T", " ")} →{" "}
                     {new Date(latest.observedAt).toISOString().slice(5, 16).replace("T", " ")} · {points.length} windows
@@ -304,7 +304,7 @@ export function RegimePanel({ regime, transitions }: { regime?: GraphRegime; tra
                     <span
                         key={state}
                         className={cn(
-                            "rounded px-2 py-0.5 text-[10px] font-semibold",
+                            "rounded px-2 py-0.5 text-micro font-semibold",
                             state === "RISK_OFF" || state === "HIGH_VOLATILITY" || state === "DISLOCATION"
                                 ? "bg-rose-500/20 text-rose-300"
                                 : state === "RISK_ON" || state === "LOW_VOLATILITY"
@@ -318,17 +318,17 @@ export function RegimePanel({ regime, transitions }: { regime?: GraphRegime; tra
                     </span>
                 ))}
             </div>
-            <table className="w-full text-[11px]">
+            <table className="w-full text-micro">
                 <tbody>
                     {regime.axes.map((axis) => (
                         <tr key={axis.axis} className="border-t border-border/60 align-top">
                             <td className="py-1.5 pr-2 font-medium text-muted-foreground">{axis.axis}</td>
                             <td className="py-1.5">
-                                <span className={cn("rounded px-1.5 py-0.5 text-[10px]", axis.state === "UNKNOWN" ? "bg-zinc-500/20 text-zinc-300" : stabilityClass(axis.state.includes("EXPANSION") ? "BREAKING" : "STABLE"))}>
+                                <span className={cn("rounded px-1.5 py-0.5 text-micro", axis.state === "UNKNOWN" ? "bg-zinc-500/20 text-zinc-300" : stabilityClass(axis.state.includes("EXPANSION") ? "BREAKING" : "STABLE"))}>
                                     {axis.state.replace(/_/g, " ")}
                                 </span>
                             </td>
-                            <td className="py-1.5 text-[10px] text-muted-foreground">
+                            <td className="py-1.5 text-micro text-muted-foreground">
                                 {axis.evidence[0]?.text ?? "No evidence recorded."}
                             </td>
                         </tr>
@@ -336,10 +336,10 @@ export function RegimePanel({ regime, transitions }: { regime?: GraphRegime; tra
                 </tbody>
             </table>
             {regime.notComputed.length > 0 ? (
-                <p className="text-[10px] text-muted-foreground">Not computed: {regime.notComputed.join(", ")}</p>
+                <p className="text-micro text-muted-foreground">Not computed: {regime.notComputed.join(", ")}</p>
             ) : null}
             {(transitions ?? []).length > 0 ? (
-                <ul className="space-y-1 text-[11px]">
+                <ul className="space-y-1 text-micro">
                     {(transitions ?? []).map((t, i) => (
                         <li key={`${t.axis}-${i}`} className="text-amber-300/90">
                             Transition: {t.axis} {t.previousState.replace(/_/g, " ")} → {t.newState.replace(/_/g, " ")} ·{" "}
@@ -375,13 +375,13 @@ export function ClustersPanel({ clusters }: { clusters?: GraphCluster[] }) {
                     <p className="text-xs font-medium text-foreground">
                         {cluster.label}
                         {cluster.meanCorrelation !== null ? (
-                            <span className="ml-2 font-mono text-[10px] text-muted-foreground">mean ρ {cluster.meanCorrelation.toFixed(2)}</span>
+                            <span className="ml-2 font-mono text-micro text-muted-foreground">mean ρ {cluster.meanCorrelation.toFixed(2)}</span>
                         ) : null}
                     </p>
-                    <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+                    <p className="mt-0.5 font-mono text-micro text-muted-foreground">
                         {cluster.memberNodeIds.map((id) => id.replace(/^instrument:/, "")).join(" · ")}
                     </p>
-                    <p className="mt-1 text-[10px] text-muted-foreground">{cluster.evidence[0]?.text}</p>
+                    <p className="mt-1 text-micro text-muted-foreground">{cluster.evidence[0]?.text}</p>
                 </li>
             ))}
         </ul>
@@ -401,23 +401,23 @@ export function FactorsPanel({ factors }: { factors?: GraphFactor[] }) {
                         <p className="font-mono text-xs font-semibold text-foreground">{f.name.replace("factor:", "")}</p>
                         <span
                             className={cn(
-                                "rounded px-1.5 py-0.5 text-[10px] font-semibold",
+                                "rounded px-1.5 py-0.5 text-micro font-semibold",
                                 f.status === "AVAILABLE" ? "bg-emerald-500/15 text-emerald-300" : "bg-zinc-500/20 text-zinc-300"
                             )}
                         >
                             {f.status === "AVAILABLE" ? (f.value === null ? "AVAILABLE" : f.value.toFixed(2)) : "INSUFFICIENT DATA"}
                         </span>
                     </div>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground">{f.definition}</p>
-                    <p className="mt-0.5 font-mono text-[10px] text-violet-300/90">
+                    <p className="mt-0.5 text-micro text-muted-foreground">{f.definition}</p>
+                    <p className="mt-0.5 font-mono text-micro text-violet-300/90">
                         [{f.kind}] {f.formula}
                     </p>
-                    <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+                    <p className="mt-0.5 font-mono text-micro text-muted-foreground">
                         inputs: {f.inputs.filter((i) => i.used).map((i) => `${i.symbol}(${i.weight})`).join(", ") || "none"}
                         {" · confidence "}
                         {f.confidence.toFixed(2)}
                     </p>
-                    {f.status !== "AVAILABLE" ? <p className="mt-0.5 text-[10px] text-amber-300/90">{f.limitations[0]}</p> : null}
+                    {f.status !== "AVAILABLE" ? <p className="mt-0.5 text-micro text-amber-300/90">{f.limitations[0]}</p> : null}
                 </li>
             ))}
         </ul>
@@ -436,10 +436,10 @@ export function EventsPanel({ signals }: { signals?: GraphSignal[] }) {
             {signals.slice(0, 12).map((s) => (
                 <li key={s.id} className="rounded border border-border/70 p-2">
                     <div className="flex items-center justify-between gap-2">
-                        <span className="font-mono text-[10px] font-semibold text-foreground">{s.type.replace(/_/g, " ")}</span>
+                        <span className="font-mono text-micro font-semibold text-foreground">{s.type.replace(/_/g, " ")}</span>
                         <span
                             className={cn(
-                                "rounded px-1.5 py-0.5 text-[9px] font-semibold",
+                                "rounded px-1.5 py-0.5 text-micro font-semibold",
                                 s.status === "CONFIRMED"
                                     ? "bg-emerald-500/15 text-emerald-300"
                                     : s.status === "DETECTED"
@@ -450,8 +450,8 @@ export function EventsPanel({ signals }: { signals?: GraphSignal[] }) {
                             {s.status}
                         </span>
                     </div>
-                    <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{s.summary}</p>
-                    <p className="mt-0.5 font-mono text-[9px] text-muted-foreground/80">
+                    <p className="mt-0.5 text-micro leading-4 text-muted-foreground">{s.summary}</p>
+                    <p className="mt-0.5 font-mono text-micro text-muted-foreground/80">
                         observed {new Date(s.dataTimestamp).toISOString().slice(0, 16).replace("T", " ")} · confidence{" "}
                         {s.confidence.toFixed(2)} · context, not a signal (§18)
                     </p>

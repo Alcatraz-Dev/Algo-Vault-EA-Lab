@@ -329,13 +329,7 @@ export default function AiSignalsPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-background text-foreground selection:bg-amber-500/30">
-            {/* BACKGROUND GRADIENT GLOWS */}
-            <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px]" />
-                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-blue-500/10 blur-[120px]" />
-            </div>
-
+        <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
             <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 {/* HEADER */}
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between" data-guide="page-header">
@@ -348,12 +342,12 @@ export default function AiSignalsPage() {
                             Back to Account
                         </Link>
 
-                        <div className="flex items-center gap-2 text-sm text-amber-400 font-medium">
+                        <div className="flex items-center gap-2 text-sm font-medium text-primary">
                             <Sparkles className="h-4 w-4" />
                             Multi-Asset AI Signal Engine
                         </div>
 
-                        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
+                        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
                             Live AI Signals
                         </h1>
 
@@ -365,9 +359,9 @@ export default function AiSignalsPage() {
                     <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 sm:gap-3 sm:pb-0 scrollbar-none">
                         <Link
                             href="/signals/pro"
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-semibold text-amber-400 transition-colors hover:bg-amber-500/20"
+                            className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary/20 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
                         >
-                            <Zap className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-400 fill-amber-400" />
+                            <Zap className="h-3.5 w-3.5 fill-primary text-primary sm:h-4 sm:w-4" />
                             <span>Pro Signals</span>
                         </Link>
 
@@ -377,7 +371,7 @@ export default function AiSignalsPage() {
                             disabled={scanning || limitReached}
                             data-guide="scan"
                             title={limitReached ? `Daily limit reached (${dailyLimit}/${dailyLimit}). Upgrade to Pro for more signals.` : "Scan for new signals"}
-                            className={`inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-xl border px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors ${
+                            className={`inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-md border px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors ${
                                 limitReached
                                     ? "border-border/20 bg-muted/5 text-muted-foreground cursor-not-allowed opacity-50"
                                     : "border-border/30 bg-muted/5 text-foreground hover:bg-muted/10"
@@ -395,40 +389,40 @@ export default function AiSignalsPage() {
 
                         <Link
                             href="/live-performance"
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
+                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted"
                         >
-                            <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400" />
+                            <Activity className="h-3.5 w-3.5 text-muted-foreground sm:h-4 sm:w-4" />
                             <span>Live Performance</span>
                         </Link>
 
                         <Link
                             href="/signals/stats"
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
+                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted"
                         >
-                            <BarChart3 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-400" />
+                            <BarChart3 className="h-3.5 w-3.5 text-muted-foreground sm:h-4 sm:w-4" />
                             <span>Statistics</span>
                         </Link>
 
                         <Link
                             href="/signals/history"
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
+                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted"
                         >
-                            <History className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-400" />
+                            <History className="h-3.5 w-3.5 text-muted-foreground sm:h-4 sm:w-4" />
                             <span>History</span>
                         </Link>
                     </div>
                 </div>
 
                 {/* DAILY LIMIT INDICATOR */}
-                <div className="mt-6 rounded-2xl border border-border/30 bg-linear-to-br from-background/80 via-background/40 to-background/80 p-4 backdrop-blur-xl" data-guide="daily-limit">
+                <div className="mt-6 rounded-lg border border-border bg-card p-4" data-guide="daily-limit">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-card">
-                                <CircleDollarSign className="h-5 w-5 text-amber-400" />
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card">
+                                <CircleDollarSign className="h-5 w-5 text-muted-foreground" />
                             </div>
                             <div>
                                 <p className="text-xs font-medium text-muted-foreground">Daily Signal Usage</p>
-                                <p className="text-sm font-bold text-foreground">
+                                <p className="font-numeric text-sm font-bold text-foreground">
                                     {dailyCount} / {dailyLimit} signals used today
                                 </p>
                             </div>
@@ -438,7 +432,7 @@ export default function AiSignalsPage() {
                             <div className="h-2 w-40 overflow-hidden rounded-full bg-border">
                                 <div
                                     className={`h-full rounded-full transition-all ${
-                                        limitReached ? "bg-red-500" : "bg-amber-500"
+                                        limitReached ? "bg-negative" : "bg-warning"
                                     }`}
                                     style={{ width: `${Math.min((dailyCount / dailyLimit) * 100, 100)}%` }}
                                 />
@@ -452,12 +446,12 @@ export default function AiSignalsPage() {
 
                 {/* SCAN RESULT FEEDBACK */}
                 {scanResult && (
-                    <div className={`mt-3 rounded-xl border px-4 py-2.5 text-sm font-medium flex items-center gap-2 transition-all ${
+                    <div className={`mt-3 flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition-all ${
                         scanResult.error
-                            ? "border-rose-500/20 bg-rose-500/10 text-rose-400"
+                            ? "border-negative/30 bg-negative/10 text-negative"
                             : scanResult.generated > 0
-                                ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
-                                : "border-amber-500/20 bg-amber-500/10 text-amber-400"
+                                ? "border-positive/30 bg-positive/10 text-positive"
+                                : "border-warning/30 bg-warning/10 text-warning"
                     }`}>
                         {scanResult.error ? (
                             <><ShieldCheck className="h-4 w-4 shrink-0" />{scanResult.error}</>
@@ -472,11 +466,11 @@ export default function AiSignalsPage() {
                 {/* PRO UPGRADE PROMPT */}
                 {limitReached && (
                     <ProGate>
-                        <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5">
+                        <div className="mt-4 rounded-lg border border-primary/20 bg-primary/5 p-5">
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20">
-                                        <Lock className="h-5 w-5 text-amber-400" />
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/10">
+                                        <Lock className="h-5 w-5 text-primary" />
                                     </div>
                                     <div>
                                         <h3 className="text-sm font-bold text-foreground">Unlock More Signals</h3>
@@ -487,9 +481,9 @@ export default function AiSignalsPage() {
                                 </div>
                                 <Link
                                     href="/pricing"
-                                    className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-foreground transition-colors hover:bg-amber-400 shadow-lg shadow-amber-500/20 whitespace-nowrap shrink-0"
+                                    className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90"
                                 >
-                                    <Zap className="h-3.5 w-3.5 fill-black" />
+                                    <Zap className="h-3.5 w-3.5 fill-primary-foreground" />
                                     Upgrade to Pro
                                 </Link>
                             </div>
@@ -500,13 +494,13 @@ export default function AiSignalsPage() {
                 {/* MARKET OVERVIEW */}
                 <div className="mt-8">
                     <div className="mb-4 flex items-center gap-2">
-                        <Globe className="h-4 w-4 text-amber-400" />
-                        <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Market Overview</h2>
+                        <Globe className="h-4 w-4 text-muted-foreground" />
+                        <h2 className="text-sm font-bold uppercase tracking-wider text-foreground">Market Overview</h2>
                     </div>
                     {sentiments.length > 0 ? (
                         <MarketOverview sentiments={sentiments} prices={topPrices} />
                     ) : (
-                        <div className="rounded-2xl border border-border/30 bg-card/60 p-8 text-center backdrop-blur-xl">
+                        <div className="rounded-lg border border-border bg-card p-8 text-center">
                             <BarChart3 className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                             <p className="text-sm text-muted-foreground">Market overview data loading...</p>
                         </div>
@@ -517,11 +511,11 @@ export default function AiSignalsPage() {
                 {topSignals.length > 0 && (
                     <div className="mt-10">
                         <div className="mb-5 flex items-center gap-2">
-                            <Target className="h-4 w-4 text-amber-400" />
+                            <Target className="h-4 w-4 text-primary" />
                             <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">
                                 Top Opportunities
                             </h2>
-                            <span className="rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-400">
+                            <span className="rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-micro font-semibold text-primary">
                                 Highest Confidence
                             </span>
                         </div>
@@ -530,19 +524,19 @@ export default function AiSignalsPage() {
                             {topSignals.map((signal, idx) => (
                                 <div
                                     key={signal.id}
-                                    className="relative rounded-2xl border border-border/30 bg-linear-to-br from-background/80 via-background/40 to-background/80 p-5 backdrop-blur-xl transition-all hover:border-border/50"
+                                    className="relative rounded-lg border border-border/30 bg-card p-5 transition-all hover:border-border/50"
                                 >
-                                    <div className="absolute -top-3 -left-3 flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500 text-[11px] font-black text-foreground shadow-lg shadow-amber-500/30">
+                                    <div className="absolute -top-3 -left-3 flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-micro font-black text-primary-foreground">
                                         #{idx + 1}
                                     </div>
 
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <div
-                                                className={`flex h-10 w-10 items-center justify-center rounded-xl text-xs font-bold ${
+                                                className={`flex h-10 w-10 items-center justify-center rounded-lg text-xs font-bold ${
                                                     signal.direction === "BUY"
-                                                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                                                        : "bg-rose-500/10 text-rose-400 border border-rose-500/30"
+                                                        ? "bg-positive/10 text-positive border border-positive/30"
+                                                        : "bg-negative/10 text-negative border border-negative/30"
                                                 }`}
                                             >
                                                 {signal.direction === "BUY" ? (
@@ -557,10 +551,10 @@ export default function AiSignalsPage() {
                                             </div>
                                         </div>
                                         <span
-                                            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
+                                            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-micro font-semibold ${
                                                 signal.direction === "BUY"
-                                                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                                                    : "border-rose-500/30 bg-rose-500/10 text-rose-400"
+                                                    ? "border-positive/30 bg-positive/10 text-positive"
+                                                    : "border-negative/30 bg-negative/10 text-negative"
                                             }`}
                                         >
                                             {signal.direction}
@@ -568,11 +562,11 @@ export default function AiSignalsPage() {
                                     </div>
 
                                     <div className="mt-4 flex items-center justify-between text-xs">
-                                        <div className="flex items-center gap-1.5 text-amber-300 font-semibold">
+                                        <div className="flex items-center gap-1.5 text-primary font-semibold">
                                             <Sparkles className="h-3.5 w-3.5" />
                                             <span>{signal.confidence}% Confidence</span>
                                         </div>
-                                        <span className="font-mono text-muted-foreground">R:R {(Number(signal.riskReward) || 0).toFixed(1)}</span>
+                                        <span className="font-numeric text-muted-foreground">R:R {(Number(signal.riskReward) || 0).toFixed(1)}</span>
                                     </div>
 
                                     {/* Live price + delta vs entry (5s polling via useLivePrices) */}
@@ -580,7 +574,7 @@ export default function AiSignalsPage() {
                                         const livePrice = topPrices[signal.symbol];
                                         if (livePrice == null || !Number.isFinite(livePrice) || livePrice <= 0) {
                                             return (
-                                                <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/10 px-3 py-1.5 text-[11px] text-muted-foreground">
+                                                <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/10 px-3 py-1.5 text-micro text-muted-foreground">
                                                     <Activity className="h-3 w-3" />
                                                     <span>Live price connecting…</span>
                                                 </div>
@@ -592,35 +586,35 @@ export default function AiSignalsPage() {
                                         return (
                                             <div className="mt-3 flex items-center justify-between rounded-lg border border-border/30 bg-muted/10 px-3 py-1.5">
                                                 <div className="flex items-center gap-1.5">
-                                                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-                                                    <span className="font-mono text-sm font-black text-foreground">{formatPrice(livePrice, signal.symbol)}</span>
+                                                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-positive" />
+                                                    <span className="font-numeric text-sm font-black text-foreground">{formatPrice(livePrice, signal.symbol)}</span>
                                                 </div>
-                                                <span className={`font-mono text-[11px] font-semibold ${favorable ? "text-emerald-400" : "text-rose-400"}`}>
+                                                <span className={`font-numeric text-micro font-semibold ${favorable ? "text-positive" : "text-negative"}`}>
                                                     {delta >= 0 ? "+" : "-"}{Math.abs(deltaPct).toFixed(3)}% vs entry
                                                 </span>
                                             </div>
                                         );
                                     })()}
 
-                                    <div className="mt-3 grid grid-cols-2 gap-2 rounded-xl border border-border/30 p-3 text-xs">
+                                    <div className="mt-3 grid grid-cols-2 gap-2 rounded-lg border border-border/30 p-3 text-xs">
                                         <div>
-                                            <span className="text-muted-foreground block text-[10px]">Entry</span>
-                                            <span className="font-mono font-bold text-foreground">{signal.entry}</span>
+                                            <span className="text-muted-foreground block text-micro">Entry</span>
+                                            <span className="font-numeric font-bold text-foreground">{signal.entry}</span>
                                         </div>
                                         <div>
-                                            <span className="text-muted-foreground block text-[10px]">Stop Loss</span>
-                                            <span className="font-mono font-bold text-rose-400">{signal.stopLoss}</span>
+                                            <span className="text-muted-foreground block text-micro">Stop Loss</span>
+                                            <span className="font-numeric font-bold text-negative">{signal.stopLoss}</span>
                                         </div>
                                         {signal.tp1 && (
                                             <div className="mt-1">
-                                                <span className="text-muted-foreground block text-[10px]">TP1</span>
-                                                <span className="font-mono font-bold text-emerald-400">{signal.tp1}</span>
+                                                <span className="text-muted-foreground block text-micro">TP1</span>
+                                                <span className="font-numeric font-bold text-positive">{signal.tp1}</span>
                                             </div>
                                         )}
                                         {signal.tp2 && (
                                             <div className="mt-1">
-                                                <span className="text-muted-foreground block text-[10px]">TP2</span>
-                                                <span className="font-mono font-bold text-emerald-400">{signal.tp2}</span>
+                                                <span className="text-muted-foreground block text-micro">TP2</span>
+                                                <span className="font-numeric font-bold text-positive">{signal.tp2}</span>
                                             </div>
                                         )}
                                     </div>
@@ -634,35 +628,35 @@ export default function AiSignalsPage() {
                 <div className="mt-10">
                         <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-2">
-                            <Radio className="h-4 w-4 text-amber-400" />
+                            <Radio className="h-4 w-4 text-primary" />
                             <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Signal Feed</h2>
-                            <span className="rounded-md border border-border/30 bg-muted/5 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                            <span className="rounded-md border border-border/30 bg-muted/5 px-2 py-0.5 text-micro font-semibold text-muted-foreground">
                                 {signals.length} signals
                             </span>
                             {topPricesLive && (
-                                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-                                    <span className="h-1 w-1 animate-ping rounded-full bg-emerald-400" />
+                                <span className="inline-flex items-center gap-1 rounded-full border border-positive/30 bg-positive/10 px-2 py-0.5 text-micro font-semibold text-positive">
+                                    <span className="h-1 w-1 animate-ping rounded-full bg-positive" />
                                     Prices live
                                 </span>
                             )}
                         </div>
 
                         {/* TABS */}
-                        <div className="flex items-center gap-1.5 overflow-x-auto rounded-xl border border-border/30 bg-background p-1 scrollbar-none" data-guide="tabs">
+                        <div className="flex items-center gap-1.5 overflow-x-auto rounded-md border border-border/30 bg-background p-1 scrollbar-none" data-guide="tabs">
                             {tabs.map((tab) => (
                                 <button
                                     key={tab.key}
                                     type="button"
                                     onClick={() => setActiveTab(tab.key)}
-                                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all whitespace-nowrap shrink-0 ${
+                                    className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all whitespace-nowrap shrink-0 ${
                                         activeTab === tab.key
-                                            ? "bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold"
+                                            ? "bg-primary/20 text-primary border border-primary/30 font-semibold"
                                             : "text-muted-foreground hover:text-foreground"
                                     }`}
                                 >
                                     <span>{tab.label}</span>
                                     {tab.count > 0 && (
-                                        <span className="ml-0.5 rounded-full bg-muted/10 px-1.5 py-0.5 text-[10px]">
+                                        <span className="ml-0.5 rounded-full bg-muted/10 px-1.5 py-0.5 text-micro">
                                             {tab.count}
                                         </span>
                                     )}
@@ -672,7 +666,7 @@ export default function AiSignalsPage() {
                     </div>
 
                     {loading ? (
-                        <div className="rounded-2xl border border-border/30 bg-card/60 p-16 text-center backdrop-blur-xl">
+                        <div className="rounded-lg border border-border/30 bg-card/60 p-16 text-center">
                             <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground mb-3" />
                             <p className="text-sm text-muted-foreground">Loading signals...</p>
                         </div>
@@ -681,9 +675,9 @@ export default function AiSignalsPage() {
                             {/* FREE SECTION — M5/M15 */}
                             <div className="mb-8">
                                 <div className="mb-3 flex items-center gap-2">
-                                    <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">FREE</span>
+                                    <span className="rounded-md border border-positive/20 bg-positive/10 px-2 py-0.5 text-micro font-semibold text-positive">FREE</span>
                                     <span className="text-xs text-muted-foreground">M5 · M15 signals</span>
-                                    <span className="rounded-full bg-muted/10 px-2 py-0.5 text-[10px] text-muted-foreground">{freeSignals.length}</span>
+                                    <span className="rounded-full bg-muted/10 px-2 py-0.5 text-micro text-muted-foreground">{freeSignals.length}</span>
                                 </div>
                                 <SignalFeed signals={freeSignals} loading={scanning} onView={(signal) => router.push(`/signals/${signal.id}`)} onFollow={handleFollow} onTrade={handleTrade} onComplete={handleComplete} followedIds={followedIds} />
                             </div>
@@ -691,25 +685,25 @@ export default function AiSignalsPage() {
                             {/* PRO SECTION — M1 */}
                             <div className="relative mb-8">
                                 <div className="mb-3 flex items-center gap-2">
-                                    <span className="rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-400">PRO</span>
+                                    <span className="rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-micro font-semibold text-primary">PRO</span>
                                     <span className="text-xs text-muted-foreground">M1 precision signals — Pro only</span>
-                                    <span className="rounded-full bg-muted/10 px-2 py-0.5 text-[10px] text-muted-foreground">{proSignals.length}</span>
+                                    <span className="rounded-full bg-muted/10 px-2 py-0.5 text-micro text-muted-foreground">{proSignals.length}</span>
                                 </div>
 
                                 {hasPro ? (
                                     <SignalFeed signals={proSignals} loading={scanning} onView={(signal) => router.push(`/signals/${signal.id}`)} onFollow={handleFollow} onTrade={handleTrade} onComplete={handleComplete} followedIds={followedIds} />
                                 ) : (
-                                    <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-10 text-center backdrop-blur-xl">
-                                        <Lock className="mx-auto mb-3 h-8 w-8 text-amber-400" />
+                                    <div className="rounded-lg border border-primary/20 bg-primary/5 p-10 text-center">
+                                        <Lock className="mx-auto mb-3 h-8 w-8 text-primary" />
                                         <h3 className="text-sm font-bold text-foreground">Pro Signals Locked</h3>
                                         <p className="mt-1 text-xs text-muted-foreground max-w-sm mx-auto">
                                             M1 precision signals with real-time entry, SL, TP levels, strength scores, and full reasoning — available with a Pro subscription.
                                         </p>
                                         <Link
                                             href="/pricing"
-                                            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-foreground transition-colors hover:bg-amber-400 shadow-lg shadow-amber-500/20"
+                                            className="mt-4 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90"
                                         >
-                                            <Zap className="h-3.5 w-3.5 fill-black" />
+                                            <Zap className="h-3.5 w-3.5 fill-primary-foreground" />
                                             Upgrade to Pro
                                         </Link>
                                     </div>
@@ -719,72 +713,72 @@ export default function AiSignalsPage() {
                     )}
 
                     {/* FINANCIAL DISCLAIMER — required by spec §30 */}
-                    <p className="mt-6 text-center text-[10px] leading-relaxed text-muted-foreground">
+                    <p className="mt-6 text-center text-micro leading-relaxed text-muted-foreground">
                         AI trading signals are analytical tools and are not guaranteed to be profitable. Past performance does not guarantee future results. Trading involves substantial risk of loss.
                     </p>
                 </div>
 
                 {/* ANALYTICS SUMMARY */}
                 {analytics && (
-                    <div className="mt-10 rounded-2xl border border-border/30 bg-card/60 p-6 backdrop-blur-xl" data-guide="analytics">
+                    <div className="mt-10 rounded-lg border border-border/30 bg-card/60 p-6" data-guide="analytics">
                         <div className="flex items-center gap-2 mb-5">
-                            <BarChart3 className="h-4 w-4 text-amber-400" />
+                            <BarChart3 className="h-4 w-4 text-primary" />
                             <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">
                                 Signal Analytics
                             </h2>
                         </div>
 
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                            <div className="rounded-xl border border-border/30  p-4">
+                            <div className="rounded-lg border border-border/30  p-4">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Total Signals</span>
-                                    <Target className="h-4 w-4 text-amber-400" />
+                                    <Target className="h-4 w-4 text-primary" />
                                 </div>
                                 <div className="mt-2 text-2xl font-black text-foreground">{analytics.totalSignals}</div>
-                                <div className="mt-1 text-[11px] text-muted-foreground">
+                                <div className="mt-1 text-micro text-muted-foreground">
                                     {analytics.activeSignals} active right now
                                 </div>
                             </div>
 
-                            <div className="rounded-xl border border-border/30  p-4">
+                            <div className="rounded-lg border border-border/30  p-4">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Win Rate</span>
-                                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                                    <CheckCircle2 className="h-4 w-4 text-positive" />
                                 </div>
-                                <div className="mt-2 text-2xl font-black text-emerald-400">{analytics.winRate}%</div>
-                                <div className="mt-1 text-[11px] text-muted-foreground">
+                                <div className="mt-2 text-2xl font-black text-positive">{analytics.winRate}%</div>
+                                <div className="mt-1 text-micro text-muted-foreground">
                                     {analytics.winningSignals}W / {analytics.losingSignals}L
                                 </div>
                             </div>
 
-                            <div className="rounded-xl border border-border/30  p-4">
+                            <div className="rounded-lg border border-border/30  p-4">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Avg R:R</span>
-                                    <Layers className="h-4 w-4 text-blue-400" />
+                                    <Layers className="h-4 w-4 text-info" />
                                 </div>
                                 <div className="mt-2 text-2xl font-black text-foreground">{analytics.averageRR.toFixed(1)}</div>
-                                <div className="mt-1 text-[11px] text-muted-foreground">
+                                <div className="mt-1 text-micro text-muted-foreground">
                                     Avg confidence: {analytics.averageConfidence.toFixed(0)}%
                                 </div>
                             </div>
 
-                            <div className="rounded-xl border border-border/30  p-4">
+                            <div className="rounded-lg border border-border/30  p-4">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>TP Hit Rates</span>
-                                    <ShieldCheck className="h-4 w-4 text-purple-400" />
+                                    <ShieldCheck className="h-4 w-4 text-info" />
                                 </div>
                                 <div className="mt-2 space-y-1 text-sm font-bold">
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">TP1:</span>
-                                        <span className="text-emerald-400">{analytics.tp1HitRate}%</span>
+                                        <span className="text-positive">{analytics.tp1HitRate}%</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">TP2:</span>
-                                        <span className="text-emerald-400">{analytics.tp2HitRate}%</span>
+                                        <span className="text-positive">{analytics.tp2HitRate}%</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">SL:</span>
-                                        <span className="text-red-400">{analytics.slRate}%</span>
+                                        <span className="text-negative">{analytics.slRate}%</span>
                                     </div>
                                 </div>
                             </div>

@@ -350,7 +350,7 @@ export default function LiveCandlesPanel({
                             )}
                         />
                     </span>
-                    <span className="font-numeric truncate text-[11px] uppercase tracking-wide text-muted-foreground">
+                    <span className="font-numeric truncate text-micro uppercase tracking-wide text-muted-foreground">
                         {symbol} · {timeframe}
                     </span>
                     {badge}
@@ -366,7 +366,7 @@ export default function LiveCandlesPanel({
                     {changePercent !== null ? (
                         <span
                             className={cn(
-                                "font-numeric rounded-full border px-1.5 py-0.5 text-[11px] font-medium",
+                                "font-numeric rounded-full border px-1.5 py-0.5 text-micro font-medium",
                                 changePercent > 0 && "border-positive/30 bg-positive/10 text-positive",
                                 changePercent < 0 && "border-negative/30 bg-negative/10 text-negative",
                                 changePercent === 0 && "border-border bg-muted text-muted-foreground"
@@ -385,7 +385,7 @@ export default function LiveCandlesPanel({
                     {levels.map((level) => (
                         <span
                             key={level.label}
-                            className="font-numeric inline-flex items-center gap-1 rounded-full border border-border bg-muted px-1.5 py-0.5 text-[11px] text-foreground"
+                            className="font-numeric inline-flex items-center gap-1 rounded-full border border-border bg-muted px-1.5 py-0.5 text-micro text-foreground"
                         >
                             <span
                                 aria-hidden="true"
@@ -429,7 +429,7 @@ export default function LiveCandlesPanel({
             )}
 
             {/* Footer — feed honesty + what the dashed line actually is */}
-            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-border pt-2 text-[11px] text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-border pt-2 text-micro text-muted-foreground">
                 <span className="flex items-center gap-1.5">
                     <Radio size={11} className={cn(isLive && "text-positive")} />
                     {candles.length} bars · {QUALITY_LABELS[quality] ?? quality}

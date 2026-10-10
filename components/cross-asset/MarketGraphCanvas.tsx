@@ -60,7 +60,7 @@ function MarketNodeCard({ data }: NodeProps<MarketFlowNode>) {
     return (
         <div
             className={cn(
-                "rounded-md border px-2.5 py-1.5 text-[10px] font-medium shadow-sm transition",
+                "rounded-md border px-2.5 py-1.5 text-micro font-medium shadow-sm transition",
                 data.kind === "REGIME" && "border-amber-500/50 bg-amber-500/10 text-amber-200",
                 data.kind === "FACTOR" && "border-violet-500/50 bg-violet-500/10 text-violet-200",
                 data.kind === "ASSET_CLASS" && "border-border bg-card text-muted-foreground",
@@ -72,7 +72,7 @@ function MarketNodeCard({ data }: NodeProps<MarketFlowNode>) {
             title={`${data.kind}${data.assetClass ? ` · ${data.assetClass}` : ""}`}
         >
             <span className="block truncate font-mono">{data.label}</span>
-            {data.badge ? <span className="block text-[9px] text-muted-foreground">{data.badge}</span> : null}
+            {data.badge ? <span className="block text-micro text-muted-foreground">{data.badge}</span> : null}
             <Handle type="target" position={Position.Left} className="!hidden" />
             <Handle type="source" position={Position.Right} className="!hidden" />
         </div>
@@ -259,7 +259,7 @@ export function EdgeInspector({
                     <p className="font-mono text-sm font-semibold text-foreground">
                         {edge.sourceNodeId.replace("instrument:", "")} ↔ {edge.targetNodeId.replace(/^instrument:|^assetclass:|^currency:|^factor:/, "")}
                     </p>
-                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                    <p className="text-micro uppercase tracking-wide text-muted-foreground">
                         {edge.relationshipType.replace(/_/g, " ")} · {edge.window.bars} {edge.window.timeframe} · {edge.term.toLowerCase()} term · stability {edge.stability}
                         {edge.userDefined ? " · USER_DEFINED" : ""}
                     </p>
@@ -267,13 +267,13 @@ export function EdgeInspector({
                 <button
                     type="button"
                     onClick={onClose}
-                    className="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground hover:bg-muted"
+                    className="rounded border border-border px-1.5 py-0.5 text-micro text-muted-foreground hover:bg-muted"
                 >
                     Close
                 </button>
             </div>
 
-            <div className="mt-2 grid grid-cols-3 gap-2 font-mono text-[10px]">
+            <div className="mt-2 grid grid-cols-3 gap-2 font-mono text-micro">
                 <div>
                     <span className="text-muted-foreground">ρ</span>{" "}
                     <span className="text-foreground">{edge.coefficient === null ? "n/a" : edge.coefficient.toFixed(2)}</span>
@@ -296,13 +296,13 @@ export function EdgeInspector({
                 </div>
             </div>
 
-            <p className="mt-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Evidence</p>
+            <p className="mt-2 text-micro font-semibold uppercase tracking-wide text-muted-foreground">Evidence</p>
             <ul className="mt-1 space-y-1">
                 {edge.claims.map((claim) => (
-                    <li key={claim.id} className="text-[11px] leading-4 text-muted-foreground">
+                    <li key={claim.id} className="text-micro leading-4 text-muted-foreground">
                         <span
                             className={cn(
-                                "mr-1 rounded px-1 py-0.5 font-mono text-[9px]",
+                                "mr-1 rounded px-1 py-0.5 font-mono text-micro",
                                 claim.kind === "OBSERVED" && "bg-emerald-500/15 text-emerald-300",
                                 claim.kind === "CALCULATED" && "bg-sky-500/15 text-sky-300",
                                 claim.kind === "CONFIGURED" && "bg-zinc-500/20 text-zinc-300",
@@ -320,9 +320,9 @@ export function EdgeInspector({
 
             {observations.length > 0 ? (
                 <>
-                    <p className="mt-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Rolling observations</p>
+                    <p className="mt-2 text-micro font-semibold uppercase tracking-wide text-muted-foreground">Rolling observations</p>
                     <div className="mt-1 max-h-28 overflow-y-auto">
-                        <table className="w-full font-mono text-[10px]">
+                        <table className="w-full font-mono text-micro">
                             <thead>
                                 <tr className="text-left text-muted-foreground">
                                     <th className="py-0.5">window end</th>

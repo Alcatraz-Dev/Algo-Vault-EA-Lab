@@ -15,7 +15,7 @@ export default function AdminSandboxPage() {
             subtitle="Test agent outputs and plugin specs in isolated environments before publishing."
         >
             <div className="grid gap-4 lg:grid-cols-3">
-                <div className="lg:col-span-2 rounded-2xl border border-border/30 bg-muted/50 p-5">
+                <div className="lg:col-span-2 rounded-lg border border-border/30 bg-muted/50 p-5">
                     <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
                         Sandbox Tests
                     </h3>
@@ -40,7 +40,7 @@ export default function AdminSandboxPage() {
                     </div>
                 </div>
 
-                <div className="rounded-2xl border border-border/30 bg-muted/50 p-5">
+                <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
                     <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
                         Status
                     </h3>
@@ -69,7 +69,7 @@ export default function AdminSandboxPage() {
                 </div>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-border/30 bg-muted/50 p-5">
+            <div className="mt-4 rounded-lg border border-border/30 bg-muted/50 p-5">
                 <h3 className="text-sm font-semibold mb-3">Agent Sandbox Results</h3>
                 <table className="w-full text-xs">
                     <thead className="text-muted-foreground uppercase tracking-wide">

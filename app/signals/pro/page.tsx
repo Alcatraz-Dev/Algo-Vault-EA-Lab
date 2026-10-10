@@ -320,10 +320,10 @@ export default function ProSignalsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-background text-foreground selection:bg-amber-500/30">
+        <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px]" />
-                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-blue-500/10 blur-[120px]" />
+                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 blur-[120px]" />
+                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 blur-[120px]" />
             </div>
 
             <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -337,7 +337,7 @@ export default function ProSignalsPage() {
 
                 <div className="mt-2 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between" data-guide="page-header">
                     <div className="max-w-2xl">
-                        <div className="flex items-center gap-2 text-sm font-semibold text-amber-400">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-warning">
                             <Sparkles size={16} />
                             Institutional signal intelligence
                         </div>
@@ -366,7 +366,7 @@ export default function ProSignalsPage() {
                             href="/signals/history"
                             className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
                         >
-                            <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400" />
+                            <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-positive" />
                             <span>History</span>
                         </Link>
                     </div>
@@ -374,17 +374,17 @@ export default function ProSignalsPage() {
 
                 {/* LIVE INDICATOR */}
                 <div className="mt-4 flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-400">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-positive/10 border border-positive/30 px-2.5 py-0.5 text-micro font-semibold text-positive">
+                        <span className="h-1.5 w-1.5 rounded-full bg-positive animate-pulse" />
                         Live
                     </span>
                     <span className="text-xs text-muted-foreground">Real-time signal monitoring active</span>
                     {pricesLive && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 text-[10px] font-medium text-blue-400">
-                            <span className="h-1 w-1 rounded-full bg-blue-400 animate-ping" />
+                        <span className="inline-flex items-center gap-1 rounded-full bg-info/10 border border-info/30 px-2 py-0.5 text-micro font-medium text-info">
+                            <span className="h-1 w-1 rounded-full bg-info animate-ping" />
                             Prices live
                             {pricesLastUpdatedAt > 0 && (
-                                <span className="text-blue-400/60"> · {Math.round((Date.now() - pricesLastUpdatedAt) / 1000)}s ago</span>
+                                <span className="text-info/60"> · {Math.round((Date.now() - pricesLastUpdatedAt) / 1000)}s ago</span>
                             )}
                         </span>
                     )}
@@ -411,7 +411,7 @@ export default function ProSignalsPage() {
                         onClick={() => setActiveTab("live")}
                         className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all whitespace-nowrap shrink-0 ${
                             activeTab === "live"
-                                ? "bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold"
+                                ? "bg-warning/20 text-warning border border-warning/30 font-semibold"
                                 : "text-muted-foreground hover:text-foreground"
                         }`}
                     >
@@ -423,7 +423,7 @@ export default function ProSignalsPage() {
                         onClick={() => setActiveTab("analytics")}
                         className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all whitespace-nowrap shrink-0 ${
                             activeTab === "analytics"
-                                ? "bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold"
+                                ? "bg-warning/20 text-warning border border-warning/30 font-semibold"
                                 : "text-muted-foreground hover:text-foreground"
                         }`}
                     >

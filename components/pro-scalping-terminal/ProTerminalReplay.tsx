@@ -201,7 +201,7 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                 {state.error ? (
                     <div className="mt-2 rounded-md border border-dashed border-border px-3 py-4 text-center">
                         <p className="text-xs font-medium text-muted-foreground">Replay unavailable</p>
-                        <p className="mt-1 text-[11px] text-muted-foreground/80">{state.error}</p>
+                        <p className="mt-1 text-micro text-muted-foreground/80">{state.error}</p>
                     </div>
                 ) : loading ? (
                     <div className="mt-2 flex h-40 items-center justify-center rounded-md border border-dashed border-border">
@@ -215,24 +215,24 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                     <>
                         {/* OHLC HUD */}
                         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-md border border-border/70 bg-background px-2.5 py-1.5">
-                            <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+                            <span className="font-mono text-micro tabular-nums text-muted-foreground">
                                 {current ? new Date(current.timestamp).toISOString().replace("T", " ").slice(0, 16) : "—"} UTC
                             </span>
                             {current ? (
                                 <>
-                                    <span className="font-mono text-[11px] tabular-nums">
+                                    <span className="font-mono text-micro tabular-nums">
                                         <span className="text-muted-foreground">O </span>
                                         <span className="text-foreground">{fmtPrice(current.open, symbol)}</span>
                                     </span>
-                                    <span className="font-mono text-[11px] tabular-nums">
+                                    <span className="font-mono text-micro tabular-nums">
                                         <span className="text-muted-foreground">H </span>
                                         <span className="text-emerald-400">{fmtPrice(current.high, symbol)}</span>
                                     </span>
-                                    <span className="font-mono text-[11px] tabular-nums">
+                                    <span className="font-mono text-micro tabular-nums">
                                         <span className="text-muted-foreground">L </span>
                                         <span className="text-rose-400">{fmtPrice(current.low, symbol)}</span>
                                     </span>
-                                    <span className="font-mono text-[11px] tabular-nums">
+                                    <span className="font-mono text-micro tabular-nums">
                                         <span className="text-muted-foreground">C </span>
                                         <span className={cn(current.close >= current.open ? "text-emerald-400" : "text-rose-400")}>
                                             {fmtPrice(current.close, symbol)}
@@ -240,20 +240,20 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                                     </span>
                                     <span
                                         className={cn(
-                                            "font-mono text-[11px] tabular-nums",
+                                            "font-mono text-micro tabular-nums",
                                             (current.close - (prev?.close ?? current.open)) >= 0 ? "text-emerald-400" : "text-rose-400"
                                         )}
                                     >
                                         {fmtSigned(current.close - (prev?.close ?? current.open), current.close < 10 ? 5 : 2)}
                                     </span>
                                     {current.volume !== undefined ? (
-                                        <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+                                        <span className="font-mono text-micro tabular-nums text-muted-foreground">
                                             V {current.volume.toLocaleString()}
                                         </span>
                                     ) : null}
                                 </>
                             ) : null}
-                            <span className="ml-auto font-mono text-[10px] tabular-nums text-muted-foreground">
+                            <span className="ml-auto font-mono text-micro tabular-nums text-muted-foreground">
                                 Hi {fmtPrice(sessionHi, symbol)} · Lo {fmtPrice(sessionLo, symbol)}
                                 {rangePct !== null ? ` · range ${rangePct.toFixed(2)}%` : ""}
                             </span>
@@ -273,7 +273,7 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                                 className="w-full accent-[var(--primary,--theme(--color-primary))]"
                                 aria-label="Replay playhead"
                             />
-                            <div className="mt-0.5 flex justify-between font-mono text-[10px] text-muted-foreground">
+                            <div className="mt-0.5 flex justify-between font-mono text-micro text-muted-foreground">
                                 <span>{state.from ? new Date(state.from).toISOString().slice(0, 10) : ""}</span>
                                 <span>
                                     bar {playhead + 1}/{state.candles.length}
@@ -336,7 +336,7 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                                 <Gauge className="size-3" />
                                 {speed}×
                             </button>
-                            <span className="ml-auto text-[10px] text-muted-foreground">
+                            <span className="ml-auto text-micro text-muted-foreground">
                                 {state.candles.length} real candles loaded — replay walks exactly this set
                             </span>
                         </div>
@@ -359,7 +359,7 @@ function ReplayHeader({
     disabled?: boolean;
 }) {
     return (
-        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+        <div className="flex items-center gap-2 text-micro text-muted-foreground">
             <span>Window</span>
             {[100, 300, 500, 1000].map((n) => (
                 <button

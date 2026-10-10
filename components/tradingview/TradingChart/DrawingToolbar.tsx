@@ -36,7 +36,7 @@ export default function DrawingToolbar({ activeTool, onChangeTool }: DrawingTool
                     key={tool}
                     variant={activeTool === tool ? "secondary" : "ghost"}
                     size="sm"
-                    className="gap-1 px-2 text-[10px] text-muted-foreground hover:text-foreground"
+                    className="gap-1 px-2 text-micro text-muted-foreground hover:text-foreground"
                     onClick={() => onChangeTool(tool)}
                     title={`${label}${shortcut ? ` (${shortcut})` : ""}`}
                 >

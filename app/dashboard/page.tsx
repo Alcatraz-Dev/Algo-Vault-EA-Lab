@@ -512,7 +512,7 @@ export default function DashboardBuilderPage() {
                         </>
                     )}
 
-                    <span className="ml-auto text-[11px] text-muted-foreground" aria-live="polite">
+                    <span className="ml-auto text-micro text-muted-foreground" aria-live="polite">
                         {saving
                             ? "Saving layout…"
                             : layoutError
@@ -528,7 +528,7 @@ export default function DashboardBuilderPage() {
                     <div className="flex flex-wrap items-center gap-2" data-guide="account-selector">
                         <label
                             htmlFor="dashboard-account"
-                            className="text-[11px] uppercase tracking-wide text-muted-foreground"
+                            className="text-micro uppercase tracking-wide text-muted-foreground"
                         >
                             Account
                         </label>
@@ -545,7 +545,7 @@ export default function DashboardBuilderPage() {
                                 </option>
                             ))}
                         </select>
-                        <span className="text-[11px] text-muted-foreground">
+                        <span className="text-micro text-muted-foreground">
                             Risk, positions and equity widgets follow this selection.
                         </span>
                     </div>
@@ -553,7 +553,7 @@ export default function DashboardBuilderPage() {
 
                 {/* Market selector — every symbol-scoped widget follows this choice. */}
                 <div className="flex flex-wrap items-center gap-2" data-guide="market-selector">
-                    <label htmlFor="dashboard-symbol" className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    <label htmlFor="dashboard-symbol" className="text-micro uppercase tracking-wide text-muted-foreground">
                         Market
                     </label>
                     <select
@@ -584,7 +584,7 @@ export default function DashboardBuilderPage() {
                             </option>
                         ))}
                     </select>
-                    <span className="text-[11px] text-muted-foreground">
+                    <span className="text-micro text-muted-foreground">
                         {scopedWidgetCount === 0
                             ? "No symbol widgets on this layout yet."
                             : `${scopedWidgetCount} widget${scopedWidgetCount === 1 ? "" : "s"} follow this market.`}
@@ -604,7 +604,7 @@ export default function DashboardBuilderPage() {
                         <button
                             type="button"
                             onClick={refreshData}
-                            className="shrink-0 rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                            className="shrink-0 rounded-md border border-border px-2 py-1 text-micro text-muted-foreground transition hover:bg-muted hover:text-foreground"
                         >
                             Retry
                         </button>
@@ -702,7 +702,7 @@ export default function DashboardBuilderPage() {
                                                 <button
                                                     type="button"
                                                     onClick={() => cycleWidth(widget.id)}
-                                                    className="rounded-md border border-border px-1.5 py-0.5 text-[11px] text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                                                    className="rounded-md border border-border px-1.5 py-0.5 text-micro text-muted-foreground transition hover:bg-muted hover:text-foreground"
                                                     title="Change width"
                                                 >
                                                     W
@@ -710,7 +710,7 @@ export default function DashboardBuilderPage() {
                                                 <button
                                                     type="button"
                                                     onClick={() => cycleHeight(widget.id)}
-                                                    className="rounded-md border border-border px-1.5 py-0.5 text-[11px] text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                                                    className="rounded-md border border-border px-1.5 py-0.5 text-micro text-muted-foreground transition hover:bg-muted hover:text-foreground"
                                                     title="Change height"
                                                 >
                                                     H
@@ -727,19 +727,19 @@ export default function DashboardBuilderPage() {
                                         ) : (
                                             <span className="flex shrink-0 items-center gap-1.5">
                                                 {spec?.pro && (
-                                                    <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-primary">
+                                                    <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-primary">
                                                         <Crown size={9} />
                                                         Pro
                                                     </span>
                                                 )}
                                                 {spec?.needsAccount && (
-                                                    <span className="rounded-full border border-border bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground">
+                                                    <span className="rounded-full border border-border bg-muted px-1.5 py-0.5 text-micro text-muted-foreground">
                                                         per account
                                                     </span>
                                                 )}
                                                 {isMarketScoped(widget.type) && (
                                                     <span
-                                                        className="font-numeric rounded-full border border-border bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground"
+                                                        className="font-numeric rounded-full border border-border bg-muted px-1.5 py-0.5 text-micro text-muted-foreground"
                                                         title="Follows the Market selector above"
                                                     >
                                                         {market.symbol} · {market.timeframe}
@@ -777,7 +777,7 @@ export default function DashboardBuilderPage() {
                                 const Icon = spec.icon;
                                 const placed = widgets.some((w) => w.type === spec.type);
                                 return (
-                                    <li key={spec.type} className="flex items-start gap-2 text-[11px]">
+                                    <li key={spec.type} className="flex items-start gap-2 text-micro">
                                         <Icon
                                             size={12}
                                             className={cn("mt-0.5 shrink-0", placed ? "text-positive" : "text-muted-foreground")}
@@ -788,7 +788,7 @@ export default function DashboardBuilderPage() {
                                                 {spec.pro && (
                                                     <span
                                                         className={cn(
-                                                            "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-wide",
+                                                            "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide",
                                                             isPro
                                                                 ? "border-positive/30 bg-positive/10 text-positive"
                                                                 : "border-primary/40 bg-primary/10 text-primary"

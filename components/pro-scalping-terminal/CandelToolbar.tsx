@@ -49,10 +49,10 @@ export function CandelToolbarButton({
     >
       <Sparkles className="h-3.5 w-3.5 transition group-hover:text-primary" />
       <span>Candel</span>
-      <span className="hidden sm:inline text-[10px] font-mono text-muted-foreground">
+      <span className="hidden sm:inline text-micro font-mono text-muted-foreground">
         {symbol} {timeframe}
       </span>
-      <kbd className="hidden sm:inline-flex h-4 w-4 select-none items-center justify-center rounded border border-border/50 bg-muted px-0.5 text-[9px] font-medium text-muted-foreground">
+      <kbd className="hidden sm:inline-flex h-4 w-4 select-none items-center justify-center rounded border border-border/50 bg-muted px-0.5 text-micro font-medium text-muted-foreground">
         C
       </kbd>
     </button>
@@ -83,17 +83,17 @@ export function CandelContextHeader({
       </span>
       {accountLabel ? (
         <>
-          <span className="text-[10px] text-muted-foreground">·</span>
+          <span className="text-micro text-muted-foreground">·</span>
           <span className="text-xs text-muted-foreground">Account: {accountLabel}</span>
         </>
       ) : (
         <>
-          <span className="text-[10px] text-muted-foreground">·</span>
+          <span className="text-micro text-muted-foreground">·</span>
           <span className="text-xs italic text-muted-foreground">Account: unavailable</span>
         </>
       )}      {marketStatus ? (
         <>
-          <span className="text-[10px] text-muted-foreground">·</span>
+          <span className="text-micro text-muted-foreground">·</span>
           <span className={cn(
             "text-xs font-medium",
             marketStatus === "open" ? "text-emerald-400" : "text-rose-400"
@@ -138,7 +138,7 @@ export function CandelQuickActions({
           key={key}
           type="button"
           className={cn(
-            "flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition",
+            "flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-micro font-medium transition",
             disabled
               ? "cursor-not-allowed text-muted-foreground"
               : "text-muted-foreground hover:text-foreground hover:bg-accent",
@@ -241,7 +241,7 @@ export function CandelPanel({
           {/* Limitations (never present as facts) */}
           {analysisResponse?.limitations?.length ? (
             <div className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2">
-              <p className="text-[10px] uppercase tracking-wide text-amber-400">Limitations</p>
+              <p className="text-micro uppercase tracking-wide text-amber-400">Limitations</p>
               <p className="mt-1 text-xs text-amber-200">{analysisResponse.limitations.join("; ")}</p>
             </div>
           ) : null}
@@ -254,7 +254,7 @@ export function CandelPanel({
         <div className="flex justify-end px-3 py-2">
           <button
             type="button"
-            className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground transition hover:text-foreground"
+            className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-micro font-medium text-muted-foreground transition hover:text-foreground"
             onClick={onClose}
           >
             <X className="h-3.5 w-3.5" />

@@ -392,7 +392,7 @@ export default function CreateAlertDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="w-full sm:max-w-xl rounded-2xl border border-border bg-card p-0 shadow-2xl overflow-hidden">
+            <DialogContent className="w-full sm:max-w-xl rounded-lg border border-border bg-card p-0 shadow-2xl overflow-hidden">
                 {/* Header */}
                 <DialogHeader className="border-b border-border bg-muted/20 px-4 py-4 sm:px-6">
                     <div className="flex items-center justify-between pr-8">
@@ -403,7 +403,7 @@ export default function CreateAlertDialog({
                             <div className="min-w-0">
                                 <DialogTitle className="text-base font-semibold text-foreground flex items-center gap-2 truncate">
                                     Create Alert
-                                    <span className="shrink-0 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                                    <span className="shrink-0 rounded-md bg-emerald-500/10 px-2 py-0.5 text-micro font-medium text-emerald-600 dark:text-emerald-400">
                                         TradingView Compatible
                                     </span>
                                 </DialogTitle>
@@ -495,7 +495,7 @@ export default function CreateAlertDialog({
                                             </option>
                                         ))}
                                     </select>
-                                    <span className="shrink-0 rounded bg-violet-500/10 px-2 py-1 text-[10px] text-violet-600 dark:text-violet-400 font-medium">
+                                    <span className="shrink-0 rounded bg-violet-500/10 px-2 py-1 text-micro text-violet-600 dark:text-violet-400 font-medium">
                                         {effectiveIsStrategy ? "Strategy" : "Indicator"}
                                     </span>
                                 </div>
@@ -616,7 +616,7 @@ export default function CreateAlertDialog({
                                                 <span className="truncate">{item.label}</span>
                                                 {frequency === item.id && <Check size={12} className="shrink-0 text-violet-600 dark:text-violet-400" />}
                                             </div>
-                                            <div className="text-[10px] text-muted-foreground mt-0.5">{item.desc}</div>
+                                            <div className="text-micro text-muted-foreground mt-0.5">{item.desc}</div>
                                         </button>
                                     ))}
                                 </div>
@@ -663,7 +663,7 @@ export default function CreateAlertDialog({
                                 <div className="flex items-center justify-between py-1 border-b border-border/40">
                                     <div>
                                         <span className="font-medium text-foreground block">In-App Notification Banner</span>
-                                        <span className="text-[10px] text-muted-foreground">Show toast pop-up inside Trading Platform</span>
+                                        <span className="text-micro text-muted-foreground">Show toast pop-up inside Trading Platform</span>
                                     </div>
                                     <input
                                         type="checkbox"
@@ -679,11 +679,11 @@ export default function CreateAlertDialog({
                                         <div>
                                             <span className="font-medium text-foreground block flex items-center gap-1.5">
                                                 Webhook URL (Bot Automation)
-                                                <span className="shrink-0 rounded bg-sky-500/10 px-1.5 py-0.5 text-[9px] text-sky-600 dark:text-sky-400 font-medium">
+                                                <span className="shrink-0 rounded bg-sky-500/10 px-1.5 py-0.5 text-micro text-sky-600 dark:text-sky-400 font-medium">
                                                     MT4/MT5 / Bot Bridge
                                                 </span>
                                             </span>
-                                            <span className="text-[10px] text-muted-foreground">Send HTTP POST JSON request on alert trigger</span>
+                                            <span className="text-micro text-muted-foreground">Send HTTP POST JSON request on alert trigger</span>
                                         </div>
                                         <input
                                             type="checkbox"
@@ -727,7 +727,7 @@ export default function CreateAlertDialog({
                                     </label>
                                 </div>
                                 {notifyEmail && (
-                                    <p className="text-[10px] text-muted-foreground">
+                                    <p className="text-micro text-muted-foreground">
                                         Email alerts are sent to your account email address.
                                     </p>
                                 )}
@@ -788,11 +788,11 @@ export default function CreateAlertDialog({
                                 <div className="mb-1.5 flex items-center justify-between gap-2">
                                     <label className="font-medium text-foreground">Message Body / JSON Payload</label>
                                     <div className="flex items-center gap-2">
-                                        <span className="hidden sm:inline text-[10px] text-muted-foreground">Supports TradingView variables</span>
+                                        <span className="hidden sm:inline text-micro text-muted-foreground">Supports TradingView variables</span>
                                         <button
                                             type="button"
                                             onClick={() => { setShowAiWriter((v) => !v); setAiError(null); }}
-                                            className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-semibold transition ${
+                                            className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-micro font-semibold transition ${
                                                 showAiWriter
                                                     ? "border-violet-500 bg-violet-500/10 text-violet-600 dark:text-violet-400"
                                                     : "border-border bg-background/50 text-muted-foreground hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400"
@@ -811,7 +811,7 @@ export default function CreateAlertDialog({
                                             value={aiInstruction}
                                             onChange={(e) => setAiInstruction(e.target.value)}
                                             placeholder="Describe it (optional): e.g. JSON with side, ticker, price"
-                                            className="w-full rounded-lg border border-border bg-card px-2.5 py-1.5 text-[11px] text-foreground outline-none focus:border-violet-500"
+                                            className="w-full rounded-lg border border-border bg-card px-2.5 py-1.5 text-micro text-foreground outline-none focus:border-violet-500"
                                         />
                                         <div className="flex flex-wrap items-center gap-2">
                                             <div className="inline-flex overflow-hidden rounded-lg border border-border">
@@ -820,7 +820,7 @@ export default function CreateAlertDialog({
                                                         key={f}
                                                         type="button"
                                                         onClick={() => setAiFormat(f)}
-                                                        className={`px-2.5 py-1 text-[10px] font-semibold uppercase transition ${
+                                                        className={`px-2.5 py-1 text-micro font-semibold uppercase transition ${
                                                             aiFormat === f
                                                                 ? "bg-violet-500 text-white"
                                                                 : "bg-card text-muted-foreground hover:bg-muted"
@@ -834,24 +834,24 @@ export default function CreateAlertDialog({
                                                 type="button"
                                                 onClick={handleAiWrite}
                                                 disabled={aiLoading}
-                                                className="inline-flex items-center gap-1.5 rounded-lg bg-violet-500 px-3 py-1.5 text-[10px] font-semibold text-white transition hover:bg-violet-400 disabled:opacity-60"
+                                                className="inline-flex items-center gap-1.5 rounded-lg bg-violet-500 px-3 py-1.5 text-micro font-semibold text-white transition hover:bg-violet-400 disabled:opacity-60"
                                             >
                                                 {aiLoading ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />}
                                                 {aiLoading ? "Generating..." : "Generate"}
                                             </button>
                                             {aiError && (
-                                                <span className="inline-flex items-center gap-1 text-[10px] text-rose-600 dark:text-rose-400">
+                                                <span className="inline-flex items-center gap-1 text-micro text-rose-600 dark:text-rose-400">
                                                     <AlertCircle size={11} /> {aiError}
                                                 </span>
                                             )}
                                         </div>
                                         {aiSource === "template" && !aiError && (
-                                            <p className="text-[10px] text-amber-600 dark:text-amber-400">
+                                            <p className="text-micro text-amber-600 dark:text-amber-400">
                                                 Generated from a smart template — add an AI provider key (e.g. OPENROUTER_API_KEY) for AI-written payloads.
                                             </p>
                                         )}
                                         {aiSource === "ai" && !aiError && (
-                                            <p className="text-[10px] text-emerald-600 dark:text-emerald-400">
+                                            <p className="text-micro text-emerald-600 dark:text-emerald-400">
                                                 Written by AI. Edit freely before creating the alert.
                                             </p>
                                         )}
@@ -868,7 +868,7 @@ export default function CreateAlertDialog({
 
                             {/* Variable Helper Chips */}
                             <div>
-                                <span className="mb-1.5 block text-[11px] font-medium text-muted-foreground">Quick Variables Insert:</span>
+                                <span className="mb-1.5 block text-micro font-medium text-muted-foreground">Quick Variables Insert:</span>
                                 <div className="flex flex-wrap gap-1.5">
                                     {[
                                         "{{ticker}}",
@@ -882,7 +882,7 @@ export default function CreateAlertDialog({
                                             key={v}
                                             type="button"
                                             onClick={() => insertVariable(v)}
-                                            className="rounded-lg border border-border bg-background/50 px-2 py-1 font-mono text-[10px] text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 transition"
+                                            className="rounded-lg border border-border bg-background/50 px-2 py-1 font-mono text-micro text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 transition"
                                         >
                                             + {v}
                                         </button>

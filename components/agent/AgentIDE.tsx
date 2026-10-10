@@ -4,7 +4,7 @@
 //
 // Admin-only (guarded by app/agent/layout.tsx → AdminGuard). Shows operational
 // events only — never private chain-of-thought. Follows constitution §54:
-// semantic tokens, no gradients/glass, text-[11px] minimum, font-numeric for
+// semantic tokens, no gradients/glass, text-micro minimum, font-numeric for
 // numbers. Renders inside the shared AdminShell, which owns the page header
 // (§54.6) and provides the back button to /admin.
 
@@ -182,7 +182,7 @@ export default function AgentIDE() {
         >
             <div className="space-y-4">
                 {policy && (
-                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-2 text-micro text-muted-foreground">
                         <span className="rounded-full border border-border bg-muted/40 px-2.5 py-1 font-numeric">
                             {policy.tools.length} tools
                         </span>
@@ -194,8 +194,8 @@ export default function AgentIDE() {
 
                 <div className="grid gap-4 lg:grid-cols-3">
                     {/* ── Task + controls ─────────────────────────────── */}
-                    <section className="rounded-lg border border-border bg-card p-4 shadow-sm lg:col-span-2">
-                        <label className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground" htmlFor="agent-task">
+                    <section className="rounded-lg border border-border bg-card p-4 lg:col-span-2">
+                        <label className="mb-2 block text-micro font-medium uppercase tracking-wide text-muted-foreground" htmlFor="agent-task">
                             Engineering task
                         </label>
                         <textarea
@@ -214,7 +214,7 @@ export default function AgentIDE() {
                                     key={m}
                                     type="button"
                                     onClick={() => setMode(m)}
-                                    className={`rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
+                                    className={`rounded-md px-3 py-1.5 text-micro font-medium transition-colors ${
                                         mode === m
                                             ? "bg-primary text-primary-foreground"
                                             : "border border-border text-muted-foreground hover:text-foreground"
@@ -226,7 +226,7 @@ export default function AgentIDE() {
                         </div>
 
                         {modeMeta && (
-                            <p className="mt-2 text-[11px] text-muted-foreground">{modeMeta.description}</p>
+                            <p className="mt-2 text-micro text-muted-foreground">{modeMeta.description}</p>
                         )}
 
                         <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -234,7 +234,7 @@ export default function AgentIDE() {
                                 type="button"
                                 onClick={startRun}
                                 disabled={submitting || task.trim() === ""}
-                                className="rounded-md bg-primary px-4 py-2 text-[11px] font-semibold text-primary-foreground transition-opacity disabled:opacity-40"
+                                className="rounded-md bg-primary px-4 py-2 text-micro font-semibold text-primary-foreground transition-opacity disabled:opacity-40"
                             >
                                 {submitting ? "Starting…" : "Run agent"}
                             </button>
@@ -242,7 +242,7 @@ export default function AgentIDE() {
                                 <button
                                     type="button"
                                     onClick={cancelRun}
-                                    className="rounded-md border border-negative/60 px-4 py-2 text-[11px] font-semibold text-negative transition-colors hover:bg-negative/10"
+                                    className="rounded-md border border-negative/60 px-4 py-2 text-micro font-semibold text-negative transition-colors hover:bg-negative/10"
                                 >
                                     Stop
                                 </button>
@@ -251,7 +251,7 @@ export default function AgentIDE() {
                                 <button
                                     type="button"
                                     onClick={() => { setRunId(null); setStatus(null); }}
-                                    className="rounded-md border border-border px-4 py-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+                                    className="rounded-md border border-border px-4 py-2 text-micro text-muted-foreground transition-colors hover:text-foreground"
                                 >
                                     New task
                                 </button>
@@ -259,16 +259,16 @@ export default function AgentIDE() {
                         </div>
 
                         {error && (
-                            <p className="mt-3 rounded-lg border border-negative/50 bg-negative/10 p-2 text-[11px] text-negative">{error}</p>
+                            <p className="mt-3 rounded-lg border border-negative/50 bg-negative/10 p-2 text-micro text-negative">{error}</p>
                         )}
                     </section>
 
                     {/* ── Permission panel ────────────────────────────── */}
-                    <section className="rounded-lg border border-border bg-card p-4 shadow-sm">
-                        <h2 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    <section className="rounded-lg border border-border bg-card p-4">
+                        <h2 className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">
                             Permissions — {MODE_LABELS[mode]}
                         </h2>
-                        <ul className="mt-3 space-y-1.5 text-[11px]">
+                        <ul className="mt-3 space-y-1.5 text-micro">
                             {(modeMeta?.permissions ?? []).map((p) => (
                                 <li key={p} className="flex items-center gap-2">
                                     <span className="inline-block h-1.5 w-1.5 rounded-full bg-positive" />
@@ -278,10 +278,10 @@ export default function AgentIDE() {
                         </ul>
                         {policy && policy.structurallyBlocked.length > 0 && (
                             <>
-                                <h3 className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                                <h3 className="mt-4 text-micro font-semibold uppercase tracking-wide text-muted-foreground">
                                     Always blocked
                                 </h3>
-                                <ul className="mt-2 space-y-1.5 text-[11px]">
+                                <ul className="mt-2 space-y-1.5 text-micro">
                                     {policy.structurallyBlocked.map((p) => (
                                         <li key={p} className="flex items-center gap-2">
                                             <span className="inline-block h-1.5 w-1.5 rounded-full bg-negative" />
@@ -294,20 +294,20 @@ export default function AgentIDE() {
                     </section>
 
                     {/* ── Activity feed ───────────────────────────────── */}
-                    <section className="rounded-lg border border-border bg-card p-4 shadow-sm lg:col-span-2">
+                    <section className="rounded-lg border border-border bg-card p-4 lg:col-span-2">
                         <div className="flex items-center justify-between">
-                            <h2 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            <h2 className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">
                                 Activity
                             </h2>
                             {status && (
-                                <span className={`font-numeric text-[11px] ${STATUS_TONE[status.status] ?? "text-muted-foreground"}`}>
+                                <span className={`font-numeric text-micro ${STATUS_TONE[status.status] ?? "text-muted-foreground"}`}>
                                     {status.status.replaceAll("_", " ")}
                                 </span>
                             )}
                         </div>
 
                         {!status && (
-                            <p className="mt-4 text-[11px] text-muted-foreground">
+                            <p className="mt-4 text-micro text-muted-foreground">
                                 No active run. Describe an AlgoVault engineering task and press “Run agent”.
                             </p>
                         )}
@@ -315,7 +315,7 @@ export default function AgentIDE() {
                         <div ref={feedRef} className="mt-3 max-h-[420px] overflow-y-auto pr-1">
                             <ol className="space-y-1.5">
                                 {(status?.events ?? []).map((e) => (
-                                    <li key={`${e.seq}-${e.at}`} className="flex items-start gap-2 text-[11px]">
+                                    <li key={`${e.seq}-${e.at}`} className="flex items-start gap-2 text-micro">
                                         <span className="mt-0.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-info" />
                                         <span className="font-numeric text-muted-foreground">
                                             {new Date(e.at).toLocaleTimeString()}
@@ -328,34 +328,34 @@ export default function AgentIDE() {
                     </section>
 
                     {/* ── Approvals ───────────────────────────────────── */}
-                    <section className="rounded-lg border border-border bg-card p-4 shadow-sm">
-                        <h2 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    <section className="rounded-lg border border-border bg-card p-4">
+                        <h2 className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">
                             Approvals
                         </h2>
                         {!runId || pendingConfirmations.length === 0 ? (
-                            <p className="mt-3 text-[11px] text-muted-foreground">Nothing awaiting confirmation.</p>
+                            <p className="mt-3 text-micro text-muted-foreground">Nothing awaiting confirmation.</p>
                         ) : (
                             <ul className="mt-3 space-y-3">
                                 {pendingConfirmations.map((e) => {
                                     const code = typeof e.data?.confirmCode === "string" ? e.data.confirmCode : "";
                                     return (
                                         <li key={`${e.seq}-confirm`} className="rounded-lg border border-warning/50 bg-warning/10 p-3">
-                                            <p className="text-[11px] text-foreground/85">{e.message}</p>
+                                            <p className="text-micro text-foreground/85">{e.message}</p>
                                             {typeof e.data?.toolId === "string" && (
-                                                <p className="mt-1 font-numeric text-[11px] text-muted-foreground">{e.data.toolId}</p>
+                                                <p className="mt-1 font-numeric text-micro text-muted-foreground">{e.data.toolId}</p>
                                             )}
                                             <div className="mt-2 flex gap-2">
                                                 <button
                                                     type="button"
                                                     onClick={() => grant(code)}
-                                                    className="rounded-md bg-positive px-3 py-1.5 text-[11px] font-semibold text-background transition-opacity"
+                                                    className="rounded-md bg-positive px-3 py-1.5 text-micro font-semibold text-background transition-opacity"
                                                 >
                                                     Approve
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={cancelRun}
-                                                    className="rounded-md border border-negative/60 px-3 py-1.5 text-[11px] font-semibold text-negative transition-colors hover:bg-negative/10"
+                                                    className="rounded-md border border-negative/60 px-3 py-1.5 text-micro font-semibold text-negative transition-colors hover:bg-negative/10"
                                                 >
                                                     Deny &amp; stop
                                                 </button>
@@ -368,7 +368,7 @@ export default function AgentIDE() {
                     </section>
                 </div>
 
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-micro text-muted-foreground">
                     Security boundary: project-sandboxed filesystem · sensitive-file denylist · secret redaction · command classification ·
                     confirmation-gated writes · git push and deployment structurally blocked · AI budget fail-closed.
                 </p>

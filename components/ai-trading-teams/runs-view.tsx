@@ -81,7 +81,7 @@ export function TeamRunsView({ onOpenRun }: { onOpenRun?: (run: TeamRun) => void
         ) : (
             <div className="overflow-x-auto rounded-xl border border-border/60">
                 <table className="w-full min-w-[720px] text-left text-xs">
-                    <thead className="bg-muted/40 text-[10px] tracking-wide text-muted-foreground uppercase">
+                    <thead className="bg-muted/40 text-micro tracking-wide text-muted-foreground uppercase">
                         <tr>
                             <th className="px-3 py-2">Timestamp</th>
                             <th className="px-3 py-2">Market</th>
@@ -155,12 +155,12 @@ export function TeamRunsView({ onOpenRun }: { onOpenRun?: (run: TeamRun) => void
                             <Badge variant="outline" className={detail.dataMode === "live" ? "border-positive/50 text-positive" : "border-warning/50 text-warning"}>
                                 {detail.dataMode === "replay" ? "HISTORICAL REPLAY" : detail.dataMode.toUpperCase()}
                             </Badge>
-                            <span className="text-[10px] text-muted-foreground">
+                            <span className="text-micro text-muted-foreground">
                                 run {detail.id} · team v{detail.teamVersion} · started {new Date(detail.startedAt).toLocaleString()}
                             </span>
                         </div>
 
-                        <div className="rounded-lg border border-border/60 bg-muted/20 p-3 text-[11px] text-muted-foreground">
+                        <div className="rounded-lg border border-border/60 bg-muted/20 p-3 text-micro text-muted-foreground">
                             <p className="mb-1 font-semibold tracking-wide text-foreground/70 uppercase">Configuration at execution time</p>
                             <p>
                                 {detail.market} · entry {detail.config.entryTimeframe} · confirm {detail.config.confirmationTimeframe} · context{" "}
@@ -192,7 +192,7 @@ export function TeamRunsView({ onOpenRun }: { onOpenRun?: (run: TeamRun) => void
                         </div>
 
                         <div>
-                            <p className="mb-1 flex items-center gap-1.5 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
+                            <p className="mb-1 flex items-center gap-1.5 text-micro font-semibold tracking-wide text-muted-foreground uppercase">
                                 <Clock className="size-3" /> Execution timeline
                             </p>
                             <div className="max-h-52 overflow-y-auto rounded-lg border border-border/60">

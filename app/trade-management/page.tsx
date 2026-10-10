@@ -466,7 +466,7 @@ export default function TradeManagementPage() {
                         <p className="mt-1.5 text-sm text-muted-foreground">Scale out at multiple targets with auto break-even, profit lock, and trailing</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className="hidden sm:inline-flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                        <span className="hidden sm:inline-flex items-center gap-1.5 text-micro text-muted-foreground">
                             <span className={cn("h-1.5 w-1.5 rounded-full", refreshing ? "bg-amber-400 animate-pulse" : "bg-emerald-400")} />
                             {refreshing ? "Syncing…" : lastSync ? `Synced ${fmtTimeAgo(lastSync)}` : ""}
                         </span>
@@ -502,7 +502,7 @@ export default function TradeManagementPage() {
                 {loading ? (
                     <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div>
                 ) : activeTrades.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-border/40 p-16 text-center">
+                    <div className="rounded-lg border border-dashed border-border/40 p-16 text-center">
                         <Target size={32} className="mx-auto text-muted-foreground" />
                         <p className="mt-3 text-sm font-medium text-foreground">No managed trades</p>
                         <p className="mt-1 text-xs text-muted-foreground">Add an open position to start scaling out with automatic targets.</p>
@@ -538,11 +538,11 @@ export default function TradeManagementPage() {
                                 return (
                                     <div key={trade.tradeId} className="flex flex-wrap items-center gap-3 rounded-xl border border-border/20 bg-muted/10 px-4 py-3 opacity-70">
                                         <span className="font-mono text-sm font-medium text-foreground">{trade.symbol}</span>
-                                        <span className={cn("rounded-md border px-2 py-0.5 text-[9px] font-medium", meta.tone)}>{meta.label}</span>
-                                        <span className="text-[10px] text-muted-foreground">#{trade.ticket}</span>
+                                        <span className={cn("rounded-md border px-2 py-0.5 text-micro font-medium", meta.tone)}>{meta.label}</span>
+                                        <span className="text-micro text-muted-foreground">#{trade.ticket}</span>
                                         <span className="ml-auto flex items-center gap-4">
                                             <span className={cn("font-mono text-xs font-bold", trade.currentPnl >= 0 ? "text-emerald-400" : "text-rose-400")}>{fmtMoney(trade.currentPnl)}</span>
-                                            <span className="text-[10px] text-muted-foreground">{new Date(trade.openedAt).toLocaleDateString()}</span>
+                                            <span className="text-micro text-muted-foreground">{new Date(trade.openedAt).toLocaleDateString()}</span>
                                             <button type="button" onClick={() => void deleteTrade(trade)} className="rounded p-1 text-muted-foreground opacity-60 hover:text-rose-400 hover:opacity-100 transition" title="Remove from list">
                                                 <Trash2 size={12} />
                                             </button>
@@ -558,7 +558,7 @@ export default function TradeManagementPage() {
             {/* ======== Create Wizard ======== */}
             {showCreate && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={() => setShowCreate(false)}>
-                    <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-border/40 bg-background shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                    <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-lg border border-border/40 bg-background shadow-2xl" onClick={(e) => e.stopPropagation()}>
                         {/* Wizard header */}
                         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border/30 bg-background/95 px-6 py-4 backdrop-blur">
                             <div>
@@ -567,7 +567,7 @@ export default function TradeManagementPage() {
                                     {([1, 2, 3] as Step[]).map((s) => (
                                         <span key={s} className={cn("h-1.5 rounded-full transition-all", s === step ? "w-6 bg-violet-500" : s < step ? "w-3 bg-violet-500/50" : "w-3 bg-muted")} />
                                     ))}
-                                    <span className="ml-2 text-[10px] font-medium text-muted-foreground">
+                                    <span className="ml-2 text-micro font-medium text-muted-foreground">
                                         {step === 1 ? "Position" : step === 2 ? "Targets" : "Automation"}
                                     </span>
                                 </div>
@@ -595,7 +595,7 @@ export default function TradeManagementPage() {
                                         <div>
                                             <div className="mb-1.5 flex items-center justify-between">
                                                 <label className="text-xs font-medium text-muted-foreground">Open position</label>
-                                                <button type="button" onClick={() => void fetchPositions(selAccount)} className="text-[10px] text-violet-400 hover:text-violet-300">Reload</button>
+                                                <button type="button" onClick={() => void fetchPositions(selAccount)} className="text-micro text-violet-400 hover:text-violet-300">Reload</button>
                                             </div>
                                             {!positions[selAccount] ? (
                                                 <div className="flex items-center gap-2 rounded-xl border border-border/30 bg-muted/20 px-3 py-4 text-xs text-muted-foreground"><Loader2 size={13} className="animate-spin" /> Loading positions…</div>
@@ -622,7 +622,7 @@ export default function TradeManagementPage() {
                                                                 </span>
                                                                 <span className="min-w-0 flex-1">
                                                                     <span className="block font-mono text-xs font-semibold text-foreground">{p.symbol} · {p.volume} lots</span>
-                                                                    <span className="block font-mono text-[10px] text-muted-foreground">@ {fmtP(p.openPrice, p.symbol)} · #{p.ticket}</span>
+                                                                    <span className="block font-mono text-micro text-muted-foreground">@ {fmtP(p.openPrice, p.symbol)} · #{p.ticket}</span>
                                                                 </span>
                                                                 <span className={cn("font-mono text-xs font-semibold", p.profit >= 0 ? "text-emerald-400" : "text-rose-400")}>{fmtMoney(p.profit)}</span>
                                                             </button>
@@ -651,13 +651,13 @@ export default function TradeManagementPage() {
                                     <div>
                                         <div className="mb-2 flex items-center justify-between">
                                             <label className="text-xs font-medium text-muted-foreground">Scale-out plan</label>
-                                            <span className={cn("text-[10px] font-semibold", pctSum > 100 ? "text-rose-400" : "text-muted-foreground")}>{pctSum}% of 100%</span>
+                                            <span className={cn("text-micro font-semibold", pctSum > 100 ? "text-rose-400" : "text-muted-foreground")}>{pctSum}% of 100%</span>
                                         </div>
                                         <div className="mb-3 grid grid-cols-2 gap-2">
                                             {PRESETS.map((p) => (
                                                 <button key={p.name} type="button" onClick={() => applyPreset(p)} className="rounded-lg border border-border/30 bg-muted/20 px-3 py-2 text-left transition hover:border-violet-500/40 hover:bg-violet-500/5">
-                                                    <span className="block text-[11px] font-semibold text-foreground">{p.name}</span>
-                                                    <span className="block text-[9px] text-muted-foreground">{p.desc}</span>
+                                                    <span className="block text-micro font-semibold text-foreground">{p.name}</span>
+                                                    <span className="block text-micro text-muted-foreground">{p.desc}</span>
                                                 </button>
                                             ))}
                                         </div>
@@ -674,7 +674,7 @@ export default function TradeManagementPage() {
                                             {Number(tp3Pct) > 0 && <div className="bg-blue-500/70" style={{ width: `${Math.min(100, Number(tp3Pct))}%` }} />}
                                             {Number(runnerPct) > 0 && <div className="bg-violet-500/70" style={{ width: `${Math.min(100, Number(runnerPct))}%` }} />}
                                         </div>
-                                        <p className="mt-1.5 text-[10px] text-muted-foreground">
+                                        <p className="mt-1.5 text-micro text-muted-foreground">
                                             TP prices are projected from the position&apos;s existing take-profit (risk × 2). Edit them later from the trade card.
                                         </p>
                                     </div>
@@ -724,7 +724,7 @@ export default function TradeManagementPage() {
                                         {trailingEnabled && (
                                             <div className="flex items-end gap-2 pl-6">
                                                 <div className="flex-1">
-                                                    <label className="mb-1 block text-[10px] font-semibold uppercase text-muted-foreground">Trailing type</label>
+                                                    <label className="mb-1 block text-micro font-semibold uppercase text-muted-foreground">Trailing type</label>
                                                     <select value={trailingType} onChange={(e) => setTrailingType(e.target.value as typeof trailingType)} className="w-full rounded-lg border border-border/40 bg-muted/30 px-2.5 py-2 text-xs text-foreground focus:border-violet-500 focus:outline-none">
                                                         <option value="fixed">Fixed distance (points)</option>
                                                         <option value="atr">ATR-based</option>
@@ -733,7 +733,7 @@ export default function TradeManagementPage() {
                                                 </div>
                                                 {trailingType === "fixed" && (
                                                     <div className="w-24">
-                                                        <label className="mb-1 block text-[10px] font-semibold uppercase text-muted-foreground">Points</label>
+                                                        <label className="mb-1 block text-micro font-semibold uppercase text-muted-foreground">Points</label>
                                                         <input type="number" value={trailingDistance} onChange={(e) => setTrailingDistance(e.target.value)} className="w-full rounded-lg border border-border/40 bg-muted/30 px-2.5 py-2 text-xs text-foreground focus:border-violet-500 focus:outline-none" />
                                                     </div>
                                                 )}
@@ -741,7 +741,7 @@ export default function TradeManagementPage() {
                                         )}
                                     </div>
                                     {!autoMgmt && (
-                                        <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.06] p-3 text-[11px] leading-relaxed text-amber-400">
+                                        <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.06] p-3 text-micro leading-relaxed text-amber-400">
                                             <AlertTriangle size={12} className="mr-1.5 inline" />
                                             Manual mode: you&apos;ll get recommendations only — nothing is executed automatically.
                                         </div>
@@ -757,7 +757,7 @@ export default function TradeManagementPage() {
             {/* ======== Close confirmation ======== */}
             {confirmClose && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={() => setConfirmClose(null)}>
-                    <div className="w-full max-w-sm rounded-2xl border border-border/40 bg-background p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                    <div className="w-full max-w-sm rounded-lg border border-border/40 bg-background p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
                         <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/10 text-rose-400"><AlertTriangle size={18} /></div>
                         <h3 className="text-base font-semibold text-foreground">Close {confirmClose.symbol} at market?</h3>
                         <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
@@ -783,7 +783,7 @@ export default function TradeManagementPage() {
                                 <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                                     <Bell size={14} className="text-violet-400" /> Trade Activity
                                 </h3>
-                                <p className="mt-0.5 text-[10px] text-muted-foreground">{eventsFor.symbol} {eventsFor.direction} · #{eventsFor.ticket}</p>
+                                <p className="mt-0.5 text-micro text-muted-foreground">{eventsFor.symbol} {eventsFor.direction} · #{eventsFor.ticket}</p>
                             </div>
                             <button type="button" onClick={() => setEventsFor(null)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition"><X size={16} /></button>
                         </div>
@@ -799,9 +799,9 @@ export default function TradeManagementPage() {
                                         <div key={ev.eventId} className="relative">
                                             <span className={cn("absolute -left-4 top-2 h-2.5 w-2.5 rounded-full border-2 border-background", ev.severity === "success" ? "bg-emerald-400" : ev.severity === "error" ? "bg-rose-400" : ev.severity === "warning" ? "bg-amber-400" : "bg-blue-400")} />
                                             <div className={cn("rounded-xl border px-3.5 py-2.5", SEVERITY_STYLES[ev.severity] || SEVERITY_STYLES.info)}>
-                                                <p className="text-[11px] font-semibold">{ev.title}</p>
-                                                <p className="mt-1 whitespace-pre-line text-[10px] leading-relaxed opacity-80">{ev.message}</p>
-                                                <p className="mt-1.5 flex items-center gap-1 text-[9px] opacity-60"><Clock size={8} /> {new Date(ev.timestamp).toLocaleString()}</p>
+                                                <p className="text-micro font-semibold">{ev.title}</p>
+                                                <p className="mt-1 whitespace-pre-line text-micro leading-relaxed opacity-80">{ev.message}</p>
+                                                <p className="mt-1.5 flex items-center gap-1 text-micro opacity-60"><Clock size={8} /> {new Date(ev.timestamp).toLocaleString()}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -821,13 +821,13 @@ export default function TradeManagementPage() {
 
 function StatCard({ label, value, icon: Icon, accent, footnote, className }: { label: string; value: string; icon: React.ElementType; accent: string; footnote?: string; className?: string }) {
     return (
-        <div className={cn("rounded-2xl border border-border/30 bg-muted/40 p-4", className)}>
+        <div className={cn("rounded-lg border border-border/30 bg-muted/40 p-4", className)}>
             <div className="flex items-center justify-between">
-                <p className="truncate text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+                <p className="truncate text-micro font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
                 <Icon size={13} className={cn("shrink-0", accent)} />
             </div>
             <p className={cn("mt-1.5 font-mono text-lg font-bold", accent)}>{value}</p>
-            {footnote && <p className="text-[10px] text-emerald-400/80">{footnote}</p>}
+            {footnote && <p className="text-micro text-emerald-400/80">{footnote}</p>}
         </div>
     );
 }
@@ -835,7 +835,7 @@ function StatCard({ label, value, icon: Icon, accent, footnote, className }: { l
 function Detail({ label, value, mono, accent }: { label: string; value: string; mono?: boolean; accent?: string }) {
     return (
         <div>
-            <p className="text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
             <p className={cn("mt-0.5 text-xs font-semibold", mono && "font-mono", accent || "text-foreground")}>{value}</p>
         </div>
     );
@@ -844,7 +844,7 @@ function Detail({ label, value, mono, accent }: { label: string; value: string; 
 function PctInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
     return (
         <div>
-            <label className="mb-1 block text-[10px] font-semibold uppercase text-muted-foreground">{label}</label>
+            <label className="mb-1 block text-micro font-semibold uppercase text-muted-foreground">{label}</label>
             <input
                 type="number" min={0} max={100} value={value}
                 onChange={(e) => onChange(e.target.value)}
@@ -869,7 +869,7 @@ function ToggleRow({ icon, title, desc, checked, onChange }: { icon: React.React
             <span className="mt-0.5 shrink-0">{icon}</span>
             <span className="min-w-0 flex-1">
                 <span className="block text-xs font-semibold text-foreground">{title}</span>
-                <span className="mt-0.5 block text-[10px] leading-relaxed text-muted-foreground">{desc}</span>
+                <span className="mt-0.5 block text-micro leading-relaxed text-muted-foreground">{desc}</span>
             </span>
             <span className={cn("mt-0.5 flex h-5 w-9 shrink-0 items-center rounded-full px-0.5 transition-colors", checked ? "justify-end bg-violet-500" : "justify-start bg-muted")}>
                 <span className="h-4 w-4 rounded-full bg-foreground shadow transition-transform" />
@@ -884,7 +884,7 @@ function StepFooter({ backLabel, onBack, nextLabel, onNext, nextDisabled, hint, 
 }) {
     return (
         <div className="pt-2">
-            {hint && <p className="mb-2 text-center text-[10px] font-medium text-rose-400">{hint}</p>}
+            {hint && <p className="mb-2 text-center text-micro font-medium text-rose-400">{hint}</p>}
             <div className="flex gap-2">
                 {onBack && (
                     <button type="button" onClick={onBack} className="rounded-xl border border-border/40 bg-muted/20 px-4 py-2.5 text-xs font-medium text-foreground hover:bg-muted/40 transition">
@@ -928,7 +928,7 @@ function TradeCard({
     const canMoveBe = editable && trade.currentSl !== trade.entry;
 
     return (
-        <div className={cn("overflow-hidden rounded-2xl border border-border/30 bg-muted/40 transition-colors", expanded && "border-violet-500/30")}>
+        <div className={cn("overflow-hidden rounded-lg border border-border/30 bg-muted/40 transition-colors", expanded && "border-violet-500/30")}>
             {/* Header row */}
             <div className="flex flex-wrap items-center gap-4 p-5">
                 <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl", isBuy ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400")}>
@@ -938,17 +938,17 @@ function TradeCard({
                 <div className="min-w-[180px] flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                         <span className="font-mono text-sm font-bold text-foreground">{trade.symbol}</span>
-                        <span className={cn("rounded-md border px-2 py-0.5 text-[9px] font-medium", meta.tone)}>
+                        <span className={cn("rounded-md border px-2 py-0.5 text-micro font-medium", meta.tone)}>
                             <MetaIcon size={9} className="mr-1 inline" />{meta.label}
                         </span>
-                        <span className="rounded-md bg-muted px-2 py-0.5 font-mono text-[9px] text-muted-foreground">#{trade.ticket}</span>
+                        <span className="rounded-md bg-muted px-2 py-0.5 font-mono text-micro text-muted-foreground">#{trade.ticket}</span>
                         {trade.config.autoManagement ? (
-                            <span className="rounded-md bg-violet-500/10 px-2 py-0.5 text-[9px] font-semibold text-violet-400">AUTO</span>
+                            <span className="rounded-md bg-violet-500/10 px-2 py-0.5 text-micro font-semibold text-violet-400">AUTO</span>
                         ) : (
-                            <span className="rounded-md bg-muted px-2 py-0.5 text-[9px] text-muted-foreground">MANUAL</span>
+                            <span className="rounded-md bg-muted px-2 py-0.5 text-micro text-muted-foreground">MANUAL</span>
                         )}
                     </div>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-0.5 text-[10px] text-muted-foreground">
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-0.5 text-micro text-muted-foreground">
                         <span>Entry <span className="font-mono">{fmtP(trade.entry, trade.symbol)}</span></span>
                         <span>Now <span className="font-mono text-foreground">{fmtP(trade.currentPrice, trade.symbol)}</span></span>
                         <span>SL <span className="font-mono">{fmtP(trade.currentSl, trade.symbol)}</span></span>
@@ -966,7 +966,7 @@ function TradeCard({
                                 key={tp}
                                 title={`${tp.toUpperCase()} ${fmtP(t.price, trade.symbol)} · close ${t.closePercent}%`}
                                 className={cn(
-                                    "flex items-center gap-1 rounded-lg border px-2 py-1 text-[9px] font-medium transition-colors",
+                                    "flex items-center gap-1 rounded-lg border px-2 py-1 text-micro font-medium transition-colors",
                                     t.hit
                                         ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
                                         : "border-border/30 bg-muted/30 text-muted-foreground"
@@ -978,7 +978,7 @@ function TradeCard({
                             </div>
                         );
                     })}
-                    <div className="flex items-center gap-1 rounded-lg border border-violet-500/30 bg-violet-500/10 px-2 py-1 text-[9px] font-medium text-violet-400" title="Remaining volume">
+                    <div className="flex items-center gap-1 rounded-lg border border-violet-500/30 bg-violet-500/10 px-2 py-1 text-micro font-medium text-violet-400" title="Remaining volume">
                         <Zap size={10} /> {trade.remainingVolume.toFixed(2)}
                     </div>
                 </div>
@@ -999,7 +999,7 @@ function TradeCard({
                     <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
                         <div className="h-full rounded-full bg-gradient-to-r from-violet-500 via-blue-500 to-emerald-500 transition-all duration-700" style={{ width: `${progress}%` }} />
                     </div>
-                    <span className="w-8 text-right font-mono text-[9px] text-muted-foreground">{progress}%</span>
+                    <span className="w-8 text-right font-mono text-micro text-muted-foreground">{progress}%</span>
                 </div>
             </div>
 
@@ -1015,9 +1015,9 @@ function TradeCard({
 
                     {/* Full target table */}
                     <div className="overflow-hidden rounded-xl border border-border/20">
-                        <table className="w-full text-[11px]">
+                        <table className="w-full text-micro">
                             <thead>
-                                <tr className="border-b border-border/20 bg-muted/30 text-left text-[9px] uppercase tracking-wide text-muted-foreground">
+                                <tr className="border-b border-border/20 bg-muted/30 text-left text-micro uppercase tracking-wide text-muted-foreground">
                                     <th className="px-3 py-2 font-semibold">Target</th>
                                     <th className="px-3 py-2 font-semibold">Price</th>
                                     <th className="px-3 py-2 font-semibold">Close %</th>
@@ -1053,7 +1053,7 @@ function TradeCard({
                     </div>
 
                     {/* Config chips */}
-                    <div className="flex flex-wrap gap-2 text-[9px]">
+                    <div className="flex flex-wrap gap-2 text-micro">
                         {trade.config.breakEvenEnabled && <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-emerald-400">BE after {trade.config.breakEvenTrigger}</span>}
                         {trade.config.profitLockEnabled && <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-emerald-400">Lock at {trade.config.profitLockTrigger}</span>}
                         {trade.config.trailingEnabled && <span className="rounded-md border border-violet-500/20 bg-violet-500/10 px-2 py-1 text-violet-400">Trailing: {trade.config.trailingType}</span>}
@@ -1064,10 +1064,10 @@ function TradeCard({
                     {/* Close history */}
                     {trade.closeHistory.length > 0 && (
                         <div>
-                            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Partial Close History</p>
+                            <p className="mb-2 text-micro font-semibold uppercase tracking-wide text-muted-foreground">Partial Close History</p>
                             <div className="space-y-1.5">
                                 {trade.closeHistory.map((ch, i) => (
-                                    <div key={i} className="flex items-center gap-3 rounded-lg bg-muted/30 px-3 py-2 text-[10px]">
+                                    <div key={i} className="flex items-center gap-3 rounded-lg bg-muted/30 px-3 py-2 text-micro">
                                         <CheckCircle size={12} className="shrink-0 text-emerald-400" />
                                         <span className="font-semibold text-foreground">{ch.target}</span>
                                         <span className="font-mono text-muted-foreground">{ch.volume.toFixed(2)} lots @ {fmtP(ch.price, trade.symbol)}</span>
@@ -1086,7 +1086,7 @@ function TradeCard({
                                     type="button"
                                     onClick={() => void onAction(trade, "updateSl", { newSl: trade.entry })}
                                     disabled={busy}
-                                    className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-400 transition hover:bg-emerald-500/20 disabled:opacity-50"
+                                    className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-micro font-semibold text-emerald-400 transition hover:bg-emerald-500/20 disabled:opacity-50"
                                 >
                                     <Lock size={11} /> Move SL to BE
                                 </button>
@@ -1095,7 +1095,7 @@ function TradeCard({
                                 type="button"
                                 onClick={() => void onAction(trade, "closePartial", { closeVolume: Number((trade.remainingVolume / 2).toFixed(2)) })}
                                 disabled={busy || trade.remainingVolume < 0.02}
-                                className="flex items-center gap-1.5 rounded-lg border border-border/40 bg-muted/20 px-3 py-2 text-[11px] font-medium text-foreground transition hover:bg-muted/40 disabled:opacity-50"
+                                className="flex items-center gap-1.5 rounded-lg border border-border/40 bg-muted/20 px-3 py-2 text-micro font-medium text-foreground transition hover:bg-muted/40 disabled:opacity-50"
                             >
                                 <Scissors size={11} /> Close 50%
                             </button>
@@ -1103,7 +1103,7 @@ function TradeCard({
                                 type="button"
                                 onClick={onClose}
                                 disabled={busy}
-                                className="flex items-center gap-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-[11px] font-semibold text-rose-400 transition hover:bg-rose-500/20 disabled:opacity-50"
+                                className="flex items-center gap-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-micro font-semibold text-rose-400 transition hover:bg-rose-500/20 disabled:opacity-50"
                             >
                                 <X size={11} /> Close at market
                             </button>
@@ -1112,7 +1112,7 @@ function TradeCard({
                                 <button
                                     type="button"
                                     onClick={() => void onAction(trade, "updateConfig", { config: { autoManagement: true } })}
-                                    className="ml-auto flex items-center gap-1.5 rounded-lg border border-violet-500/30 bg-violet-500/10 px-3 py-2 text-[11px] font-semibold text-violet-400 transition hover:bg-violet-500/20"
+                                    className="ml-auto flex items-center gap-1.5 rounded-lg border border-violet-500/30 bg-violet-500/10 px-3 py-2 text-micro font-semibold text-violet-400 transition hover:bg-violet-500/20"
                                 >
                                     <Zap size={11} /> Enable auto
                                 </button>
@@ -1143,9 +1143,9 @@ function Scissors({ size, className }: { size: number; className?: string }) {
 function MiniStat({ label, value, sub, accent }: { label: string; value: string; sub?: string; accent: string }) {
     return (
         <div className="rounded-xl bg-muted/40 p-3">
-            <p className="text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
             <p className={cn("mt-0.5 font-mono text-sm font-bold", accent)}>{value}</p>
-            {sub && <p className="text-[9px] text-muted-foreground">{sub}</p>}
+            {sub && <p className="text-micro text-muted-foreground">{sub}</p>}
         </div>
     );
 }

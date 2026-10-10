@@ -302,7 +302,7 @@ export default function AdminReviewsPage() {
                 </div>
 
                 {error && (
-                    <div className="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-600">
+                    <div className="mb-6 rounded-xl border border-negative/20 bg-negative/10 px-4 py-3 text-sm text-negative">
                         {error}
                     </div>
                 )}
@@ -397,7 +397,7 @@ export default function AdminReviewsPage() {
                     </div>
                 </div>
 
-                <div className="overflow-hidden rounded-2xl border border-border bg-foreground/[0.025]">
+                <div className="overflow-hidden rounded-lg border border-border bg-foreground/[0.025]">
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-[1100px]">
                             <thead className="border-b border-border bg-muted/40">
@@ -468,7 +468,7 @@ export default function AdminReviewsPage() {
                                                     </p>
 
                                                     {review.verifiedPurchase && (
-                                                        <div className="mt-2 inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-xs text-emerald-600">
+                                                        <div className="mt-2 inline-flex items-center gap-1 rounded-full border border-positive/20 bg-positive/10 px-2 py-1 text-xs text-positive">
                                                             <ShieldCheck className="h-3 w-3" />
                                                             Verified Purchase
                                                         </div>
@@ -505,7 +505,7 @@ export default function AdminReviewsPage() {
 
                                                 <td className="px-5 py-4">
                                                     <div className="flex items-center gap-1">
-                                                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-600" />
+                                                        <Star className="h-4 w-4 fill-warning text-warning" />
                                                         <span className="font-semibold">
                                                             {
                                                                 review.rating
@@ -597,7 +597,7 @@ export default function AdminReviewsPage() {
                                                                 review.id ? (
                                                                 <Loader2 className="h-4 w-4 animate-spin" />
                                                             ) : (
-                                                                <Trash2 className="h-4 w-4 text-red-500" />
+                                                                <Trash2 className="h-4 w-4 text-negative" />
                                                             )}
                                                         </ActionButton>
                                                     </div>
@@ -611,7 +611,7 @@ export default function AdminReviewsPage() {
                     </div>
                 </div>
 
-                <div className="mt-6 rounded-xl border border-yellow-500/10 bg-yellow-500/5 px-4 py-3 text-xs leading-5 text-muted-foreground">
+                <div className="mt-6 rounded-xl border border-warning/10 bg-warning/5 px-4 py-3 text-xs leading-5 text-muted-foreground">
                     Reviews should be moderated before being treated as
                     public marketplace content. Verified Purchase is calculated
                     server-side and should never be trusted from the client.
@@ -631,7 +631,7 @@ function StatCard({
     icon: React.ReactNode;
 }) {
     return (
-        <div className="rounded-2xl border border-border bg-foreground/[0.025] p-5">
+        <div className="rounded-lg border border-border bg-foreground/[0.025] p-5">
             <div className="mb-4 flex items-center justify-between">
                 <div className="text-sm text-muted-foreground">
                     {label}
@@ -656,10 +656,10 @@ function StatusBadge({
 }) {
     const styles =
         status === "published"
-            ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600"
+            ? "border-positive/20 bg-positive/10 text-positive"
             : status === "rejected"
-                ? "border-red-500/20 bg-red-500/10 text-red-600"
-                : "border-yellow-500/20 bg-yellow-500/10 text-yellow-600";
+                ? "border-negative/20 bg-negative/10 text-negative"
+                : "border-warning/20 bg-warning/10 text-warning";
 
     return (
         <span

@@ -1368,7 +1368,7 @@ export default function NewBotPage() {
                             )}
 
                             {uploadedFile && (
-                                <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+                                <div className="mt-4 rounded-xl border border-positive/20 bg-positive/5 p-4">
 
                                     <div className="flex items-center gap-3">
 
@@ -1376,12 +1376,12 @@ export default function NewBotPage() {
                                             size={
                                                 20
                                             }
-                                            className="text-emerald-600"
+                                            className="text-positive"
                                         />
 
                                         <div>
 
-                                            <p className="text-sm font-medium text-emerald-600">
+                                            <p className="text-sm font-medium text-positive">
                                                 File uploaded successfully
                                             </p>
 
@@ -1468,7 +1468,7 @@ export default function NewBotPage() {
                         {status ===
                             "published" &&
                             !selectedFile && (
-                                <div className="mt-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-4 text-xs text-yellow-600">
+                                <div className="mt-4 rounded-xl border border-warning/20 bg-warning/5 p-4 text-xs text-warning">
                                     Upload a {productFileRule.label} before publishing this product.
                                 </div>
                             )}
@@ -1556,7 +1556,7 @@ function Section({
     children: React.ReactNode;
 }) {
     return (
-        <section className="rounded-2xl border border-border bg-muted/30 p-6 md:p-7">
+        <section className="rounded-lg border border-border bg-muted/30 p-6 md:p-7">
 
             <div className="mb-6 flex items-start gap-3">
 

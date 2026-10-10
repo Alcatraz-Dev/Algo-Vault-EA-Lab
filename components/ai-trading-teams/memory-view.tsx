@@ -140,9 +140,9 @@ export function TeamMemoryView({ teamId, canRun }: { teamId: string; canRun: boo
 
             <div className="grid gap-3 md:grid-cols-2">
                 <div className="rounded-xl border border-border/60 bg-card/60 p-4">
-                    <p className="text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">Preferences</p>
+                    <p className="text-micro font-semibold tracking-wide text-muted-foreground uppercase">Preferences</p>
                     <label className="mt-2 block">
-                        <span className="mb-1 block text-[11px] text-muted-foreground">Strategy preferences (comma separated)</span>
+                        <span className="mb-1 block text-micro text-muted-foreground">Strategy preferences (comma separated)</span>
                         <input
                             value={strategyPrefs}
                             onChange={(e) => setStrategyPrefs(e.target.value)}
@@ -151,7 +151,7 @@ export function TeamMemoryView({ teamId, canRun }: { teamId: string; canRun: boo
                         />
                     </label>
                     <label className="mt-3 block">
-                        <span className="mb-1 block text-[11px] text-muted-foreground">Team notes</span>
+                        <span className="mb-1 block text-micro text-muted-foreground">Team notes</span>
                         <textarea
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
@@ -164,16 +164,16 @@ export function TeamMemoryView({ teamId, canRun }: { teamId: string; canRun: boo
                 </div>
 
                 <div className="rounded-xl border border-border/60 bg-card/60 p-4">
-                    <p className="text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">Agent performance metadata</p>
+                    <p className="text-micro font-semibold tracking-wide text-muted-foreground uppercase">Agent performance metadata</p>
                     {memory && Object.keys(memory.agentPerformance).length > 0 ? (
                         <ul className="mt-2 space-y-1.5">
                             {Object.entries(memory.agentPerformance).map(([agentId, perf]) => (
-                                <li key={agentId} className="flex items-center justify-between gap-2 text-[11px]">
+                                <li key={agentId} className="flex items-center justify-between gap-2 text-micro">
                                     <span className="truncate text-foreground/85">{agentId}</span>
                                     <span className="flex shrink-0 items-center gap-1.5 text-muted-foreground tabular-nums">
-                                        <Badge variant="outline" className="text-[9px]">{perf.runs} runs</Badge>
-                                        <Badge variant="outline" className="text-[9px]">{perf.completed} ok</Badge>
-                                        <Badge variant="outline" className="text-[9px]">{perf.failed} failed</Badge>
+                                        <Badge variant="outline" className="text-micro">{perf.runs} runs</Badge>
+                                        <Badge variant="outline" className="text-micro">{perf.completed} ok</Badge>
+                                        <Badge variant="outline" className="text-micro">{perf.failed} failed</Badge>
                                         {Math.round(perf.avgConfidence * 100)}%
                                     </span>
                                 </li>
@@ -182,7 +182,7 @@ export function TeamMemoryView({ teamId, canRun }: { teamId: string; canRun: boo
                     ) : (
                         <p className="mt-2 text-xs text-muted-foreground">No performance data yet.</p>
                     )}
-                    <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">
+                    <p className="mt-3 text-micro leading-relaxed text-muted-foreground">
                         Preferred markets: {memory?.preferredMarkets.join(", ") || "—"}
                         <br />
                         Preferred timeframes: {memory?.preferredTimeframes.join(", ") || "—"}
@@ -206,17 +206,17 @@ function MemoryList({
         tone === "positive" ? "border-positive/40" : tone === "negative" ? "border-destructive/40" : "border-border/60";
     return (
         <div className={`rounded-xl border ${toneClass} bg-card/60 p-3`}>
-            <p className="text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
+            <p className="text-micro font-semibold tracking-wide text-muted-foreground uppercase">
                 {title} ({items.length})
             </p>
             <ul className="mt-2 space-y-1.5">
                 {items.slice(0, 6).map((item) => (
                     <li key={item.id} className="rounded border border-border/50 bg-background/40 px-2 py-1.5">
-                        <p className="text-[11px] font-medium text-foreground/85">{item.label}</p>
-                        <p className="line-clamp-2 text-[10px] text-muted-foreground">{item.note}</p>
+                        <p className="text-micro font-medium text-foreground/85">{item.label}</p>
+                        <p className="line-clamp-2 text-micro text-muted-foreground">{item.note}</p>
                     </li>
                 ))}
-                {items.length === 0 ? <li className="text-[11px] text-muted-foreground">None recorded.</li> : null}
+                {items.length === 0 ? <li className="text-micro text-muted-foreground">None recorded.</li> : null}
             </ul>
         </div>
     );

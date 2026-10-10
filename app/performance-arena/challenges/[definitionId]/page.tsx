@@ -165,7 +165,7 @@ export default function ChallengeDetailPage() {
                             </div>
                         </div>
                         {!detail.access.allowed && detail.access.reason ? (
-                            <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">{detail.access.reason}</p>
+                            <p className="mt-2 text-xs text-warning dark:text-warning">{detail.access.reason}</p>
                         ) : null}
                     </div>
 

@@ -57,7 +57,7 @@ export default function LiveActivityFeed({
           <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
         </span>
         <h3 className="text-sm font-bold text-foreground tracking-tight">LIVE ACTIVITY</h3>
-        <span className="ml-auto text-[10px] font-mono text-muted-foreground">{activities.length} events</span>
+        <span className="ml-auto text-micro font-mono text-muted-foreground">{activities.length} events</span>
       </div>
       <div className="flex-1 overflow-y-auto space-y-1 pr-1" aria-live="polite">
         {rows.map((item) => {
@@ -84,12 +84,12 @@ export default function LiveActivityFeed({
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-0.5">
                   <span className="font-bold text-sm text-foreground tracking-tight">{item.market}</span>
-                  <span className="text-[10px] text-muted-foreground font-medium">
+                  <span className="text-micro text-muted-foreground font-medium">
                     {TYPE_LABEL[item.activityType] ?? item.activityType}
                   </span>
                 </div>
                 <div className="text-xs text-muted-foreground truncate">{item.country}</div>
-                <div className="text-[10px] text-muted-foreground/70 mt-0.5">
+                <div className="text-micro text-muted-foreground/70 mt-0.5">
                   {now ? relativeTime(item.timestamp, now) : "just now"}
                 </div>
               </div>

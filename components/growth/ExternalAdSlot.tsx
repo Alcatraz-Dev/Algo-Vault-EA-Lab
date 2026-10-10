@@ -41,7 +41,7 @@ export function ExternalAdSlot({ placementKey, provider, clientId, slot }: Exter
     }, [clientId]);
 
     return (
-        <div className="w-full min-h-[90px] rounded-md border border-neutral-200 overflow-hidden bg-neutral-50">
+        <div className="w-full min-h-[90px] rounded-md border border-border overflow-hidden bg-muted">
             <ins
                 className="adsbygoogle"
                 style={{ display: "block", minHeight: "90px" }}

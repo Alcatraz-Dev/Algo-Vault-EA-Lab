@@ -82,7 +82,7 @@ export default function AgentDetailPage() {
     if (loading) {
         return (
             <AdminShell title="Agent Registry" subtitle="Loading agent details...">
-                <div className="h-40 animate-pulse rounded-2xl border border-border/30 bg-muted/50" />
+                <div className="h-40 animate-pulse rounded-lg border border-border/30 bg-muted/50" />
             </AdminShell>
         );
     }
@@ -90,10 +90,10 @@ export default function AgentDetailPage() {
     if (!agent) {
         return (
             <AdminShell title="Agent Registry" subtitle="Agent not found">
-                <div className="rounded-2xl border border-border/30 bg-muted/50 px-6 py-12 text-center">
+                <div className="rounded-lg border border-border/30 bg-muted/50 px-6 py-12 text-center">
                     <Bot size={28} className="mx-auto text-muted-foreground mb-3" />
                     <h3 className="text-sm font-medium">Agent not found</h3>
-                    <p className="mt-1 text-[11px] text-muted-foreground">No contract or execution record matches <code className="text-[10px] bg-muted px-1 rounded">{agentId}</code>.</p>
+                    <p className="mt-1 text-micro text-muted-foreground">No contract or execution record matches <code className="text-micro bg-muted px-1 rounded">{agentId}</code>.</p>
                     <Link href="/admin/intelligence/agents" className="mt-4 inline-block text-xs text-violet-400 hover:underline">Back to agents</Link>
                 </div>
             </AdminShell>
@@ -104,12 +104,12 @@ export default function AgentDetailPage() {
         <AdminShell title={agent.name} subtitle={ROLE_LABELS[agent.role] || agent.role}>
             <div className="space-y-3">
                 <div className="flex items-center gap-2 mb-2">
-                    <Link href="/admin/intelligence/agents" className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition">
+                    <Link href="/admin/intelligence/agents" className="inline-flex items-center gap-1 text-micro text-muted-foreground hover:text-foreground transition">
                         <ArrowLeft size={14} /> Back to agents
                     </Link>
                 </div>
 
-                <div className="rounded-2xl border border-border/30 bg-muted/50 p-5">
+                <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
                     <div className="flex items-start gap-4">
                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
                             <Bot size={24} className="text-violet-300" />
@@ -118,40 +118,40 @@ export default function AgentDetailPage() {
                             <div className="flex items-center gap-2 flex-wrap">
                                 <h2 className="text-base font-semibold">{agent.name}</h2>
                                 <StatusBadge tone={agent.status === "active" ? "positive" : agent.status === "draft" ? "info" : agent.status === "testing" ? "warning" : agent.status === "deprecated" ? "expired" : "negative"} label={agent.status} />
-                                <span className="text-[10px] font-medium text-violet-400 uppercase tracking-wide">v{agent.version}</span>
+                                <span className="text-micro font-medium text-violet-400 uppercase tracking-wide">v{agent.version}</span>
                             </div>
-                            <p className="mt-1 text-[11px] text-muted-foreground">{agent.description}</p>
-                            <p className="mt-1 text-[10px] text-muted-foreground">Agent ID: <span className="font-mono">{agent.id}</span></p>
+                            <p className="mt-1 text-micro text-muted-foreground">{agent.description}</p>
+                            <p className="mt-1 text-micro text-muted-foreground">Agent ID: <span className="font-mono">{agent.id}</span></p>
                         </div>
                     </div>
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-2">
-                    <div className="rounded-2xl border border-border/30 bg-muted/50 p-5">
-                        <h3 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-3">Permissions</h3>
+                    <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                        <h3 className="text-micro font-semibold uppercase tracking-wide text-muted-foreground mb-3">Permissions</h3>
                         <div className="flex flex-wrap gap-1.5">
                             {(agent.permissions || []).map((p) => (
-                                <span key={p} className="rounded-md border border-border/20 bg-muted/70 px-2 py-[2px] text-[10px] font-medium text-muted-foreground">{p}</span>
+                                <span key={p} className="rounded-md border border-border/20 bg-muted/70 px-2 py-[2px] text-micro font-medium text-muted-foreground">{p}</span>
                             ))}
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-border/30 bg-muted/50 p-5">
-                        <h3 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-3">Outputs</h3>
+                    <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                        <h3 className="text-micro font-semibold uppercase tracking-wide text-muted-foreground mb-3">Outputs</h3>
                         {agent.outputs && (agent.outputs || []).length > 0 ? (
-                            <ul className="space-y-1 text-[11px]">
+                            <ul className="space-y-1 text-micro">
                                 {(agent.outputs || []).map((o) => (
                                     <li key={o} className="flex items-center gap-1.5 text-muted-foreground"><CheckCircle2 size={10} className="text-emerald-400 shrink-0" />{o}</li>
                                 ))}
                             </ul>
                         ) : (
-                            <p className="text-[11px] text-muted-foreground">No declared outputs.</p>
+                            <p className="text-micro text-muted-foreground">No declared outputs.</p>
                         )}
                     </div>
                 </div>
 
-                <div className="rounded-2xl border border-border/30 bg-muted/50 p-5">
-                    <h3 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-3">Actions</h3>
+                <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                    <h3 className="text-micro font-semibold uppercase tracking-wide text-muted-foreground mb-3">Actions</h3>
                     <div className="flex flex-wrap gap-2">
                         <button
                             onClick={() => alert(`Sandbox test for agent: ${agent.id}`)}

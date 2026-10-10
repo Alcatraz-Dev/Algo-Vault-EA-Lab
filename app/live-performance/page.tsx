@@ -505,7 +505,7 @@ export default function LivePerformancePage() {
         return (
             <AccountShell title="Live Performance" subtitle="Real-time MT5 account performance">
                 <div className="flex flex-1 items-center justify-center py-16">
-                    <Loader2 className="h-8 w-8 animate-spin text-emerald-400" />
+                    <Loader2 className="h-8 w-8 animate-spin text-positive" />
                 </div>
             </AccountShell>
         );
@@ -520,7 +520,7 @@ export default function LivePerformancePage() {
             <div className="space-y-6">
                 {/* HEADER ACTIONS: AI SIGNAL + LIVE PERFORMANCE BUTTONS */}
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-2 text-sm text-emerald-400 font-medium">
+                    <div className="flex items-center gap-2 text-sm text-positive font-medium">
                         <Radio className="h-4 w-4" />
                         Live MT5 Execution Stream
                     </div>
@@ -532,8 +532,8 @@ export default function LivePerformancePage() {
                             data-guide="ai-signal"
                             className={`inline-flex shrink-0 items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors ${
                                 scanning
-                                    ? "border-amber-500/30 bg-amber-500/10 text-amber-400 cursor-wait"
-                                    : "border-amber-500/40 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20"
+                                    ? "border-warning/30 bg-warning/10 text-warning cursor-wait"
+                                    : "border-warning/40 bg-warning/10 text-warning hover:bg-warning/20"
                             }`}
                         >
                             {scanning ? (
@@ -547,7 +547,7 @@ export default function LivePerformancePage() {
                             href="/signals"
                             className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-border/30 bg-muted/5 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
                         >
-                            <Zap className="h-4 w-4 text-amber-400" />
+                            <Zap className="h-4 w-4 text-warning" />
                             View Signal Feed
                             <ChevronRight className="h-3.5 w-3.5" />
                         </Link>
@@ -567,10 +567,10 @@ export default function LivePerformancePage() {
                     <div
                         className={`rounded-xl border px-4 py-2.5 text-sm font-medium flex items-center gap-2 transition-all ${
                             scanResult.error
-                                ? "border-rose-500/20 bg-rose-500/10 text-rose-400"
+                                ? "border-negative/20 bg-negative/10 text-negative"
                                 : scanResult.generated > 0
-                                    ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
-                                    : "border-amber-500/20 bg-amber-500/10 text-amber-400"
+                                    ? "border-positive/20 bg-positive/10 text-positive"
+                                    : "border-warning/20 bg-warning/10 text-warning"
                         }`}
                     >
                         {scanResult.error ? (
@@ -593,14 +593,14 @@ export default function LivePerformancePage() {
                 )}
 
                 {error && (
-                    <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-600">
+                    <div className="rounded-xl border border-negative/20 bg-negative/10 px-4 py-3 text-sm text-negative">
                         {error}
                     </div>
                 )}
 
                 {/* BOT SELECTOR */}
                 {products.length > 0 && (
-                    <div className="rounded-2xl border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
+                    <div className="rounded-lg border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
                         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                             <div>
                                 <label className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
@@ -610,7 +610,7 @@ export default function LivePerformancePage() {
                                     <select
                                         value={selectedProductId}
                                         onChange={(e) => setSelectedProductId(e.target.value)}
-                                        className="rounded-xl border border-border/30 bg-card px-3.5 py-2 text-sm font-bold text-foreground outline-none focus:border-emerald-500/50"
+                                        className="rounded-xl border border-border/30 bg-card px-3.5 py-2 text-sm font-bold text-foreground outline-none focus:border-positive/50"
                                     >
                                         {products.map((p) => (
                                             <option key={p.id} value={p.id}>
@@ -619,7 +619,7 @@ export default function LivePerformancePage() {
                                         ))}
                                     </select>
                                     {matchingLicense ? (
-                                        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400 whitespace-nowrap shrink-0">
+                                        <span className="inline-flex items-center gap-1.5 rounded-full border border-positive/30 bg-positive/10 px-3 py-1 text-xs font-semibold text-positive whitespace-nowrap shrink-0">
                                             <Wifi size={12} /> License Active
                                         </span>
                                     ) : (
@@ -638,7 +638,7 @@ export default function LivePerformancePage() {
                                         onClick={() => setChartType(c)}
                                         className={`rounded-lg px-3 py-1 text-xs font-medium transition-all whitespace-nowrap shrink-0 ${
                                             chartType === c
-                                                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold"
+                                                    ? "bg-positive/20 text-positive border border-positive/30 font-semibold"
                                                     : "text-muted-foreground hover:text-foreground"
                                             }`}
                                     >
@@ -652,9 +652,9 @@ export default function LivePerformancePage() {
 
                 {/* HONEST EMPTY STATE — no live data yet */}
                 {!loadingLive && !metrics.isLive && matchingLicense && (
-                    <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-8">
+                    <div className="rounded-lg border border-dashed border-border bg-muted/20 p-8">
                         <div className="flex flex-col items-center text-center">
-                            <Radio className="h-8 w-8 text-emerald-400" />
+                            <Radio className="h-8 w-8 text-positive" />
                             <h3 className="mt-3 text-base font-semibold text-foreground">Awaiting first heartbeat</h3>
                             <p className="mt-2 max-w-md text-sm text-muted-foreground">
                                 Your license is active but the MT5 terminal hasn&apos;t pushed a heartbeat yet. Once the EA
@@ -666,7 +666,7 @@ export default function LivePerformancePage() {
                 )}
 
                 {!matchingLicense && products.length > 0 && (
-                    <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-8">
+                    <div className="rounded-lg border border-dashed border-border bg-muted/20 p-8">
                         <div className="flex flex-col items-center text-center">
                             <WifiOff className="h-8 w-8 text-muted-foreground" />
                             <h3 className="mt-3 text-base font-semibold text-foreground">No active license</h3>
@@ -687,12 +687,12 @@ export default function LivePerformancePage() {
                 {/* KPI STAT CARDS — only show when there's real data */}
                 {metrics.isLive && (
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <div className="rounded-2xl border border-border/30 bg-gradient-to-br from-emerald-500/10 via-background/60 to-background p-5 backdrop-blur-xl">
+                        <div className="rounded-lg border border-border/30 bg-gradient-to-br from-positive/10 via-background/60 to-background p-5 backdrop-blur-xl">
                             <div className="flex items-center justify-between text-xs text-muted-foreground">
                                 <span>Net Profit</span>
-                                <TrendingUp className="h-4 w-4 text-emerald-400" />
+                                <TrendingUp className="h-4 w-4 text-positive" />
                             </div>
-                            <div className="mt-3 text-2xl font-black text-emerald-400">
+                            <div className="mt-3 text-2xl font-black text-positive">
                                 {metrics.profit !== null
                                     ? `${metrics.profit > 0 ? "+" : ""}${formatMoney(metrics.profit)}`
                                     : "—"}
@@ -704,10 +704,10 @@ export default function LivePerformancePage() {
                             </div>
                         </div>
 
-                        <div className="rounded-2xl border border-border/30 bg-gradient-to-br from-amber-500/10 via-background/60 to-background p-5 backdrop-blur-xl">
+                        <div className="rounded-lg border border-border/30 bg-gradient-to-br from-warning/10 via-background/60 to-background p-5 backdrop-blur-xl">
                             <div className="flex items-center justify-between text-xs text-muted-foreground">
                                 <span>Win Rate</span>
-                                <Target className="h-4 w-4 text-amber-400" />
+                                <Target className="h-4 w-4 text-warning" />
                             </div>
                             <div className="mt-3 text-2xl font-black text-foreground">
                                 {metrics.winRate !== null && metrics.winRate > 0
@@ -721,10 +721,10 @@ export default function LivePerformancePage() {
                             </div>
                         </div>
 
-                        <div className="rounded-2xl border border-border/30 bg-gradient-to-br from-blue-500/10 via-background/60 to-background p-5 backdrop-blur-xl">
+                        <div className="rounded-lg border border-border/30 bg-gradient-to-br from-info/10 via-background/60 to-background p-5 backdrop-blur-xl">
                             <div className="flex items-center justify-between text-xs text-muted-foreground">
                                 <span>Profit Factor</span>
-                                <BarChart3 className="h-4 w-4 text-blue-400" />
+                                <BarChart3 className="h-4 w-4 text-info" />
                             </div>
                             <div className="mt-3 text-2xl font-black text-foreground">
                                 {metrics.isPfUnbounded
@@ -742,12 +742,12 @@ export default function LivePerformancePage() {
                             </div>
                         </div>
 
-                        <div className="rounded-2xl border border-border/30 bg-gradient-to-br from-red-500/10 via-background/60 to-background p-5 backdrop-blur-xl">
+                        <div className="rounded-lg border border-border/30 bg-gradient-to-br from-negative/10 via-background/60 to-background p-5 backdrop-blur-xl">
                             <div className="flex items-center justify-between text-xs text-muted-foreground">
                                 <span>Max Drawdown</span>
-                                <TrendingDown className="h-4 w-4 text-red-400" />
+                                <TrendingDown className="h-4 w-4 text-negative" />
                             </div>
-                            <div className="mt-3 text-2xl font-black text-red-400">
+                            <div className="mt-3 text-2xl font-black text-negative">
                                 {metrics.maxDrawdown !== null && metrics.maxDrawdown > 0
                                     ? `-${metrics.maxDrawdown.toFixed(2)}%`
                                     : "—"}
@@ -762,12 +762,12 @@ export default function LivePerformancePage() {
                 )}
 
                 {/* EQUITY CURVE CHART */}
-                <div className="rounded-2xl border border-border/30 bg-card/60 p-6 backdrop-blur-xl">
+                <div className="rounded-lg border border-border/30 bg-card/60 p-6 backdrop-blur-xl">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                                 <span>Live Performance Charts</span>
-                                <span className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-400 font-semibold uppercase">
+                                <span className="rounded-md border border-positive/30 bg-positive/10 px-2 py-0.5 text-micro text-positive font-semibold uppercase">
                                     {metrics.isLive ? "Real MT5 Data" : "Awaiting Heartbeat"}
                                 </span>
                             </h2>
@@ -872,20 +872,20 @@ export default function LivePerformancePage() {
 
                 {/* RISK + RATIOS + EXECUTION PROFILE */}
                 <div className="grid gap-6 md:grid-cols-3">
-                    <div className="rounded-2xl border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
+                    <div className="rounded-lg border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
                         <div className="flex items-center justify-between border-b border-border/30 pb-3">
                             <h3 className="font-bold text-foreground flex items-center gap-2">
-                                <Activity className="h-4 w-4 text-emerald-400" />
+                                <Activity className="h-4 w-4 text-positive" />
                                 <span>Risk Profile</span>
                             </h3>
-                            <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded border ${
+                            <span className={`text-micro uppercase tracking-wider font-semibold px-2 py-0.5 rounded border ${
                                 metrics.maxDrawdown === null || metrics.maxDrawdown === 0
                                     ? "text-muted-foreground bg-muted border-border"
                                     : metrics.maxDrawdown < 15
-                                        ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                                        ? "text-positive bg-positive/10 border-positive/20"
                                         : metrics.maxDrawdown < 25
-                                            ? "text-amber-400 bg-amber-500/10 border-amber-500/20"
-                                            : "text-red-400 bg-red-500/10 border-red-500/20"
+                                            ? "text-warning bg-warning/10 border-warning/20"
+                                            : "text-negative bg-negative/10 border-negative/20"
                             }`}>
                                 {metrics.maxDrawdown === null || metrics.maxDrawdown === 0
                                     ? "Awaiting Data"
@@ -916,20 +916,20 @@ export default function LivePerformancePage() {
                             </div>
                             <div className="flex justify-between pt-2 border-t border-border/10">
                                 <span className="text-muted-foreground">Heartbeat:</span>
-                                <span className={`font-bold ${metrics.isLive ? "text-emerald-400" : "text-amber-400"}`}>
+                                <span className={`font-bold ${metrics.isLive ? "text-positive" : "text-warning"}`}>
                                     {metrics.isLive ? "Live" : matchingLicense ? "Awaiting" : "No License"}
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
+                    <div className="rounded-lg border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
                         <div className="flex items-center justify-between border-b border-border/30 pb-3">
                             <h3 className="font-bold text-foreground flex items-center gap-2">
-                                <Zap className="h-4 w-4 text-blue-400" />
+                                <Zap className="h-4 w-4 text-info" />
                                 <span>Trade Stats</span>
                             </h3>
-                            <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded">
+                            <span className="text-micro uppercase tracking-wider font-semibold text-info bg-info/10 border border-info/20 px-2 py-0.5 rounded">
                                 {metrics.isLive ? "Live" : "Idle"}
                             </span>
                         </div>
@@ -937,7 +937,7 @@ export default function LivePerformancePage() {
                         <div className="mt-4 space-y-3.5 text-xs">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Payoff / Trade:</span>
-                                <span className="font-bold text-amber-400">
+                                <span className="font-bold text-warning">
                                     {metrics.expectedPayoff !== null
                                         ? formatMoney(Number(metrics.expectedPayoff))
                                         : "—"}
@@ -968,13 +968,13 @@ export default function LivePerformancePage() {
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
+                    <div className="rounded-lg border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
                         <div className="flex items-center justify-between border-b border-border/30 pb-3">
                             <h3 className="font-bold text-foreground flex items-center gap-2">
-                                <Clock className="h-4 w-4 text-emerald-400" />
+                                <Clock className="h-4 w-4 text-positive" />
                                 <span>Trade Execution Profile</span>
                             </h3>
-                            <span className="text-[10px] uppercase tracking-wider font-semibold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded">
+                            <span className="text-micro uppercase tracking-wider font-semibold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded">
                                 Real Trades
                             </span>
                         </div>
@@ -982,11 +982,11 @@ export default function LivePerformancePage() {
                         <div className="mt-4 space-y-3.5 text-xs">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Avg Winning Hold Time:</span>
-                                <span className="font-semibold text-emerald-400">{tradeExecutionProfile.avgWinDuration}</span>
+                                <span className="font-semibold text-positive">{tradeExecutionProfile.avgWinDuration}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Avg Losing Hold Time:</span>
-                                <span className="font-semibold text-red-400">{tradeExecutionProfile.avgLossDuration}</span>
+                                <span className="font-semibold text-negative">{tradeExecutionProfile.avgLossDuration}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Longs Won Win %:</span>

@@ -46,7 +46,7 @@ export default function TradingCalculators() {
             ]}
         >
             {/* Lite tabs (2 free calculators) */}
-            <div className="flex gap-2 rounded-2xl border border-border bg-card p-1">
+            <div className="flex gap-2 rounded-lg border border-border bg-card p-1">
                 {([
                     { key: "position" as const, label: "Position Size", icon: Target },
                     { key: "pip" as const, label: "Pip Value", icon: Coins },
@@ -156,72 +156,72 @@ function PositionSizeCalc() {
 
     return (
         <div className="grid gap-6 lg:grid-cols-2">
-            <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="rounded-lg border border-border bg-card p-5">
                 <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-foreground">
                     <Target size={15} className="text-primary" /> Trade Parameters
                 </h2>
                 <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Instrument</label>
+                            <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Instrument</label>
                             <select value={instrument} onChange={(e) => setInstrument(e.target.value)} className={inputClass}>
                                 {Object.keys(INSTRUMENTS).map((s) => <option key={s} value={s}>{s}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Account Balance</label>
+                            <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Account Balance</label>
                             <input type="number" step="any" value={accountBalance} onChange={(e) => setAccountBalance(e.target.value)} className={inputClass} />
                         </div>
                     </div>
                     <div>
-                        <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Risk %</label>
+                        <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Risk %</label>
                         <input type="number" step="0.1" min="0.01" max="100" value={riskPercent} onChange={(e) => setRiskPercent(e.target.value)} className={inputClass} />
                     </div>
                     <div className="grid grid-cols-3 gap-3">
                         <div>
-                            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Entry</label>
+                            <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Entry</label>
                             <input type="number" step="any" value={entryPrice} onChange={(e) => setEntryPrice(e.target.value)} placeholder="0.00" className={inputClass} />
                         </div>
                         <div>
-                            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Stop Loss</label>
+                            <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Stop Loss</label>
                             <input type="number" step="any" value={stopLoss} onChange={(e) => setStopLoss(e.target.value)} placeholder="0.00" className={inputClass} />
                         </div>
                         <div>
-                            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Take Profit</label>
+                            <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Take Profit</label>
                             <input type="number" step="any" value={takeProfit} onChange={(e) => setTakeProfit(e.target.value)} placeholder="0.00" className={inputClass} />
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="rounded-lg border border-border bg-card p-5">
                 <h2 className="mb-4 text-sm font-semibold text-foreground">Result</h2>
                 {result ? (
                     <div className="space-y-3">
                         <div className="rounded-xl border border-positive/20 bg-positive/[0.06] p-5 text-center">
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Position Size</p>
+                            <p className="text-micro uppercase tracking-wider text-muted-foreground">Position Size</p>
                             <p className="mt-1 font-mono text-3xl font-bold text-positive">{result.lotSize} lots</p>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="rounded-lg bg-muted p-3">
-                                <p className="text-[9px] uppercase text-muted-foreground">Risk Amount</p>
+                                <p className="text-micro uppercase text-muted-foreground">Risk Amount</p>
                                 <p className="font-mono text-sm font-bold text-negative">${result.actualRisk}</p>
                             </div>
                             <div className="rounded-lg bg-muted p-3">
-                                <p className="text-[9px] uppercase text-muted-foreground">Risk:Reward</p>
+                                <p className="text-micro uppercase text-muted-foreground">Risk:Reward</p>
                                 <p className={cn("font-mono text-sm font-bold", result.riskReward >= 2 ? "text-positive" : result.riskReward >= 1 ? "text-warning" : "text-negative")}>1:{result.riskReward}</p>
                             </div>
                             <div className="rounded-lg bg-muted p-3">
-                                <p className="text-[9px] uppercase text-muted-foreground">Stop Distance</p>
+                                <p className="text-micro uppercase text-muted-foreground">Stop Distance</p>
                                 <p className="font-mono text-sm font-bold text-muted-foreground">{result.stopDistance}</p>
                             </div>
                             <div className="rounded-lg bg-muted p-3">
-                                <p className="text-[9px] uppercase text-muted-foreground">Pips to SL</p>
+                                <p className="text-micro uppercase text-muted-foreground">Pips to SL</p>
                                 <p className="font-mono text-sm font-bold text-muted-foreground">{result.pipDistance} pips</p>
                             </div>
                             {result.tpPips > 0 && (
                                 <div className="rounded-lg bg-muted p-3">
-                                    <p className="text-[9px] uppercase text-muted-foreground">Pips to TP</p>
+                                    <p className="text-micro uppercase text-muted-foreground">Pips to TP</p>
                                     <p className="font-mono text-sm font-bold text-positive">{result.tpPips} pips</p>
                                 </div>
                             )}
@@ -265,23 +265,23 @@ function PipValueCalc() {
 
     return (
         <div className="grid gap-6 lg:grid-cols-2">
-            <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="rounded-lg border border-border bg-card p-5">
                 <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-foreground">
                     <Coins size={15} className="text-primary" /> Inputs
                 </h2>
                 <div className="space-y-3">
                     <div>
-                        <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Instrument</label>
+                        <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Instrument</label>
                         <select value={instrument} onChange={(e) => setInstrument(e.target.value)} className={inputClass}>
                             {Object.keys(INSTRUMENTS).map((s) => <option key={s} value={s}>{s}</option>)}
                         </select>
                     </div>
                     <div>
-                        <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Lot Size</label>
+                        <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Lot Size</label>
                         <input type="number" step="0.01" value={lotSize} onChange={(e) => setLotSize(e.target.value)} className={inputClass} />
                     </div>
                     <div>
-                        <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Account Currency</label>
+                        <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Account Currency</label>
                         <div className="flex gap-2">
                             {(["USD", "EUR"] as const).map((c) => (
                                 <button
@@ -299,29 +299,29 @@ function PipValueCalc() {
                                 </button>
                             ))}
                         </div>
-                        <p className="mt-1 text-[10px] text-muted-foreground">Cross-pair conversions are a Pro feature.</p>
+                        <p className="mt-1 text-micro text-muted-foreground">Cross-pair conversions are a Pro feature.</p>
                     </div>
                 </div>
             </div>
 
-            <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="rounded-lg border border-border bg-card p-5">
                 <h2 className="mb-4 text-sm font-semibold text-foreground">Pip Math</h2>
                 {result ? (
                     <div className="space-y-3">
                         <div className="rounded-xl border border-info/20 bg-info/[0.06] p-5 text-center">
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Value per Pip</p>
+                            <p className="text-micro uppercase tracking-wider text-muted-foreground">Value per Pip</p>
                             <p className="mt-1 font-mono text-3xl font-bold text-info">
                                 ${result.totalValuePerPip}
                             </p>
-                            <p className="mt-1 text-[10px] text-muted-foreground">{lotSize} lot(s) of {instrument}</p>
+                            <p className="mt-1 text-micro text-muted-foreground">{lotSize} lot(s) of {instrument}</p>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="rounded-lg bg-muted p-3">
-                                <p className="text-[9px] uppercase text-muted-foreground">Pip Size</p>
+                                <p className="text-micro uppercase text-muted-foreground">Pip Size</p>
                                 <p className="font-mono text-sm font-bold text-foreground">{result.pipSize}</p>
                             </div>
                             <div className="rounded-lg bg-muted p-3">
-                                <p className="text-[9px] uppercase text-muted-foreground">Contract Size</p>
+                                <p className="text-micro uppercase text-muted-foreground">Contract Size</p>
                                 <p className="font-mono text-sm font-bold text-foreground">{result.contractSize.toLocaleString()}</p>
                             </div>
                         </div>
@@ -348,11 +348,11 @@ function LockedCalcCard({
     return (
         <Link
             href={href}
-            className="group flex flex-col gap-2 rounded-2xl border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
+            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
         >
             <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-foreground">{title}</h4>
-                <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-micro font-bold uppercase tracking-wider text-primary">
                     <Crown className="size-2.5" />
                     Pro
                 </span>

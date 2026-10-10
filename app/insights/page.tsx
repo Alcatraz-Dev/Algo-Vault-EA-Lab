@@ -83,7 +83,7 @@ export default function AIInsightsPage() {
                             <div className="flex items-center gap-2">
                                 <Brain size={20} className="text-violet-400" />
                                 <h2 className="text-lg font-bold text-foreground">Insights</h2>
-                                {generatedAt > 0 && <span className="text-[10px] text-muted-foreground">Last: {new Date(generatedAt).toLocaleTimeString()}</span>}
+                                {generatedAt > 0 && <span className="text-micro text-muted-foreground">Last: {new Date(generatedAt).toLocaleTimeString()}</span>}
                             </div>
                             <button type="button" onClick={generateAll} disabled={loading} className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-xs font-semibold text-foreground hover:bg-violet-500 transition disabled:opacity-50">
                                 {loading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} Generate All Insights
@@ -105,7 +105,7 @@ export default function AIInsightsPage() {
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-sm font-semibold text-foreground">{section.label}</p>
-                                        <p className="text-[10px] text-muted-foreground">{section.description}</p>
+                                        <p className="text-micro text-muted-foreground">{section.description}</p>
                                     </div>
                                     {loading && activeSection === section.id && <Loader2 size={14} className="animate-spin text-violet-400" />}
                                 </button>
@@ -125,7 +125,7 @@ export default function AIInsightsPage() {
                                 ))}
                             </div>
                         </div>
-                        <div className="rounded-xl border border-amber-500/10 bg-amber-500/[0.03] p-4 text-[11px] text-amber-400/60">
+                        <div className="rounded-xl border border-amber-500/10 bg-amber-500/[0.03] p-4 text-micro text-amber-400/60">
                             <Brain size={12} className="mr-1 inline" />
                             All insights are generated from your real platform data. AI outputs are analytical estimates, not financial advice.
                         </div>

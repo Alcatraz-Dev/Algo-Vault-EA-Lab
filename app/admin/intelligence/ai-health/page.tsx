@@ -78,8 +78,8 @@ export default function AdminAIHealthPage() {
                     <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh
                 </button>
             </div>
-            {error && <div className="mb-6 rounded-2xl border border-destructive/30 bg-destructive-muted p-4 text-xs text-destructive-foreground">{error}</div>}
-            {!report && loading && <div className="rounded-2xl border border-border/30 bg-muted/50 p-8 text-center text-xs text-muted-foreground">Loading health…</div>}
+            {error && <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive-muted p-4 text-xs text-destructive-foreground">{error}</div>}
+            {!report && loading && <div className="rounded-lg border border-border/30 bg-muted/50 p-8 text-center text-xs text-muted-foreground">Loading health…</div>}
             {report && (
                 <>
                     <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -88,7 +88,7 @@ export default function AdminAIHealthPage() {
                         <Metric label="Blocked" value={String(report.totals.blocked)} tone={report.totals.blocked > 0 ? "negative" : undefined} />
                         <Metric label="Unavailable" value={String(report.totals.unavailable)} tone={report.totals.unavailable > 0 ? "warning" : undefined} />
                     </div>
-                    {report.gatewayImpaired && <div className="mb-6 rounded-2xl border border-destructive/30 bg-destructive-muted p-4"><p className="text-xs font-medium text-destructive-foreground">Gateway impaired: no provider is ready to serve.</p></div>}
+                    {report.gatewayImpaired && <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive-muted p-4"><p className="text-xs font-medium text-destructive-foreground">Gateway impaired: no provider is ready to serve.</p></div>}
                     <div className="space-y-3">
                         {report.providers.map((p) => (
                             <div key={p.provider} className="rounded-xl border border-border/30 bg-muted/5 p-4">
@@ -97,22 +97,22 @@ export default function AdminAIHealthPage() {
                                         <p className="text-xs font-medium">{p.name}</p>
                                         <StatusBadge tone={STATE_MAP[p.state] ?? "neutral"} label={STATE_LABEL_MAP[p.state] ?? p.state} />
                                     </div>
-                                    <p className="text-[11px] text-muted-foreground">{p.provider}</p>
+                                    <p className="text-micro text-muted-foreground">{p.provider}</p>
                                 </div>
                                 <p className="mt-2 text-xs text-muted-foreground">{p.detail}</p>
-                                <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-muted-foreground">
+                                <div className="mt-3 flex flex-wrap gap-3 text-micro text-muted-foreground">
                                     <span className="inline-flex items-center gap-1"><Shield size={11}/> Cred {p.credentialsConfigured ? "Yes" : "No"}</span>
                                     <span className="inline-flex items-center gap-1"><Zap size={11}/> Metered risk {p.meteredRisk ? "Yes" : "No"}</span>
                                     <span className="inline-flex items-center gap-1"><Activity size={11}/> Available {p.available ? "Yes" : "No"}</span>
                                     <span className="inline-flex items-center gap-1"><Ban size={11}/> Blocked {p.budgetBlocked ? (p.budgetBlocked ? "Yes" : "No") : "No"}</span>
                                     {p.budgetWarning && <span className="inline-flex items-center gap-1"><AlertTriangle size={11}/> Warning</span>}
                                 </div>
-                                <div className="mt-2 text-[11px] text-muted-foreground">Usage: {p.usage.requests} req / {p.usage.successfulRequests} ok / {p.usage.failedRequests} fail / {p.usage.blockedRequests} blocked · {p.usage.totalTokens} tokens</div>
-                                {p.attempts > 0 && <div className="mt-1 text-[11px] text-muted-foreground">Attempts: {p.attempts} · Failures: {p.providerFailures} · Rate: {p.failureRate !== null ? `${Math.round(p.failureRate * 100)}%` : "—"}</div>}
+                                <div className="mt-2 text-micro text-muted-foreground">Usage: {p.usage.requests} req / {p.usage.successfulRequests} ok / {p.usage.failedRequests} fail / {p.usage.blockedRequests} blocked · {p.usage.totalTokens} tokens</div>
+                                {p.attempts > 0 && <div className="mt-1 text-micro text-muted-foreground">Attempts: {p.attempts} · Failures: {p.providerFailures} · Rate: {p.failureRate !== null ? `${Math.round(p.failureRate * 100)}%` : "—"}</div>}
                             </div>
                         ))}
                     </div>
-                    <div className="mt-6 rounded-xl border border-border/30 bg-muted/50 p-4 text-[11px] text-muted-foreground leading-5">No provider contacted by this page. Credentials shown as configured / missing only (value never shown). Cost / token figures are this month's aggregates. Unknown pricing reads as "Cost unavailable"; budget-refused calls count toward blocked requests, not failures.</div>
+                    <div className="mt-6 rounded-xl border border-border/30 bg-muted/50 p-4 text-micro text-muted-foreground leading-5">No provider contacted by this page. Credentials shown as configured / missing only (value never shown). Cost / token figures are this month's aggregates. Unknown pricing reads as "Cost unavailable"; budget-refused calls count toward blocked requests, not failures.</div>
                 </>
             )}
         </AdminShell>
@@ -123,5 +123,5 @@ function Metric({ label, value, tone }: { label: string; value: string; tone?: S
         tone === "negative" ? "text-destructive-foreground"
             : tone === "warning" ? "text-warning-foreground"
                 : "";
-    return <div className="rounded-2xl border border-border/30 bg-muted/50 p-5"><p className="text-xs text-muted-foreground">{label}</p><p className={`mt-2 text-xl font-semibold ${toneClass}`}>{value}</p></div>;
+    return <div className="rounded-lg border border-border/30 bg-muted/50 p-5"><p className="text-xs text-muted-foreground">{label}</p><p className={`mt-2 text-xl font-semibold ${toneClass}`}>{value}</p></div>;
 }

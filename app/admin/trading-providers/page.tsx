@@ -91,12 +91,12 @@ function StateBadge({ state }: { state: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold",
+        "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-micro font-semibold",
         healthy
-          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
+          ? "border-positive/40 bg-positive/10 text-positive"
           : warn
-            ? "border-amber-500/40 bg-amber-500/10 text-amber-500"
-            : "border-rose-500/40 bg-rose-500/10 text-rose-500"
+            ? "border-warning/40 bg-warning/10 text-warning"
+            : "border-negative/40 bg-negative/10 text-negative"
       )}
     >
       {healthy ? <CheckCircle2 className="size-2.5" /> : warn ? <Clock className="size-2.5" /> : <XCircle className="size-2.5" />}
@@ -181,7 +181,7 @@ export default function AdminTradingProvidersPage() {
         </header>
 
         {error ? (
-          <p className="flex items-center gap-2 border border-rose-500/30 bg-rose-500/5 px-3 py-2 text-xs text-rose-500">
+          <p className="flex items-center gap-2 border border-negative/30 bg-negative/5 px-3 py-2 text-xs text-negative">
             <AlertTriangle className="size-3.5" />
             {error}
           </p>
@@ -194,12 +194,12 @@ export default function AdminTradingProvidersPage() {
               <span
                 key={key}
                 className={cn(
-                  "rounded border px-1.5 py-0.5 font-mono text-[10px]",
+                  "rounded border px-1.5 py-0.5 font-mono text-micro",
                   value === true
-                    ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
+                    ? "border-positive/40 bg-positive/10 text-positive"
                     : value === false
                       ? "border-border bg-muted text-muted-foreground"
-                      : "border-sky-500/40 bg-sky-500/10 text-sky-500"
+                      : "border-info/40 bg-info/10 text-info"
                 )}
               >
                 {key}={String(value)}
@@ -212,7 +212,7 @@ export default function AdminTradingProvidersPage() {
           <h2 className="mb-2 text-sm font-semibold">Providers</h2>
           <div className="overflow-x-auto border border-border">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-border bg-muted/40 text-[10px] uppercase tracking-wide text-muted-foreground">
+              <thead className="border-b border-border bg-muted/40 text-micro uppercase tracking-wide text-muted-foreground">
                 <tr>
                   <th className="px-3 py-2">Provider</th>
                   <th className="px-3 py-2">Environments</th>
@@ -242,7 +242,7 @@ export default function AdminTradingProvidersPage() {
           <h2 className="mb-2 text-sm font-semibold">Connected demo accounts ({accounts.length})</h2>
           <div className="overflow-x-auto border border-border">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-border bg-muted/40 text-[10px] uppercase tracking-wide text-muted-foreground">
+              <thead className="border-b border-border bg-muted/40 text-micro uppercase tracking-wide text-muted-foreground">
                 <tr>
                   <th className="px-3 py-2">Account</th>
                   <th className="px-3 py-2">Provider</th>
@@ -291,7 +291,7 @@ export default function AdminTradingProvidersPage() {
           <h2 className="mb-2 text-sm font-semibold">Recent executions ({executions.length})</h2>
           <div className="overflow-x-auto border border-border">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-border bg-muted/40 text-[10px] uppercase tracking-wide text-muted-foreground">
+              <thead className="border-b border-border bg-muted/40 text-micro uppercase tracking-wide text-muted-foreground">
                 <tr>
                   <th className="px-3 py-2">When</th>
                   <th className="px-3 py-2">Type</th>
@@ -321,7 +321,7 @@ export default function AdminTradingProvidersPage() {
                         <StateBadge
                           state={execution.status === "SUCCEEDED" ? "CONNECTED" : "ERROR"}
                         />
-                        <span className="ml-1.5 font-mono text-[10px]">{execution.status}</span>
+                        <span className="ml-1.5 font-mono text-micro">{execution.status}</span>
                       </td>
                       <td className="px-3 py-2 font-mono">{execution.providerRef ?? "—"}</td>
                       <td className="px-3 py-2 text-muted-foreground">{execution.error?.code ?? "—"}</td>
@@ -342,7 +342,7 @@ export default function AdminTradingProvidersPage() {
               events.map((event) => (
                 <div
                   key={event.eventId}
-                  className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border px-3 py-1.5 text-[11px] last:border-0"
+                  className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border px-3 py-1.5 text-micro last:border-0"
                 >
                   <Activity className="size-2.5 text-muted-foreground" />
                   <span className="font-mono text-muted-foreground">{ago(event.timestamp)}</span>
@@ -352,7 +352,7 @@ export default function AdminTradingProvidersPage() {
                   {typeof event.volume === "number" ? (
                     <span className="font-mono text-muted-foreground">{event.volume}</span>
                   ) : null}
-                  {event.errorCode ? <span className="text-rose-500">{event.errorCode}</span> : null}
+                  {event.errorCode ? <span className="text-negative">{event.errorCode}</span> : null}
                 </div>
               ))
             )}

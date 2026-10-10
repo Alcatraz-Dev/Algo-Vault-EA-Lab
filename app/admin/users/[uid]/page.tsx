@@ -319,7 +319,7 @@ export default function AdminUserDetailsPage() {
                         ← Back to Users
                     </Link>
 
-                    <div className="mt-8 rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-red-600">
+                    <div className="mt-8 rounded-lg border border-negative/20 bg-negative/10 p-6 text-negative">
                         {error ||
                             "User not found."}
                     </div>
@@ -365,7 +365,7 @@ export default function AdminUserDetailsPage() {
             <div className="space-y-8">
 
                         {error && (
-                            <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-600">
+                            <div className="mb-4 rounded-xl border border-negative/20 bg-negative/10 p-4 text-sm text-negative">
                                 {error}
                             </div>
                         )}
@@ -380,7 +380,7 @@ export default function AdminUserDetailsPage() {
                         )}
 
                         {/* Profile */}
-                        <div className="rounded-2xl border border-border bg-muted/30 p-6">
+                        <div className="rounded-lg border border-border bg-muted/30 p-6">
 
                             <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
 
@@ -626,7 +626,7 @@ export default function AdminUserDetailsPage() {
                         </div>
 
                         {/* Orders */}
-                        <div className="mt-8 rounded-2xl border border-border bg-muted/30">
+                        <div className="mt-8 rounded-lg border border-border bg-muted/30">
 
                             <div className="border-b border-border p-5">
 
@@ -766,7 +766,7 @@ export default function AdminUserDetailsPage() {
                         </div>
 
                         {/* Licenses */}
-                        <div className="mt-6 rounded-2xl border border-border bg-muted/30">
+                        <div className="mt-6 rounded-lg border border-border bg-muted/30">
 
                             <div className="border-b border-border p-5">
 
@@ -897,7 +897,7 @@ function Metric({
     value: string | number;
 }) {
     return (
-        <div className="rounded-2xl border border-border bg-muted/30 p-5">
+        <div className="rounded-lg border border-border bg-muted/30 p-5">
 
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/50">
                 {icon}

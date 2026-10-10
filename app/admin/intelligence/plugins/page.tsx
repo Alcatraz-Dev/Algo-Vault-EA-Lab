@@ -119,11 +119,11 @@ export default function AdminPluginsPage() {
             {loading ? (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {[1, 2, 3].map((n) => (
-                        <div key={n} className="h-40 animate-pulse rounded-2xl border border-border/30 bg-muted/50" />
+                        <div key={n} className="h-40 animate-pulse rounded-lg border border-border/30 bg-muted/50" />
                     ))}
                 </div>
             ) : filtered.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-border/30 bg-muted/50 px-6 py-20 text-center">
+                <div className="rounded-lg border border-dashed border-border/30 bg-muted/50 px-6 py-20 text-center">
                     <Plug size={40} className="mx-auto text-muted-foreground" />
                     <h3 className="mt-3 text-lg font-medium">No plugins found</h3>
                     <p className="mt-1 text-sm text-muted-foreground">Try adjusting your filters or search query.</p>
@@ -159,7 +159,7 @@ function PluginCard({
     const extType = (plugin as ExtensionRecord).extensionType;
 
     return (
-        <div className="rounded-2xl border border-border/30 bg-muted/50 overflow-hidden transition hover:border-border/50">
+        <div className="rounded-lg border border-border/30 bg-muted/50 overflow-hidden transition hover:border-border/50">
             <div className="p-5">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-4">
@@ -180,13 +180,13 @@ function PluginCard({
                                 </Link>
                                 <StatusBadge tone={pluginStatusTone(plugin.status)} label={plugin.status} />
                                 {isExtension && (
-                                    <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-300">
+                                    <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-micro font-medium text-amber-300">
                                         {extType}
                                     </span>
                                 )}
                             </div>
                             <p className="mt-1 max-w-xl text-xs text-muted-foreground truncate">{plugin.description}</p>
-                            <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
+                            <div className="mt-2 flex items-center gap-2 text-micro text-muted-foreground">
                                 <span>v{plugin.version}</span>
                                 <span className="text-muted-foreground/30">•</span>
                                 <span className="rounded-full bg-muted px-2 py-0.5">{CATEGORY_LABELS[plugin.category] || plugin.category}</span>
@@ -274,7 +274,7 @@ function PluginCard({
 function DetailRow({ label, value, copyable = false }: { label: string; value: string; copyable?: boolean }) {
     return (
         <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
+            <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
             <div className="flex items-center gap-2">
                 <code className="flex-1 text-xs bg-background/50 px-2 py-1 rounded text-foreground break-all">{value}</code>
                 {copyable && (

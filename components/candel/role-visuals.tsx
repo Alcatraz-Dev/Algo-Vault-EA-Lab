@@ -40,12 +40,12 @@ const ROLE_ICONS: Record<string, ComponentType<{ className?: string }>> = {
 };
 
 const ACCENTS: Record<string, { avatar: string; chip: string; text: string }> = {
-  blue: { avatar: "bg-blue-500/12 text-blue-500 ring-blue-500/25", chip: "border-blue-500/30 bg-blue-500/10 text-blue-500", text: "text-blue-500" },
-  violet: { avatar: "bg-violet-500/12 text-violet-500 ring-violet-500/25", chip: "border-violet-500/30 bg-violet-500/10 text-violet-500", text: "text-violet-500" },
-  amber: { avatar: "bg-amber-500/12 text-amber-500 ring-amber-500/25", chip: "border-amber-500/30 bg-amber-500/10 text-amber-500", text: "text-amber-500" },
-  rose: { avatar: "bg-rose-500/12 text-rose-500 ring-rose-500/25", chip: "border-rose-500/30 bg-rose-500/10 text-rose-500", text: "text-rose-500" },
-  emerald: { avatar: "bg-emerald-500/12 text-emerald-500 ring-emerald-500/25", chip: "border-emerald-500/30 bg-emerald-500/10 text-emerald-500", text: "text-emerald-500" },
-  cyan: { avatar: "bg-cyan-500/12 text-cyan-500 ring-cyan-500/25", chip: "border-cyan-500/30 bg-cyan-500/10 text-cyan-500", text: "text-cyan-500" },
+  blue: { avatar: "bg-info/10 text-info ring-info/25", chip: "border-info/30 bg-info/10 text-info", text: "text-info" },
+  violet: { avatar: "bg-primary/10 text-primary ring-primary/25", chip: "border-primary/30 bg-primary/10 text-primary", text: "text-primary" },
+  amber: { avatar: "bg-warning/10 text-warning ring-warning/25", chip: "border-warning/30 bg-warning/10 text-warning", text: "text-warning" },
+  rose: { avatar: "bg-negative/10 text-negative ring-negative/25", chip: "border-negative/30 bg-negative/10 text-negative", text: "text-negative" },
+  emerald: { avatar: "bg-positive/10 text-positive ring-positive/25", chip: "border-positive/30 bg-positive/10 text-positive", text: "text-positive" },
+  cyan: { avatar: "bg-info/10 text-info ring-info/25", chip: "border-info/30 bg-info/10 text-info", text: "text-info" },
   slate: { avatar: "bg-muted text-muted-foreground ring-border", chip: "border-border bg-muted text-muted-foreground", text: "text-muted-foreground" },
 };
 
@@ -81,8 +81,8 @@ export function CandelAvatar({
   const accent = accentOf(spec.accent);
   const sizes = {
     sm: "size-8 text-base rounded-lg",
-    md: "size-10 text-xl rounded-xl",
-    lg: "size-14 text-3xl rounded-2xl",
+    md: "size-10 text-xl rounded-lg",
+    lg: "size-14 text-3xl rounded-lg",
   } as const;
   return (
     <span

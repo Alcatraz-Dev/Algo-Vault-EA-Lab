@@ -99,11 +99,11 @@ export default function WorkflowEditorPage() {
     >
       <div className="grid lg:grid-cols-[250px_1fr_340px] gap-4 h-full min-h-[80vh]">
         {/* Palette */}
-        <div className="border rounded-2xl bg-card p-4 space-y-2 overflow-y-auto">
+        <div className="border rounded-lg bg-card p-4 space-y-2 overflow-y-auto">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Node Library</h3>
           {["trigger", "market_data", "technical", "ai", "logic", "risk", "signal", "execution", "notification", "integration", "transform", "simulation", "reports", "marketing"].map((cat) => (
             <div key={cat}>
-              <div className="text-[10px] font-bold text-muted-foreground uppercase mt-2 mb-1">{cat}</div>
+              <div className="text-micro font-bold text-muted-foreground uppercase mt-2 mb-1">{cat}</div>
               <div className="space-y-1">
                 <PaletteItem label="Manual Trigger" type="trigger.manual" />
                 {cat === "market_data" && <><PaletteItem label="Market Quote" type="market_data.quote" /><PaletteItem label="Market Candles" type="market_data.candles" /><PaletteItem label="Symbol Info" type="market_data.symbol_info" /></>}
@@ -122,13 +122,13 @@ export default function WorkflowEditorPage() {
         </div>
 
         {/* Canvas */}
-        <div className="border rounded-2xl bg-gradient-to-br from-slate-50/60 to-slate-100/30 dark:from-slate-950/60 dark:to-slate-900/30 p-6 relative overflow-auto min-h-[600px]">
+        <div className="border rounded-lg bg-gradient-to-br from-muted/60 to-muted/30 dark:from-secondary/60 dark:to-secondary/30 p-6 relative overflow-auto min-h-[600px]">
           <div className="absolute top-3 left-3 text-xs text-muted-foreground">Canvas — drag nodes here</div>
           <CanvasArea nodes={wf.nodes || []} edges={wf.edges || []} />
         </div>
 
         {/* Inspector */}
-        <div className="border rounded-2xl bg-card p-4 space-y-4 overflow-y-auto">
+        <div className="border rounded-lg bg-card p-4 space-y-4 overflow-y-auto">
           <h3 className="text-sm font-semibold">Inspector</h3>
           <InspectorForm workflow={wf} />
           <div className="border-t pt-3 mt-3">
@@ -143,8 +143,8 @@ export default function WorkflowEditorPage() {
 
 function PaletteItem({ label, type }: { label: string; type: string }) {
   return (
-    <button className="w-full text-left px-2 py-1.5 rounded-md text-xs bg-muted hover:bg-amber-50 dark:hover:bg-amber-950/30 hover:text-amber-700 transition border border-transparent hover:border-amber-200/50 dark:hover:border-amber-900/40" title={type}>
-      <span className="inline-flex items-center gap-1.5"><Zap size={9} className="text-amber-500" />{label}</span>
+    <button className="w-full text-left px-2 py-1.5 rounded-md text-xs bg-muted hover:bg-warning dark:hover:bg-warning/30 hover:text-warning transition border border-transparent hover:border-warning/50 dark:hover:border-warning/40" title={type}>
+      <span className="inline-flex items-center gap-1.5"><Zap size={9} className="text-warning" />{label}</span>
     </button>
   );
 }
@@ -162,8 +162,8 @@ function CanvasArea({ nodes, edges }: { nodes: WorkflowNode[]; edges: WorkflowEd
           style={{ top: (node.position?.y ?? 0) + 60, left: (node.position?.x ?? 0) + 20 }}
         >
           <div className="font-semibold truncate">{node.label || node.id}</div>
-          <div className="text-[9px] text-muted-foreground">{node.type}</div>
-          <div className="text-[9px] text-amber-600">{JSON.stringify(node.config).slice(0, 60)}</div>
+          <div className="text-micro text-muted-foreground">{node.type}</div>
+          <div className="text-micro text-warning">{JSON.stringify(node.config).slice(0, 60)}</div>
         </div>
       ))}
       <svg className="absolute inset-0 pointer-events-none" style={{ width: "100%", height: "100%" }}>
@@ -240,43 +240,43 @@ function RunPanel({ workflowId, refreshTick }: { workflowId: string; refreshTick
 
   return (
     <div className="space-y-2">
-      <button onClick={load} className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-amber-600"><RefreshCw size={10} /> Refresh</button>
-      {error && <div className="text-[10px] text-destructive">{error}</div>}
+      <button onClick={load} className="inline-flex items-center gap-1 text-micro text-muted-foreground hover:text-warning"><RefreshCw size={10} /> Refresh</button>
+      {error && <div className="text-micro text-destructive">{error}</div>}
       {runs.length === 0 ? (
         <div className="text-xs text-muted-foreground">No runs yet for this workflow.</div>
       ) : (
         runs.slice(0, 8).map((run) => (
-          <div key={run.id} className="border rounded-lg p-2 text-[11px] space-y-1">
+          <div key={run.id} className="border rounded-lg p-2 text-micro space-y-1">
             <button onClick={() => toggle(run.id)} className="flex items-center justify-between w-full text-left gap-1">
               <span className="inline-flex items-center gap-1 font-medium">
                 {expanded === run.id ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
                 <span className={
-                  run.status === "success" ? "text-emerald-600 dark:text-emerald-400"
-                  : run.status === "failed" || run.status === "partial" || run.status === "timeout" ? "text-red-600 dark:text-red-400"
-                  : run.status === "running" ? "text-amber-600 dark:text-amber-400"
+                  run.status === "success" ? "text-positive dark:text-positive"
+                  : run.status === "failed" || run.status === "partial" || run.status === "timeout" ? "text-negative dark:text-negative"
+                  : run.status === "running" ? "text-warning dark:text-warning"
                   : "text-muted-foreground"
                 }>{run.status}</span>
               </span>
               <span className="text-muted-foreground">{run.trigger}</span>
             </button>
-            <div className="text-[10px] text-muted-foreground flex justify-between">
+            <div className="text-micro text-muted-foreground flex justify-between">
               <span>{new Date(run.startedAt).toLocaleString()}</span>
               <span>{run.durationMs != null ? `${(run.durationMs / 1000).toFixed(1)}s` : "—"}</span>
             </div>
-            {run.error && <div className="text-[10px] text-red-500 break-words">⚠ {run.error}</div>}
+            {run.error && <div className="text-micro text-negative break-words">⚠ {run.error}</div>}
             {expanded === run.id && (
               <div className="border-t pt-1 mt-1 space-y-0.5">
                 {(nodes[run.id] ?? []).map((n) => (
-                  <div key={n.id} className="flex justify-between text-[10px]">
+                  <div key={n.id} className="flex justify-between text-micro">
                     <span className="truncate max-w-[150px]">{n.nodeLabel || n.nodeId}</span>
                     <span className={
-                      n.status === "success" ? "text-emerald-600 dark:text-emerald-400"
-                      : n.status === "failed" ? "text-red-500" : "text-muted-foreground"
+                      n.status === "success" ? "text-positive dark:text-positive"
+                      : n.status === "failed" ? "text-negative" : "text-muted-foreground"
                     }>{n.status}{n.error ? " ✕" : ""}</span>
                   </div>
                 ))}
-                {!nodes[run.id] && loading && <div className="text-[10px] text-muted-foreground">Loading trace…</div>}
-                {nodes[run.id] && nodes[run.id].length === 0 && <div className="text-[10px] text-muted-foreground">No node records.</div>}
+                {!nodes[run.id] && loading && <div className="text-micro text-muted-foreground">Loading trace…</div>}
+                {nodes[run.id] && nodes[run.id].length === 0 && <div className="text-micro text-muted-foreground">No node records.</div>}
               </div>
             )}
           </div>

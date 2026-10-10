@@ -238,11 +238,11 @@ export function ProScalpingTerminal() {
                     <div className="min-w-0 leading-none">
                         <div className="flex items-center gap-1.5">
                             <span className="truncate text-sm font-semibold tracking-tight text-foreground">AlgoVault Pro</span>
-                            <span className="rounded border border-primary/30 px-1 py-0.5 text-[9px] font-bold tracking-wider text-primary">
+                            <span className="rounded border border-primary/30 px-1 py-0.5 text-micro font-bold tracking-wider text-primary">
                                 PRO
                             </span>
                         </div>
-                        <div className="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground">
+                        <div className="mt-0.5 flex items-center gap-1.5 font-mono text-micro text-muted-foreground">
                             <span>{symbol}</span>
                             <span className="text-border">·</span>
                             <span>{timeframe}</span>
@@ -389,11 +389,11 @@ export function ProScalpingTerminal() {
                             >
                                 <Layers className="size-3.5" />
                                 Overlays
-                                <span className="font-mono text-[10px] text-muted-foreground">
+                                <span className="font-mono text-micro text-muted-foreground">
                                     {Object.values(layers).filter(Boolean).length}
                                 </span>
                             </button>
-                            <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[10px] text-muted-foreground" title="This terminal runs the deterministic measurement pipeline. It makes no LLM calls and consumes no AI budget.">
+                            <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-micro text-muted-foreground" title="This terminal runs the deterministic measurement pipeline. It makes no LLM calls and consumes no AI budget.">
                                 <Cpu className="size-3" />
                                 Deterministic · 0 AI spend
                             </span>
@@ -475,7 +475,7 @@ export function ProScalpingTerminal() {
                             ))}
                         </div>
                         {analysis.data?.fetchErrors && analysis.data.fetchErrors.length > 0 ? (
-                            <span className="text-[10px] text-muted-foreground">
+                            <span className="text-micro text-muted-foreground">
                                 {analysis.data.fetchErrors.map((f) => f.timeframe).join(", ")} unavailable from provider
                             </span>
                         ) : null}
@@ -530,7 +530,7 @@ export function ProScalpingTerminal() {
                             {pollMs === 0 ? <WifiOff className="size-3 text-amber-400" /> : <Wifi className="size-3 text-emerald-400" />}
                             Data status
                         </h3>
-                        <ul className="mt-1.5 space-y-1 font-mono text-[10px] text-muted-foreground">
+                        <ul className="mt-1.5 space-y-1 font-mono text-micro text-muted-foreground">
                             <li>quotes · {quotes.lastUpdated ? fmtTime(quotes.lastUpdated) : "—"}</li>
                             <li>radar · {radar.lastUpdated ? fmtTime(radar.lastUpdated) : "—"}</li>
                             <li>analysis · {analysis.lastUpdated ? fmtTime(analysis.lastUpdated) : "—"}</li>
@@ -541,7 +541,7 @@ export function ProScalpingTerminal() {
                 </aside>
             </div>
 
-            <p className="text-[10px] leading-4 text-muted-foreground">
+            <p className="text-micro leading-4 text-muted-foreground">
                 All measurements come from the AlgoVault market-data and analytics engines. Signals are produced by the
                 deterministic scanner only when its confidence and R:R gates pass; the Intelligence panel adds an AI-driven
                 decision state and Jev validation over those same deterministic facts — it never executes trades and never
@@ -591,7 +591,7 @@ function RiskCalculator({
     return (
         <div className="flex flex-wrap items-end gap-x-4 gap-y-2 text-xs">
             <label className="flex flex-col gap-0.5">
-                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Balance</span>
+                <span className="text-micro uppercase tracking-wide text-muted-foreground">Balance</span>
                 <input
                     value={balance}
                     onChange={(e) => setBalance(e.target.value)}
@@ -600,7 +600,7 @@ function RiskCalculator({
                 />
             </label>
             <label className="flex flex-col gap-0.5">
-                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Risk %</span>
+                <span className="text-micro uppercase tracking-wide text-muted-foreground">Risk %</span>
                 <input
                     value={riskPct}
                     onChange={(e) => setRiskPct(e.target.value)}
@@ -609,31 +609,31 @@ function RiskCalculator({
                 />
             </label>
             <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Entry (live)</span>
+                <span className="text-micro uppercase tracking-wide text-muted-foreground">Entry (live)</span>
                 <span className="font-mono tabular-nums text-foreground">{price !== null ? price.toFixed(price >= 100 ? 2 : 5) : "—"}</span>
             </div>
             <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Stop (nearest S)</span>
+                <span className="text-micro uppercase tracking-wide text-muted-foreground">Stop (nearest S)</span>
                 <span className="font-mono tabular-nums text-foreground">{stop !== null ? stop.toFixed(stop >= 100 ? 2 : 5) : "—"}</span>
             </div>
             {sizing ? (
                 <div className="flex flex-col gap-0.5">
-                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Suggested size</span>
+                    <span className="text-micro uppercase tracking-wide text-muted-foreground">Suggested size</span>
                     <span className="font-mono font-semibold tabular-nums text-foreground">
                         {sizing.lots < 0.01 ? `${(sizing.lots * 100).toFixed(2)} mini-lots` : `${sizing.lots.toFixed(2)} lots`}
                     </span>
-                    <span className="text-[10px] text-muted-foreground">
+                    <span className="text-micro text-muted-foreground">
                         risks ≈ {sizing.riskAmount.toFixed(2)} over {sizing.stopDistance.toFixed(sizing.stopDistance >= 10 ? 2 : 5)} of price
                     </span>
                 </div>
             ) : (
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-micro text-muted-foreground">
                     {nearestSupport === null
                         ? "No structural support level available for a stop reference."
                         : "Nearest support is above the live price — no long sizing suggestion."}
                 </p>
             )}
-            <p className="w-full text-[10px] text-muted-foreground">
+            <p className="w-full text-micro text-muted-foreground">
                 Sizing uses standard contract conventions (XAUUSD 100 oz/lot). Verify contract specs with your broker — this is a
                 calculation aid, not an order ticket.
             </p>

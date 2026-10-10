@@ -66,26 +66,26 @@ type MarketHeaderProps = {
 const TIMEFRAMES: Timeframe[] = ["M1", "M5", "M15", "M30", "H1", "H4", "D1"];
 
 function getRegimeColor(regime: string): string {
-    if (regime.includes("bullish")) return "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
-    if (regime.includes("bearish")) return "text-rose-400 bg-rose-500/10 border-rose-500/20";
-    if (regime.includes("range")) return "text-amber-400 bg-amber-500/10 border-amber-500/20";
+    if (regime.includes("bullish")) return "text-positive bg-positive/10 border-positive/20";
+    if (regime.includes("bearish")) return "text-negative bg-negative/10 border-negative/20";
+    if (regime.includes("range")) return "text-warning bg-warning/10 border-warning/20";
     if (regime.includes("breakout")) return "text-primary bg-primary/10 border-primary/20";
-    if (regime.includes("high")) return "text-orange-400 bg-orange-500/10 border-orange-500/20";
-    if (regime.includes("low")) return "text-sky-400 bg-sky-500/10 border-sky-500/20";
+    if (regime.includes("high")) return "text-warning bg-warning/10 border-warning/20";
+    if (regime.includes("low")) return "text-info bg-info/10 border-info/20";
     return "text-muted-foreground bg-muted/10 border-border/30";
 }
 
 function getVolatilityColor(state: string): string {
-    if (state === "extreme") return "text-rose-400";
-    if (state === "high") return "text-orange-400";
-    if (state === "low") return "text-sky-400";
+    if (state === "extreme") return "text-negative";
+    if (state === "high") return "text-warning";
+    if (state === "low") return "text-info";
     return "text-muted-foreground";
 }
 
 function getSessionIcon(name: string): React.ReactNode {
-    if (name === "London") return <Globe size={12} className="text-sky-400" />;
-    if (name === "New York") return <Globe size={12} className="text-amber-400" />;
-    if (name === "Asian") return <Globe size={12} className="text-violet-400" />;
+    if (name === "London") return <Globe size={12} className="text-info" />;
+    if (name === "New York") return <Globe size={12} className="text-warning" />;
+    if (name === "Asian") return <Globe size={12} className="text-chart-3" />;
     if (name.includes("Overlap")) return <Globe2 size={12} className="text-primary" />;
     return <PauseCircle size={12} className="text-muted-foreground" />;
 }
@@ -146,7 +146,7 @@ export default function MarketHeader({
                         {quote ? quote.bid.toFixed(quote.bid >= 100 ? 2 : quote.bid >= 1 ? 5 : 6) : "—"}
                     </span>
                     {quote && (
-                        <span className={cn("flex items-center gap-1 text-sm font-medium", isPositive ? "text-emerald-400" : "text-rose-400")}>
+                        <span className={cn("flex items-center gap-1 text-sm font-medium", isPositive ? "text-positive" : "text-negative")}>
                             {isPositive ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
                             {isPositive ? "+" : ""}{quote.changePercent.toFixed(2)}%
                         </span>
@@ -198,7 +198,7 @@ export default function MarketHeader({
                 {/* Connection status */}
                 <div className="flex items-center gap-1.5 text-xs">
                     {isConnected ? (
-                        <><span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" /><span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" /></span> <span className="font-medium text-emerald-400">Live</span></>
+                        <><span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-60" /><span className="relative inline-flex h-2 w-2 rounded-full bg-positive" /></span> <span className="font-medium text-positive">Live</span></>
                     ) : (
                         <><WifiOff size={12} className="text-muted-foreground" /> <span className="text-muted-foreground">Offline</span></>
                     )}

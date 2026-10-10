@@ -404,7 +404,7 @@ export default function TourGuide({
                     {spotRect && (
                         <div
                             key={`ring-${stepIndex}-${retryCount}`}
-                            className="pointer-events-none fixed z-[80] rounded-xl border-2 border-sky-400 shadow-[0_0_0_4px_rgba(56,189,248,0.15),0_0_20px_rgba(56,189,248,0.4),0_0_40px_rgba(56,189,248,0.2)]"
+                            className="pointer-events-none fixed z-[80] rounded-lg border-2 border-primary/70 ring-4 ring-primary/15"
                             style={{
                                 left: spotRect.left,
                                 top: spotRect.top,
@@ -420,7 +420,7 @@ export default function TourGuide({
                     <div
                         ref={cardRef}
                         key={`card-${stepIndex}`}
-                        className="fixed z-[81] w-[min(360px,calc(100vw-24px))] animate-in fade-in-0 zoom-in-95 rounded-2xl border border-border bg-card p-5 shadow-2xl duration-200"
+                        className="fixed z-[81] w-[min(360px,calc(100vw-24px))] animate-in fade-in-0 zoom-in-95 rounded-lg border border-border bg-card p-5 shadow-2xl duration-200"
                         style={{
                             left: cardLeft,
                             top: Math.max(8, cardTop),
@@ -429,7 +429,7 @@ export default function TourGuide({
                     >
                         {/* Header row */}
                         <div className="flex items-center justify-between gap-2">
-                            <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                            <span className="text-micro font-semibold uppercase tracking-widest text-muted-foreground">
                                 {pageTitle} · {stepIndex + 1} / {steps.length}
                             </span>
                             <button
@@ -458,7 +458,7 @@ export default function TourGuide({
                                         aria-label={`Step ${i + 1}`}
                                         className={`h-1.5 rounded-full transition-all ${
                                             i === stepIndex
-                                                ? "w-5 bg-sky-400"
+                                                ? "w-5 bg-primary"
                                                 : "w-1.5 bg-muted-foreground/40 hover:bg-muted-foreground/70"
                                         }`}
                                     />
@@ -481,7 +481,7 @@ export default function TourGuide({
                                     <button
                                         type="button"
                                         onClick={() => goTo(stepIndex + 1)}
-                                        className="inline-flex items-center gap-1 rounded-lg bg-sky-500 px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-sky-400 active:scale-95"
+                                        className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90 active:scale-95"
                                     >
                                         Next <ChevronRight size={13} />
                                     </button>

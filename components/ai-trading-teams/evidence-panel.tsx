@@ -33,7 +33,7 @@ export function EvidenceChip({ kind, className }: { kind: EvidenceKind; classNam
     return (
         <span
             className={cn(
-                "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[9px] font-semibold tracking-wide",
+                "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-micro font-semibold tracking-wide",
                 meta.className,
                 className,
             )}
@@ -53,7 +53,7 @@ export const ObservationRow = memo(function ObservationRow({ observation }: { ob
                 <div className="flex flex-wrap items-center gap-1.5">
                     <EvidenceChip kind={observation.kind} />
                     {observation.reference ? (
-                        <code className="max-w-full truncate rounded bg-muted px-1 py-0.5 text-[9px] text-muted-foreground">
+                        <code className="max-w-full truncate rounded bg-muted px-1 py-0.5 text-micro text-muted-foreground">
                             {observation.reference}
                         </code>
                     ) : null}
@@ -81,7 +81,7 @@ export const AgentEvidenceCard = memo(function AgentEvidenceCard({
                     <p className="truncate text-xs font-semibold text-foreground">
                         {output.agentName ?? output.agentId}
                     </p>
-                    <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{output.summary}</p>
+                    <p className="mt-0.5 text-micro leading-snug text-muted-foreground">{output.summary}</p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
                     <StatusBadge
@@ -98,7 +98,7 @@ export const AgentEvidenceCard = memo(function AgentEvidenceCard({
                         dot
                     />
                     {output.status === "completed" ? (
-                        <span className="text-[10px] tabular-nums text-muted-foreground">
+                        <span className="text-micro tabular-nums text-muted-foreground">
                             conf {Math.round(output.confidence * 100)}%
                         </span>
                     ) : null}
@@ -108,7 +108,7 @@ export const AgentEvidenceCard = memo(function AgentEvidenceCard({
             {output.warnings?.length ? (
                 <ul className="mt-2 space-y-1">
                     {output.warnings.map((w, i) => (
-                        <li key={i} className="rounded border border-warning/30 bg-warning/5 px-2 py-1 text-[10px] text-warning">
+                        <li key={i} className="rounded border border-warning/30 bg-warning/5 px-2 py-1 text-micro text-warning">
                             {w}
                         </li>
                     ))}
@@ -119,7 +119,7 @@ export const AgentEvidenceCard = memo(function AgentEvidenceCard({
                 <button
                     type="button"
                     onClick={() => setExpanded((v) => !v)}
-                    className="mt-2 flex w-full items-center justify-between text-[10px] text-muted-foreground hover:text-foreground"
+                    className="mt-2 flex w-full items-center justify-between text-micro text-muted-foreground hover:text-foreground"
                     aria-expanded={expanded}
                 >
                     <span>
@@ -142,13 +142,13 @@ export const AgentEvidenceCard = memo(function AgentEvidenceCard({
                 <div className="mt-3 space-y-2 border-t border-border/50 pt-2">
                     {output.interpretation ? (
                         <div>
-                            <p className="text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">Interpretation</p>
+                            <p className="text-micro font-semibold tracking-wide text-muted-foreground uppercase">Interpretation</p>
                             <p className="mt-0.5 text-xs leading-relaxed text-foreground/85">{output.interpretation}</p>
                         </div>
                     ) : null}
                     {output.risks.length ? (
                         <div>
-                            <p className="text-[10px] font-semibold tracking-wide text-warning uppercase">Risks</p>
+                            <p className="text-micro font-semibold tracking-wide text-warning uppercase">Risks</p>
                             <ul className="mt-0.5 list-inside list-disc space-y-0.5">
                                 {output.risks.map((r, i) => (
                                     <li key={i} className="text-xs text-foreground/80">{r}</li>
@@ -158,7 +158,7 @@ export const AgentEvidenceCard = memo(function AgentEvidenceCard({
                     ) : null}
                     {output.invalidations.length ? (
                         <div>
-                            <p className="text-[10px] font-semibold tracking-wide text-destructive uppercase">Invalidation</p>
+                            <p className="text-micro font-semibold tracking-wide text-destructive uppercase">Invalidation</p>
                             <ul className="mt-0.5 list-inside list-disc space-y-0.5">
                                 {output.invalidations.map((r, i) => (
                                     <li key={i} className="text-xs text-foreground/80">{r}</li>
@@ -168,7 +168,7 @@ export const AgentEvidenceCard = memo(function AgentEvidenceCard({
                     ) : null}
                     {output.limitations.length ? (
                         <div>
-                            <p className="text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">Limitations</p>
+                            <p className="text-micro font-semibold tracking-wide text-muted-foreground uppercase">Limitations</p>
                             <ul className="mt-0.5 list-inside list-disc space-y-0.5">
                                 {output.limitations.map((r, i) => (
                                     <li key={i} className="text-xs text-muted-foreground">{r}</li>
@@ -177,7 +177,7 @@ export const AgentEvidenceCard = memo(function AgentEvidenceCard({
                         </div>
                     ) : null}
                     {output.error ? (
-                        <p className="rounded border border-destructive/40 bg-destructive/5 px-2 py-1 text-[11px] text-destructive">
+                        <p className="rounded border border-destructive/40 bg-destructive/5 px-2 py-1 text-micro text-destructive">
                             {output.error}
                         </p>
                     ) : null}
@@ -206,7 +206,7 @@ export function ConsensusBar({ consensus }: { consensus: TeamConsensus }) {
                 <span className="text-xs font-semibold text-foreground">
                     Consensus: <span className="capitalize">{consensus.stance}</span>
                 </span>
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-micro text-muted-foreground">
                     {Math.round(consensus.agreementRatio * 100)}% agreement
                 </span>
             </div>
@@ -222,7 +222,7 @@ export function ConsensusBar({ consensus }: { consensus: TeamConsensus }) {
             </div>
             <div className="flex flex-wrap gap-x-3 gap-y-1">
                 {segments.map((seg) => (
-                    <span key={seg.stance} className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <span key={seg.stance} className="inline-flex items-center gap-1 text-micro text-muted-foreground">
                         <span className={cn("h-1.5 w-1.5 rounded-full", seg.className)} />
                         <span className="capitalize">{seg.stance}</span> {seg.count}
                     </span>
@@ -235,7 +235,7 @@ export function ConsensusBar({ consensus }: { consensus: TeamConsensus }) {
                         <li
                             key={conflict.id}
                             className={cn(
-                                "rounded border px-2 py-1.5 text-[11px] leading-snug",
+                                "rounded border px-2 py-1.5 text-micro leading-snug",
                                 conflict.kind === "critical-risk"
                                     ? "border-destructive/40 bg-destructive/5 text-destructive"
                                     : conflict.kind === "stance"
@@ -280,7 +280,7 @@ export function SynthesisBrief({ synthesis }: { synthesis: ChiefSynthesis }) {
                     label={synthesis.dataFreshness.mode.toUpperCase()}
                 />
                 {synthesis.dataFreshness.stale ? <StatusBadge tone="warning" label="stale data" /> : null}
-                <span className="ml-auto text-[10px] text-muted-foreground tabular-nums">
+                <span className="ml-auto text-micro text-muted-foreground tabular-nums">
                     confidence {Math.round(synthesis.confidence * 100)}%
                 </span>
             </div>
@@ -296,7 +296,7 @@ export function SynthesisBrief({ synthesis }: { synthesis: ChiefSynthesis }) {
 
             {synthesis.evidence.length ? (
                 <div>
-                    <p className="text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">Evidence chain</p>
+                    <p className="text-micro font-semibold tracking-wide text-muted-foreground uppercase">Evidence chain</p>
                     <ul className="mt-1.5 space-y-2">
                         {synthesis.evidence.map((obs) => (
                             <ObservationRow key={obs.id} observation={obs} />
@@ -322,7 +322,7 @@ export function SynthesisBrief({ synthesis }: { synthesis: ChiefSynthesis }) {
             <Block title="Research next step">{synthesis.researchNextStep}</Block>
 
             <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
-                <p className="text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">Data freshness</p>
+                <p className="text-micro font-semibold tracking-wide text-muted-foreground uppercase">Data freshness</p>
                 <p className="mt-1 text-xs text-foreground/80">
                     Mode {synthesis.dataFreshness.mode.toUpperCase()} · data timestamp{" "}
                     <span className="tabular-nums">{synthesis.dataFreshness.dataTimestamp}</span>
@@ -336,7 +336,7 @@ export function SynthesisBrief({ synthesis }: { synthesis: ChiefSynthesis }) {
                 ) : null}
             </div>
 
-            <p className="text-[10px] leading-relaxed text-muted-foreground">{synthesis.disclaimer}</p>
+            <p className="text-micro leading-relaxed text-muted-foreground">{synthesis.disclaimer}</p>
         </div>
     );
 }
@@ -344,7 +344,7 @@ export function SynthesisBrief({ synthesis }: { synthesis: ChiefSynthesis }) {
 function Block({ title, children }: { title: string; children: React.ReactNode }) {
     return (
         <div>
-            <p className="text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">{title}</p>
+            <p className="text-micro font-semibold tracking-wide text-muted-foreground uppercase">{title}</p>
             <div className="mt-1 text-xs leading-relaxed text-foreground/85">{children}</div>
         </div>
     );
@@ -371,7 +371,7 @@ function CaseList({
                         : "text-muted-foreground";
     return (
         <div>
-            <p className={cn("text-[10px] font-semibold tracking-wide uppercase", toneClass)}>{title}</p>
+            <p className={cn("text-micro font-semibold tracking-wide uppercase", toneClass)}>{title}</p>
             {items.length ? (
                 <ul className="mt-1.5 space-y-1">
                     {items.map((item, i) => (

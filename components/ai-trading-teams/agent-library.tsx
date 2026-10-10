@@ -142,7 +142,7 @@ export function AgentLibrary({
                                                 }))
                                             }
                                             aria-pressed={active}
-                                            className={`rounded-full border px-2.5 py-1 text-[10px] transition-colors ${active ? "border-primary/60 bg-primary/10 text-primary" : "border-border/70 text-muted-foreground"}`}
+                                            className={`rounded-full border px-2.5 py-1 text-micro transition-colors ${active ? "border-primary/60 bg-primary/10 text-primary" : "border-border/70 text-muted-foreground"}`}
                                         >
                                             {tool}
                                         </button>
@@ -158,7 +158,7 @@ export function AgentLibrary({
                             Create agent
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => setCreating(false)}>Cancel</Button>
-                        <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+                        <span className="inline-flex items-center gap-1 text-micro text-muted-foreground">
                             <ShieldCheck className="size-3" /> validated server-side
                         </span>
                     </div>
@@ -173,20 +173,20 @@ export function AgentLibrary({
                             <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0">
                                     <p className="truncate text-sm font-semibold">{agent.name}</p>
-                                    <p className="text-[10px] text-muted-foreground">{agent.category} · v{agent.version}</p>
+                                    <p className="text-micro text-muted-foreground">{agent.category} · v{agent.version}</p>
                                 </div>
                                 <StatusBadge
                                     tone={agent.enabled === false ? "neutral" : agent.builtin ? "info" : "active"}
                                     label={agent.enabled === false ? "disabled" : agent.builtin ? "built-in" : "custom"}
                                 />
                             </div>
-                            <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-muted-foreground">{agent.description}</p>
+                            <p className="mt-1 line-clamp-2 text-micro leading-snug text-muted-foreground">{agent.description}</p>
                             <div className="mt-1.5 flex flex-wrap gap-1">
                                 {agent.tools.slice(0, 4).map((tool) => (
-                                    <Badge key={tool} variant="outline" className="text-[9px]">{tool}</Badge>
+                                    <Badge key={tool} variant="outline" className="text-micro">{tool}</Badge>
                                 ))}
                                 {agent.tools.length > 4 ? (
-                                    <Badge variant="outline" className="text-[9px]">+{agent.tools.length - 4}</Badge>
+                                    <Badge variant="outline" className="text-micro">+{agent.tools.length - 4}</Badge>
                                 ) : null}
                             </div>
                         </div>
@@ -194,7 +194,7 @@ export function AgentLibrary({
                 ))}
             </div>
 
-            <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
+            <p className="flex items-start gap-1.5 text-micro text-muted-foreground">
                 <Info className="mt-0.5 size-3.5 shrink-0" />
                 Agents interpret deterministic AlgoVault intelligence — they never replace the Smart Money, regime,
                 volatility and research engines, and they cannot present uncited claims as verified market facts.
@@ -206,7 +206,7 @@ export function AgentLibrary({
 function Field({ label, children, wide }: { label: string; children: React.ReactNode; wide?: boolean }) {
     return (
         <label className={`block ${wide ? "sm:col-span-2" : ""}`}>
-            <span className="mb-1 block text-[11px] text-muted-foreground">{label}</span>
+            <span className="mb-1 block text-micro text-muted-foreground">{label}</span>
             {children}
         </label>
     );

@@ -220,7 +220,7 @@ export function StrategyOptimizer() {
     return (
         <div className="space-y-6">
             <div className="grid gap-4 md:grid-cols-3">
-                <div className="rounded-2xl border border-border bg-card p-5">
+                <div className="rounded-lg border border-border bg-card p-5">
                     <h3 className="flex items-center gap-2 font-semibold">
                         <Sparkles size={16} className="text-violet-400" />
                         Strategy Optimizer
@@ -229,7 +229,7 @@ export function StrategyOptimizer() {
                         Grid-search backed by real market-data backtests (Strategy Lab engine)
                     </p>
                 </div>
-                <div className="rounded-2xl border border-border bg-card p-5">
+                <div className="rounded-lg border border-border bg-card p-5">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <BarChart3 size={16} />
                         <span>{symbol}</span>
@@ -239,7 +239,7 @@ export function StrategyOptimizer() {
                         <span>{direction === "long" ? "Long" : "Short"}</span>
                     </div>
                 </div>
-                <div className="rounded-2xl border border-violet-500/25 bg-violet-500/10 p-5">
+                <div className="rounded-lg border border-violet-500/25 bg-violet-500/10 p-5">
                     <div className="flex items-center gap-2 text-sm text-violet-300">
                         <Zap size={16} />
                         <span>Pro Feature</span>
@@ -248,7 +248,7 @@ export function StrategyOptimizer() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
-                <div className="rounded-2xl border border-border bg-card p-6">
+                <div className="rounded-lg border border-border bg-card p-6">
                     <h3 className="font-semibold mb-4">Configuration</h3>
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-3">
@@ -303,7 +303,7 @@ export function StrategyOptimizer() {
                                     <option key={p.param} value={p.param}>{p.label}</option>
                                 ))}
                             </select>
-                            <p className="mt-1 text-[11px] text-muted-foreground">{activeParam.description}</p>
+                            <p className="mt-1 text-micro text-muted-foreground">{activeParam.description}</p>
                         </div>
                         <div className="grid grid-cols-3 gap-3">
                             <div>
@@ -319,7 +319,7 @@ export function StrategyOptimizer() {
                                 <input type="number" step="0.1" value={step} onChange={(e) => setStep(e.target.value)} className="w-full rounded-xl border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-violet-500 focus:outline-none" />
                             </div>
                         </div>
-                        <p className="text-[11px] text-muted-foreground">
+                        <p className="text-micro text-muted-foreground">
                             {values.length > 0
                                 ? `Grid: ${values.length} combination${values.length === 1 ? "" : "s"} (${values[0]} → ${values[values.length - 1]}).`
                                 : "Invalid range — the grid is empty."}{" "}
@@ -343,7 +343,7 @@ export function StrategyOptimizer() {
                             )}
                         </button>
                         {!user && (
-                            <p className="text-center text-[11px] text-muted-foreground">Sign in to run optimizations.</p>
+                            <p className="text-center text-micro text-muted-foreground">Sign in to run optimizations.</p>
                         )}
                         {error && (
                             <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2.5 text-xs text-rose-300">
@@ -353,7 +353,7 @@ export function StrategyOptimizer() {
                     </div>
                 </div>
 
-                <div className="rounded-2xl border border-border bg-card p-6">
+                <div className="rounded-lg border border-border bg-card p-6">
                     <h3 className="font-semibold mb-4">Optimization Results</h3>
                     {results === null ? (
                         <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">
@@ -379,8 +379,8 @@ export function StrategyOptimizer() {
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm font-medium">{activeParam.label} = {String(comboValue ?? "—")}</span>
                                             <span className="flex items-center gap-1.5">
-                                                {i === 0 && <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-bold text-foreground">BEST</span>}
-                                                <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">score {result.score?.toFixed(1) ?? "—"}</span>
+                                                {i === 0 && <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-micro font-bold text-foreground">BEST</span>}
+                                                <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-micro text-muted-foreground">score {result.score?.toFixed(1) ?? "—"}</span>
                                             </span>
                                         </div>
                                         {bestValue > 0 && (
@@ -409,7 +409,7 @@ export function StrategyOptimizer() {
                                             </div>
                                         </div>
                                         {result.metrics?.totalTrades !== undefined && (
-                                            <p className="mt-2 text-[10px] text-muted-foreground">
+                                            <p className="mt-2 text-micro text-muted-foreground">
                                                 {result.metrics.totalTrades} trades · return {result.metrics.returnPct?.toFixed(1) ?? "—"}% · expectancy {result.metrics.expectancyR?.toFixed(2) ?? "—"}R
                                             </p>
                                         )}
@@ -423,7 +423,7 @@ export function StrategyOptimizer() {
 
             {best && (
                 <ProGate>
-                    <div className="rounded-2xl border border-violet-500/30 bg-violet-500/5 p-6">
+                    <div className="rounded-lg border border-violet-500/30 bg-violet-500/5 p-6">
                         <h3 className="flex items-center gap-2 font-semibold text-violet-300">
                             <Target size={18} />
                             Recommended Strategy Configuration
@@ -477,7 +477,7 @@ export function RiskManager() {
                 Risk Manager (Pro)
             </h3>
             <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl border border-border bg-card p-5">
+                <div className="rounded-lg border border-border bg-card p-5">
                     <h4 className="font-semibold mb-4">Risk Parameters</h4>
                     <div className="space-y-4">
                         <div>
@@ -498,27 +498,27 @@ export function RiskManager() {
                         </div>
                     </div>
                 </div>
-                <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-5">
+                <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/5 p-5">
                     <h4 className="font-semibold mb-4">Risk Metrics</h4>
                     <div className="grid gap-3">
                         <div className="rounded-lg bg-muted/30 p-3">
-                            <p className="text-[10px] uppercase text-muted-foreground">Risk per Trade</p>
+                            <p className="text-micro uppercase text-muted-foreground">Risk per Trade</p>
                             <p className="text-xl font-bold text-emerald-400">${riskMetrics.riskPerTradeAmount.toFixed(2)}</p>
                         </div>
                         <div className="rounded-lg bg-muted/30 p-3">
-                            <p className="text-[10px] uppercase text-muted-foreground">Max Daily Loss</p>
+                            <p className="text-micro uppercase text-muted-foreground">Max Daily Loss</p>
                             <p className="text-xl font-bold text-amber-400">${riskMetrics.maxDailyLossAmount.toFixed(2)}</p>
                         </div>
                         <div className="rounded-lg bg-muted/30 p-3">
-                            <p className="text-[10px] uppercase text-muted-foreground">Max Trades/Day</p>
+                            <p className="text-micro uppercase text-muted-foreground">Max Trades/Day</p>
                             <p className="text-xl font-bold text-foreground">{riskMetrics.maxTradesPerDay}</p>
                         </div>
                         <div className="rounded-lg bg-muted/30 p-3">
-                            <p className="text-[10px] uppercase text-muted-foreground">Position Size</p>
+                            <p className="text-micro uppercase text-muted-foreground">Position Size</p>
                             <p className="text-xl font-bold text-foreground">{riskMetrics.positionSize.toFixed(2)} lots</p>
                         </div>
                         <div className="rounded-lg bg-emerald-500/10 p-3">
-                            <p className="text-[10px] uppercase text-muted-foreground">Safety Score</p>
+                            <p className="text-micro uppercase text-muted-foreground">Safety Score</p>
                             <p className={`text-xl font-bold ${riskMetrics.safetyScore > 70 ? "text-emerald-400" : "text-amber-400"}`}>
                                 {riskMetrics.safetyScore}/100
                             </p>

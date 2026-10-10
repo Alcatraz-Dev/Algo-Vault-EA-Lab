@@ -1986,13 +1986,13 @@ export default function EditBotPage() {
 
                                         </div>
 
-                                        <div className="rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1 text-xs text-emerald-600">
+                                        <div className="rounded-full border border-positive/20 bg-positive/5 px-3 py-1 text-xs text-positive">
                                             Available
                                         </div>
 
                                     </div>
                                 ) : (
-                                    <p className="mt-3 text-sm text-yellow-600">
+                                    <p className="mt-3 text-sm text-warning">
                                         No product file uploaded.
                                     </p>
                                 )}
@@ -2079,9 +2079,9 @@ export default function EditBotPage() {
                             </div>
 
                             {selectedFile && (
-                                <div className="mt-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-4">
+                                <div className="mt-4 rounded-xl border border-warning/20 bg-warning/5 p-4">
 
-                                    <p className="text-xs text-yellow-600">
+                                    <p className="text-xs text-warning">
                                         The new file will replace the current file after you click Save Changes.
                                     </p>
 
@@ -2156,7 +2156,7 @@ export default function EditBotPage() {
                             !product.file
                                 ?.fileName &&
                             !selectedFile && (
-                                <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-xs text-red-600">
+                                <div className="mt-4 rounded-xl border border-negative/20 bg-negative/5 p-4 text-xs text-negative">
                                     Upload a {productFileRule.label} before publishing this product.
                                 </div>
                             )}
@@ -2237,7 +2237,7 @@ function BrandingCard({
         currentUrl;
 
     return (
-        <div className="rounded-2xl border border-border bg-muted p-4">
+        <div className="rounded-lg border border-border bg-muted p-4">
 
             <div className="mb-4">
                 <p className="text-sm font-medium">
@@ -2281,7 +2281,7 @@ function BrandingCard({
 
             {currentFileName &&
                 !selection.file && (
-                    <p className="mb-3 truncate text-[11px] text-muted-foreground">
+                    <p className="mb-3 truncate text-micro text-muted-foreground">
                         Current:{" "}
                         {currentFileName}
                     </p>
@@ -2381,7 +2381,7 @@ function Section({
     children: React.ReactNode;
 }) {
     return (
-        <section className="rounded-2xl border border-border bg-muted/30 p-6 md:p-7">
+        <section className="rounded-lg border border-border bg-muted/30 p-6 md:p-7">
 
             <div className="mb-6 flex items-start gap-3">
 

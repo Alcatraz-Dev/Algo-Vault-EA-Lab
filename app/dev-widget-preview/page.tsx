@@ -203,7 +203,7 @@ function Card({
                     <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-positive" />
                 </span>
                 <h2 className="text-[13px] font-medium text-foreground">{title}</h2>
-                {meta ? <span className="ml-auto text-[11px] text-muted-foreground">{meta}</span> : null}
+                {meta ? <span className="ml-auto text-micro text-muted-foreground">{meta}</span> : null}
             </header>
             <div className="flex-1 p-4">{children}</div>
         </section>
@@ -213,7 +213,7 @@ function Card({
 function Stat({ label, value, tone }: { label: string; value: React.ReactNode; tone?: "positive" | "negative" }) {
     return (
         <div className="min-w-0">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="text-micro uppercase tracking-wide text-muted-foreground">{label}</p>
             <p
                 className={cn(
                     "font-numeric mt-1 text-[15px] font-semibold",
@@ -615,7 +615,7 @@ export default function DevWidgetPreviewPage() {
                                     setQuestion(QUESTIONS.find((q) => q.task === e.target.value) ?? QUESTIONS[0])
                                 }
                                 aria-label="AI task"
-                                className="rounded-md border border-border bg-background px-2 py-1 text-[11px] text-foreground"
+                                className="rounded-md border border-border bg-background px-2 py-1 text-micro text-foreground"
                             >
                                 {QUESTIONS.map((q) => (
                                     <option key={q.task} value={q.task}>
@@ -627,7 +627,7 @@ export default function DevWidgetPreviewPage() {
                                 type="button"
                                 onClick={() => void askAi()}
                                 disabled={narrativeLoading || !snapshot}
-                                className="inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-1 text-[11px] text-foreground transition hover:bg-muted disabled:opacity-60"
+                                className="inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-1 text-micro text-foreground transition hover:bg-muted disabled:opacity-60"
                             >
                                 {narrativeLoading ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />}
                                 Regenerate
@@ -647,7 +647,7 @@ export default function DevWidgetPreviewPage() {
                                 <p className="whitespace-pre-wrap text-[12px] leading-relaxed text-foreground/90">
                                     {narrative.content}
                                 </p>
-                                <dl className="grid grid-cols-2 gap-2 border-t border-border pt-2.5 text-[11px] text-muted-foreground">
+                                <dl className="grid grid-cols-2 gap-2 border-t border-border pt-2.5 text-micro text-muted-foreground">
                                     <div className="flex gap-1">
                                         <dt>model</dt>
                                         <dd className="font-numeric truncate text-foreground/80">{narrative.model}</dd>
@@ -677,11 +677,11 @@ export default function DevWidgetPreviewPage() {
                 <Card title="Multi-Timeframe Bias" meta={`${alignedBias.bullish + alignedBias.bearish}/${rows.length} directional`}>
                     <div className="space-y-3">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                            <span className="font-numeric text-[11px] uppercase tracking-wide text-muted-foreground">
+                            <span className="font-numeric text-micro uppercase tracking-wide text-muted-foreground">
                                 {symbol} · multi-timeframe
                             </span>
                             <span className="flex items-center gap-1.5">
-                                <span className="font-numeric text-[11px] text-muted-foreground">
+                                <span className="font-numeric text-micro text-muted-foreground">
                                     {alignedBias.bullish} up · {alignedBias.bearish} down
                                 </span>
                             </span>
@@ -689,7 +689,7 @@ export default function DevWidgetPreviewPage() {
                         <ul className="space-y-2.5">
                             {rows.map((row) => (
                                 <li key={row.timeframe} className="flex items-center gap-3">
-                                    <span className="font-numeric w-9 shrink-0 text-[11px] uppercase tracking-wide text-muted-foreground">
+                                    <span className="font-numeric w-9 shrink-0 text-micro uppercase tracking-wide text-muted-foreground">
                                         {row.timeframe}
                                     </span>
                                     <span className="min-w-0 flex-1">
@@ -710,12 +710,12 @@ export default function DevWidgetPreviewPage() {
                                             <span className="block h-7 w-full animate-pulse rounded-md bg-muted" />
                                         )}
                                     </span>
-                                    <span className="font-numeric w-8 shrink-0 text-right text-[11px] text-muted-foreground">
+                                    <span className="font-numeric w-8 shrink-0 text-right text-micro text-muted-foreground">
                                         {row.total ?? "—"}
                                     </span>
                                     <span
                                         className={cn(
-                                            "inline-flex w-12 items-center justify-center rounded-full border px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide",
+                                            "inline-flex w-12 items-center justify-center rounded-full border px-2 py-0.5 text-micro font-medium uppercase tracking-wide",
                                             row.bias === "bullish" && "border-positive/30 bg-positive/10 text-positive",
                                             row.bias === "bearish" && "border-negative/30 bg-negative/10 text-negative",
                                             (!row.bias || row.bias === "neutral") && "border-border bg-muted text-muted-foreground"
@@ -782,7 +782,7 @@ export default function DevWidgetPreviewPage() {
                                 <span className="flex items-center gap-1.5">
                                     <span
                                         className={cn(
-                                            "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide",
+                                            "inline-flex items-center rounded-full border px-2 py-0.5 text-micro font-medium uppercase tracking-wide",
                                             snapshot.score.bias === "bullish" && "border-positive/30 bg-positive/10 text-positive",
                                             snapshot.score.bias === "bearish" && "border-negative/30 bg-negative/10 text-negative",
                                             snapshot.score.bias === "neutral" && "border-border bg-muted text-muted-foreground"
@@ -790,7 +790,7 @@ export default function DevWidgetPreviewPage() {
                                     >
                                         {snapshot.score.bias === "bullish" ? "Buy" : snapshot.score.bias === "bearish" ? "Sell" : "Flat"}
                                     </span>
-                                    <span className="font-numeric text-[11px] text-muted-foreground">
+                                    <span className="font-numeric text-micro text-muted-foreground">
                                         {Math.round(snapshot.score.total)}/100
                                     </span>
                                 </span>
@@ -801,7 +801,7 @@ export default function DevWidgetPreviewPage() {
 
                 <Card title="Registered widget bodies">
                     <div className="space-y-3">
-                        <ul className="space-y-1 text-[11px]">
+                        <ul className="space-y-1 text-micro">
                             {["signal_core", "confidence_meter", "live_chart", "mtf_bias"].map((type) => {
                                 const spec = WIDGET_SPEC_BY_TYPE[type];
                                 return (
@@ -820,7 +820,7 @@ export default function DevWidgetPreviewPage() {
                         <div className="grid gap-3">
                             {["signal_core", "confidence_meter", "live_chart", "mtf_bias"].map((type) => (
                                 <div key={type} className="rounded-md border border-border p-3">
-                                    <p className="mb-2 text-[11px] uppercase tracking-wide text-muted-foreground">
+                                    <p className="mb-2 text-micro uppercase tracking-wide text-muted-foreground">
                                         WidgetBody({type})
                                     </p>
                                     <WidgetBody
@@ -843,7 +843,7 @@ export default function DevWidgetPreviewPage() {
                         {["market_regime", "volatility", "volume_analysis", "structure_events", "liquidity_map", "zones", "correlation_matrix", "market_breadth"].map(
                             (type) => (
                                 <div key={type} className="rounded-md border border-border p-3">
-                                    <p className="mb-2 text-[11px] uppercase tracking-wide text-muted-foreground">
+                                    <p className="mb-2 text-micro uppercase tracking-wide text-muted-foreground">
                                         WidgetBody({type}) · isPro
                                     </p>
                                     <WidgetBody

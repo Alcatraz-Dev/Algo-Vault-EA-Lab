@@ -47,7 +47,7 @@ export default function ExecutionAnalyticsPage() {
                                     { label: "Total Orders", value: String(data.totalOrders), color: "text-foreground" },
                                 ].map((m) => (
                                     <div key={m.label} className="rounded-xl border border-border/30 bg-muted/50 p-4">
-                                        <span className="text-[10px] font-semibold uppercase text-muted-foreground">{m.label}</span>
+                                        <span className="text-micro font-semibold uppercase text-muted-foreground">{m.label}</span>
                                         <p className={cn("mt-1 font-mono text-lg font-bold", m.color)}>{m.value}</p>
                                     </div>
                                 ))}
@@ -61,18 +61,18 @@ export default function ExecutionAnalyticsPage() {
                                 <div className="rounded-xl border border-border/30 bg-muted/50 p-5">
                                     <div className="flex items-center gap-2 text-xs text-muted-foreground"><Clock size={14} /> Avg Slippage</div>
                                     <p className="mt-2 text-3xl font-bold font-mono text-amber-400">{data.avgSlippage}</p>
-                                    <p className="mt-1 text-[10px] text-muted-foreground">pips per order</p>
+                                    <p className="mt-1 text-micro text-muted-foreground">pips per order</p>
                                 </div>
                                 <div className="rounded-xl border border-border/30 bg-muted/50 p-5">
                                     <div className="flex items-center gap-2 text-xs text-muted-foreground"><TrendingUp size={14} /> Cost Impact</div>
                                     <p className="mt-2 text-3xl font-bold font-mono text-muted-foreground">{data.costImpactPct}%</p>
-                                    <p className="mt-1 text-[10px] text-muted-foreground">of trade value</p>
+                                    <p className="mt-1 text-micro text-muted-foreground">of trade value</p>
                                 </div>
                             </div>
                         </>
                     )}
 
-                    <div className="rounded-xl border border-amber-500/10 bg-amber-500/[0.03] p-4 text-[11px] text-amber-400/60">
+                    <div className="rounded-xl border border-amber-500/10 bg-amber-500/[0.03] p-4 text-micro text-amber-400/60">
                         <Shield size={12} className="mr-1 inline" />
                         Execution analytics use real MT5 order data. Metrics are computed from actual fills, slippage, and costs recorded by your broker.
                     </div>

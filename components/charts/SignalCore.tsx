@@ -90,14 +90,14 @@ export default function SignalCore({
                 )}
                 style={{ width: coreSize, height: coreSize }}
             >
-                <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                <span className="text-micro uppercase tracking-[0.18em] text-muted-foreground">
                     {eyebrow}
                 </span>
                 <span className={cn("font-numeric text-xl font-semibold uppercase tracking-wider", tone.text)}>
                     {VERDICT_LABEL[verdict]}
                 </span>
                 {caption ? (
-                    <span className="max-w-[90%] truncate text-[11px] text-muted-foreground">{caption}</span>
+                    <span className="max-w-[90%] truncate text-micro text-muted-foreground">{caption}</span>
                 ) : null}
             </span>
         </div>

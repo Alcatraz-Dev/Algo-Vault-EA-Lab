@@ -48,7 +48,7 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full h-[92vh] max-h-[850px] flex flex-col p-0 overflow-hidden rounded-2xl sm:w-[95vw] sm:max-w-2xl md:max-w-4xl lg:max-w-6xl">
+      <DialogContent className="w-full h-[92vh] max-h-[850px] flex flex-col p-0 overflow-hidden rounded-lg sm:w-[95vw] sm:max-w-2xl md:max-w-4xl lg:max-w-6xl">
         {/* Header */}
         <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4 border-b border-border shrink-0">
           <div className="flex items-center justify-between">
@@ -123,12 +123,12 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-semibold text-xs sm:text-sm text-foreground truncate">{tpl.name}</span>
-                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 shrink-0 ml-2">
+                      <Badge variant="secondary" className="text-micro px-1.5 py-0.5 shrink-0 ml-2">
                         {tpl.category}
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{tpl.description}</p>
-                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                    <div className="flex items-center gap-3 text-micro text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Layers size={12} className="text-blue-500" /> {tpl.nodeCount} nodes
                       </span>
@@ -190,7 +190,7 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
                         </span>
                         <div className="flex-1 min-w-0">
                           <div className="text-xs sm:text-sm font-medium text-foreground truncate">{node.label || node.id}</div>
-                          <div className="text-[10px] sm:text-[11px] text-muted-foreground truncate">{node.type}</div>
+                          <div className="text-micro sm:text-micro text-muted-foreground truncate">{node.type}</div>
                         </div>
                         {i < activeTemplate.nodes.length - 1 && (
                           <ArrowRight size={14} className="text-muted-foreground shrink-0" />

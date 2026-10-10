@@ -91,8 +91,8 @@ export default function StrategyResearchAdminPage() {
         <AdminShell title="Strategy Research" subtitle="Research jobs · queue health · costs · fail-closed states">
             <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                    Live broker execution: <span className="font-semibold text-emerald-600">DISABLED (always)</span>
+                    <ShieldCheck className="h-4 w-4 text-positive" />
+                    Live broker execution: <span className="font-semibold text-positive">DISABLED (always)</span>
                     {data ? <Badge variant="outline">{new Date(data.generatedAt).toLocaleTimeString()}</Badge> : null}
                 </div>
                 <Button variant="outline" size="xs" onClick={() => { setLoading(true); void load(); }} disabled={!user}>
@@ -112,10 +112,10 @@ export default function StrategyResearchAdminPage() {
                     <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-6">
                         {(
                             [
-                                ["Active", data.queue.active, "text-emerald-600"],
-                                ["Paused", data.queue.paused, "text-amber-600"],
+                                ["Active", data.queue.active, "text-positive"],
+                                ["Paused", data.queue.paused, "text-warning"],
                                 ["Completed", data.queue.completed, ""],
-                                ["Failed", data.queue.failed, data.queue.failed > 0 ? "text-rose-600" : ""],
+                                ["Failed", data.queue.failed, data.queue.failed > 0 ? "text-negative" : ""],
                                 ["Cancelled", data.queue.cancelled, ""],
                                 ["Leases held", data.queue.leasesHeld, ""],
                             ] as const
@@ -154,7 +154,7 @@ export default function StrategyResearchAdminPage() {
                             <ul className="space-y-1 text-sm">
                                 <li>Backtests executed: <span className="font-semibold">{data.totals.backtests}</span></li>
                                 <li>AI requests made: <span className="font-semibold">{data.totals.aiRequests}</span></li>
-                                <li>Data quality failures: <span className={`font-semibold ${data.totals.dataQualityFailures > 0 ? "text-rose-600" : ""}`}>{data.totals.dataQualityFailures}</span></li>
+                                <li>Data quality failures: <span className={`font-semibold ${data.totals.dataQualityFailures > 0 ? "text-negative" : ""}`}>{data.totals.dataQualityFailures}</span></li>
                             </ul>
                         </div>
                         <div className="rounded-xl border bg-card p-4 shadow-sm">
@@ -164,7 +164,7 @@ export default function StrategyResearchAdminPage() {
                             ) : (
                                 <div className="flex flex-wrap gap-2">
                                     {Object.entries(data.failStates).map(([state, count]) => (
-                                        <Badge key={state} variant="outline" className="text-rose-600">{state}: {count}</Badge>
+                                        <Badge key={state} variant="outline" className="text-negative">{state}: {count}</Badge>
                                     ))}
                                 </div>
                             )}
@@ -179,11 +179,11 @@ export default function StrategyResearchAdminPage() {
                         ) : (
                             <div className="space-y-3">
                                 {data.failureDetails.map((f) => (
-                                    <div key={f.missionId} className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs dark:border-rose-900 dark:bg-rose-950/30">
+                                    <div key={f.missionId} className="rounded-lg border border-negative bg-negative-muted p-3 text-xs dark:border-negative dark:bg-negative-muted/30">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <span className="font-semibold">{f.missionId}</span>
                                             <StatusBadge label={f.stage} tone="warning" />
-                                            {f.failState ? <Badge variant="outline" className="text-rose-600">{f.failState}</Badge> : null}
+                                            {f.failState ? <Badge variant="outline" className="text-negative">{f.failState}</Badge> : null}
                                             <span className="text-muted-foreground">uid {f.uid}</span>
                                         </div>
                                         {f.error ? <p className="mt-1">{f.error}</p> : null}
@@ -238,7 +238,7 @@ export default function StrategyResearchAdminPage() {
                                                 />
                                             </td>
                                             <td className="px-2 py-1.5">{m.stage}</td>
-                                            <td className="px-2 py-1.5 text-rose-600">{m.failState ?? "—"}</td>
+                                            <td className="px-2 py-1.5 text-negative">{m.failState ?? "—"}</td>
                                             <td className="px-2 py-1.5">{m.budgetUsed?.aiRequests ?? 0} / {m.budgetUsed?.backtests ?? 0}</td>
                                             <td className="px-2 py-1.5 text-muted-foreground">{new Date(m.updatedAt).toLocaleString()}</td>
                                         </tr>

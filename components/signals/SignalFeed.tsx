@@ -58,7 +58,7 @@ const SORT_OPTIONS: { label: string; value: SortKey }[] = [
 
 function SkeletonCard() {
     return (
-        <div className="rounded-2xl border border-border/20 bg-gradient-to-br from-background/80 via-background/40 to-background/80 backdrop-blur-xl p-5">
+        <div className="rounded-lg border border-border bg-card p-5">
             <div className="flex items-center gap-3 mb-4">
                 <div className="h-10 w-10 animate-pulse rounded-xl bg-muted/20" />
                 <div className="flex-1 space-y-2">
@@ -143,16 +143,16 @@ export default function SignalFeed({
     return (
         <div className="space-y-4">
             {/* Category Tabs */}
-            <div className="flex items-center gap-1 rounded-xl border border-border/20 p-1">
+            <div className="flex items-center gap-1 rounded-md border border-border p-1">
                 {CATEGORIES.map((cat) => (
                     <button
                         key={cat.value}
                         onClick={() => setActiveCategory(cat.value)}
                         className={cn(
-                            "flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-all",
+                            "flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
                             activeCategory === cat.value
-                                ? "bg-amber-500/10 text-amber-400 shadow-sm"
-                                : "text-foreground/70 hover:text-foreground/70"
+                                ? "bg-primary/10 text-primary"
+                                : "text-foreground/70 hover:text-foreground"
                         )}
                     >
                         {cat.label}
@@ -170,7 +170,7 @@ export default function SignalFeed({
                         placeholder="Search symbol..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="h-8 w-full rounded-lg border border-border/20 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground/50 outline-none transition-colors focus:border-amber-500/30 bg-background/50"
+                        className="h-8 w-full rounded-md border border-input bg-background pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground/50 outline-none transition-colors focus:border-ring"
                     />
                 </div>
 
@@ -178,23 +178,23 @@ export default function SignalFeed({
                 <div className="relative">
                     <button
                         onClick={() => { setStatusOpen(!statusOpen); setSortOpen(false); }}
-                        className="flex h-8 items-center gap-1.5 rounded-lg border border-border/20 px-3 text-xs text-muted-foreground transition-colors hover:border-border/40 hover:text-foreground/80"
+                        className="flex h-8 items-center gap-1.5 rounded-md border border-border px-3 text-xs text-muted-foreground transition-colors hover:border-border hover:text-foreground"
                     >
                         <SlidersHorizontal size={12} />
                         {STATUS_OPTIONS.find((o) => o.value === statusFilter)?.label ?? "All Status"}
                         <ChevronDown size={12} />
                     </button>
                     {statusOpen && (
-                        <div className="absolute right-0 top-full z-50 mt-1 w-40 rounded-xl border border-border/20 bg-background p-1 shadow-xl backdrop-blur-xl">
+                        <div className="absolute right-0 top-full z-50 mt-1 w-40 rounded-lg border border-border bg-popover p-1 shadow-lg">
                             {STATUS_OPTIONS.map((opt) => (
                                 <button
                                     key={opt.value}
                                     onClick={() => { setStatusFilter(opt.value); setStatusOpen(false); }}
                                     className={cn(
-                                        "flex w-full items-center rounded-lg px-3 py-1.5 text-xs transition-colors",
+                                        "flex w-full items-center rounded-md px-3 py-1.5 text-xs transition-colors",
                                         statusFilter === opt.value
-                                            ? "bg-amber-500/10 text-amber-400"
-                                            : "text-muted-foreground hover:bg-foreground/10 hover:text-foreground"
+                                            ? "bg-primary/10 text-primary"
+                                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                     )}
                                 >
                                     {opt.label}
@@ -208,23 +208,23 @@ export default function SignalFeed({
                 <div className="relative">
                     <button
                         onClick={() => { setSortOpen(!sortOpen); setStatusOpen(false); }}
-                        className="flex h-8 items-center gap-1.5 rounded-lg border border-border/20 px-3 text-xs text-muted-foreground transition-colors hover:border-border/40 hover:text-foreground/80"
+                        className="flex h-8 items-center gap-1.5 rounded-md border border-border px-3 text-xs text-muted-foreground transition-colors hover:border-border hover:text-foreground"
                     >
                         <ArrowUpDown size={12} />
                         {SORT_OPTIONS.find((o) => o.value === sort)?.label}
                         <ChevronDown size={12} />
                     </button>
                     {sortOpen && (
-                        <div className="absolute right-0 top-full z-50 mt-1 w-36 rounded-xl border border-border/20 bg-background p-1 shadow-xl backdrop-blur-xl">
+                        <div className="absolute right-0 top-full z-50 mt-1 w-36 rounded-lg border border-border bg-popover p-1 shadow-lg">
                             {SORT_OPTIONS.map((opt) => (
                                 <button
                                     key={opt.value}
                                     onClick={() => { setSort(opt.value); setSortOpen(false); }}
                                     className={cn(
-                                        "flex w-full items-center rounded-lg px-3 py-1.5 text-xs transition-colors",
+                                        "flex w-full items-center rounded-md px-3 py-1.5 text-xs transition-colors",
                                         sort === opt.value
-                                            ? "bg-amber-500/10 text-amber-400"
-                                            : "text-muted-foreground hover:bg-foreground/10 hover:text-foreground"
+                                            ? "bg-primary/10 text-primary"
+                                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                     )}
                                 >
                                     {opt.label}
@@ -246,15 +246,15 @@ export default function SignalFeed({
             {/* Signal Count + Live Indicator */}
             <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2 text-xs text-foreground/70">
-                    <Radio size={12} className="text-amber-400" />
+                    <Radio size={12} className="text-primary" />
                     <span>
-                        <span className="font-bold text-foreground">{filtered.length}</span> signal{filtered.length !== 1 ? "s" : ""}
+                        <span className="font-numeric font-bold text-foreground">{filtered.length}</span> signal{filtered.length !== 1 ? "s" : ""}
                     </span>
                 </div>
 
                 {/* Live price indicator */}
                 {isLive && lastUpdatedAt > 0 && (
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-positive/30 bg-positive/10 px-2 py-0.5 text-micro font-semibold text-positive">
                         <Activity className="h-2.5 w-2.5 animate-pulse" />
                         Prices live · {formatRelativeTime(lastUpdatedAt)}
                     </span>
@@ -269,7 +269,7 @@ export default function SignalFeed({
                     ))}
                 </div>
             ) : filtered.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-2xl border border-border/20 py-16">
+                <div className="flex flex-col items-center justify-center rounded-lg border border-border/20 py-16">
                     <div className="mb-3 rounded-full bg-foreground/10 p-3">
                         <Radio size={24} className="text-foreground/50" />
                     </div>

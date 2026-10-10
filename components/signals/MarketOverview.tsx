@@ -28,17 +28,17 @@ function directionConfig(direction: SentimentItem["direction"]) {
         case "BUY":
             return {
                 label: "BUY",
-                color: "text-emerald-400",
-                bg: "bg-emerald-500/10",
-                border: "border-emerald-500/20",
+                color: "text-positive",
+                bg: "bg-positive/10",
+                border: "border-positive/30",
                 icon: TrendingUp,
             };
         case "SELL":
             return {
                 label: "SELL",
-                color: "text-rose-400",
-                bg: "bg-rose-500/10",
-                border: "border-rose-500/20",
+                color: "text-negative",
+                bg: "bg-negative/10",
+                border: "border-negative/30",
                 icon: TrendingDown,
             };
         case "NEUTRAL":
@@ -56,14 +56,14 @@ export default function MarketOverview({ sentiments, prices }: Props) {
     const sorted = [...sentiments].sort((a, b) => b.confidence - a.confidence);
 
     return (
-        <div className="rounded-2xl border border-border/20 bg-gradient-to-br from-background/80 via-background/40 to-background/80 backdrop-blur-xl overflow-hidden">
-            {/* Header with gradient */}
-            <div className="border-b border-border/10 bg-gradient-to-r from-amber-500/5 via-transparent to-blue-500/5 px-4 py-3">
+        <div className="overflow-hidden rounded-lg border border-border bg-card">
+            {/* Header */}
+            <div className="border-b border-border px-4 py-3">
                 <div className="flex items-center justify-between">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                         Market Sentiment
                     </h3>
-                    <span className="text-[10px] text-foreground/50">{sorted.length} symbols</span>
+                    <span className="text-micro text-foreground/50">{sorted.length} symbols</span>
                 </div>
             </div>
 
@@ -91,7 +91,7 @@ export default function MarketOverview({ sentiments, prices }: Props) {
                                     </span>
                                     <span
                                         className={cn(
-                                            "flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[9px] font-bold",
+                                            "flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-micro font-bold",
                                             dir.bg,
                                             dir.border,
                                             dir.color
@@ -108,8 +108,8 @@ export default function MarketOverview({ sentiments, prices }: Props) {
                                     if (live == null || !Number.isFinite(live) || live <= 0) return null;
                                     return (
                                         <div className="flex items-center gap-1">
-                                            <Activity size={9} className="text-emerald-400" />
-                                            <span className="font-mono text-[11px] font-bold text-foreground tabular-nums">
+                                            <Activity size={9} className="text-muted-foreground" />
+                                            <span className="font-numeric text-micro font-bold text-foreground">
                                                 {formatPrice(live, item.symbol)}
                                             </span>
                                         </div>
@@ -119,8 +119,8 @@ export default function MarketOverview({ sentiments, prices }: Props) {
                                 {/* Confidence Bar */}
                                 <div className="space-y-1">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-[9px] text-foreground/50">Confidence</span>
-                                        <span className={cn("font-mono text-[10px] font-bold", dir.color)}>
+                                        <span className="text-micro text-foreground/50">Confidence</span>
+                                        <span className={cn("font-numeric text-micro font-bold", dir.color)}>
                                             {item.confidence}%
                                         </span>
                                     </div>
@@ -129,9 +129,9 @@ export default function MarketOverview({ sentiments, prices }: Props) {
                                             className={cn(
                                                 "h-full rounded-full transition-all",
                                                 item.direction === "BUY"
-                                                    ? "bg-emerald-500"
+                                                    ? "bg-positive"
                                                     : item.direction === "SELL"
-                                                    ? "bg-rose-500"
+                                                    ? "bg-negative"
                                                     : "bg-muted"
                                             )}
                                             style={{ width: `${item.confidence}%` }}
@@ -140,7 +140,7 @@ export default function MarketOverview({ sentiments, prices }: Props) {
                                 </div>
 
                                 {/* Signal Count */}
-                                <div className="flex items-center gap-1 text-[10px] text-foreground/50">
+                                <div className="flex items-center gap-1 text-micro text-foreground/50">
                                     <BarChart3 size={9} />
                                     <span>
                                         {item.signalCount} signal{item.signalCount !== 1 ? "s" : ""}

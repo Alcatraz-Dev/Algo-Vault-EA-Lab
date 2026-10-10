@@ -1,0 +1,39 @@
+{
+  "// Hide generated build output, Turbopack caches (*.sst), deps and worktrees": "keep the explorer / search / watcher focused on source",
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/.next-build": true,
+    ".worktrees": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/out": true,
+    "**/coverage": true,
+    "**/test-results": true,
+    "**/playwright-report": true,
+    "**/blob-report": true,
+    "**/graphify-out": true,
+    "**/*.tsbuildinfo": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/.next-build": true,
+    ".worktrees": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/coverage": true,
+    "**/playwright-report": true,
+    "**/graphify-out": true,
+    "**/*.tsbuildinfo": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.next/**": true,
+    "**/.next-build/**": true,
+    ".worktrees/**": true,
+    "**/dist/**": true,
+    "**/build/**": true
+  },
+  "search.useIgnoreFiles": true
+}

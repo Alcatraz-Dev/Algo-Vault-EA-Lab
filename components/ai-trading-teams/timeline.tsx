@@ -41,7 +41,7 @@ export const TeamTimeline = memo(function TeamTimeline({
     return (
         <ol className={cn("space-y-1.5 overflow-y-auto px-1 py-2", className)}>
             {entries.map((entry, index) => (
-                <li key={`${entry.t}-${index}`} className="flex items-start gap-2 text-[11px] leading-snug">
+                <li key={`${entry.t}-${index}`} className="flex items-start gap-2 text-micro leading-snug">
                     <span className="shrink-0 tabular-nums text-muted-foreground/70">{formatTime(entry.t)}</span>
                     <span
                         className={cn(
@@ -52,7 +52,7 @@ export const TeamTimeline = memo(function TeamTimeline({
                     />
                     <span className={cn("min-w-0 flex-1", entry.kind === "error" ? "text-destructive" : "text-foreground/80")}>
                         {entry.agentId ? (
-                            <span className="mr-1 rounded bg-muted px-1 py-0.5 text-[9px] text-muted-foreground">{entry.agentId}</span>
+                            <span className="mr-1 rounded bg-muted px-1 py-0.5 text-micro text-muted-foreground">{entry.agentId}</span>
                         ) : null}
                         {entry.text}
                     </span>

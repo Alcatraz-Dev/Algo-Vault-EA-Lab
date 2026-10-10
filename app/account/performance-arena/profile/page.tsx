@@ -124,7 +124,7 @@ export default function AccountTraderProfilePage() {
                   profile.markets.map((market) => <Badge key={market} variant="outline">{market}</Badge>)
                 )}
               </div>
-              <p className="mt-3 text-[11px] text-muted-foreground">Visibility: {profile.visibility}</p>
+              <p className="mt-3 text-micro text-muted-foreground">Visibility: {profile.visibility}</p>
             </div>
 
             <div className="rounded-lg border border-border bg-card p-4">

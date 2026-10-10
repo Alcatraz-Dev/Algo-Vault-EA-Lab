@@ -23,6 +23,7 @@ import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import AdminShell from "@/components/admin/AdminShell";
+import { Badge } from "@/components/ui/badge";
 
 type AdminUser = {
     id: string;
@@ -223,7 +224,7 @@ export default function AdminUsersPage() {
                 <button
                     onClick={() => loadUsers(true)}
                     disabled={loading || refreshing}
-                    className="flex items-center justify-center gap-2 rounded-xl border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted/70 hover:text-foreground disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground disabled:opacity-50"
                 >
                     <RefreshCw
                         size={16}
@@ -235,7 +236,7 @@ export default function AdminUsersPage() {
 
                         {/* Error */}
                         {error && (
-                            <div className="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-600">
+                            <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
                                 {error}
                             </div>
                         )}
@@ -314,7 +315,7 @@ export default function AdminUsersPage() {
                                         )
                                     }
                                     placeholder="Search by name, email or user ID..."
-                                    className="h-11 w-full rounded-xl border border-border bg-muted/30 pl-10 pr-4 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-border"
+                                    className="h-11 w-full rounded-md border border-border bg-muted/30 pl-10 pr-4 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-border"
                                 />
 
                             </div>
@@ -333,7 +334,7 @@ export default function AdminUsersPage() {
                                                 .value
                                         )
                                     }
-                                    className="h-11 min-w-[160px] appearance-none rounded-xl border border-border bg-card px-4 pr-10 text-sm text-foreground outline-none"
+                                    className="h-11 min-w-[160px] appearance-none rounded-md border border-border bg-card px-4 pr-10 text-sm text-foreground outline-none"
                                 >
                                     <option value="all">
                                         All Roles
@@ -362,13 +363,13 @@ export default function AdminUsersPage() {
                         </div>
 
                         {/* Users table */}
-                        <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-muted/30">
+                        <div className="mt-6 overflow-hidden rounded-lg border border-border bg-card">
 
                             <div className="overflow-x-auto">
 
                                 <table className="w-full min-w-[1050px] text-left">
 
-                                    <thead className="border-b border-border bg-muted/30">
+                                    <thead className="border-b border-border bg-muted/40">
 
                                         <tr>
 
@@ -380,11 +381,11 @@ export default function AdminUsersPage() {
                                                 Role
                                             </th>
 
-                                            <th className="px-5 py-4 text-xs font-medium text-muted-foreground">
+                                            <th className="px-5 py-4 text-right text-xs font-medium text-muted-foreground">
                                                 Orders
                                             </th>
 
-                                            <th className="px-5 py-4 text-xs font-medium text-muted-foreground">
+                                            <th className="px-5 py-4 text-right text-xs font-medium text-muted-foreground">
                                                 Spent
                                             </th>
 
@@ -468,7 +469,7 @@ export default function AdminUsersPage() {
                                                                         }
                                                                     </p>
 
-                                                                    <p className="mt-1 font-mono text-[10px] text-muted-foreground">
+                                                                    <p className="mt-1 font-mono text-micro text-muted-foreground">
                                                                         {
                                                                             user.id
                                                                         }
@@ -483,16 +484,7 @@ export default function AdminUsersPage() {
                                                         {/* Role */}
                                                         <td className="px-5 py-4">
 
-                                                            <span
-                                                                className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs ${user.role ===
-                                                                        "admin"
-                                                                        ? "bg-muted text-foreground"
-                                                                        : user.role ===
-                                                                            "developer"
-                                                                            ? "bg-muted/50 text-foreground"
-                                                                            : "bg-muted/40 text-muted-foreground"
-                                                                    }`}
-                                                            >
+                                                            <Badge variant="outline" className="gap-1.5">
 
                                                                 {user.role ===
                                                                     "admin" && (
@@ -507,22 +499,22 @@ export default function AdminUsersPage() {
                                                                     user.role
                                                                 )}
 
-                                                            </span>
+                                                            </Badge>
 
                                                         </td>
 
                                                         {/* Orders */}
-                                                        <td className="px-5 py-4">
+                                                        <td className="px-5 py-4 text-right">
 
                                                             <div>
 
-                                                                <p className="text-sm text-foreground">
+                                                                <p className="font-numeric text-sm text-foreground">
                                                                     {
                                                                         user.paidOrders
                                                                     }
                                                                 </p>
 
-                                                                <p className="mt-1 text-xs text-muted-foreground">
+                                                                <p className="mt-1 font-numeric text-xs text-muted-foreground">
                                                                     {
                                                                         user.totalOrders
                                                                     }{" "}
@@ -534,9 +526,9 @@ export default function AdminUsersPage() {
                                                         </td>
 
                                                         {/* Spent */}
-                                                        <td className="px-5 py-4">
+                                                        <td className="px-5 py-4 text-right">
 
-                                                            <p className="text-sm font-medium text-foreground">
+                                                            <p className="font-numeric text-sm font-medium text-foreground">
                                                                 {formatCurrency(
                                                                     user.totalSpent
                                                                 )}
@@ -629,7 +621,7 @@ function StatCard({
     loading: boolean;
 }) {
     return (
-        <div className="rounded-2xl border border-border bg-muted/30 p-5">
+        <div className="rounded-lg border border-border bg-card p-5">
 
             <div className="flex items-center justify-between">
 
@@ -648,7 +640,7 @@ function StatCard({
                 {title}
             </p>
 
-            <p className="mt-1 text-2xl font-semibold">
+            <p className="mt-1 font-numeric text-2xl font-semibold">
                 {loading
                     ? "—"
                     : value}
@@ -676,7 +668,7 @@ function NavItem({
     return (
         <Link
             href={href}
-            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${active
+            className={`flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm ${active
                     ? "bg-muted text-foreground"
                     : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
                 }`}

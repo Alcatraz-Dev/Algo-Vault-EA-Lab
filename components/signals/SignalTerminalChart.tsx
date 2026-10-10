@@ -77,33 +77,33 @@ export default function SignalTerminalChart({ signal, height = 460 }: SignalTerm
     const initialLayers = useMemo(() => signalLayerState(), []);
 
     return (
-        <div className="rounded-2xl border border-border/20 overflow-hidden bg-[#0b1118]">
+        <div className="overflow-hidden rounded-lg border border-border bg-background">
             {/* Header — keeps the signal-context branding (Entry / SL / TP legend) */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border/20">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
                 <div className="flex items-center gap-2">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                         Price Chart
                     </h3>
-                    <span className="text-[10px] text-muted-foreground/50 font-mono">
+                    <span className="text-micro text-muted-foreground/50 font-mono">
                         {signal.symbol} · {timeframe}
                     </span>
                     {symbol !== signal.symbol.toUpperCase().replace(/[\s_/-]/g, "") && (
-                        <span className="text-[10px] text-muted-foreground/40">
+                        <span className="text-micro text-muted-foreground/40">
                             → {symbol}
                         </span>
                     )}
                 </div>
-                <div className="flex items-center gap-3 text-[10px]">
+                <div className="flex items-center gap-3 text-micro">
                     <span className="flex items-center gap-1">
-                        <span className="inline-block h-0.5 w-3 bg-sky-400" />
+                        <span className="inline-block h-0.5 w-3 bg-info" />
                         <span className="text-foreground/60">Entry</span>
                     </span>
                     <span className="flex items-center gap-1">
-                        <span className="inline-block h-0.5 w-3 bg-rose-400" />
+                        <span className="inline-block h-0.5 w-3 bg-negative" />
                         <span className="text-foreground/60">SL</span>
                     </span>
                     <span className="flex items-center gap-1">
-                        <span className="inline-block h-0.5 w-3 bg-emerald-400" />
+                        <span className="inline-block h-0.5 w-3 bg-positive" />
                         <span className="text-foreground/60">TP</span>
                     </span>
                 </div>

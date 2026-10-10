@@ -26,60 +26,60 @@ function eventConfig(type: SignalTimelineEvent["type"]) {
         case "SETUP_DETECTED":
             return {
                 icon: Crosshair,
-                color: "text-amber-400",
-                bg: "bg-amber-500/10",
-                border: "border-amber-500/20",
-                dot: "bg-amber-500",
+                color: "text-info",
+                bg: "bg-info/10",
+                border: "border-info/30",
+                dot: "bg-info",
             };
         case "CONFIDENCE_CHANGE":
             return {
                 icon: RefreshCw,
-                color: "text-blue-400",
-                bg: "bg-blue-500/10",
-                border: "border-blue-500/20",
-                dot: "bg-blue-500",
+                color: "text-info",
+                bg: "bg-info/10",
+                border: "border-info/30",
+                dot: "bg-info",
             };
         case "STATUS_CHANGE":
             return {
                 icon: Zap,
-                color: "text-blue-400",
-                bg: "bg-blue-500/10",
-                border: "border-blue-500/20",
-                dot: "bg-blue-500",
+                color: "text-info",
+                bg: "bg-info/10",
+                border: "border-info/30",
+                dot: "bg-info",
             };
         case "ENTRY_TRIGGERED":
             return {
                 icon: Crosshair,
-                color: "text-amber-400",
-                bg: "bg-amber-500/10",
-                border: "border-amber-500/20",
-                dot: "bg-amber-500",
+                color: "text-primary",
+                bg: "bg-primary/10",
+                border: "border-primary/30",
+                dot: "bg-primary",
             };
         case "TP1_HIT":
         case "TP2_HIT":
         case "TP3_HIT":
             return {
                 icon: CheckCircle2,
-                color: "text-emerald-400",
-                bg: "bg-emerald-500/10",
-                border: "border-emerald-500/20",
-                dot: "bg-emerald-500",
+                color: "text-positive",
+                bg: "bg-positive/10",
+                border: "border-positive/30",
+                dot: "bg-positive",
             };
         case "SL_HIT":
             return {
                 icon: XCircle,
-                color: "text-rose-400",
-                bg: "bg-rose-500/10",
-                border: "border-rose-500/20",
-                dot: "bg-rose-500",
+                color: "text-negative",
+                bg: "bg-negative/10",
+                border: "border-negative/30",
+                dot: "bg-negative",
             };
         case "SIGNAL_INVALIDATED":
             return {
                 icon: AlertTriangle,
-                color: "text-rose-400",
-                bg: "bg-rose-500/10",
-                border: "border-rose-500/20",
-                dot: "bg-rose-500",
+                color: "text-warning",
+                bg: "bg-warning/10",
+                border: "border-warning/30",
+                dot: "bg-warning",
             };
         case "SIGNAL_EXPIRED":
             return {
@@ -92,10 +92,10 @@ function eventConfig(type: SignalTimelineEvent["type"]) {
         case "MANAGEMENT_UPDATE":
             return {
                 icon: RefreshCw,
-                color: "text-blue-400",
-                bg: "bg-blue-500/10",
-                border: "border-blue-500/20",
-                dot: "bg-blue-500",
+                color: "text-info",
+                bg: "bg-info/10",
+                border: "border-info/30",
+                dot: "bg-info",
             };
         default:
             return {
@@ -132,7 +132,7 @@ export default function SignalTimeline({ events }: Props) {
 
     if (sorted.length === 0) {
         return (
-            <div className="rounded-2xl border border-border/20 bg-gradient-to-br from-background/80 via-background/40 to-background/80 backdrop-blur-xl p-4">
+            <div className="rounded-lg border border-border bg-card p-4">
                 <div className="flex flex-col items-center justify-center py-12">
                     <Clock size={20} className="mb-2 text-foreground/50" />
                     <p className="text-xs text-foreground/50">No timeline events</p>
@@ -142,9 +142,9 @@ export default function SignalTimeline({ events }: Props) {
     }
 
     return (
-        <div className="rounded-2xl border border-border/20 bg-gradient-to-br from-background/80 via-background/40 to-background/80 backdrop-blur-xl overflow-hidden">
+        <div className="overflow-hidden rounded-lg border border-border bg-card">
             {/* Header */}
-            <div className="border-b border-border/10 px-4 py-3">
+            <div className="border-b border-border px-4 py-3">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Signal Timeline
                 </h3>
@@ -181,15 +181,15 @@ export default function SignalTimeline({ events }: Props) {
                                         <div className="flex items-start justify-between gap-2">
                                             <div className="flex items-center gap-1.5">
                                                 <Icon size={11} className={cfg.color} />
-                                                <span className="text-[11px] font-medium text-foreground/70">
+                                                <span className="text-micro font-medium text-foreground/70">
                                                     {event.type.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase())}
                                                 </span>
                                             </div>
-                                            <span className="text-[9px] text-foreground/50 whitespace-nowrap">
+                                            <span className="text-micro text-foreground/50 whitespace-nowrap">
                                                 {formatTime(event.timestamp)}
                                             </span>
                                         </div>
-                                        <p className="mt-1 text-[11px] leading-relaxed text-foreground/70">
+                                        <p className="mt-1 text-micro leading-relaxed text-foreground/70">
                                             {event.message}
                                         </p>
                                     </div>

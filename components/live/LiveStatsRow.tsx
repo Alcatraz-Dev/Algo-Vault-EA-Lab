@@ -47,14 +47,14 @@ function StatCard({
   const display = useSmoothNumber(value);
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground tracking-wide uppercase">
+      <div className="flex items-center gap-2 text-micro font-medium text-muted-foreground tracking-wide uppercase">
         <Icon className="w-3.5 h-3.5 text-[#ff4d00]" />
         {label}
       </div>
       <div className="text-2xl md:text-3xl font-extrabold text-foreground leading-none tracking-tight tabular-nums">
         {display.toLocaleString()}
         {live && (
-          <span className="inline-flex items-center gap-1 ml-2 text-[11px] font-bold text-emerald-400">
+          <span className="inline-flex items-center gap-1 ml-2 text-micro font-bold text-emerald-400">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> LIVE
           </span>
         )}

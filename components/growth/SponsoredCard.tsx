@@ -21,16 +21,16 @@ export function SponsoredCard(props: SponsoredCardProps) {
         <a
             href={props.targetUrl}
             rel="sponsor"
-            className={`block rounded-xl border border-amber-200/40 bg-gradient-to-br from-amber-50/80 to-orange-50/60 p-4 shadow-sm hover:shadow transition ${
+            className={`block rounded-xl border border-warning/40 bg-gradient-to-br from-warning/80 to-warning/60 p-4 shadow-sm hover:shadow transition ${
                 props.premiumMode === "REDUCED" ? "opacity-70" : ""
             }`}
         >
             <div className="flex items-center gap-2">
-                <div className="text-xs uppercase tracking-wide text-amber-700 font-medium">
+                <div className="text-xs uppercase tracking-wide text-warning font-medium">
                     {props.placementKey || "Sponsored"}
                 </div>
                 {!compliance.passed && compliance.flags.some((f) => f.severity === "high") && (
-                    <div className="text-[10px] text-red-600">Under review</div>
+                    <div className="text-micro text-negative">Under review</div>
                 )}
             </div>
             {props.imageUrl && (
@@ -38,10 +38,10 @@ export function SponsoredCard(props: SponsoredCardProps) {
                 <img src={props.imageUrl} alt={props.title} className="mb-2 h-20 w-full object-cover rounded-lg" />
             )}
             <h4 className="font-semibold text-sm leading-tight">{props.title}</h4>
-            {props.description && <p className="text-xs text-neutral-600 mt-1">{props.description}</p>}
-            {props.advertiser && <div className="text-[10px] text-neutral-400 mt-2">By {props.advertiser}</div>}
-            {props.disclosure && <div className="text-[10px] text-amber-600 mt-1">{props.disclosure}</div>}
-            <div className="text-[10px] text-neutral-400 mt-1">{RISK_DISCLOSURE_TEXT}</div>
+            {props.description && <p className="text-xs text-muted-foreground mt-1">{props.description}</p>}
+            {props.advertiser && <div className="text-micro text-muted-foreground mt-2">By {props.advertiser}</div>}
+            {props.disclosure && <div className="text-micro text-warning mt-1">{props.disclosure}</div>}
+            <div className="text-micro text-muted-foreground mt-1">{RISK_DISCLOSURE_TEXT}</div>
         </a>
     );
 }

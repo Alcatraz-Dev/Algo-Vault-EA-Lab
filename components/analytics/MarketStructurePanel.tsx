@@ -29,12 +29,12 @@ export default function MarketStructurePanel({ events }: Props) {
         <div className="space-y-3">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    {bias === "bullish" ? <TrendingUp size={14} className="text-emerald-400" /> : bias === "bearish" ? <TrendingDown size={14} className="text-rose-400" /> : <Minus size={14} className="text-muted-foreground" />}
-                    <span className={cn("text-sm font-semibold", bias === "bullish" ? "text-emerald-400" : bias === "bearish" ? "text-rose-400" : "text-muted-foreground")}>
+                    {bias === "bullish" ? <TrendingUp size={14} className="text-positive" /> : bias === "bearish" ? <TrendingDown size={14} className="text-negative" /> : <Minus size={14} className="text-muted-foreground" />}
+                    <span className={cn("text-sm font-semibold", bias === "bullish" ? "text-positive" : bias === "bearish" ? "text-negative" : "text-muted-foreground")}>
                         {bias.toUpperCase()}
                     </span>
                 </div>
-                <div className="flex gap-2 text-[10px] text-foreground/70">
+                <div className="flex gap-2 text-micro text-foreground/70">
                     <span>BOS: {bosCount}</span>
                     <span>CHoCH: {chochCount}</span>
                 </div>
@@ -49,15 +49,15 @@ export default function MarketStructurePanel({ events }: Props) {
                         key={event.id}
                         className={cn(
                             "flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs",
-                            event.type === "BOS" ? "bg-foreground/4" : "bg-violet-500/[0.04]"
+                            event.type === "BOS" ? "bg-foreground/4" : "bg-chart-3/[0.04]"
                         )}
                     >
                         {event.direction === "bullish" ? (
-                            <ArrowUpRight size={12} className="text-emerald-400" />
+                            <ArrowUpRight size={12} className="text-positive" />
                         ) : (
-                            <ArrowDownRight size={12} className="text-rose-400" />
+                            <ArrowDownRight size={12} className="text-negative" />
                         )}
-                        <span className={cn("font-medium", event.direction === "bullish" ? "text-emerald-400" : "text-rose-400")}>
+                        <span className={cn("font-medium", event.direction === "bullish" ? "text-positive" : "text-negative")}>
                             {event.type}
                         </span>
                         <span className="font-mono text-foreground/70">{event.price.toFixed(event.price >= 100 ? 2 : 5)}</span>

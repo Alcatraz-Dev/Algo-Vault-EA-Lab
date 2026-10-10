@@ -8,12 +8,12 @@ import {
     RefreshCw,
     TrendingDown,
     Wifi,
-    WifiOff,
 } from "lucide-react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import AdminShell from "@/components/admin/AdminShell";
 import BarCompareChart from "@/components/charts/BarCompareChart";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 function formatMoney(v: number, currency = "USD") {
     try {
@@ -104,32 +104,32 @@ export default function AdminLivePage() {
     return (
         <AdminShell title="Live Accounts" subtitle="Real-time heartbeat monitoring & MT5 account statistics">
             <div className="mb-6 flex items-center justify-end gap-3">
-                <span className="flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-sm text-emerald-600">
-                    <span className="relative flex h-2 w-2">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                    </span>
-                    {online.length} Live
-                </span>
-                <span className="rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground">
-                    {offline.length} Offline
-                </span>
+                <StatusBadge
+                    tone="live"
+                    dot
+                    pulse
+                    label={`${online.length} Live`}
+                />
+                <StatusBadge
+                    tone="offline"
+                    label={`${offline.length} Offline`}
+                />
             </div>
             {/* Summary */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
                 {[
-                    { label: "Total Accounts", value: String(accounts.length), icon: Bot },
-                    { label: "Online Now", value: String(online.length), icon: Wifi },
-                    { label: "Total Balance", value: formatMoney(totalBalance), icon: DollarSign },
-                    { label: "Floating P/L", value: (totalFloating >= 0 ? "+" : "") + formatMoney(totalFloating), icon: TrendingDown },
-                ].map(({ label, value, icon: Icon }) => (
-                    <div key={label} className="rounded-2xl border border-border bg-muted/40 p-5">
+                    { label: "Total Accounts", value: String(accounts.length), icon: Bot, tone: null },
+                    { label: "Online Now", value: String(online.length), icon: Wifi, tone: null },
+                    { label: "Total Balance", value: formatMoney(totalBalance), icon: DollarSign, tone: null },
+                    { label: "Floating P/L", value: (totalFloating >= 0 ? "+" : "") + formatMoney(totalFloating), icon: TrendingDown, tone: totalFloating >= 0 ? "text-positive" : "text-negative" },
+                ].map(({ label, value, icon: Icon, tone }) => (
+                    <div key={label} className="rounded-lg border border-border bg-card p-5">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-muted-foreground">{label}</p>
-                                <p className="mt-2 text-2xl font-bold">{value}</p>
+                                <p className={`mt-2 font-numeric text-2xl font-bold ${tone ?? ""}`}>{value}</p>
                             </div>
-                            <div className="rounded-xl border border-border bg-muted/50 p-2.5">
+                            <div className="rounded-lg border border-border bg-muted/50 p-2.5">
                                 <Icon className="h-5 w-5 text-foreground" />
                             </div>
                         </div>
@@ -138,13 +138,13 @@ export default function AdminLivePage() {
             </div>
 
             {error && (
-                <div className="mb-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-600">
+                <div className="mb-5 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                     {error}
                 </div>
             )}
 
             {!loading && accounts.length > 0 && (
-                <div className="mb-8 rounded-2xl border border-border bg-muted/40 p-6">
+                <div className="mb-8 rounded-lg border border-border bg-card p-6">
                     <div className="flex items-center justify-between">
                         <div>
                             <h2 className="font-semibold">Balance by Account</h2>
@@ -152,7 +152,7 @@ export default function AdminLivePage() {
                                 Live balances across connected MT5 accounts
                             </p>
                         </div>
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted/50">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-muted/50">
                             <DollarSign className="h-5 w-5 text-foreground" />
                         </div>
                     </div>
@@ -173,29 +173,29 @@ export default function AdminLivePage() {
             )}
 
             {loading ? (
-                <div className="rounded-2xl border border-border bg-muted/30 p-16 text-center">
+                <div className="rounded-lg border border-border bg-card p-16 text-center">
                     <RefreshCw className="mx-auto h-8 w-8 animate-spin text-muted-foreground mb-3" />
                     <p className="text-sm text-muted-foreground">Loading accounts...</p>
                 </div>
             ) : accounts.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-border p-16 text-center">
+                <div className="rounded-lg border border-dashed border-border p-16 text-center">
                     <Activity className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
                     <h3 className="font-semibold">No accounts yet</h3>
                     <p className="mt-2 text-sm text-muted-foreground">Accounts appear here when an EA connects via heartbeat.</p>
                 </div>
             ) : (
-                <div className="rounded-2xl border border-border bg-muted/30 overflow-hidden">
+                <div className="rounded-lg border border-border bg-card overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-[900px] text-sm">
-                            <thead>
+                            <thead className="bg-muted/40">
                                 <tr className="border-b border-border text-xs uppercase tracking-wider text-muted-foreground">
                                     <th className="px-5 py-4 text-left">Status</th>
                                     <th className="px-5 py-4 text-left">Product / Account</th>
                                     <th className="px-5 py-4 text-left">Broker</th>
-                                    <th className="px-5 py-4 text-left">Balance</th>
-                                    <th className="px-5 py-4 text-left">Equity</th>
-                                    <th className="px-5 py-4 text-left">Floating P/L</th>
-                                    <th className="px-5 py-4 text-left">Drawdown</th>
+                                    <th className="px-5 py-4 text-right">Balance</th>
+                                    <th className="px-5 py-4 text-right">Equity</th>
+                                    <th className="px-5 py-4 text-right">Floating P/L</th>
+                                    <th className="px-5 py-4 text-right">Drawdown</th>
                                     <th className="px-5 py-4 text-left">Last Heartbeat</th>
                                 </tr>
                             </thead>
@@ -206,29 +206,30 @@ export default function AdminLivePage() {
                                     return (
                                         <tr key={acct.id} className="border-b border-border/60 last:border-0 hover:bg-muted/30">
                                             <td className="px-5 py-4">
-                                                <span className={`flex items-center gap-1.5 text-xs font-medium ${isOnline ? "text-emerald-600" : "text-muted-foreground"}`}>
-                                                    {isOnline ? <Wifi size={12} /> : <WifiOff size={12} />}
-                                                    {isOnline ? "LIVE" : "Offline"}
-                                                </span>
+                                                <StatusBadge
+                                                    tone={isOnline ? "live" : "offline"}
+                                                    dot
+                                                    label={isOnline ? "LIVE" : "Offline"}
+                                                />
                                             </td>
                                             <td className="px-5 py-4">
                                                 <p className="font-semibold text-foreground">{acct.productName || acct.productId}</p>
-                                                <p className="text-xs text-muted-foreground font-mono mt-0.5">MT5 #{acct.mt5Account}</p>
+                                                <p className="mt-0.5 font-numeric text-xs text-muted-foreground">MT5 #{acct.mt5Account}</p>
                                             </td>
                                             <td className="px-5 py-4 text-muted-foreground">
                                                 <p>{acct.broker || "—"}</p>
                                                 {acct.server && <p className="text-xs text-muted-foreground">{acct.server}</p>}
                                             </td>
-                                            <td className="px-5 py-4 font-semibold text-foreground tabular-nums">
+                                            <td className="px-5 py-4 text-right font-numeric font-semibold text-foreground">
                                                 {acct.balance != null ? formatMoney(acct.balance, acct.currency) : "—"}
                                             </td>
-                                            <td className="px-5 py-4 text-foreground tabular-nums">
+                                            <td className="px-5 py-4 text-right font-numeric text-foreground">
                                                 {acct.equity != null ? formatMoney(acct.equity, acct.currency) : "—"}
                                             </td>
-                                            <td className={`px-5 py-4 font-semibold tabular-nums ${fl >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+                                            <td className={`px-5 py-4 text-right font-numeric font-semibold ${fl >= 0 ? "text-positive" : "text-negative"}`}>
                                                 {fl >= 0 ? "+" : ""}{formatMoney(fl, acct.currency)}
                                             </td>
-                                            <td className={`px-5 py-4 tabular-nums ${(acct.drawdown || 0) > 20 ? "text-red-500" : "text-muted-foreground"}`}>
+                                            <td className={`px-5 py-4 text-right font-numeric ${(acct.drawdown || 0) > 20 ? "text-negative" : "text-muted-foreground"}`}>
                                                 {acct.drawdown != null ? `${acct.drawdown.toFixed(2)}%` : "—"}
                                             </td>
                                             <td className="px-5 py-4 text-xs text-muted-foreground">

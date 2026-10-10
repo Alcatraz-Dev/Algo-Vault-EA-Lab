@@ -47,15 +47,15 @@ export default function StrategyComparePage() {
         setSelectedIds((prev) => prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id].slice(-5));
     };
 
-    if (authLoading) return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Strategy Comparison"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div></AccountShell></div>);
+    if (authLoading) return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Strategy Comparison"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div></AccountShell></div>);
     if (!user) return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Strategy Comparison"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Target size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1></div></AccountShell></div>);
 
     return (
         <div className="min-h-screen bg-background text-foreground">
             <AccountShell title="Strategy Comparison" subtitle="Compare strategies side by side with consistent metrics">
                 <div className="space-y-6" data-guide="page-header">
-                    <div className="rounded-xl border border-border/30 bg-muted/50 p-5">
-                        <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><Target size={16} className="text-violet-400" />Select Strategies</h3>
+                    <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                        <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><Target size={16} className="text-muted-foreground" />Select Strategies</h3>
                         <div className="flex flex-wrap gap-2">
                             {[
                                 { id: "strat_1", name: "Trend M5" },
@@ -64,23 +64,23 @@ export default function StrategyComparePage() {
                                 { id: "strat_4", name: "Scalping M1" },
                                 { id: "strat_5", name: "Swing D1" },
                             ].map((s) => (
-                                <button key={s.id} type="button" onClick={() => toggleStrategy(s.id)} className={cn("rounded-lg border px-3 py-1.5 text-xs font-medium transition", selectedIds.includes(s.id) ? "border-violet-500/40 bg-violet-500/10 text-violet-400" : "border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/30")}>{s.name}</button>
+                                <button key={s.id} type="button" onClick={() => toggleStrategy(s.id)} className={cn("rounded-md border px-3 py-1.5 text-xs font-medium transition", selectedIds.includes(s.id) ? "border-primary/40 bg-primary/10 text-primary" : "border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/30")}>{s.name}</button>
                             ))}
                         </div>
                     </div>
 
-                    <button type="button" onClick={fetchData} disabled={loading || selectedIds.length < 2} className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-violet-500 transition disabled:opacity-50">
+                    <button type="button" onClick={fetchData} disabled={loading || selectedIds.length < 2} className="flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50">
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} Compare
                     </button>
 
                     {data && data.comparisons && data.comparisons.length >= 2 && (
-                        <div className="overflow-x-auto rounded-xl border border-border/30 bg-muted/50">
+                        <div className="overflow-x-auto rounded-lg border border-border/30 bg-muted/50">
                             <table className="w-full text-xs">
                                 <thead>
-                                    <tr className="border-b border-border/20 text-[10px] uppercase text-muted-foreground">
+                                    <tr className="border-b border-border/20 text-micro uppercase text-muted-foreground">
                                         <th className="px-4 py-3 text-left">Metric</th>
                                         {data.comparisons.map((c: any, i: number) => (
-                                            <th key={i} className="px-4 py-3 text-right font-mono text-foreground">{c.strategyName}</th>
+                                            <th key={i} className="px-4 py-3 text-right text-foreground">{c.strategyName}</th>
                                         ))}
                                     </tr>
                                 </thead>
@@ -100,7 +100,7 @@ export default function StrategyComparePage() {
                                         <tr key={metric.label} className="border-b border-border/10">
                                             <td className="px-4 py-2.5 text-left text-muted-foreground">{metric.label}</td>
                                             {data.comparisons.map((c: any, i: number) => (
-                                                <td key={i} className={cn("px-4 py-2.5 text-right font-mono", metric.key === "netProfit" && c[metric.key] < 0 ? "text-rose-400" : metric.key === "maxDrawdownPct" && c[metric.key] > 15 ? "text-rose-400" : "text-muted-foreground")}>
+                                                <td key={i} className={cn("px-4 py-2.5 text-right font-numeric", metric.key === "netProfit" && c[metric.key] < 0 ? "text-negative" : metric.key === "maxDrawdownPct" && c[metric.key] > 15 ? "text-negative" : "text-muted-foreground")}>
                                                     {metric.prefix || ""}{typeof c[metric.key] === "number" ? c[metric.key].toFixed(metric.key === "expectancyR" || metric.key === "sharpeLike" || metric.key === "recoveryFactor" ? 2 : 1) : c[metric.key] || "—"}{metric.suffix || ""}
                                                 </td>
                                             ))}

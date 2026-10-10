@@ -265,7 +265,7 @@ export default function ChallengeDashboardPage() {
                                 {new Date(state.attempt.expiresAt).toLocaleDateString()}
                             </span>
                             {state.quoteProvider ? (
-                                <span className="text-[11px] text-muted-foreground">quotes: {state.quoteProvider}</span>
+                                <span className="text-micro text-muted-foreground">quotes: {state.quoteProvider}</span>
                             ) : null}
                         </div>
                             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -321,7 +321,7 @@ export default function ChallengeDashboardPage() {
                                 {state.requirements.map((req) => (
                                     <li key={req.key} className="flex items-start justify-between gap-2">
                                         <span className="flex items-center gap-1.5">
-                                            <span className={`h-2 w-2 rounded-full ${req.met ? "bg-emerald-500" : "bg-amber-500"}`} />
+                                            <span className={`h-2 w-2 rounded-full ${req.met ? "bg-positive" : "bg-warning"}`} />
                                             {req.label}
                                         </span>
                                         <span className="text-right text-muted-foreground">{req.detail}</span>
@@ -353,7 +353,7 @@ export default function ChallengeDashboardPage() {
                                 <select id="arena-chart-symbol" value={chartSymbol} onChange={(event) => setChartSymbol(event.target.value)} className="max-w-44 rounded-md border border-border bg-background px-2 py-1.5 font-mono text-xs text-foreground">
                                     {symbols.map((symbol) => <option key={symbol} value={symbol}>{symbol} · {marketOfSymbol(symbol)}</option>)}
                                 </select>
-                                <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                                <div className="flex flex-wrap items-center gap-2 text-micro text-muted-foreground">
                                     <span>{chartInterval.toUpperCase()} · Pro Terminal chart</span>
                                     <span className="rounded border border-border px-2 py-1" title={chartQuote ? `Quote timestamp ${new Date(chartQuote.timestamp).toLocaleTimeString()}` : "No current quote"}>{chartQuote && Date.now() - chartQuote.timestamp <= 60_000 ? chartQuote.price.toLocaleString(undefined, { maximumFractionDigits: 6 }) : "Quote unavailable / stale"}</span>
                                     <span aria-label="Chart marker legend" className="hidden sm:inline">Entry / SL / TP levels</span>

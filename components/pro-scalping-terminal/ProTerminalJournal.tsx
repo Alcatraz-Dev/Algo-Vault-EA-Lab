@@ -139,7 +139,7 @@ export const ProTerminalJournal = memo(function ProTerminalJournal({
                                     type="button"
                                     onClick={() => setGroup(g)}
                                     className={cn(
-                                        "rounded border px-1.5 py-0.5 text-[10px] transition",
+                                        "rounded border px-1.5 py-0.5 text-micro transition",
                                         group === g
                                             ? "border-primary/40 bg-primary/10 text-primary"
                                             : "border-border text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -157,7 +157,7 @@ export const ProTerminalJournal = memo(function ProTerminalJournal({
                             <div className="min-w-0 overflow-x-auto rounded-md border border-border/70">
                                 <table className="w-full border-collapse text-xs">
                                     <thead>
-                                        <tr className="border-b border-border/60 text-left text-[10px] uppercase tracking-wide text-muted-foreground">
+                                        <tr className="border-b border-border/60 text-left text-micro uppercase tracking-wide text-muted-foreground">
                                             <th className="px-2 py-1 font-medium">{GROUP_LABEL[group].replace("By ", "")}</th>
                                             <th className="px-2 py-1 text-right font-medium">N</th>
                                             <th className="px-2 py-1 text-right font-medium">Win%</th>
@@ -204,7 +204,7 @@ export const ProTerminalJournal = memo(function ProTerminalJournal({
                                         <span className="font-mono font-semibold text-foreground">{t.symbol ?? "—"}</span>
                                         <span
                                             className={cn(
-                                                "w-14 shrink-0 rounded px-1 py-0.5 text-center text-[9px] font-bold uppercase tracking-wide",
+                                                "w-14 shrink-0 rounded px-1 py-0.5 text-center text-micro font-bold uppercase tracking-wide",
                                                 t.result === "win"
                                                     ? "bg-emerald-500/10 text-emerald-400"
                                                     : t.result === "loss"
@@ -224,12 +224,12 @@ export const ProTerminalJournal = memo(function ProTerminalJournal({
                                             <span className="min-w-0 flex-1" />
                                         )}
                                         {t.session ? (
-                                            <span className="hidden shrink-0 font-mono text-[10px] text-muted-foreground sm:inline">
+                                            <span className="hidden shrink-0 font-mono text-micro text-muted-foreground sm:inline">
                                                 {t.session}
                                             </span>
                                         ) : null}
                                         {t.timeframe ? (
-                                            <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
+                                            <span className="shrink-0 font-mono text-micro text-muted-foreground">
                                                 {t.timeframe}
                                             </span>
                                         ) : null}
@@ -245,7 +245,7 @@ export const ProTerminalJournal = memo(function ProTerminalJournal({
                                         >
                                             {t.r !== null ? fmtSignedR(t.r) : "—"}
                                         </span>
-                                        <span className="hidden w-24 shrink-0 text-right font-mono text-[10px] text-muted-foreground sm:inline">
+                                        <span className="hidden w-24 shrink-0 text-right font-mono text-micro text-muted-foreground sm:inline">
                                             {t.createdAt ? (age !== null && age < 1 ? "today" : fmtDate(t.createdAt)) : "—"}
                                         </span>
                                     </li>
@@ -256,7 +256,7 @@ export const ProTerminalJournal = memo(function ProTerminalJournal({
                             <button
                                 type="button"
                                 onClick={() => setExpanded((v) => !v)}
-                                className="flex w-full items-center justify-center gap-1 border-t border-border py-1.5 text-[10px] text-muted-foreground transition hover:text-foreground"
+                                className="flex w-full items-center justify-center gap-1 border-t border-border py-1.5 text-micro text-muted-foreground transition hover:text-foreground"
                             >
                                 <ChevronDown className={cn("size-3 transition-transform", expanded && "rotate-180")} />
                                 {expanded ? "Show less" : `Show all ${trades.length} trades`}
@@ -297,7 +297,7 @@ function Stat({
 }) {
     return (
         <div className="rounded-md border border-border/70 bg-background px-2 py-1.5" title={title}>
-            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+            <div className="text-micro uppercase tracking-wide text-muted-foreground">{label}</div>
             <div
                 className={cn(
                     "font-mono text-xs font-semibold tabular-nums",
@@ -308,7 +308,7 @@ function Stat({
             >
                 {value ?? <span className="italic text-muted-foreground">—</span>}
             </div>
-            {sub ? <div className="text-[10px] text-muted-foreground/70">{sub}</div> : null}
+            {sub ? <div className="text-micro text-muted-foreground/70">{sub}</div> : null}
         </div>
     );
 }

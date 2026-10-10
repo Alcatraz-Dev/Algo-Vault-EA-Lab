@@ -19,7 +19,7 @@ export default function BusinessEventsAdmin() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="rounded-xl border bg-card p-4 shadow-sm">
           <div className="text-xs text-muted-foreground">Layer Status</div>
-          <div className="font-semibold text-emerald-600">Active</div>
+          <div className="font-semibold text-positive">Active</div>
           <div className="text-xs text-muted-foreground mt-1">Version 1</div>
         </div>
         <div className="rounded-xl border bg-card p-4 shadow-sm">
@@ -28,7 +28,7 @@ export default function BusinessEventsAdmin() {
         </div>
         <div className="rounded-xl border bg-card p-4 shadow-sm">
           <div className="text-xs text-muted-foreground">Failed Events</div>
-          <div className={`font-semibold ${status.failedEvents > 0 ? "text-rose-600" : "text-emerald-600"}`}>{status.failedEvents}</div>
+          <div className={`font-semibold ${status.failedEvents > 0 ? "text-negative" : "text-positive"}`}>{status.failedEvents}</div>
         </div>
         <div className="rounded-xl border bg-card p-4 shadow-sm">
           <div className="text-xs text-muted-foreground">Last Sync</div>
@@ -40,7 +40,7 @@ export default function BusinessEventsAdmin() {
         <h3 className="font-semibold mb-2">Event Types</h3>
         <div className="flex flex-wrap gap-2">
           {["customer.created", "order.paid", "payment.succeeded", "license.activated", "subscription.created", "commission.created"].map((t) => (
-            <span key={t} className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">{t}</span>
+            <span key={t} className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">{t}</span>
           ))}
         </div>
         <div className="mt-4 text-sm text-muted-foreground">

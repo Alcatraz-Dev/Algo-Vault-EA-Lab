@@ -238,11 +238,11 @@ export default function AdminCopyTradingPage() {
         <AdminShell title="Copy Trading Configurations" subtitle="Monitor active follower-master account copy trade rules">
             <div className="mb-2"></div>
                         {errorMessage && (
-                            <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-600">
+                            <div className="mb-4 rounded-xl border border-negative/20 bg-negative/10 p-4 text-sm text-negative">
                                 {errorMessage}
                             </div>
                         )}
-                        <div className="mb-6 rounded-2xl border border-border bg-muted/30 p-5">
+                        <div className="mb-6 rounded-lg border border-border bg-muted/30 p-5">
                             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                 <div>
                                     <p className="text-sm font-semibold text-foreground">Global Copy Trading</p>
@@ -256,7 +256,7 @@ export default function AdminCopyTradingPage() {
                                     disabled={actionId === "global"}
                                     className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50 ${
                                         globalEnabled
-                                            ? "bg-emerald-600 text-foreground hover:bg-emerald-500"
+                                            ? "bg-positive text-foreground hover:bg-positive"
                                             : "border border-border bg-muted text-foreground hover:bg-muted/70"
                                     }`}
                                 >
@@ -273,7 +273,7 @@ export default function AdminCopyTradingPage() {
                                 { label: "Total Copied Trades", value: String(totalCopied) },
                                 { label: "Realized P/L", value: formatMoney(realizedTotal) },
                             ].map(({ label, value }) => (
-                                <div key={label} className="rounded-2xl border border-border bg-muted/40 p-5">
+                                <div key={label} className="rounded-lg border border-border bg-muted/40 p-5">
                                     <p className="text-sm text-muted-foreground">{label}</p>
                                     <p className="mt-2 text-2xl font-bold">{value}</p>
                                 </div>
@@ -281,7 +281,7 @@ export default function AdminCopyTradingPage() {
                         </div>
 
                         {adminAccounts.length > 0 && (
-                            <div className="mb-8 rounded-2xl border border-border bg-muted/30 overflow-hidden">
+                            <div className="mb-8 rounded-lg border border-border bg-muted/30 overflow-hidden">
                                 <div className="border-b border-border px-5 py-4">
                                     <p className="text-sm font-semibold text-foreground">Master Account Controls</p>
                                     <p className="mt-1 text-xs text-muted-foreground">Hide accounts from discovery or block copying without deleting follower configs.</p>
@@ -312,13 +312,13 @@ export default function AdminCopyTradingPage() {
                                                         </td>
                                                         <td className="px-5 py-4">
                                                             <div className="flex flex-wrap gap-2">
-                                                                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${account.online ? "bg-emerald-500/10 text-emerald-600" : "bg-muted text-muted-foreground"}`}>
+                                                                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${account.online ? "bg-positive/10 text-positive" : "bg-muted text-muted-foreground"}`}>
                                                                     {account.online ? "Online" : "Offline"}
                                                                 </span>
-                                                                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${hidden ? "bg-amber-500/10 text-amber-600" : "bg-emerald-500/10 text-emerald-600"}`}>
+                                                                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${hidden ? "bg-warning/10 text-warning" : "bg-positive/10 text-positive"}`}>
                                                                     {hidden ? "Hidden" : "Listed"}
                                                                 </span>
-                                                                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${blocked ? "bg-red-500/10 text-red-500" : "bg-emerald-500/10 text-emerald-600"}`}>
+                                                                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${blocked ? "bg-negative/10 text-negative" : "bg-positive/10 text-positive"}`}>
                                                                     {blocked ? "Blocked" : "Copy allowed"}
                                                                 </span>
                                                             </div>
@@ -367,12 +367,12 @@ export default function AdminCopyTradingPage() {
                                 <RefreshCw className="h-7 w-7 animate-spin text-muted-foreground" />
                             </div>
                         ) : configs.length === 0 ? (
-                            <div className="rounded-2xl border border-dashed border-border p-16 text-center">
+                            <div className="rounded-lg border border-dashed border-border p-16 text-center">
                                 <Copy className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
                                 <p className="text-muted-foreground">No copy trading configurations yet.</p>
                             </div>
                         ) : (
-                            <div className="rounded-2xl border border-border bg-muted/30 overflow-hidden">
+                            <div className="rounded-lg border border-border bg-muted/30 overflow-hidden">
                                 <div className="overflow-x-auto">
                                     <table className="w-full min-w-[800px] text-sm">
                                         <thead>
@@ -394,7 +394,7 @@ export default function AdminCopyTradingPage() {
                                                 return (
                                                 <tr key={`${cfg.userId}_${cfg.id}`} className="border-b border-border/60 last:border-0 hover:bg-muted/30">
                                                     <td className="px-5 py-4">
-                                                        <span className={`rounded-full border px-2.5 py-1 text-xs font-medium ${cfg.isActive ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600" : "border-border bg-muted/50 text-muted-foreground"}`}>
+                                                        <span className={`rounded-full border px-2.5 py-1 text-xs font-medium ${cfg.isActive ? "border-positive/20 bg-positive/10 text-positive" : "border-border bg-muted/50 text-muted-foreground"}`}>
                                                             {cfg.isActive ? "Active" : "Paused"}
                                                         </span>
                                                     </td>
@@ -404,7 +404,7 @@ export default function AdminCopyTradingPage() {
                                                     </td>
                                                     <td className="px-5 py-4">
                                                         <div className="flex items-center gap-2">
-                                                            <span className={`h-2 w-2 rounded-full ${health.online ? "bg-emerald-500" : "bg-muted"}`} />
+                                                            <span className={`h-2 w-2 rounded-full ${health.online ? "bg-positive" : "bg-muted"}`} />
                                                             <span className="font-mono text-muted-foreground">#{cfg.masterMt5Account}</span>
                                                         </div>
                                                         <p className="text-xs text-muted-foreground">{health.label}</p>
@@ -420,13 +420,13 @@ export default function AdminCopyTradingPage() {
                                                     <td className="px-5 py-4 text-muted-foreground">
                                                         <p>{cfg.totalCopied || 0} total</p>
                                                         <p className="text-xs">
-                                                            <span className="text-emerald-600">{stats.open} open</span>
+                                                            <span className="text-positive">{stats.open} open</span>
                                                             {" · "}
                                                             <span>{stats.closed} closed</span>
                                                         </p>
                                                     </td>
                                                     <td className="px-5 py-4">
-                                                        <p className={`font-semibold tabular-nums ${stats.realized >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+                                                        <p className={`font-semibold tabular-nums ${stats.realized >= 0 ? "text-positive" : "text-negative"}`}>
                                                             {formatMoney(stats.realized)}
                                                         </p>
                                                     </td>
@@ -438,14 +438,14 @@ export default function AdminCopyTradingPage() {
                                                             <button
                                                                 onClick={() => toggleConfig(cfg)}
                                                                 disabled={actionId === cfg.id}
-                                                                className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium transition ${cfg.isActive ? "border-amber-500/20 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20" : "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20"}`}
+                                                                className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium transition ${cfg.isActive ? "border-warning/20 bg-warning/10 text-warning hover:bg-warning/20" : "border-positive/20 bg-positive/10 text-positive hover:bg-positive/20"}`}
                                                             >
                                                                 {cfg.isActive ? <Pause size={12} /> : <Play size={12} />}
                                                             </button>
                                                             <button
                                                                 onClick={() => deleteConfig(cfg)}
                                                                 disabled={actionId === cfg.id}
-                                                                className="rounded-lg border border-red-500/20 bg-red-500/10 p-1.5 text-red-500 hover:bg-red-500/20 transition"
+                                                                className="rounded-lg border border-negative/20 bg-negative/10 p-1.5 text-negative hover:bg-negative/20 transition"
                                                             >
                                                                 <X size={12} />
                                                             </button>

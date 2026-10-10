@@ -545,7 +545,7 @@ export default function StudioClient() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {workflows.map(wf => (
-                <div key={wf.id} className="group flex flex-col justify-between gap-4 rounded-2xl border border-border bg-card p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5">
+                <div key={wf.id} className="group flex flex-col justify-between gap-4 rounded-lg border border-border bg-card p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5">
                   <div className="space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-semibold text-sm truncate text-foreground group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">{wf.name}</h3>
@@ -554,10 +554,10 @@ export default function StudioClient() {
                     <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{wf.description || "No description."}</p>
                   </div>
                   <div className="space-y-3 pt-2 border-t border-border/50">
-                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                    <div className="flex items-center gap-3 text-micro text-muted-foreground">
                       <span className="inline-flex items-center gap-1"><GitBranch size={11} />{wf.nodes?.length ?? 0} nodes</span>
                       <span className="inline-flex items-center gap-1"><Clock size={11} />{wf.updatedAt ? new Date(wf.updatedAt).toLocaleDateString() : "—"}</span>
-                      <span className="ml-auto text-[10px] font-mono text-muted-foreground/70">v{wf.version}</span>
+                      <span className="ml-auto text-micro font-mono text-muted-foreground/70">v{wf.version}</span>
                     </div>
                     <Button size="sm" variant="outline" className="w-full justify-center" onClick={() => checkUnsaved(() => loadWorkflowById(wf.id, wf, true))}>Open Studio</Button>
                   </div>
@@ -573,7 +573,7 @@ export default function StudioClient() {
         <div className="flex flex-col gap-3" style={{ minHeight: "calc(100vh - 160px)" }}>
 
           {/* Toolbar */}
-          <div className="flex items-center justify-between gap-2 flex-wrap rounded-2xl border border-border bg-card px-4 py-2.5 shadow-xs">
+          <div className="flex items-center justify-between gap-2 flex-wrap rounded-lg border border-border bg-card px-4 py-2.5 shadow-xs">
             <div className="flex items-center gap-3 min-w-0">
               <button onClick={() => checkUnsaved(closeBuilder)}
                 className="text-muted-foreground hover:text-foreground transition-colors shrink-0 p-1 rounded-md hover:bg-muted" title="Back to list">
@@ -583,9 +583,9 @@ export default function StudioClient() {
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold truncate max-w-[160px] sm:max-w-[240px] text-foreground">{wfName}</span>
                   {isDirty && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" title="Unsaved changes" />}
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0 font-mono">v{selected.version}</Badge>
+                  <Badge variant="outline" className="text-micro px-1.5 py-0 shrink-0 font-mono">v{selected.version}</Badge>
                 </div>
-                <p className="text-[11px] text-muted-foreground">{nodes.length} nodes · {edges.length} edges</p>
+                <p className="text-micro text-muted-foreground">{nodes.length} nodes · {edges.length} edges</p>
               </div>
             </div>
             <div className="flex items-center gap-1.5 flex-wrap" data-guide="actions">
@@ -652,7 +652,7 @@ export default function StudioClient() {
                 <p className={`font-semibold text-sm ${runOutcome.success ? "text-emerald-500" : "text-red-500"}`}>
                   {runOutcome.testMode ? "Test Run" : "Live Run"} — {runOutcome.success ? "Completed Successfully" : "Failed"}
                   {runOutcome.executedAt && (
-                    <span className="text-muted-foreground font-normal ml-2 text-[10px]">
+                    <span className="text-muted-foreground font-normal ml-2 text-micro">
                       {new Date(runOutcome.executedAt).toLocaleTimeString()}
                     </span>
                   )}
@@ -685,7 +685,7 @@ export default function StudioClient() {
               {libraryOpen && (
                 <div className="flex flex-col h-full p-3 gap-2 min-w-0" style={{ width: 224 }}>
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-[10px] uppercase tracking-wider text-muted-foreground">Library</span>
+                    <span className="font-semibold text-micro uppercase tracking-wider text-muted-foreground">Library</span>
                     <div className="flex items-center gap-0.5">
                       <button onClick={collapseAllCats} title="Collapse all categories" className="text-muted-foreground hover:text-foreground p-0.5 rounded hover:bg-muted transition-colors">
                         <ChevronsUp size={12} />
@@ -712,7 +712,7 @@ export default function StudioClient() {
                           <button
                             onClick={() => toggleCat(cat)}
                             title={expanded ? `Collapse ${NODE_CATEGORY_LABELS[cat] ?? cat}` : `Expand ${NODE_CATEGORY_LABELS[cat] ?? cat}`}
-                            className="w-full flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground mt-1 hover:text-foreground transition-colors group"
+                            className="w-full flex items-center gap-1.5 text-micro font-bold uppercase tracking-wider text-muted-foreground mt-1 hover:text-foreground transition-colors group"
                           >
                             <span style={{ color: cs.dot }}>{cs.icon}</span>
                             <span className="flex-1 text-left truncate">{NODE_CATEGORY_LABELS[cat] ?? cat}</span>
@@ -727,7 +727,7 @@ export default function StudioClient() {
                               title={n.description}
                               className="cursor-grab active:cursor-grabbing flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors border border-transparent hover:border-border">
                               <span style={{ color: cs.dot }} className="shrink-0">{cs.icon}</span>
-                              <span className="truncate text-[11px] text-foreground font-medium">{n.name}</span>
+                              <span className="truncate text-micro text-foreground font-medium">{n.name}</span>
                             </div>
                           ))}
                         </div>
@@ -778,7 +778,7 @@ export default function StudioClient() {
               {inspectorOpen && (
                 <div className="flex flex-col h-full p-3 gap-3" style={{ width: 272 }}>
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-[10px] uppercase tracking-wider text-muted-foreground">Inspector</span>
+                    <span className="font-semibold text-micro uppercase tracking-wider text-muted-foreground">Inspector</span>
                     <button onClick={() => setInspectorOpen(false)} className="text-muted-foreground hover:text-foreground"><PanelLeftClose size={13} className="rotate-180" /></button>
                   </div>
                   <Inspector selectedNode={selectedNode} selectedDef={selectedDef} nodes={nodes} setNodes={setNodes} setSelectedId={setSelectedId} deleteNode={deleteNode} />

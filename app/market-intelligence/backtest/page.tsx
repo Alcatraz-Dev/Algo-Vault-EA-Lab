@@ -9,10 +9,10 @@ export default function MarketIntelligenceBacktestPage() {
   const nav = useMemo(() => APP_NAV.map((g) => ({ ...g })), []);
   return (
     <AppShell navGroups={nav} title="Market Intelligence — Backtest Terminal" subtitle="Historical Replay · Execution · Analytics · Replay" maxWidth="max-w-[1600px]">
-      <div className="rounded-2xl border border-border/30 bg-card/60 p-6 backdrop-blur-xl">
+      <div className="rounded-lg border border-border bg-card p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-black tracking-tight">Backtest Terminal</h1>
+            <h1 className="text-base font-semibold tracking-tight">Backtest Terminal</h1>
             <Badge variant="outline">Phase 7.1</Badge>
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -22,7 +22,7 @@ export default function MarketIntelligenceBacktestPage() {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-4 mb-6">
-          <div className="rounded-xl border border-border/20 bg-background p-4">
+          <div className="rounded-lg border border-border/20 bg-background p-4">
             <h3 className="font-bold text-sm mb-3">Performance Overview</h3>
             <div className="grid grid-cols-2 gap-3 text-xs">
               <MetricCard label="Net P&L" value="—" sub="Historical" />
@@ -34,7 +34,7 @@ export default function MarketIntelligenceBacktestPage() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-border/20 bg-background p-4">
+          <div className="rounded-lg border border-border/20 bg-background p-4">
             <h3 className="font-bold text-sm mb-3">Execution Model</h3>
             <ul className="text-xs space-y-1 text-muted-foreground">
               <li>Next bar open (default)</li>
@@ -45,7 +45,7 @@ export default function MarketIntelligenceBacktestPage() {
             </ul>
           </div>
 
-          <div className="rounded-xl border border-border/20 bg-background p-4">
+          <div className="rounded-lg border border-border/20 bg-background p-4">
             <h3 className="font-bold text-sm mb-3">Data Quality</h3>
             <div className="text-xs text-muted-foreground space-y-2">
               <div className="flex justify-between"><span>Source</span><span className="font-semibold">Dataset</span></div>
@@ -57,9 +57,9 @@ export default function MarketIntelligenceBacktestPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-border/20 bg-background p-6 mb-6">
+        <div className="rounded-lg border border-border/20 bg-background p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold">Equity Curve · Drawdown</h2>
+            <h2 className="text-base font-semibold">Equity Curve · Drawdown</h2>
             <div className="flex gap-1 text-xs">
               <span className="rounded-md border border-border/30 px-2 py-0.5 text-muted-foreground">Equity</span>
               <span className="rounded-md border border-border/30 px-2 py-0.5 text-muted-foreground">Drawdown</span>
@@ -70,8 +70,8 @@ export default function MarketIntelligenceBacktestPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-border/20 bg-background p-6">
-          <h2 className="text-lg font-bold mb-4">Trade Journal</h2>
+        <div className="rounded-lg border border-border/20 bg-background p-6">
+          <h2 className="text-base font-semibold mb-4">Trade Journal</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left border-collapse">
               <thead>
@@ -86,14 +86,14 @@ export default function MarketIntelligenceBacktestPage() {
                   <th className="py-2 px-3">Reason</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-border/50">
                 <tr><td colSpan={8} className="py-6 text-center text-muted-foreground">Run a backtest to see trade history.</td></tr>
               </tbody>
             </table>
           </div>
         </div>
 
-        <div className="mt-6 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-xs text-amber-200">
+        <div className="mt-6 rounded-lg border border-warning/20 bg-warning/5 p-4 text-xs text-warning-foreground">
           <strong>Important</strong> — This terminal uses the existing deterministic Backtest Engine (Phase 3). All metrics, trades, and charts come from actual calculations. OHLC-only execution is explicitly noted. Smart Money layers (Phase 2) and Replay (Phase 3) are available through the Trading Studio workspace.
         </div>
 
@@ -110,9 +110,9 @@ export default function MarketIntelligenceBacktestPage() {
 function MetricCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="rounded-lg border border-border/20 bg-muted/30 p-3">
-      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
-      <div className="text-xl font-black mt-0.5">{value}</div>
-      <div className="text-[10px] text-muted-foreground">{sub}</div>
+      <div className="text-micro uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="text-xl font-black mt-0.5 font-numeric">{value}</div>
+      <div className="text-micro text-muted-foreground">{sub}</div>
     </div>
   );
 }

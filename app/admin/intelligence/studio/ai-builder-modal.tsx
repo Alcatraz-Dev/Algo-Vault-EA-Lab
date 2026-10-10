@@ -126,7 +126,7 @@ export function AiBuilderModal({ open, onOpenChange, onApplyGeneratedWorkflow }:
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               <div>
-                <label className="block text-[11px] text-muted-foreground font-medium mb-1">Target Symbol</label>
+                <label className="block text-micro text-muted-foreground font-medium mb-1">Target Symbol</label>
                 <Input
                   value={symbol}
                   onChange={(e) => setSymbol(e.target.value)}
@@ -135,7 +135,7 @@ export function AiBuilderModal({ open, onOpenChange, onApplyGeneratedWorkflow }:
                 />
               </div>
               <div>
-                <label className="block text-[11px] text-muted-foreground font-medium mb-1">Primary Timeframe</label>
+                <label className="block text-micro text-muted-foreground font-medium mb-1">Primary Timeframe</label>
                 <select
                   value={timeframe}
                   onChange={(e) => setTimeframe(e.target.value)}
@@ -150,7 +150,7 @@ export function AiBuilderModal({ open, onOpenChange, onApplyGeneratedWorkflow }:
                 </select>
               </div>
               <div>
-                <label className="block text-[11px] text-muted-foreground font-medium mb-1">Notification Channel</label>
+                <label className="block text-micro text-muted-foreground font-medium mb-1">Notification Channel</label>
                 <select
                   value={channel}
                   onChange={(e) => setChannel(e.target.value)}
@@ -195,14 +195,14 @@ export function AiBuilderModal({ open, onOpenChange, onApplyGeneratedWorkflow }:
                 <span className="font-bold text-xs uppercase text-muted-foreground tracking-wider">
                   AI Generation Preview
                 </span>
-                <Badge variant={isInvalid ? "destructive" : "default"} className="text-[10px]">
+                <Badge variant={isInvalid ? "destructive" : "default"} className="text-micro">
                   {isInvalid ? "Validation Failed" : "Validated & Ready"}
                 </Badge>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-medium text-muted-foreground mb-1">Workflow Name</label>
+                  <label className="block text-micro font-medium text-muted-foreground mb-1">Workflow Name</label>
                   <Input
                     value={customName}
                     onChange={(e) => setCustomName(e.target.value)}
@@ -210,7 +210,7 @@ export function AiBuilderModal({ open, onOpenChange, onApplyGeneratedWorkflow }:
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-medium text-muted-foreground mb-1">Description</label>
+                  <label className="block text-micro font-medium text-muted-foreground mb-1">Description</label>
                   <Input
                     value={customDesc}
                     onChange={(e) => setCustomDesc(e.target.value)}
@@ -251,7 +251,7 @@ export function AiBuilderModal({ open, onOpenChange, onApplyGeneratedWorkflow }:
                       <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
                       <div className="truncate flex-1">
                         <div className="font-semibold truncate">{node.label || node.id}</div>
-                        <div className="text-[10px] text-muted-foreground truncate">{node.type}</div>
+                        <div className="text-micro text-muted-foreground truncate">{node.type}</div>
                       </div>
                     </div>
                   ))}

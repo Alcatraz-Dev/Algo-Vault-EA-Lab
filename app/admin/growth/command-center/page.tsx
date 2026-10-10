@@ -103,8 +103,8 @@ function StrengthBadge({ strength, insufficient }: { strength: FeatureCorrelatio
         return <span className="text-xs text-muted-foreground">Not enough users</span>;
     }
     const styles: Record<FeatureCorrelation["strength"], string> = {
-        strong: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-        medium: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+        strong: "bg-positive/10 text-positive dark:text-positive",
+        medium: "bg-warning/10 text-warning dark:text-warning",
         low: "bg-muted text-muted-foreground",
         none: "bg-muted text-muted-foreground",
     };
@@ -187,7 +187,7 @@ export default function GrowthCommandCenterPage() {
 
 
             {data.dataQuality.scannedTruncated ? (
-                <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-700 dark:text-amber-400">
+                <div className="flex items-start gap-2 rounded-md border border-warning/30 bg-warning/5 p-3 text-sm text-warning dark:text-warning">
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
                     <p>
                         Only the most recent {fmtNumber(data.dataQuality.eventsScanned)} events were scanned. Older
@@ -323,7 +323,7 @@ export default function GrowthCommandCenterPage() {
                                             <span
                                                 className={`inline-flex items-center gap-1 ${
                                                     f.liftPctPoints > 0
-                                                        ? "text-emerald-600 dark:text-emerald-400"
+                                                        ? "text-positive dark:text-positive"
                                                         : f.liftPctPoints < 0
                                                           ? "text-muted-foreground"
                                                           : "text-muted-foreground"

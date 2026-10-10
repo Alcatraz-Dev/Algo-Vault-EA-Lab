@@ -264,7 +264,7 @@ function StatCard({
     description?: string;
 }) {
     return (
-        <div className="rounded-2xl border border-border/30 bg-foreground/8 p-5">
+        <div className="rounded-lg border border-border/30 bg-foreground/8 p-5">
             <div className="flex items-start justify-between">
                 <div>
                     <p className="text-sm text-muted-foreground">
@@ -300,8 +300,8 @@ function TradeType({
     return (
         <span
             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${isBuy
-                ? "bg-emerald-500/10 text-emerald-400"
-                : "bg-red-500/10 text-red-400"
+                ? "bg-positive/10 text-positive"
+                : "bg-negative/10 text-negative"
                 }`}
         >
             {isBuy ? (
@@ -827,7 +827,7 @@ export default function LivePerformancePage() {
                     <div className="flex flex-wrap items-center gap-3">
                         <Link
                             href="/backtests"
-                            className="inline-flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-2.5 text-sm font-medium text-amber-400 hover:bg-amber-500/20 transition-colors"
+                            className="inline-flex items-center gap-2 rounded-xl border border-warning/20 bg-warning/10 px-4 py-2.5 text-sm font-medium text-warning hover:bg-warning/20 transition-colors"
                         >
                             <FileText className="h-4 w-4" />
                             <span>Backtest Reports</span>
@@ -868,7 +868,7 @@ export default function LivePerformancePage() {
 
                 {activeLicenses.length >
                     0 && (
-                        <div className="mt-8 rounded-2xl border border-border/30 bg-foreground/8 p-4" data-guide="account-selector">
+                        <div className="mt-8 rounded-lg border border-border/30 bg-foreground/8 p-4" data-guide="account-selector">
                             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-foreground">
@@ -940,7 +940,7 @@ export default function LivePerformancePage() {
 
                 {activeLicenses.length ===
                     0 && (
-                        <div className="mt-10 rounded-2xl border border-border/30 bg-foreground/8 p-10 text-center">
+                        <div className="mt-10 rounded-lg border border-border/30 bg-foreground/8 p-10 text-center">
                             <ShieldCheck className="mx-auto h-12 w-12 text-muted-foreground" />
 
                             <h2 className="mt-5 text-xl font-semibold">
@@ -970,7 +970,7 @@ export default function LivePerformancePage() {
                         <>
                             {/* PRODUCT HEADER */}
 
-                            <div className="mt-8 rounded-2xl border border-border/30 bg-gradient-to-br from-white/[0.07] to-white/[0.02] p-6">
+                            <div className="mt-8 rounded-lg border border-border/30 bg-gradient-to-br from-white/[0.07] to-white/[0.02] p-6">
                                 <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
 
                                     <div className="flex items-center gap-4">
@@ -996,13 +996,13 @@ export default function LivePerformancePage() {
 
                                                 <span
                                                     className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${performance?.online
-                                                        ? "bg-emerald-500/10 text-emerald-400"
+                                                        ? "bg-positive/10 text-positive"
                                                         : "bg-muted/10 text-muted-foreground"
                                                         }`}
                                                 >
                                                     <span
                                                         className={`h-1.5 w-1.5 rounded-full ${performance?.online
-                                                            ? "bg-emerald-400"
+                                                            ? "bg-positive"
                                                             : "bg-muted"
                                                             }`}
                                                     />
@@ -1055,7 +1055,7 @@ export default function LivePerformancePage() {
                             {/* LOADING */}
 
                             {loading && (
-                                <div className="mt-8 rounded-2xl border border-border/30 bg-foreground/8 p-12 text-center">
+                                <div className="mt-8 rounded-lg border border-border/30 bg-foreground/8 p-12 text-center">
                                     <RefreshCw className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
 
                                     <p className="mt-4 text-sm text-muted-foreground">
@@ -1069,7 +1069,7 @@ export default function LivePerformancePage() {
 
                             {!loading &&
                                 error && (
-                                    <div className="mt-8 rounded-2xl border border-red-500/20 bg-red-500/5 p-5 text-sm text-red-300">
+                                    <div className="mt-8 rounded-lg border border-negative/20 bg-negative/5 p-5 text-sm text-negative">
                                         {error}
                                     </div>
                                 )}
@@ -1218,7 +1218,7 @@ export default function LivePerformancePage() {
 
                                         {/* EQUITY CHART */}
 
-                                        <div className="mt-8 rounded-2xl border border-border/30 bg-foreground/8 p-5 mb-10" data-guide="equity-chart">
+                                        <div className="mt-8 rounded-lg border border-border/30 bg-foreground/8 p-5 mb-10" data-guide="equity-chart">
                                             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                                                 <div>
                                                     <h3 className="text-lg font-semibold">
@@ -1388,7 +1388,7 @@ export default function LivePerformancePage() {
                                         <ProGate>
                                             <div className="grid gap-4 md:grid-cols-2">
                                                 {/* Win/Loss Pie Chart */}
-                                                <div className="rounded-2xl border border-border/30 bg-foreground/8 p-5">
+                                                <div className="rounded-lg border border-border/30 bg-foreground/8 p-5">
                                                     <h3 className="font-semibold">Win / Loss Ratio</h3>
                                                     <div className="mt-4 h-[280px] w-full">
                                                         {stats.winningTrades + stats.losingTrades > 0 ? (
@@ -1441,16 +1441,16 @@ export default function LivePerformancePage() {
                                                 </div>
 
                                                 {/* Trade Distribution */}
-                                                <div className="rounded-2xl border border-border/30 bg-foreground/8 p-5">
+                                                <div className="rounded-lg border border-border/30 bg-foreground/8 p-5">
                                                     <h3 className="font-semibold">Trade Distribution</h3>
                                                     <div className="mt-4 grid gap-3">
                                                         {[
-                                                            { label: "Average Win", value: formatMoney(Number(stats.averageWin || 0), currency), color: "text-emerald-400" },
-                                                            { label: "Average Loss", value: formatMoney(Number(stats.averageLoss || 0), currency), color: "text-rose-400" },
-                                                            { label: "Best Trade", value: formatMoney(Number(stats.bestTrade || 0), currency), color: "text-emerald-400" },
-                                                            { label: "Worst Trade", value: formatMoney(Number(stats.worstTrade || 0), currency), color: "text-rose-400" },
+                                                            { label: "Average Win", value: formatMoney(Number(stats.averageWin || 0), currency), color: "text-positive" },
+                                                            { label: "Average Loss", value: formatMoney(Number(stats.averageLoss || 0), currency), color: "text-negative" },
+                                                            { label: "Best Trade", value: formatMoney(Number(stats.bestTrade || 0), currency), color: "text-positive" },
+                                                            { label: "Worst Trade", value: formatMoney(Number(stats.worstTrade || 0), currency), color: "text-negative" },
                                                             { label: "Profit Factor", value: stats.profitFactor ? Number(stats.profitFactor).toFixed(2) : "—", color: "text-violet-400" },
-                                                            { label: "Total Profit", value: formatMoney(Number(stats.totalProfit || 0), currency), color: "text-amber-400" },
+                                                            { label: "Total Profit", value: formatMoney(Number(stats.totalProfit || 0), currency), color: "text-warning" },
                                                         ].map((item) => (
                                                             <div key={item.label} className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-2.5">
                                                                 <span className="text-sm text-muted-foreground">{item.label}</span>
@@ -1464,7 +1464,7 @@ export default function LivePerformancePage() {
                                             {/* SECONDARY STATISTICS & BOT BACKTEST */}
 
                                             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                                <div className="rounded-2xl border border-border/30 bg-foreground/8 p-5">
+                                                <div className="rounded-lg border border-border/30 bg-foreground/8 p-5">
                                                     <h3 className="font-semibold">
                                                         Performance
                                                         Statistics
@@ -1476,7 +1476,7 @@ export default function LivePerformancePage() {
                                                                 Gross Profit
                                                             </span>
 
-                                                            <span className="text-emerald-400">
+                                                            <span className="text-positive">
                                                                 {formatMoney(
                                                                     Number(
                                                                         stats.grossProfit ||
@@ -1492,7 +1492,7 @@ export default function LivePerformancePage() {
                                                                 Gross Loss
                                                             </span>
 
-                                                            <span className="text-red-400">
+                                                            <span className="text-negative">
                                                                 {formatMoney(
                                                                     -Number(
                                                                         stats.grossLoss ||
@@ -1540,7 +1540,7 @@ export default function LivePerformancePage() {
                                                                 Best Trade
                                                             </span>
 
-                                                            <span className="text-emerald-400">
+                                                            <span className="text-positive">
                                                                 {formatMoney(
                                                                     Number(
                                                                         stats.bestTrade ||
@@ -1556,7 +1556,7 @@ export default function LivePerformancePage() {
                                                                 Worst Trade
                                                             </span>
 
-                                                            <span className="text-red-400">
+                                                            <span className="text-negative">
                                                                 {formatMoney(
                                                                     Number(
                                                                         stats.worstTrade ||
@@ -1569,7 +1569,7 @@ export default function LivePerformancePage() {
                                                     </div>
                                                 </div>
 
-                                                <div className="rounded-2xl border border-border/30 bg-foreground/8 p-5">
+                                                <div className="rounded-lg border border-border/30 bg-foreground/8 p-5">
                                                     <h3 className="font-semibold">
                                                         Account
                                                         Information
@@ -1651,12 +1651,12 @@ export default function LivePerformancePage() {
                                                 </div>
 
                                                 {/* BOT BACKTEST BENCHMARK */}
-                                                <div className="rounded-2xl border border-border/30 bg-foreground/8 p-5">
+                                                <div className="rounded-lg border border-border/30 bg-foreground/8 p-5">
                                                     <div className="flex items-center justify-between">
                                                         <h3 className="font-semibold text-foreground">
                                                             Bot Backtest Benchmark
                                                         </h3>
-                                                        <span className="rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-400">
+                                                        <span className="rounded-md border border-warning/20 bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
                                                             Verified
                                                         </span>
                                                     </div>
@@ -1667,7 +1667,7 @@ export default function LivePerformancePage() {
                                                                 Backtest Return
                                                             </span>
 
-                                                            <span className="font-semibold text-emerald-400">
+                                                            <span className="font-semibold text-positive">
                                                                 {selectedProduct.performance?.profit != null
                                                                     ? `${selectedProduct.performance.profit}%`
                                                                     : "—"}
@@ -1703,7 +1703,7 @@ export default function LivePerformancePage() {
                                                                 Max Drawdown
                                                             </span>
 
-                                                            <span className="font-semibold text-red-400">
+                                                            <span className="font-semibold text-negative">
                                                                 {selectedProduct.risk?.maxDrawdown != null
                                                                     ? `${selectedProduct.risk.maxDrawdown}%`
                                                                     : "—"}
@@ -1738,7 +1738,7 @@ export default function LivePerformancePage() {
 
                                         {/* OPEN POSITIONS */}
 
-                                        <div className="mt-8 overflow-hidden rounded-2xl border border-border/60 bg-card/40">
+                                        <div className="mt-8 overflow-hidden rounded-lg border border-border/60 bg-card/40">
                                             <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
                                                 <div>
                                                     <h2 className="text-lg font-semibold text-foreground">
@@ -1751,10 +1751,10 @@ export default function LivePerformancePage() {
                                                 </div>
 
                                                 <div className="flex items-center gap-3">
-                                                    <div className="flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-sm font-medium text-emerald-400">
+                                                    <div className="flex items-center gap-1.5 rounded-full border border-positive/20 bg-positive/10 px-3 py-1.5 text-sm font-medium text-positive">
                                                         <span className="relative flex h-2 w-2">
-                                                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                                                            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                                                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-75" />
+                                                            <span className="relative inline-flex h-2 w-2 rounded-full bg-positive" />
                                                         </span>
                                                         {openPositions.length} Open
                                                     </div>
@@ -1764,7 +1764,7 @@ export default function LivePerformancePage() {
                                                         return (
                                                             <div className="text-sm text-muted-foreground">
                                                                 Floating:{" "}
-                                                                <span className={`font-semibold ${total >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                                                                <span className={`font-semibold ${total >= 0 ? "text-positive" : "text-negative"}`}>
                                                                     {total >= 0 ? "+" : ""}{formatMoney(total, currency)}
                                                                 </span>
                                                             </div>
@@ -1852,8 +1852,8 @@ export default function LivePerformancePage() {
                                                                                 <span
                                                                                     className={
                                                                                         isBuy
-                                                                                            ? "inline-flex rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400"
-                                                                                            : "inline-flex rounded-full bg-red-500/10 px-2.5 py-1 text-xs font-semibold text-red-400"
+                                                                                            ? "inline-flex rounded-full bg-positive/10 px-2.5 py-1 text-xs font-semibold text-positive"
+                                                                                            : "inline-flex rounded-full bg-negative/10 px-2.5 py-1 text-xs font-semibold text-negative"
                                                                                     }
                                                                                 >
                                                                                     {position.type ||
@@ -1886,7 +1886,7 @@ export default function LivePerformancePage() {
                                                                             </td>
 
                                                                             <td
-                                                                                className={`px-5 py-4 font-semibold tabular-nums ${profit >= 0 ? "text-emerald-400" : "text-red-400"}`}
+                                                                                className={`px-5 py-4 font-semibold tabular-nums ${profit >= 0 ? "text-positive" : "text-negative"}`}
                                                                             >
                                                                                 {profit >= 0 ? "+" : ""}
                                                                                 {formatMoney(profit, currency)}
@@ -1909,7 +1909,7 @@ export default function LivePerformancePage() {
 
                                         {/* TRADE HISTORY */}
 
-                                        <div className="mt-8 rounded-2xl border border-border/30 bg-foreground/8">
+                                        <div className="mt-8 rounded-lg border border-border/30 bg-foreground/8">
                                             <div className="flex items-center justify-between border-b border-border/30 p-5">
                                                 <div>
                                                     <h3 className="font-semibold">
@@ -2047,8 +2047,8 @@ export default function LivePerformancePage() {
                                                                             <td
                                                                                 className={`px-5 py-4 font-semibold ${netProfit >=
                                                                                     0
-                                                                                    ? "text-emerald-400"
-                                                                                    : "text-red-400"
+                                                                                    ? "text-positive"
+                                                                                    : "text-negative"
                                                                                     }`}
                                                                             >
                                                                                 {formatMoney(
@@ -2093,17 +2093,17 @@ export default function LivePerformancePage() {
 
                                         {/* RISK NOTICE */}
 
-                                        <div className="mt-8 rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-5">
+                                        <div className="mt-8 rounded-lg border border-warning/20 bg-warning/5 p-5">
                                             <div className="flex gap-3">
-                                                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-yellow-400" />
+                                                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
 
                                                 <div>
-                                                    <h3 className="font-semibold text-yellow-300">
+                                                    <h3 className="font-semibold text-warning">
                                                         Performance
                                                         Disclaimer
                                                     </h3>
 
-                                                    <p className="mt-1 text-sm leading-6 text-yellow-200/70">
+                                                    <p className="mt-1 text-sm leading-6 text-warning/70">
                                                         Live
                                                         performance
                                                         data is

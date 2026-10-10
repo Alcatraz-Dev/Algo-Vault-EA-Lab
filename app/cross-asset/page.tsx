@@ -106,7 +106,7 @@ export default function CrossAssetExplorerPage() {
                         {data ? (
                             <span
                                 className={cn(
-                                    "rounded px-2 py-1 text-[10px] font-semibold uppercase tracking-wide",
+                                    "rounded px-2 py-1 text-micro font-semibold uppercase tracking-wide",
                                     data.tier === "PRO" ? "bg-emerald-500/15 text-emerald-300" : "bg-zinc-500/20 text-zinc-300"
                                 )}
                             >
@@ -127,7 +127,7 @@ export default function CrossAssetExplorerPage() {
 
                 {/* controls */}
                 <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-3">
-                    <label className="flex flex-col gap-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                    <label className="flex flex-col gap-0.5 text-micro uppercase tracking-wide text-muted-foreground">
                         Symbol
                         <span className="flex items-center gap-1">
                             <Search className="size-3" />
@@ -145,7 +145,7 @@ export default function CrossAssetExplorerPage() {
                             />
                         </span>
                     </label>
-                    <label className="flex flex-col gap-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                    <label className="flex flex-col gap-0.5 text-micro uppercase tracking-wide text-muted-foreground">
                         Timeframe
                         <select
                             value={timeframe}
@@ -159,7 +159,7 @@ export default function CrossAssetExplorerPage() {
                             ))}
                         </select>
                     </label>
-                    <label className="flex flex-col gap-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                    <label className="flex flex-col gap-0.5 text-micro uppercase tracking-wide text-muted-foreground">
                         Window
                         <select
                             value={bars}
@@ -180,7 +180,7 @@ export default function CrossAssetExplorerPage() {
                                 type="button"
                                 onClick={() => setFilter(f.id)}
                                 className={cn(
-                                    "rounded-full border px-2.5 py-1 text-[10px] transition",
+                                    "rounded-full border px-2.5 py-1 text-micro transition",
                                     filter === f.id
                                         ? "border-primary bg-primary/15 text-primary"
                                         : "border-border text-muted-foreground hover:bg-muted"
@@ -200,7 +200,7 @@ export default function CrossAssetExplorerPage() {
                     </div>
                 ) : null}
                 {data && data.unavailableSymbols.length > 0 ? (
-                    <p className="mt-3 text-[11px] text-muted-foreground">
+                    <p className="mt-3 text-micro text-muted-foreground">
                         Excluded (no usable data): {data.unavailableSymbols.map((u) => `${u.symbol} — ${u.reason}`).join(" | ")}
                     </p>
                 ) : null}
@@ -255,7 +255,7 @@ export default function CrossAssetExplorerPage() {
                             <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">
                                 Correlation timeline
                             </h3>
-                            <span className="font-mono text-[10px] text-muted-foreground">
+                            <span className="font-mono text-micro text-muted-foreground">
                                 {timelinePair ? `${timelinePair.a} ↔ ${timelinePair.b}` : "select a relationship"}
                             </span>
                         </header>
@@ -282,7 +282,7 @@ export default function CrossAssetExplorerPage() {
                             <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">
                                 Correlation matrix
                             </h3>
-                            <span className="text-[10px] text-muted-foreground">
+                            <span className="text-micro text-muted-foreground">
                                 {bars} {timeframe} bars · click a cell to select the pair
                             </span>
                         </header>
@@ -331,13 +331,13 @@ export default function CrossAssetExplorerPage() {
                                 </p>
                             ) : (
                                 (data?.leadLag ?? []).map((l) => (
-                                    <div key={`${l.leader}-${l.follower}`} className="rounded border border-border/70 p-2 text-[11px]">
+                                    <div key={`${l.leader}-${l.follower}`} className="rounded border border-border/70 p-2 text-micro">
                                         <p className="font-mono text-xs text-foreground">
                                             {l.leader} → {l.follower} @ {l.lag} bar(s) · ρ {l.coefficient.toFixed(2)} · p{" "}
                                             {l.pValue === null ? "n/a" : l.pValue.toFixed(3)} · n {l.sampleSize}
                                         </p>
                                         <p className="mt-0.5 text-muted-foreground">{l.stabilityNote}</p>
-                                        <p className="mt-0.5 text-[10px] text-muted-foreground/80">{l.limitations[0]}</p>
+                                        <p className="mt-0.5 text-micro text-muted-foreground/80">{l.limitations[0]}</p>
                                     </div>
                                 ))
                             )}
@@ -347,7 +347,7 @@ export default function CrossAssetExplorerPage() {
 
                 {/* provenance */}
                 {data ? (
-                    <footer className="mt-4 rounded-lg border border-border bg-card/60 p-3 text-[10px] leading-4 text-muted-foreground">
+                    <footer className="mt-4 rounded-lg border border-border bg-card/60 p-3 text-micro leading-4 text-muted-foreground">
                         <p className="font-mono">
                             snapshot {data.snapshot.snapshotId} · data ts{" "}
                             {data.snapshot.dataTimestamp ? new Date(data.snapshot.dataTimestamp).toISOString() : "—"} ·

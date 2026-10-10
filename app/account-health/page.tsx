@@ -92,7 +92,7 @@ export default function AccountHealthPage() {
                     <div className="flex flex-1 flex-col items-center justify-center gap-3">
                         <Shield size={32} className="text-muted-foreground" />
                         <h1 className="text-sm font-semibold text-foreground">Sign in required</h1>
-                        <p className="text-[11px] text-muted-foreground">Your health report is tied to your account.</p>
+                        <p className="text-micro text-muted-foreground">Your health report is tied to your account.</p>
                     </div>
                 </AccountShell>
             </div>
@@ -103,19 +103,19 @@ export default function AccountHealthPage() {
     // indistinguishable from a real "your account is blown" verdict.
     if (error || !health) {
         return shell(
-            <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border/30 bg-muted/50 px-6 py-12 text-center" data-guide="score-ring">
+            <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border/30 bg-muted/50 px-6 py-12 text-center" data-guide="score-ring">
                 <Shield size={28} className={error ? "text-rose-400" : "text-muted-foreground"} />
                 <h2 className="text-sm font-semibold text-foreground">
                     {error ? "Health report unavailable" : "No trading activity yet"}
                 </h2>
-                <p className="max-w-sm text-[11px] leading-5 text-muted-foreground">
+                <p className="max-w-sm text-micro leading-5 text-muted-foreground">
                     {error || "Once you have a balance or an open position, your risk score, drawdown and exposure appear here."}
                 </p>
                 <button
                     type="button"
                     onClick={fetchHealth}
                     disabled={loading}
-                    className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/50 px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                    className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/50 px-3 py-1.5 text-micro font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
                 >
                     <RefreshCw size={12} className={loading ? "animate-spin" : ""} /> Retry
                 </button>
@@ -130,7 +130,7 @@ export default function AccountHealthPage() {
                     type="button"
                     onClick={fetchHealth}
                     disabled={loading}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/50 px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/50 px-3 py-1.5 text-micro font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
                 >
                     <RefreshCw size={12} className={loading ? "animate-spin" : ""} /> Refresh
                 </button>

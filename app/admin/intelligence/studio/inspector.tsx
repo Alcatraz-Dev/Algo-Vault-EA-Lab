@@ -70,7 +70,7 @@ export function ConfigField({ field, value, onChange }: ConfigFieldProps) {
           const sel = arr.includes(o.value);
           return (
             <button key={o.value} type="button"
-              className={`text-[10px] px-2.5 py-1 rounded-full border transition-all ${
+              className={`text-micro px-2.5 py-1 rounded-full border transition-all ${
                 sel ? "bg-primary/15 border-primary/40 text-primary font-medium" : "bg-muted border-border text-muted-foreground hover:border-primary/30"
               }`}
               onClick={() => onChange(sel ? arr.filter((v) => v !== o.value) : [...arr, o.value])}
@@ -159,7 +159,7 @@ export function Inspector({ selectedNode, selectedDef, nodes, setNodes, setSelec
         </div>
         <div className="space-y-1">
           <p className="text-xs font-medium text-muted-foreground">No Node Selected</p>
-          <p className="text-[10px] text-muted-foreground/70 max-w-[180px]">
+          <p className="text-micro text-muted-foreground/70 max-w-[180px]">
             Click on a node in the canvas to view and edit its configuration.
           </p>
         </div>
@@ -224,7 +224,7 @@ export function Inspector({ selectedNode, selectedDef, nodes, setNodes, setSelec
             <X size={13} />
           </button>
         </div>
-        <div className="flex items-center gap-2 text-[10px]">
+        <div className="flex items-center gap-2 text-micro">
           <span className="px-2 py-0.5 rounded-full bg-muted border border-border text-muted-foreground font-medium">
             {selectedDef?.name ?? nodeData?.type}
           </span>
@@ -232,7 +232,7 @@ export function Inspector({ selectedNode, selectedDef, nodes, setNodes, setSelec
           <span className="text-muted-foreground capitalize">{selectedDef?.category ?? "—"}</span>
         </div>
         {selectedDef?.description && (
-          <p className="text-[10px] text-muted-foreground leading-relaxed flex items-start gap-1.5">
+          <p className="text-micro text-muted-foreground leading-relaxed flex items-start gap-1.5">
             <Info size={10} className="shrink-0 mt-0.5 text-blue-500" />
             {selectedDef.description}
           </p>
@@ -244,7 +244,7 @@ export function Inspector({ selectedNode, selectedDef, nodes, setNodes, setSelec
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-xs font-medium text-foreground">Enabled</p>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-micro text-muted-foreground">
               {isEnabled ? "Node will execute during runs" : "Node is disabled and will be skipped"}
             </p>
           </div>
@@ -257,7 +257,7 @@ export function Inspector({ selectedNode, selectedDef, nodes, setNodes, setSelec
             </div>
           </label>
         </div>
-        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+        <div className="flex items-center gap-2 text-micro text-muted-foreground">
           {isEnabled ? <Power size={10} className="text-emerald-500" /> : <PowerOff size={10} className="text-red-500" />}
           <span>Status: {isEnabled ? "Active" : "Disabled"}</span>
         </div>
@@ -269,12 +269,12 @@ export function Inspector({ selectedNode, selectedDef, nodes, setNodes, setSelec
           <div className="space-y-3">
             {configFields.map((field: any) => (
               <div key={field.key} className="space-y-1">
-                <label className="flex items-center gap-1.5 text-[11px] font-medium text-foreground">
+                <label className="flex items-center gap-1.5 text-micro font-medium text-foreground">
                   {field.label}
-                  {field.required && <span className="text-red-500 text-[9px]">*</span>}
+                  {field.required && <span className="text-red-500 text-micro">*</span>}
                 </label>
                 {field.description && (
-                  <p className="text-[9px] text-muted-foreground mb-1">{field.description}</p>
+                  <p className="text-micro text-muted-foreground mb-1">{field.description}</p>
                 )}
                 <ConfigField
                   field={field}
@@ -290,15 +290,15 @@ export function Inspector({ selectedNode, selectedDef, nodes, setNodes, setSelec
       {/* ── Details ── */}
       <Section title="Details" icon={<Info size={12} className="text-muted-foreground" />} defaultOpen={false}>
         <div className="space-y-2">
-          <div className="flex justify-between text-[10px]">
+          <div className="flex justify-between text-micro">
             <span className="text-muted-foreground">Node ID</span>
             <span className="text-foreground font-mono">{selectedId}</span>
           </div>
-          <div className="flex justify-between text-[10px]">
+          <div className="flex justify-between text-micro">
             <span className="text-muted-foreground">Type</span>
             <span className="text-foreground font-mono">{nodeData?.type}</span>
           </div>
-          <div className="flex justify-between text-[10px]">
+          <div className="flex justify-between text-micro">
             <span className="text-muted-foreground">Position</span>
             <span className="text-foreground font-mono">
               {Math.round(selectedNode.position?.x ?? 0)}, {Math.round(selectedNode.position?.y ?? 0)}

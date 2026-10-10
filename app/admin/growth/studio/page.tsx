@@ -76,7 +76,7 @@ export default function MarketingStudioPage() {
 
       <div className="grid lg:grid-cols-[320px_1fr] gap-4">
         {/* Campaign List */}
-        <div className="border rounded-2xl bg-card p-4 space-y-3 overflow-y-auto max-h-[80vh]">
+        <div className="border rounded-lg bg-card p-4 space-y-3 overflow-y-auto max-h-[80vh]">
           <div className="flex gap-2">
             <Input placeholder="Search campaigns..." value={query} onChange={(e) => setQuery(e.target.value)} className="h-8 text-xs" />
             <Button size="icon" variant="outline" className="h-8 w-8"><RefreshCw size={14} /></Button>
@@ -87,8 +87,8 @@ export default function MarketingStudioPage() {
             (filtered || []).map((c: any) => (
               <button key={c.id} onClick={() => setActiveCampaignId(c.id)} className={`w-full text-left rounded-lg border px-3 py-2 text-xs transition ${activeCampaignId === c.id ? "bg-muted/60 border-primary" : "bg-card hover:bg-muted/40"}`}>
                 <div className="font-medium truncate">{c.name || "Untitled"}</div>
-                <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{c.objective || "EDUCATION"}</Badge>
+                <div className="flex items-center gap-2 mt-1 text-micro text-muted-foreground">
+                  <Badge variant="secondary" className="text-micro px-1.5 py-0">{c.objective || "EDUCATION"}</Badge>
                   <span>{new Date(c.createdAt || 0).toLocaleDateString()}</span>
                 </div>
               </button>
@@ -130,7 +130,7 @@ export default function MarketingStudioPage() {
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <h4 className="font-medium text-sm">{c.hook}</h4>
-                        <Badge variant="secondary" className="text-[10px] mt-1">{c.angle}</Badge>
+                        <Badge variant="secondary" className="text-micro mt-1">{c.angle}</Badge>
                       </div>
                       <GrowthStatusBadge kind="task" value={c.status} />
                     </div>
@@ -177,7 +177,7 @@ export default function MarketingStudioPage() {
                   }
                 } catch (e) { console.error("Video generation error:", e); alert("Video generation failed."); }
               }}><Film size={14} /> Generate Video</Button>
-              <span className="text-[10px] text-muted-foreground">Automatic / Market Visual / TTS / FFmpeg</span>
+              <span className="text-micro text-muted-foreground">Automatic / Market Visual / TTS / FFmpeg</span>
             </div>
             <div className="rounded-xl overflow-hidden bg-black relative aspect-video">
               <video controls className="w-full h-full" poster="/marketing-video/assets/01-market-hero.png" src="" />
@@ -211,9 +211,9 @@ export default function MarketingStudioPage() {
                 { label: "Compliance", done: false },
                 { label: "Ready", done: false },
               ].map((s) => (
-                <div key={s.label} className={`rounded-lg border px-3 py-2 ${s.done ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-card"}`}>
+                <div key={s.label} className={`rounded-lg border px-3 py-2 ${s.done ? "bg-positive-muted border-positive text-positive" : "bg-card"}`}>
                   <div className="font-medium">{s.label}</div>
-                  <div className="text-[10px] text-muted-foreground">{s.done ? "✓" : "●"}</div>
+                  <div className="text-micro text-muted-foreground">{s.done ? "✓" : "●"}</div>
                 </div>
               ))}
             </div>

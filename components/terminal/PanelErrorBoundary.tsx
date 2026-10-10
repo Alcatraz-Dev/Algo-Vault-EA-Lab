@@ -52,13 +52,13 @@ export class PanelErrorBoundary extends Component<Props, State> {
                 role="alert"
                 className={
                     this.props.compact
-                        ? "flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-2.5 py-2 text-[11px] text-amber-200"
+                        ? "flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-2.5 py-2 text-micro text-amber-200"
                         : "rounded-xl border border-amber-500/40 bg-amber-500/10 p-4"
                 }
             >
                 <AlertTriangle className="size-3.5 shrink-0 text-amber-400" />
                 <div className={this.props.compact ? "min-w-0 flex-1" : "min-w-0 flex-1"}>
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+                    <p className="text-micro font-semibold uppercase tracking-wide text-amber-300">
                         {this.props.name} unavailable
                     </p>
                     {!this.props.compact ? (
@@ -70,7 +70,7 @@ export class PanelErrorBoundary extends Component<Props, State> {
                 <button
                     type="button"
                     onClick={this.retry}
-                    className="inline-flex shrink-0 items-center gap-1 rounded-md border border-amber-500/40 bg-background/60 px-2 py-1 text-[11px] font-medium text-foreground transition hover:bg-background"
+                    className="inline-flex shrink-0 items-center gap-1 rounded-md border border-amber-500/40 bg-background/60 px-2 py-1 text-micro font-medium text-foreground transition hover:bg-background"
                 >
                     <RotateCcw className="size-3" />
                     Retry

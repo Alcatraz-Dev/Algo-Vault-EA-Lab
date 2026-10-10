@@ -167,15 +167,15 @@ export default function PineAnalysisPanel({ source, onApply, onBacktest, onRepla
           <p className="text-xs text-muted-foreground">{analysis.title}</p>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="rounded-md bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium text-violet-400">{analysis.version}</span>
-          <span className="rounded-md bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium text-sky-400">{analysis.scriptType}</span>
-          {analysis.canRun && <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400">Runtime Compatible</span>}
+          <span className="rounded-md bg-violet-500/10 px-2 py-0.5 text-micro font-medium text-violet-400">{analysis.version}</span>
+          <span className="rounded-md bg-sky-500/10 px-2 py-0.5 text-micro font-medium text-sky-400">{analysis.scriptType}</span>
+          {analysis.canRun && <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-micro font-medium text-emerald-400">Runtime Compatible</span>}
         </div>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
         {analysis.features.map((f) => (
-          <div key={f.name} className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-medium ${f.supported ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-400" : "border-rose-500/20 bg-rose-500/5 text-rose-400"}`}>
+          <div key={f.name} className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-micro font-medium ${f.supported ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-400" : "border-rose-500/20 bg-rose-500/5 text-rose-400"}`}>
             {f.supported ? <Check size={11} /> : <X size={11} />}
             {f.name}
           </div>
@@ -186,31 +186,31 @@ export default function PineAnalysisPanel({ source, onApply, onBacktest, onRepla
         <div className="mt-4 rounded-xl border border-border bg-background/50 p-4">
           <div className="mb-2 flex items-center justify-between">
             <h4 className="text-xs font-semibold text-foreground">Backtest Results</h4>
-            <span className="text-[10px] text-muted-foreground">{backtestResult.timeframe} · {backtestResult.symbol}</span>
+            <span className="text-micro text-muted-foreground">{backtestResult.timeframe} · {backtestResult.symbol}</span>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <div className="rounded-lg border border-border bg-card p-2 text-center">
-              <p className="text-[10px] text-muted-foreground">Trades</p>
+              <p className="text-micro text-muted-foreground">Trades</p>
               <p className="text-sm font-semibold text-foreground">{backtestResult.metrics.totalTrades}</p>
             </div>
             <div className="rounded-lg border border-border bg-card p-2 text-center">
-              <p className="text-[10px] text-muted-foreground">Win Rate</p>
+              <p className="text-micro text-muted-foreground">Win Rate</p>
               <p className="text-sm font-semibold text-foreground">{backtestResult.metrics.winRate.toFixed(1)}%</p>
             </div>
             <div className={`rounded-lg border p-2 text-center ${backtestResult.metrics.netProfit >= 0 ? "border-emerald-500/20 bg-emerald-500/5" : "border-rose-500/20 bg-rose-500/5"}`}>
-              <p className="text-[10px] text-muted-foreground">Net P&amp;L</p>
+              <p className="text-micro text-muted-foreground">Net P&amp;L</p>
               <p className={`text-sm font-semibold ${backtestResult.metrics.netProfit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                 {backtestResult.metrics.netProfit.toFixed(2)}
               </p>
             </div>
             <div className="rounded-lg border border-border bg-card p-2 text-center">
-              <p className="text-[10px] text-muted-foreground">Max DD</p>
+              <p className="text-micro text-muted-foreground">Max DD</p>
               <p className="text-sm font-semibold text-rose-400">{backtestResult.metrics.maxDrawdownPct.toFixed(1)}%</p>
             </div>
           </div>
           {backtestResult.trades.length > 0 && (
             <div className="mt-3 overflow-x-auto">
-              <table className="w-full text-[10px]">
+              <table className="w-full text-micro">
                 <thead>
                   <tr className="text-left text-muted-foreground">
                     <th className="pb-1">Direction</th>

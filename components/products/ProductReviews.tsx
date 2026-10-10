@@ -97,7 +97,7 @@ function StarRating({
                             className={
                                 star <=
                                     rating
-                                    ? "fill-yellow-400 text-yellow-400"
+                                    ? "fill-warning text-warning"
                                     : "text-foreground/50"
                             }
                         />
@@ -420,7 +420,7 @@ export default function ProductReviews({
             : null;
 
     return (
-        <section className="rounded-3xl border border-border/20 bg-foreground/4 p-7 md:p-9">
+        <section className="rounded-lg border border-border/20 bg-foreground/4 p-7 md:p-9">
             {/* Header */}
             <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-start gap-3">
@@ -462,7 +462,7 @@ export default function ProductReviews({
 
             {/* Rating Summary */}
             <div className="mt-7 grid gap-4 md:grid-cols-[180px_1fr]">
-                <div className="rounded-2xl border border-border/20 bg-background/20 p-5 text-center">
+                <div className="rounded-lg border border-border/20 bg-background/20 p-5 text-center">
                     <div className="text-4xl font-semibold">
                         {averageRating
                             ? averageRating.toFixed(
@@ -488,7 +488,7 @@ export default function ProductReviews({
                     </p>
                 </div>
 
-                <div className="rounded-2xl border border-border/20 bg-background/20 p-5">
+                <div className="rounded-lg border border-border/20 bg-background/20 p-5">
                     <RatingBar
                         rating={5}
                         reviews={reviews}
@@ -518,14 +518,14 @@ export default function ProductReviews({
 
             {/* Error */}
             {error && (
-                <div className="mt-5 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-400">
+                <div className="mt-5 rounded-xl border border-negative/20 bg-negative/5 px-4 py-3 text-sm text-negative">
                     {error}
                 </div>
             )}
 
             {/* Review Form */}
             {showForm && (
-                <div className="mt-6 rounded-2xl border border-border/20 bg-background/20 p-5">
+                <div className="mt-6 rounded-lg border border-border/20 bg-background/20 p-5">
                     <div className="flex items-center justify-between">
                         <h3 className="font-medium">
                             {editingReview
@@ -610,7 +610,7 @@ export default function ProductReviews({
                             className="mt-2 w-full resize-none rounded-xl border border-border/20 bg-foreground/6 px-4 py-3 text-sm leading-6 text-foreground outline-none placeholder:text-foreground/50 focus:border-border/40"
                         />
 
-                        <div className="mt-1 text-right text-[10px] text-foreground/50">
+                        <div className="mt-1 text-right text-micro text-foreground/50">
                             {
                                 comment.length
                             }
@@ -650,7 +650,7 @@ export default function ProductReviews({
                     </div>
                 ) : reviews.length ===
                     0 ? (
-                    <div className="rounded-2xl border border-dashed border-border/20 bg-foreground/10 px-6 py-10 text-center">
+                    <div className="rounded-lg border border-dashed border-border/20 bg-foreground/10 px-6 py-10 text-center">
                         <MessageSquare
                             size={28}
                             className="mx-auto text-foreground/50"
@@ -677,7 +677,7 @@ export default function ProductReviews({
                                         key={
                                             review.id
                                         }
-                                        className="rounded-2xl border border-border/20 bg-background/20 p-5"
+                                        className="rounded-lg border border-border/20 bg-background/20 p-5"
                                     >
                                         <div className="flex items-start justify-between gap-4">
                                             <div className="flex min-w-0 items-start gap-3">
@@ -699,7 +699,7 @@ export default function ProductReviews({
                                                         </span>
 
                                                         {review.verifiedPurchase && (
-                                                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-2 py-0.5 text-[10px] text-emerald-400">
+                                                            <span className="inline-flex items-center gap-1 rounded-full border border-positive/20 bg-positive/5 px-2 py-0.5 text-micro text-positive">
                                                                 <CheckCircle2
                                                                     size={
                                                                         10
@@ -717,7 +717,7 @@ export default function ProductReviews({
                                                             }
                                                         />
 
-                                                        <span className="text-[11px] text-foreground/50">
+                                                        <span className="text-micro text-foreground/50">
                                                             {formatDate(
                                                                 review.updatedAt ||
                                                                 review.createdAt
@@ -757,7 +757,7 @@ export default function ProductReviews({
                                                             deletingId ===
                                                             review.id
                                                         }
-                                                        className="rounded-lg p-2 text-foreground/50 transition hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
+                                                        className="rounded-lg p-2 text-foreground/50 transition hover:bg-negative/10 hover:text-negative disabled:opacity-50"
                                                         aria-label="Delete review"
                                                     >
                                                         <Trash2
@@ -824,14 +824,14 @@ function RatingBar({
 
             <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-foreground/10">
                 <div
-                    className="h-full rounded-full bg-yellow-400/70 transition-all"
+                    className="h-full rounded-full bg-warning/70 transition-all"
                     style={{
                         width: `${percentage}%`,
                     }}
                 />
             </div>
 
-            <span className="w-6 text-right text-[10px] text-foreground/50">
+            <span className="w-6 text-right text-micro text-foreground/50">
                 {count}
             </span>
         </div>
@@ -840,7 +840,7 @@ function RatingBar({
 
 function ReviewSkeleton() {
     return (
-        <div className="animate-pulse rounded-2xl border border-border/20 bg-background/20 p-5">
+        <div className="animate-pulse rounded-lg border border-border/20 bg-background/20 p-5">
             <div className="flex gap-3">
                 <div className="h-10 w-10 rounded-full bg-foreground/10" />
 

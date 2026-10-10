@@ -54,7 +54,7 @@ export function LayerPicker({ layers, availability, onToggle, compact = false }:
                     <div key={category}>
                         <div className="mb-1.5 flex items-center">
                             <span className={cn(
-                                "text-[10px] font-semibold uppercase tracking-wider",
+                                "text-micro font-semibold uppercase tracking-wider",
                                 category === "Unavailable" ? "text-muted-foreground" : "text-foreground/60"
                             )}>
                                 {category}
@@ -81,7 +81,7 @@ export function LayerPicker({ layers, availability, onToggle, compact = false }:
                                         title={available ? l.label : `${l.label} — click for details`}
                                         className={cn(
                                             "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs transition",
-                                            compact ? "text-[11px] px-2 py-1" : "",
+                                            compact ? "text-micro px-2 py-1" : "",
                                             available
                                                 ? layers[l.id]
                                                     ? "border-primary/40 bg-primary/10 text-primary shadow-sm"
@@ -94,7 +94,7 @@ export function LayerPicker({ layers, availability, onToggle, compact = false }:
                                         {!available ? <Lock className="size-3" /> : layers[l.id] ? <Check className="size-3" /> : null}
                                         <span className="flex-1 text-left">{l.label}</span>
                                         {!available && req ? <ChevronDown className={cn("size-3 transition", expandedId === l.id && "rotate-180")} /> : null}
-                                        {isEstimatedChip ? <span aria-hidden className="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold text-amber-500">EST</span> : null}
+                                        {isEstimatedChip ? <span aria-hidden className="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-micro font-bold text-amber-500">EST</span> : null}
                                     </button>
                                 );
                             })}
@@ -134,7 +134,7 @@ export function LayerUnlockPanel({
 }) {
     return (
         <div
-            className="rounded-lg border border-dashed border-border bg-muted/40 p-2.5 text-[11px] leading-4"
+            className="rounded-lg border border-dashed border-border bg-muted/40 p-2.5 text-micro leading-4"
             data-layer-unlock={layerId}
         >
             <div className="flex items-start justify-between gap-2">
@@ -147,7 +147,7 @@ export function LayerUnlockPanel({
                         type="button"
                         onClick={onDismiss}
                         aria-label="Dismiss explanation"
-                        className="rounded px-1 text-[10px] text-muted-foreground transition hover:text-foreground"
+                        className="rounded px-1 text-micro text-muted-foreground transition hover:text-foreground"
                     >
                         ✕
                     </button>

@@ -212,12 +212,12 @@ function FiboLevelsInput({
                     if (e.key === "Enter") (e.target as HTMLInputElement).blur();
                 }}
                 className={cn(
-                    "h-6 w-40 rounded border bg-background px-1.5 font-mono text-[10px] text-foreground outline-none",
+                    "h-6 w-40 rounded border bg-background px-1.5 font-mono text-micro text-foreground outline-none",
                     invalid ? "border-rose-500" : "border-border focus:border-primary"
                 )}
                 title="Comma-separated Fibonacci levels (values), e.g. 0, 0.382, 0.5, 0.618, 1"
             />
-            <span className="text-[9px] text-muted-foreground">values</span>
+            <span className="text-micro text-muted-foreground">values</span>
         </div>
     );
 }
@@ -333,7 +333,7 @@ function ChartToolbar({
                                 style={{ background: tools.color }}
                                 aria-hidden
                             />
-                            <span className="font-mono text-[10px] font-semibold text-muted-foreground">
+                            <span className="font-mono text-micro font-semibold text-muted-foreground">
                                 {tools.lineWidth}px
                             </span>
                         </button>
@@ -346,7 +346,7 @@ function ChartToolbar({
                             size="sm"
                             variant="ghost"
                             onClick={onUndoDrawing}
-                            className="h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground"
+                            className="h-7 px-2 text-micro text-muted-foreground hover:text-foreground"
                             title="Undo last drawing (Ctrl+Z)"
                         >
                             <Undo2 className="size-3.5 mr-1" />
@@ -360,7 +360,7 @@ function ChartToolbar({
                             size="sm"
                             variant="ghost"
                             onClick={onClearDrawings}
-                            className="h-7 px-2 text-[11px] text-rose-500 hover:bg-rose-500/10 hover:text-rose-600"
+                            className="h-7 px-2 text-micro text-rose-500 hover:bg-rose-500/10 hover:text-rose-600"
                             title="Clear all drawings on chart"
                         >
                             <Trash2 className="size-3.5 mr-1" />
@@ -379,7 +379,7 @@ function ChartToolbar({
                             aria-pressed={aiDraw}
                             disabled={aiDrawChecking}
                             className={cn(
-                                "h-8 gap-1 px-2 text-[11px]",
+                                "h-8 gap-1 px-2 text-micro",
                                 aiDraw
                                     ? "bg-violet-600 text-white hover:bg-violet-600/90"
                                     : "text-muted-foreground hover:text-foreground"
@@ -394,7 +394,7 @@ function ChartToolbar({
                             <span>AI Draw</span>
                             <span
                                 className={cn(
-                                    "rounded px-1 font-mono text-[9px] font-bold",
+                                    "rounded px-1 font-mono text-micro font-bold",
                                     aiDraw ? "bg-white/20 text-white" : "bg-violet-500/15 text-violet-400"
                                 )}
                             >
@@ -474,7 +474,7 @@ function ChartToolbar({
                             title="Chart settings — theme, colors, display, tool style"
                         >
                             <Settings2 className="size-4" />
-                            <span className="hidden text-[11px] sm:inline">Settings</span>
+                            <span className="hidden text-micro sm:inline">Settings</span>
                         </Button>
                     ) : null}
                     {onToggleFullscreen && (
@@ -494,7 +494,7 @@ function ChartToolbar({
             {/* ── Inline tool-style strip (quick access) ─────────────────── */}
             {showToolStyle && settings && tools && onSettingsChange ? (
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-border bg-background px-2.5 py-2">
-                    <span className="font-mono text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                    <span className="font-mono text-micro font-bold uppercase tracking-wide text-muted-foreground">
                         Tool style
                     </span>
                     <div className="flex items-center gap-1">
@@ -522,7 +522,7 @@ function ChartToolbar({
                         />
                     </div>
                     <div className="flex items-center gap-1">
-                        <span className="font-mono text-[10px] text-muted-foreground">Width</span>
+                        <span className="font-mono text-micro text-muted-foreground">Width</span>
                         {[1, 2, 3, 4].map((w) => (
                             <button
                                 key={w}
@@ -530,7 +530,7 @@ function ChartToolbar({
                                 onClick={() => setTool("lineWidth", w)}
                                 aria-pressed={tools.lineWidth === w}
                                 className={cn(
-                                    "h-5 w-5 rounded border font-mono text-[10px] transition",
+                                    "h-5 w-5 rounded border font-mono text-micro transition",
                                     tools.lineWidth === w
                                         ? "border-primary bg-primary/10 font-bold text-primary"
                                         : "border-border text-muted-foreground hover:bg-muted"
@@ -542,7 +542,7 @@ function ChartToolbar({
                         ))}
                     </div>
                     <div className="flex items-center gap-1">
-                        <span className="font-mono text-[10px] text-muted-foreground">Font</span>
+                        <span className="font-mono text-micro text-muted-foreground">Font</span>
                         {[9, 11, 13, 16].map((fs) => (
                             <button
                                 key={fs}
@@ -550,7 +550,7 @@ function ChartToolbar({
                                 onClick={() => setTool("fontSize", fs)}
                                 aria-pressed={tools.fontSize === fs}
                                 className={cn(
-                                    "h-5 rounded border px-1.5 font-mono text-[10px] transition",
+                                    "h-5 rounded border px-1.5 font-mono text-micro transition",
                                     tools.fontSize === fs
                                         ? "border-primary bg-primary/10 font-bold text-primary"
                                         : "border-border text-muted-foreground hover:bg-muted"
@@ -583,7 +583,7 @@ function ChartToolbar({
                                     title={p.title}
                                     onClick={() => update((prev) => withPreset(prev, p.id))}
                                     className={cn(
-                                        "rounded-md border px-2 py-1 font-mono text-[10px] font-semibold transition",
+                                        "rounded-md border px-2 py-1 font-mono text-micro font-semibold transition",
                                         settings.preset === p.id
                                             ? "border-primary bg-primary/10 text-primary"
                                             : "border-border text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -599,7 +599,7 @@ function ChartToolbar({
                             {DISPLAY_ROWS.map((row) => (
                                 <label
                                     key={row.key}
-                                    className="flex cursor-pointer items-center justify-between gap-2 text-[10px] text-muted-foreground"
+                                    className="flex cursor-pointer items-center justify-between gap-2 text-micro text-muted-foreground"
                                     title={row.hint}
                                 >
                                     <span>{row.label}</span>
@@ -621,7 +621,7 @@ function ChartToolbar({
                             {COLOR_ROWS.map((row) => (
                                 <label
                                     key={row.key}
-                                    className="flex cursor-pointer items-center justify-between gap-2 text-[10px] text-muted-foreground"
+                                    className="flex cursor-pointer items-center justify-between gap-2 text-micro text-muted-foreground"
                                 >
                                     <span>{row.label}</span>
                                     <input
@@ -662,7 +662,7 @@ function ChartToolbar({
                                 title="Custom tool color"
                             />
                         </div>
-                        <div className="flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground">
+                        <div className="flex flex-wrap items-center gap-3 text-micro text-muted-foreground">
                             <span className="inline-flex items-center gap-1">
                                 Width
                                 {[1, 2, 3, 4].map((w) => (
@@ -709,7 +709,7 @@ function ChartToolbar({
                                 disabled={false}
                             />
                         ) : null}
-                        <p className="text-[9px] leading-3 text-muted-foreground/70">
+                        <p className="text-micro leading-3 text-muted-foreground/70">
                             Style applies to the next drawing placed; existing drawings keep their own
                             color and width. Fibonacci values accept a comma-separated list.
                         </p>
@@ -722,7 +722,7 @@ function ChartToolbar({
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
     return (
-        <h4 className="font-mono text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+        <h4 className="font-mono text-micro font-bold uppercase tracking-wide text-muted-foreground">
             {children}
         </h4>
     );

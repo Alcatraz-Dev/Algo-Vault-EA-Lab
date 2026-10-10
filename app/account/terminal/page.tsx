@@ -64,7 +64,7 @@ export default function TerminalPage() {
                 subtitle="One workspace for watching, analysing, trading and reviewing"
                 onBack={() => router.push("/")}
             >
-                <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card p-10 text-center">
+                <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border bg-card p-10 text-center">
                     <p className="text-sm font-medium text-foreground">Sign in to open the AlgoVault Terminal</p>
                     <a
                         href="/login?redirect=/account/terminal"

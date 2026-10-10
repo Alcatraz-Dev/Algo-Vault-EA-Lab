@@ -138,7 +138,7 @@ export default function AffiliatePage() {
     if (!user) {
         return (
             <AccountShell title="Affiliates" subtitle="Refer traders and earn">
-                <div className="rounded-2xl border border-border bg-card p-12 text-center">
+                <div className="rounded-lg border border-border bg-card p-12 text-center">
                     <p className="text-sm text-muted-foreground">Please sign in to view your referral program.</p>
                 </div>
             </AccountShell>
@@ -155,13 +155,13 @@ export default function AffiliatePage() {
 
             <div className="relative mx-auto max-w-5xl" data-guide="page-header">
                 {error && (
-                    <div className="rounded-2xl border border-rose-500/25 bg-rose-500/[0.05] p-4 text-sm text-rose-300 mb-6">
+                    <div className="rounded-lg border border-rose-500/25 bg-rose-500/[0.05] p-4 text-sm text-rose-300 mb-6">
                         {error}
                     </div>
                 )}
 
                 {loading && !summary ? (
-                    <div className="rounded-2xl border border-border bg-card p-16 text-center">
+                    <div className="rounded-lg border border-border bg-card p-16 text-center">
                         <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
                         <p className="mt-3 text-sm text-muted-foreground">Loading your referral link...</p>
                     </div>
@@ -169,22 +169,22 @@ export default function AffiliatePage() {
                     <div className="space-y-6">
                         {/* Stats */}
                         <div className="grid gap-4 sm:grid-cols-4">
-                            <div className="rounded-2xl border border-border bg-card p-5">
+                            <div className="rounded-lg border border-border bg-card p-5">
                                 <p className="text-xs text-muted-foreground">Link Clicks</p>
                                 <p className="mt-2 text-3xl font-bold text-foreground">{summary.clicks}</p>
                                 <p className="mt-1 text-xs text-muted-foreground">People who opened your link</p>
                             </div>
-                            <div className="rounded-2xl border border-border bg-card p-5">
+                            <div className="rounded-lg border border-border bg-card p-5">
                                 <p className="text-xs text-muted-foreground">New Signups</p>
                                 <p className="mt-2 text-3xl font-bold text-foreground">{summary.signups}</p>
                                 <p className="mt-1 text-xs text-muted-foreground">Accounts created through you</p>
                             </div>
-                            <div className="rounded-2xl border border-violet-500/20 bg-violet-500/[0.05] p-5">
+                            <div className="rounded-lg border border-violet-500/20 bg-violet-500/[0.05] p-5">
                                 <p className="text-xs text-muted-foreground">Commission</p>
                                 <p className="mt-2 text-3xl font-bold text-violet-400">{commissionRate}%</p>
                                 <p className="mt-1 text-xs text-muted-foreground">On every referred purchase</p>
                             </div>
-                            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.05] p-5">
+                            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.05] p-5">
                                 <p className="text-xs text-muted-foreground">Total Earnings</p>
                                 <p className="mt-2 text-3xl font-bold text-emerald-400">${summary.totalEarningsUsd.toFixed(2)}</p>
                                 <p className="mt-1 text-xs text-muted-foreground">${summary.completedEarningsUsd.toFixed(2)} confirmed</p>
@@ -192,7 +192,7 @@ export default function AffiliatePage() {
                         </div>
 
                         {/* Referral code + link */}
-                        <div className="rounded-2xl border border-border bg-card p-6">
+                        <div className="rounded-lg border border-border bg-card p-6">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h2 className="font-bold text-foreground">Your Referral Link</h2>
@@ -205,7 +205,7 @@ export default function AffiliatePage() {
 
                             <div className="mt-4 grid gap-3 sm:grid-cols-2">
                                 <div className="rounded-xl border border-border bg-muted p-4">
-                                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Code</p>
+                                    <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Code</p>
                                     <div className="mt-2 flex items-center justify-between gap-3">
                                         <span className="font-mono text-lg font-bold text-foreground">{summary.code}</span>
                                         <button
@@ -220,7 +220,7 @@ export default function AffiliatePage() {
                                 </div>
 
                                 <div className="rounded-xl border border-border bg-muted p-4">
-                                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Share Link</p>
+                                    <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Share Link</p>
                                     <div className="mt-2 flex items-center justify-between gap-3">
                                         <span className="truncate text-sm font-mono text-foreground">{shareLink}</span>
                                         <button
@@ -256,7 +256,7 @@ export default function AffiliatePage() {
                         </div>
 
                         {/* Recent events */}
-                        <div className="rounded-2xl border border-border bg-card p-6">
+                        <div className="rounded-lg border border-border bg-card p-6">
                             <h3 className="font-bold text-foreground">Recent Activity</h3>
                             {summary.recentEvents.length === 0 && summary.recentPurchases.length === 0 ? (
                                 <p className="mt-3 text-sm text-muted-foreground">
@@ -299,7 +299,7 @@ export default function AffiliatePage() {
                         </div>
 
                         {/* How it works */}
-                        <div className="rounded-2xl border border-violet-500/20 bg-violet-500/[0.04] p-6">
+                        <div className="rounded-lg border border-violet-500/20 bg-violet-500/[0.04] p-6">
                             <h3 className="font-bold text-foreground flex items-center gap-2">
                                 <TrendingUp size={16} className="text-violet-400" /> How it works
                             </h3>
@@ -319,7 +319,7 @@ export default function AffiliatePage() {
 
                 {/* Signed out fallback note */}
                 {!loading && !error && !summary && (
-                    <div className="rounded-2xl border border-border bg-card p-12 text-center">
+                    <div className="rounded-lg border border-border bg-card p-12 text-center">
                         <Users className="mx-auto h-10 w-10 text-muted-foreground" />
                         <p className="mt-3 text-sm text-muted-foreground">No referral data available.</p>
                     </div>

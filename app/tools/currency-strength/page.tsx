@@ -76,7 +76,7 @@ export default function CurrencyStrengthPage() {
                 "Pair-strength heatmap",
             ]}
         >
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-border bg-card p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-border bg-card p-4">
                 <div className="flex items-center gap-3 text-xs">
                     <span className="rounded-full border border-border bg-muted px-2 py-0.5 font-mono text-muted-foreground">
                         Timeframe: H1 (Lite)
@@ -84,7 +84,7 @@ export default function CurrencyStrengthPage() {
                     <span className="text-muted-foreground">Pro adds M15, H4, D1 and divergence detector.</span>
                 </div>
                 <div className="flex items-center gap-3">
-                    {lastUpdate > 0 && <span className="text-[10px] text-muted-foreground">Updated {new Date(lastUpdate).toLocaleTimeString()}</span>}
+                    {lastUpdate > 0 && <span className="text-micro text-muted-foreground">Updated {new Date(lastUpdate).toLocaleTimeString()}</span>}
                     <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-md border border-border bg-muted px-4 py-2 text-xs text-muted-foreground transition hover:bg-muted/60 disabled:opacity-50">
                         <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                     </button>
@@ -93,8 +93,8 @@ export default function CurrencyStrengthPage() {
 
             {strongest && weakest && (
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="rounded-2xl border border-positive/15 bg-positive/[0.04] p-5">
-                        <div className="flex items-center gap-2 mb-1"><TrendingUp size={14} className="text-positive" /><span className="text-[10px] font-semibold uppercase tracking-wider text-positive/70">Strongest</span></div>
+                    <div className="rounded-lg border border-positive/15 bg-positive/[0.04] p-5">
+                        <div className="flex items-center gap-2 mb-1"><TrendingUp size={14} className="text-positive" /><span className="text-micro font-semibold uppercase tracking-wider text-positive/70">Strongest</span></div>
                         <div className="flex items-center gap-3">
                             <span className="text-2xl">{CURRENCY_FLAGS[strongest.currency]}</span>
                             <div>
@@ -103,8 +103,8 @@ export default function CurrencyStrengthPage() {
                             </div>
                         </div>
                     </div>
-                    <div className="rounded-2xl border border-negative/15 bg-negative/[0.04] p-5">
-                        <div className="flex items-center gap-2 mb-1"><TrendingDown size={14} className="text-negative" /><span className="text-[10px] font-semibold uppercase tracking-wider text-negative/70">Weakest</span></div>
+                    <div className="rounded-lg border border-negative/15 bg-negative/[0.04] p-5">
+                        <div className="flex items-center gap-2 mb-1"><TrendingDown size={14} className="text-negative" /><span className="text-micro font-semibold uppercase tracking-wider text-negative/70">Weakest</span></div>
                         <div className="flex items-center gap-3">
                             <span className="text-2xl">{CURRENCY_FLAGS[weakest.currency]}</span>
                             <div>
@@ -119,13 +119,13 @@ export default function CurrencyStrengthPage() {
             {loading && data.length === 0 ? (
                 <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
             ) : data.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-border p-16 text-center">
+                <div className="rounded-lg border border-dashed border-border p-16 text-center">
                     <Zap size={32} className="mx-auto text-muted-foreground" />
                     <p className="mt-3 text-sm text-muted-foreground">No strength data available</p>
                 </div>
             ) : (
                 <>
-                    <div className="rounded-2xl border border-border bg-card p-6">
+                    <div className="rounded-lg border border-border bg-card p-6">
                         <h2 className="mb-4 text-sm font-semibold text-foreground">Strength Ranking</h2>
                         <div className="space-y-3">
                             {data.map((curr, idx) => {
@@ -164,8 +164,8 @@ export default function CurrencyStrengthPage() {
                                             <div className="mt-3 grid grid-cols-2 gap-1.5 pt-3 border-t border-border/20">
                                                 {curr.pairs.map((p) => (
                                                     <div key={p.pair} className="flex items-center justify-between rounded-md bg-muted px-3 py-1.5">
-                                                        <span className="font-mono text-[11px] text-muted-foreground">{p.pair}</span>
-                                                        <span className={cn("font-mono text-[11px] font-bold", p.change > 0 ? "text-positive" : p.change < 0 ? "text-negative" : "text-muted-foreground")}>
+                                                        <span className="font-mono text-micro text-muted-foreground">{p.pair}</span>
+                                                        <span className={cn("font-mono text-micro font-bold", p.change > 0 ? "text-positive" : p.change < 0 ? "text-negative" : "text-muted-foreground")}>
                                                             {p.change >= 0 ? "+" : ""}{p.change.toFixed(2)}%
                                                         </span>
                                                     </div>
@@ -179,7 +179,7 @@ export default function CurrencyStrengthPage() {
                     </div>
 
                     {strongest && weakest && (
-                        <div className="rounded-2xl border border-primary/15 bg-primary/[0.04] p-5">
+                        <div className="rounded-lg border border-primary/15 bg-primary/[0.04] p-5">
                             <h3 className="flex items-center gap-2 text-sm font-semibold text-primary">
                                 <Zap size={14} /> Suggested Pair (Lite)
                             </h3>
@@ -189,7 +189,7 @@ export default function CurrencyStrengthPage() {
                             <p className="mt-1 font-mono text-lg font-bold text-foreground">
                                 {strongest.currency}{weakest.currency}
                             </p>
-                            <p className="mt-1 text-[10px] text-muted-foreground">
+                            <p className="mt-1 text-micro text-muted-foreground">
                                 Pro adds the divergence detector: when one currency stays strong but the other is weakening, the setup is more reliable.
                             </p>
                         </div>

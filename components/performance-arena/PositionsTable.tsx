@@ -106,7 +106,7 @@ export function PositionsTable({
                             </TableCell>
                             <TableCell className="text-right">
                                 <Money cents={unrealizedPnLCents} signed />
-                                {stale ? <span className="ml-1 text-[10px] text-amber-500">·</span> : null}
+                                {stale ? <span className="ml-1 text-micro text-amber-500">·</span> : null}
                             </TableCell>
                             <TableCell className="text-right font-mono text-xs text-muted-foreground">
                                 {trade.riskCents !== null ? `$${(trade.riskCents / 100).toFixed(2)}` : "no stop"}
@@ -114,13 +114,13 @@ export function PositionsTable({
                             <TableCell>
                                 {editingId === trade.tradeId ? (
                                     <div className="flex min-w-48 items-center gap-1">
-                                        <input aria-label={`Stop loss for ${trade.symbol}`} value={stopLoss} onChange={(event) => setStopLoss(event.target.value)} placeholder={trade.stopLossMicros === null ? "SL" : priceMicrosToNumber(trade.stopLossMicros).toString()} className="w-20 rounded border border-border bg-background px-1.5 py-1 font-mono text-[11px]" />
-                                        <input aria-label={`Take profit for ${trade.symbol}`} value={takeProfit} onChange={(event) => setTakeProfit(event.target.value)} placeholder={trade.takeProfitMicros === null ? "TP" : priceMicrosToNumber(trade.takeProfitMicros).toString()} className="w-20 rounded border border-border bg-background px-1.5 py-1 font-mono text-[11px]" />
+                                        <input aria-label={`Stop loss for ${trade.symbol}`} value={stopLoss} onChange={(event) => setStopLoss(event.target.value)} placeholder={trade.stopLossMicros === null ? "SL" : priceMicrosToNumber(trade.stopLossMicros).toString()} className="w-20 rounded border border-border bg-background px-1.5 py-1 font-mono text-micro" />
+                                        <input aria-label={`Take profit for ${trade.symbol}`} value={takeProfit} onChange={(event) => setTakeProfit(event.target.value)} placeholder={trade.takeProfitMicros === null ? "TP" : priceMicrosToNumber(trade.takeProfitMicros).toString()} className="w-20 rounded border border-border bg-background px-1.5 py-1 font-mono text-micro" />
                                         <button type="button" aria-label="Save protection levels" disabled={savingStops} onClick={() => void saveStops(trade.tradeId)} className="rounded p-1 text-emerald-600 disabled:opacity-50">{savingStops ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}</button>
                                         <button type="button" aria-label="Cancel edit" disabled={savingStops} onClick={() => setEditingId(null)} className="rounded p-1 text-muted-foreground"><X className="h-3 w-3" /></button>
                                     </div>
                                 ) : (
-                                    <div className="flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
+                                    <div className="flex items-center gap-1.5 font-mono text-micro text-muted-foreground">
                                         <span>SL {trade.stopLossMicros === null ? "—" : priceMicrosToNumber(trade.stopLossMicros)}</span>
                                         <span>TP {trade.takeProfitMicros === null ? "—" : priceMicrosToNumber(trade.takeProfitMicros)}</span>
                                         {canModifyStops && onModifyStops ? <button type="button" aria-label={`Edit protection for ${trade.symbol}`} onClick={() => { setStopLoss(trade.stopLossMicros === null ? "" : priceMicrosToNumber(trade.stopLossMicros).toString()); setTakeProfit(trade.takeProfitMicros === null ? "" : priceMicrosToNumber(trade.takeProfitMicros).toString()); setEditingId(trade.tradeId); setActionError(null); }} className="rounded p-1 hover:bg-muted"><Pencil className="h-3 w-3" /></button> : null}
@@ -138,7 +138,7 @@ export function PositionsTable({
                                                 disabled={!canClose}
                                                 onClick={() => onPartialClose(marked, "PROFIT_PRESERVATION", 50)}
                                                 title="Lock 50% of the current profit"
-                                                className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground hover:bg-muted disabled:opacity-50"
+                                                className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-2 py-1 text-micro text-muted-foreground hover:bg-muted disabled:opacity-50"
                                                 data-partial-mode="PROFIT_PRESERVATION"
                                                 data-partial-percent="50"
                                             >
@@ -151,7 +151,7 @@ export function PositionsTable({
                                                 disabled={!canClose}
                                                 onClick={() => onPartialClose(marked, "VOLUME", 50)}
                                                 title="Close 50% of the position volume"
-                                                className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground hover:bg-muted disabled:opacity-50"
+                                                className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-2 py-1 text-micro text-muted-foreground hover:bg-muted disabled:opacity-50"
                                                 data-partial-mode="VOLUME"
                                                 data-partial-percent="50"
                                             >

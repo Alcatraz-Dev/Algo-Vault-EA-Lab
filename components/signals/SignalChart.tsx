@@ -76,11 +76,11 @@ function normaliseSymbol(raw: string): string {
 
 function buildPriceLines(signal: AISignal): PriceLine[] {
     const lines: PriceLine[] = [];
-    if (signal.entry)    lines.push({ price: signal.entry,    color: "#38bdf8", title: "Entry", lineWidth: 2, lineStyle: 0 });
-    if (signal.stopLoss) lines.push({ price: signal.stopLoss, color: "#f87171", title: "SL",    lineWidth: 1, lineStyle: 2 });
-    if (signal.tp1)      lines.push({ price: signal.tp1,      color: "#34d399", title: "TP1",   lineWidth: 1, lineStyle: 2 });
-    if (signal.tp2)      lines.push({ price: signal.tp2,      color: "#34d399", title: "TP2",   lineWidth: 1, lineStyle: 2 });
-    if (signal.tp3)      lines.push({ price: signal.tp3,      color: "#34d399", title: "TP3",   lineWidth: 1, lineStyle: 2 });
+    if (signal.entry)    lines.push({ price: signal.entry,    color: "#3faff3", title: "Entry", lineWidth: 2, lineStyle: 0 });
+    if (signal.stopLoss) lines.push({ price: signal.stopLoss, color: "#ff645f", title: "SL",    lineWidth: 1, lineStyle: 2 });
+    if (signal.tp1)      lines.push({ price: signal.tp1,      color: "#30d697", title: "TP1",   lineWidth: 1, lineStyle: 2 });
+    if (signal.tp2)      lines.push({ price: signal.tp2,      color: "#30d697", title: "TP2",   lineWidth: 1, lineStyle: 2 });
+    if (signal.tp3)      lines.push({ price: signal.tp3,      color: "#30d697", title: "TP3",   lineWidth: 1, lineStyle: 2 });
     return lines;
 }
 
@@ -124,8 +124,8 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
             width: w,
             height: h,
             layout: {
-                background: { type: ColorType.Solid, color: "#0b1118" },
-                textColor: "#94a3b8",
+                background: { type: ColorType.Solid, color: "#0b0c0e" },
+                textColor: "#9a9fa6",
                 fontFamily: "Inter, -apple-system, sans-serif",
                 attributionLogo: false,
             },
@@ -146,23 +146,23 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
             },
             crosshair: {
                 mode: CrosshairMode.Normal,
-                vertLine: { color: "rgba(234,123,74,0.4)", width: 1, style: 1 },
-                horzLine: { color: "rgba(234,123,74,0.4)", width: 1, style: 1 },
+                vertLine: { color: "rgba(218,186,107,0.4)", width: 1, style: 1 },
+                horzLine: { color: "rgba(218,186,107,0.4)", width: 1, style: 1 },
             },
         });
         chartRef.current = chart;
 
         seriesRef.current = chart.addSeries(CandlestickSeries, {
-            upColor:        "#26a69a",
-            downColor:      "#ef5350",
-            borderDownColor:"#ef5350",
-            borderUpColor:  "#26a69a",
-            wickDownColor:  "#ef5350",
-            wickUpColor:    "#26a69a",
+            upColor:        "#30d697",
+            downColor:      "#ff645f",
+            borderDownColor:"#ff645f",
+            borderUpColor:  "#30d697",
+            wickDownColor:  "#ff645f",
+            wickUpColor:    "#30d697",
         });
 
         volSeriesRef.current = chart.addSeries(HistogramSeries, {
-            color: "#26a69a",
+            color: "#30d697",
             priceFormat: { type: "volume" },
             priceScaleId: "vol",
         });
@@ -217,7 +217,7 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
         const volumes = liveCandles.map((c) => ({
             time:  Math.floor(c.timestamp / 1000) as UTCTimestamp,
             value: c.volume ?? 0,
-            color: c.close >= c.open ? "rgba(38,166,154,0.4)" : "rgba(239,83,80,0.4)",
+            color: c.close >= c.open ? "rgba(48,214,151,0.4)" : "rgba(255,100,95,0.4)",
         }));
 
         if (!seededRef.current) {
@@ -264,27 +264,27 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
     const tfLabel = timeframeToSeconds(signal.timeframe) >= 86400 ? "D1" : signal.timeframe;
 
     return (
-        <div className="rounded-2xl border border-border/20 bg-gradient-to-br from-background/80 via-background/40 to-background/80 backdrop-blur-xl p-5">
+        <div className="rounded-lg border border-border bg-card p-5">
             <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Price Chart
                     {symbol !== signal.symbol && (
-                        <span className="ml-2 text-[10px] normal-case font-normal text-muted-foreground/60">
+                        <span className="ml-2 text-micro normal-case font-normal text-muted-foreground/60">
                             ({symbol})
                         </span>
                     )}
                 </h3>
-                <div className="flex items-center gap-3 text-[10px]">
+                <div className="flex items-center gap-3 text-micro">
                     <span className="flex items-center gap-1">
-                        <span className="inline-block h-0.5 w-3 bg-sky-400" />
+                        <span className="inline-block h-0.5 w-3 bg-info" />
                         <span className="text-foreground/70">Entry</span>
                     </span>
                     <span className="flex items-center gap-1">
-                        <span className="inline-block h-0.5 w-3 bg-rose-400" />
+                        <span className="inline-block h-0.5 w-3 bg-negative" />
                         <span className="text-foreground/70">SL</span>
                     </span>
                     <span className="flex items-center gap-1">
-                        <span className="inline-block h-0.5 w-3 bg-emerald-400" />
+                        <span className="inline-block h-0.5 w-3 bg-positive" />
                         <span className="text-foreground/70">TP</span>
                     </span>
                 </div>
@@ -301,7 +301,7 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
                             <p className="text-xs font-medium text-muted-foreground">
                                 Real-time chart unavailable
                             </p>
-                            <p className="mt-1 text-[11px] leading-5 text-muted-foreground/60">
+                            <p className="mt-1 text-micro leading-5 text-muted-foreground/60">
                                 {marketError} — no candles returned for {signal.symbol} {tfLabel}.
                             </p>
                         </div>
@@ -324,7 +324,7 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
                             <p className="text-xs font-medium text-muted-foreground">
                                 No chart data available
                             </p>
-                            <p className="mt-1 text-[11px] text-muted-foreground/60">
+                            <p className="mt-1 text-micro text-muted-foreground/60">
                                 Market data for {symbol} {tfLabel} is currently unavailable.
                             </p>
                         </div>
@@ -333,8 +333,8 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
 
                 {/* Live badge */}
                 {liveCandles.length > 0 && (
-                    <div className="absolute bottom-2 right-2 flex items-center gap-1.5 rounded-full border border-border/40 bg-background/80 px-2 py-0.5 text-[10px] text-muted-foreground backdrop-blur-sm">
-                        <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
+                    <div className="absolute bottom-2 right-2 flex items-center gap-1.5 rounded-full border border-border/40 bg-background/80 px-2 py-0.5 text-micro text-muted-foreground backdrop-blur-sm">
+                        <span className="inline-block h-1.5 w-1.5 rounded-full bg-positive animate-pulse" aria-hidden />
                         Live
                     </div>
                 )}

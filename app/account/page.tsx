@@ -223,39 +223,39 @@ export default function AccountPage() {
                 {/* Stats */}
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <StatCard
-                        icon={<Package className="h-5 w-5 text-blue-400" />}
+                        icon={<Package className="h-5 w-5 text-muted-foreground" />}
                         label="Orders"
                         value={`${paidOrders.length}`}
                         spark={paidOrders.map((o, i) => i + 1)}
-                        sparkColor="var(--chart-2)"
+                        sparkColor="var(--chart-1)"
                     />
                     <StatCard
-                        icon={<CreditCard className="h-5 w-5 text-emerald-500" />}
+                        icon={<CreditCard className="h-5 w-5 text-muted-foreground" />}
                         label="Total Spent"
                         value={formatMoney(totalSpent, paidCurrencies[0] || currencyCode)}
                         spark={monthlySpend.map((m) => m.value)}
                         sparkColor="var(--chart-1)"
                     />
                     <StatCard
-                        icon={<ShieldCheck className="h-5 w-5 text-purple-400" />}
+                        icon={<ShieldCheck className="h-5 w-5 text-muted-foreground" />}
                         label="Active Licenses"
                         value={`${activeCount}`}
                         spark={licenseState ? [licenseState.total - activeCount, activeCount] : [0, 0]}
-                        sparkColor="var(--chart-3)"
+                        sparkColor="var(--chart-1)"
                     />
                     <StatCard
-                        icon={<TrendingUp className="h-5 w-5 text-amber-400" />}
+                        icon={<TrendingUp className="h-5 w-5 text-muted-foreground" />}
                         label="Total Licenses"
                         value={`${licenseState?.total ?? 0}`}
                         spark={[]}
-                        sparkColor="var(--chart-4)"
+                        sparkColor="var(--chart-1)"
                     />
                 </div>
 
                 {/* Chart + Profile */}
                 <div className="grid gap-6 lg:grid-cols-3">
                     {/* Activity chart */}
-                    <div className="rounded-2xl border border-border bg-muted/30 p-6 lg:col-span-2">
+                    <div className="rounded-lg border border-border bg-muted/30 p-6 lg:col-span-2">
                         <div className="flex items-center justify-between">
                             <div>
                                 <h2 className="font-semibold">Spending Overview</h2>
@@ -263,8 +263,8 @@ export default function AccountPage() {
                                     Your purchases over the last 6 months
                                 </p>
                             </div>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
-                                <BarChart3 className="h-5 w-5 text-emerald-500" />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-muted">
+                                <BarChart3 className="h-5 w-5 text-muted-foreground" />
                             </div>
                         </div>
 
@@ -280,7 +280,7 @@ export default function AccountPage() {
                                 />
                             </div>
                         ) : (
-                            <div className="mt-6 flex h-[240px] items-center justify-center rounded-xl border border-dashed border-border">
+                            <div className="mt-6 flex h-[240px] items-center justify-center rounded-lg border border-dashed border-border">
                                 <div className="text-center">
                                     <CreditCard className="mx-auto h-8 w-8 text-muted-foreground" />
                                     <p className="mt-3 text-sm font-medium">
@@ -295,7 +295,7 @@ export default function AccountPage() {
                     </div>
 
                     {/* Profile summary */}
-                    <div className="rounded-2xl border border-border bg-muted/30 p-6" data-guide="licenses-card">
+                    <div className="rounded-lg border border-border bg-muted/30 p-6" data-guide="licenses-card">
                         <div className="flex items-center gap-4">
                             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
                                 <User className="h-7 w-7 text-muted-foreground" />
@@ -307,7 +307,7 @@ export default function AccountPage() {
                         </div>
 
                         <div className="mt-5 flex flex-wrap gap-2">
-                            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium capitalize text-emerald-600">
+                            <span className="rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium capitalize text-muted-foreground">
                                 {role}
                             </span>
                             {licenseState?.active === 0 && (
@@ -326,7 +326,7 @@ export default function AccountPage() {
                                 {licenseState === null ? (
                                     <span className="text-muted-foreground">Checking...</span>
                                 ) : activeCount > 0 ? (
-                                    <span className="flex items-center gap-1.5 font-medium text-emerald-600">
+                                    <span className="flex items-center gap-1.5 font-medium text-positive">
                                         <CheckCircle2 className="h-4 w-4" />
                                         Active ({activeCount})
                                     </span>
@@ -340,7 +340,7 @@ export default function AccountPage() {
                             {licenseState && licenseState.expiringSoon > 0 && (
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-muted-foreground">Expiring soon</span>
-                                    <span className="font-medium text-amber-500">
+                                    <span className="font-numeric font-medium text-warning">
                                         {licenseState.expiringSoon}
                                     </span>
                                 </div>
@@ -349,7 +349,7 @@ export default function AccountPage() {
 
                         <Link
                             href="/marketplace"
-                            className="mt-6 flex items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-sm font-medium text-background transition hover:opacity-90"
+                            className="mt-6 flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/80"
                         >
                             Browse Marketplace
                             <ChevronRight size={15} />
@@ -361,78 +361,78 @@ export default function AccountPage() {
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5" data-guide="quick-access">
                     <QuickCard
                         href="/dashboard"
-                        icon={<LayoutDashboard className="h-5 w-5 text-violet-400" />}
-                        iconClass="bg-violet-500/10"
+                        icon={<LayoutDashboard className="h-5 w-5 text-muted-foreground" />}
+                        iconClass="bg-muted"
                         title="Custom Dashboard"
                         text="Build a widget workspace from your live accounts."
                     />
                     <QuickCard
                         href="/account/purchases"
-                        icon={<Package className="h-5 w-5 text-blue-400" />}
-                        iconClass="bg-blue-500/10"
+                        icon={<Package className="h-5 w-5 text-muted-foreground" />}
+                        iconClass="bg-muted"
                         title="Purchases"
                         text="View your purchased products."
                     />
                     <QuickCard
                         href="/account/licenses"
-                        icon={<FileKey2 className="h-5 w-5 text-purple-400" />}
-                        iconClass="bg-purple-500/10"
+                        icon={<FileKey2 className="h-5 w-5 text-muted-foreground" />}
+                        iconClass="bg-muted"
                         title="Licenses"
                         text="Manage your active licenses."
                     />
                     <QuickCard
                         href="/live-performance"
-                        icon={<Radio className="h-5 w-5 text-emerald-500" />}
-                        iconClass="bg-emerald-500/10"
+                        icon={<Radio className="h-5 w-5 text-muted-foreground" />}
+                        iconClass="bg-muted"
                         title="Live Performance"
                         text="Real-time MT5 execution metrics & AI signal engine."
                     />
                     <QuickCard
                         href="/verified-performance"
-                        icon={<Shield className="h-5 w-5 text-amber-400" />}
-                        iconClass="bg-amber-500/10"
+                        icon={<Shield className="h-5 w-5 text-muted-foreground" />}
+                        iconClass="bg-muted"
                         title="Verified Performance"
                         text="Audited trading performance metrics."
                     />
                     <QuickCard
                         href="/account/settings"
-                        icon={<Settings className="h-5 w-5 text-orange-400" />}
-                        iconClass="bg-orange-500/10"
+                        icon={<Settings className="h-5 w-5 text-muted-foreground" />}
+                        iconClass="bg-muted"
                         title="Settings"
                         text="Manage your account settings."
                     />
                     <QuickCard
                         href="/account/tools"
-                        icon={<Calculator className="h-5 w-5 text-violet-400" />}
-                        iconClass="bg-violet-500/10"
+                        icon={<Calculator className="h-5 w-5 text-muted-foreground" />}
+                        iconClass="bg-muted"
                         title="Trader Tools"
                         text="Notebook, journal & calculators."
                     />
                     {/* <QuickCard
                         href="/ai-copilot"
-                        icon={<Brain className="h-5 w-5 text-violet-400" />}
-                        iconClass="bg-violet-500/10"
+                        icon={<Brain className="h-5 w-5 text-muted-foreground" />}
+                        iconClass="bg-muted"
                         title="AI Copilot"
                         text="Get AI-powered market analysis & insights."
                     /> */}
                     <QuickCard
                         href="/scanner"
-                        icon={<Activity className="h-5 w-5 text-emerald-400" />}
-                        iconClass="bg-emerald-500/10"
+                        icon={<Activity className="h-5 w-5 text-muted-foreground" />}
+                        iconClass="bg-muted"
                         title="Market Scanner"
                         text="Scan assets across multiple markets."
                     />
                     <QuickCard
                         href="/insights"
-                        icon={<Sparkles className="h-5 w-5 text-sky-400" />}
-                        iconClass="bg-sky-500/10"
+                        icon={<Sparkles className="h-5 w-5 text-muted-foreground" />}
+                        iconClass="bg-muted"
                         title="AI Insights"
                         text="AI-powered market intelligence."
                     />
                 </div>
 
                 {/* Trading tools */}
-                <div className="rounded-2xl border border-border bg-muted/30 p-6" data-guide="tools-card">
+                <div className="rounded-lg border border-border bg-muted/30 p-6" data-guide="tools-card">
                     <h2 className="font-semibold">Trading Tools & Market Utilities</h2>
 
                     <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -450,110 +450,109 @@ export default function AccountPage() {
                         />
                         <ToolLink
                             href="/sessions"
-                            icon={<Clock className="h-5 w-5 text-blue-400" />}
+                            icon={<Clock className="h-5 w-5 text-muted-foreground" />}
                             title="Trading Sessions"
                             text="Live market hours clock"
                         />
                         <ToolLink
                             href="/compare"
-                            icon={<Award className="h-5 w-5 text-purple-400" />}
+                            icon={<Award className="h-5 w-5 text-muted-foreground" />}
                             title="Compare Brokers"
                             text="ECN spreads & VPS latency"
                         />
                         <ToolLink
                             href="/copy-trading"
-                            icon={<Copy className="h-5 w-5 text-violet-400" />}
+                            icon={<Copy className="h-5 w-5 text-muted-foreground" />}
                             title="Copy Trading"
                             text="Mirror trades from master accounts"
                         />
                         <ToolLink
                             href="/signals"
-                            icon={<Sparkles className="h-5 w-5 text-emerald-500" />}
+                            icon={<Sparkles className="h-5 w-5 text-muted-foreground" />}
                             title="AI Signals Engine"
                             text="Real-time AI SL/TP signals"
                         />
                         <ToolLink
                             href="/economic-calendar"
-                            icon={<Calendar className="h-5 w-5 text-red-500" />}
+                            icon={<Calendar className="h-5 w-5 text-muted-foreground" />}
                             title="Economic Calendar"
                             text="News impact & EA pause alerts"
                         />
                         <ToolLink
                             href="/account/tradingview"
-                            icon={<TrendingUp className="h-5 w-5 text-cyan-400" />}
+                            icon={<TrendingUp className="h-5 w-5 text-muted-foreground" />}
                             title="Trading Studio"
                             text="Advanced charts, indicators, and real-time data"
                         />
                         <ToolLink
                             href="/scanner"
-                            icon={<Activity className="h-5 w-5 text-emerald-400" />}
+                            icon={<Activity className="h-5 w-5 text-muted-foreground" />}
                             title="Market Scanner"
                             text="Scan assets across multiple markets"
                         />
                         <ToolLink
                             href="/account/tools"
-                            icon={<Sparkles className="h-5 w-5 text-violet-400" />}
+                            icon={<Sparkles className="h-5 w-5 text-muted-foreground" />}
                             title="Strategy Optimizer"
                             text="AI-powered strategy parameter optimization"
                         />
                         <ToolLink
                             href="/account/tools"
-                            icon={<Shield className="h-5 w-5 text-emerald-400" />}
+                            icon={<Shield className="h-5 w-5 text-muted-foreground" />}
                             title="Risk Manager"
                             text="Position sizing and drawdown control"
                         />
                         <ToolLink
                             href="/account/setfiles"
-                            icon={<Settings2 className="h-5 w-5 text-violet-400" />}
+                            icon={<Settings2 className="h-5 w-5 text-muted-foreground" />}
                             title="Set Files"
                             text="EA .set configuration files"
                         />
                         <ToolLink
                             href="/donate"
-                            icon={<Heart className="h-5 w-5 fill-pink-400 text-pink-400" />}
+                            icon={<Heart className="h-5 w-5 text-muted-foreground" />}
                             title="Donate & Get Free Tools"
                             text="Support us, unlock free EAs"
-                            className="border-pink-500/15 bg-pink-500/[0.05] hover:bg-pink-500/10"
                         />
                         <ToolLink
                             href="/account/tools"
-                            icon={<Calculator className="h-5 w-5 text-violet-400" />}
+                            icon={<Calculator className="h-5 w-5 text-muted-foreground" />}
                             title="Notebook & Calculators"
                             text="Trade journal, risk & position size"
                         />
                         <ToolLink
                             href="/account/affiliate"
-                            icon={<Gift className="h-5 w-5 text-emerald-500" />}
+                            icon={<Gift className="h-5 w-5 text-muted-foreground" />}
                             title="Referral Program"
                             text="Refer traders and earn 15%"
                         />
                         <ToolLink
                             href="/ai-historical"
-                            icon={<Activity className="h-5 w-5 text-sky-400" />}
+                            icon={<Activity className="h-5 w-5 text-muted-foreground" />}
                             title="AI Historical Analysis"
                             text="Deep historical market data analysis"
                         />
                         <ToolLink
                             href="/report-generator"
-                            icon={<FileText className="h-5 w-5 text-violet-400" />}
+                            icon={<FileText className="h-5 w-5 text-muted-foreground" />}
                             title="Report Generator"
                             text="Generate AI-powered performance reports"
                         />
                         <ToolLink
                             href="/signal-transparency"
-                            icon={<Eye className="h-5 w-5 text-emerald-400" />}
+                            icon={<Eye className="h-5 w-5 text-muted-foreground" />}
                             title="Signal Transparency"
                             text="Verify signal integrity and model accountability"
                         />
                         <ToolLink
                             href="/verified-performance"
-                            icon={<Shield className="h-5 w-5 text-amber-400" />}
+                            icon={<Shield className="h-5 w-5 text-muted-foreground" />}
                             title="Verified Performance"
                             text="Audited trading performance metrics"
                         />
                         <ToolLink
                             href="/live-performance"
-                            icon={<Radio className="h-5 w-5 text-emerald-500" />}
+                            icon={<Radio className="h-5 w-5 text-muted-foreground" />}
                             title="Live Performance"
                             text="Real-time MT5 execution & AI signal engine"
                         />
@@ -561,7 +560,7 @@ export default function AccountPage() {
                 </div>
 
                 {/* Risk */}
-                <div className="rounded-xl border border-amber-500/10 bg-amber-500/[0.03] p-5">
+                <div className="rounded-lg border border-warning/30 bg-warning-muted p-5">
                     <p className="text-xs leading-5 text-muted-foreground">
                         <span className="font-semibold text-foreground">Risk Disclosure:</span>{" "}
                         Trading involves substantial risk of loss. Backtests, historical
@@ -588,13 +587,13 @@ function StatCard({
     sparkColor: string;
 }) {
     return (
-        <div className="rounded-2xl border border-border bg-muted/30 p-5">
+        <div className="rounded-lg border border-border bg-muted/30 p-5">
             <div className="flex items-center justify-between">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted">
+                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-muted">
                     {icon}
                 </div>
             </div>
-            <p className="mt-4 text-2xl font-semibold tabular-nums tracking-tight">{value}</p>
+            <p className="mt-4 font-numeric text-2xl font-semibold tracking-tight">{value}</p>
             <p className="mt-1 text-sm text-muted-foreground">{label}</p>
             {spark.length >= 2 ? (
                 <div className="mt-3 opacity-90">
@@ -623,10 +622,10 @@ function QuickCard({
     return (
         <Link
             href={href}
-            className="group rounded-2xl border border-border bg-muted/30 p-5 transition hover:bg-muted/60"
+            className="group rounded-lg border border-border bg-muted/30 p-5 transition hover:bg-muted/60"
         >
             <div className="flex items-center justify-between">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${iconClass}`}>
+                <div className={`flex h-10 w-10 items-center justify-center rounded-md ${iconClass}`}>
                     {icon}
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-foreground" />
@@ -653,7 +652,7 @@ function ToolLink({
     return (
         <Link
             href={href}
-            className={`flex items-center justify-between rounded-xl border border-border bg-muted px-4 py-4 transition hover:bg-muted/60 ${className}`}
+            className={`flex items-center justify-between rounded-lg border border-border bg-muted px-4 py-4 transition hover:bg-muted/60 ${className}`}
         >
             <div className="flex items-center gap-3">
                 {icon}

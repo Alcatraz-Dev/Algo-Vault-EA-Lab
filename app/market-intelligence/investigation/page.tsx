@@ -45,10 +45,10 @@ function InvestigationContent() {
         </div>
       </header>
       <main className="mx-auto max-w-7xl px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <section className="lg:col-span-2 rounded-xl border bg-card p-6 shadow-sm">
+        <section className="lg:col-span-2 rounded-lg border border-border bg-card p-6">
           <h2 className="text-base font-semibold mb-4">Investigation Overview</h2>
           <p className="text-sm text-muted-foreground mb-2">Investigation workspace connects the selected root node through the Phase 13 Knowledge Graph.</p>
-          <div className="rounded-lg bg-slate-50 border p-4 text-sm text-slate-700 space-y-1">
+          <div className="rounded-lg bg-muted/50 border border-border p-4 text-sm text-foreground space-y-1">
             <div><strong>Root:</strong> {type}:{id}</div>
             <div><strong>Mode:</strong> {ctx.mode}</div>
             <div><strong>Workspace:</strong> Symbol / Timeframe preserved where available</div>
@@ -56,14 +56,14 @@ function InvestigationContent() {
           <div className="mt-4 text-xs text-muted-foreground">Evidence categories: FACT (observed), INTERPRETATION (derived), LIMITATION (constraints / replay / missing sources).</div>
         </section>
 
-        <section className="rounded-xl border bg-card p-6 shadow-sm space-y-4">
+        <section className="rounded-lg border border-border bg-card p-6 space-y-4">
           <h3 className="font-semibold">Lineage & Evidence Sections</h3>
           <div className="text-xs text-muted-foreground space-y-2">
             <p><span className="font-medium">FACT</span> — Lineage relationships from Knowledge Graph.</p>
             <p><span className="font-medium">INTERPRETATION</span> — Deterministic derivations from observed relationships.</p>
             <p><span className="font-medium">LIMITATION</span> — Replay exclusions, missing sources, cycle protection.</p>
           </div>
-          <Link href="/market-intelligence/knowledge" className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">
+          <Link href="/market-intelligence/knowledge" className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
             Knowledge Graph <ArrowUpRight className="w-3 h-3" />
           </Link>
         </section>

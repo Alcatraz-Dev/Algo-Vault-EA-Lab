@@ -95,8 +95,8 @@ export default async function StorePage({
     return (
         <main className="min-h-screen bg-background text-foreground">
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-violet-500/10 blur-[120px]" />
-                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px]" />
+                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-primary/10 blur-[120px]" />
+                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-warning/10 blur-[120px]" />
             </div>
 
             <div className="relative mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
@@ -105,8 +105,8 @@ export default async function StorePage({
                 </Link>
 
                 <div className="mb-8 flex items-center gap-4">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-500/10">
-                        <Store size={22} className="text-violet-400" />
+                    <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10">
+                        <Store size={22} className="text-primary" />
                     </div>
                     <div>
                         <h1 className="text-2xl font-bold sm:text-3xl">{displayName}</h1>
@@ -117,8 +117,8 @@ export default async function StorePage({
                 </div>
 
                 {!paymentsActive ? (
-                    <div className="rounded-2xl border border-amber-500/20 bg-amber-500/[0.04] p-8 text-center">
-                        <ShieldCheck size={28} className="mx-auto text-amber-400" />
+                    <div className="rounded-lg border border-warning/20 bg-warning/[0.04] p-8 text-center">
+                        <ShieldCheck size={28} className="mx-auto text-warning" />
                         <p className="mt-3 text-sm font-medium text-foreground">
                             This seller is not accepting payments yet.
                         </p>
@@ -127,7 +127,7 @@ export default async function StorePage({
                         </p>
                     </div>
                 ) : products.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-border/40 p-16 text-center">
+                    <div className="rounded-lg border border-dashed border-border/40 p-16 text-center">
                         <Store size={28} className="mx-auto text-muted-foreground" />
                         <p className="mt-3 text-sm text-muted-foreground">No products available yet.</p>
                     </div>
@@ -139,7 +139,7 @@ export default async function StorePage({
                             return (
                                 <div
                                     key={product.id}
-                                    className="flex flex-col rounded-2xl border border-border/30 bg-muted/50 p-5 transition-all hover:bg-muted"
+                                    className="flex flex-col rounded-lg border border-border/30 bg-muted/50 p-5 transition-all hover:bg-muted"
                                 >
                                     <h3 className="text-sm font-semibold text-foreground">
                                         {product.name}
@@ -148,12 +148,12 @@ export default async function StorePage({
                                         {product.description || "Trading software by this developer."}
                                     </p>
                                     <div className="mt-4 flex items-center justify-between">
-                                        <span className="font-mono text-lg font-bold text-emerald-400">
+                                        <span className="font-mono text-lg font-bold text-positive">
                                             {price
                                                 ? formatPrice(price.unit_amount, price.currency)
                                                 : "—"}
                                         </span>
-                                        <span className="rounded-md bg-muted px-2 py-0.5 text-[9px] font-medium uppercase tracking-wider text-muted-foreground">
+                                        <span className="rounded-md bg-muted px-2 py-0.5 text-micro font-medium uppercase tracking-wider text-muted-foreground">
                                             {isSubscription ? "Monthly" : "One-time"}
                                         </span>
                                     </div>
@@ -166,7 +166,7 @@ export default async function StorePage({
                                                 mode={isSubscription ? "subscription" : "payment"}
                                             />
                                         ) : (
-                                            <p className="text-[11px] text-muted-foreground">Price unavailable.</p>
+                                            <p className="text-micro text-muted-foreground">Price unavailable.</p>
                                         )}
                                     </div>
                                 </div>

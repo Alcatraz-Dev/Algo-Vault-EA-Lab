@@ -373,7 +373,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                     <SlidersHorizontal className="size-3.5" />
                     Panels
                 </button>
-                <span className="hidden text-[11px] text-muted-foreground md:inline">
+                <span className="hidden text-micro text-muted-foreground md:inline">
                     One workspace — symbol, timeframe and intelligence mode are shared by every panel.
                 </span>
             </div>
@@ -388,7 +388,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                             onClick={() => togglePanel(p.id)}
                             aria-pressed={visible(p.id)}
                             className={cn(
-                                "rounded border px-2 py-1 text-[11px] font-medium transition",
+                                "rounded border px-2 py-1 text-micro font-medium transition",
                                 visible(p.id)
                                     ? "border-primary/40 bg-primary/10 text-primary"
                                     : "border-border text-muted-foreground hover:bg-muted"
@@ -413,7 +413,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                             aria-selected={active}
                             onClick={() => setMobileTab(t.id)}
                             className={cn(
-                                "flex-1 rounded-md px-2 py-1.5 text-[11px] font-medium transition",
+                                "flex-1 rounded-md px-2 py-1.5 text-micro font-medium transition",
                                 active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
                             )}
                         >
@@ -460,7 +460,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                             <button
                                 type="button"
                                 onClick={() => setSelectedPositionTicket(null)}
-                                className="ml-auto rounded border border-border px-1.5 py-0.5 text-[10px] transition hover:bg-muted"
+                                className="ml-auto rounded border border-border px-1.5 py-0.5 text-micro transition hover:bg-muted"
                             >
                                 Dismiss
                             </button>
@@ -518,7 +518,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                 {mobileTab === "chat" ? <TradingChat now={now} /> : null}
             </div>
 
-            <p className="text-[10px] leading-4 text-muted-foreground">
+            <p className="text-micro leading-4 text-muted-foreground">
                 Chart, indicators, Smart Money overlays, signals and trade levels come from AlgoVault engines; account
                 and positions come from your connected gateway account; risk status is produced by the canonical Risk
                 Engine. Market data freshness is shown in the header — when a source is stale or missing it says so.

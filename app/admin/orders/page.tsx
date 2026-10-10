@@ -21,6 +21,7 @@ import {
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import AdminShell from "@/components/admin/AdminShell";
+import { StatusBadge as UiStatusBadge } from "@/components/ui/status-badge";
 
 type Product = {
     id: string;
@@ -396,7 +397,7 @@ export default function AdminOrdersPage() {
 
                 <div className="mx-auto flex min-h-screen max-w-2xl items-center justify-center px-6">
 
-                    <div className="w-full rounded-2xl border border-border bg-muted/30 p-8 text-center">
+                    <div className="w-full rounded-lg border border-border bg-muted/30 p-8 text-center">
 
                         <ShieldCheck
                             size={42}
@@ -414,7 +415,7 @@ export default function AdminOrdersPage() {
 
                         <Link
                             href="/login"
-                            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-foreground px-5 py-3 text-xs font-medium text-background"
+                            className="mt-6 inline-flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/80"
                         >
                             Sign In
 
@@ -438,7 +439,7 @@ export default function AdminOrdersPage() {
                     type="button"
                     onClick={refresh}
                     disabled={refreshing || loading}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-muted/40 px-4 py-2 text-xs font-semibold text-muted-foreground transition hover:bg-muted/60 disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-muted/40 px-4 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted/60 disabled:opacity-50"
                 >
                     {refreshing ? (
                         <Loader2 size={14} className="animate-spin" />
@@ -519,7 +520,7 @@ export default function AdminOrdersPage() {
 
             {/* Error */}
             {error && (
-                <div className="mt-6 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-600">
+                <div className="mt-6 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
 
                     <div className="flex items-start gap-3">
 
@@ -533,7 +534,7 @@ export default function AdminOrdersPage() {
                                 Unable to load orders
                             </p>
 
-                            <p className="mt-1 text-xs text-red-600/70">
+                            <p className="mt-1 text-xs text-destructive/70">
                                 {error}
                             </p>
                         </div>
@@ -567,7 +568,7 @@ export default function AdminOrdersPage() {
                             )
                         }
                         placeholder="Search order, customer, product or Stripe session..."
-                        className="w-full rounded-xl border border-border bg-muted/40 py-3 pl-11 pr-4 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-border"
+                        className="w-full rounded-md border border-border bg-muted/40 py-3 pl-11 pr-4 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-border"
                     />
 
                 </div>
@@ -620,9 +621,9 @@ export default function AdminOrdersPage() {
                                         value
                                     )
                                 }
-                                className={`whitespace-nowrap rounded-xl border px-3.5 py-2.5 text-[11px] transition ${filter ===
+                                className={`whitespace-nowrap rounded-md border px-3.5 py-2.5 text-micro transition-colors ${filter ===
                                     value
-                                    ? "border-border bg-foreground text-background"
+                                    ? "border-primary/40 bg-primary/10 text-foreground"
                                     : "border-border bg-muted/30 text-muted-foreground hover:bg-muted/60"
                                     }`}
                             >
@@ -662,7 +663,7 @@ export default function AdminOrdersPage() {
 
             {/* Loading */}
             {loading && (
-                <div className="mt-5 overflow-hidden rounded-2xl border border-border">
+                <div className="mt-5 overflow-hidden rounded-lg border border-border">
 
                     <div className="animate-pulse space-y-3 p-5">
 
@@ -679,7 +680,7 @@ export default function AdminOrdersPage() {
                                     key={
                                         item
                                     }
-                                    className="h-16 rounded-xl bg-muted/50"
+                                    className="h-16 rounded-lg bg-muted/50"
                                 />
                             )
                         )}
@@ -694,7 +695,7 @@ export default function AdminOrdersPage() {
                 !error &&
                 filteredOrders.length ===
                 0 && (
-                    <div className="mt-5 rounded-2xl border border-dashed border-border bg-muted/30 px-6 py-20 text-center">
+                    <div className="mt-5 rounded-lg border border-dashed border-border bg-card px-6 py-20 text-center">
 
                         <PackageCheck
                             size={40}
@@ -717,44 +718,44 @@ export default function AdminOrdersPage() {
             {!loading &&
                 filteredOrders.length >
                 0 && (
-                    <div className="mt-5 overflow-hidden rounded-2xl border border-border bg-muted/30">
+                    <div className="mt-5 overflow-hidden rounded-lg border border-border bg-card">
 
                         <div className="overflow-x-auto">
 
                             <table className="w-full min-w-[1050px]">
 
                                 <thead>
-                                    <tr className="border-b border-border bg-muted/30">
+                                    <tr className="border-b border-border bg-muted/40">
 
-                                        <th className="px-5 py-4 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+                                        <th className="px-5 py-4 text-left text-micro uppercase tracking-wider text-muted-foreground">
                                             Order
                                         </th>
 
-                                        <th className="px-5 py-4 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+                                        <th className="px-5 py-4 text-left text-micro uppercase tracking-wider text-muted-foreground">
                                             Customer
                                         </th>
 
-                                        <th className="px-5 py-4 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+                                        <th className="px-5 py-4 text-left text-micro uppercase tracking-wider text-muted-foreground">
                                             Product
                                         </th>
 
-                                        <th className="px-5 py-4 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+                                        <th className="px-5 py-4 text-right text-micro uppercase tracking-wider text-muted-foreground">
                                             Amount
                                         </th>
 
-                                        <th className="px-5 py-4 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+                                        <th className="px-5 py-4 text-left text-micro uppercase tracking-wider text-muted-foreground">
                                             Payment
                                         </th>
 
-                                        <th className="px-5 py-4 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+                                        <th className="px-5 py-4 text-left text-micro uppercase tracking-wider text-muted-foreground">
                                             License
                                         </th>
 
-                                        <th className="px-5 py-4 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+                                        <th className="px-5 py-4 text-left text-micro uppercase tracking-wider text-muted-foreground">
                                             Date
                                         </th>
 
-                                        <th className="px-5 py-4 text-right text-[10px] uppercase tracking-wider text-muted-foreground">
+                                        <th className="px-5 py-4 text-right text-micro uppercase tracking-wider text-muted-foreground">
                                             Action
                                         </th>
 
@@ -789,7 +790,7 @@ export default function AdminOrdersPage() {
             {!loading &&
                 orders.length >
                 0 && (
-                    <div className="mt-6 flex gap-3 rounded-2xl border border-border bg-muted/30 p-5">
+                    <div className="mt-6 flex gap-3 rounded-lg border border-border bg-card p-5">
 
                         <ShieldCheck
                             size={18}
@@ -845,13 +846,13 @@ function OrderRow({
 
                 <div>
 
-                    <p className="font-mono text-[11px] text-foreground">
+                    <p className="font-mono text-micro text-foreground">
                         {shortId(
                             order.id
                         )}
                     </p>
 
-                    <p className="mt-1 text-[10px] text-muted-foreground">
+                    <p className="mt-1 text-micro text-muted-foreground">
                         {order.id}
                     </p>
 
@@ -882,7 +883,7 @@ function OrderRow({
                         </p>
 
                         {order.userId && (
-                            <p className="mt-1 max-w-[180px] truncate font-mono text-[9px] text-muted-foreground">
+                            <p className="mt-1 max-w-[180px] truncate font-mono text-micro text-muted-foreground">
                                 {
                                     order.userId
                                 }
@@ -928,7 +929,7 @@ function OrderRow({
                             </p>
                         )}
 
-                        <p className="mt-1 text-[10px] text-muted-foreground">
+                        <p className="mt-1 text-micro text-muted-foreground">
                             {
                                 order.product
                                     ?.platform ||
@@ -943,11 +944,11 @@ function OrderRow({
             </td>
 
             {/* Amount */}
-            <td className="px-5 py-4">
+            <td className="px-5 py-4 text-right">
 
                 <div>
 
-                    <p className="text-xs font-medium text-foreground">
+                    <p className="font-numeric text-xs font-medium text-foreground">
                         {formatMoney(
                             order.price ||
                             0,
@@ -956,7 +957,7 @@ function OrderRow({
                         )}
                     </p>
 
-                    <p className="mt-1 text-[10px] text-muted-foreground">
+                    <p className="mt-1 text-micro text-muted-foreground">
                         {
                             order.paymentProvider ||
                             "Stripe"
@@ -982,28 +983,20 @@ function OrderRow({
             <td className="px-5 py-4">
 
                 {licenseExists ? (
-                    <div className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-2.5 py-1.5 text-[10px] text-emerald-600">
-
-                        <CheckCircle2
-                            size={11}
-                        />
-
-                        Created
-
-                    </div>
+                    <UiStatusBadge
+                        tone="positive"
+                        icon={<CheckCircle2 size={12} />}
+                        label="Created"
+                    />
                 ) : status ===
                     "paid" ? (
-                    <div className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/5 px-2.5 py-1.5 text-[10px] text-amber-400">
-
-                        <Clock3
-                            size={11}
-                        />
-
-                        Missing
-
-                    </div>
+                    <UiStatusBadge
+                        tone="warning"
+                        icon={<Clock3 size={12} />}
+                        label="Missing"
+                    />
                 ) : (
-                    <span className="text-[10px] text-muted-foreground">
+                    <span className="text-micro text-muted-foreground">
                         —
                     </span>
                 )}
@@ -1022,7 +1015,7 @@ function OrderRow({
                     </p>
 
                     {order.paidAt && (
-                        <p className="mt-1 text-[10px] text-emerald-500/60">
+                        <p className="mt-1 font-numeric text-micro text-positive">
                             Paid{" "}
                             {formatDate(
                                 order.paidAt
@@ -1049,7 +1042,7 @@ function OrderRow({
                                     ""
                                 )
                             }
-                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted/30 text-muted-foreground transition hover:text-foreground"
+                            className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-muted/30 text-muted-foreground transition-colors hover:text-foreground"
                         >
                             <ExternalLink
                                 size={13}
@@ -1061,7 +1054,7 @@ function OrderRow({
                         <Link
                             href={`/marketplace/${productSlug}`}
                             title="View Product"
-                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted/30 text-muted-foreground transition hover:text-foreground"
+                            className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-muted/30 text-muted-foreground transition-colors hover:text-foreground"
                         >
                             <ArrowRight
                                 size={13}
@@ -1093,7 +1086,7 @@ function AdminStat({
     value: number | string;
 }) {
     return (
-        <div className="rounded-2xl border border-border bg-muted/30 p-5">
+        <div className="rounded-lg border border-border bg-card p-5">
 
             <div className="flex items-center gap-2 text-muted-foreground">
 
@@ -1105,7 +1098,7 @@ function AdminStat({
 
             </div>
 
-            <p className="mt-3 text-2xl font-semibold">
+            <p className="mt-3 font-numeric text-2xl font-semibold">
                 {value}
             </p>
 
@@ -1177,54 +1170,38 @@ function StatusBadge({
     switch (status) {
         case "paid":
             return (
-                <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-2.5 py-1.5 text-[10px] text-emerald-600">
-
-                    <CheckCircle2
-                        size={11}
-                    />
-
-                    Paid
-
-                </span>
+                <UiStatusBadge
+                    tone="positive"
+                    icon={<CheckCircle2 size={12} />}
+                    label="Paid"
+                />
             );
 
         case "failed":
             return (
-                <span className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/5 px-2.5 py-1.5 text-[10px] text-red-500">
-
-                    <XCircle
-                        size={11}
-                    />
-
-                    Failed
-
-                </span>
+                <UiStatusBadge
+                    tone="negative"
+                    icon={<XCircle size={12} />}
+                    label="Failed"
+                />
             );
 
         case "cancelled":
             return (
-                <span className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/5 px-2.5 py-1.5 text-[10px] text-muted-foreground">
-
-                    <XCircle
-                        size={11}
-                    />
-
-                    Cancelled
-
-                </span>
+                <UiStatusBadge
+                    tone="neutral"
+                    icon={<XCircle size={12} />}
+                    label="Cancelled"
+                />
             );
 
         default:
             return (
-                <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/5 px-2.5 py-1.5 text-[10px] text-amber-400">
-
-                    <Clock3
-                        size={11}
-                    />
-
-                    Pending
-
-                </span>
+                <UiStatusBadge
+                    tone="warning"
+                    icon={<Clock3 size={12} />}
+                    label="Pending"
+                />
             );
     }
 }

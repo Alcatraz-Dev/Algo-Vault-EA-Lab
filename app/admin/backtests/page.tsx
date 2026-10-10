@@ -177,12 +177,12 @@ export default function AdminBacktestsPage() {
                         placeholder="Search by title, pair, or bot..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full rounded-xl border border-border bg-muted pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-emerald-500 focus:outline-none"
+                        className="w-full rounded-xl border border-border bg-muted pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-positive focus:outline-none"
                     />
                 </div>
                 <button
                     onClick={() => setShowModal(true)}
-                    className="flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-background transition hover:bg-emerald-400"
+                    className="flex items-center gap-2 rounded-xl bg-positive px-4 py-2 text-sm font-semibold text-background transition hover:bg-positive"
                 >
                     <Plus size={16} /> Add Backtest Report
                 </button>
@@ -191,22 +191,22 @@ export default function AdminBacktestsPage() {
             {/* Content List */}
             {loading ? (
                 <div className="flex justify-center py-20">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent"></div>
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-positive border-t-transparent"></div>
                 </div>
             ) : loadError ? (
-                <div className="rounded-2xl border border-rose-500/25 bg-rose-500/[0.05] p-12 text-center">
-                    <BarChart3 size={40} className="mx-auto text-rose-400 mb-3" />
+                <div className="rounded-lg border border-negative/25 bg-negative/[0.05] p-12 text-center">
+                    <BarChart3 size={40} className="mx-auto text-negative mb-3" />
                     <h3 className="text-lg font-bold text-foreground">Failed to Load Backtests</h3>
                     <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">{loadError}</p>
                     <button
                         onClick={() => fetchBacktests()}
-                        className="mt-5 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-background hover:bg-emerald-400 transition"
+                        className="mt-5 inline-flex items-center gap-2 rounded-xl bg-positive px-4 py-2 text-sm font-semibold text-background hover:bg-positive transition"
                     >
                         <RefreshCw size={15} /> Retry
                     </button>
                 </div>
             ) : filtered.length === 0 ? (
-                <div className="rounded-2xl border border-border bg-card p-12 text-center">
+                <div className="rounded-lg border border-border bg-card p-12 text-center">
                     <BarChart3 size={40} className="mx-auto text-muted-foreground mb-3" />
                     <h3 className="text-lg font-bold text-foreground">No Backtest Reports Published</h3>
                     <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
@@ -224,12 +224,12 @@ export default function AdminBacktestsPage() {
                     {filtered.map((item) => (
                         <div
                             key={item.id}
-                            className="rounded-2xl border border-border bg-card p-5 transition hover:border-border flex flex-col justify-between"
+                            className="rounded-lg border border-border bg-card p-5 transition hover:border-border flex flex-col justify-between"
                         >
                             <div>
                                 <div className="flex items-start justify-between">
                                     <div>
-                                        <span className="rounded-md bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground font-mono">
+                                        <span className="rounded-md bg-muted px-2 py-0.5 text-micro font-semibold text-foreground font-mono">
                                             {item.pair} • {item.timeframe}
                                         </span>
                                         <h4 className="font-bold text-foreground text-base mt-2">{item.title}</h4>
@@ -237,7 +237,7 @@ export default function AdminBacktestsPage() {
                                     </div>
                                     <button
                                         onClick={() => handleDelete(item)}
-                                        className="text-muted-foreground hover:text-rose-400 transition"
+                                        className="text-muted-foreground hover:text-negative transition"
                                         title="Delete report"
                                     >
                                         <Trash2 size={16} />
@@ -246,18 +246,18 @@ export default function AdminBacktestsPage() {
 
                                 <div className="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-muted p-3 text-center border border-border/60">
                                     <div>
-                                        <p className="text-[10px] uppercase text-muted-foreground font-semibold">Net Profit</p>
-                                        <p className="text-sm font-bold text-emerald-600 mt-0.5">
+                                        <p className="text-micro uppercase text-muted-foreground font-semibold">Net Profit</p>
+                                        <p className="text-sm font-bold text-positive mt-0.5">
                                             +${item.netProfit.toLocaleString()}
                                         </p>
                                     </div>
                                     <div>
-                                        <p className="text-[10px] uppercase text-muted-foreground font-semibold">Win Rate</p>
+                                        <p className="text-micro uppercase text-muted-foreground font-semibold">Win Rate</p>
                                         <p className="text-sm font-bold text-foreground mt-0.5">{item.winRate}%</p>
                                     </div>
                                     <div>
-                                        <p className="text-[10px] uppercase text-muted-foreground font-semibold">Max DD</p>
-                                        <p className="text-sm font-bold text-rose-400 mt-0.5">{item.maxDrawdown}%</p>
+                                        <p className="text-micro uppercase text-muted-foreground font-semibold">Max DD</p>
+                                        <p className="text-sm font-bold text-negative mt-0.5">{item.maxDrawdown}%</p>
                                     </div>
                                 </div>
                             </div>
@@ -268,7 +268,7 @@ export default function AdminBacktestsPage() {
                                     href={item.reportUrl}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:underline"
+                                    className="inline-flex items-center gap-1 text-xs font-semibold text-positive hover:underline"
                                 >
                                     View Full Report <ExternalLink size={13} />
                                 </a>
@@ -281,7 +281,7 @@ export default function AdminBacktestsPage() {
             {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 p-4 backdrop-blur-sm">
-                    <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-2xl">
+                    <div className="w-full max-w-lg rounded-lg border border-border bg-card p-6 shadow-2xl">
                         <div className="flex items-center justify-between border-b border-border pb-4">
                             <h3 className="text-lg font-bold text-foreground">Add Backtest Report</h3>
                             <button onClick={() => setShowModal(false)} className="text-muted-foreground hover:text-foreground">
@@ -298,7 +298,7 @@ export default function AdminBacktestsPage() {
                                     placeholder="e.g. 5-Year Tick Data Backtest (99.9% Quality)"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
-                                    className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-emerald-500 focus:outline-none"
+                                    className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                 />
                             </div>
 
@@ -311,7 +311,7 @@ export default function AdminBacktestsPage() {
                                         placeholder="XAUUSD"
                                         value={pair}
                                         onChange={(e) => setPair(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-emerald-500 focus:outline-none"
+                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     />
                                 </div>
                                 <div>
@@ -322,7 +322,7 @@ export default function AdminBacktestsPage() {
                                         placeholder="M15"
                                         value={timeframe}
                                         onChange={(e) => setTimeframe(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-emerald-500 focus:outline-none"
+                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     />
                                 </div>
                             </div>
@@ -336,7 +336,7 @@ export default function AdminBacktestsPage() {
                                         placeholder="e.g. 14500"
                                         value={netProfit}
                                         onChange={(e) => setNetProfit(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-emerald-500 focus:outline-none"
+                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     />
                                 </div>
                                 <div>
@@ -348,7 +348,7 @@ export default function AdminBacktestsPage() {
                                         placeholder="e.g. 78.5"
                                         value={winRate}
                                         onChange={(e) => setWinRate(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-emerald-500 focus:outline-none"
+                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     />
                                 </div>
                                 <div>
@@ -360,7 +360,7 @@ export default function AdminBacktestsPage() {
                                         placeholder="e.g. 6.2"
                                         value={maxDrawdown}
                                         onChange={(e) => setMaxDrawdown(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-emerald-500 focus:outline-none"
+                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     />
                                 </div>
                             </div>
@@ -372,7 +372,7 @@ export default function AdminBacktestsPage() {
                                         required
                                         value={selectedBotId}
                                         onChange={(e) => setSelectedBotId(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-emerald-500 focus:outline-none"
+                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     >
                                         <option value="">Select a product...</option>
                                         {bots.map((bot) => (
@@ -391,7 +391,7 @@ export default function AdminBacktestsPage() {
                                         placeholder="e.g. 10000"
                                         value={initialBalance}
                                         onChange={(e) => setInitialBalance(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-emerald-500 focus:outline-none"
+                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     />
                                 </div>
                             </div>
@@ -403,17 +403,17 @@ export default function AdminBacktestsPage() {
                                     value={period}
                                     onChange={(e) => setPeriod(e.target.value)}
                                     placeholder="e.g. 2021 - 2026 (5 Years)"
-                                    className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-emerald-500 focus:outline-none"
+                                    className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                 />
                             </div>
 
                             <div>
                                 <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">HTML Report File</label>
-                                <label className="flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted p-6 transition hover:border-emerald-500/50 hover:bg-card">
+                                <label className="flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted p-6 transition hover:border-positive/50 hover:bg-card">
                                     <Upload size={20} className="text-muted-foreground" />
                                     <span className="text-xs text-muted-foreground">
                                         {file ? (
-                                            <span className="font-medium text-emerald-600">{file.name}</span>
+                                            <span className="font-medium text-positive">{file.name}</span>
                                         ) : (
                                             "Click to upload MT5 HTML report (max 20 MB)"
                                         )}
@@ -439,7 +439,7 @@ export default function AdminBacktestsPage() {
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-background hover:bg-emerald-400 disabled:opacity-50"
+                                    className="rounded-xl bg-positive px-5 py-2.5 text-sm font-semibold text-background hover:bg-positive disabled:opacity-50"
                                 >
                                     {saving ? "Uploading..." : "Publish Backtest"}
                                 </button>

@@ -168,7 +168,7 @@ export default function AccountMarketIntelligencePage() {
       <AccountShell title="Market Intelligence — Command Center" subtitle="Analyze → Detect → Validate → Research → Build">
       <div className="flex flex-col gap-4 px-4 py-6">
         {/* Global Context Bar */}
-        <div className="rounded-xl border border-border/30 bg-card/60 p-3 backdrop-blur-xl flex flex-wrap items-center gap-3 text-[11px] font-mono">
+        <div className="rounded-xl border border-border/30 bg-card/60 p-3 backdrop-blur-xl flex flex-wrap items-center gap-3 text-micro font-mono">
           <div className="font-black text-sm">COMMAND CENTER</div>
           <select value={symbol} onChange={(e) => setSymbol(e.target.value as SupportedSymbol)} className="rounded bg-muted/30 px-2 py-0.5 text-xs outline-none">
             {["XAUUSD", "EURUSD", "GBPUSD", "USDJPY"].map((s) => <option key={s} value={s}>{s}</option>)}
@@ -186,7 +186,7 @@ export default function AccountMarketIntelligencePage() {
 
         <div className="grid lg:grid-cols-[1fr_320px] gap-4">
           {/* Main Chart / Workspace */}
-          <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+          <div className="rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
             <div className="flex items-center justify-between mb-3 text-xs font-mono uppercase tracking-wider text-muted-foreground">
               <span>Market Workspace</span>
               <span>Overlay adapter · Smart Money · Sessions · Indicators</span>
@@ -199,18 +199,18 @@ export default function AccountMarketIntelligencePage() {
                   <div className="text-xs text-muted-foreground">{timeframe} · {data ? "Live analytics" : "Loading..."}</div>
                 </div>
                 <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                  <div className="rounded bg-muted/40 p-2"><div className="text-[10px] text-muted-foreground">Regime</div><div className="font-mono font-semibold truncate">{data?.regime?.regime ?? "—"}</div></div>
-                  <div className="rounded bg-muted/40 p-2"><div className="text-[10px] text-muted-foreground">Score</div><div className="font-mono font-semibold">{data?.score && typeof data.score === "object" ? (data.score.total ?? "—") : (data?.score ?? "—")}</div></div>
-                  <div className="rounded bg-muted/40 p-2"><div className="text-[10px] text-muted-foreground">Structure</div><div className="font-mono font-semibold">{report.structure?.length ?? 0}</div></div>
-                  <div className="rounded bg-muted/40 p-2"><div className="text-[10px] text-muted-foreground">Liquidity</div><div className="font-mono font-semibold">{report.liquidity?.length ?? 0}</div></div>
-                  <div className="rounded bg-muted/40 p-2"><div className="text-[10px] text-muted-foreground">Volume</div><div className="font-mono font-semibold">{data?.volume && typeof data.volume === "object" ? (data.volume.volume?.toLocaleString() ?? data.volume.averageVolume?.toLocaleString() ?? "—") : (data?.volume ?? "—")}</div></div>
-                  <div className="rounded bg-muted/40 p-2"><div className="text-[10px] text-muted-foreground">Volatility</div><div className="font-mono font-semibold">{data?.volatility && typeof data.volatility === "object" ? (data.volatility.daily ? `${data.volatility.daily}%` : data.volatility.atr ? `${data.volatility.atr}` : "—") : (data?.volatility ?? "—")}</div></div>
-                  <div className="rounded bg-muted/40 p-2"><div className="text-[10px] text-muted-foreground">Session</div><div className="font-mono font-semibold truncate">{data?.session ? data.session.name : "—"}</div></div>
-                  <div className="rounded bg-muted/40 p-2"><div className="text-[10px] text-muted-foreground">VWAP</div><div className="font-mono font-semibold truncate">{data?.vwap && typeof data.vwap === "object" ? (data.vwap.value ?? data.vwap.mean ?? "—") : (data?.vwap ?? "—")}</div></div>
+                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Regime</div><div className="font-mono font-semibold truncate">{data?.regime?.regime ?? "—"}</div></div>
+                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Score</div><div className="font-mono font-semibold">{data?.score && typeof data.score === "object" ? (data.score.total ?? "—") : (data?.score ?? "—")}</div></div>
+                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Structure</div><div className="font-mono font-semibold">{report.structure?.length ?? 0}</div></div>
+                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Liquidity</div><div className="font-mono font-semibold">{report.liquidity?.length ?? 0}</div></div>
+                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Volume</div><div className="font-mono font-semibold">{data?.volume && typeof data.volume === "object" ? (data.volume.volume?.toLocaleString() ?? data.volume.averageVolume?.toLocaleString() ?? "—") : (data?.volume ?? "—")}</div></div>
+                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Volatility</div><div className="font-mono font-semibold">{data?.volatility && typeof data.volatility === "object" ? (data.volatility.daily ? `${data.volatility.daily}%` : data.volatility.atr ? `${data.volatility.atr}` : "—") : (data?.volatility ?? "—")}</div></div>
+                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Session</div><div className="font-mono font-semibold truncate">{data?.session ? data.session.name : "—"}</div></div>
+                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">VWAP</div><div className="font-mono font-semibold truncate">{data?.vwap && typeof data.vwap === "object" ? (data.vwap.value ?? data.vwap.mean ?? "—") : (data?.vwap ?? "—")}</div></div>
                 </div>
                 {ohlc?.candles && (
                   <div className="rounded bg-muted/30 p-3 flex-1 min-h-30">
-                    <div className="text-[10px] text-muted-foreground mb-2">Price · Last {Math.min(30, ohlc.candles.length)} candles</div>
+                    <div className="text-micro text-muted-foreground mb-2">Price · Last {Math.min(30, ohlc.candles.length)} candles</div>
                     <div className="flex items-end gap-0.5 h-20 w-full">
                       {ohlc.candles.slice(-30).map((c: any, i: number) => {
                         const max = Math.max(...ohlc.candles.slice(-30).map((x: any) => x.high));
@@ -228,7 +228,7 @@ export default function AccountMarketIntelligencePage() {
                         );
                       })}
                     </div>
-                    <div className="text-[10px] text-muted-foreground mt-2 flex gap-3">
+                    <div className="text-micro text-muted-foreground mt-2 flex gap-3">
                       <span>Candles: {ohlc.candles.length}</span>
                       <span>Last close: {ohlc.candles[ohlc.candles.length - 1]?.close}</span>
                       <span>Last high: {ohlc.candles[ohlc.candles.length - 1]?.high}</span>
@@ -242,7 +242,7 @@ export default function AccountMarketIntelligencePage() {
 
           {/* Intelligence / Evidence */}
           <div className="flex flex-col gap-4">
-            <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+            <div className="rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
               <h3 className="font-bold text-sm mb-2 flex items-center gap-2"><Zap size={14} /> Intelligence Layer</h3>
               <div className="text-xs space-y-2 text-muted-foreground">
                 <div><strong>Facts</strong> — {data ? "Engine loaded from /api/analysis/intelligence" : "Waiting for engine state"}</div>
@@ -250,7 +250,7 @@ export default function AccountMarketIntelligencePage() {
                 <div><strong>Limitations</strong> — OHLC only · replay excludes future data</div>
                 <div><strong>Evidence</strong> — references use real IDs only</div>
               </div>
-              <div className="mt-3 flex gap-1 text-[10px]">
+              <div className="mt-3 flex gap-1 text-micro">
                 <span className="rounded border border-border/30 px-1.5 py-0.5">No confidence scores</span>
                 <span className="rounded border border-border/30 px-1.5 py-0.5">Replay-safe</span>
               </div>
@@ -259,7 +259,7 @@ export default function AccountMarketIntelligencePage() {
               )}
             </div>
 
-            <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+            <div className="rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
               <h3 className="font-bold text-sm mb-2 flex items-center gap-2"><Activity size={14} /> Smart Money Summary</h3>
               <div className="text-xs text-muted-foreground space-y-1">
                 <div><strong>Structure</strong> — {report.structure?.length ? `${report.structure.length} events` : "Loading..."}</div>
@@ -268,7 +268,7 @@ export default function AccountMarketIntelligencePage() {
                 <div><strong>Order Blocks</strong> — {data ? "Not loaded" : "—"}</div>
                 <div><strong>Sessions</strong> — {data ? (data.session ? data.session.name : "Not loaded") : "—"}</div>
               </div>
-              <div className="mt-2 text-[10px] text-amber-300">Only real engine outputs displayed.</div>
+              <div className="mt-2 text-micro text-amber-300">Only real engine outputs displayed.</div>
             </div>
           </div>
         </div>
@@ -276,7 +276,7 @@ export default function AccountMarketIntelligencePage() {
         {/* Bottom: Replay / Evidence / Quick Actions / Live Monitor / Watchlist / Setups */}
         <div className="grid lg:grid-cols-3 gap-4">
           {/* Engine Status */}
-          <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+          <div className="rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
             <div className="flex items-center justify-between mb-3 text-xs font-mono uppercase">
               <span>Engine Status</span>
               <span>Real-time feed</span>
@@ -287,20 +287,20 @@ export default function AccountMarketIntelligencePage() {
               <div className="flex justify-between"><span className="text-muted-foreground">Accounts</span><span className={accounts.length ? "text-emerald-400" : "text-muted-foreground"}>{accounts.length ? `${accounts.length} connected` : "None"}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Positions</span><span className={positions.length ? "text-amber-400" : "text-muted-foreground"}>{positions.length ? `${positions.length} open` : "None"}</span></div>
             </div>
-            <div className="mt-3 rounded-xl border border-border/20 bg-background/20 p-3 text-[10px] text-muted-foreground">Engine feeds are real: analytics APIs, MT5 accounts, and live positions. No replay or mock timers.</div>
+            <div className="mt-3 rounded-xl border border-border/20 bg-background/20 p-3 text-micro text-muted-foreground">Engine feeds are real: analytics APIs, MT5 accounts, and live positions. No replay or mock timers.</div>
           </div>
 
           {/* Evidence Chain */}
-          <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+          <div className="rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
             <h3 className="font-bold text-sm mb-2 flex items-center gap-2"><Layers size={14} /> Evidence Chain</h3>
             <div className="text-xs text-muted-foreground space-y-1 mb-2">
               <div>Market Event → Smart Money → Trade → Backtest → Research</div>
               <div>Every link uses real engine IDs (no fabricated references).</div>
             </div>
-            <ul className="text-[10px] space-y-1">
+            <ul className="text-micro space-y-1">
               {evidence.map((e: EvidenceItem) => (
                 <li key={e.id} className="flex items-center gap-2 rounded bg-muted/40 px-2 py-1">
-                  <span className="font-mono text-[9px] text-primary">{e.id}</span>
+                  <span className="font-mono text-micro text-primary">{e.id}</span>
                   <span className="truncate">{e.type}</span>
                   <span className="text-muted-foreground">{e.source}</span>
                 </li>
@@ -309,7 +309,7 @@ export default function AccountMarketIntelligencePage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+          <div className="rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
             <h3 className="font-bold text-sm mb-2">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <a href="/advanced-analysis" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20">Advanced Analysis</a>
@@ -322,25 +322,25 @@ export default function AccountMarketIntelligencePage() {
 
         <div className="grid lg:grid-cols-3 gap-4">
           {/* Live Monitor */}
-          <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+          <div className="rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
             <div className="flex items-center justify-between mb-3 text-xs font-mono uppercase tracking-wider text-muted-foreground">
               <span>Live Monitor</span>
               <span>Existing data + Smart Money + Indicators + MTF</span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded bg-muted/50 p-2"><div className="text-[10px] text-muted-foreground">Market Score</div><div className="font-mono font-semibold">{data?.score && typeof data.score === "object" ? (data.score.total ?? "—") : (data?.score ?? "—")}</div></div>
-              <div className="rounded bg-muted/50 p-2"><div className="text-[10px] text-muted-foreground">Regime</div><div className="font-mono font-semibold truncate">{data?.regime?.regime ?? "—"}</div></div>
-              <div className="rounded bg-muted/50 p-2"><div className="text-[10px] text-muted-foreground">Volatility</div><div className="font-mono font-semibold">{data?.volatility && typeof data.volatility === "object" ? (data.volatility.daily ? `${data.volatility.daily}%` : data.volatility.atr ? `${data.volatility.atr}` : "—") : (data?.volatility ?? "—")}</div></div>
-              <div className="rounded bg-muted/50 p-2"><div className="text-[10px] text-muted-foreground">Volume</div><div className="font-mono font-semibold">{data?.volume && typeof data.volume === "object" ? (data.volume.volume?.toLocaleString() ?? data.volume.averageVolume?.toLocaleString() ?? "—") : (data?.volume ?? "—")}</div></div>
+              <div className="rounded bg-muted/50 p-2"><div className="text-micro text-muted-foreground">Market Score</div><div className="font-mono font-semibold">{data?.score && typeof data.score === "object" ? (data.score.total ?? "—") : (data?.score ?? "—")}</div></div>
+              <div className="rounded bg-muted/50 p-2"><div className="text-micro text-muted-foreground">Regime</div><div className="font-mono font-semibold truncate">{data?.regime?.regime ?? "—"}</div></div>
+              <div className="rounded bg-muted/50 p-2"><div className="text-micro text-muted-foreground">Volatility</div><div className="font-mono font-semibold">{data?.volatility && typeof data.volatility === "object" ? (data.volatility.daily ? `${data.volatility.daily}%` : data.volatility.atr ? `${data.volatility.atr}` : "—") : (data?.volatility ?? "—")}</div></div>
+              <div className="rounded bg-muted/50 p-2"><div className="text-micro text-muted-foreground">Volume</div><div className="font-mono font-semibold">{data?.volume && typeof data.volume === "object" ? (data.volume.volume?.toLocaleString() ?? data.volume.averageVolume?.toLocaleString() ?? "—") : (data?.volume ?? "—")}</div></div>
             </div>
             <div className="mt-2 rounded-xl border border-border/20 bg-background/20 p-3 text-xs text-muted-foreground">Monitoring uses existing analytics APIs (/api/analytics/market, regime, liquidity, volume). No replacement engine.</div>
           </div>
 
           {/* Watchlist */}
-          <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+          <div className="rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
             <h3 className="font-bold text-sm mb-2">Watchlist (Live)</h3>
-            <table className="w-full text-[10px] text-left border-collapse">
-              <thead className="text-[9px] uppercase tracking-wider text-muted-foreground border-b border-border/20"><tr><th>Symbol</th><th>TF</th><th>Data</th><th>Setup</th></tr></thead>
+            <table className="w-full text-micro text-left border-collapse">
+              <thead className="text-micro uppercase tracking-wider text-muted-foreground border-b border-border/20"><tr><th>Symbol</th><th>TF</th><th>Data</th><th>Setup</th></tr></thead>
               <tbody className="divide-y divide-white/5">
                 {watchlist.map((w: { symbol: string; tf: string; data: string; setup: string }) => (
                   <tr key={w.symbol}><td>{w.symbol}</td><td>{w.tf}</td><td>{w.data}</td><td>{w.setup}</td></tr>
@@ -350,7 +350,7 @@ export default function AccountMarketIntelligencePage() {
           </div>
 
           {/* Active Setups + Setup Memory */}
-          <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+          <div className="rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
             <h3 className="font-bold text-sm mb-2">Active Setups</h3>
             <div className="text-xs text-muted-foreground mb-2">{setups.length ? setups.map((s) => <div key={s.id} className="flex items-center gap-2"><span className={cn("h-1.5 w-1.5 rounded-full", s.status === "Active" ? "bg-emerald-400" : "bg-amber-400")} /><span>{s.symbol} {s.tf}</span><span className="text-muted-foreground">score {s.score}</span></div>) : "No setups configured. Create from existing conditions."}</div>
             <h3 className="font-bold text-sm mb-2 mt-3">Setup Memory</h3>

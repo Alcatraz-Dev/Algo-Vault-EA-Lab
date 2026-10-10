@@ -91,29 +91,29 @@ export function ChallengeContextBar() {
 
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 <div className="rounded-md border border-border bg-muted/30 p-2">
-                    <p className="text-[11px] text-muted-foreground">Daily loss</p>
+                    <p className="text-micro text-muted-foreground">Daily loss</p>
                     <p className="font-mono text-sm font-medium">
                         <Money cents={Math.min(0, metrics.dailyPnLCcents)} signed />
-                        <span className="ml-1 text-[11px] text-muted-foreground">
+                        <span className="ml-1 text-micro text-muted-foreground">
                             {metrics.dailyLossUsedPct.toFixed(0)}% used
                         </span>
                     </p>
                 </div>
                 <div className="rounded-md border border-border bg-muted/30 p-2">
-                    <p className="text-[11px] text-muted-foreground">Drawdown</p>
+                    <p className="text-micro text-muted-foreground">Drawdown</p>
                     <p className="font-mono text-sm font-medium">
                         {metrics.currentDrawdownPct.toFixed(2)}%
-                        <span className="ml-1 text-[11px] text-muted-foreground">
+                        <span className="ml-1 text-micro text-muted-foreground">
                             {metrics.drawdownUsedPct.toFixed(0)}% of limit
                         </span>
                     </p>
                 </div>
                 <div className="rounded-md border border-border bg-muted/30 p-2">
-                    <p className="text-[11px] text-muted-foreground">Risk remaining today</p>
+                    <p className="text-micro text-muted-foreground">Risk remaining today</p>
                     <p className="font-mono text-sm font-medium text-emerald-600">{riskRemainingPct.toFixed(0)}%</p>
                 </div>
                 <div className="rounded-md border border-border bg-muted/30 p-2">
-                    <p className="text-[11px] text-muted-foreground">Target progress</p>
+                    <p className="text-micro text-muted-foreground">Target progress</p>
                     <p className="font-mono text-sm font-medium">{metrics.targetProgressPct.toFixed(0)}%</p>
                 </div>
             </div>

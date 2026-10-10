@@ -165,12 +165,12 @@ export default function EconomicCalendarPage() {
                     <TradingViewEconomicCalendar />
                 </section>
                 {loading ? (
-                    <div className="rounded-2xl border border-border/30 bg-muted/50 p-16 text-center">
+                    <div className="rounded-lg border border-border/30 bg-muted/50 p-16 text-center">
                         <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground mb-3" />
                         <p className="text-sm text-muted-foreground">Loading economic releases...</p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto rounded-2xl border border-border/30 bg-muted/50 backdrop-blur-xl">
+                    <div className="overflow-x-auto rounded-lg border border-border/30 bg-muted/50 backdrop-blur-xl">
                         <table className="w-full text-left text-xs text-muted-foreground">
                             <thead className="border-b border-border/30 bg-muted/5 font-semibold text-foreground">
                                 <tr>

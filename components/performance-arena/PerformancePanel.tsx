@@ -162,7 +162,7 @@ export function PerformancePanel({
                     ) : (
                         <p className="py-8 text-center text-xs text-muted-foreground">No closed trades yet.</p>
                     )}
-                    <p className="mt-2 text-[11px] text-muted-foreground">
+                    <p className="mt-2 text-micro text-muted-foreground">
                         Day P&amp;L is measured against that day&apos;s opening equity — the base the daily loss rule uses.
                     </p>
                 </div>
@@ -322,7 +322,7 @@ function EquityTooltip({ active, payload, label }: { active?: boolean; payload?:
     return (
         <div className="rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs shadow-md">
             <p className="font-mono tabular-nums text-foreground">{formatCents(Number(payload[0].value ?? 0))}</p>
-            {label ? <p className="text-[10px] text-muted-foreground">{new Date(Number(label)).toLocaleString()}</p> : null}
+            {label ? <p className="text-micro text-muted-foreground">{new Date(Number(label)).toLocaleString()}</p> : null}
         </div>
     );
 }
@@ -336,7 +336,7 @@ function DailyTooltip({ active, payload, label }: { active?: boolean; payload?: 
                 {value > 0 ? "+" : ""}
                 {formatCents(value)}
             </p>
-            {label ? <p className="text-[10px] text-muted-foreground">{label}</p> : null}
+            {label ? <p className="text-micro text-muted-foreground">{label}</p> : null}
         </div>
     );
 }

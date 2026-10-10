@@ -72,7 +72,7 @@ export const AgentDetailPanel = memo(function AgentDetailPanel({
                         <DetailHeading icon={<Wrench className="size-3.5" />} title="Allowed tools" />
                         <div className="flex flex-wrap gap-1">
                             {agent.tools.map((tool) => (
-                                <span key={tool} className="rounded border border-border/70 bg-muted/50 px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                                <span key={tool} className="rounded border border-border/70 bg-muted/50 px-1.5 py-0.5 text-micro text-muted-foreground">
                                     {tool}
                                 </span>
                             ))}
@@ -80,7 +80,7 @@ export const AgentDetailPanel = memo(function AgentDetailPanel({
                     </div>
                     <div>
                         <DetailHeading icon={<Clock className="size-3.5" />} title="Execution" />
-                        <ul className="space-y-0.5 text-[11px] text-muted-foreground">
+                        <ul className="space-y-0.5 text-micro text-muted-foreground">
                             <li>Timeout {Math.round((agent.timeoutMs ?? 30000) / 1000)}s · retries {agent.maxRetries ?? 1}</li>
                             <li>Required inputs: {agent.requiredInputs.join(", ") || "—"}</li>
                             <li>Optional inputs: {agent.optionalInputs.join(", ") || "—"}</li>
@@ -94,10 +94,10 @@ export const AgentDetailPanel = memo(function AgentDetailPanel({
                     <ul className="list-inside list-disc space-y-0.5">
                         {agent.limitations.length ? (
                             agent.limitations.map((l, i) => (
-                                <li key={i} className="text-[11px] text-muted-foreground">{l}</li>
+                                <li key={i} className="text-micro text-muted-foreground">{l}</li>
                             ))
                         ) : (
-                            <li className="text-[11px] text-muted-foreground">No additional limitations declared.</li>
+                            <li className="text-micro text-muted-foreground">No additional limitations declared.</li>
                         )}
                     </ul>
                 </section>
@@ -138,7 +138,7 @@ export const AgentDetailPanel = memo(function AgentDetailPanel({
 
 function DetailHeading({ icon, title }: { icon?: React.ReactNode; title: string }) {
     return (
-        <h4 className={cn("mb-1 flex items-center gap-1.5 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase")}>
+        <h4 className={cn("mb-1 flex items-center gap-1.5 text-micro font-semibold tracking-wide text-muted-foreground uppercase")}>
             {icon}
             {title}
         </h4>
@@ -148,7 +148,7 @@ function DetailHeading({ icon, title }: { icon?: React.ReactNode; title: string 
 function Metric({ label, value }: { label: string; value: string }) {
     return (
         <div className="rounded border border-border/60 bg-card/60 px-2 py-1.5">
-            <p className="text-[9px] tracking-wide text-muted-foreground uppercase">{label}</p>
+            <p className="text-micro tracking-wide text-muted-foreground uppercase">{label}</p>
             <p className="mt-0.5 text-xs font-semibold text-foreground tabular-nums">{value}</p>
         </div>
     );

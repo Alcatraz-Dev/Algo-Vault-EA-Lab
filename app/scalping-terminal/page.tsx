@@ -29,19 +29,19 @@ export default function ScalpingTerminalPage() {
             eyebrow={
                 <div className="flex items-center gap-2">
                     <ToolBadge kind="lite" size="sm" />
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <span className="text-micro uppercase tracking-wider text-muted-foreground">
                         Lite · live signals + engine feed
                     </span>
                 </div>
             }
             maxWidth="max-w-[1800px]"
         >
-            <div className="mb-4 rounded-2xl border border-border/30 bg-card/70 p-4 backdrop-blur-xl">
+            <div className="mb-4 rounded-lg border border-border/30 bg-card/70 p-4 backdrop-blur-xl">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                             <ToolBadge kind="free" size="sm" />
-                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                            <span className="text-micro uppercase tracking-wider text-muted-foreground">
                                 Free forever
                             </span>
                         </div>

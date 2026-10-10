@@ -40,7 +40,7 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
                 <div
                     role="status"
                     className={cn(
-                        "flex items-center gap-1.5 border-b border-border bg-muted/40 px-3 py-1 text-[11px]",
+                        "flex items-center gap-1.5 border-b border-border bg-muted/40 px-3 py-1 text-micro",
                         hint.tone,
                     )}
                 >
@@ -72,7 +72,7 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
                                     href={tab.href}
                                     aria-current={isActive ? "page" : undefined}
                                     className={cn(
-                                        "flex w-full flex-col items-center justify-center gap-1 text-[10px] font-medium transition-colors",
+                                        "flex w-full flex-col items-center justify-center gap-1 text-micro font-medium transition-colors",
                                         isActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
                                     )}
                                 >

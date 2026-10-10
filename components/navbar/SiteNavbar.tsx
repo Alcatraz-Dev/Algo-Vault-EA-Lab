@@ -149,7 +149,7 @@ export default function SiteNavbar() {
               <span className="inline-flex items-center gap-1.5">
                 {label}
                 {pro ? (
-                  <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider text-primary">
+                  <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0 text-micro font-bold uppercase tracking-wider text-primary">
                     Pro
                   </span>
                 ) : null}
@@ -230,7 +230,7 @@ export default function SiteNavbar() {
                     {label}
                   </span>
                   {pro ? (
-                    <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider text-primary">
+                    <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0 text-micro font-bold uppercase tracking-wider text-primary">
                       Pro
                     </span>
                   ) : null}

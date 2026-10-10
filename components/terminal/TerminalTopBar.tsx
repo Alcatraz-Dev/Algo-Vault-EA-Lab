@@ -62,7 +62,7 @@ function SymbolPicker() {
                     aria-label="Search symbol"
                     className="w-24 bg-transparent font-mono text-xs uppercase text-foreground outline-none placeholder:text-foreground"
                 />
-                <kbd className="hidden rounded border border-border px-1 font-mono text-[9px] text-muted-foreground sm:inline">
+                <kbd className="hidden rounded border border-border px-1 font-mono text-micro text-muted-foreground sm:inline">
                     ⌘K
                 </kbd>
             </div>
@@ -105,7 +105,7 @@ function TimeframePicker() {
                     aria-pressed={state.timeframe === tf}
                     title={TIMEFRAME_LABELS[tf as Timeframe]}
                     className={cn(
-                        "rounded px-2 py-1 font-mono text-[11px] font-semibold transition",
+                        "rounded px-2 py-1 font-mono text-micro font-semibold transition",
                         state.timeframe === tf ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
                     )}
                 >
@@ -132,7 +132,7 @@ function FreshnessPill({
     return (
         <span
             className={cn(
-                "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 font-mono text-[10px]",
+                "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 font-mono text-micro",
                 f.status === "live" && "border-emerald-500/40 bg-emerald-500/10 text-emerald-400",
                 f.status === "stale" && "border-amber-500/40 bg-amber-500/10 text-amber-400",
                 f.status === "loading" && "border-border bg-muted text-muted-foreground"
@@ -155,7 +155,7 @@ function AccountModeBadge({ risk }: { risk: RiskPayload | null }) {
         <div className="flex items-center gap-1.5">
             <span
                 className={cn(
-                    "rounded border px-1.5 py-0.5 text-[10px] font-bold tracking-wider",
+                    "rounded border px-1.5 py-0.5 text-micro font-bold tracking-wider",
                     mode === "live" && "border-rose-500/50 bg-rose-500/10 text-rose-400",
                     mode === "paper" && "border-sky-500/50 bg-sky-500/10 text-sky-400",
                     mode === "unknown" && "border-border bg-muted text-muted-foreground"
@@ -173,7 +173,7 @@ function AccountModeBadge({ risk }: { risk: RiskPayload | null }) {
             {status && status !== "SAFE" ? (
                 <span
                     className={cn(
-                        "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-bold tracking-wider",
+                        "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-micro font-bold tracking-wider",
                         status === "WARNING" && "border-amber-500/50 bg-amber-500/10 text-amber-400",
                         status === "RESTRICTED" && "border-orange-500/50 bg-orange-500/10 text-orange-400",
                         status === "HALTED" && "border-red-600/50 bg-red-600/10 text-red-400"
@@ -205,14 +205,14 @@ export function TerminalTopBar({ now, isPro }: { now: number; isPro: boolean }) 
                         <span className="text-sm font-semibold tracking-tight text-foreground">AlgoVault</span>
                         <span className="text-border">|</span>
                         <span className="font-mono text-xs font-bold text-primary">{state.symbol}</span>
-                        <span className="font-mono text-[11px] text-muted-foreground">{state.timeframe}</span>
+                        <span className="font-mono text-micro text-muted-foreground">{state.timeframe}</span>
                         {isPro ? (
-                            <span className="rounded border border-primary/30 px-1 py-px text-[9px] font-bold tracking-wider text-primary">
+                            <span className="rounded border border-primary/30 px-1 py-px text-micro font-bold tracking-wider text-primary">
                                 PRO
                             </span>
                         ) : null}
                     </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-[10px] text-muted-foreground">
+                    <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-micro text-muted-foreground">
                         <span
                             className="inline-flex items-center gap-1"
                             title="Deterministic session windows (UTC)"
@@ -237,7 +237,7 @@ export function TerminalTopBar({ now, isPro }: { now: number; isPro: boolean }) 
                     {change !== null ? (
                         <span
                             className={cn(
-                                "font-mono text-[11px] tabular-nums",
+                                "font-mono text-micro tabular-nums",
                                 change >= 0 ? "text-emerald-400" : "text-rose-400"
                             )}
                         >
@@ -245,11 +245,11 @@ export function TerminalTopBar({ now, isPro }: { now: number; isPro: boolean }) 
                             {change.toFixed(2)}%
                         </span>
                     ) : (
-                        <span className="font-mono text-[11px] text-muted-foreground">day n/a</span>
+                        <span className="font-mono text-micro text-muted-foreground">day n/a</span>
                     )}
                 </div>
             ) : (
-                <span className="font-mono text-[11px] text-muted-foreground">
+                <span className="font-mono text-micro text-muted-foreground">
                     {data.quotesLoading ? "Loading price…" : "No price available"}
                 </span>
             )}
@@ -259,7 +259,7 @@ export function TerminalTopBar({ now, isPro }: { now: number; isPro: boolean }) 
                 <FreshnessPill lastUpdated={data.analysisUpdatedAt} now={now} label="Analysis" liveWithinMs={45_000} />
                 <AccountModeBadge risk={data.risk} />
                 {data.riskError ? (
-                    <span className="inline-flex items-center gap-1 rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-400">
+                    <span className="inline-flex items-center gap-1 rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-micro text-amber-400">
                         <WifiOff className="size-2.5" />
                         Risk state unavailable
                     </span>

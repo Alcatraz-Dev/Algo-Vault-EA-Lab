@@ -90,7 +90,7 @@ export default function LiveWorldMap({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full h-[420px] md:h-[540px] overflow-hidden rounded-2xl border shadow-xl shadow-black/10 ${light ? "bg-[#f4f7fb] border-border/40" : "bg-[#071018] border-border/60"} ${className}`}
+      className={`relative w-full h-[420px] md:h-[540px] overflow-hidden rounded-lg border shadow-xl shadow-black/10 ${light ? "bg-[#f4f7fb] border-border/40" : "bg-[#071018] border-border/60"} ${className}`}
     >
       <svg
         viewBox={`${MAP_X0} ${MAP_Y0} ${MAP_W} ${MAP_H}`}
@@ -217,25 +217,25 @@ export default function LiveWorldMap({
           <div className="flex items-center gap-2">
             <Globe size={16} aria-hidden className="shrink-0 text-primary" />
             <span className="text-sm font-bold text-foreground">{hovered.country}</span>
-            <span className="ml-auto rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
+            <span className="ml-auto rounded-full bg-muted px-1.5 py-0.5 text-micro font-mono text-muted-foreground">
               {hovered.countryCode}
             </span>
           </div>
           <div className="mt-2 grid grid-cols-3 gap-2 text-center">
             <div>
               <div className="text-sm font-extrabold text-foreground tabular-nums">{hovered.activeUsers}</div>
-              <div className="text-[9px] uppercase tracking-wider text-muted-foreground">traders</div>
+              <div className="text-micro uppercase tracking-wider text-muted-foreground">traders</div>
             </div>
             <div>
               <div className="text-sm font-extrabold text-foreground tabular-nums">{hovered.analyses}</div>
-              <div className="text-[9px] uppercase tracking-wider text-muted-foreground">analyses</div>
+              <div className="text-micro uppercase tracking-wider text-muted-foreground">analyses</div>
             </div>
             <div>
               <div className="text-sm font-extrabold text-foreground tabular-nums">{hovered.signals}</div>
-              <div className="text-[9px] uppercase tracking-wider text-muted-foreground">signals</div>
+              <div className="text-micro uppercase tracking-wider text-muted-foreground">signals</div>
             </div>
           </div>
-          <div className="mt-2 text-[10px] text-muted-foreground">
+          <div className="mt-2 text-micro text-muted-foreground">
             Top market <span className="font-mono font-bold text-foreground">{hovered.topMarket}</span>
           </div>
         </div>
@@ -243,7 +243,7 @@ export default function LiveWorldMap({
 
       {/* Legend */}
       <div
-        className={`absolute bottom-3 right-3 z-10 flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-medium backdrop-blur-md ${
+        className={`absolute bottom-3 right-3 z-10 flex items-center gap-2 rounded-full border px-3 py-1 text-micro font-medium backdrop-blur-md ${
           light ? "bg-white/80 border-border text-muted-foreground" : "bg-black/40 border-border/60 text-muted-foreground"
         }`}
       >
@@ -256,7 +256,7 @@ export default function LiveWorldMap({
       {/* Sessions badge */}
       {sessions.length > 0 && (
         <div
-          className={`absolute top-3 right-3 z-10 flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-semibold backdrop-blur-md ${
+          className={`absolute top-3 right-3 z-10 flex items-center gap-1.5 rounded-full border px-3 py-1 text-micro font-semibold backdrop-blur-md ${
             light ? "bg-white/80 border-border text-foreground" : "bg-black/40 border-border/60 text-foreground"
           }`}
         >
@@ -270,7 +270,7 @@ export default function LiveWorldMap({
 
       {/* Privacy note */}
       <div
-        className={`absolute bottom-3 left-3 z-10 text-[10px] font-mono tracking-wide ${
+        className={`absolute bottom-3 left-3 z-10 text-micro font-mono tracking-wide ${
           light ? "text-muted-foreground/70" : "text-muted-foreground/60"
         }`}
       >

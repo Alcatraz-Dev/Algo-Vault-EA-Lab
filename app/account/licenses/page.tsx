@@ -394,7 +394,7 @@ export default function LicensesPage() {
 
                         <Link
                             href="/login"
-                            className="mt-6 inline-flex items-center gap-2 rounded-md bg-foreground px-5 py-3 text-sm font-medium text-background transition hover:bg-muted"
+                            className="mt-6 inline-flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/80"
                         >
                             Sign In
 
@@ -535,7 +535,7 @@ export default function LicensesPage() {
 
                             <Link
                                 href="/marketplace"
-                                className="mt-6 inline-flex items-center gap-2 rounded-md bg-foreground px-5 py-3 text-xs font-medium text-background transition hover:bg-muted"
+                                className="mt-6 inline-flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-xs font-medium text-primary-foreground transition hover:bg-primary/80"
                             >
                                 Browse Marketplace
 
@@ -711,7 +711,7 @@ function LicenseCard({
                                 </h2>
 
                                 <span
-                                    className={`inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-micro font-medium ${stateConfig.className}`}
+                                    className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-micro font-medium ${stateConfig.className}`}
                                 >
                                     {
                                         stateConfig.icon
@@ -941,7 +941,7 @@ function LicenseCard({
                                     license.productId ||
                                     ""
                                 )}`}
-                                className="inline-flex flex-1 items-center justify-center gap-2 rounded-md bg-foreground px-4 py-3 text-xs font-medium text-background transition hover:bg-muted"
+                                className="inline-flex flex-1 items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-xs font-medium text-primary-foreground transition hover:bg-primary/80"
                                 onClick={(event) => {
                                     /*
                                      * The actual protected download
@@ -1023,7 +1023,7 @@ function SummaryCard({
 
             </div>
 
-            <p className="mt-3 text-2xl font-semibold">
+            <p className="mt-3 font-numeric text-2xl font-semibold">
                 {value}
             </p>
 

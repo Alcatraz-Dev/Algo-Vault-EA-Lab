@@ -117,7 +117,7 @@ export default function AdminAccountHealthPage() {
 
                 {/* Risk distribution, drawn from the server-computed shares */}
                 {d && t && t.active > 0 && (
-                    <div className="rounded-2xl border border-border/30 bg-muted/50 p-3.5">
+                    <div className="rounded-lg border border-border/30 bg-muted/50 p-3.5">
                         <div className="flex h-1.5 overflow-hidden rounded-full bg-muted/20">
                             {(["HIGH", "MODERATE", "LOW"] as RiskLevel[]).map((level) => {
                                 const share = d[level];
@@ -137,7 +137,7 @@ export default function AdminAccountHealthPage() {
                                 );
                             })}
                         </div>
-                        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-muted-foreground">
+                        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-micro text-muted-foreground">
                             {(["HIGH", "MODERATE", "LOW"] as RiskLevel[]).map((level) => (
                                 <span key={level} className="inline-flex items-center gap-1.5">
                                     <span
@@ -156,13 +156,13 @@ export default function AdminAccountHealthPage() {
                 )}
 
                 {t?.allImpaired && (
-                    <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-3.5 py-2.5 text-[11px] text-rose-400">
+                    <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3.5 py-2.5 text-micro text-rose-400">
                         Every active account is rated HIGH risk. No account is currently in good standing.
                     </div>
                 )}
 
                 {listError && (
-                    <div className="rounded-2xl border border-destructive/30 bg-destructive-muted px-3.5 py-2.5 text-[11px] text-destructive-foreground">
+                    <div className="rounded-lg border border-destructive/30 bg-destructive-muted px-3.5 py-2.5 text-micro text-destructive-foreground">
                         {listError}
                     </div>
                 )}
@@ -176,13 +176,13 @@ export default function AdminAccountHealthPage() {
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Filter by email, name or uid"
                             aria-label="Filter accounts"
-                            className="min-w-0 flex-1 bg-transparent text-[11px] text-foreground outline-none placeholder:text-muted-foreground"
+                            className="min-w-0 flex-1 bg-transparent text-micro text-foreground outline-none placeholder:text-muted-foreground"
                         />
                     </div>
                     <button
                         onClick={() => void loadDirectory()}
                         disabled={listLoading}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-border/30 bg-muted/50 px-3 py-2 text-[11px] font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-border/30 bg-muted/50 px-3 py-2 text-micro font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
                     >
                         <RefreshCw size={12} className={listLoading ? "animate-spin" : ""} /> Refresh
                     </button>
@@ -190,24 +190,24 @@ export default function AdminAccountHealthPage() {
 
                 <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
                     {/* Account list */}
-                    <div className="rounded-2xl border border-border/30 bg-muted/50">
+                    <div className="rounded-lg border border-border/30 bg-muted/50">
                         <div className="flex items-center justify-between border-b border-border/20 px-3.5 py-2.5">
-                            <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            <span className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">
                                 Accounts
                             </span>
-                            <span className="text-[10px] text-muted-foreground">
+                            <span className="text-micro text-muted-foreground">
                                 {filtered.length}{directory ? ` of ${directory.totals.accounts}` : ""}
                             </span>
                         </div>
 
                         {listLoading && !directory && (
-                            <div className="px-3.5 py-10 text-center text-[11px] text-muted-foreground">Loading accounts…</div>
+                            <div className="px-3.5 py-10 text-center text-micro text-muted-foreground">Loading accounts…</div>
                         )}
 
                         {!listLoading && filtered.length === 0 && (
                             <div className="px-3.5 py-10 text-center">
                                 <Users size={22} className="mx-auto mb-2 text-muted-foreground" />
-                                <p className="text-[11px] text-muted-foreground">
+                                <p className="text-micro text-muted-foreground">
                                     {query ? "No account matches that filter." : "No accounts yet."}
                                 </p>
                             </div>
@@ -228,7 +228,7 @@ export default function AdminAccountHealthPage() {
                     {/* Detail */}
                     <div>
                         {detailLoading && (
-                            <div className="rounded-2xl border border-border/30 bg-muted/50 px-3.5 py-12 text-center text-[11px] text-muted-foreground">
+                            <div className="rounded-lg border border-border/30 bg-muted/50 px-3.5 py-12 text-center text-micro text-muted-foreground">
                                 Loading account…
                             </div>
                         )}
@@ -238,24 +238,24 @@ export default function AdminAccountHealthPage() {
                                 health={detail.health}
                                 compact
                                 header={
-                                    <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border/30 bg-muted/50 px-3.5 py-2.5">
+                                    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/30 bg-muted/50 px-3.5 py-2.5">
                                         <span className="text-[12px] font-medium text-foreground">
                                             {detail.displayName || detail.email || "Unnamed account"}
                                         </span>
                                         {detail.displayName && detail.email && (
-                                            <span className="text-[10px] text-muted-foreground">{detail.email}</span>
+                                            <span className="text-micro text-muted-foreground">{detail.email}</span>
                                         )}
-                                        <span className="ml-auto font-mono text-[10px] text-muted-foreground">{detail.uid}</span>
+                                        <span className="ml-auto font-mono text-micro text-muted-foreground">{detail.uid}</span>
                                     </div>
                                 }
                             />
                         )}
 
                         {!detailLoading && !detail && (
-                            <div className="rounded-2xl border border-border/30 bg-muted/50 px-3.5 py-12 text-center">
+                            <div className="rounded-lg border border-border/30 bg-muted/50 px-3.5 py-12 text-center">
                                 <Shield size={24} className="mx-auto mb-2 text-muted-foreground" />
-                                <p className="text-[11px] font-medium text-foreground">Select an account</p>
-                                <p className="mt-1 text-[10px] text-muted-foreground">
+                                <p className="text-micro font-medium text-foreground">Select an account</p>
+                                <p className="mt-1 text-micro text-muted-foreground">
                                     Pick any account on the left to see its full report.
                                 </p>
                             </div>
@@ -270,7 +270,7 @@ export default function AdminAccountHealthPage() {
 function Stat({ label, value, tone }: { label: string; value: string; tone?: "negative" | "warning" | "positive" }) {
     return (
         <div className="rounded-xl border border-border/30 bg-muted/50 px-3 py-2.5">
-            <p className="text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
             <p
                 className={cn(
                     "mt-1 font-mono text-base font-semibold tabular-nums",
@@ -302,10 +302,10 @@ function AccountRow({ account, active, onSelect }: {
             )}
         >
             <div className="min-w-0 flex-1">
-                <p className="truncate text-[11px] font-medium text-foreground">
+                <p className="truncate text-micro font-medium text-foreground">
                     {account.displayName || account.email || account.uid}
                 </p>
-                <p className="truncate text-[10px] text-muted-foreground">
+                <p className="truncate text-micro text-muted-foreground">
                     {account.email && account.displayName ? account.uid : account.email || account.uid}
                 </p>
             </div>
@@ -315,10 +315,10 @@ function AccountRow({ account, active, onSelect }: {
                 funded. */}
             {account.hasData && (
                 <div className="hidden shrink-0 text-right sm:block">
-                    <p className="font-mono text-[11px] tabular-nums text-foreground">
+                    <p className="font-mono text-micro tabular-nums text-foreground">
                         {money(account.balance, account.currency)}
                     </p>
-                    <p className="text-[9px] uppercase tracking-wide text-muted-foreground">
+                    <p className="text-micro uppercase tracking-wide text-muted-foreground">
                         {account.accounts > 1
                             ? `${account.accounts} accounts`
                             : account.connected ? "connected" : "balance"}
@@ -328,10 +328,10 @@ function AccountRow({ account, active, onSelect }: {
 
             {account.hasData && account.totalPositions > 0 && (
                 <div className="hidden shrink-0 text-right md:block">
-                    <p className="font-mono text-[11px] tabular-nums text-foreground">
+                    <p className="font-mono text-micro tabular-nums text-foreground">
                         {account.totalPositions}
                     </p>
-                    <p className="text-[9px] uppercase tracking-wide text-muted-foreground">open</p>
+                    <p className="text-micro uppercase tracking-wide text-muted-foreground">open</p>
                 </div>
             )}
 
@@ -346,7 +346,7 @@ function AccountRow({ account, active, onSelect }: {
                 >
                     {account.hasData ? account.score : "—"}
                 </p>
-                <p className="text-[9px] uppercase tracking-wide text-muted-foreground">score</p>
+                <p className="text-micro uppercase tracking-wide text-muted-foreground">score</p>
             </div>
 
             <div className="shrink-0">

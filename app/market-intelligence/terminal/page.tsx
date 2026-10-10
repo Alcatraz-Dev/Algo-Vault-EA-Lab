@@ -16,7 +16,7 @@ export default function MarketIntelligenceTerminalPage() {
             eyebrow={
                 <div className="flex items-center gap-2">
                     <ToolBadge kind="pro" size="sm" />
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Pro workspace</span>
+                    <span className="text-micro uppercase tracking-wider text-muted-foreground">Pro workspace</span>
                 </div>
             }
             maxWidth="max-w-[1900px]"

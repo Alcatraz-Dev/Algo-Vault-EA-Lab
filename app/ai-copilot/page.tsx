@@ -96,8 +96,8 @@ export default function AICopilotPage() {
                         {Object.keys(responses).length > 0 && (
                             <div className="space-y-4">
                                 {Object.entries(responses).map(([key, text]) => (
-                                    <div key={key} className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.03] p-5">
-                                        <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-emerald-400"><Activity size={14} />{key.replace(/_/g, " ").toUpperCase()}</div>
+                                    <div key={key} className="rounded-xl border border-positive/20 bg-positive/[0.03] p-5">
+                                        <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-positive"><Activity size={14} />{key.replace(/_/g, " ").toUpperCase()}</div>
                                         <p className="text-sm text-muted-foreground whitespace-pre-line">{text}</p>
                                     </div>
                                 ))}
@@ -106,31 +106,31 @@ export default function AICopilotPage() {
 
                         {/* TradingView external evidence (separate, provenance-preserved) */}
                         {copilotData?.tradingview && (
-                            <div className="rounded-xl border border-blue-500/20 bg-blue-500/[0.03] p-5">
-                                <div className="mb-1 flex items-center gap-2 text-xs font-semibold text-blue-400"><Globe size={14} />TRADINGVIEW EVIDENCE <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-medium">BETA · MAY BE DELAYED</span></div>
-                                <p className="mb-3 text-[10px] text-muted-foreground">External context from the TradingView MCP provider — kept separate from AlgoVault evidence.</p>
+                            <div className="rounded-xl border border-info/20 bg-info/[0.03] p-5">
+                                <div className="mb-1 flex items-center gap-2 text-xs font-semibold text-info"><Globe size={14} />TRADINGVIEW EVIDENCE <span className="rounded bg-info/10 px-1.5 py-0.5 text-micro font-medium">BETA · MAY BE DELAYED</span></div>
+                                <p className="mb-3 text-micro text-muted-foreground">External context from the TradingView MCP provider — kept separate from AlgoVault evidence.</p>
                                 <div className="grid gap-2">
                                     {[copilotData.tradingview.technicals, copilotData.tradingview.news, copilotData.tradingview.economicCalendar].map((section: any, i: number) => (
                                         <div key={i} className="rounded-lg bg-muted/50 p-3">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-[11px] font-semibold text-foreground">{{ 0: "Technical snapshot", 1: "News", 2: "Economic calendar" }[i]}</span>
-                                                <span className={cn("rounded px-1.5 py-0.5 text-[9px]", section?.state === "CONNECTED" ? "bg-emerald-500/10 text-emerald-400" : "bg-muted text-muted-foreground")}>{section?.state ?? "UNAVAILABLE"}</span>
+                                                <span className="text-micro font-semibold text-foreground">{{ 0: "Technical snapshot", 1: "News", 2: "Economic calendar" }[i]}</span>
+                                                <span className={cn("rounded px-1.5 py-0.5 text-micro", section?.state === "CONNECTED" ? "bg-positive/10 text-positive" : "bg-muted text-muted-foreground")}>{section?.state ?? "UNAVAILABLE"}</span>
                                             </div>
                                             {section?.available ? (
-                                                <p className="mt-1 whitespace-pre-line text-[10px] text-muted-foreground">{section.items?.[0]?.value}</p>
+                                                <p className="mt-1 whitespace-pre-line text-micro text-muted-foreground">{section.items?.[0]?.value}</p>
                                             ) : (
-                                                <p className="mt-1 text-[10px] text-muted-foreground">{section?.message || "Not available."}</p>
+                                                <p className="mt-1 text-micro text-muted-foreground">{section?.message || "Not available."}</p>
                                             )}
                                             {section?.available && section.items?.[0]?.freshnessLabel ? (
-                                                <p className="mt-1 text-[9px] text-muted-foreground">Freshness: {section.items[0].freshnessLabel}</p>
+                                                <p className="mt-1 text-micro text-muted-foreground">Freshness: {section.items[0].freshnessLabel}</p>
                                             ) : null}
                                         </div>
                                     ))}
                                 </div>
                                 {copilotData.tradingview.limitations?.length > 0 && (
                                     <div className="mt-3 border-t border-border/30 pt-2">
-                                        <p className="text-[9px] font-semibold uppercase tracking-wide text-amber-400/70">Limitations</p>
-                                        <ul className="mt-1 list-inside list-disc text-[9px] text-muted-foreground">
+                                        <p className="text-micro font-semibold uppercase tracking-wide text-warning/70">Limitations</p>
+                                        <ul className="mt-1 list-inside list-disc text-micro text-muted-foreground">
                                             {copilotData.tradingview.limitations.map((l: string, i: number) => <li key={i}>{l}</li>)}
                                         </ul>
                                     </div>
@@ -147,12 +147,12 @@ export default function AICopilotPage() {
                                         <div key={sym} className="rounded-lg bg-muted/50 p-3">
                                             <div className="flex items-center justify-between">
                                                 <span className="font-mono text-sm font-bold text-foreground">{sym}</span>
-                                                <span className={cn("rounded px-2 py-0.5 text-[10px] font-medium", data.error ? "bg-rose-500/10 text-rose-400" : data.bias === "bullish" ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400")}>{data.error ? "N/A" : data.bias}</span>
+                                                <span className={cn("rounded px-2 py-0.5 text-micro font-medium", data.error ? "bg-negative/10 text-negative" : data.bias === "bullish" ? "bg-positive/10 text-positive" : "bg-negative/10 text-negative")}>{data.error ? "N/A" : data.bias}</span>
                                             </div>
                                             {data.error ? (
                                                 <p className="mt-1 text-xs text-muted-foreground">Data unavailable</p>
                                             ) : (
-                                                <div className="mt-2 grid grid-cols-2 gap-2 text-[10px]">
+                                                <div className="mt-2 grid grid-cols-2 gap-2 text-micro">
                                                     <div><span className="text-muted-foreground">Regime:</span> <span className="text-muted-foreground">{data.regime?.regime?.replace(/_/g, " ")}</span></div>
                                                     <div><span className="text-muted-foreground">Volatility:</span> <span className="text-muted-foreground">{data.volatility?.state}</span></div>
                                                     <div><span className="text-muted-foreground">Score:</span> <span className="text-muted-foreground">{data.score?.total}</span></div>
@@ -175,12 +175,12 @@ export default function AICopilotPage() {
                                     <div className="flex justify-between"><span className="text-muted-foreground">MT5 Accounts</span><span className="text-foreground font-mono">{copilotData.accounts}</span></div>
                                     <div className="flex justify-between"><span className="text-muted-foreground">Open Positions</span><span className="text-foreground font-mono">{copilotData.positions}</span></div>
                                     <div className="flex justify-between"><span className="text-muted-foreground">Recent Signals</span><span className="text-foreground font-mono">{copilotData.recentSignals}</span></div>
-                                    <div className="flex justify-between"><span className="text-muted-foreground">Subscription</span><span className={cn("font-mono", copilotData.isPro ? "text-emerald-400" : "text-muted-foreground")}>{copilotData.isPro ? "PRO" : "FREE"}</span></div>
+                                    <div className="flex justify-between"><span className="text-muted-foreground">Subscription</span><span className={cn("font-mono", copilotData.isPro ? "text-positive" : "text-muted-foreground")}>{copilotData.isPro ? "PRO" : "FREE"}</span></div>
                                 </div>
                             </div>
                         )}
 
-                        <div className="rounded-xl border border-amber-500/10 bg-amber-500/[0.03] p-4 text-[11px] text-amber-400/60">
+                        <div className="rounded-xl border border-warning/10 bg-warning/[0.03] p-4 text-micro text-warning/60">
                             <Shield size={12} className="mr-1 inline" />
                             AI Copilot uses real platform data. All analysis is based on your actual signals, positions, and market conditions. Not financial advice.
                         </div>

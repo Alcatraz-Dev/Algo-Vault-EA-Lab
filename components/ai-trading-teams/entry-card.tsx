@@ -39,12 +39,12 @@ export function AITeamsEntryCard({
                     <p className="mt-1 text-sm font-medium text-foreground">
                         Convene your AI research desk
                     </p>
-                    <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
+                    <p className="mt-0.5 text-micro leading-snug text-muted-foreground">
                         Regime · Smart Money · Technical · Quant · Risk · Contrarian — evidence-based collaboration
                         on top of {context ? `${context} ` : ""}the same AlgoVault intelligence.
                     </p>
                     {!compact ? (
-                        <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-primary">
+                        <span className="mt-2 inline-flex items-center gap-1 text-micro font-medium text-primary">
                             Open workspace
                             <ArrowUpRight className="size-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                         </span>

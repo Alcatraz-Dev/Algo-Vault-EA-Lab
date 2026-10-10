@@ -182,13 +182,13 @@ export default function AdminAIUsagePage() {
             </div>
 
             {error && (
-                <div className="mb-6 rounded-2xl border border-destructive/30 bg-destructive-muted p-4 text-xs text-destructive-foreground">
+                <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive-muted p-4 text-xs text-destructive-foreground">
                     {error}
                 </div>
             )}
 
             {loading && !usage && (
-                <div className="rounded-2xl border border-border/30 bg-muted/50 p-8 text-center text-xs text-muted-foreground">
+                <div className="rounded-lg border border-border/30 bg-muted/50 p-8 text-center text-xs text-muted-foreground">
                     Loading AI usage…
                 </div>
             )}
@@ -219,7 +219,7 @@ export default function AdminAIUsagePage() {
                     </div>
 
                     {usage.totals.blockedRequests > 0 && (
-                        <div className="mb-6 flex items-start gap-3 rounded-2xl border border-warning/30 bg-warning-muted p-4">
+                        <div className="mb-6 flex items-start gap-3 rounded-lg border border-warning/30 bg-warning-muted p-4">
                             <Ban size={16} className="mt-0.5 shrink-0 text-warning-foreground" />
                             <div>
                                 <p className="text-xs font-medium text-warning-foreground">
@@ -235,7 +235,7 @@ export default function AdminAIUsagePage() {
                     )}
 
                     {usage.totals.costUnknownRequests > 0 && (
-                        <div className="mb-6 flex items-start gap-3 rounded-2xl border border-border/30 bg-muted/50 p-4">
+                        <div className="mb-6 flex items-start gap-3 rounded-lg border border-border/30 bg-muted/50 p-4">
                             <AlertTriangle size={16} className="mt-0.5 shrink-0 text-muted-foreground" />
                             <div>
                                 <p className="text-xs font-medium">
@@ -335,7 +335,7 @@ export default function AdminAIUsagePage() {
                                                         key={m.model}
                                                         className="flex flex-wrap items-baseline justify-between gap-2 text-xs text-muted-foreground"
                                                     >
-                                                        <span className="font-mono text-[11px]">
+                                                        <span className="font-mono text-micro">
                                                             {m.model}
                                                         </span>
                                                         <span>
@@ -413,14 +413,14 @@ function Metric({
     tone?: "negative";
 }) {
     return (
-        <div className="rounded-2xl border border-border/30 bg-muted/50 p-5">
+        <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
             <p className="text-xs text-muted-foreground">{label}</p>
             <p
                 className={`mt-2 text-xl font-semibold ${tone === "negative" ? "text-destructive-foreground" : ""}`}
             >
                 {value}
             </p>
-            {hint && <p className="mt-2 text-[11px] leading-4 text-muted-foreground">{hint}</p>}
+            {hint && <p className="mt-2 text-micro leading-4 text-muted-foreground">{hint}</p>}
         </div>
     );
 }
@@ -526,7 +526,7 @@ function LimitInput({
 
     return (
         <label className="block">
-            <span className="text-[11px] text-muted-foreground">{label}</span>
+            <span className="text-micro text-muted-foreground">{label}</span>
             <div className="mt-1 flex items-center gap-2">
                 <input
                     value={draft}

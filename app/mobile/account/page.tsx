@@ -158,11 +158,11 @@ export default function MobileAccountPage() {
               <h2 className="font-semibold truncate">{profile?.displayName || "Trader"}</h2>
               <p className="text-sm text-muted-foreground truncate">{profile?.email}</p>
               <div className="flex items-center gap-2 mt-2">
-                <Badge variant={isPro ? "default" : "outline"} className={cn(isPro && "bg-emerald-500/10 text-emerald-400")}>
+                <Badge variant={isPro ? "default" : "outline"} className={cn(isPro && "bg-positive/10 text-positive")}>
                   {isPro ? "PRO" : "FREE"}
                 </Badge>
                 {isDev && <Badge variant="outline" className="border-violet-500/30 text-violet-400">Developer</Badge>}
-                {profile?.role === "admin" && <Badge variant="destructive" className="text-[10px]">Admin</Badge>}
+                {profile?.role === "admin" && <Badge variant="destructive" className="text-micro">Admin</Badge>}
               </div>
             </div>
           </div>
@@ -175,20 +175,20 @@ export default function MobileAccountPage() {
           <h3 className="font-semibold mb-3 flex items-center gap-2"><Wallet className="h-5 w-5" /> Trading Accounts</h3>
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-muted/50 p-3">
-              <p className="text-[10px] font-medium uppercase text-muted-foreground">Total Balance</p>
+              <p className="text-micro font-medium uppercase text-muted-foreground">Total Balance</p>
               <p className="font-mono text-xl font-bold mt-1">{formatCurrency(totalBalance)}</p>
             </div>
             <div className="rounded-xl bg-muted/50 p-3">
-              <p className="text-[10px] font-medium uppercase text-muted-foreground">Equity</p>
-              <p className={cn("font-mono text-xl font-bold mt-1", floatingPnl >= 0 ? "text-emerald-400" : "text-rose-400")}>{formatCurrency(totalEquity)}</p>
+              <p className="text-micro font-medium uppercase text-muted-foreground">Equity</p>
+              <p className={cn("font-mono text-xl font-bold mt-1", floatingPnl >= 0 ? "text-positive" : "text-negative")}>{formatCurrency(totalEquity)}</p>
             </div>
             <div className="rounded-xl bg-muted/50 p-3">
-              <p className="text-[10px] font-medium uppercase text-muted-foreground">Floating P&L</p>
-              <p className={cn("font-mono text-xl font-bold mt-1", floatingPnl >= 0 ? "text-emerald-400" : "text-rose-400")}>{floatingPnl >= 0 ? "+" : ""}{formatCurrency(floatingPnl)}</p>
+              <p className="text-micro font-medium uppercase text-muted-foreground">Floating P&L</p>
+              <p className={cn("font-mono text-xl font-bold mt-1", floatingPnl >= 0 ? "text-positive" : "text-negative")}>{floatingPnl >= 0 ? "+" : ""}{formatCurrency(floatingPnl)}</p>
             </div>
             <div className="rounded-xl bg-muted/50 p-3">
-              <p className="text-[10px] font-medium uppercase text-muted-foreground">Online</p>
-              <p className="font-mono text-xl font-bold mt-1 text-emerald-400">{onlineAccounts} / {accounts.length}</p>
+              <p className="text-micro font-medium uppercase text-muted-foreground">Online</p>
+              <p className="font-mono text-xl font-bold mt-1 text-positive">{onlineAccounts} / {accounts.length}</p>
             </div>
           </div>
           {accounts.length > 0 && (
@@ -215,12 +215,12 @@ export default function MobileAccountPage() {
       </Card>
 
       {/* Risk Status */}
-      <Card className={cn(accounts.length > 0 && floatingPnl < -totalBalance * 0.1 && "border-rose-500/30")}>
+      <Card className={cn(accounts.length > 0 && floatingPnl < -totalBalance * 0.1 && "border-negative/30")}>
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={cn("p-2 rounded-lg", floatingPnl < -totalBalance * 0.1 ? "bg-rose-500/10" : "bg-emerald-500/10")}>
-                {floatingPnl < -totalBalance * 0.1 ? <AlertTriangle className="h-5 w-5 text-rose-400" /> : <Shield className="h-5 w-5 text-emerald-400" />}
+              <div className={cn("p-2 rounded-lg", floatingPnl < -totalBalance * 0.1 ? "bg-negative/10" : "bg-positive/10")}>
+                {floatingPnl < -totalBalance * 0.1 ? <AlertTriangle className="h-5 w-5 text-negative" /> : <Shield className="h-5 w-5 text-positive" />}
               </div>
               <div>
                 <h3 className="font-semibold">Risk Status</h3>
@@ -249,11 +249,11 @@ export default function MobileAccountPage() {
         <>
           {accounts.map((acc) => (
             <Link key={acc.id} href={`/account/trading-access/${acc.id}`} className="block">
-              <Card className={cn("p-3 transition-colors hover:border-primary/30", acc.status !== "online" && "border-rose-500/30")}>
+              <Card className={cn("p-3 transition-colors hover:border-primary/30", acc.status !== "online" && "border-negative/30")}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={cn("p-2 rounded-lg", acc.status === "online" ? "bg-emerald-500/10" : "bg-rose-500/10")}>
-                      {acc.status === "online" ? <Activity className="h-5 w-5 text-emerald-400" /> : <AlertTriangle className="h-5 w-5 text-rose-400" />}
+                    <div className={cn("p-2 rounded-lg", acc.status === "online" ? "bg-positive/10" : "bg-negative/10")}>
+                      {acc.status === "online" ? <Activity className="h-5 w-5 text-positive" /> : <AlertTriangle className="h-5 w-5 text-negative" />}
                     </div>
                     <div>
                       <p className="font-semibold truncate">{acc.broker}</p>
@@ -262,10 +262,10 @@ export default function MobileAccountPage() {
                   </div>
                   <div className="text-right">
                     <p className="font-mono font-semibold">{formatCurrency(acc.balance)}</p>
-                    <p className={cn("text-xs font-mono", acc.equity >= acc.balance ? "text-emerald-400" : "text-rose-400")}>{formatCurrency(acc.equity)}</p>
+                    <p className={cn("text-xs font-mono", acc.equity >= acc.balance ? "text-positive" : "text-negative")}>{formatCurrency(acc.equity)}</p>
                   </div>
                 </div>
-                <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[10px] text-muted-foreground">
+                <div className="mt-3 grid grid-cols-3 gap-2 text-center text-micro text-muted-foreground">
                   <div><p className="font-mono font-medium">{acc.marginLevel.toFixed(1)}%</p><p>Margin Level</p></div>
                   <div><p className="font-mono font-medium">{formatCurrency(acc.freeMargin)}</p><p>Free Margin</p></div>
                   <div><p className="font-mono font-medium">{formatCurrency(acc.margin)}</p><p>Used Margin</p></div>
@@ -307,7 +307,7 @@ export default function MobileAccountPage() {
                 <p className="font-semibold">{isPro ? "Pro Plan" : "Free Plan"}</p>
                 <p className="text-sm text-muted-foreground">{isPro ? "Active subscription" : "No active subscription"}</p>
               </div>
-              <Badge variant={isPro ? "default" : "outline"} className={cn(isPro && "bg-emerald-500/10 text-emerald-400")}>
+              <Badge variant={isPro ? "default" : "outline"} className={cn(isPro && "bg-positive/10 text-positive")}>
                 {isPro ? "PRO" : "FREE"}
               </Badge>
             </div>
@@ -355,7 +355,7 @@ export default function MobileAccountPage() {
           <Link href="/account/settings#notifications"><Button variant="outline" className="w-full justify-start gap-3 mt-2"><Bell className="h-5 w-5" /> Notifications</Button></Link>
         </CardContent>
       </Card>
-      <Card className="border-rose-500/30">
+      <Card className="border-negative/30">
         <CardContent className="p-4">
           <Button variant="destructive" className="w-full justify-start gap-3" onClick={handleSignOut}>
             <LogOut className="h-5 w-5" /> Sign Out

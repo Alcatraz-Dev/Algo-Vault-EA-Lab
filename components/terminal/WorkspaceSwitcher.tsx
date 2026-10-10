@@ -79,22 +79,22 @@ export function WorkspaceSwitcher({ isPro }: { isPro: boolean }) {
                                                 {p.label}
                                             </span>
                                             {p.pro ? (
-                                                <span className="inline-flex items-center gap-0.5 rounded border border-primary/30 px-1 py-px text-[9px] font-bold tracking-wider text-primary">
+                                                <span className="inline-flex items-center gap-0.5 rounded border border-primary/30 px-1 py-px text-micro font-bold tracking-wider text-primary">
                                                     <Crown className="size-2.5" />
                                                     PRO
                                                 </span>
                                             ) : null}
                                             {locked ? (
-                                                <span className="rounded border border-border px-1 py-px text-[9px] uppercase tracking-wide text-muted-foreground">
+                                                <span className="rounded border border-border px-1 py-px text-micro uppercase tracking-wide text-muted-foreground">
                                                     limited
                                                 </span>
                                             ) : null}
                                             {selected ? <Check className="ml-auto size-3 text-primary" /> : null}
                                         </span>
-                                        <span className="mt-0.5 block text-[11px] leading-4 text-muted-foreground">
+                                        <span className="mt-0.5 block text-micro leading-4 text-muted-foreground">
                                             {p.description}
                                         </span>
-                                        <span className="mt-1 block font-mono text-[10px] text-muted-foreground/80">
+                                        <span className="mt-1 block font-mono text-micro text-muted-foreground/80">
                                             {p.defaultTimeframe} · {p.defaultIntelligenceMode} ·{" "}
                                             {Object.values(p.panels).filter((x) => x.visible).length} panels
                                         </span>
@@ -105,24 +105,24 @@ export function WorkspaceSwitcher({ isPro }: { isPro: boolean }) {
                     </ul>
                     {upsell ? (
                         <div className="absolute left-0 z-40 mt-1 w-72 rounded-xl border border-primary/40 bg-card p-2.5 shadow-xl">
-                            <p className="text-[11px] leading-4 text-foreground">
+                            <p className="text-micro leading-4 text-foreground">
                                 <span className="font-semibold">{upsell}</span> is a Pro workspace.
                             </p>
-                            <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
+                            <p className="mt-1 text-micro leading-4 text-muted-foreground">
                                 Free keeps the terminal, watchlist, chart, basic Smart Money, basic chat and paper
                                 trading.
                             </p>
                             <div className="mt-2 flex gap-1.5">
                                 <a
                                     href="/pricing"
-                                    className="rounded-md bg-primary px-2 py-1 text-[11px] font-semibold text-primary-foreground transition hover:bg-primary/90"
+                                    className="rounded-md bg-primary px-2 py-1 text-micro font-semibold text-primary-foreground transition hover:bg-primary/90"
                                 >
                                     View plans
                                 </a>
                                 <button
                                     type="button"
                                     onClick={() => setUpsell(null)}
-                                    className="rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition hover:bg-muted"
+                                    className="rounded-md border border-border px-2 py-1 text-micro text-muted-foreground transition hover:bg-muted"
                                 >
                                     Not now
                                 </button>

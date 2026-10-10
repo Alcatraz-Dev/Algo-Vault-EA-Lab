@@ -117,17 +117,17 @@ export default function TradingAccessCard({
           </div>
 
           <div className="flex flex-col gap-0.5">
-            <span className="text-[11px] text-muted-foreground">Started</span>
+            <span className="text-micro text-muted-foreground">Started</span>
             <span className="text-sm font-mono tabular-nums">{formatDate(license.startedAt)}</span>
           </div>
 
           <div className="flex flex-col gap-0.5">
-            <span className="text-[11px] text-muted-foreground">Expires</span>
+            <span className="text-micro text-muted-foreground">Expires</span>
             <span className="text-sm font-mono tabular-nums">{formatDate(license.expiresAt)}</span>
           </div>
 
           <div className="flex flex-col gap-0.5">
-            <span className="text-[11px] text-muted-foreground">Days Left</span>
+            <span className="text-micro text-muted-foreground">Days Left</span>
             <span
               className={cn(
                 "text-sm font-mono font-semibold tabular-nums",
@@ -139,7 +139,7 @@ export default function TradingAccessCard({
           </div>
 
           <div className="flex flex-col gap-0.5">
-            <span className="text-[11px] text-muted-foreground">Max Accounts</span>
+            <span className="text-micro text-muted-foreground">Max Accounts</span>
             <span className="text-sm font-mono tabular-nums">{license.maxAccounts}</span>
           </div>
         </div>

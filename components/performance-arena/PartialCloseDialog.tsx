@@ -162,7 +162,7 @@ export function PartialCloseDialog({
                         <span className="flex items-center gap-1.5 text-xs font-medium">
                             <Lock className="h-3 w-3" /> Lock % of profit
                         </span>
-                        <span className="text-[11px] text-muted-foreground">Realize a share of the open profit; the rest keeps running.</span>
+                        <span className="text-micro text-muted-foreground">Realize a share of the open profit; the rest keeps running.</span>
                     </button>
                     <button
                         type="button"
@@ -174,7 +174,7 @@ export function PartialCloseDialog({
                         <span className="flex items-center gap-1.5 text-xs font-medium">
                             <Scissors className="h-3 w-3" /> Close % of volume
                         </span>
-                        <span className="text-[11px] text-muted-foreground">Sell a share of the position size, profit or not.</span>
+                        <span className="text-micro text-muted-foreground">Sell a share of the position size, profit or not.</span>
                     </button>
                 </div>
 
@@ -200,7 +200,7 @@ export function PartialCloseDialog({
                                     key={preset}
                                     type="button"
                                     onClick={() => setPercent(preset)}
-                                    className={`rounded border px-2 py-1 font-mono text-[11px] ${percent === preset ? "border-primary text-primary" : "border-border text-muted-foreground hover:bg-muted"}`}
+                                    className={`rounded border px-2 py-1 font-mono text-micro ${percent === preset ? "border-primary text-primary" : "border-border text-muted-foreground hover:bg-muted"}`}
                                 >
                                     {preset}%
                                 </button>
@@ -237,9 +237,9 @@ export function PartialCloseDialog({
                             {plan.remainingNetCents !== 0 && !plan.isFullClose ? (
                                 <KV label="Remaining unrealized" value={<Money cents={plan.remainingNetCents} signed />} />
                             ) : null}
-                            <p className="mt-2 border-t border-border pt-2 text-[11px] text-muted-foreground">{plan.message}</p>
+                            <p className="mt-2 border-t border-border pt-2 text-micro text-muted-foreground">{plan.message}</p>
                             {plan.warnings.map((warning) => (
-                                <p key={warning} className="mt-1 text-[11px] text-amber-500">{warning}</p>
+                                <p key={warning} className="mt-1 text-micro text-amber-500">{warning}</p>
                             ))}
                         </>
                     ) : (

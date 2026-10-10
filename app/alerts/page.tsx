@@ -167,15 +167,15 @@ export default function AlertsPage() {
                 {/* Stats */}
                 <div className="mb-6 grid grid-cols-3 gap-4" data-guide="stats">
                     <div className="rounded-xl border border-border/30 bg-muted/50 p-4">
-                        <p className="text-[10px] font-semibold uppercase text-muted-foreground">Active</p>
+                        <p className="text-micro font-semibold uppercase text-muted-foreground">Active</p>
                         <p className="mt-1 text-2xl font-bold text-violet-400">{activeAlerts.length}</p>
                     </div>
                     <div className="rounded-xl border border-border/30 bg-muted/50 p-4">
-                        <p className="text-[10px] font-semibold uppercase text-muted-foreground">Triggered</p>
+                        <p className="text-micro font-semibold uppercase text-muted-foreground">Triggered</p>
                         <p className="mt-1 text-2xl font-bold text-emerald-400">{triggeredAlerts.length}</p>
                     </div>
                     <div className="rounded-xl border border-border/30 bg-muted/50 p-4">
-                        <p className="text-[10px] font-semibold uppercase text-muted-foreground">Total</p>
+                        <p className="text-micro font-semibold uppercase text-muted-foreground">Total</p>
                         <p className="mt-1 text-2xl font-bold text-foreground">{alerts.length}</p>
                     </div>
                 </div>
@@ -183,7 +183,7 @@ export default function AlertsPage() {
                 {/* Create Modal */}
                 {showCreate && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-sm">
-                        <div className="w-full max-w-lg rounded-2xl border border-border/40 bg-background p-6 shadow-2xl">
+                        <div className="w-full max-w-lg rounded-lg border border-border/40 bg-background p-6 shadow-2xl">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-lg font-semibold text-foreground">Create Alert</h2>
                                 <button type="button" onClick={() => setShowCreate(false)} className="rounded-lg p-1 text-muted-foreground hover:text-foreground"><X size={18} /></button>
@@ -264,11 +264,11 @@ export default function AlertsPage() {
                                                 <span className="font-mono text-sm font-medium text-foreground">{alert.symbol}</span>
                                                 <span className="text-xs text-muted-foreground">{typeInfo?.label}</span>
                                                 {alert.targetPrice && <span className="font-mono text-xs text-muted-foreground">@ {alert.targetPrice}</span>}
-                                                <span className="rounded bg-muted/30 px-1.5 py-0.5 text-[9px] text-muted-foreground">{alert.timeframe}</span>
+                                                <span className="rounded bg-muted/30 px-1.5 py-0.5 text-micro text-muted-foreground">{alert.timeframe}</span>
                                             </div>
-                                            <p className="mt-0.5 text-[11px] text-muted-foreground">{alert.message}</p>
+                                            <p className="mt-0.5 text-micro text-muted-foreground">{alert.message}</p>
                                         </div>
-                                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                                        <div className="flex items-center gap-1.5 text-micro text-muted-foreground">
                                             {alert.notifyDiscord && <span>Discord</span>}
                                             {alert.notifyTelegram && <span>Telegram</span>}
                                         </div>
@@ -296,7 +296,7 @@ export default function AlertsPage() {
                                             <span className="ml-2 text-xs text-muted-foreground">{typeInfo?.label}</span>
                                             {alert.targetPrice && <span className="ml-2 font-mono text-xs text-muted-foreground">@ {alert.targetPrice}</span>}
                                         </div>
-                                        <span className="text-[10px] text-muted-foreground">{alert.triggeredAt ? new Date(alert.triggeredAt).toLocaleString() : ""}</span>
+                                        <span className="text-micro text-muted-foreground">{alert.triggeredAt ? new Date(alert.triggeredAt).toLocaleString() : ""}</span>
                                         <button type="button" onClick={() => deleteAlert(alert.id)} className="rounded-lg p-1.5 text-muted-foreground hover:text-rose-400 transition"><Trash2 size={14} /></button>
                                     </div>
                                 );

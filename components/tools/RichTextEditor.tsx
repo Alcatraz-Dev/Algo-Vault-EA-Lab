@@ -87,7 +87,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Write y
     };
 
     return (
-        <div className={`rounded-2xl border border-border bg-card overflow-hidden ${isFullscreen ? "fixed inset-0 z-50 h-full w-full" : ""} ${className}`}>
+        <div className={`rounded-lg border border-border bg-card overflow-hidden ${isFullscreen ? "fixed inset-0 z-50 h-full w-full" : ""} ${className}`}>
             {!readOnly && (
                 <div className="flex flex-wrap items-center gap-1 border-b border-border px-2 py-1.5 bg-muted/30">
                     {MARKDOWN_TOOLBAR.map((tool) => (

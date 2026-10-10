@@ -86,7 +86,7 @@ export default function CorrelationPage() {
                 "Heatmap & intraday refresh",
             ]}
         >
-            <div className="flex items-center justify-between rounded-2xl border border-border bg-card p-4">
+            <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
                 <div className="flex items-center gap-3 text-xs">
                     <span className="rounded-full border border-border bg-muted px-2 py-0.5 font-mono text-muted-foreground">
                         Window: 30d daily
@@ -107,7 +107,7 @@ export default function CorrelationPage() {
                 <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
             ) : data ? (
                 <>
-                    <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
+                    <div className="flex items-center gap-4 text-micro text-muted-foreground">
                         <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded bg-positive/80" /> Strong Positive</span>
                         <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded bg-positive/30" /> Positive</span>
                         <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded bg-muted" /> Neutral</span>
@@ -115,18 +115,18 @@ export default function CorrelationPage() {
                         <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded bg-negative/80" /> Strong Negative</span>
                     </div>
 
-                    <div className="rounded-2xl border border-border bg-card p-4 overflow-x-auto">
+                    <div className="rounded-lg border border-border bg-card p-4 overflow-x-auto">
                         <table className="w-full text-center">
                             <thead>
                                 <tr>
                                     <th className="p-2" />
-                                    {data.symbols.map((sym) => <th key={sym} className="p-2 text-[10px] font-semibold text-muted-foreground">{sym}</th>)}
+                                    {data.symbols.map((sym) => <th key={sym} className="p-2 text-micro font-semibold text-muted-foreground">{sym}</th>)}
                                 </tr>
                             </thead>
                             <tbody>
                                 {data.symbols.map((sym1) => (
                                     <tr key={sym1}>
-                                        <td className="p-2 text-[10px] font-semibold text-muted-foreground text-right">{sym1}</td>
+                                        <td className="p-2 text-micro font-semibold text-muted-foreground text-right">{sym1}</td>
                                         {data.symbols.map((sym2) => {
                                             const val = data.matrix[sym1]?.[sym2] || 0;
                                             const isDiagonal = sym1 === sym2;
@@ -155,21 +155,21 @@ export default function CorrelationPage() {
                     )}
 
                     {strongCorrelations.length > 0 && (
-                        <div className="rounded-2xl border border-warning/10 bg-warning/[0.03] p-4">
+                        <div className="rounded-lg border border-warning/10 bg-warning/[0.03] p-4">
                             <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold text-warning"><AlertTriangle size={13} /> Strong Correlations Detected</h3>
                             <div className="flex flex-wrap gap-2">
                                 {strongCorrelations.map((c) => (
-                                    <span key={`${c.sym1}-${c.sym2}`} className="rounded-md bg-muted px-2.5 py-1 font-mono text-[11px] text-muted-foreground">
+                                    <span key={`${c.sym1}-${c.sym2}`} className="rounded-md bg-muted px-2.5 py-1 font-mono text-micro text-muted-foreground">
                                         {c.sym1}/{c.sym2}: <span className={cn("font-bold", c.val > 0 ? "text-positive" : "text-negative")}>{c.val}</span>
                                     </span>
                                 ))}
                             </div>
-                            <p className="mt-2 text-[10px] text-muted-foreground">Consider reducing exposure to highly correlated pairs to diversify risk.</p>
+                            <p className="mt-2 text-micro text-muted-foreground">Consider reducing exposure to highly correlated pairs to diversify risk.</p>
                         </div>
                     )}
                 </>
             ) : (
-                <div className="rounded-2xl border border-dashed border-border p-16 text-center">
+                <div className="rounded-lg border border-dashed border-border p-16 text-center">
                     <Grid3x3 size={32} className="mx-auto text-muted-foreground" />
                     <p className="mt-3 text-sm text-muted-foreground">No correlation data available</p>
                 </div>

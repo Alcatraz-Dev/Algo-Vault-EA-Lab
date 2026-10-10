@@ -192,16 +192,16 @@ export default function MobileSignalsPage() {
         <div className="px-3 py-2 border-b border-border bg-muted/30">
           <div className="grid grid-cols-3 gap-2 text-center">
             <div>
-              <p className="font-mono font-bold text-lg text-emerald-400">{winRate}%</p>
-              <p className="text-[10px] text-muted-foreground">Win Rate</p>
+              <p className="font-mono font-bold text-lg text-positive">{winRate}%</p>
+              <p className="text-micro text-muted-foreground">Win Rate</p>
             </div>
             <div>
               <p className="font-mono font-bold text-lg">{readyCount + activeCount}</p>
-              <p className="text-[10px] text-muted-foreground">Open</p>
+              <p className="text-micro text-muted-foreground">Open</p>
             </div>
             <div>
               <p className="font-mono font-bold text-lg">{completedCount}</p>
-              <p className="text-[10px] text-muted-foreground">Closed</p>
+              <p className="text-micro text-muted-foreground">Closed</p>
             </div>
           </div>
         </div>
@@ -220,7 +220,7 @@ export default function MobileSignalsPage() {
                     : "text-muted-foreground hover:bg-muted"
                 )}
               >
-                {f.label} <span className={cn("ml-1.5 text-[10px] font-normal", filter === f.id ? "opacity-90" : "opacity-70")}>({f.count})</span>
+                {f.label} <span className={cn("ml-1.5 text-micro font-normal", filter === f.id ? "opacity-90" : "opacity-70")}>({f.count})</span>
               </button>
             ))}
           </div>
@@ -243,18 +243,18 @@ export default function MobileSignalsPage() {
           <div className="space-y-3">
             {filteredSignals.map((signal) => (
               <Link key={signal.id} href={`/signals/${signal.id}`} className="block">
-                <Card className={cn("p-3 transition-colors hover:border-primary/30", signal.status === "READY" && "border-emerald-500/20", signal.status === "ACTIVE" && "border-sky-500/20")}>
+                <Card className={cn("p-3 transition-colors hover:border-primary/30", signal.status === "READY" && "border-positive/20", signal.status === "ACTIVE" && "border-info/20")}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className={cn("p-2 rounded-lg flex-shrink-0", signal.direction === "BUY" ? "bg-emerald-500/10" : "bg-rose-500/10")}>
-                        {signal.direction === "BUY" ? <TrendingUp className="h-5 w-5 text-emerald-400" /> : <TrendingDown className="h-5 w-5 text-rose-400" />}
+                      <div className={cn("p-2 rounded-lg flex-shrink-0", signal.direction === "BUY" ? "bg-positive/10" : "bg-negative/10")}>
+                        {signal.direction === "BUY" ? <TrendingUp className="h-5 w-5 text-positive" /> : <TrendingDown className="h-5 w-5 text-negative" />}
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="font-mono font-semibold truncate">{signal.symbol}</span>
                           <Badge variant="outline" className={cn(
                             signal.tier === "PRO" && "border-violet-500/30 text-violet-400",
-                            signal.tier === "FREE" && "border-emerald-500/30 text-emerald-400"
+                            signal.tier === "FREE" && "border-positive/30 text-positive"
                           )}>
                             {signal.tier}
                           </Badge>
@@ -267,30 +267,30 @@ export default function MobileSignalsPage() {
                       <Badge variant={getStatusVariant(signal.status)}>
                         {signal.status}
                       </Badge>
-                      <span className="text-[10px] text-muted-foreground">{formatTimeAgo(signal.createdAt)}</span>
+                      <span className="text-micro text-muted-foreground">{formatTimeAgo(signal.createdAt)}</span>
                     </div>
                   </div>
 
                   <div className="mt-3 pt-3 border-t border-border/30 grid grid-cols-4 gap-3 text-center">
                     <div>
                       <p className="font-mono text-sm font-semibold">{formatPrice(signal.symbol, signal.entry)}</p>
-                      <p className="text-[10px] text-muted-foreground">Entry</p>
+                      <p className="text-micro text-muted-foreground">Entry</p>
                     </div>
                     <div>
-                      <p className="font-mono text-sm font-semibold text-rose-400">{formatPrice(signal.symbol, signal.stopLoss)}</p>
-                      <p className="text-[10px] text-muted-foreground">SL</p>
+                      <p className="font-mono text-sm font-semibold text-negative">{formatPrice(signal.symbol, signal.stopLoss)}</p>
+                      <p className="text-micro text-muted-foreground">SL</p>
                     </div>
                     <div>
-                      <p className="font-mono text-sm font-semibold text-emerald-400">{signal.tp1 ? formatPrice(signal.symbol, signal.tp1) : "—"}</p>
-                      <p className="text-[10px] text-muted-foreground">TP1</p>
+                      <p className="font-mono text-sm font-semibold text-positive">{signal.tp1 ? formatPrice(signal.symbol, signal.tp1) : "—"}</p>
+                      <p className="text-micro text-muted-foreground">TP1</p>
                     </div>
                     <div>
                       <p className="font-mono text-sm font-semibold">{signal.riskReward.toFixed(1)}R</p>
-                      <p className="text-[10px] text-muted-foreground">R:R</p>
+                      <p className="text-micro text-muted-foreground">R:R</p>
                     </div>
                   </div>
 
-                  <div className="mt-3 pt-3 border-t border-border/30 flex items-center justify-between text-[10px] text-muted-foreground">
+                  <div className="mt-3 pt-3 border-t border-border/30 flex items-center justify-between text-micro text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Shield className="h-3 w-3" />
                       {getRegimeLabel(signal.marketRegime)}
@@ -304,8 +304,8 @@ export default function MobileSignalsPage() {
                       {formatTimeAgo(signal.updatedAt)}
                     </span>
                     <Badge variant="outline" className={cn(
-                      signal.strength === "STRONG" && "border-emerald-500/30 text-emerald-400",
-                      signal.strength === "MODERATE" && "border-amber-500/30 text-amber-400",
+                      signal.strength === "STRONG" && "border-positive/30 text-positive",
+                      signal.strength === "MODERATE" && "border-warning/30 text-warning",
                       "border-border/30"
                     )}>
                       {signal.strength}

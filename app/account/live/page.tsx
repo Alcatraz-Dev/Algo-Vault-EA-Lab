@@ -50,11 +50,11 @@ function timeAgo(ms?: number | null, now = 0) {
 
 function StatusPill({ online }: { online: boolean }) {
   return online ? (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-micro font-bold text-emerald-600">
       <Wifi size={10} /> LIVE
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-2 py-0.5 text-micro font-bold text-muted-foreground">
       <WifiOff size={10} /> OFFLINE
     </span>
   );
@@ -130,7 +130,7 @@ export default function AccountLivePage() {
   if (!signedIn) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center p-6">
-        <div className="max-w-md w-full rounded-2xl border border-border bg-card/60 p-8 text-center">
+        <div className="max-w-md w-full rounded-lg border border-border bg-card/60 p-8 text-center">
           <Plug className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
           <h1 className="text-lg font-bold text-foreground">Sign in to view your live accounts</h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -152,7 +152,7 @@ export default function AccountLivePage() {
       <header className="border-b border-border/40 bg-background/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Your account</p>
+            <p className="text-micro font-semibold uppercase tracking-widest text-muted-foreground">Your account</p>
             <h1 className="mt-1 text-2xl md:text-3xl font-extrabold tracking-tight">
               Live <span className="text-[#2563eb]">Accounts</span>
             </h1>
@@ -199,12 +199,12 @@ export default function AccountLivePage() {
               sub: `worst DD ${worstDrawdown.toFixed(1)}%`,
             },
           ].map(({ label, value, icon: Icon, tone, sub }) => (
-            <div key={label} className="rounded-2xl border border-border bg-muted/40 p-5">
+            <div key={label} className="rounded-lg border border-border bg-muted/40 p-5">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{label}</p>
                   <p className={`mt-2 text-2xl font-bold tabular-nums ${tone ?? "text-foreground"}`}>{value}</p>
-                  {sub && <p className="mt-1 text-[10px] text-muted-foreground">{sub}</p>}
+                  {sub && <p className="mt-1 text-micro text-muted-foreground">{sub}</p>}
                 </div>
                 <div className="rounded-xl border border-border bg-muted/50 p-2.5">
                   <Icon className="h-5 w-5 text-foreground" />
@@ -220,7 +220,7 @@ export default function AccountLivePage() {
 
         {/* Equity chart */}
         {!loading && accounts.length > 0 && (
-          <div className="rounded-2xl border border-border bg-muted/40 p-6">
+          <div className="rounded-lg border border-border bg-muted/40 p-6">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="font-semibold">Equity by Account</h2>
@@ -238,12 +238,12 @@ export default function AccountLivePage() {
 
         {/* Table */}
         {loading ? (
-          <div className="rounded-2xl border border-border bg-muted/30 p-16 text-center">
+          <div className="rounded-lg border border-border bg-muted/30 p-16 text-center">
             <RefreshCw className="mx-auto h-8 w-8 animate-spin text-muted-foreground mb-3" />
             <p className="text-sm text-muted-foreground">Loading accounts...</p>
           </div>
         ) : accounts.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border p-16 text-center">
+          <div className="rounded-lg border border-dashed border-border p-16 text-center">
             <Activity className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
             <h3 className="font-semibold">No live accounts yet</h3>
             <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
@@ -251,7 +251,7 @@ export default function AccountLivePage() {
             </p>
           </div>
         ) : (
-          <div className="rounded-2xl border border-border bg-muted/30 overflow-hidden">
+          <div className="rounded-lg border border-border bg-muted/30 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[820px] text-sm">
                 <thead>

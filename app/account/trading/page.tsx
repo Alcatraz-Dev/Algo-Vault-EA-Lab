@@ -761,8 +761,8 @@ export default function AccountTradingPage() {
                 title="Trading Terminal"
                 subtitle="Live account trading, charts & orders"
             >
-                <div className="mx-auto my-8 max-w-xl rounded-2xl border border-border bg-card p-8 text-center shadow-lg">
-                    <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500">
+                <div className="mx-auto my-8 max-w-xl rounded-lg border border-border bg-card p-8 text-center shadow-lg">
+                    <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500">
                         <Lock className="size-7" />
                     </div>
                     <h2 className="text-xl font-bold text-foreground">
@@ -800,8 +800,8 @@ export default function AccountTradingPage() {
                 title="Trading Terminal"
                 subtitle="Live account trading, charts & orders"
             >
-                <div className="mx-auto my-8 max-w-xl rounded-2xl border border-border bg-card p-8 text-center shadow-lg">
-                    <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+                <div className="mx-auto my-8 max-w-xl rounded-lg border border-border bg-card p-8 text-center shadow-lg">
+                    <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                         <Box className="size-7" />
                     </div>
                     <h2 className="text-xl font-bold text-foreground">
@@ -832,8 +832,8 @@ export default function AccountTradingPage() {
                 title="Trading Terminal"
                 subtitle="Live account trading, charts & orders"
             >
-                <div className="mx-auto my-8 max-w-xl rounded-2xl border border-border bg-card p-8 text-center shadow-lg">
-                    <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+                <div className="mx-auto my-8 max-w-xl rounded-lg border border-border bg-card p-8 text-center shadow-lg">
+                    <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                         <Monitor className="size-7" />
                     </div>
                     <h2 className="text-xl font-bold text-foreground">
@@ -1155,7 +1155,7 @@ export default function AccountTradingPage() {
                 </div>
 
                 {/* Bottom Positions / Orders / History Tabs */}
-                <div className="rounded-2xl border border-border bg-card shadow-md">
+                <div className="rounded-lg border border-border bg-card shadow-md">
                     <div className="flex border-b border-border px-4 pt-3">
                         <div className="flex gap-2">
                             <button
@@ -1253,7 +1253,7 @@ export default function AccountTradingPage() {
                             </p>
                         ) : null}
                         {lastExecution ? (
-                            <p className="mb-3 text-[11px] text-muted-foreground">
+                            <p className="mb-3 text-micro text-muted-foreground">
                                 Last execution:{" "}
                                 {lastExecution.status === "SUCCEEDED"
                                     ? "filled"

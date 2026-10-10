@@ -141,7 +141,7 @@ export default function ChartToolbar({
                         key={tf}
                         variant={interval === tf ? "secondary" : "ghost"}
                         size="sm"
-                        className={`text-[10px] px-1.5 ${interval === tf ? "bg-cyan-400/15 text-cyan-200" : "text-muted-foreground hover:text-foreground"}`}
+                        className={`text-micro px-1.5 ${interval === tf ? "bg-cyan-400/15 text-cyan-200" : "text-muted-foreground hover:text-foreground"}`}
                         onClick={() => {
                             onChangeInterval(tf);
                             onIntervalChange?.(tf);
@@ -161,7 +161,7 @@ export default function ChartToolbar({
                                 key={type}
                                 variant={chartType === type ? "secondary" : "ghost"}
                                 size="sm"
-                                className="gap-1 px-2 text-[10px] text-muted-foreground hover:text-foreground"
+                                className="gap-1 px-2 text-micro text-muted-foreground hover:text-foreground"
                                 onClick={() => onChangeChartType(type)}
                             >
                                 {icon}
@@ -181,7 +181,7 @@ export default function ChartToolbar({
                             <span className="hidden sm:inline">Indicators</span>
                         </Button>
                         <div className="absolute left-0 top-full z-50 mt-1 hidden w-56 rounded-lg border border-border/20 bg-background p-2 shadow-xl group-hover:block">
-                            <p className="mb-1 px-2 text-[10px] font-medium text-foreground/70">Studies</p>
+                            <p className="mb-1 px-2 text-micro font-medium text-foreground/70">Studies</p>
                             {STUDIES.map((study) => (
                                 <button
                                     key={study.id}

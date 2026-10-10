@@ -14,6 +14,7 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 import { onValue, ref } from "firebase/database";
 import { auth, database } from "@/lib/firebase";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 type License = {
     id: string;
@@ -190,13 +191,13 @@ export default function AdminLicensesPage() {
                             placeholder="Search key, email, or product..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full rounded-xl border border-border bg-muted pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-emerald-500 focus:outline-none"
+                            className="w-full rounded-md border border-border bg-muted py-2 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-ring focus:outline-none"
                         />
                     </div>
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "expired" | "revoked")}
-                        className="rounded-xl border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-emerald-500 focus:outline-none"
+                        className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
                     >
                         <option value="all">All Statuses</option>
                         <option value="active">Active Only</option>
@@ -207,7 +208,7 @@ export default function AdminLicensesPage() {
 
                 <button
                     onClick={() => setShowModal(true)}
-                    className="flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-background transition hover:bg-emerald-400"
+                    className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/80"
                 >
                     <Plus size={16} /> Generate License
                 </button>
@@ -216,10 +217,10 @@ export default function AdminLicensesPage() {
             {/* List Table */}
             {loading ? (
                 <div className="flex justify-center py-20">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent"></div>
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                 </div>
             ) : filtered.length === 0 ? (
-                <div className="rounded-2xl border border-border bg-card p-12 text-center">
+                <div className="rounded-lg border border-border bg-card p-12 text-center">
                     <FileKey2 size={40} className="mx-auto text-muted-foreground mb-3" />
                     <h3 className="text-lg font-bold text-foreground">No License Keys Found</h3>
                     <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
@@ -227,13 +228,13 @@ export default function AdminLicensesPage() {
                     </p>
                     <button
                         onClick={() => setShowModal(true)}
-                        className="mt-5 inline-flex items-center gap-2 rounded-xl bg-muted px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted transition"
+                        className="mt-5 inline-flex items-center gap-2 rounded-md border border-border bg-muted px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted/70"
                     >
                         <Plus size={16} /> Issue License Key
                     </button>
                 </div>
             ) : (
-                <div className="overflow-hidden rounded-2xl border border-border bg-card">
+                <div className="overflow-hidden rounded-lg border border-border bg-card">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-foreground">
                             <thead className="border-b border-border bg-muted text-xs uppercase font-semibold text-muted-foreground">
@@ -246,19 +247,19 @@ export default function AdminLicensesPage() {
                                     <th className="px-6 py-4 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5">
+                            <tbody className="divide-y divide-border">
                                 {filtered.map((item) => (
-                                    <tr key={item.id} className="hover:bg-muted/30">
+                                    <tr key={item.id} className="hover:bg-muted/40">
                                         <td className="px-6 py-4 font-mono font-bold text-foreground">
                                             <div className="flex items-center gap-2">
                                                 <span>{item.licenseKey}</span>
                                                 <button
                                                     onClick={() => handleCopy(item.licenseKey, item.id)}
-                                                    className="text-muted-foreground hover:text-foreground transition"
+                                                    className="text-muted-foreground transition-colors hover:text-foreground"
                                                     title="Copy key"
                                                 >
                                                     {copiedId === item.id ? (
-                                                        <Check size={14} className="text-emerald-600" />
+                                                        <Check size={14} className="text-positive" />
                                                     ) : (
                                                         <Copy size={14} />
                                                     )}
@@ -268,17 +269,16 @@ export default function AdminLicensesPage() {
                                         <td className="px-6 py-4 text-foreground">{item.userEmail || "N/A"}</td>
                                         <td className="px-6 py-4 font-medium text-foreground">{item.productName}</td>
                                         <td className="px-6 py-4">
-                                            <span
-                                                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
+                                            <StatusBadge
+                                                tone={
                                                     item.status === "active"
-                                                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600"
+                                                        ? "positive"
                                                         : item.status === "expired"
-                                                        ? "border-amber-500/30 bg-amber-500/10 text-amber-400"
-                                                        : "border-rose-500/30 bg-rose-500/10 text-rose-400"
-                                                }`}
-                                            >
-                                                {item.status.toUpperCase()}
-                                            </span>
+                                                            ? "warning"
+                                                            : "negative"
+                                                }
+                                                label={item.status.toUpperCase()}
+                                            />
                                         </td>
                                         <td className="px-6 py-4 text-xs text-muted-foreground">
                                             {item.expiresAt
@@ -289,7 +289,7 @@ export default function AdminLicensesPage() {
                                             {item.status === "active" && (
                                                 <button
                                                     onClick={() => handleRevoke(item)}
-                                                    className="inline-flex items-center gap-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-400 hover:bg-rose-500/20 transition"
+                                                    className="inline-flex items-center gap-1.5 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/20"
                                                 >
                                                     <Ban size={13} /> Revoke
                                                 </button>
@@ -306,7 +306,7 @@ export default function AdminLicensesPage() {
             {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 p-4 backdrop-blur-sm">
-                    <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-2xl">
+                    <div className="w-full max-w-lg rounded-lg border border-border bg-popover p-6 shadow-lg">
                         <div className="flex items-center justify-between border-b border-border pb-4">
                             <h3 className="text-lg font-bold text-foreground">Generate Manual License</h3>
                             <button onClick={() => setShowModal(false)} className="text-muted-foreground hover:text-foreground">
@@ -324,7 +324,7 @@ export default function AdminLicensesPage() {
                                     value={userEmail}
                                     onChange={(e) => setUserEmail(e.target.value)}
                                     suppressHydrationWarning
-                                    className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-emerald-500 focus:outline-none"
+                                    className="w-full rounded-md border border-border bg-card p-3 text-sm text-foreground focus:border-ring focus:outline-none"
                                 />
                             </div>
 
@@ -334,7 +334,7 @@ export default function AdminLicensesPage() {
                                     required
                                     value={selectedBotId}
                                     onChange={(e) => setSelectedBotId(e.target.value)}
-                                    className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-emerald-500 focus:outline-none"
+                                    className="w-full rounded-md border border-border bg-card p-3 text-sm text-foreground focus:border-ring focus:outline-none"
                                 >
                                     <option value="">Select a product...</option>
                                     {bots.map((bot) => (
@@ -351,7 +351,7 @@ export default function AdminLicensesPage() {
                                 <select
                                     value={durationDays}
                                     onChange={(e) => setDurationDays(Number(e.target.value))}
-                                    className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-emerald-500 focus:outline-none"
+                                    className="w-full rounded-md border border-border bg-card p-3 text-sm text-foreground focus:border-ring focus:outline-none"
                                 >
                                     <option value={30}>1 Month (30 Days)</option>
                                     <option value={90}>3 Months (90 Days)</option>
@@ -364,14 +364,14 @@ export default function AdminLicensesPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="rounded-xl px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
+                                    className="rounded-md px-4 py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-background hover:bg-emerald-400 disabled:opacity-50"
+                                    className="rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/80 disabled:opacity-50"
                                 >
                                     {saving ? "Generating..." : "Generate Key"}
                                 </button>

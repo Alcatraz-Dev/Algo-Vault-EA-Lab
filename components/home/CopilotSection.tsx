@@ -30,7 +30,7 @@ export default function CopilotSection() {
                 {/* Section Header */}
                 <div className="flex flex-col md:flex-row md:items-end md:justify-between">
                     <div>
-                        <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Conversational AI</p>
+                        <p className="text-xs font-semibold uppercase tracking-widest text-primary">Conversational AI</p>
                         <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl text-foreground">
                             Interactive AI Trading Copilot
                         </h2>
@@ -40,42 +40,42 @@ export default function CopilotSection() {
                     </div>
                     <Link
                         href="/ai-copilot"
-                        className="mt-4 md:mt-0 inline-flex items-center gap-1.5 text-xs font-bold text-violet-400 hover:text-violet-300 transition"
+                        className="mt-4 md:mt-0 inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary transition"
                     >
                         Launch Full AI Copilot <ArrowRight size={14} />
                     </Link>
                 </div>
 
                 {/* Copilot Chat UI Box */}
-                <div className="mt-12 rounded-3xl border border-border/80 bg-card/80 p-6 md:p-8 shadow-2xl backdrop-blur-xl">
+                <div className="mt-12 rounded-lg border border-border bg-card p-6 md:p-8">
                     <div className="max-w-3xl mx-auto space-y-4">
                         
                         {/* Header */}
-                        <div className="flex items-center justify-between border-b border-border/40 pb-3 text-xs font-mono">
+                        <div className="flex items-center justify-between border-b border-border/40 pb-3 text-xs">
                             <div className="flex items-center gap-2">
-                                <Brain size={18} className="text-violet-400" />
+                                <Brain size={18} className="text-primary" />
                                 <span className="font-bold text-foreground">AlgoVault AI Copilot (Gemini Engine)</span>
                             </div>
-                            <span className="text-emerald-400 font-bold flex items-center gap-1">
+                            <span className="text-positive font-bold flex items-center gap-1">
                                 <Sparkles size={12} /> Model Online
                             </span>
                         </div>
 
                         {/* Chat Messages Log */}
-                        <div className="space-y-3 min-h-[220px] max-h-[300px] overflow-y-auto p-2 font-mono text-xs no-scrollbar">
+                        <div className="space-y-3 min-h-[220px] max-h-[300px] overflow-y-auto p-2 text-xs no-scrollbar">
                             {messages.map((m, idx) => (
                                 <div key={idx} className={`flex gap-3 ${m.sender === "user" ? "justify-end" : "justify-start"}`}>
                                     {m.sender === "ai" && (
-                                        <div className="h-7 w-7 rounded-lg bg-violet-600 text-white flex items-center justify-center shrink-0">
+                                        <div className="h-7 w-7 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shrink-0">
                                             <Brain size={14} />
                                         </div>
                                     )}
-                                    <div className={`rounded-2xl p-3.5 max-w-md ${
+                                    <div className={`rounded-lg p-3.5 max-w-md ${
                                         m.sender === "user"
-                                            ? "bg-violet-600 text-white"
+                                            ? "bg-primary text-primary-foreground"
                                             : "bg-background/90 text-foreground border border-border/40"
                                     }`}>
-                                        <p className="leading-relaxed text-[11px]">{m.text}</p>
+                                        <p className="leading-relaxed text-micro">{m.text}</p>
                                     </div>
                                     {m.sender === "user" && (
                                         <div className="h-7 w-7 rounded-lg bg-muted text-muted-foreground flex items-center justify-center shrink-0">
@@ -93,11 +93,11 @@ export default function CopilotSection() {
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 placeholder="Ask AI Copilot (e.g. 'What is my current drawdown across accounts?')..."
-                                className="flex-1 rounded-xl border border-border/60 bg-background/90 px-4 py-3 text-xs outline-none focus:border-violet-500 font-mono"
+                                className="flex-1 rounded-md border border-border/60 bg-background/90 px-4 py-3 text-xs outline-none focus:border-primary"
                             />
                             <button
                                 type="submit"
-                                className="rounded-xl bg-violet-600 px-5 py-3 text-xs font-bold text-white transition hover:bg-violet-500 flex items-center gap-1.5"
+                                className="rounded-md bg-primary px-5 py-3 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90 flex items-center gap-1.5"
                             >
                                 <Send size={14} />
                                 Send

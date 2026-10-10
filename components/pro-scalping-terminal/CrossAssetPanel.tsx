@@ -88,19 +88,19 @@ export const CrossAssetPanel = memo(function CrossAssetPanel({
                     <Network className="size-3.5 text-sky-400" />
                     Cross-Asset Context
                 </h3>
-                <Link href="/cross-asset" className="text-[10px] text-primary hover:underline">
+                <Link href="/cross-asset" className="text-micro text-primary hover:underline">
                     Explorer →
                 </Link>
             </header>
 
             {loading && !ctx ? (
-                <div className="flex items-center gap-2 py-3 text-[11px] text-muted-foreground">
+                <div className="flex items-center gap-2 py-3 text-micro text-muted-foreground">
                     <Loader2 className="size-3.5 animate-spin" /> Measuring relationships…
                 </div>
             ) : null}
 
             {error ? (
-                <p className="mt-2 flex items-start gap-1.5 text-[11px] text-amber-300/90">
+                <p className="mt-2 flex items-start gap-1.5 text-micro text-amber-300/90">
                     <TriangleAlert className="mt-0.5 size-3 shrink-0" />
                     {error}
                 </p>
@@ -113,7 +113,7 @@ export const CrossAssetPanel = memo(function CrossAssetPanel({
                             <span
                                 key={state}
                                 className={cn(
-                                    "rounded px-1.5 py-0.5 text-[9px] font-semibold",
+                                    "rounded px-1.5 py-0.5 text-micro font-semibold",
                                     state === "RISK_OFF" || state === "HIGH_VOLATILITY"
                                         ? "bg-rose-500/20 text-rose-300"
                                         : state === "RISK_ON" || state === "LOW_VOLATILITY"
@@ -125,21 +125,21 @@ export const CrossAssetPanel = memo(function CrossAssetPanel({
                             </span>
                         ))}
                         {!ctx.regime || ctx.regime.activeStates.length === 0 ? (
-                            <span className="rounded bg-zinc-500/20 px-1.5 py-0.5 text-[9px] font-semibold text-zinc-300">
+                            <span className="rounded bg-zinc-500/20 px-1.5 py-0.5 text-micro font-semibold text-zinc-300">
                                 REGIME UNKNOWN
                             </span>
                         ) : null}
                     </div>
 
                     {ctx.relationships.length === 0 ? (
-                        <p className="text-[11px] leading-4 text-muted-foreground">
+                        <p className="text-micro leading-4 text-muted-foreground">
                             No instrument currently has a meaningful (|ρ| ≥ 0.3) relationship with {ctx.symbol} in this
                             window — the list is empty by design.
                         </p>
                     ) : (
                         <ul className="space-y-1">
                             {ctx.relationships.slice(0, 7).map((r) => (
-                                <li key={r.symbol} className="flex items-center justify-between gap-2 text-[11px]">
+                                <li key={r.symbol} className="flex items-center justify-between gap-2 text-micro">
                                     <span className="font-mono text-foreground">{r.symbol}</span>
                                     <span className="flex items-center gap-1.5">
                                         <span
@@ -172,7 +172,7 @@ export const CrossAssetPanel = memo(function CrossAssetPanel({
                     )}
 
                     {ctx.portfolioImpact && ctx.portfolioImpact.status === "AVAILABLE" ? (
-                        <p className="text-[10px] leading-4 text-muted-foreground">
+                        <p className="text-micro leading-4 text-muted-foreground">
                             Portfolio: {(ctx.portfolioImpact.relatedExposureWeight * 100).toFixed(1)}% of gross exposure
                             sits in correlated positions.
                             {ctx.portfolioImpact.warnings[0]?.text ? (
@@ -181,7 +181,7 @@ export const CrossAssetPanel = memo(function CrossAssetPanel({
                         </p>
                     ) : null}
 
-                    <p className="font-mono text-[9px] text-muted-foreground/80">
+                    <p className="font-mono text-micro text-muted-foreground/80">
                         window {ctx.window.bars} {ctx.window.timeframe} · data{" "}
                         {ctx.dataTimestamp ? new Date(ctx.dataTimestamp).toISOString().slice(11, 16) : "—"} UTC ·
                         association, not prediction

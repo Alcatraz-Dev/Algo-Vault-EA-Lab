@@ -54,24 +54,24 @@ export default function TradingSessionsPage() {
             ]}
         >
             {/* Current Time + Active Sessions */}
-            <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="rounded-lg border border-border bg-card p-5">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10">
                             <Clock size={18} className="text-primary" />
                         </div>
                         <div>
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Current UTC Time</p>
+                            <p className="text-micro uppercase tracking-wider text-muted-foreground">Current UTC Time</p>
                             <p className="font-mono text-xl font-bold text-foreground">
                                 {String(Math.floor(currentUTC)).padStart(2, "0")}:{String(Math.floor((currentUTC % 1) * 60)).padStart(2, "0")}
                             </p>
                         </div>
                     </div>
                     <div className="text-right">
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Active Sessions</p>
+                        <p className="text-micro uppercase tracking-wider text-muted-foreground">Active Sessions</p>
                         <div className="mt-1 flex gap-1.5">
                             {SESSIONS.filter((s) => isSessionActive(s, currentHour)).map((s) => (
-                                <span key={s.name} className={cn("rounded-full px-2.5 py-0.5 text-[10px] font-medium", s.textColor, "bg-muted")}>
+                                <span key={s.name} className={cn("rounded-full px-2.5 py-0.5 text-micro font-medium", s.textColor, "bg-muted")}>
                                     {s.flag} {s.name}
                                 </span>
                             ))}
@@ -84,14 +84,14 @@ export default function TradingSessionsPage() {
             </div>
 
             {/* Session Timeline */}
-            <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="rounded-lg border border-border bg-card p-5">
                 <h2 className="mb-4 text-sm font-semibold text-foreground">24-Hour Session Timeline (UTC)</h2>
 
                 <div className="mb-2 flex">
                     <div className="w-24 shrink-0" />
                     <div className="flex flex-1">
                         {HOURS.map((h) => (
-                            <div key={h} className={cn("flex-1 text-center text-[9px] font-mono", h === currentHour ? "text-primary font-bold" : "text-muted-foreground")}>
+                            <div key={h} className={cn("flex-1 text-center text-micro font-mono", h === currentHour ? "text-primary font-bold" : "text-muted-foreground")}>
                                 {String(h).padStart(2, "0")}
                             </div>
                         ))}
@@ -127,7 +127,7 @@ export default function TradingSessionsPage() {
 
                 <div className="mt-3 flex items-center">
                     <div className="w-24 shrink-0 pr-3">
-                        <span className="text-[10px] font-semibold uppercase text-muted-foreground">Overlap</span>
+                        <span className="text-micro font-semibold uppercase text-muted-foreground">Overlap</span>
                     </div>
                     <div className="flex flex-1 gap-[1px]">
                         {HOURS.map((h) => {
@@ -149,7 +149,7 @@ export default function TradingSessionsPage() {
                     </div>
                 </div>
 
-                <div className="mt-4 flex items-center gap-4 text-[10px] text-muted-foreground">
+                <div className="mt-4 flex items-center gap-4 text-micro text-muted-foreground">
                     <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded bg-warning" /> 3+ Sessions</span>
                     <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded bg-primary/40" /> 1–2 Sessions</span>
                 </div>
@@ -157,7 +157,7 @@ export default function TradingSessionsPage() {
 
             {/* Best / Avoid windows (Lite) */}
             <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-2xl border border-positive/15 bg-positive/[0.04] p-5">
+                <div className="rounded-lg border border-positive/15 bg-positive/[0.04] p-5">
                     <h3 className="flex items-center gap-2 text-sm font-semibold text-positive">
                         <Globe size={14} /> Best Times to Trade
                     </h3>
@@ -176,7 +176,7 @@ export default function TradingSessionsPage() {
                         </div>
                     </div>
                 </div>
-                <div className="rounded-2xl border border-negative/15 bg-negative/[0.04] p-5">
+                <div className="rounded-lg border border-negative/15 bg-negative/[0.04] p-5">
                     <h3 className="flex items-center gap-2 text-sm font-semibold text-negative">
                         <Clock size={14} /> Times to Avoid
                     </h3>
@@ -220,11 +220,11 @@ function ProTile({ title, description }: { title: string; description: string })
     return (
         <Link
             href="/pricing"
-            className="group flex flex-col gap-2 rounded-2xl border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
+            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
         >
             <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-foreground">{title}</h4>
-                <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-micro font-bold uppercase tracking-wider text-primary">
                     <Crown className="size-2.5" />
                     Pro
                 </span>

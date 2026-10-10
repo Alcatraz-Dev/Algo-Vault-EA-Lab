@@ -204,7 +204,7 @@ export default function SubscribePage() {
         </div>
 
         {/* Subscription Status Card */}
-        <div className="mt-8 rounded-2xl border border-border bg-card p-6">
+        <div className="mt-8 rounded-lg border border-border bg-card p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="flex items-center gap-3">
@@ -345,7 +345,7 @@ export default function SubscribePage() {
             <div
               key={tier.name}
               id={`tier-${tier.name.toLowerCase()}`}
-              className={`relative rounded-2xl border p-6 transition ${
+              className={`relative rounded-lg border p-6 transition ${
                 tier.highlighted
                   ? "border-foreground bg-card shadow-xl"
                   : tier.current
@@ -354,13 +354,13 @@ export default function SubscribePage() {
               }`}
             >
               {matchUrl && (
-                <div className="absolute -top-3 right-4 rounded-full bg-violet-500 px-3 py-1 text-[10px] font-bold text-foreground">
+                <div className="absolute -top-3 right-4 rounded-full bg-violet-500 px-3 py-1 text-micro font-bold text-foreground">
                   Selected
                 </div>
               )}
               {tier.highlighted && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="inline-flex items-center gap-1 rounded-full bg-foreground px-3 py-1 text-[11px] font-semibold text-background">
+                <span className="inline-flex items-center gap-1 rounded-full bg-foreground px-3 py-1 text-micro font-semibold text-background">
                   <Zap size={11} />
                   Most Popular
                 </span>
@@ -395,7 +395,7 @@ export default function SubscribePage() {
 
         {/* TradingView Benefits */}
         {subscription.plan !== "free" && (
-          <div className="mt-8 rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-500/10 to-purple-500/5 p-6">
+          <div className="mt-8 rounded-lg border border-violet-500/30 bg-gradient-to-br from-violet-500/10 to-purple-500/5 p-6">
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <Sparkles size={20} className="text-violet-400" />
               TradingView Pro Charts

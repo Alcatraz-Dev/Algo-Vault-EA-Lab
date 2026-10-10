@@ -315,7 +315,7 @@ export default function AdminBotsPage() {
 
                 <Link
                     href="/admin/bots/new"
-                    className="flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-background hover:bg-emerald-400"
+                    className="flex items-center gap-2 rounded-xl bg-positive px-4 py-2 text-sm font-semibold text-background hover:bg-positive"
                 >
                     <Plus size={17} />
                     Add Product
@@ -369,7 +369,7 @@ export default function AdminBotsPage() {
             </div>
 
             {/* PRODUCTS */}
-            <section className="overflow-hidden rounded-2xl border border-border bg-muted/30">
+            <section className="overflow-hidden rounded-lg border border-border bg-muted/30">
 
                 {/* SECTION HEADER */}
                 <div className="border-b border-border px-6 py-5">
@@ -531,7 +531,7 @@ export default function AdminBotsPage() {
                                                     <div className="flex min-w-[360px] items-center gap-4">
 
                                                         {/* VISUAL */}
-                                                        <div className="relative h-[76px] w-[120px] shrink-0 overflow-hidden rounded-2xl border border-border bg-card shadow-lg">
+                                                        <div className="relative h-[76px] w-[120px] shrink-0 overflow-hidden rounded-lg border border-border bg-card shadow-lg">
 
                                                             {/* BANNER */}
                                                             {hasBanner &&
@@ -584,7 +584,7 @@ export default function AdminBotsPage() {
                                                             </div>
 
                                                             {/* PLATFORM */}
-                                                            <div className="absolute right-2 top-2 rounded-md border border-border bg-foreground/65 px-1.5 py-0.5 text-[9px] font-medium text-foreground backdrop-blur-md">
+                                                            <div className="absolute right-2 top-2 rounded-md border border-border bg-foreground/65 px-1.5 py-0.5 text-micro font-medium text-foreground backdrop-blur-md">
                                                                 {bot.platform ||
                                                                     "—"}
                                                             </div>
@@ -626,7 +626,7 @@ export default function AdminBotsPage() {
 
                                                                 </div>
                                                             ) : (
-                                                                <div className="mt-2 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                                                                <div className="mt-2 flex items-center gap-1.5 text-micro text-muted-foreground">
                                                                     <ImageIcon
                                                                         size={
                                                                             11
@@ -654,7 +654,7 @@ export default function AdminBotsPage() {
                                                         </p>
 
                                                         {bot.version && (
-                                                            <p className="text-[11px] text-muted-foreground">
+                                                            <p className="text-micro text-muted-foreground">
                                                                 v
                                                                 {
                                                                     bot.version
@@ -773,7 +773,7 @@ export default function AdminBotsPage() {
                                                                     bot
                                                                 )
                                                             }
-                                                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-red-500/10 text-red-500 transition hover:bg-red-500/10"
+                                                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-negative/10 text-negative transition hover:bg-negative/10"
                                                             title="Delete Product"
                                                         >
                                                             <Trash2
@@ -837,7 +837,7 @@ export default function AdminBotsPage() {
             </div>
 
             {/* RISK */}
-            <div className="mt-6 rounded-2xl border border-border bg-muted/30 p-5">
+            <div className="mt-6 rounded-lg border border-border bg-muted/30 p-5">
 
                 <p className="text-xs leading-6 text-muted-foreground">
                     Trading involves substantial risk.
@@ -860,7 +860,7 @@ function StatCard({
     value: number;
 }) {
     return (
-        <div className="rounded-2xl border border-border bg-muted/30 p-5">
+        <div className="rounded-lg border border-border bg-muted/30 p-5">
 
             <p className="text-xs text-muted-foreground">
                 {title}
@@ -884,7 +884,7 @@ function BrandingInfo({
     description: string;
 }) {
     return (
-        <div className="rounded-2xl border border-border bg-muted/30 p-4">
+        <div className="rounded-lg border border-border bg-muted/30 p-4">
 
             <div className="flex items-center gap-3">
 

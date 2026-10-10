@@ -87,7 +87,7 @@ export function ScoreRing({
                 >
                     {hasData ? shown : "—"}
                 </span>
-                <span className="mt-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">
+                <span className="mt-0.5 text-micro uppercase tracking-wider text-muted-foreground">
                     {hasData ? "/ 100" : "no data"}
                 </span>
             </div>

@@ -420,11 +420,11 @@ export default function SignalStatsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-background text-foreground selection:bg-amber-500/30">
+        <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
             {/* BACKGROUND GRADIENT GLOWS */}
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px]" />
-                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-blue-500/10 blur-[120px]" />
+                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 blur-[120px]" />
+                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 blur-[120px]" />
             </div>
 
             <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -439,7 +439,7 @@ export default function SignalStatsPage() {
                             Back to Account
                         </Link>
 
-                        <div className="flex items-center gap-2 text-sm text-amber-400 font-medium">
+                        <div className="flex items-center gap-2 text-sm text-warning font-medium">
                             <Sparkles className="h-4 w-4" />
                             Performance Analytics
                         </div>
@@ -456,9 +456,9 @@ export default function SignalStatsPage() {
                     <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 sm:gap-3 sm:pb-0 scrollbar-none">
                         <Link
                             href="/signals/pro"
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-semibold text-amber-400 transition-colors hover:bg-amber-500/20"
+                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-xl border border-warning/30 bg-warning/10 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-semibold text-warning transition-colors hover:bg-warning/20"
                         >
-                            <Zap className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-400 fill-amber-400" />
+                            <Zap className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-warning fill-warning" />
                             <span>Pro Signals</span>
                         </Link>
 
@@ -481,7 +481,7 @@ export default function SignalStatsPage() {
                             href="/account/live"
                             className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
                         >
-                            <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400" />
+                            <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-positive" />
                             <span>Live Performance</span>
                         </Link>
 
@@ -489,7 +489,7 @@ export default function SignalStatsPage() {
                             href="/signals/history"
                             className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
                         >
-                            <History className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-400" />
+                            <History className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-info" />
                             <span>History</span>
                         </Link>
                     </div>
@@ -504,7 +504,7 @@ export default function SignalStatsPage() {
                             onClick={() => setActiveTab(tab.key)}
                             className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all whitespace-nowrap shrink-0 ${
                                 activeTab === tab.key
-                                    ? "bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold"
+                                    ? "bg-warning/20 text-warning border border-warning/30 font-semibold"
                                     : "text-muted-foreground hover:text-foreground"
                             }`}
                         >
@@ -515,11 +515,11 @@ export default function SignalStatsPage() {
                 </div>
 
                 {/* DAILY LIMIT INDICATOR */}
-                <div className="mt-6 rounded-2xl border border-border/30 bg-linear-to-br from-background/80 via-background/40 to-background/80 p-4 backdrop-blur-xl" data-guide="daily-limit">
+                <div className="mt-6 rounded-lg border border-border/30 bg-linear-to-br from-background/80 via-background/40 to-background/80 p-4 backdrop-blur-xl" data-guide="daily-limit">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-card">
-                                <BarChart3 className="h-5 w-5 text-amber-400" />
+                                <BarChart3 className="h-5 w-5 text-warning" />
                             </div>
                             <div>
                                 <p className="text-xs font-medium text-muted-foreground">Daily Signal Usage</p>
@@ -533,7 +533,7 @@ export default function SignalStatsPage() {
                             <div className="h-2 w-40 overflow-hidden rounded-full bg-border">
                                 <div
                                     className={`h-full rounded-full transition-all ${
-                                        limitReached ? "bg-red-500" : "bg-amber-500"
+                                        limitReached ? "bg-negative" : "bg-warning"
                                     }`}
                                     style={{ width: `${Math.min((dailyCount / dailyLimit) * 100, 100)}%` }}
                                 />
@@ -548,11 +548,11 @@ export default function SignalStatsPage() {
                 {/* PRO UPGRADE PROMPT */}
                 {limitReached && (
                     <ProGate>
-                        <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5">
+                        <div className="mt-4 rounded-lg border border-warning/20 bg-warning/5 p-5">
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20">
-                                        <Zap className="h-5 w-5 text-amber-400" />
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-warning/10 border border-warning/20">
+                                        <Zap className="h-5 w-5 text-warning" />
                                     </div>
                                     <div>
                                         <h3 className="text-sm font-bold text-foreground">Unlock More Signals</h3>
@@ -563,7 +563,7 @@ export default function SignalStatsPage() {
                                 </div>
                                 <Link
                                     href="/pricing"
-                                    className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-foreground transition-colors hover:bg-amber-400 shadow-lg shadow-amber-500/20 whitespace-nowrap shrink-0"
+                                    className="inline-flex items-center gap-2 rounded-xl bg-warning px-4 py-2.5 text-xs font-bold text-foreground transition-colors hover:bg-warning shadow-lg shadow-warning/20 whitespace-nowrap shrink-0"
                                 >
                                     <Zap className="h-3.5 w-3.5 fill-black" />
                                     Upgrade to Pro
@@ -578,13 +578,13 @@ export default function SignalStatsPage() {
                         {/* MARKET OVERVIEW */}
                         <div className="mt-8">
                             <div className="mb-4 flex items-center gap-2">
-                                <Radio className="h-4 w-4 text-amber-400" />
+                                <Radio className="h-4 w-4 text-warning" />
                                 <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Market Overview</h2>
                             </div>
                             {sentiments.length > 0 ? (
                                 <MarketOverview sentiments={sentiments} prices={sentimentPrices} />
                             ) : (
-                                <div className="rounded-2xl border border-border/30 bg-card/60 p-8 text-center backdrop-blur-xl">
+                                <div className="rounded-lg border border-border/30 bg-card/60 p-8 text-center backdrop-blur-xl">
                                     <BarChart3 className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                                     <p className="text-sm text-muted-foreground">Market overview data loading...</p>
                                 </div>
@@ -593,9 +593,9 @@ export default function SignalStatsPage() {
 
                         
                         {/* LOT SIZE SELECTOR */}
-                        <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+                        <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
                             <div className="flex items-center gap-2">
-                                <Calculator className="h-4 w-4 text-amber-400" />
+                                <Calculator className="h-4 w-4 text-warning" />
                                 <span className="text-xs font-bold text-foreground">Exact Monetary Lot Size Baseline:</span>
                             </div>
                             <div className="flex items-center gap-1.5">
@@ -606,7 +606,7 @@ export default function SignalStatsPage() {
                                         onClick={() => setLotSize(lot)}
                                         className={`rounded-lg px-2.5 py-1 text-xs font-mono font-bold transition-all ${
                                             lotSize === lot
-                                                ? "bg-amber-500/20 text-amber-400 border border-amber-500/40"
+                                                ? "bg-warning/20 text-warning border border-warning/40"
                                                 : "bg-muted/10 text-muted-foreground hover:bg-muted/20"
                                         }`}
                                     >
@@ -624,31 +624,31 @@ export default function SignalStatsPage() {
                                         label: "Win Rate",
                                         value: `${serverStats.winRate.toFixed(1)}%`,
                                         sub: `${serverStats.winningSignals}W / ${serverStats.losingSignals}L`,
-                                        color: serverStats.winRate >= 60 ? "text-emerald-400" : serverStats.winRate >= 45 ? "text-amber-400" : "text-red-400",
+                                        color: serverStats.winRate >= 60 ? "text-positive" : serverStats.winRate >= 45 ? "text-warning" : "text-negative",
                                     },
                                     {
                                         label: `Net Profit (${lotSize} lot)`,
                                         value: `${totalUSDProfit >= 0 ? "+$" : "-$"}${Math.abs(totalUSDProfit).toFixed(2)}`,
                                         sub: `${serverStats.totalR >= 0 ? "+" : ""}${serverStats.totalR.toFixed(2)}R total (${serverStats.averageR >= 0 ? "+" : ""}${serverStats.averageR.toFixed(2)}R avg)`,
-                                        color: totalUSDProfit >= 0 ? "text-emerald-400" : "text-red-400",
+                                        color: totalUSDProfit >= 0 ? "text-positive" : "text-negative",
                                     },
                                     {
                                         label: "Profit Factor",
                                         value: serverStats.profitFactor === null ? "∞" : serverStats.profitFactor > 0 ? serverStats.profitFactor.toFixed(2) : "—",
                                         sub: serverStats.profitFactor === null ? "Perfect (no losses)" : serverStats.profitFactor >= 2 ? "Excellent" : serverStats.profitFactor >= 1.5 ? "Good" : serverStats.profitFactor >= 1 ? "Break-even" : "Below 1",
-                                        color: serverStats.profitFactor === null || (serverStats.profitFactor ?? 0) >= 1.5 ? "text-emerald-400" : (serverStats.profitFactor ?? 0) >= 1 ? "text-amber-400" : "text-red-400",
+                                        color: serverStats.profitFactor === null || (serverStats.profitFactor ?? 0) >= 1.5 ? "text-positive" : (serverStats.profitFactor ?? 0) >= 1 ? "text-warning" : "text-negative",
                                     },
                                     {
                                         label: "Total Signals",
                                         value: serverStats.totalSignals.toString(),
                                         sub: `${serverStats.tp1HitRate.toFixed(0)}% TP1 rate`,
-                                        color: "text-blue-400",
+                                        color: "text-info",
                                     },
                                 ].map((stat) => (
-                                    <div key={stat.label} className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
-                                        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{stat.label}</p>
+                                    <div key={stat.label} className="rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+                                        <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">{stat.label}</p>
                                         <p className={`mt-1 text-2xl font-black tabular-nums ${stat.color}`}>{stat.value}</p>
-                                        <p className="mt-0.5 text-[10px] text-muted-foreground/70">{stat.sub}</p>
+                                        <p className="mt-0.5 text-micro text-muted-foreground/70">{stat.sub}</p>
                                     </div>
                                 ))}
                             </div>
@@ -664,11 +664,11 @@ export default function SignalStatsPage() {
                         {/* CHARTS SECTION */}
                         {signals.length > 0 && (
                             <div className="mt-10 grid gap-5 lg:grid-cols-2">
-                                <div className="rounded-2xl border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
+                                <div className="rounded-lg border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
                                     <div className="mb-4 flex items-center gap-2">
-                                        <TrendingUp className="h-4 w-4 text-amber-400" />
+                                        <TrendingUp className="h-4 w-4 text-warning" />
                                         <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Signals by Day</h2>
-                                        <span className="rounded-md border border-border/30 bg-muted/5 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                                        <span className="rounded-md border border-border/30 bg-muted/5 px-2 py-0.5 text-micro font-semibold text-muted-foreground">
                                             {chartData.length} days
                                         </span>
                                     </div>
@@ -688,9 +688,9 @@ export default function SignalStatsPage() {
                                     )}
                                 </div>
 
-                                <div className="rounded-2xl border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
+                                <div className="rounded-lg border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
                                     <div className="mb-4 flex items-center gap-2">
-                                        <TrendingDown className="h-4 w-4 text-emerald-400" />
+                                        <TrendingDown className="h-4 w-4 text-positive" />
                                         <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Cumulative R</h2>
                                     </div>
                                     {chartData.length > 0 ? (
@@ -717,19 +717,19 @@ export default function SignalStatsPage() {
                         {/* RECENT RESOLVED SIGNALS TABLE */}
                         <div className="mt-10">
                             <div className="mb-4 flex items-center gap-2">
-                                <Target className="h-4 w-4 text-amber-400" />
+                                <Target className="h-4 w-4 text-warning" />
                                 <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Recent Resolved Signals</h2>
-                                <span className="rounded-md border border-border/30 bg-muted/5 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                                <span className="rounded-md border border-border/30 bg-muted/5 px-2 py-0.5 text-micro font-semibold text-muted-foreground">
                                     {recentSignals.length} latest
                                 </span>
                             </div>
 
                             {loading ? (
-                                <div className="rounded-2xl border border-border/30 bg-card/60 p-8 backdrop-blur-xl">
+                                <div className="rounded-lg border border-border/30 bg-card/60 p-8 backdrop-blur-xl">
                                     <LoadingState label="Loading signal statistics" rows={4} />
                                 </div>
                             ) : recentSignals.length > 0 ? (
-                                <div className="rounded-2xl border border-border/30 bg-card/60 p-5 backdrop-blur-xl overflow-x-auto">
+                                <div className="rounded-lg border border-border/30 bg-card/60 p-5 backdrop-blur-xl overflow-x-auto">
                                     <table className="w-full min-w-[720px] text-xs">
                                         <thead>
                                             <tr className="border-b border-border text-left text-muted-foreground">
@@ -749,7 +749,7 @@ export default function SignalStatsPage() {
                                                 return (
                                                     <tr key={signal.id} className="border-b border-border/20 last:border-0 hover:bg-muted/40">
                                                         <td className="py-3 pr-4 font-semibold text-foreground">
-                                                            <Link href={`/signals/${signal.id}`} className="hover:text-amber-400 transition-colors">
+                                                            <Link href={`/signals/${signal.id}`} className="hover:text-warning transition-colors">
                                                                 {signal.symbol}
                                                             </Link>
                                                         </td>
@@ -761,11 +761,11 @@ export default function SignalStatsPage() {
                                                             </span>
                                                         </td>
                                                         <td className="py-3 pr-4">
-                                                            <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${
+                                                            <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-micro font-semibold ${
                                                                 resResult === "WIN"
-                                                                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                                                    ? "bg-positive/10 text-positive border-positive/20"
                                                                     : resResult === "LOSS"
-                                                                    ? "bg-red-500/10 text-red-400 border-red-500/20"
+                                                                    ? "bg-negative/10 text-negative border-negative/20"
                                                                     : "bg-muted/10 text-muted-foreground border-border/20"
                                                             }`}>
                                                                 {resResult}
@@ -784,7 +784,7 @@ export default function SignalStatsPage() {
                                     </table>
                                 </div>
                             ) : (
-                                <div className="rounded-2xl border border-border/30 bg-card/60 p-8 text-center backdrop-blur-xl">
+                                <div className="rounded-lg border border-border/30 bg-card/60 p-8 text-center backdrop-blur-xl">
                                     <Target className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                                     <p className="text-sm text-muted-foreground">No resolved signals yet</p>
                                 </div>
@@ -795,10 +795,10 @@ export default function SignalStatsPage() {
                         {hasPro && proFeedSignals.length > 0 && (
                             <div className="mt-10">
                                 <div className="mb-4 flex items-center gap-2">
-                                    <Zap className="h-4 w-4 text-amber-400" />
+                                    <Zap className="h-4 w-4 text-warning" />
                                     <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Live Pro Signals</h2>
-                                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-positive/10 border border-positive/30 px-2 py-0.5 text-micro font-semibold text-positive">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-positive animate-pulse" />
                                         Live
                                     </span>
                                 </div>
@@ -811,7 +811,7 @@ export default function SignalStatsPage() {
                         )}
 
                         {/* FINANCIAL DISCLAIMER */}
-                        <p className="mt-6 text-center text-[10px] leading-relaxed text-muted-foreground">
+                        <p className="mt-6 text-center text-micro leading-relaxed text-muted-foreground">
                             AI trading signals are analytical tools and are not guaranteed to be profitable. Past performance does not guarantee future results. Trading involves substantial risk of loss.
                         </p>
                     </>
@@ -820,10 +820,10 @@ export default function SignalStatsPage() {
                         {/* LIVE PRO SIGNALS */}
                         <div className="mt-8">
                             <div className="mb-4 flex items-center gap-2">
-                                <Zap className="h-4 w-4 text-amber-400" />
+                                <Zap className="h-4 w-4 text-warning" />
                                 <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Live Pro Signals</h2>
-                                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                <span className="inline-flex items-center gap-1 rounded-full bg-positive/10 border border-positive/30 px-2 py-0.5 text-micro font-semibold text-positive">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-positive animate-pulse" />
                                     Live
                                 </span>
                             </div>
@@ -836,7 +836,7 @@ export default function SignalStatsPage() {
                                             onView={(signal) => router.push(`/signals/pro/${signal.id}`)}
                                         />
                                     ) : (
-                                        <div className="rounded-2xl border border-border/30 bg-card/60 p-8 text-center backdrop-blur-xl">
+                                        <div className="rounded-lg border border-border/30 bg-card/60 p-8 text-center backdrop-blur-xl">
                                             <Radio className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                                             <p className="text-sm text-muted-foreground">No live Pro signals yet</p>
                                             <p className="text-xs text-muted-foreground mt-1">Signals will appear here when detected</p>
@@ -844,15 +844,15 @@ export default function SignalStatsPage() {
                                     )}
                                 </>
                             ) : (
-                                <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-10 text-center backdrop-blur-xl">
-                                    <Zap className="mx-auto mb-3 h-8 w-8 text-amber-400" />
+                                <div className="rounded-lg border border-warning/20 bg-warning/5 p-10 text-center backdrop-blur-xl">
+                                    <Zap className="mx-auto mb-3 h-8 w-8 text-warning" />
                                     <h3 className="text-sm font-bold text-foreground">Pro Signals Locked</h3>
                                     <p className="mt-1 text-xs text-muted-foreground max-w-sm mx-auto">
                                         M1 precision signals with real-time entry, SL, TP levels, strength scores, and full reasoning — available with a Pro subscription.
                                     </p>
                                     <Link
                                         href="/pricing"
-                                        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-foreground transition-colors hover:bg-amber-400 shadow-lg shadow-amber-500/20"
+                                        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-warning px-4 py-2.5 text-xs font-bold text-foreground transition-colors hover:bg-warning shadow-lg shadow-warning/20"
                                     >
                                         <Zap className="h-3.5 w-3.5 fill-black" />
                                         Upgrade to Pro
@@ -865,7 +865,7 @@ export default function SignalStatsPage() {
                         {hasPro && analytics && (
                             <div className="mt-10">
                                 <div className="mb-4 flex items-center gap-2">
-                                    <BarChart3 className="h-4 w-4 text-amber-400" />
+                                    <BarChart3 className="h-4 w-4 text-warning" />
                                     <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Pro Analytics</h2>
                                 </div>
                                 <SignalAnalyticsDashboard analytics={analytics} />
@@ -873,7 +873,7 @@ export default function SignalStatsPage() {
                         )}
 
                         {/* FINANCIAL DISCLAIMER */}
-                        <p className="mt-6 text-center text-[10px] leading-relaxed text-muted-foreground">
+                        <p className="mt-6 text-center text-micro leading-relaxed text-muted-foreground">
                             AI trading signals are analytical tools and are not guaranteed to be profitable. Past performance does not guarantee future results. Trading involves substantial risk of loss.
                         </p>
                     </>

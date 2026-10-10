@@ -154,7 +154,7 @@ export default function PortfolioPage() {
                             <div className="overflow-x-auto">
                                 <table className="w-full text-xs">
                                     <thead>
-                                        <tr className="border-b border-border/20 text-[10px] uppercase text-muted-foreground">
+                                        <tr className="border-b border-border/20 text-micro uppercase text-muted-foreground">
                                             <th className="px-4 py-2.5 text-left">Status</th>
                                             <th className="px-4 py-2.5 text-left">Broker</th>
                                             <th className="px-4 py-2.5 text-left">Account</th>
@@ -187,7 +187,7 @@ export default function PortfolioPage() {
                                                 </td>
                                                 <td className="px-4 py-2.5 text-right text-muted-foreground">{acc.positionsCount}</td>
                                                 <td className="px-4 py-2.5 text-right">
-                                                    <button type="button" onClick={() => syncJournal(acc.accountId)} disabled={syncingJournal} className="rounded-lg bg-violet-500/10 px-2.5 py-1 text-[10px] text-violet-400 hover:bg-violet-500/20 transition disabled:opacity-50">
+                                                    <button type="button" onClick={() => syncJournal(acc.accountId)} disabled={syncingJournal} className="rounded-lg bg-violet-500/10 px-2.5 py-1 text-micro text-violet-400 hover:bg-violet-500/20 transition disabled:opacity-50">
                                                         {syncingJournal ? "Syncing..." : "Sync Journal"}
                                                     </button>
                                                 </td>
@@ -208,7 +208,7 @@ export default function PortfolioPage() {
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-xs">
                                         <thead>
-                                            <tr className="border-b border-border/20 text-[10px] uppercase text-muted-foreground">
+                                            <tr className="border-b border-border/20 text-micro uppercase text-muted-foreground">
                                                 <th className="px-4 py-2.5 text-left">Symbol</th>
                                                 <th className="px-4 py-2.5 text-left">Direction</th>
                                                 <th className="px-4 py-2.5 text-right">Total Volume</th>
@@ -249,7 +249,7 @@ function SummaryCard({ icon: Icon, label, value, color }: { icon: React.ElementT
         <div className="rounded-xl border border-border/30 bg-muted/50 p-4">
             <div className="flex items-center gap-2">
                 <Icon size={14} className="text-violet-400" />
-                <span className="text-[10px] font-semibold uppercase text-muted-foreground">{label}</span>
+                <span className="text-micro font-semibold uppercase text-muted-foreground">{label}</span>
             </div>
             <p className={cn("mt-2 font-mono text-lg font-bold", color || "text-foreground")}>{value}</p>
         </div>

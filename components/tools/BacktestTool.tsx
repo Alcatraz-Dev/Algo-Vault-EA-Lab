@@ -166,7 +166,7 @@ export default function BacktestTool({ userId }: { userId: string }) {
 
     if (loading) {
         return (
-            <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-10 text-sm text-muted-foreground">
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-10 text-sm text-muted-foreground">
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-violet-500" />
                 Loading your backtest reports...
             </div>
@@ -175,7 +175,7 @@ export default function BacktestTool({ userId }: { userId: string }) {
 
     if (error) {
         return (
-            <div className="rounded-2xl border border-rose-500/20 bg-rose-500/[0.05] p-8 text-sm text-rose-400">
+            <div className="rounded-lg border border-rose-500/20 bg-rose-500/[0.05] p-8 text-sm text-rose-400">
                 {error}
             </div>
         );
@@ -183,7 +183,7 @@ export default function BacktestTool({ userId }: { userId: string }) {
 
     if (accounts.length === 0) {
         return (
-            <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
+            <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
                 No connected MT5 accounts yet. Add one in{" "}
                 <a href="/account/settings?tab=mt5" className="font-semibold text-violet-400 underline underline-offset-2 hover:text-violet-300">
                     Settings → MT5 Accounts
@@ -248,7 +248,7 @@ export default function BacktestTool({ userId }: { userId: string }) {
             </div>
 
             {/* Reports Table */}
-            <div className="rounded-2xl border border-border bg-card overflow-hidden">
+            <div className="rounded-lg border border-border bg-card overflow-hidden">
                 <div className="px-5 py-4 border-b border-border flex items-center justify-between">
                     <h3 className="font-semibold">Reports ({filtered.length})</h3>
                     <div className="flex items-center gap-2">

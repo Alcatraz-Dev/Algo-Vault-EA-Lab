@@ -263,7 +263,7 @@ export default function AffiliatesPage() {
                 {/* Empty */}
                 {!loading &&
                     filteredOffers.length === 0 && (
-                        <div className="mt-10 rounded-2xl border border-border/30 bg-muted/50 px-6 py-16 text-center">
+                        <div className="mt-10 rounded-lg border border-border/30 bg-muted/50 px-6 py-16 text-center">
                             <RefreshCw className="mx-auto h-8 w-8 text-foreground/40" />
 
                             <h2 className="mt-4 text-lg font-medium">
@@ -281,7 +281,7 @@ export default function AffiliatesPage() {
                     featuredOffers.length > 0 && (
                         <section className="mt-12">
                             <div className="mb-5 flex items-center gap-2">
-                                <Star className="h-4 w-4 fill-current text-yellow-400" />
+                                <Star className="h-4 w-4 fill-current text-warning" />
 
                                 <h2 className="text-lg font-semibold">
                                     Featured Partners
@@ -324,7 +324,7 @@ export default function AffiliatesPage() {
                     )}
 
                 {/* Disclosure */}
-                <div className="mt-16 rounded-2xl border border-border/30 bg-muted/50 p-5">
+                <div className="mt-16 rounded-lg border border-border/30 bg-muted/50 p-5">
                     <div className="flex gap-3">
                         <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-foreground/50" />
 
@@ -377,13 +377,13 @@ function AffiliateCard({
 
     return (
         <article
-            className={`group relative overflow-hidden rounded-2xl border bg-foreground/6 transition ${featured
-                ? "border-yellow-400/20"
+            className={`group relative overflow-hidden rounded-lg border bg-foreground/6 transition ${featured
+                ? "border-warning/20"
                 : "border-border/30"
                 } hover:bg-foreground/10`}
         >
             {featured && (
-                <div className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-2.5 py-1 text-[10px] font-medium text-yellow-300">
+                <div className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-warning/20 bg-warning/10 px-2.5 py-1 text-micro font-medium text-warning">
                     <Star className="h-3 w-3 fill-current" />
                     Featured
                 </div>

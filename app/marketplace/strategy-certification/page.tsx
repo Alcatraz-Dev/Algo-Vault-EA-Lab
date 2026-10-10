@@ -16,7 +16,7 @@ export default function StrategyCertificationPage() {
 
       <section className="border rounded-xl p-6 bg-card space-y-6">
         <div className="flex items-center gap-3">
-          <div className="px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold">CERTIFIED</div>
+          <div className="px-3 py-1 rounded-full bg-warning text-warning text-xs font-bold">CERTIFIED</div>
           <span className="text-xs text-muted-foreground">Verified by AlgoVault — 2026-01-15 — Expires 2026-04-15</span>
         </div>
 
@@ -43,7 +43,7 @@ export default function StrategyCertificationPage() {
           </div>
         </div>
 
-        <div className="rounded-lg bg-amber-50 text-amber-800 p-4 text-sm flex gap-3">
+        <div className="rounded-lg bg-warning text-warning p-4 text-sm flex gap-3">
           <AlertCircle className="w-5 h-5 shrink-0" />
           <div>
             <strong>Limitations</strong>
@@ -65,7 +65,7 @@ function Score({ label, score }: { label: string; score: number }) {
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-xs"><span className="font-medium">{label}</span><span className="font-mono">{score}</span></div>
-      <div className="w-full h-2 bg-muted rounded-full overflow-hidden"><div className="h-full bg-emerald-600 rounded-full" style={{ width: `${score}%` }} /></div>
+      <div className="w-full h-2 bg-muted rounded-full overflow-hidden"><div className="h-full bg-positive rounded-full" style={{ width: `${score}%` }} /></div>
     </div>
   );
 }

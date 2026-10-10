@@ -1,0 +1,29 @@
+# Keep build output, caches and dependencies out of editor/tool scans.
+# (Cursor + most AI tools read this; ripgrep/agents read .gitignore.)
+
+# Next.js build output & Turbopack caches (*.sst, *.json manifests live here)
+.next/
+.next-build/
+.turbo/
+out/
+dist/
+build/
+
+# Dependencies (incl. chrome-extension/ and packages/*/node_modules)
+node_modules/
+
+# Agent linked worktrees
+.worktrees/
+
+# Test / coverage artifacts
+coverage/
+test-results/
+playwright-report/
+blob-report/
+
+# Local tooling artifacts
+graphify-out/
+*.tsbuildinfo
+marketing-video/
+.impeccable/
+.freebuff/

@@ -166,14 +166,14 @@ export function TradingChat({ now }: { now: number }) {
                     </div>
                     <div className="min-w-0 leading-none">
                         <div className="flex items-center gap-1.5">
-                            <span className="text-[11px] font-semibold uppercase tracking-wide text-foreground">
+                            <span className="text-micro font-semibold uppercase tracking-wide text-foreground">
                                 Trading Chat
                             </span>
-                            <span className="rounded border border-primary/30 px-1 py-px text-[9px] font-bold tracking-wider text-primary">
+                            <span className="rounded border border-primary/30 px-1 py-px text-micro font-bold tracking-wider text-primary">
                                 CONTEXT-AWARE
                             </span>
                         </div>
-                        <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+                        <p className="mt-0.5 font-mono text-micro text-muted-foreground">
                             {state.symbol} {state.timeframe} · {state.accountMode}
                         </p>
                     </div>
@@ -191,7 +191,7 @@ export function TradingChat({ now }: { now: number }) {
                             type="button"
                             onClick={() => setChatOpen(false)}
                             aria-label="Hide chat"
-                            className="rounded-md border border-border bg-background px-1.5 py-1 text-[10px] text-muted-foreground transition hover:bg-muted"
+                            className="rounded-md border border-border bg-background px-1.5 py-1 text-micro text-muted-foreground transition hover:bg-muted"
                         >
                             Hide
                         </button>
@@ -200,7 +200,7 @@ export function TradingChat({ now }: { now: number }) {
 
                 {showActions ? (
                     <div className="border-b border-border p-2">
-                        <p className="mb-1.5 flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                        <p className="mb-1.5 flex items-center gap-1 text-micro uppercase tracking-wide text-muted-foreground">
                             <Sparkles className="size-2.5" />
                             Quick actions
                         </p>
@@ -219,7 +219,7 @@ export function TradingChat({ now }: { now: number }) {
                                             setShowActions(false);
                                         }}
                                         className={cn(
-                                            "rounded border px-1.5 py-1 text-[10px] font-medium transition",
+                                            "rounded border px-1.5 py-1 text-micro font-medium transition",
                                             blocked
                                                 ? "cursor-not-allowed border-border text-muted-foreground/60"
                                                 : "border-border text-foreground hover:border-primary/40 hover:bg-primary/5"
@@ -231,7 +231,7 @@ export function TradingChat({ now }: { now: number }) {
                                 );
                             })}
                         </div>
-                        <p className="mt-1.5 text-[10px] leading-4 text-muted-foreground">
+                        <p className="mt-1.5 text-micro leading-4 text-muted-foreground">
                             Analysis actions send the current terminal context. Execution actions stay disabled until an
                             execution adapter is wired — the chat never places orders.
                         </p>
@@ -240,12 +240,12 @@ export function TradingChat({ now }: { now: number }) {
 
                 <div ref={listRef} className="min-h-[8rem] flex-1 space-y-3 overflow-y-auto p-3">
                     {turns.length === 0 ? (
-                        <div className="space-y-2 text-[11px] leading-4 text-muted-foreground">
+                        <div className="space-y-2 text-micro leading-4 text-muted-foreground">
                             <p>
                                 Ask about the current chart, structure, liquidity, risk or your positions. The reply is
                                 built from deterministic AlgoVault facts first, interpretation second.
                             </p>
-                            <p className="text-[10px]">
+                            <p className="text-micro">
                                 Context attached right now:{" "}
                                 {lastContext.missing.length === 0 ? "everything available." : `${lastContext.missing.length} section(s) unavailable.`}
                             </p>
@@ -276,7 +276,7 @@ export function TradingChat({ now }: { now: number }) {
                                     ) : (
                                         <>
                                             {t.missing && t.missing.length > 0 ? (
-                                                <span className="mb-1.5 flex items-start gap-1.5 rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-1 text-[10px] leading-4 text-amber-200">
+                                                <span className="mb-1.5 flex items-start gap-1.5 rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-1 text-micro leading-4 text-amber-200">
                                                     <ShieldAlert className="mt-0.5 size-3 shrink-0 text-amber-400" />
                                                     <span>
                                                         Unavailable in context: {t.missing.slice(0, 6).join(", ")}
@@ -285,7 +285,7 @@ export function TradingChat({ now }: { now: number }) {
                                                     </span>
                                                 </span>
                                             ) : null}
-                                            <div className="[&_a]:text-primary [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:font-mono [&_code]:text-[11px] [&_h1]:text-xs [&_h1]:font-semibold [&_h1]:uppercase [&_h1]:tracking-wide [&_h2]:text-xs [&_h2]:font-semibold [&_h2]:mt-2 [&_h3]:text-[11px] [&_h3]:font-semibold [&_li]:text-[12px] [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-1 [&_p]:leading-5 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-muted [&_pre]:p-2 [&_pre]:text-[11px] [&_strong]:font-semibold [&_table]:w-full [&_table]:text-[11px] [&_td]:border [&_td]:border-border [&_td]:px-1 [&_th]:border [&_th]:border-border [&_th]:px-1 [&_th]:text-left [&_ul]:list-disc [&_ul]:pl-4">
+                                            <div className="[&_a]:text-primary [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:font-mono [&_code]:text-micro [&_h1]:text-xs [&_h1]:font-semibold [&_h1]:uppercase [&_h1]:tracking-wide [&_h2]:text-xs [&_h2]:font-semibold [&_h2]:mt-2 [&_h3]:text-micro [&_h3]:font-semibold [&_li]:text-[12px] [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-1 [&_p]:leading-5 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-muted [&_pre]:p-2 [&_pre]:text-micro [&_strong]:font-semibold [&_table]:w-full [&_table]:text-micro [&_td]:border [&_td]:border-border [&_td]:px-1 [&_th]:border [&_th]:border-border [&_th]:px-1 [&_th]:text-left [&_ul]:list-disc [&_ul]:pl-4">
                                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{t.content}</ReactMarkdown>
                                             </div>
                                         </>
@@ -331,7 +331,7 @@ export function TradingChat({ now }: { now: number }) {
                             {sending ? <Loader2 className="size-3.5 animate-spin" /> : <SendHorizonal className="size-3.5" />}
                         </button>
                     </div>
-                    <p className="mt-1 text-[10px] leading-4 text-muted-foreground">
+                    <p className="mt-1 text-micro leading-4 text-muted-foreground">
                         Deterministic facts are supplied by AlgoVault engines; interpretation is the model&rsquo;s own
                         and is labelled as such. Not financial advice.
                     </p>

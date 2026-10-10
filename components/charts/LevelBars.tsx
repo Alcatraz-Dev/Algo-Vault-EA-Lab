@@ -65,14 +65,14 @@ export default function LevelBars({
                 const width = waiting ? 0 : Math.max(2, ratio * 100);
                 return (
                     <li key={item.id} className="min-w-0">
-                        <div className="flex items-baseline justify-between gap-2 text-[11px]">
+                        <div className="flex items-baseline justify-between gap-2 text-micro">
                             <span className="min-w-0 truncate font-medium text-foreground">{item.label}</span>
                             {item.right !== undefined ? (
                                 <span className="font-numeric shrink-0 text-muted-foreground">{item.right}</span>
                             ) : null}
                         </div>
                         {item.hint !== undefined ? (
-                            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{item.hint}</p>
+                            <p className="mt-0.5 truncate text-micro text-muted-foreground">{item.hint}</p>
                         ) : null}
                         <div className={cn("mt-1 w-full overflow-hidden rounded-full bg-muted", barClassName)}>
                             <div

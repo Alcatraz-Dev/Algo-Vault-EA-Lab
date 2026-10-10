@@ -76,7 +76,7 @@ function Stat({ label, value, sub }: { label: string; value: number; sub?: strin
     <div className="rounded-xl border border-border bg-card px-4 py-3 flex flex-col gap-0.5">
       <span className="text-2xl font-bold text-foreground">{value}</span>
       <span className="text-xs font-medium text-foreground">{label}</span>
-      {sub && <span className="text-[10px] text-muted-foreground">{sub}</span>}
+      {sub && <span className="text-micro text-muted-foreground">{sub}</span>}
     </div>
   );
 }
@@ -362,19 +362,19 @@ export default function AccountWorkflowsPage() {
                 </div>
 
                 {/* Meta */}
-                <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                <div className="flex items-center gap-3 text-micro text-muted-foreground">
                   <span className="flex items-center gap-1"><GitBranch size={10} />{wf.nodes?.length ?? 0} nodes</span>
                   <span className="flex items-center gap-1"><Clock size={10} />{wf.updatedAt ? new Date(wf.updatedAt).toLocaleDateString() : "—"}</span>
-                  <span className="ml-auto text-[10px] text-muted-foreground">v{wf.version}</span>
+                  <span className="ml-auto text-micro text-muted-foreground">v{wf.version}</span>
                 </div>
 
                 {/* Tags */}
                 <div className="flex flex-wrap gap-1.5 min-h-[20px]">
                   {wf.schedule?.enabled && (
-                    <Badge variant="outline" className="text-[10px] border-amber-300 text-amber-600 dark:text-amber-400">Scheduled</Badge>
+                    <Badge variant="outline" className="text-micro border-amber-300 text-amber-600 dark:text-amber-400">Scheduled</Badge>
                   )}
                   {(wf.requiredPermissions ?? []).slice(0, 2).map(p => (
-                    <Badge key={p} variant="secondary" className="text-[10px]">{p}</Badge>
+                    <Badge key={p} variant="secondary" className="text-micro">{p}</Badge>
                   ))}
                 </div>
 

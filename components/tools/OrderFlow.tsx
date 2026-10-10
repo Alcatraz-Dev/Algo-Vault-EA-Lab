@@ -27,7 +27,7 @@ export default function OrderFlow({ userId }: { userId: string }) {
 
     if (loading) {
         return (
-            <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-10 text-sm text-muted-foreground">
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-10 text-sm text-muted-foreground">
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-violet-500" />
                 Loading your trade history...
             </div>
@@ -36,7 +36,7 @@ export default function OrderFlow({ userId }: { userId: string }) {
 
     if (error) {
         return (
-            <div className="rounded-2xl border border-rose-500/20 bg-rose-500/[0.05] p-8 text-sm text-rose-400">
+            <div className="rounded-lg border border-rose-500/20 bg-rose-500/[0.05] p-8 text-sm text-rose-400">
                 {error}
             </div>
         );
@@ -44,7 +44,7 @@ export default function OrderFlow({ userId }: { userId: string }) {
 
     if (accounts.length === 0) {
         return (
-            <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
+            <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
                 <Activity className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                 No connected MT5 accounts yet. Add one in{" "}
                 <a href="/account/settings?tab=mt5" className="font-semibold text-violet-400 underline underline-offset-2 hover:text-violet-300">
@@ -82,23 +82,23 @@ export default function OrderFlow({ userId }: { userId: string }) {
             {/* Stat strip */}
             <div className="grid gap-3 sm:grid-cols-4">
                 <div className="rounded-xl border border-border bg-card p-3 text-center">
-                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Total Trades</p>
+                    <p className="text-micro uppercase tracking-wider text-muted-foreground">Total Trades</p>
                     <p className="mt-1 text-xl font-bold">{filtered.length}</p>
                 </div>
                 <div className="rounded-xl border border-border bg-card p-3 text-center">
-                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Open</p>
+                    <p className="text-micro uppercase tracking-wider text-muted-foreground">Open</p>
                     <p className="mt-1 text-xl font-bold text-amber-400">
                         {filtered.filter((t) => !t.closedAt).length}
                     </p>
                 </div>
                 <div className="rounded-xl border border-border bg-card p-3 text-center">
-                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Closed</p>
+                    <p className="text-micro uppercase tracking-wider text-muted-foreground">Closed</p>
                     <p className="mt-1 text-xl font-bold text-emerald-400">
                         {filtered.filter((t) => t.closedAt).length}
                     </p>
                 </div>
                 <div className="rounded-xl border border-border bg-card p-3 text-center">
-                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Realized P/L</p>
+                    <p className="text-micro uppercase tracking-wider text-muted-foreground">Realized P/L</p>
                     <p
                         className={`mt-1 text-xl font-bold ${
                             filtered.reduce((s, t) => s + Number(t.profit ?? 0), 0) >= 0
@@ -112,7 +112,7 @@ export default function OrderFlow({ userId }: { userId: string }) {
             </div>
 
             {/* Trades table */}
-            <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="rounded-lg border border-border bg-card p-5">
                 <h3 className="text-sm font-semibold">Order Flow</h3>
                 <div className="mt-3 overflow-x-auto">
                     {filtered.length === 0 ? (
@@ -123,7 +123,7 @@ export default function OrderFlow({ userId }: { userId: string }) {
                     ) : (
                         <table className="w-full text-left text-sm">
                             <thead>
-                                <tr className="border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground">
+                                <tr className="border-b border-border text-micro uppercase tracking-wider text-muted-foreground">
                                     <th className="py-2 pr-4 font-medium">Symbol</th>
                                     <th className="py-2 pr-4 font-medium">Side</th>
                                     <th className="py-2 pr-4 font-medium">Volume</th>
@@ -149,7 +149,7 @@ export default function OrderFlow({ userId }: { userId: string }) {
                                             </td>
                                             <td className="py-2.5 pr-4">
                                                 <span
-                                                    className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                                                    className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-micro font-semibold ${
                                                         side === "SELL"
                                                             ? "bg-rose-500/10 text-rose-400"
                                                             : "bg-emerald-500/10 text-emerald-400"
@@ -182,7 +182,7 @@ export default function OrderFlow({ userId }: { userId: string }) {
                                             </td>
                                             <td className="py-2.5">
                                                 <span
-                                                    className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                                                    className={`rounded-full px-2 py-0.5 text-micro font-semibold ${
                                                         open
                                                             ? "bg-amber-500/10 text-amber-400"
                                                             : "bg-muted text-muted-foreground"

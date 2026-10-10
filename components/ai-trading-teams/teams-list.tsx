@@ -71,14 +71,14 @@ export function TeamsList({
                                     <span className="truncate">{team.name}</span>
                                     <ArrowUpRight className="size-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
                                 </Link>
-                                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                                <p className="mt-0.5 text-micro text-muted-foreground">
                                     {team.description?.slice(0, 90) || "Collaborative AI research desk"}
                                 </p>
                             </div>
                             <StatusBadge tone={team.status === "active" ? "active" : "neutral"} label={team.status} />
                         </div>
 
-                        <div className="flex flex-wrap gap-1 text-[10px]">
+                        <div className="flex flex-wrap gap-1 text-micro">
                             <Badge variant="outline">{team.config.market}</Badge>
                             <Badge variant="outline">{team.config.entryTimeframe}/{team.config.confirmationTimeframe}/{team.config.contextTimeframe}</Badge>
                             <Badge variant="outline" className="capitalize">{team.config.style}</Badge>
@@ -92,12 +92,12 @@ export function TeamsList({
                                 </span>
                             ))}
                             {team.agentIds.length > members.length ? (
-                                <span className="ml-1 text-[10px] text-muted-foreground">+{team.agentIds.length - members.length}</span>
+                                <span className="ml-1 text-micro text-muted-foreground">+{team.agentIds.length - members.length}</span>
                             ) : null}
                         </div>
 
                         <div className="mt-auto flex items-center justify-between border-t border-border/50 pt-2.5">
-                            <span className="text-[10px] text-muted-foreground">
+                            <span className="text-micro text-muted-foreground">
                                 v{team.version} · updated {new Date(team.updatedAt).toLocaleDateString()}
                             </span>
                             <div className="flex items-center gap-1">
@@ -140,18 +140,18 @@ export function TemplatesGrid({
                 <article key={template.id} className="flex flex-col gap-2 rounded-xl border border-border/60 bg-card/60 p-4">
                     <div className="flex items-center justify-between gap-2">
                         <h3 className="text-sm font-semibold">{template.name}</h3>
-                        <Badge variant={template.scope === "admin" ? "secondary" : "outline"} className="text-[9px]">
+                        <Badge variant={template.scope === "admin" ? "secondary" : "outline"} className="text-micro">
                             {template.scope === "admin" ? "official" : "built-in"}
                         </Badge>
                     </div>
-                    <p className="text-[11px] leading-snug text-muted-foreground">{template.description}</p>
-                    <div className="flex flex-wrap gap-1 text-[10px]">
+                    <p className="text-micro leading-snug text-muted-foreground">{template.description}</p>
+                    <div className="flex flex-wrap gap-1 text-micro">
                         <Badge variant="outline">{template.config.market}</Badge>
                         <Badge variant="outline" className="capitalize">{template.config.style}</Badge>
                         <Badge variant="outline" className="capitalize">{template.config.riskProfile}</Badge>
                         <Badge variant="secondary" className="capitalize">{template.config.behavior}</Badge>
                     </div>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-micro text-muted-foreground">
                         <Layers className="mr-1 inline size-3" />
                         {template.agentIds.length} agents · {template.config.entryTimeframe}/{template.config.confirmationTimeframe}/{template.config.contextTimeframe}
                     </p>

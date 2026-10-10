@@ -103,7 +103,7 @@ export default function MobileMarketContextPage() {
                             <Network className="size-4 text-primary" />
                             Market Context
                         </h1>
-                        <p className="text-[11px] text-muted-foreground">Cross-asset intelligence for {symbol}</p>
+                        <p className="text-micro text-muted-foreground">Cross-asset intelligence for {symbol}</p>
                     </div>
                     <button
                         type="button"
@@ -123,7 +123,7 @@ export default function MobileMarketContextPage() {
                             type="button"
                             onClick={() => setSymbol(s)}
                             className={cn(
-                                "whitespace-nowrap rounded-full border px-2.5 py-1 font-mono text-[11px]",
+                                "whitespace-nowrap rounded-full border px-2.5 py-1 font-mono text-micro",
                                 symbol === s
                                     ? "border-primary bg-primary/15 text-primary"
                                     : "border-border text-muted-foreground"
@@ -135,7 +135,7 @@ export default function MobileMarketContextPage() {
                 </div>
 
                 {error ? (
-                    <div className="flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-200">
+                    <div className="flex items-start gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-micro text-warning">
                         <AlertCircle className="mt-0.5 size-3.5 shrink-0" />
                         <span>{error}</span>
                     </div>
@@ -151,7 +151,7 @@ export default function MobileMarketContextPage() {
                     <>
                         {/* regime */}
                         <section className="rounded-lg border border-border bg-card p-3">
-                            <h2 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            <h2 className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">
                                 Current regime
                             </h2>
                             <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -159,14 +159,14 @@ export default function MobileMarketContextPage() {
                                     <span
                                         key={state}
                                         className={cn(
-                                            "rounded px-2 py-0.5 text-[10px] font-semibold",
+                                            "rounded px-2 py-0.5 text-micro font-semibold",
                                             state === "RISK_OFF" || state === "HIGH_VOLATILITY"
-                                                ? "bg-rose-500/20 text-rose-300"
+                                                ? "bg-negative/20 text-negative"
                                                 : state === "RISK_ON" || state === "LOW_VOLATILITY"
-                                                  ? "bg-emerald-500/20 text-emerald-300"
+                                                  ? "bg-positive/20 text-positive"
                                                   : state === "UNKNOWN"
-                                                    ? "bg-zinc-500/20 text-zinc-300"
-                                                    : "bg-sky-500/20 text-sky-300"
+                                                    ? "bg-muted/20 text-muted-foreground"
+                                                    : "bg-info/20 text-info"
                                         )}
                                     >
                                         {state.replace(/_/g, " ")}
@@ -174,7 +174,7 @@ export default function MobileMarketContextPage() {
                                 ))}
                             </div>
                             {ctx.regime ? (
-                                <p className="mt-1.5 font-mono text-[10px] text-muted-foreground">
+                                <p className="mt-1.5 font-mono text-micro text-muted-foreground">
                                     {Object.entries(ctx.regime.states)
                                         .map(([axis, state]) => `${axis}: ${state}`)
                                         .join(" · ")}
@@ -184,11 +184,11 @@ export default function MobileMarketContextPage() {
 
                         {/* relationships */}
                         <section className="rounded-lg border border-border bg-card p-3">
-                            <h2 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            <h2 className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">
                                 Top relationships
                             </h2>
                             {ctx.relationships.length === 0 ? (
-                                <p className="mt-1 text-[11px] text-muted-foreground">
+                                <p className="mt-1 text-micro text-muted-foreground">
                                     No relationship for {symbol} passed the label threshold this window.
                                 </p>
                             ) : (
@@ -200,19 +200,19 @@ export default function MobileMarketContextPage() {
                                                 <span
                                                     className={cn(
                                                         "font-mono text-xs",
-                                                        (r.coefficient ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"
+                                                        (r.coefficient ?? 0) >= 0 ? "text-positive" : "text-negative"
                                                     )}
                                                 >
                                                     {r.coefficient === null ? "n/a" : r.coefficient.toFixed(2)}
                                                 </span>
                                                 <span
                                                     className={cn(
-                                                        "rounded px-1.5 py-0.5 text-[9px] font-semibold",
+                                                        "rounded px-1.5 py-0.5 text-micro font-semibold",
                                                         r.stability === "BREAKING" || r.stability === "FLIPPING"
-                                                            ? "bg-rose-500/20 text-rose-300"
+                                                            ? "bg-negative/20 text-negative"
                                                             : r.stability === "WEAKENING"
-                                                              ? "bg-amber-500/20 text-amber-300"
-                                                              : "bg-zinc-500/20 text-zinc-300"
+                                                              ? "bg-warning/20 text-warning"
+                                                              : "bg-muted/20 text-muted-foreground"
                                                     )}
                                                 >
                                                     {r.stability}
@@ -223,25 +223,25 @@ export default function MobileMarketContextPage() {
                                     ))}
                                 </ul>
                             )}
-                            <p className="mt-1 text-[10px] text-muted-foreground">
+                            <p className="mt-1 text-micro text-muted-foreground">
                                 window {ctx.window.bars} {ctx.window.timeframe} · measured association, not a signal
                             </p>
                         </section>
 
                         {/* correlation changes */}
                         <section className="rounded-lg border border-border bg-card p-3">
-                            <h2 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            <h2 className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">
                                 Correlation changes
                             </h2>
                             {ctx.signals.length === 0 ? (
-                                <p className="mt-1 text-[11px] text-muted-foreground">
+                                <p className="mt-1 text-micro text-muted-foreground">
                                     No active relationship changes detected in this window.
                                 </p>
                             ) : (
                                 <ul className="mt-1.5 space-y-1.5">
                                     {ctx.signals.slice(0, 5).map((s) => (
-                                        <li key={s.id} className="text-[11px] leading-4 text-muted-foreground">
-                                            <span className="font-mono text-[10px] text-foreground">
+                                        <li key={s.id} className="text-micro leading-4 text-muted-foreground">
+                                            <span className="font-mono text-micro text-foreground">
                                                 {s.type.replace(/_/g, " ")} [{s.status}]
                                             </span>{" "}
                                             {s.summary}
@@ -253,11 +253,11 @@ export default function MobileMarketContextPage() {
 
                         {/* portfolio impact */}
                         <section className="rounded-lg border border-border bg-card p-3">
-                            <h2 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            <h2 className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">
                                 Portfolio impact
                             </h2>
                             {ctx.portfolioImpact === null || ctx.portfolioImpact.status === "NO_HOLDINGS" ? (
-                                <p className="mt-1 text-[11px] text-muted-foreground">
+                                <p className="mt-1 text-micro text-muted-foreground">
                                     No open holdings — impact not applicable.
                                 </p>
                             ) : (
@@ -265,12 +265,12 @@ export default function MobileMarketContextPage() {
                                     <p className="font-mono text-sm text-foreground">
                                         {(ctx.portfolioImpact.relatedExposureWeight * 100).toFixed(1)}% of gross exposure
                                     </p>
-                                    <p className="text-[11px] text-muted-foreground">
+                                    <p className="text-micro text-muted-foreground">
                                         Correlated holdings:{" "}
                                         {ctx.portfolioImpact.correlatedHoldings.join(", ") || "none"}
                                     </p>
                                     {ctx.portfolioImpact.warnings.map((w) => (
-                                        <p key={w.text} className="text-[11px] text-amber-300/90">
+                                        <p key={w.text} className="text-micro text-warning/90">
                                             {w.text}
                                         </p>
                                     ))}
@@ -280,19 +280,19 @@ export default function MobileMarketContextPage() {
 
                         {/* narrative (§30) */}
                         <section className="rounded-lg border border-border bg-card p-3">
-                            <h2 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            <h2 className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">
                                 Evidence summary
                             </h2>
                             <ul className="mt-1.5 space-y-1.5">
                                 {ctx.narrative.map((n) => (
-                                    <li key={n.text.slice(0, 40)} className="text-[11px] leading-4 text-muted-foreground">
+                                    <li key={n.text.slice(0, 40)} className="text-micro leading-4 text-muted-foreground">
                                         <span
                                             className={cn(
-                                                "mr-1 rounded px-1 py-0.5 font-mono text-[9px]",
-                                                n.kind === "OBSERVED" && "bg-emerald-500/15 text-emerald-300",
-                                                n.kind === "CALCULATED" && "bg-sky-500/15 text-sky-300",
+                                                "mr-1 rounded px-1 py-0.5 font-mono text-micro",
+                                                n.kind === "OBSERVED" && "bg-positive/15 text-positive",
+                                                n.kind === "CALCULATED" && "bg-info/15 text-info",
                                                 n.kind === "INFERENCE" && "bg-violet-500/15 text-violet-300",
-                                                n.kind === "RECOMMENDATION" && "bg-rose-500/15 text-rose-300"
+                                                n.kind === "RECOMMENDATION" && "bg-negative/15 text-negative"
                                             )}
                                         >
                                             {n.kind}
@@ -315,7 +315,7 @@ export default function MobileMarketContextPage() {
                                 </span>
                                 <ChevronRight className="size-3.5 text-muted-foreground" />
                             </Link>
-                            <p className="text-[10px] leading-4 text-muted-foreground">
+                            <p className="text-micro leading-4 text-muted-foreground">
                                 Cross-asset context describes measured historical associations — context, not prediction
                                 (Phase 16 §57).
                             </p>

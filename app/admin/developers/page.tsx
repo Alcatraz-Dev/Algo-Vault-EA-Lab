@@ -86,26 +86,26 @@ function statusMeta(status: string) {
         case "active":
             return {
                 label: "Connected",
-                dot: "bg-emerald-500",
-                text: "text-emerald-600",
-                bg: "bg-emerald-500/10",
-                border: "border-emerald-500/25",
+                dot: "bg-positive",
+                text: "text-positive",
+                bg: "bg-positive/10",
+                border: "border-positive/25",
             };
         case "requirements":
             return {
                 label: "Requirements",
-                dot: "bg-amber-500",
-                text: "text-amber-600",
-                bg: "bg-amber-500/10",
-                border: "border-amber-500/25",
+                dot: "bg-warning",
+                text: "text-warning",
+                bg: "bg-warning/10",
+                border: "border-warning/25",
             };
         case "onboarding":
             return {
                 label: "Onboarding",
-                dot: "bg-violet-500",
-                text: "text-violet-600",
-                bg: "bg-violet-500/10",
-                border: "border-violet-500/25",
+                dot: "bg-chart-3",
+                text: "text-chart-3",
+                bg: "bg-chart-3/10",
+                border: "border-chart-3/25",
             };
         default:
             return {
@@ -250,7 +250,7 @@ export default function AdminDevelopersPage() {
 
             {/* Error */}
             {error && (
-                <div className="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-600">
+                <div className="mb-6 rounded-xl border border-negative/20 bg-negative/10 p-4 text-sm text-negative">
                     {error}
                 </div>
             )}
@@ -259,11 +259,11 @@ export default function AdminDevelopersPage() {
             {pendingRequests.length > 0 && (
                 <div className="mb-8">
                     <div className="flex items-center gap-2 mb-4">
-                        <Clock size={16} className="text-amber-400" />
+                        <Clock size={16} className="text-warning" />
                         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                             Pending Developer Requests
                         </h2>
-                        <span className="rounded-full bg-amber-500/10 border border-amber-500/25 px-2 py-0.5 text-[11px] font-medium text-amber-600">
+                        <span className="rounded-full bg-warning/10 border border-warning/25 px-2 py-0.5 text-micro font-medium text-warning">
                             {pendingRequests.length}
                         </span>
                     </div>
@@ -271,7 +271,7 @@ export default function AdminDevelopersPage() {
                         {pendingRequests.map((req) => (
                             <div
                                 key={req.uid}
-                                className="rounded-2xl border border-border bg-muted/30 p-5"
+                                className="rounded-lg border border-border bg-muted/30 p-5"
                             >
                                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="flex items-center gap-4 min-w-0">
@@ -290,7 +290,7 @@ export default function AdminDevelopersPage() {
                                                     &ldquo;{req.message}&rdquo;
                                                 </p>
                                             )}
-                                            <p className="mt-1 text-[11px] text-muted-foreground">
+                                            <p className="mt-1 text-micro text-muted-foreground">
                                                 Requested {timeAgo(req.requestedAt, now)}
                                             </p>
                                         </div>
@@ -301,7 +301,7 @@ export default function AdminDevelopersPage() {
                                             type="button"
                                             onClick={() => handleRequestAction(req.uid, "approve")}
                                             disabled={actionLoading === req.uid}
-                                            className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-emerald-500 disabled:opacity-50"
+                                            className="flex items-center gap-1.5 rounded-xl bg-positive px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-positive disabled:opacity-50"
                                         >
                                                 {actionLoading === req.uid ? (
                                                     <Loader2 size={13} className="animate-spin" />
@@ -314,7 +314,7 @@ export default function AdminDevelopersPage() {
                                             type="button"
                                             onClick={() => handleRequestAction(req.uid, "reject")}
                                             disabled={actionLoading === req.uid}
-                                            className="flex items-center gap-1.5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2 text-xs font-semibold text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
+                                            className="flex items-center gap-1.5 rounded-xl border border-negative/20 bg-negative/10 px-4 py-2 text-xs font-semibold text-negative transition hover:bg-negative/20 disabled:opacity-50"
                                         >
                                                 {actionLoading === req.uid ? (
                                                     <Loader2 size={13} className="animate-spin" />
@@ -364,7 +364,7 @@ export default function AdminDevelopersPage() {
                 ].map(({ label, value, icon: Icon }) => (
                     <div
                         key={label}
-                        className="rounded-2xl border border-border bg-muted/40 p-5"
+                        className="rounded-lg border border-border bg-muted/40 p-5"
                     >
                         <div className="flex items-center justify-between">
                             <div>
@@ -409,14 +409,14 @@ export default function AdminDevelopersPage() {
 
             {/* Table */}
             {loading ? (
-                <div className="mt-6 rounded-2xl border border-border bg-muted/30 p-16 text-center">
+                <div className="mt-6 rounded-lg border border-border bg-muted/30 p-16 text-center">
                     <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground mb-3" />
                     <p className="text-sm text-muted-foreground">
                         Loading developers...
                     </p>
                 </div>
             ) : filtered.length === 0 ? (
-                <div className="mt-6 rounded-2xl border border-dashed border-border p-16 text-center">
+                <div className="mt-6 rounded-lg border border-dashed border-border p-16 text-center">
                     <Code2 className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
                     <h3 className="font-semibold">No developers found</h3>
                     <p className="mt-2 text-sm text-muted-foreground">
@@ -424,7 +424,7 @@ export default function AdminDevelopersPage() {
                     </p>
                 </div>
             ) : (
-                <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-muted/30">
+                <div className="mt-6 overflow-hidden rounded-lg border border-border bg-muted/30">
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-[1000px] text-sm">
                             <thead>
@@ -502,7 +502,7 @@ export default function AdminDevelopersPage() {
                                                     {meta.label}
                                                 </span>
                                                 {dev.status === "requirements" && (
-                                                    <p className="mt-1 text-[11px] text-amber-600">
+                                                    <p className="mt-1 text-micro text-warning">
                                                         {pendingReqs} pending
                                                     </p>
                                                 )}
@@ -515,7 +515,7 @@ export default function AdminDevelopersPage() {
                                                             {dev.accountId}
                                                         </p>
                                                         {dev.payoutsEnabled && (
-                                                            <p className="mt-1 text-[11px] text-emerald-600">
+                                                            <p className="mt-1 text-micro text-positive">
                                                                 Payouts enabled
                                                             </p>
                                                         )}
@@ -529,7 +529,7 @@ export default function AdminDevelopersPage() {
 
                                             <td className="px-5 py-4">
                                                 {dev.hasDeveloperPlan ? (
-                                                    <span className="rounded-lg border border-violet-500/25 bg-violet-500/10 px-2.5 py-1 text-xs font-medium text-violet-600">
+                                                    <span className="rounded-lg border border-chart-3/25 bg-chart-3/10 px-2.5 py-1 text-xs font-medium text-chart-3">
                                                         {dev.plan || "Active"}
                                                     </span>
                                                 ) : (
@@ -551,7 +551,7 @@ export default function AdminDevelopersPage() {
                                                         {dev.requirements
                                                             .eventuallyDue
                                                             .length > 0 && (
-                                                            <p className="mt-1 text-[11px] text-muted-foreground">
+                                                            <p className="mt-1 text-micro text-muted-foreground">
                                                                 {
                                                                     dev
                                                                         .requirements
@@ -572,7 +572,7 @@ export default function AdminDevelopersPage() {
                                             <td className="px-5 py-4 text-xs text-muted-foreground">
                                                 <p>{timeAgo(dev.updatedAt, now)}</p>
                                                 {dev.lastOnboardingLinkCreatedAt && (
-                                                    <p className="mt-1 text-[11px] text-muted-foreground">
+                                                    <p className="mt-1 text-micro text-muted-foreground">
                                                         Link{" "}
                                                         {timeAgo(
                                                             dev.lastOnboardingLinkCreatedAt,

@@ -42,7 +42,7 @@ export default function AlertManager({ alerts, onChange }: AlertManagerProps) {
                     <Bell size={14} />
                     <span className="hidden sm:inline">Alert</span>
                     {alerts.length > 0 && (
-                        <span className="rounded-full bg-cyan-400/20 px-1.5 py-0.5 text-[10px] font-medium text-cyan-300">
+                        <span className="rounded-full bg-cyan-400/20 px-1.5 py-0.5 text-micro font-medium text-cyan-300">
                             {alerts.length}
                         </span>
                     )}
@@ -65,7 +65,7 @@ export default function AlertManager({ alerts, onChange }: AlertManagerProps) {
                                 <p className="text-xs text-foreground">
                                     {alert.symbol} {alert.direction} {alert.price}
                                 </p>
-                                <p className="text-[10px] text-foreground/70">{alert.label || "No label"}</p>
+                                <p className="text-micro text-foreground/70">{alert.label || "No label"}</p>
                             </div>
                             <Button
                                 variant="ghost"

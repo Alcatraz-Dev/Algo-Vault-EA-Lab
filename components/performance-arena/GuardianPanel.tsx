@@ -101,7 +101,7 @@ export function GuardianPanel({
                 <div className="border-t border-border p-4 text-xs">
                     <div className="mb-3 flex items-center justify-between">
                         <p className="text-sm font-semibold">AI analysis</p>
-                        <span className="font-mono text-[11px] text-muted-foreground">
+                        <span className="font-mono text-micro text-muted-foreground">
                             {analysis.provider} / {analysis.model} · {analysis.creditsCharged} credit(s)
                         </span>
                     </div>
@@ -112,7 +112,7 @@ export function GuardianPanel({
                         <Section title="UNCERTAINTY" tone="text-muted-foreground" items={analysis.uncertainty} />
                         <Section title="LIMITATIONS" tone="text-muted-foreground" items={analysis.limitations} />
                     </div>
-                    <p className="mt-3 text-[11px] text-muted-foreground">
+                    <p className="mt-3 text-micro text-muted-foreground">
                         AI analysis is informational, may be wrong, and never changes challenge accounting, rules or settlement.
                     </p>
                 </div>
@@ -125,7 +125,7 @@ function Section({ title, tone, items, icon }: { title: string; tone: string; it
     if (items.length === 0) return null;
     return (
         <div>
-            <p className={`mb-1 font-mono text-[11px] uppercase tracking-wide ${tone}`}>
+            <p className={`mb-1 font-mono text-micro uppercase tracking-wide ${tone}`}>
                 {icon ? <span className="mr-1 inline-flex align-[-2px]">{icon}</span> : null}
                 {title}
             </p>

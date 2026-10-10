@@ -106,7 +106,7 @@ export default function TraderProfilePage() {
                                     profile.markets.map((market) => <Badge key={market} variant="outline">{market}</Badge>)
                                 )}
                             </div>
-                            <p className="mt-3 text-[11px] text-muted-foreground">Visibility: {profile.visibility}</p>
+                            <p className="mt-3 text-micro text-muted-foreground">Visibility: {profile.visibility}</p>
                         </div>
 
                         <div className="rounded-lg border border-border bg-card p-4">
@@ -129,7 +129,7 @@ export default function TraderProfilePage() {
                                             {data.recentRewards.map((entry) => (
                                                 <TableRow key={entry.rewardId}>
                                                     <TableCell className="text-xs">{entry.rewardType.replace(/_/g, " ")}</TableCell>
-                                                    <TableCell className={`text-right font-mono text-xs ${entry.amount < 0 ? "text-red-500" : ""}`}>
+                                                    <TableCell className={`text-right font-mono text-xs ${entry.amount < 0 ? "text-negative" : ""}`}>
                                                         {entry.amount > 0 ? "+" : ""}
                                                         {entry.amount} <span className="text-muted-foreground">{entry.unit}</span>
                                                     </TableCell>
@@ -175,7 +175,7 @@ export default function TraderProfilePage() {
                                                 </Link>
                                             </TableCell>
                                             <TableCell><ChallengeStatusBadge status={item.status} /></TableCell>
-                                            <TableCell className={`text-right font-mono text-xs ${item.totalReturnPct >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+                                            <TableCell className={`text-right font-mono text-xs ${item.totalReturnPct >= 0 ? "text-positive" : "text-negative"}`}>
                                                 {item.totalReturnPct >= 0 ? "+" : ""}
                                                 {item.totalReturnPct.toFixed(2)}%
                                             </TableCell>

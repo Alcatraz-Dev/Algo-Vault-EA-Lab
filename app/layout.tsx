@@ -96,7 +96,7 @@ export const metadata: Metadata = {
       { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
     ],
     other: [
-      { rel: "mask-icon", url: "/logos/logo.png", color: "#ff4d00" },
+      { rel: "mask-icon", url: "/logos/logo.png", color: "#daba6b" },
     ],
   },
   manifest: "/manifest.webmanifest",
@@ -114,7 +114,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ff4d00",
+  themeColor: "#0b0c0e",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,

@@ -358,7 +358,7 @@ export default function AccountChallengeDashboardPage() {
                 {new Date(state.attempt.expiresAt).toLocaleDateString()}
               </span>
               {state.quoteProvider ? (
-                <span className="text-[11px] text-muted-foreground">quotes: {state.quoteProvider}</span>
+                <span className="text-micro text-muted-foreground">quotes: {state.quoteProvider}</span>
               ) : null}
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -451,7 +451,7 @@ export default function AccountChallengeDashboardPage() {
                 <select id="arena-chart-symbol" value={effectiveSymbol} onChange={(event) => setChartSymbol(event.target.value)} className="max-w-44 rounded-md border border-border bg-background px-2 py-1.5 font-mono text-xs text-foreground">
                   {symbols.map((symbol) => <option key={symbol} value={symbol}>{symbol} · {marketOfSymbol(symbol)}</option>)}
                 </select>
-                <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-2 text-micro text-muted-foreground">
                   <span>{chartInterval.toUpperCase()} · Pro Terminal chart</span>
                   <span className="rounded border border-border px-2 py-1" title={chartQuote ? `Quote timestamp ${new Date(chartQuote.timestamp).toLocaleTimeString()}` : "No current quote"}>{chartQuote && now !== null && now - chartQuote.timestamp <= 60_000 ? chartQuote.price.toLocaleString(undefined, { maximumFractionDigits: 6 }) : "Quote unavailable / stale"}</span>
                   <span aria-label="Chart marker legend" className="hidden sm:inline">Entry / SL / TP levels</span>

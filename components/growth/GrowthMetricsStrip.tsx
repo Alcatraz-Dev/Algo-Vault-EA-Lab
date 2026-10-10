@@ -68,7 +68,7 @@ export default function GrowthMetricsStrip() {
                 <div key={c.title} className="rounded-xl border border-border bg-muted/30 p-3">
                     <div className="flex items-center gap-1.5 text-muted-foreground">
                         <c.icon size={12} />
-                        <span className="text-[10px] uppercase tracking-wide">{c.title}</span>
+                        <span className="text-micro uppercase tracking-wide">{c.title}</span>
                     </div>
                     <p className="text-sm font-semibold mt-1">
                         {metricToString({ value: c.value, numerator: c.value, denominator: 1, insufficient: false }, { digits: 0 })}

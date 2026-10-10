@@ -49,16 +49,16 @@ const AUTO_REFRESH_MS = 30_000;
 
 function resultBadge(result: SignalResult, resultR: number) {
     const map: Record<SignalResult, { label: string; color: string; bg: string }> = {
-        WIN:       { label: "WIN",       color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
-        LOSS:      { label: "LOSS",      color: "text-red-400",     bg: "bg-red-500/10 border-red-500/20" },
-        BREAKEVEN: { label: "BE",        color: "text-slate-400",   bg: "bg-slate-500/10 border-slate-500/20" },
-        EXPIRED:   { label: "EXPIRED",   color: "text-amber-400",   bg: "bg-amber-500/10 border-amber-500/20" },
-        CANCELLED: { label: "CANCELLED", color: "text-slate-400",   bg: "bg-slate-400/10 border-slate-400/20" },
-        PENDING:   { label: "ACTIVE",    color: "text-blue-400",    bg: "bg-blue-500/10 border-blue-500/20" },
+        WIN:       { label: "WIN",       color: "text-positive", bg: "bg-positive/10 border-positive/20" },
+        LOSS:      { label: "LOSS",      color: "text-negative",     bg: "bg-negative/10 border-negative/20" },
+        BREAKEVEN: { label: "BE",        color: "text-muted-foreground",   bg: "bg-muted/10 border-border/20" },
+        EXPIRED:   { label: "EXPIRED",   color: "text-warning",   bg: "bg-warning/10 border-warning/20" },
+        CANCELLED: { label: "CANCELLED", color: "text-muted-foreground",   bg: "bg-muted/10 border-border/20" },
+        PENDING:   { label: "ACTIVE",    color: "text-info",    bg: "bg-info/10 border-info/20" },
     };
     const badge = map[result] ?? map.PENDING;
     return (
-        <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${badge.bg} ${badge.color}`}>
+        <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-micro font-bold ${badge.bg} ${badge.color}`}>
             {badge.label}
             {resultR !== 0 && result !== "PENDING" && (
                 <span className="ml-0.5 opacity-80">{resultR > 0 ? "+" : ""}{resultR.toFixed(2)}R</span>
@@ -107,7 +107,7 @@ function EquityCurveChart({ signals }: { signals: AISignal[] }) {
             .filter((s) => s.result === "WIN" || s.result === "LOSS" || s.result === "BREAKEVEN")
             .sort((a, b) => a.createdAt - b.createdAt);
 
-        ctx.fillStyle = "#080c13";
+        ctx.fillStyle = "#0b0c0e";
         ctx.fillRect(0, 0, w, h);
 
         if (completed.length < 2) {
@@ -151,12 +151,12 @@ function EquityCurveChart({ signals }: { signals: AISignal[] }) {
 
         const finalR    = points[points.length - 1];
         const isPositive = finalR >= 0;
-        const lineColor  = isPositive ? "#34d399" : "#f87171";
+        const lineColor  = isPositive ? "#30d697" : "#ff645f";
 
         // gradient fill
         const grad = ctx.createLinearGradient(0, padY, 0, h - padY);
-        grad.addColorStop(0, isPositive ? "rgba(52,211,153,0.28)" : "rgba(248,113,113,0.28)");
-        grad.addColorStop(1, "rgba(8,12,19,0)");
+        grad.addColorStop(0, isPositive ? "rgba(48,214,151,0.28)" : "rgba(255,100,95,0.28)");
+        grad.addColorStop(1, "rgba(11,12,14,0)");
 
         ctx.beginPath();
         ctx.moveTo(xOf(0), yOf(points[0]));
@@ -197,10 +197,10 @@ function EquityCurveChart({ signals }: { signals: AISignal[] }) {
 
 function StatCard({ label, value, sub, color = "text-foreground" }: { label: string; value: string; sub?: string; color?: string }) {
     return (
-        <div className="rounded-xl border border-border/30 bg-card/60 p-4 text-center backdrop-blur-xl">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
-            <p className={`mt-1.5 text-2xl font-black ${color}`}>{value}</p>
-            {sub && <p className="mt-0.5 text-[10px] text-muted-foreground">{sub}</p>}
+        <div className="rounded-lg border border-border/30 bg-card p-4 text-center">
+            <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+            <p className={`mt-1.5 font-numeric text-2xl font-black ${color}`}>{value}</p>
+            {sub && <p className="mt-0.5 text-micro text-muted-foreground">{sub}</p>}
         </div>
     );
 }
@@ -273,26 +273,26 @@ function BySymbolBreakdown({ signals }: { signals: AISignal[] }) {
     if (breakdown.length === 0) return null;
 
     return (
-        <div className="mt-6 rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+        <div className="mt-6 rounded-lg border border-border/30 bg-card p-4">
             <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Performance by Symbol</p>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                 {breakdown.map(({ sym, count, winRate, totalR, totalUSD }) => (
                     <div key={sym} className="rounded-lg border border-border/20 bg-muted/20 px-3 py-2.5">
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-bold text-foreground">{sym}</span>
-                            <span className={`text-[10px] font-semibold ${winRate >= 50 ? "text-emerald-400" : "text-red-400"}`}>
+                            <span className={`text-micro font-semibold ${winRate >= 50 ? "text-positive" : "text-negative"}`}>
                                 {winRate.toFixed(0)}% WR
                             </span>
                         </div>
-                        <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground">
+                        <div className="mt-1 flex items-center justify-between text-micro text-muted-foreground">
                             <span>{count} signals</span>
-                            <span className={totalUSD >= 0 ? "text-emerald-400 font-bold font-mono" : "text-red-400 font-bold font-mono"}>
+                            <span className={totalUSD >= 0 ? "text-positive font-bold font-numeric" : "text-negative font-bold font-numeric"}>
                                 {totalUSD >= 0 ? "+$" : "-$"}{Math.abs(totalUSD).toFixed(2)} <span className="font-normal opacity-75">({totalR >= 0 ? "+" : ""}{totalR.toFixed(2)}R)</span>
                             </span>
                         </div>
                         <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-muted/30">
                             <div
-                                className={`h-full rounded-full transition-all ${winRate >= 50 ? "bg-emerald-400" : "bg-red-400"}`}
+                                className={`h-full rounded-full transition-all ${winRate >= 50 ? "bg-positive" : "bg-negative"}`}
                                 style={{ width: `${Math.min(winRate, 100)}%` }}
                             />
                         </div>
@@ -429,7 +429,7 @@ export default function SignalHistoryPage() {
     if (authLoading) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
-                <Loader2 className="h-8 w-8 animate-spin text-amber-400" />
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         );
     }
@@ -439,7 +439,7 @@ export default function SignalHistoryPage() {
             <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
                 <div className="text-center">
                     <p className="text-sm text-muted-foreground">Sign in to view signal history.</p>
-                    <Link href="/login" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-amber-400">
+                    <Link href="/login" className="mt-4 inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">
                         Sign In
                     </Link>
                 </div>
@@ -451,12 +451,12 @@ export default function SignalHistoryPage() {
     const isRefreshing = signalsLoading || statsLoading;
 
     return (
-        <div className="min-h-screen bg-background text-foreground selection:bg-amber-500/30">
+        <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
             {/* ambient blobs */}
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-amber-500/8 blur-[120px]" />
-                <div className="absolute -right-40 top-1/3  h-96 w-96 rounded-full bg-blue-500/8 blur-[120px]" />
-                <div className="absolute bottom-0 left-1/2 h-64 w-64 rounded-full bg-emerald-500/5 blur-[100px]" />
+                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/8 blur-[120px]" />
+                <div className="absolute -right-40 top-1/3  h-96 w-96 rounded-full bg-info/8 blur-[120px]" />
+                <div className="absolute bottom-0 left-1/2 h-64 w-64 rounded-full bg-positive/5 blur-[100px]" />
             </div>
 
             <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -470,7 +470,7 @@ export default function SignalHistoryPage() {
                 {/* ── Page header ── */}
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between" data-guide="page-header">
                     <div>
-                        <div className="flex items-center gap-2 text-sm text-amber-400 font-semibold">
+                        <div className="flex items-center gap-2 text-sm text-warning font-semibold">
                             <Calendar className="h-4 w-4" />
                             Signal History
                         </div>
@@ -483,8 +483,8 @@ export default function SignalHistoryPage() {
 
                         {/* live badge */}
                         <div className="mt-3 flex flex-wrap items-center gap-2">
-                            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-400">
-                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+                            <span className="inline-flex items-center gap-1.5 rounded-full border border-positive/30 bg-positive/10 px-2.5 py-0.5 text-micro font-semibold text-positive">
+                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-positive" />
                                 Live
                             </span>
                             {totalInDb !== null && (
@@ -493,7 +493,7 @@ export default function SignalHistoryPage() {
                                 </span>
                             )}
                             {hasPro && (
-                                <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-400">
+                                <span className="inline-flex items-center gap-1 rounded-full border border-warning/30 bg-warning/10 px-2 py-0.5 text-micro font-semibold text-warning">
                                     <Zap size={9} className="fill-current" />
                                     PRO
                                 </span>
@@ -504,7 +504,7 @@ export default function SignalHistoryPage() {
                     {/* refresh controls */}
                     <div className="flex shrink-0 items-center gap-3">
                         {secondsSinceRefresh !== null && (
-                            <span className="text-[10px] text-muted-foreground">
+                            <span className="text-micro text-muted-foreground">
                                 Updated {secondsSinceRefresh}s ago
                             </span>
                         )}
@@ -539,7 +539,7 @@ export default function SignalHistoryPage() {
                                         <button
                                             key={opt.value}
                                             onClick={() => { setPeriod(opt.value); setPeriodOpen(false); }}
-                                            className={`flex w-full items-center rounded-lg px-3 py-1.5 text-xs transition-colors ${period === opt.value ? "bg-amber-500/10 text-amber-400" : "text-muted-foreground hover:bg-muted/5 hover:text-foreground"}`}
+                                            className={`flex w-full items-center rounded-lg px-3 py-1.5 text-xs transition-colors ${period === opt.value ? "bg-warning/10 text-warning" : "text-muted-foreground hover:bg-muted/5 hover:text-foreground"}`}
                                         >
                                             {opt.label}
                                         </button>
@@ -555,7 +555,7 @@ export default function SignalHistoryPage() {
                             <button
                                 key={opt.value}
                                 onClick={() => setTierFilter(opt.value)}
-                                className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-all ${tierFilter === opt.value ? "bg-amber-500/20 text-amber-400" : "text-muted-foreground hover:text-foreground"}`}
+                                className={`rounded-md px-2.5 py-1 text-micro font-medium transition-all ${tierFilter === opt.value ? "bg-warning/20 text-warning" : "text-muted-foreground hover:text-foreground"}`}
                             >
                                 {opt.label}
                             </button>
@@ -566,7 +566,7 @@ export default function SignalHistoryPage() {
                     <div className="flex items-center gap-0.5 rounded-lg border border-border/30 bg-card/40 p-0.5">
                         <button
                             onClick={() => setTimeframeFilter("all")}
-                            className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-all ${timeframeFilter === "all" ? "bg-amber-500/20 text-amber-400" : "text-muted-foreground hover:text-foreground"}`}
+                            className={`rounded-md px-2.5 py-1 text-micro font-medium transition-all ${timeframeFilter === "all" ? "bg-warning/20 text-warning" : "text-muted-foreground hover:text-foreground"}`}
                         >
                             All TF
                         </button>
@@ -574,7 +574,7 @@ export default function SignalHistoryPage() {
                             <button
                                 key={tf}
                                 onClick={() => setTimeframeFilter(tf)}
-                                className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-all ${timeframeFilter === tf ? "bg-amber-500/20 text-amber-400" : "text-muted-foreground hover:text-foreground"}`}
+                                className={`rounded-md px-2.5 py-1 text-micro font-medium transition-all ${timeframeFilter === tf ? "bg-warning/20 text-warning" : "text-muted-foreground hover:text-foreground"}`}
                             >
                                 {tf}
                             </button>
@@ -587,7 +587,7 @@ export default function SignalHistoryPage() {
                             <button
                                 key={dir}
                                 onClick={() => setDirectionFilter(dir)}
-                                className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-all ${directionFilter === dir ? "bg-amber-500/20 text-amber-400" : "text-muted-foreground hover:text-foreground"}`}
+                                className={`rounded-md px-2.5 py-1 text-micro font-medium transition-all ${directionFilter === dir ? "bg-warning/20 text-warning" : "text-muted-foreground hover:text-foreground"}`}
                             >
                                 {dir === "all" ? "All" : dir}
                             </button>
@@ -602,7 +602,7 @@ export default function SignalHistoryPage() {
                             placeholder="Search symbol…"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="h-8 w-44 rounded-lg border border-border/30 bg-card/40 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground/50 outline-none transition-colors focus:border-amber-500/30"
+                            className="h-8 w-44 rounded-lg border border-border/30 bg-card/40 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground/50 outline-none transition-colors focus:border-warning/30"
                         />
                     </div>
                 </div>
@@ -625,13 +625,13 @@ export default function SignalHistoryPage() {
                             label="Win Rate"
                             value={`${stats.winRate.toFixed(1)}%`}
                             sub={`${stats.winningSignals} wins`}
-                            color={stats.winRate >= 50 ? "text-emerald-400" : "text-red-400"}
+                            color={stats.winRate >= 50 ? "text-positive" : "text-negative"}
                         />
                         <StatCard
                             label="Total R"
                             value={`${stats.totalR >= 0 ? "+" : ""}${stats.totalR.toFixed(2)}R`}
                             sub={`Avg ${stats.averageR >= 0 ? "+" : ""}${stats.averageR.toFixed(2)}R/trade`}
-                            color={stats.totalR >= 0 ? "text-emerald-400" : "text-red-400"}
+                            color={stats.totalR >= 0 ? "text-positive" : "text-negative"}
                         />
                         <StatCard
                             label="Profit Factor"
@@ -655,25 +655,25 @@ export default function SignalHistoryPage() {
                             }
                             color={
                                 stats.profitFactor === null
-                                    ? "text-emerald-400"
+                                    ? "text-positive"
                                     : stats.profitFactor >= 1.5
-                                    ? "text-emerald-400"
+                                    ? "text-positive"
                                     : stats.profitFactor >= 1
-                                    ? "text-amber-400"
-                                    : "text-red-400"
+                                    ? "text-warning"
+                                    : "text-negative"
                             }
                         />
                         <StatCard
                             label="Best Streak"
                             value={`${stats.maxWinningStreak}W`}
                             sub={`Worst: ${stats.maxLosingStreak}L`}
-                            color="text-blue-400"
+                            color="text-info"
                         />
                         <StatCard
                             label="Max Drawdown"
                             value={stats.maxDrawdown > 0 ? `-${stats.maxDrawdown.toFixed(2)}R` : "0R"}
                             sub={`TP1: ${stats.tp1HitRate.toFixed(0)}% hit rate`}
-                            color={stats.maxDrawdown > 3 ? "text-red-400" : "text-amber-400"}
+                            color={stats.maxDrawdown > 3 ? "text-negative" : "text-warning"}
                         />
                     </div>
                 ) : null}
@@ -682,13 +682,13 @@ export default function SignalHistoryPage() {
                 {stats && (stats.tp1HitRate > 0 || stats.tp2HitRate > 0 || stats.tp3HitRate > 0) && (
                     <div className="mt-3 grid gap-3 sm:grid-cols-3">
                         {[
-                            { label: "TP1 Hit Rate", rate: stats.tp1HitRate, color: "bg-emerald-400" },
-                            { label: "TP2 Hit Rate", rate: stats.tp2HitRate, color: "bg-blue-400" },
-                            { label: "TP3 Hit Rate", rate: stats.tp3HitRate, color: "bg-violet-400" },
+                            { label: "TP1 Hit Rate", rate: stats.tp1HitRate, color: "bg-positive" },
+                            { label: "TP2 Hit Rate", rate: stats.tp2HitRate, color: "bg-info" },
+                            { label: "TP3 Hit Rate", rate: stats.tp3HitRate, color: "bg-chart-3" },
                         ].map(({ label, rate, color }) => (
                             <div key={label} className="rounded-xl border border-border/30 bg-card/60 px-4 py-3 backdrop-blur-xl">
                                 <div className="mb-1.5 flex items-center justify-between">
-                                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
+                                    <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
                                     <span className="text-xs font-bold text-foreground">{rate.toFixed(1)}%</span>
                                 </div>
                                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted/30">
@@ -701,16 +701,16 @@ export default function SignalHistoryPage() {
 
                 {/* ── Equity Curve ── */}
                 {filtered.filter((s) => s.result === "WIN" || s.result === "LOSS" || s.result === "BREAKEVEN").length >= 2 && (
-                    <div className="mt-6 rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+                    <div className="mt-6 rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
                         <div className="mb-3 flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <BarChart3 size={14} className="text-amber-400" />
+                                <BarChart3 size={14} className="text-warning" />
                                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                     Equity Curve — Cumulative R
                                 </p>
                             </div>
                             {stats && (
-                                <p className={`text-xs font-bold ${stats.totalR >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                                <p className={`text-xs font-bold ${stats.totalR >= 0 ? "text-positive" : "text-negative"}`}>
                                     {stats.totalR >= 0 ? "+" : ""}{stats.totalR.toFixed(2)}R total
                                 </p>
                             )}
@@ -722,13 +722,13 @@ export default function SignalHistoryPage() {
                 )}
 
                 {/* ── Signal Table ── */}
-                <div className="mt-6 overflow-hidden rounded-2xl border border-border/30 bg-card/60 backdrop-blur-xl">
+                <div className="mt-6 overflow-hidden rounded-lg border border-border/30 bg-card/60 backdrop-blur-xl">
                     {/* table header */}
                     <div className="flex items-center justify-between border-b border-border/20 px-4 py-3">
                         <div className="flex items-center gap-2">
-                            <Radio size={13} className="text-amber-400" />
+                            <Radio size={13} className="text-warning" />
                             <span className="text-xs font-semibold text-foreground">Signal History</span>
-                            <span className="rounded-full bg-muted/30 px-2 py-0.5 text-[10px] text-muted-foreground">
+                            <span className="rounded-full bg-muted/30 px-2 py-0.5 text-micro text-muted-foreground">
                                 {filtered.length} signals
                             </span>
                         </div>
@@ -737,7 +737,7 @@ export default function SignalHistoryPage() {
 
                     {signalsLoading && signals.length === 0 ? (
                         <div className="p-16 text-center">
-                            <Loader2 className="mx-auto h-8 w-8 animate-spin text-amber-400/50 mb-3" />
+                            <Loader2 className="mx-auto h-8 w-8 animate-spin text-warning/50 mb-3" />
                             <p className="text-sm text-muted-foreground">Loading signal history…</p>
                         </div>
                     ) : filtered.length === 0 ? (
@@ -757,12 +757,12 @@ export default function SignalHistoryPage() {
                                         <th className="px-4 py-3 text-left font-medium">Direction</th>
                                         <th className="px-4 py-3 text-right font-medium">Entry</th>
                                         <th className="px-4 py-3 text-right font-medium">
-                                            <span className="inline-flex items-center gap-1 text-red-400/80">
+                                            <span className="inline-flex items-center gap-1 text-negative/80">
                                                 <Shield size={10} />SL
                                             </span>
                                         </th>
                                         <th className="px-4 py-3 text-right font-medium">
-                                            <span className="inline-flex items-center gap-1 text-emerald-400/80">
+                                            <span className="inline-flex items-center gap-1 text-positive/80">
                                                 <Target size={10} />TP1
                                             </span>
                                         </th>
@@ -790,10 +790,10 @@ export default function SignalHistoryPage() {
 
                                                 {/* Tier */}
                                                 <td className="px-4 py-3">
-                                                    <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold border ${
+                                                    <span className={`rounded-md px-1.5 py-0.5 text-micro font-semibold border ${
                                                         signal.tier === "PRO"
-                                                            ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                                                            : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                                            ? "bg-warning/10 text-warning border-warning/20"
+                                                            : "bg-positive/10 text-positive border-positive/20"
                                                     }`}>
                                                         {signal.tier || "FREE"}
                                                     </span>
@@ -806,7 +806,7 @@ export default function SignalHistoryPage() {
 
                                                 {/* Direction */}
                                                 <td className="px-4 py-3">
-                                                    <span className={`inline-flex items-center gap-1 font-semibold ${signal.direction === "BUY" ? "text-emerald-400" : "text-rose-400"}`}>
+                                                    <span className={`inline-flex items-center gap-1 font-semibold ${signal.direction === "BUY" ? "text-positive" : "text-negative"}`}>
                                                         {signal.direction === "BUY"
                                                             ? <TrendingUp className="h-3 w-3" />
                                                             : <TrendingDown className="h-3 w-3" />}
@@ -821,7 +821,7 @@ export default function SignalHistoryPage() {
 
                                                 {/* SL pill */}
                                                 <td className="px-4 py-3 text-right">
-                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-red-500/20 bg-red-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-red-400">
+                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-negative/20 bg-negative/10 px-2 py-0.5 font-mono text-micro font-semibold text-negative">
                                                         <Shield size={8} className="opacity-60" />
                                                         {formatPrice(signal.stopLoss)}
                                                     </span>
@@ -830,14 +830,14 @@ export default function SignalHistoryPage() {
                                                 {/* TP1 pill */}
                                                 <td className="px-4 py-3 text-right">
                                                     {signal.tp1 ? (
-                                                        <span className={`inline-flex items-center gap-0.5 rounded-full border px-2 py-0.5 font-mono text-[10px] font-semibold ${
+                                                        <span className={`inline-flex items-center gap-0.5 rounded-full border px-2 py-0.5 font-mono text-micro font-semibold ${
                                                             signal.tp1Hit
-                                                                ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-300"
-                                                                : "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
+                                                                ? "border-positive/40 bg-positive/15 text-positive"
+                                                                : "border-positive/20 bg-positive/10 text-positive"
                                                         }`}>
                                                             <Target size={8} className="opacity-60" />
                                                             {formatPrice(signal.tp1)}
-                                                            {signal.tp1Hit && <Award size={8} className="ml-0.5 text-emerald-300" />}
+                                                            {signal.tp1Hit && <Award size={8} className="ml-0.5 text-positive" />}
                                                         </span>
                                                     ) : (
                                                         <span className="text-muted-foreground">—</span>
@@ -847,9 +847,9 @@ export default function SignalHistoryPage() {
                                                 {/* Confidence */}
                                                 <td className="px-4 py-3 text-right">
                                                     <span className={`font-bold ${
-                                                        signal.confidence >= 85 ? "text-emerald-400"
-                                                        : signal.confidence >= 70 ? "text-blue-400"
-                                                        : signal.confidence >= 55 ? "text-amber-400"
+                                                        signal.confidence >= 85 ? "text-positive"
+                                                        : signal.confidence >= 70 ? "text-info"
+                                                        : signal.confidence >= 55 ? "text-warning"
                                                         : "text-muted-foreground"
                                                     }`}>
                                                         {signal.confidence}%
@@ -863,22 +863,22 @@ export default function SignalHistoryPage() {
 
                                                 {/* R value */}
                                                 <td className={`px-4 py-3 text-right font-mono font-bold ${
-                                                    isWin ? "text-emerald-400" : isLoss ? "text-red-400" : "text-muted-foreground"
+                                                    isWin ? "text-positive" : isLoss ? "text-negative" : "text-muted-foreground"
                                                 }`}>
                                                     {signal.result === "PENDING"
-                                                        ? <span className="text-blue-400/60">live</span>
+                                                        ? <span className="text-info/60">live</span>
                                                         : `${rVal > 0 ? "+" : ""}${rVal.toFixed(2)}R`}
                                                 </td>
 
                                                 {/* Status */}
                                                 <td className="px-4 py-3">
-                                                    <span className={`text-[10px] font-medium ${
+                                                    <span className={`text-micro font-medium ${
                                                         signal.status === "ACTIVE" || signal.status === "ENTRY_TRIGGERED"
-                                                            ? "text-blue-400"
+                                                            ? "text-info"
                                                             : signal.status === "COMPLETED" || signal.status === "CLOSED"
                                                             ? "text-muted-foreground/60"
                                                             : signal.status === "STOPPED_OUT" || signal.status === "STOPPED"
-                                                            ? "text-red-400/70"
+                                                            ? "text-negative/70"
                                                             : "text-muted-foreground"
                                                     }`}>
                                                         {signal.status}
@@ -886,7 +886,7 @@ export default function SignalHistoryPage() {
                                                 </td>
 
                                                 {/* Age */}
-                                                <td className="px-4 py-3 text-right text-[10px] text-muted-foreground/60">
+                                                <td className="px-4 py-3 text-right text-micro text-muted-foreground/60">
                                                     {signal.createdAt ? relativeTime(signal.createdAt) : "—"}
                                                 </td>
                                             </tr>
@@ -902,9 +902,9 @@ export default function SignalHistoryPage() {
                 <BySymbolBreakdown signals={filtered} />
 
                 {/* ── Disclaimer ── */}
-                <div className="mt-8 flex items-start gap-2 rounded-xl border border-amber-500/10 bg-amber-500/[0.03] p-3">
-                    <AlertTriangle size={13} className="mt-0.5 shrink-0 text-amber-500/50" />
-                    <p className="text-[10px] leading-relaxed text-amber-400/50">
+                <div className="mt-8 flex items-start gap-2 rounded-xl border border-warning/10 bg-warning/[0.03] p-3">
+                    <AlertTriangle size={13} className="mt-0.5 shrink-0 text-warning/50" />
+                    <p className="text-micro leading-relaxed text-warning/50">
                         AI trading signals are analytical tools and are not guaranteed to be profitable. Past performance does not guarantee future results. Trading involves substantial risk of loss.
                     </p>
                 </div>

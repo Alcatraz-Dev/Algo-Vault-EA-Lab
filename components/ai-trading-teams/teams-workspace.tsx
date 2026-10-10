@@ -179,7 +179,7 @@ export function AITeamsWorkspace({
             ) : null}
 
             {!isPro && !authLoading ? (
-                <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-6">
+                <div className="rounded-lg border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-6">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <div className="max-w-2xl">
                             <h2 className="flex items-center gap-2 text-lg font-bold">
@@ -195,7 +195,7 @@ export function AITeamsWorkspace({
                             </Link>
                         </div>
                         <div className="w-full max-w-md">
-                            <p className="mb-1 text-center text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
+                            <p className="mb-1 text-center text-micro font-semibold tracking-widest text-muted-foreground uppercase">
                                 Example team
                             </p>
                             <div className="rounded-xl border border-border/60 bg-background/60 p-3">
@@ -363,7 +363,7 @@ export function AITeamsWorkspace({
                                 <StatusBadge tone={isPro ? "positive" : "warning"} label={isPro ? "Pro" : "Free"} />
                             </li>
                         </ul>
-                        <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+                        <p className="mt-3 text-micro leading-relaxed text-muted-foreground">
                             Entitlement is enforced server-side on every run; UI hiding is never the control.
                         </p>
                     </section>

@@ -50,23 +50,23 @@ function SectionCard({
     return (
         <div className="rounded-lg bg-muted/40 p-2.5">
             <div className="flex items-center justify-between gap-2">
-                <span className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground">
+                <span className="flex items-center gap-1.5 text-micro font-semibold text-foreground">
                     {icon}
                     {title}
                 </span>
-                <span className={cn("rounded px-1.5 py-0.5 text-[9px] font-medium", stateStyle)}>{section.state}</span>
+                <span className={cn("rounded px-1.5 py-0.5 text-micro font-medium", stateStyle)}>{section.state}</span>
             </div>
             {section.available ? (
                 <ul className="mt-1.5 space-y-1">
                     {section.items.map((item, i) => (
-                        <li key={i} className="text-[10px] leading-4 text-muted-foreground">
-                            <span className="text-[9px] uppercase tracking-wide text-muted-foreground/70">{item.freshnessLabel}</span>
+                        <li key={i} className="text-micro leading-4 text-muted-foreground">
+                            <span className="text-micro uppercase tracking-wide text-muted-foreground/70">{item.freshnessLabel}</span>
                             <p className="mt-0.5 whitespace-pre-line">{item.value}</p>
                         </li>
                     ))}
                 </ul>
             ) : (
-                <p className="mt-1 text-[10px] text-muted-foreground">{section.message || "Not available."}</p>
+                <p className="mt-1 text-micro text-muted-foreground">{section.message || "Not available."}</p>
             )}
         </div>
     );
@@ -79,9 +79,9 @@ export function ProTradingViewContextPanel({ context }: { context: TradingViewCo
                 <div className="flex min-w-0 items-center gap-2 border-b border-border px-3 py-2">
                     <Zap size={14} className="text-muted-foreground" />
                     <h2 className="truncate text-xs font-semibold uppercase tracking-wide text-foreground">TradingView Context</h2>
-                    <span className="ml-auto rounded bg-muted px-1.5 py-0.5 text-[9px] text-muted-foreground">OFF</span>
+                    <span className="ml-auto rounded bg-muted px-1.5 py-0.5 text-micro text-muted-foreground">OFF</span>
                 </div>
-                <p className="px-3 py-3 text-[10px] text-muted-foreground">
+                <p className="px-3 py-3 text-micro text-muted-foreground">
                     Not loaded. Connect TradingView in Account → Settings → Integrations to add external context here.
                 </p>
             </section>
@@ -95,8 +95,8 @@ export function ProTradingViewContextPanel({ context }: { context: TradingViewCo
             <div className="flex min-w-0 items-center gap-2 border-b border-border px-3 py-2">
                 <Zap size={14} className="text-blue-400" />
                 <h2 className="truncate text-xs font-semibold uppercase tracking-wide text-foreground">TradingView Context</h2>
-                <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-medium text-blue-400">BETA</span>
-                <span className="ml-auto text-[9px] text-muted-foreground">external · may be delayed</span>
+                <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-micro font-medium text-blue-400">BETA</span>
+                <span className="ml-auto text-micro text-muted-foreground">external · may be delayed</span>
             </div>
 
             <div className="grid gap-2 p-2.5 sm:grid-cols-3">
@@ -106,12 +106,12 @@ export function ProTradingViewContextPanel({ context }: { context: TradingViewCo
             </div>
 
             {allUnavailable ? (
-                <p className="px-3 pb-2 text-[10px] text-muted-foreground">
+                <p className="px-3 pb-2 text-micro text-muted-foreground">
                     TradingView context is unavailable — the terminal continues to operate on AlgoVault data only.
                 </p>
             ) : null}
 
-            <p className="flex items-start gap-1.5 border-t border-border px-3 py-2 text-[9px] leading-4 text-muted-foreground">
+            <p className="flex items-start gap-1.5 border-t border-border px-3 py-2 text-micro leading-4 text-muted-foreground">
                 <Info size={10} className="mt-0.5 shrink-0" />
                 <span>
                     TradingView MCP data may be delayed and is not intended for latency-sensitive execution. This panel is

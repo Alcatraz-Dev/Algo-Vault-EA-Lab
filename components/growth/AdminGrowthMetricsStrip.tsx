@@ -67,7 +67,7 @@ export default function AdminGrowthMetricsStrip() {
                     <div key={item.label} className="rounded-xl border border-border bg-muted/30 p-3">
                         <div className="flex items-center gap-1.5 text-muted-foreground">
                             <Icon size={12} />
-                            <p className="text-[10px] uppercase tracking-wide">{item.label}</p>
+                            <p className="text-micro uppercase tracking-wide">{item.label}</p>
                         </div>
                         <p className="text-sm font-semibold mt-1">{item.value}</p>
                     </div>

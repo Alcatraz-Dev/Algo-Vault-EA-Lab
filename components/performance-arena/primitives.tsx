@@ -103,7 +103,7 @@ export function LimitBar({
                     style={{ width: `${clamped}%` }}
                 />
             </div>
-            {detail ? <p className="text-[11px] text-muted-foreground">{detail}</p> : null}
+            {detail ? <p className="text-micro text-muted-foreground">{detail}</p> : null}
         </div>
     );
 }
@@ -171,12 +171,12 @@ export function RuleEventList({ events }: { events: Array<{ id?: string; eventId
                             <span className={cn(critical ? "text-destructive" : warning ? "text-amber-600 dark:text-amber-400" : "text-foreground")}>
                                 {event.message}
                             </span>
-                            <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+                            <span className="shrink-0 font-mono text-micro text-muted-foreground">
                                 {new Date(event.timestamp).toLocaleTimeString()}
                             </span>
                         </div>
                         {event.type ? (
-                            <span className="mt-1 inline-block font-mono text-[11px] text-muted-foreground">{event.type}</span>
+                            <span className="mt-1 inline-block font-mono text-micro text-muted-foreground">{event.type}</span>
                         ) : null}
                     </li>
                 );

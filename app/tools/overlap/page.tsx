@@ -78,7 +78,7 @@ export default function OverlapDetectorPage() {
             ]}
         >
             {/* Current UTC */}
-            <div className="rounded-2xl border border-primary/20 bg-primary/[0.04] p-4">
+            <div className="rounded-lg border border-primary/20 bg-primary/[0.04] p-4">
                 <div className="flex items-center gap-3">
                     <Clock size={18} className="text-primary" />
                     <div>
@@ -93,26 +93,26 @@ export default function OverlapDetectorPage() {
                 {SESSIONS.map((s) => {
                     const open = isSessionOpen(s);
                     return (
-                        <div key={s.code} className={cn("rounded-2xl border p-4 transition-all", open ? "border-positive/20 bg-positive/[0.04]" : "border-border bg-card")}>
+                        <div key={s.code} className={cn("rounded-lg border p-4 transition-all", open ? "border-positive/20 bg-positive/[0.04]" : "border-border bg-card")}>
                             <div className="mb-3 flex items-center justify-between">
                                 <span className="text-sm font-semibold text-foreground">{s.name}</span>
-                                <span className={cn("flex items-center gap-1 text-[10px] font-medium", open ? "text-positive" : "text-muted-foreground")}>
+                                <span className={cn("flex items-center gap-1 text-micro font-medium", open ? "text-positive" : "text-muted-foreground")}>
                                     <span className={cn("h-1.5 w-1.5 rounded-full", open ? "bg-positive animate-pulse" : "bg-muted/60")} />
                                     {open ? "OPEN" : "CLOSED"}
                                 </span>
                             </div>
-                            <p className="text-[10px] text-muted-foreground">{s.openUtc}:00 – {s.closeUtc}:00 UTC</p>
-                            <div className={cn("mt-2 inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-medium", VOL_COLORS[s.volatility])}>
+                            <p className="text-micro text-muted-foreground">{s.openUtc}:00 – {s.closeUtc}:00 UTC</p>
+                            <div className={cn("mt-2 inline-flex items-center rounded-md border px-2 py-0.5 text-micro font-medium", VOL_COLORS[s.volatility])}>
                                 {s.volatility} Vol
                             </div>
-                            <p className="mt-2 text-[10px] text-muted-foreground">{s.pairs.join(", ")}</p>
+                            <p className="mt-2 text-micro text-muted-foreground">{s.pairs.join(", ")}</p>
                         </div>
                     );
                 })}
             </div>
 
             {/* Overlap Map */}
-            <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="rounded-lg border border-border bg-card p-5">
                 <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-foreground"><Globe size={15} className="text-primary" /> 24-Hour Overlap Map</h2>
                 <div className="grid grid-cols-24 gap-1">
                     {Array.from({ length: 24 }, (_, h) => {
@@ -144,7 +144,7 @@ export default function OverlapDetectorPage() {
                         );
                     })}
                 </div>
-                <div className="mt-3 flex items-center gap-4 text-[10px] text-muted-foreground">
+                <div className="mt-3 flex items-center gap-4 text-micro text-muted-foreground">
                     <span className="flex items-center gap-1"><span className="h-2 w-2 rounded bg-muted/50 border border-border/40" /> None</span>
                     <span className="flex items-center gap-1"><span className="h-2 w-2 rounded bg-info/20" /> 1 Session</span>
                     <span className="flex items-center gap-1"><span className="h-2 w-2 rounded bg-warning/30" /> 2 Sessions</span>
@@ -154,7 +154,7 @@ export default function OverlapDetectorPage() {
             </div>
 
             {/* Best Overlap Windows (Lite — top 5 by hours, no per-pair ranking) */}
-            <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="rounded-lg border border-border bg-card p-5">
                 <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-foreground"><Zap size={15} className="text-warning" /> Best Overlap Windows</h2>
                 <div className="space-y-3">
                     {overlaps.sort((a, b) => b.hours.length - a.hours.length).slice(0, 5).map((o, i) => (
@@ -164,12 +164,12 @@ export default function OverlapDetectorPage() {
                             </div>
                             <div className="flex-1">
                                 <p className="text-sm font-semibold text-foreground">{o.sessions.join(" + ")}</p>
-                                <p className="text-[10px] text-muted-foreground">
+                                <p className="text-micro text-muted-foreground">
                                     {o.hours.length} hour{o.hours.length > 1 ? "s" : ""} — {o.hours[0]}:00 to {o.hours[o.hours.length - 1] + 1}:00 UTC
                                 </p>
                             </div>
                             <div className="text-right">
-                                <span className={cn("rounded-md border px-2.5 py-1 text-[10px] font-medium", o.sessions.length >= 3 ? "border-negative/20 bg-negative/10 text-negative" : "border-warning/20 bg-warning/10 text-warning")}>
+                                <span className={cn("rounded-md border px-2.5 py-1 text-micro font-medium", o.sessions.length >= 3 ? "border-negative/20 bg-negative/10 text-negative" : "border-warning/20 bg-warning/10 text-warning")}>
                                     {o.sessions.length >= 3 ? "BEST" : "GOOD"}
                                 </span>
                             </div>
@@ -178,7 +178,7 @@ export default function OverlapDetectorPage() {
                 </div>
             </div>
 
-            <div className="rounded-2xl border border-warning/15 bg-warning/[0.04] p-3 text-xs text-warning">
+            <div className="rounded-lg border border-warning/15 bg-warning/[0.04] p-3 text-xs text-warning">
                 <AlertTriangle size={12} className="mr-1 inline" />
                 Overlapping sessions provide the highest liquidity and tightest spreads. Trade major pairs during London + New York overlap (13:00–17:00 UTC) for best execution.
             </div>
@@ -206,11 +206,11 @@ function ProTile({ title, description }: { title: string; description: string })
     return (
         <Link
             href="/pricing"
-            className="group flex flex-col gap-2 rounded-2xl border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
+            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
         >
             <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-foreground">{title}</h4>
-                <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-micro font-bold uppercase tracking-wider text-primary">
                     <Crown className="size-2.5" />
                     Pro
                 </span>

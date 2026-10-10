@@ -63,7 +63,7 @@ export default function PipReferencePage() {
                         type="button"
                         onClick={() => setFilter(c)}
                         className={cn(
-                            "rounded-md px-3 py-1.5 text-[10px] font-medium transition-all",
+                            "rounded-md px-3 py-1.5 text-micro font-medium transition-all",
                             filter === c
                                 ? "bg-foreground text-background"
                                 : "bg-muted text-muted-foreground hover:text-foreground",
@@ -74,17 +74,17 @@ export default function PipReferencePage() {
                 ))}
             </div>
 
-            <div className="rounded-2xl border border-border bg-card overflow-hidden">
+            <div className="rounded-lg border border-border bg-card overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
                             <tr className="border-b border-border">
-                                <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Symbol</th>
-                                <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Category</th>
-                                <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Pip Size</th>
-                                <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Pip Value (1 lot)</th>
-                                <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Contract Size</th>
-                                <th className="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Digits</th>
+                                <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Symbol</th>
+                                <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Category</th>
+                                <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Pip Size</th>
+                                <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Pip Value (1 lot)</th>
+                                <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Contract Size</th>
+                                <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Digits</th>
                                 <th className="px-4 py-3 w-10"></th>
                             </tr>
                         </thead>
@@ -98,7 +98,7 @@ export default function PipReferencePage() {
                                     )}
                                 >
                                     <td className="px-4 py-3 font-mono text-sm font-bold text-foreground">{inst.symbol}</td>
-                                    <td className="px-4 py-3 text-[10px] text-muted-foreground">{inst.category}</td>
+                                    <td className="px-4 py-3 text-micro text-muted-foreground">{inst.category}</td>
                                     <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{inst.pipSize}</td>
                                     <td className="px-4 py-3">
                                         <span className="font-mono text-sm font-bold text-positive">${inst.pipValue}</span>
@@ -121,12 +121,12 @@ export default function PipReferencePage() {
                 </div>
             </div>
 
-            <div className="rounded-2xl border border-border bg-card p-4">
+            <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xs font-semibold text-foreground">Formula</h3>
-                <p className="font-mono text-[11px] text-muted-foreground">
+                <p className="font-mono text-micro text-muted-foreground">
                     Pip Value = Contract Size × Pip Size × Lots
                 </p>
-                <p className="mt-1 text-[10px] text-muted-foreground">
+                <p className="mt-1 text-micro text-muted-foreground">
                     Values shown are for 1 standard lot with USD account currency. Actual value may vary based on account currency and broker.
                 </p>
             </div>
@@ -154,11 +154,11 @@ function ProTile({ title, description }: { title: string; description: string })
     return (
         <Link
             href="/pricing"
-            className="group flex flex-col gap-2 rounded-2xl border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
+            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
         >
             <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-foreground">{title}</h4>
-                <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-micro font-bold uppercase tracking-wider text-primary">
                     <Crown className="size-2.5" />
                     Pro
                 </span>

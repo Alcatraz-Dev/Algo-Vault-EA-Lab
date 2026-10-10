@@ -85,13 +85,13 @@ export default function StorefrontCheckoutButton({
                 type="button"
                 onClick={handleClick}
                 disabled={busy || disabled}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-violet-500 transition disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary transition disabled:opacity-50"
             >
                 {busy ? <Loader2 size={15} className="animate-spin" /> : null}
                 {busy ? "Opening checkout…" : text}
             </button>
             {error ? (
-                <p className="text-[11px] text-rose-400">{error}</p>
+                <p className="text-micro text-negative">{error}</p>
             ) : null}
         </div>
     );

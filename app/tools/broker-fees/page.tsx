@@ -90,22 +90,22 @@ export default function BrokerFeeCalcPage() {
             ]}
         >
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <div className="rounded-2xl border border-border bg-card p-4">
-                    <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Instrument</label>
+                <div className="rounded-lg border border-border bg-card p-4">
+                    <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Instrument</label>
                     <select value={instrument} onChange={(e) => setInstrument(e.target.value)} className={inputClass}>
                         {Object.keys(pipValues).map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
                 </div>
-                <div className="rounded-2xl border border-border bg-card p-4">
-                    <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Lots</label>
+                <div className="rounded-lg border border-border bg-card p-4">
+                    <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Lots</label>
                     <input type="number" step="0.01" min="0.01" value={lots} onChange={(e) => setLots(e.target.value)} className={inputClass} />
                 </div>
-                <div className="rounded-2xl border border-border bg-card p-4">
-                    <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Days Held</label>
+                <div className="rounded-lg border border-border bg-card p-4">
+                    <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Days Held</label>
                     <input type="number" min="1" value={daysHeld} onChange={(e) => setDaysHeld(e.target.value)} className={inputClass} />
                 </div>
-                <div className="rounded-2xl border border-border bg-card p-4">
-                    <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Direction</label>
+                <div className="rounded-lg border border-border bg-card p-4">
+                    <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Direction</label>
                     <div className="grid grid-cols-2 gap-2">
                         <button type="button" onClick={() => setDirection("long")} className={cn("rounded-md px-3 py-2 text-xs font-medium transition", direction === "long" ? "bg-positive/20 text-positive" : "bg-muted text-muted-foreground")}>Long</button>
                         <button type="button" onClick={() => setDirection("short")} className={cn("rounded-md px-3 py-2 text-xs font-medium transition", direction === "short" ? "bg-negative/20 text-negative" : "bg-muted text-muted-foreground")}>Short</button>
@@ -134,7 +134,7 @@ export default function BrokerFeeCalcPage() {
                     <div
                         key={r.name}
                         className={cn(
-                            "rounded-2xl border p-5 transition-all",
+                            "rounded-lg border p-5 transition-all",
                             i === 0 ? "border-positive/20 bg-positive/[0.03]" : "border-border bg-card",
                         )}
                     >
@@ -146,31 +146,31 @@ export default function BrokerFeeCalcPage() {
                                 <div>
                                     <div className="flex items-center gap-2">
                                         <span className="text-sm font-semibold text-foreground">{r.name}</span>
-                                        {i === 0 && <span className="rounded-md bg-positive/20 px-2 py-0.5 text-[9px] font-semibold text-positive">CHEAPEST</span>}
+                                        {i === 0 && <span className="rounded-md bg-positive/20 px-2 py-0.5 text-micro font-semibold text-positive">CHEAPEST</span>}
                                     </div>
-                                    <p className="text-[10px] text-muted-foreground">Leverage: 1:{r.leverage}</p>
+                                    <p className="text-micro text-muted-foreground">Leverage: 1:{r.leverage}</p>
                                 </div>
                             </div>
                             <div className="flex flex-wrap items-center gap-6">
                                 <div className="text-right">
-                                    <p className="text-[9px] uppercase text-muted-foreground">Spread</p>
+                                    <p className="text-micro uppercase text-muted-foreground">Spread</p>
                                     <p className="font-mono text-sm font-bold text-muted-foreground">${r.spreadCost}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[9px] uppercase text-muted-foreground">Commission</p>
+                                    <p className="text-micro uppercase text-muted-foreground">Commission</p>
                                     <p className="font-mono text-sm font-bold text-muted-foreground">${r.commission}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[9px] uppercase text-muted-foreground">Swap ({daysHeld}d)</p>
+                                    <p className="text-micro uppercase text-muted-foreground">Swap ({daysHeld}d)</p>
                                     <p className="font-mono text-sm font-bold text-muted-foreground">${r.swapCost}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[9px] uppercase text-muted-foreground">Total</p>
+                                    <p className="text-micro uppercase text-muted-foreground">Total</p>
                                     <p className={cn("font-mono text-lg font-bold", i === 0 ? "text-positive" : "text-foreground")}>${r.total}</p>
                                 </div>
                                 {cheapest > 0 && r.total > cheapest && (
                                     <div className="text-right">
-                                        <p className="text-[9px] uppercase text-muted-foreground">Extra</p>
+                                        <p className="text-micro uppercase text-muted-foreground">Extra</p>
                                         <p className="font-mono text-sm font-bold text-negative">+${(r.total - cheapest).toFixed(2)}</p>
                                     </div>
                                 )}
@@ -180,7 +180,7 @@ export default function BrokerFeeCalcPage() {
                 ))}
             </div>
 
-            <div className="rounded-2xl border border-warning/15 bg-warning/[0.04] p-3 text-xs text-warning">
+            <div className="rounded-lg border border-warning/15 bg-warning/[0.04] p-3 text-xs text-warning">
                 <Info size={12} className="mr-1 inline" />
                 Costs are estimates based on typical spread/commission values. Actual costs vary by account type, volume, and market conditions.
             </div>
@@ -208,11 +208,11 @@ function ProTile({ title, description }: { title: string; description: string })
     return (
         <Link
             href="/pricing"
-            className="group flex flex-col gap-2 rounded-2xl border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
+            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
         >
             <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-foreground">{title}</h4>
-                <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-micro font-bold uppercase tracking-wider text-primary">
                     <Crown className="size-2.5" />
                     Pro
                 </span>

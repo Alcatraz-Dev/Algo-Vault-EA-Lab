@@ -50,12 +50,12 @@ function formatValue(val: number, format: string): string {
 }
 
 function getValueColor(key: string, val: number): string {
-    if (key === "floatingPnl") return val >= 0 ? "text-emerald-400" : "text-rose-400";
-    if (key === "drawdown") return val > 10 ? "text-rose-400" : val > 5 ? "text-amber-400" : "text-muted-foreground";
-    if (key === "winRate") return val >= 60 ? "text-emerald-400" : val >= 45 ? "text-muted-foreground" : "text-rose-400";
-    if (key === "profitFactor") return val >= 2 ? "text-emerald-400" : val >= 1 ? "text-muted-foreground" : "text-rose-400";
-    if (key === "avgWin") return "text-emerald-400/80";
-    if (key === "avgLoss") return "text-rose-400/80";
+    if (key === "floatingPnl") return val >= 0 ? "text-positive" : "text-negative";
+    if (key === "drawdown") return val > 10 ? "text-negative" : val > 5 ? "text-warning" : "text-muted-foreground";
+    if (key === "winRate") return val >= 60 ? "text-positive" : val >= 45 ? "text-muted-foreground" : "text-negative";
+    if (key === "profitFactor") return val >= 2 ? "text-positive" : val >= 1 ? "text-muted-foreground" : "text-negative";
+    if (key === "avgWin") return "text-positive/80";
+    if (key === "avgLoss") return "text-negative/80";
     return "text-muted-foreground";
 }
 
@@ -90,7 +90,7 @@ export default function ComparePage() {
         return (
             <div className="flex min-h-screen flex-col bg-background">
                 <div className="flex flex-1 items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
             </div>
         );
@@ -102,7 +102,7 @@ export default function ComparePage() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                     <Shield size={40} className="text-muted-foreground" />
                     <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
-                    <Link href="/login" className="rounded-xl bg-violet-600 px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-violet-500 transition">
+                    <Link href="/login" className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary transition">
                         Sign In
                     </Link>
                 </div>
@@ -122,10 +122,10 @@ export default function ComparePage() {
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground selection:bg-amber-500/30">
+        <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px]" />
-                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-blue-500/10 blur-[120px]" />
+                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 blur-[120px]" />
+                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 blur-[120px]" />
             </div>
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 {/* Header */}
@@ -151,16 +151,16 @@ export default function ComparePage() {
 
                 {loading && accounts.length === 0 ? (
                     <div className="flex h-64 items-center justify-center">
-                        <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
                 ) : accounts.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-border/40 p-16 text-center">
-                        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-500/10">
-                            <BarChart3 size={28} className="text-violet-400" />
+                    <div className="rounded-lg border border-dashed border-border/40 p-16 text-center">
+                        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-primary/10">
+                            <BarChart3 size={28} className="text-primary" />
                         </div>
                         <h3 className="mt-4 text-base font-semibold text-foreground">No accounts to compare</h3>
                         <p className="mt-1.5 text-sm text-muted-foreground">Connect your MT5 accounts to see a side-by-side comparison.</p>
-                        <Link href="/admin/trading-accounts" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-violet-500 transition">
+                        <Link href="/admin/trading-accounts" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary transition">
                             Connect Account
                         </Link>
                     </div>
@@ -169,74 +169,74 @@ export default function ComparePage() {
                         {/* Summary Cards */}
                         {comparison && (
                             <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-5" data-guide="summary">
-                                <div className="rounded-2xl border border-border/30 bg-muted/50 p-4">
+                                <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
-                                            <Wallet size={14} className="text-blue-400" />
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-info/10">
+                                            <Wallet size={14} className="text-info" />
                                         </div>
-                                        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Balance</span>
+                                        <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Balance</span>
                                     </div>
                                     <p className="text-xl font-bold font-mono text-foreground">
                                         ${comparison.totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>
-                                <div className="rounded-2xl border border-border/30 bg-muted/50 p-4">
+                                <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10">
-                                            <Activity size={14} className="text-violet-400" />
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                                            <Activity size={14} className="text-primary" />
                                         </div>
-                                        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Equity</span>
+                                        <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Equity</span>
                                     </div>
                                     <p className="text-xl font-bold font-mono text-foreground">
                                         ${comparison.totalEquity.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>
-                                <div className="rounded-2xl border border-border/30 bg-muted/50 p-4">
+                                <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/10">
-                                            <BarChart3 size={14} className="text-cyan-400" />
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-info/10">
+                                            <BarChart3 size={14} className="text-info" />
                                         </div>
-                                        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Trades</span>
+                                        <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Trades</span>
                                     </div>
                                     <p className="text-xl font-bold font-mono text-foreground">{comparison.totalTrades}</p>
                                 </div>
-                                <div className="rounded-2xl border border-emerald-500/10 bg-emerald-500/[0.03] p-4">
+                                <div className="rounded-lg border border-positive/10 bg-positive/[0.03] p-4">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10">
-                                            <Trophy size={14} className="text-emerald-400" />
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-positive/10">
+                                            <Trophy size={14} className="text-positive" />
                                         </div>
-                                        <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-500/60">Best</span>
+                                        <span className="text-micro font-semibold uppercase tracking-wider text-positive/60">Best</span>
                                     </div>
-                                    <p className="text-sm font-bold text-emerald-400">{comparison.bestPerformer?.broker || "N/A"}</p>
-                                    <p className="text-[10px] text-muted-foreground">PF {comparison.bestPerformer?.profitFactor}</p>
+                                    <p className="text-sm font-bold text-positive">{comparison.bestPerformer?.broker || "N/A"}</p>
+                                    <p className="text-micro text-muted-foreground">PF {comparison.bestPerformer?.profitFactor}</p>
                                 </div>
-                                <div className="rounded-2xl border border-rose-500/10 bg-rose-500/[0.03] p-4">
+                                <div className="rounded-lg border border-negative/10 bg-negative/[0.03] p-4">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500/10">
-                                            <ArrowDownRight size={14} className="text-rose-400" />
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-negative/10">
+                                            <ArrowDownRight size={14} className="text-negative" />
                                         </div>
-                                        <span className="text-[10px] font-semibold uppercase tracking-wider text-rose-500/60">Review</span>
+                                        <span className="text-micro font-semibold uppercase tracking-wider text-negative/60">Review</span>
                                     </div>
-                                    <p className="text-sm font-bold text-rose-400">{comparison.worstPerformer?.broker || "N/A"}</p>
-                                    <p className="text-[10px] text-muted-foreground">PF {comparison.worstPerformer?.profitFactor}</p>
+                                    <p className="text-sm font-bold text-negative">{comparison.worstPerformer?.broker || "N/A"}</p>
+                                    <p className="text-micro text-muted-foreground">PF {comparison.worstPerformer?.profitFactor}</p>
                                 </div>
                             </div>
                         )}
 
                         {/* Comparison Table */}
-                        <div className="rounded-2xl border border-border/30 bg-muted/50 overflow-hidden">
+                        <div className="rounded-lg border border-border/30 bg-muted/50 overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-xs">
                                     <thead>
                                         <tr className="border-b border-border/20 bg-muted/50">
-                                            <th className="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                            <th className="px-5 py-3.5 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">
                                                 Account
                                             </th>
                                             {COLUMNS.map((col) => (
                                                 <th
                                                     key={col.key}
                                                     onClick={() => toggleSort(col.key)}
-                                                    className="cursor-pointer px-4 py-3.5 text-right text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-violet-400 transition select-none"
+                                                    className="cursor-pointer px-4 py-3.5 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary transition select-none"
                                                 >
                                                     <span className="inline-flex items-center gap-1">
                                                         {col.label}
@@ -246,7 +246,7 @@ export default function ComparePage() {
                                                     </span>
                                                 </th>
                                             ))}
-                                            <th className="px-5 py-3.5 text-right text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                            <th className="px-5 py-3.5 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">
                                                 Status
                                             </th>
                                         </tr>
@@ -264,13 +264,13 @@ export default function ComparePage() {
                                                     <div className="flex items-center gap-3">
                                                         <div className={cn(
                                                             "flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold",
-                                                            acc.online ? "bg-emerald-500/10 text-emerald-400" : "bg-muted/50/30 text-muted-foreground"
+                                                            acc.online ? "bg-positive/10 text-positive" : "bg-muted/50/30 text-muted-foreground"
                                                         )}>
                                                             {acc.broker.charAt(0)}
                                                         </div>
                                                         <div>
                                                             <p className="font-medium text-foreground">{acc.broker}</p>
-                                                            <p className="text-[10px] text-muted-foreground font-mono">{acc.mt5Account}</p>
+                                                            <p className="text-micro text-muted-foreground font-mono">{acc.mt5Account}</p>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -284,10 +284,10 @@ export default function ComparePage() {
                                                 })}
                                                 <td className="px-5 py-4 text-right">
                                                     <span className={cn(
-                                                        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-medium",
-                                                        acc.online ? "bg-emerald-500/10 text-emerald-400" : "bg-muted/50/30 text-muted-foreground"
+                                                        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-micro font-medium",
+                                                        acc.online ? "bg-positive/10 text-positive" : "bg-muted/50/30 text-muted-foreground"
                                                     )}>
-                                                        <span className={cn("h-1.5 w-1.5 rounded-full", acc.online ? "bg-emerald-400 animate-pulse" : "bg-muted")} />
+                                                        <span className={cn("h-1.5 w-1.5 rounded-full", acc.online ? "bg-positive animate-pulse" : "bg-muted")} />
                                                         {acc.online ? "Online" : "Offline"}
                                                     </span>
                                                 </td>
@@ -299,7 +299,7 @@ export default function ComparePage() {
                         </div>
 
                         {/* Footer */}
-                        <div className="mt-4 flex items-center justify-between text-[10px] text-muted-foreground px-1">
+                        <div className="mt-4 flex items-center justify-between text-micro text-muted-foreground px-1">
                             <span>
                                 Sorted by <span className="text-muted-foreground">{sortKey}</span> ({sortDir === "desc" ? "highest first" : "lowest first"})
                             </span>

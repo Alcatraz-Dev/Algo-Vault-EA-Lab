@@ -214,7 +214,7 @@ export function ImportExportModal({
                       <div className="flex items-center gap-1.5 font-medium">
                         <AlertCircle className="w-4 h-4 shrink-0" /> Validation Failed:
                       </div>
-                      <ul className="list-disc list-inside space-y-0.5 text-[11px]">
+                      <ul className="list-disc list-inside space-y-0.5 text-micro">
                         {importValidation.errors.map((err, i) => (
                           <li key={i}>{err}</li>
                         ))}

@@ -60,7 +60,7 @@ export function AttemptReport({ report }: { report: PerformanceReport }) {
                             <span
                                 key={day.dayKey}
                                 title={`${day.dayKey}: ${fmt(day.pnlCents)}`}
-                                className={`rounded px-1.5 py-0.5 font-mono text-[11px] tabular-nums ${
+                                className={`rounded px-1.5 py-0.5 font-mono text-micro tabular-nums ${
                                     day.pnlCents >= 0 ? "bg-emerald-500/10 text-emerald-600" : "bg-red-500/10 text-red-500"
                                 }`}
                             >

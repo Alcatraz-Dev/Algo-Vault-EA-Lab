@@ -500,7 +500,7 @@ export function ProTerminalChartWorkspace({
                         <span className="hidden sm:inline">Indicators</span>
                         <span className="inline sm:hidden">Indicators</span>
                         {activeLayerCount > 0 && (
-                            <span className="rounded-full bg-primary/20 px-2 py-0.5 font-mono text-[10px] text-primary">
+                            <span className="rounded-full bg-primary/20 px-2 py-0.5 font-mono text-micro text-primary">
                                 {activeLayerCount}
                             </span>
                         )}
@@ -578,7 +578,7 @@ export function ProTerminalChartWorkspace({
                             <X className="size-4" />
                         </button>
                     </div>
-                    <p className="mb-4 text-[11px] text-muted-foreground">
+                    <p className="mb-4 text-micro text-muted-foreground">
                         Select indicators to overlay on the chart. Click any indicator to toggle it on/off.
                     </p>
                     <LayerPicker
@@ -589,13 +589,13 @@ export function ProTerminalChartWorkspace({
                     />
                     {activeLayerCount > 0 && (
                         <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-                            <span className="text-[11px] text-muted-foreground">
+                            <span className="text-micro text-muted-foreground">
                                 {activeLayerCount} active overlay{activeLayerCount > 1 ? "s" : ""}
                             </span>
                             <button
                                 type="button"
                                 onClick={() => setLayers(defaultLayerState())}
-                                className="text-[11px] text-muted-foreground transition hover:text-foreground"
+                                className="text-micro text-muted-foreground transition hover:text-foreground"
                             >
                                 Reset all
                             </button>
@@ -619,7 +619,7 @@ export function ProTerminalChartWorkspace({
                     hideWatchlist ? "" : "xl:grid-cols-[minmax(0,1fr)_280px]"
                 )}
             >
-                <div className={cn("overflow-hidden rounded-2xl border border-border bg-card shadow-md", isFullscreen && "flex-1 min-h-0 h-full")}>
+                <div className={cn("overflow-hidden rounded-lg border border-border bg-card shadow-md", isFullscreen && "flex-1 min-h-0 h-full")}>
                     <ProTerminalChart
                         symbol={cleanSymbol}
                         timeframe={timeframe}
@@ -687,7 +687,7 @@ function ChartInfo({
 }) {
     const Icon = CHART_TYPE_ICONS[chartType];
     return (
-        <div className="hidden items-center gap-2 rounded-lg border border-border/60 bg-background px-2.5 py-1 font-mono text-[10px] text-muted-foreground md:flex">
+        <div className="hidden items-center gap-2 rounded-lg border border-border/60 bg-background px-2.5 py-1 font-mono text-micro text-muted-foreground md:flex">
             <span className="inline-flex items-center gap-1.5">
                 <Icon className="size-3 text-primary" />
                 <span className="font-semibold text-foreground">{chartType.toUpperCase()}</span>
@@ -736,7 +736,7 @@ function ChartInfoCard({
             </div>
             {layers === 0 ? (
                 <div className="mt-2 space-y-2">
-                    <div className="flex items-start gap-2 rounded-md bg-primary/5 p-2 text-[11px]">
+                    <div className="flex items-start gap-2 rounded-md bg-primary/5 p-2 text-micro">
                         <Box className="mt-0.5 size-3.5 text-primary shrink-0" />
                         <div>
                             <p className="text-foreground font-medium">Clean chart — no overlays</p>
@@ -766,7 +766,7 @@ function ChartInfoCard({
                             type="button"
                             onClick={onClearDrawings}
                             disabled={drawings === 0}
-                            className="inline-flex items-center justify-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[10px] font-medium text-foreground transition hover:bg-muted disabled:opacity-50"
+                            className="inline-flex items-center justify-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-micro font-medium text-foreground transition hover:bg-muted disabled:opacity-50"
                             title="Clear all drawings on the active chart"
                         >
                             <Ruler className="size-3" />
@@ -776,7 +776,7 @@ function ChartInfoCard({
                             type="button"
                             onClick={onClearLayers}
                             disabled={layers === 0}
-                            className="inline-flex items-center justify-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[10px] font-medium text-foreground transition hover:bg-muted disabled:opacity-50"
+                            className="inline-flex items-center justify-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-micro font-medium text-foreground transition hover:bg-muted disabled:opacity-50"
                             title="Reset overlays to defaults"
                         >
                             <Layers className="size-3" />
@@ -785,8 +785,8 @@ function ChartInfoCard({
                     </div>
                 </>
             )}
-            <p className="mt-2 text-[10px] text-muted-foreground">
-                Draw with the toolbar above. Press <kbd className="rounded border border-border px-1 font-mono text-[9px]">Esc</kbd> to
+            <p className="mt-2 text-micro text-muted-foreground">
+                Draw with the toolbar above. Press <kbd className="rounded border border-border px-1 font-mono text-micro">Esc</kbd> to
                 return to pointer.
             </p>
         </div>

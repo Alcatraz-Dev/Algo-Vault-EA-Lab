@@ -173,13 +173,13 @@ export default function AdminSignalsPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-background text-foreground selection:bg-amber-500/30">
+            <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
                 <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                    <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px]" />
-                    <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-blue-500/10 blur-[120px]" />
+                    <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 blur-[120px]" />
+                    <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 blur-[120px]" />
                 </div>
                 <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 flex items-center justify-center min-h-screen">
-                    <RefreshCw className="h-8 w-8 animate-spin text-amber-400" />
+                    <RefreshCw className="h-8 w-8 animate-spin text-warning" />
                 </div>
             </div>
         );
@@ -187,16 +187,16 @@ export default function AdminSignalsPage() {
 
     if (!isAdmin) {
         return (
-            <div className="min-h-screen bg-background text-foreground selection:bg-amber-500/30">
+            <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
                 <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                    <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px]" />
-                    <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-blue-500/10 blur-[120px]" />
+                    <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 blur-[120px]" />
+                    <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 blur-[120px]" />
                 </div>
                 <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-screen gap-4">
-                    <AlertCircle className="h-12 w-12 text-red-400" />
+                    <AlertCircle className="h-12 w-12 text-negative" />
                     <h1 className="text-2xl font-bold">Access Denied</h1>
                     <p className="text-muted-foreground">You do not have admin privileges.</p>
-                    <Link href="/admin" className="text-amber-400 hover:underline text-sm">Return to Admin</Link>
+                    <Link href="/admin" className="text-warning hover:underline text-sm">Return to Admin</Link>
                 </div>
             </div>
         );
@@ -206,11 +206,11 @@ export default function AdminSignalsPage() {
     const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
 
     return (
-        <div className="min-h-screen bg-background text-foreground selection:bg-amber-500/30">
+        <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
             {/* BACKGROUND GRADIENT GLOWS */}
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px]" />
-                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-blue-500/10 blur-[120px]" />
+                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 blur-[120px]" />
+                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 blur-[120px]" />
             </div>
 
             {/* TOAST */}
@@ -218,8 +218,8 @@ export default function AdminSignalsPage() {
                 <div className="fixed top-4 right-4 z-50 animate-in fade-in slide-in-from-top-4">
                     <div className={`flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium shadow-2xl backdrop-blur-xl ${
                         toast.type === "success"
-                            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                            : "border-red-500/30 bg-red-500/10 text-red-400"
+                            ? "border-positive/30 bg-positive/10 text-positive"
+                            : "border-negative/30 bg-negative/10 text-negative"
                     }`}>
                         {toast.type === "success" ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
                         {toast.message}
@@ -239,7 +239,7 @@ export default function AdminSignalsPage() {
                             Back to Admin
                         </Link>
 
-                        <div className="flex items-center gap-2 text-sm text-amber-400 font-medium">
+                        <div className="flex items-center gap-2 text-sm text-warning font-medium">
                             <Sparkles className="h-4 w-4" />
                             AI Signal Engine Configuration
                         </div>
@@ -257,7 +257,7 @@ export default function AdminSignalsPage() {
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="inline-flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 px-5 py-2.5 text-sm font-medium text-amber-400 transition-colors hover:bg-amber-500/20 disabled:opacity-50"
+                            className="inline-flex items-center gap-2 rounded-xl border border-warning/20 bg-warning/10 px-5 py-2.5 text-sm font-medium text-warning transition-colors hover:bg-warning/20 disabled:opacity-50"
                         >
                             {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                             {saving ? "Saving..." : "Save Configuration"}
@@ -269,7 +269,7 @@ export default function AdminSignalsPage() {
                 <div className="mt-8 space-y-6">
 
                     {/* SYMBOLS */}
-                    <Card title="Symbols" icon={<TrendingUp className="h-4 w-4 text-amber-400" />} description="Select which instruments the AI engine monitors.">
+                    <Card title="Symbols" icon={<TrendingUp className="h-4 w-4 text-warning" />} description="Select which instruments the AI engine monitors.">
                         <div className="flex flex-wrap gap-2">
                             {SYMBOLS.map((sym) => (
                                 <button
@@ -277,7 +277,7 @@ export default function AdminSignalsPage() {
                                     onClick={() => toggleArrayItem("symbols", sym)}
                                     className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
                                         (config.symbols || []).includes(sym)
-                                            ? "border-amber-500/40 bg-amber-500/15 text-amber-400"
+                                            ? "border-warning/40 bg-warning/15 text-warning"
                                             : "border-border/30 bg-muted/5 text-muted-foreground hover:border-border/50 hover:text-foreground"
                                     }`}
                                 >
@@ -288,7 +288,7 @@ export default function AdminSignalsPage() {
                     </Card>
 
                     {/* TIMEFRAMES */}
-                    <Card title="Timeframes" icon={<Clock className="h-4 w-4 text-blue-400" />} description="Select which candle timeframes to analyze.">
+                    <Card title="Timeframes" icon={<Clock className="h-4 w-4 text-info" />} description="Select which candle timeframes to analyze.">
                         <div className="flex flex-wrap gap-2">
                             {TIMEFRAMES.map((tf) => (
                                 <button
@@ -296,7 +296,7 @@ export default function AdminSignalsPage() {
                                     onClick={() => toggleArrayItem("timeframes", tf)}
                                     className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
                                         (config.timeframes || []).includes(tf)
-                                            ? "border-blue-500/40 bg-blue-500/15 text-blue-400"
+                                            ? "border-info/40 bg-info/15 text-info"
                                             : "border-border/30 bg-muted/5 text-muted-foreground hover:border-border/50 hover:text-foreground"
                                     }`}
                                 >
@@ -307,7 +307,7 @@ export default function AdminSignalsPage() {
                     </Card>
 
                     {/* SESSIONS */}
-                    <Card title="Sessions" icon={<BarChart3 className="h-4 w-4 text-emerald-400" />} description="Select which market sessions to trade.">
+                    <Card title="Sessions" icon={<BarChart3 className="h-4 w-4 text-positive" />} description="Select which market sessions to trade.">
                         <div className="flex flex-wrap gap-2">
                             {SESSIONS.map((s) => (
                                 <button
@@ -315,7 +315,7 @@ export default function AdminSignalsPage() {
                                     onClick={() => toggleArrayItem("sessions", s.value)}
                                     className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
                                         (config.sessions || []).includes(s.value as MarketSessionName)
-                                            ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-400"
+                                            ? "border-positive/40 bg-positive/15 text-positive"
                                             : "border-border/30 bg-muted/5 text-muted-foreground hover:border-border/50 hover:text-foreground"
                                     }`}
                                 >
@@ -326,7 +326,7 @@ export default function AdminSignalsPage() {
                     </Card>
 
                     {/* CONFIDENCE SETTINGS */}
-                    <Card title="Confidence Settings" icon={<Shield className="h-4 w-4 text-purple-400" />} description="Set minimum thresholds for signal generation.">
+                    <Card title="Confidence Settings" icon={<Shield className="h-4 w-4 text-primary" />} description="Set minimum thresholds for signal generation.">
                         <div className="grid gap-6 sm:grid-cols-2">
                             <div>
                                 <label className="mb-2 block text-xs font-medium text-muted-foreground">
@@ -338,9 +338,9 @@ export default function AdminSignalsPage() {
                                     max={100}
                                     value={config.minimumConfidence ?? 70}
                                     onChange={(e) => setConfig((prev) => ({ ...prev, minimumConfidence: Number(e.target.value) }))}
-                                    className="w-full accent-amber-500"
+                                    className="w-full accent-warning"
                                 />
-                                <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+                                <div className="mt-1 flex justify-between text-micro text-muted-foreground">
                                     <span>50%</span>
                                     <span>100%</span>
                                 </div>
@@ -355,9 +355,9 @@ export default function AdminSignalsPage() {
                                     max={50}
                                     value={(config.minimumRiskReward ?? 2.0) * 10}
                                     onChange={(e) => setConfig((prev) => ({ ...prev, minimumRiskReward: Number(e.target.value) / 10 }))}
-                                    className="w-full accent-amber-500"
+                                    className="w-full accent-warning"
                                 />
-                                <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+                                <div className="mt-1 flex justify-between text-micro text-muted-foreground">
                                     <span>1.0</span>
                                     <span>5.0</span>
                                 </div>
@@ -366,7 +366,7 @@ export default function AdminSignalsPage() {
                     </Card>
 
                     {/* SIGNAL LIMITS */}
-                    <Card title="Signal Limits" icon={<AlertCircle className="h-4 w-4 text-orange-400" />} description="Control how many signals are released per tier per day.">
+                    <Card title="Signal Limits" icon={<AlertCircle className="h-4 w-4 text-warning" />} description="Control how many signals are released per tier per day.">
                         <div className="grid gap-6 sm:grid-cols-2">
                             <NumberInput
                                 label="Free Signals / Day"
@@ -386,7 +386,7 @@ export default function AdminSignalsPage() {
                     </Card>
 
                     {/* COOLDOWN & EXPIRATION */}
-                    <Card title="Cooldown & Expiration" icon={<Clock className="h-4 w-4 text-cyan-400" />} description="Set signal cooldown and expiration times.">
+                    <Card title="Cooldown & Expiration" icon={<Clock className="h-4 w-4 text-info" />} description="Set signal cooldown and expiration times.">
                         <div className="grid gap-6 sm:grid-cols-2">
                             <NumberInput
                                 label="Cooldown (minutes)"
@@ -408,7 +408,7 @@ export default function AdminSignalsPage() {
                     {/* WEIGHT CONFIGURATION */}
                     <Card
                         title="Confidence Weights"
-                        icon={<BarChart3 className="h-4 w-4 text-teal-400" />}
+                        icon={<BarChart3 className="h-4 w-4 text-info" />}
                         description={`Distribute scoring weights across factors. Total: ${totalWeight}${totalWeight !== 100 ? " ⚠️ Must sum to 100" : " ✓"}`}
                     >
                         <div className="space-y-4">
@@ -424,12 +424,12 @@ export default function AdminSignalsPage() {
                                         max={100}
                                         value={(config.weights || DEFAULT_CONFIG.weights!)[key]}
                                         onChange={(e) => setWeight(key, Number(e.target.value))}
-                                        className="w-full accent-teal-500"
+                                        className="w-full accent-info"
                                     />
                                 </div>
                             ))}
                             {totalWeight !== 100 && (
-                                <p className="text-xs text-amber-400 flex items-center gap-1">
+                                <p className="text-xs text-warning flex items-center gap-1">
                                     <AlertCircle className="h-3 w-3" />
                                     Weights must sum to 100. Currently {totalWeight}.
                                 </p>
@@ -438,7 +438,7 @@ export default function AdminSignalsPage() {
                     </Card>
 
                     {/* RISK DEFAULTS */}
-                    <Card title="Risk Defaults" icon={<Shield className="h-4 w-4 text-rose-400" />} description="Default risk parameters applied to signal followers.">
+                    <Card title="Risk Defaults" icon={<Shield className="h-4 w-4 text-negative" />} description="Default risk parameters applied to signal followers.">
                         <div className="grid gap-6 sm:grid-cols-2">
                             <NumberInput
                                 label="Risk Percent (%)"
@@ -477,7 +477,7 @@ function Card({
     children: React.ReactNode;
 }) {
     return (
-        <div className="rounded-2xl border border-border/30 bg-gradient-to-br from-background/80 via-background/40 to-background/80 p-6 backdrop-blur-xl">
+        <div className="rounded-lg border border-border/30 bg-gradient-to-br from-background/80 via-background/40 to-background/80 p-6 backdrop-blur-xl">
             <div className="mb-4">
                 <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                     {icon}
@@ -515,7 +515,7 @@ function NumberInput({
                 max={max}
                 step={step}
                 onChange={(e) => onChange(Number(e.target.value))}
-                className="w-full rounded-lg border border-border/30 bg-muted/5 px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/30"
+                className="w-full rounded-lg border border-border/30 bg-muted/5 px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-warning/50 focus:ring-1 focus:ring-warning/30"
             />
         </div>
     );

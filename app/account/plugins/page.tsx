@@ -129,14 +129,14 @@ function AccountPluginsContent() {
             onBack={() => router.push("/account")}
         >
             {banner && (
-                <div className="mb-5 flex items-start gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+                <div className="mb-5 flex items-start gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4">
                     <CheckCircle2 size={17} className="mt-0.5 shrink-0 text-emerald-400" />
                     <div className="text-sm text-emerald-100">{banner}</div>
                 </div>
             )}
 
             {loadError && (
-                <div className="mb-5 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">{loadError}</div>
+                <div className="mb-5 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">{loadError}</div>
             )}
 
             {/* Header */}
@@ -176,7 +176,7 @@ function AccountPluginsContent() {
                     {loading ? (
                         <div className="grid gap-4">
                             {[1, 2, 3].map((n) => (
-                                <div key={n} className="h-36 animate-pulse rounded-2xl border border-border/30 bg-muted/50" />
+                                <div key={n} className="h-36 animate-pulse rounded-lg border border-border/30 bg-muted/50" />
                             ))}
                         </div>
                     ) : rows.filter((r) => r.installation?.status !== "uninstalled").length === 0 ? (
@@ -199,7 +199,7 @@ function AccountPluginsContent() {
                                     if (!plugin) return null;
                                     const isActive = installation.status === "active";
                                     return (
-                                        <div key={installation.pluginId} className="rounded-2xl border border-border/30 bg-muted/50 p-5">
+                                        <div key={installation.pluginId} className="rounded-lg border border-border/30 bg-muted/50 p-5">
                                             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                                 <div className="flex items-start gap-4">
                                                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
@@ -217,7 +217,7 @@ function AccountPluginsContent() {
                                                         <p className="mt-1 max-w-xl text-xs leading-5 text-muted-foreground line-clamp-1">
                                                             {plugin.description}
                                                         </p>
-                                                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                                                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-micro text-muted-foreground">
                                                             <span>{CATEGORY_LABELS[plugin.category]}</span>
                                                             <span>v{installation.installedVersion || plugin.version}</span>
                                                             <span>Interval: {config?.interval || plugin.manifest?.runtime?.interval || "manual"}</span>
@@ -279,7 +279,7 @@ function AccountPluginsContent() {
                     {loading ? (
                         <div className="grid gap-4">
                             {[1, 2].map((n) => (
-                                <div key={n} className="h-28 animate-pulse rounded-2xl border border-border/30 bg-muted/50" />
+                                <div key={n} className="h-28 animate-pulse rounded-lg border border-border/30 bg-muted/50" />
                             ))}
                         </div>
                     ) : extensions.length === 0 ? (
@@ -299,7 +299,7 @@ function AccountPluginsContent() {
                                 if (!extension) return null;
                                 const typed = extension as PluginRecord & { extensionType?: string };
                                 return (
-                                    <div key={install.extensionId} className="rounded-2xl border border-border/30 bg-muted/50 p-5">
+                                    <div key={install.extensionId} className="rounded-lg border border-border/30 bg-muted/50 p-5">
                                         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                             <div className="flex items-start gap-4">
                                                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
@@ -309,12 +309,12 @@ function AccountPluginsContent() {
                                                     <div className="flex flex-wrap items-center gap-2">
                                                         <span className="text-sm font-semibold text-foreground">{extension.displayName}</span>
                                                         <StatusBadge tone={installStatusTone(install.status)} label={install.status} />
-                                                        <span className="rounded-lg border border-border/30 bg-muted/5 px-2 py-0.5 text-[10px] text-muted-foreground">
+                                                        <span className="rounded-lg border border-border/30 bg-muted/5 px-2 py-0.5 text-micro text-muted-foreground">
                                                             {EXTENSION_TYPE_LABELS[typed.extensionType || "browser"]}
                                                         </span>
                                                     </div>
                                                     <p className="mt-1 max-w-xl text-xs leading-5 text-muted-foreground line-clamp-1">{extension.description}</p>
-                                                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                                                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-micro text-muted-foreground">
                                                         <span>v{install.installedVersion || extension.version}</span>
                                                         <span>Installed {formatDate(install.installedAt)}</span>
                                                         {install.webhookUrl && <span className="max-w-[260px] truncate">Webhook: {install.webhookUrl}</span>}

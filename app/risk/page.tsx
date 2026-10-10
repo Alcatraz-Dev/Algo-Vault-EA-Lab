@@ -149,7 +149,7 @@ export default function RiskPage() {
                             <div className="h-3 overflow-hidden rounded-full bg-muted/20">
                                 <div className={cn("h-full rounded-full transition-all", risk.marginUtilization < 30 ? "bg-emerald-500" : risk.marginUtilization < 60 ? "bg-amber-500" : "bg-rose-500")} style={{ width: `${Math.min(100, risk.marginUtilization)}%` }} />
                             </div>
-                            <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
+                            <div className="mt-2 flex justify-between text-micro text-muted-foreground">
                                 <span>Free: ${risk.marginFree.toFixed(2)} ({risk.freeMarginPercent.toFixed(1)}%)</span>
                                 <span>Margin Call Distance: {risk.marginCallDistance.toFixed(0)}%</span>
                             </div>
@@ -164,7 +164,7 @@ export default function RiskPage() {
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-xs">
                                         <thead>
-                                            <tr className="border-b border-border/20 text-[10px] uppercase text-muted-foreground">
+                                            <tr className="border-b border-border/20 text-micro uppercase text-muted-foreground">
                                                 <th className="px-4 py-2.5 text-left">Symbol</th>
                                                 <th className="px-4 py-2.5 text-left">Direction</th>
                                                 <th className="px-4 py-2.5 text-right">Volume</th>
@@ -191,7 +191,7 @@ export default function RiskPage() {
                             </div>
                         )}
 
-                        <div className="mt-6 rounded-xl border border-amber-500/10 bg-amber-500/[0.03] p-3 text-[11px] text-amber-400/60">
+                        <div className="mt-6 rounded-xl border border-amber-500/10 bg-amber-500/[0.03] p-3 text-micro text-amber-400/60">
                             <Shield size={12} className="mr-1 inline" />
                             Risk data is computed from your connected MT5 account. Always manage risk according to your trading plan.
                         </div>
@@ -211,7 +211,7 @@ function RiskGauge({ label, value, status }: { label: string; value: string; sta
     const colors = { safe: "border-emerald-500/20 bg-emerald-500/[0.06] text-emerald-400", warning: "border-amber-500/20 bg-amber-500/[0.06] text-amber-400", danger: "border-rose-500/20 bg-rose-500/[0.06] text-rose-400" };
     return (
         <div className={cn("rounded-xl border p-4", colors[status])}>
-            <p className="text-[10px] font-semibold uppercase opacity-60">{label}</p>
+            <p className="text-micro font-semibold uppercase opacity-60">{label}</p>
             <p className="mt-1 text-xl font-bold font-mono">{value}</p>
         </div>
     );
@@ -220,7 +220,7 @@ function RiskGauge({ label, value, status }: { label: string; value: string; sta
 function MetricCard({ label, value, icon: Icon, color }: { label: string; value: string; icon: React.ElementType; color?: string }) {
     return (
         <div className="rounded-xl border border-border/30 bg-muted/50 p-4">
-            <div className="flex items-center gap-2"><Icon size={14} className="text-violet-400" /><span className="text-[10px] font-semibold uppercase text-muted-foreground">{label}</span></div>
+            <div className="flex items-center gap-2"><Icon size={14} className="text-violet-400" /><span className="text-micro font-semibold uppercase text-muted-foreground">{label}</span></div>
             <p className={cn("mt-2 font-mono text-sm font-bold", color || "text-foreground")}>{value}</p>
         </div>
     );

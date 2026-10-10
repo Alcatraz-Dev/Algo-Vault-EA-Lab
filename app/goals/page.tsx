@@ -41,7 +41,7 @@ function GoalCard({ goal, onUpdate, onDelete }: { goal: TradingGoal; onUpdate: (
 
     return (
         <div className={cn(
-            "group relative rounded-2xl border p-6 transition-all duration-200",
+            "group relative rounded-lg border p-6 transition-all duration-200",
             goal.achieved
                 ? "border-emerald-500/20 bg-gradient-to-br from-emerald-500/[0.06] to-emerald-500/[0.02] shadow-lg shadow-emerald-500/5"
                 : "border-border/30 bg-muted/50 hover:border-border/20 hover:bg-muted"
@@ -57,7 +57,7 @@ function GoalCard({ goal, onUpdate, onDelete }: { goal: TradingGoal; onUpdate: (
                     </div>
                     <div>
                         <h3 className="text-sm font-semibold text-foreground">{goal.title}</h3>
-                        <p className="mt-0.5 text-[11px] text-muted-foreground">{typeInfo?.label || goal.type}</p>
+                        <p className="mt-0.5 text-micro text-muted-foreground">{typeInfo?.label || goal.type}</p>
                     </div>
                 </div>
                 <button
@@ -91,7 +91,7 @@ function GoalCard({ goal, onUpdate, onDelete }: { goal: TradingGoal; onUpdate: (
 
                 <div className="flex-1 space-y-2">
                     <div className="flex items-center justify-between">
-                        <span className="text-[11px] text-muted-foreground">Progress</span>
+                        <span className="text-micro text-muted-foreground">Progress</span>
                         <span className="font-mono text-xs text-muted-foreground">
                             {goal.current.toLocaleString()} / {goal.target.toLocaleString()} {goal.unit}
                         </span>
@@ -103,12 +103,12 @@ function GoalCard({ goal, onUpdate, onDelete }: { goal: TradingGoal; onUpdate: (
                         />
                     </div>
                     <div className="flex items-center justify-between">
-                        <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                        <span className="flex items-center gap-1 text-micro text-muted-foreground">
                             <CalendarDays size={10} />
                             {daysLeft === 0 ? "Due today" : `${daysLeft}d remaining`}
                         </span>
                         {goal.achieved && (
-                            <span className="flex items-center gap-1 text-[10px] text-emerald-400">
+                            <span className="flex items-center gap-1 text-micro text-emerald-400">
                                 <CheckCircle size={10} /> Achieved
                             </span>
                         )}
@@ -280,39 +280,39 @@ export default function GoalsPage() {
 
                 {/* Stats Row */}
                 <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4" data-guide="stats">
-                    <div className="rounded-2xl border border-border/30 bg-muted/50 p-4">
+                    <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
                         <div className="flex items-center gap-2 mb-2">
                             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10">
                                 <Target size={14} className="text-violet-400" />
                             </div>
-                            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Total</span>
+                            <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Total</span>
                         </div>
                         <p className="text-2xl font-bold font-mono text-foreground">{goals.length}</p>
                     </div>
-                    <div className="rounded-2xl border border-emerald-500/10 bg-emerald-500/[0.03] p-4">
+                    <div className="rounded-lg border border-emerald-500/10 bg-emerald-500/[0.03] p-4">
                         <div className="flex items-center gap-2 mb-2">
                             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10">
                                 <CheckCircle size={14} className="text-emerald-400" />
                             </div>
-                            <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-500/60">Achieved</span>
+                            <span className="text-micro font-semibold uppercase tracking-wider text-emerald-500/60">Achieved</span>
                         </div>
                         <p className="text-2xl font-bold font-mono text-emerald-400">{achievedCount}</p>
                     </div>
-                    <div className="rounded-2xl border border-amber-500/10 bg-amber-500/[0.03] p-4">
+                    <div className="rounded-lg border border-amber-500/10 bg-amber-500/[0.03] p-4">
                         <div className="flex items-center gap-2 mb-2">
                             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10">
                                 <Flame size={14} className="text-amber-400" />
                             </div>
-                            <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-500/60">In Progress</span>
+                            <span className="text-micro font-semibold uppercase tracking-wider text-amber-500/60">In Progress</span>
                         </div>
                         <p className="text-2xl font-bold font-mono text-amber-400">{inProgressCount}</p>
                     </div>
-                    <div className="rounded-2xl border border-border/30 bg-muted/50 p-4">
+                    <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
                         <div className="flex items-center gap-2 mb-2">
                             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
                                 <TrendingUp size={14} className="text-blue-400" />
                             </div>
-                            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Avg Progress</span>
+                            <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Avg Progress</span>
                         </div>
                         <p className="text-2xl font-bold font-mono text-foreground">{avgProgress.toFixed(0)}%</p>
                     </div>
@@ -321,7 +321,7 @@ export default function GoalsPage() {
                 {/* Create Modal */}
                 {showCreate && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-sm p-4">
-                        <div className="w-full max-w-lg rounded-2xl border border-border/40 bg-background p-6 shadow-2xl">
+                        <div className="w-full max-w-lg rounded-lg border border-border/40 bg-background p-6 shadow-2xl">
                             <div className="flex items-center justify-between mb-5">
                                 <h2 className="text-lg font-semibold text-foreground">Create New Goal</h2>
                                 <button type="button" onClick={() => setShowCreate(false)} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/30 transition">
@@ -403,8 +403,8 @@ export default function GoalsPage() {
                         <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
                     </div>
                 ) : goals.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-border/40 p-16 text-center">
-                        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-500/10">
+                    <div className="rounded-lg border border-dashed border-border/40 p-16 text-center">
+                        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-violet-500/10">
                             <Target size={28} className="text-violet-400" />
                         </div>
                         <h3 className="mt-4 text-base font-semibold text-foreground">No goals yet</h3>

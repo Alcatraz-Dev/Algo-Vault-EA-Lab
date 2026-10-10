@@ -50,7 +50,7 @@ function Sparkline({ series }: { series: EquityPoint[] }) {
                     vectorEffect="non-scaling-stroke"
                 />
             </svg>
-            <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
+            <div className="mt-2 flex items-center justify-between text-micro text-muted-foreground">
                 <span>{new Date(series[0].timestamp).toLocaleDateString()}</span>
                 <span className="font-semibold text-foreground">
                     ${series[series.length - 1].equity.toFixed(2)}
@@ -73,8 +73,8 @@ function StatCard({
     positive?: boolean;
 }) {
     return (
-        <div className="rounded-2xl border border-border bg-card p-4">
-            <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground">
+        <div className="rounded-lg border border-border bg-card p-4">
+            <div className="flex items-center gap-2 text-micro font-medium text-muted-foreground">
                 {icon}
                 <span className="uppercase tracking-wider">{label}</span>
             </div>
@@ -126,7 +126,7 @@ export default function AdvancedAnalysis({ userId }: { userId: string }) {
 
     if (loading) {
         return (
-            <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-10 text-sm text-muted-foreground">
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-10 text-sm text-muted-foreground">
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-violet-500" />
                 Analyzing your accounts & trades...
             </div>
@@ -135,7 +135,7 @@ export default function AdvancedAnalysis({ userId }: { userId: string }) {
 
     if (error) {
         return (
-            <div className="rounded-2xl border border-rose-500/20 bg-rose-500/[0.05] p-8 text-sm text-rose-400">
+            <div className="rounded-lg border border-rose-500/20 bg-rose-500/[0.05] p-8 text-sm text-rose-400">
                 {error}
             </div>
         );
@@ -143,7 +143,7 @@ export default function AdvancedAnalysis({ userId }: { userId: string }) {
 
     if (accounts.length === 0) {
         return (
-            <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
+            <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
                 <Crosshair className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                 No connected MT5 accounts yet. Add one in{" "}
                 <a href="/account/settings?tab=mt5" className="font-semibold text-violet-400 underline underline-offset-2 hover:text-violet-300">
@@ -157,7 +157,7 @@ export default function AdvancedAnalysis({ userId }: { userId: string }) {
     return (
         <div className="space-y-4">
             {liveAccounts.length === 0 && (
-                <div className="flex items-start gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/[0.06] p-4 text-xs text-amber-200/90">
+                <div className="flex items-start gap-3 rounded-lg border border-amber-500/20 bg-amber-500/[0.06] p-4 text-xs text-amber-200/90">
                     <div>
                         <p className="font-semibold text-amber-300">
                             Connected account{accounts.length === 1 ? "" : "s"} found — waiting for live telemetry.
@@ -199,7 +199,7 @@ export default function AdvancedAnalysis({ userId }: { userId: string }) {
 
             <div className="grid gap-4 lg:grid-cols-3">
                 {/* Equity curve */}
-                <div className="rounded-2xl border border-border bg-card p-5 lg:col-span-2">
+                <div className="rounded-lg border border-border bg-card p-5 lg:col-span-2">
                     <h3 className="flex items-center gap-2 text-sm font-semibold">
                         <LineChart size={15} className="text-violet-400" /> Equity Curve
                     </h3>
@@ -212,7 +212,7 @@ export default function AdvancedAnalysis({ userId }: { userId: string }) {
                 </div>
 
                 {/* Trade mix */}
-                <div className="rounded-2xl border border-border bg-card p-5">
+                <div className="rounded-lg border border-border bg-card p-5">
                     <h3 className="text-sm font-semibold">Buy / Sell Mix</h3>
                     <div className="mt-4 space-y-3">
                         <div>
@@ -246,11 +246,11 @@ export default function AdvancedAnalysis({ userId }: { userId: string }) {
 
                         <div className="grid grid-cols-2 gap-2 border-t border-border pt-3 text-center">
                             <div className="rounded-xl bg-muted/50 py-2">
-                                <p className="text-[11px] text-emerald-400">Avg Win</p>
+                                <p className="text-micro text-emerald-400">Avg Win</p>
                                 <p className="text-sm font-bold text-foreground">${stats.avgWin.toFixed(2)}</p>
                             </div>
                             <div className="rounded-xl bg-muted/50 py-2">
-                                <p className="text-[11px] text-rose-400">Avg Loss</p>
+                                <p className="text-micro text-rose-400">Avg Loss</p>
                                 <p className="text-sm font-bold text-foreground">-${stats.avgLoss.toFixed(2)}</p>
                             </div>
                         </div>
@@ -259,12 +259,12 @@ export default function AdvancedAnalysis({ userId }: { userId: string }) {
             </div>
 
             {/* Per-symbol table */}
-            <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="rounded-lg border border-border bg-card p-5">
                 <h3 className="text-sm font-semibold">Performance by Symbol</h3>
                 <div className="mt-3 overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead>
-                            <tr className="border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground">
+                            <tr className="border-b border-border text-micro uppercase tracking-wider text-muted-foreground">
                                 <th className="py-2 pr-4 font-medium">Symbol</th>
                                 <th className="py-2 pr-4 font-medium">Trades</th>
                                 <th className="py-2 pr-4 font-medium">Win Rate</th>

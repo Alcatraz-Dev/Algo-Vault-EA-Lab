@@ -544,7 +544,7 @@ export default function GoCharting({
                             key={tf}
                             type="button"
                             onClick={() => setTimeframe(tf)}
-                            className={`rounded px-2 py-1 text-[11px] font-medium transition ${
+                            className={`rounded px-2 py-1 text-micro font-medium transition ${
                                 timeframe === tf
                                     ? "bg-foreground text-background"
                                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -567,7 +567,7 @@ export default function GoCharting({
                             key={ct.type}
                             type="button"
                             onClick={() => setChartTypes(ct.type as typeof chartTypes)}
-                            className={`rounded px-2 py-1 text-[11px] font-medium transition ${
+                            className={`rounded px-2 py-1 text-micro font-medium transition ${
                                 chartTypes === ct.type
                                     ? "bg-foreground text-background"
                                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -582,7 +582,7 @@ export default function GoCharting({
                     <button
                         type="button"
                         onClick={() => setShowStudyMenu(!showStudyMenu)}
-                        className="rounded px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted"
+                        className="rounded px-2 py-1 text-micro text-muted-foreground hover:text-foreground hover:bg-muted"
                     >
                         + Studies
                     </button>
@@ -617,7 +617,7 @@ export default function GoCharting({
                 <button
                     type="button"
                     onClick={() => setAppliedStudies([])}
-                    className="rounded px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted"
+                    className="rounded px-2 py-1 text-micro text-muted-foreground hover:text-foreground hover:bg-muted"
                 >
                     Clear
                 </button>
@@ -626,7 +626,7 @@ export default function GoCharting({
                     {appliedStudies.map((s) => (
                         <span
                             key={s}
-                            className="rounded px-1.5 py-0.5 text-[10px]"
+                            className="rounded px-1.5 py-0.5 text-micro"
                             style={{
                                 backgroundColor: studyColor(s) + "20",
                                 color: studyColor(s),
@@ -650,13 +650,13 @@ export default function GoCharting({
                 )}
             </div>
 
-            <div className="flex items-center gap-3 border-t border-border px-3 py-1.5 bg-muted/30 text-[10px] text-muted-foreground">
+            <div className="flex items-center gap-3 border-t border-border px-3 py-1.5 bg-muted/30 text-micro text-muted-foreground">
                 <span className="flex items-center gap-1">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <span className="h-2 w-2 rounded-full bg-positive" />
                     Bullish
                 </span>
                 <span className="flex items-center gap-1">
-                    <span className="h-2 w-2 rounded-full bg-red-500" />
+                    <span className="h-2 w-2 rounded-full bg-negative" />
                     Bearish
                 </span>
                 {STUDY_OPTIONS.map(({ type, label }) => (

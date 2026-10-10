@@ -69,30 +69,30 @@ export default function Journal() {
 
             <div className="grid gap-4 sm:grid-cols-5">
                 <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-center">
-                    <p className="text-[10px] uppercase tracking-wider text-emerald-300 font-semibold">Wins</p>
+                    <p className="text-micro uppercase tracking-wider text-emerald-300 font-semibold">Wins</p>
                     <p className="mt-1 text-2xl font-bold text-emerald-400">{wins}</p>
                 </div>
                 <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-center">
-                    <p className="text-[10px] uppercase tracking-wider text-rose-300 font-semibold">Losses</p>
+                    <p className="text-micro uppercase tracking-wider text-rose-300 font-semibold">Losses</p>
                     <p className="mt-1 text-2xl font-bold text-rose-400">{losses}</p>
                 </div>
                 <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-center">
-                    <p className="text-[10px] uppercase tracking-wider text-amber-300 font-semibold">Flat</p>
+                    <p className="text-micro uppercase tracking-wider text-amber-300 font-semibold">Flat</p>
                     <p className="mt-1 text-2xl font-bold text-amber-400">{breakevens}</p>
                 </div>
                 <div className="rounded-xl border border-border bg-muted/30 p-4 text-center">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Win Rate</p>
+                    <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Win Rate</p>
                     <p className="mt-1 text-2xl font-bold text-foreground">{winRate}%</p>
                 </div>
                 <div className={`rounded-xl border p-4 text-center ${totalPnl >= 0 ? "border-emerald-500/20 bg-emerald-500/10" : "border-rose-500/20 bg-rose-500/10"}`}>
-                    <p className="text-[10px] uppercase tracking-wider font-semibold">Total P&L</p>
+                    <p className="text-micro uppercase tracking-wider font-semibold">Total P&L</p>
                     <p className={`mt-1 text-2xl font-bold ${totalPnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                         {totalPnl >= 0 ? "+" : ""}${totalPnl.toFixed(2)}
                     </p>
                 </div>
             </div>
 
-            <div className="rounded-2xl border border-border bg-card overflow-hidden">
+            <div className="rounded-lg border border-border bg-card overflow-hidden">
                 <div className="px-5 py-4 border-b border-border">
                     <h3 className="font-semibold flex items-center gap-2"><BookOpen size={16} /> Trade Log</h3>
                 </div>
@@ -121,7 +121,7 @@ export default function Journal() {
                                     <td className="py-3 px-4 font-mono text-xs">{entry.exit}</td>
                                     <td className="py-3 px-4">{entry.lots}</td>
                                     <td className="py-3 px-4">
-                                        <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${outcomeBadge(entry.outcome)}`}>
+                                        <span className={`rounded-full border px-2 py-0.5 text-micro font-semibold ${outcomeBadge(entry.outcome)}`}>
                                             {entry.outcome === "win" ? "WIN" : entry.outcome === "loss" ? "LOSS" : "FLAT"}
                                         </span>
                                     </td>

@@ -49,7 +49,7 @@ export function MetricTile({
         <div className={cn("rounded-xl border border-border/30 bg-muted/50 px-3 py-2.5", className)}>
             <div className="flex items-center gap-1.5">
                 <Icon size={11} className="shrink-0 text-muted-foreground" />
-                <span className="truncate text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <span className="truncate text-micro font-semibold uppercase tracking-wide text-muted-foreground">
                     {label}
                 </span>
             </div>

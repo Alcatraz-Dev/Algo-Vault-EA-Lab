@@ -96,7 +96,7 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
           : "NO SETUPS";
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border bg-card/70 backdrop-blur-xl shadow-[0_0_40px_-12px_rgba(255,77,0,0.15)]">
+    <div className="relative overflow-hidden rounded-lg border border-border bg-card/70 backdrop-blur-xl shadow-[0_0_40px_-12px_rgba(255,77,0,0.15)]">
       {/* Top gradient bar */}
       <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#ff4d00]/60 to-transparent" />
 
@@ -109,20 +109,20 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
             </span>
             <div>
               <h3 className="text-sm font-extrabold tracking-tight text-foreground leading-none">SCALPING TERMINAL</h3>
-              <p className="text-[10px] font-medium text-muted-foreground mt-1">Live signals • AI vetted • Smart-money tracked</p>
+              <p className="text-micro font-medium text-muted-foreground mt-1">Live signals • AI vetted • Smart-money tracked</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {pro ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/20">
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-micro font-bold text-emerald-400 border border-emerald-500/20">
                 <ShieldCheck size={10} /> PRO ACTIVE
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/20">
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-micro font-bold text-amber-400 border border-amber-500/20">
                 UPGRADE
               </span>
             )}
-            <Link href="/account/scalping-terminal-lite" className="inline-flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1.5 text-[10px] font-semibold text-foreground hover:bg-muted/80 hover:text-primary transition">
+            <Link href="/account/scalping-terminal-lite" className="inline-flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1.5 text-micro font-semibold text-foreground hover:bg-muted/80 hover:text-primary transition">
               TERMINAL <ArrowUpRight size={10} />
             </Link>
           </div>
@@ -140,7 +140,7 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
 
         {/* Signals */}
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-2">
+          <div className="flex items-center gap-2 text-micro uppercase tracking-widest font-bold text-muted-foreground mb-2">
             <span>Live Signals</span>
             <span className="h-px flex-1 bg-border" />
             <span className={error ? "text-rose-400" : "text-emerald-400"}>{statusLabel}</span>
@@ -150,20 +150,20 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
           {!signedIn ? (
             <div className="rounded-lg border border-dashed border-border px-3 py-4 text-center">
               <p className="text-xs font-medium text-foreground">Sign in for live scanner output</p>
-              <p className="text-[10px] text-muted-foreground mt-1">Signals are produced per account by the deterministic scanner.</p>
-              <Link href="/login?redirect=/account/scalping-terminal-lite" className="mt-2 inline-flex items-center gap-1 rounded-lg bg-foreground px-3 py-1.5 text-[10px] font-semibold text-background transition hover:opacity-90">
+              <p className="text-micro text-muted-foreground mt-1">Signals are produced per account by the deterministic scanner.</p>
+              <Link href="/login?redirect=/account/scalping-terminal-lite" className="mt-2 inline-flex items-center gap-1 rounded-lg bg-foreground px-3 py-1.5 text-micro font-semibold text-background transition hover:opacity-90">
                 SIGN IN <ArrowUpRight size={10} />
               </Link>
             </div>
           ) : error ? (
             <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-3">
               <WifiOff size={13} className="mt-0.5 shrink-0 text-amber-400" />
-              <p className="text-[11px] leading-relaxed text-amber-200">{error}</p>
+              <p className="text-micro leading-relaxed text-amber-200">{error}</p>
             </div>
           ) : signals.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border px-3 py-4 text-center">
               <p className="text-xs font-medium text-foreground">No qualifying setups right now</p>
-              <p className="text-[10px] text-muted-foreground mt-1">
+              <p className="text-micro text-muted-foreground mt-1">
                 The scanner publishes a signal only when its confidence and R:R gates pass
                 {rejectedCount > 0 ? ` — ${rejectedCount} symbol${rejectedCount !== 1 ? "s" : ""} scanned below the gates.` : "."}
               </p>
@@ -176,9 +176,9 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
               return (
                 <div key={s.id} className="flex items-center justify-between rounded-lg bg-muted/60 px-3 py-2.5 hover:bg-muted transition border border-transparent hover:border-border/50" title={`Entry ${s.entry} · SL ${s.stop} · TP ${s.target}`}>
                   <div className="flex items-center gap-3">
-                    <span className={`inline-flex h-6 w-9 items-center justify-center rounded-md text-[10px] font-extrabold ${bg} ${color}`}>{long ? "BUY" : "SELL"}</span>
+                    <span className={`inline-flex h-6 w-9 items-center justify-center rounded-md text-micro font-extrabold ${bg} ${color}`}>{long ? "BUY" : "SELL"}</span>
                     <span className="text-xs font-semibold text-foreground">{s.symbol}</span>
-                    <span className="rounded border border-border px-1 py-0.5 font-mono text-[9px] text-muted-foreground">{s.timeframe}</span>
+                    <span className="rounded border border-border px-1 py-0.5 font-mono text-micro text-muted-foreground">{s.timeframe}</span>
                   </div>
                   <div className="flex items-center gap-3 text-xs font-mono">
                     <span className="text-muted-foreground">R:R {s.riskReward.toFixed(1)}</span>
@@ -192,7 +192,7 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
 
         {/* Bottom status bar */}
         <div className="mt-4 h-1 rounded-full bg-gradient-to-r from-amber-500 via-emerald-400 to-blue-500 animate-pulse opacity-80" />
-        <div className="mt-3 flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground font-medium">
+        <div className="mt-3 flex flex-wrap items-center gap-3 text-micro text-muted-foreground font-medium">
           <span className="inline-flex items-center gap-1 text-emerald-400">
             <span className={`h-1.5 w-1.5 rounded-full ${!signedIn || error ? "bg-amber-400" : "bg-emerald-400 animate-pulse"}`} />
             Scanner: {!signedIn ? "IDLE" : error ? "UNREACHABLE" : "DETERMINISTIC"}

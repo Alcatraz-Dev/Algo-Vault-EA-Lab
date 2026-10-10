@@ -232,7 +232,7 @@ export default function ProTradingExtensionPage() {
             eyebrow={
                 <span
                     className={cn(
-                        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
+                        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-micro font-semibold uppercase tracking-wider",
                         isPro
                             ? "border-brand-500/30 bg-brand-500/10 text-brand-300"
                             : "border-edge bg-card text-ink-mute"
@@ -249,7 +249,7 @@ export default function ProTradingExtensionPage() {
                     {/* Hero */}
                     <section
                         className={cn(
-                            "relative overflow-hidden rounded-2xl border border-edge p-8",
+                            "relative overflow-hidden rounded-lg border border-edge p-8",
                             "bg-gradient-to-br from-brand-500/10 via-surface to-surface",
                             "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]"
                         )}
@@ -311,7 +311,7 @@ export default function ProTradingExtensionPage() {
                     <section>
                         <div className="mb-4 flex items-center justify-between">
                             <h2 className="text-base font-semibold tracking-tight">Pro extension features</h2>
-                            <span className="text-[10px] uppercase tracking-wider text-ink-faint">
+                            <span className="text-micro uppercase tracking-wider text-ink-faint">
                                 {activeFeatureCount}/{PRO_FEATURES.length} live in your build
                             </span>
                         </div>
@@ -334,7 +334,7 @@ export default function ProTradingExtensionPage() {
                                             </div>
                                             <span
                                                 className={cn(
-                                                    "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider",
+                                                    "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wider",
                                                     live
                                                         ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
                                                         : "border-edge bg-raised text-ink-faint"
@@ -367,7 +367,7 @@ export default function ProTradingExtensionPage() {
                                 { icon: Sparkles, title: "AI layer", body: "Structured analysis with explicit evidence and conflicting signals — never a black box." },
                             ].map((step, idx) => (
                                 <li key={step.title} className="flex gap-3 rounded-lg border border-edge bg-base/60 p-3">
-                                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand-500/10 text-[11px] font-semibold text-brand-300">
+                                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand-500/10 text-micro font-semibold text-brand-300">
                                         {idx + 1}
                                     </span>
                                     <div>
@@ -375,7 +375,7 @@ export default function ProTradingExtensionPage() {
                                             <step.icon size={12} className="text-brand-300" />
                                             {step.title}
                                         </div>
-                                        <p className="mt-1 text-[11px] leading-relaxed text-ink-mute">{step.body}</p>
+                                        <p className="mt-1 text-micro leading-relaxed text-ink-mute">{step.body}</p>
                                     </div>
                                 </li>
                             ))}
@@ -444,7 +444,7 @@ export default function ProTradingExtensionPage() {
                                                 <CheckCircle2 size={12} className="text-emerald-400" />
                                             ) : null}
                                         </div>
-                                        <p className="mt-0.5 text-[11px] text-ink-mute">
+                                        <p className="mt-0.5 text-micro text-ink-mute">
                                             {isPro && !isExpired && subscription?.plan
                                                 ? `Plan: ${subscription.plan} · status: ${subscription.status ?? "active"}`
                                                 : isPro && isExpired
@@ -466,7 +466,7 @@ export default function ProTradingExtensionPage() {
                             </div>
                         )}
 
-                        <p className="mt-4 text-[10px] leading-relaxed text-ink-faint">
+                        <p className="mt-4 text-micro leading-relaxed text-ink-faint">
                             Entitlement is verified server-side. Disabling scripts or replaying requests cannot unlock Pro features.
                         </p>
                     </section>
@@ -477,7 +477,7 @@ export default function ProTradingExtensionPage() {
                             <h3 className="text-sm font-semibold">Browser extension</h3>
                             <span
                                 className={cn(
-                                    "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider",
+                                    "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wider",
                                     extensionConnected
                                         ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
                                         : "border-edge bg-raised text-ink-faint"

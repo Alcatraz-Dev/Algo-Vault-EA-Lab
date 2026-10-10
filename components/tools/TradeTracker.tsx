@@ -40,7 +40,7 @@ export default function TradeTracker({ userId }: { userId: string }) {
 
     if (loading) {
         return (
-            <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-10 text-sm text-muted-foreground">
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-10 text-sm text-muted-foreground">
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-violet-500" />
                 Loading your live trades...
             </div>
@@ -49,7 +49,7 @@ export default function TradeTracker({ userId }: { userId: string }) {
 
     if (error) {
         return (
-            <div className="rounded-2xl border border-rose-500/20 bg-rose-500/[0.05] p-8 text-sm text-rose-400">
+            <div className="rounded-lg border border-rose-500/20 bg-rose-500/[0.05] p-8 text-sm text-rose-400">
                 {error}
             </div>
         );
@@ -57,7 +57,7 @@ export default function TradeTracker({ userId }: { userId: string }) {
 
     if (accounts.length === 0) {
         return (
-            <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
+            <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
                 No connected MT5 accounts yet. Add one in{" "}
                 <a href="/account/settings?tab=mt5" className="font-semibold text-violet-400 underline underline-offset-2 hover:text-violet-300">
                     Settings → MT5 Accounts
@@ -76,23 +76,23 @@ export default function TradeTracker({ userId }: { userId: string }) {
 
             <div className="grid gap-4 sm:grid-cols-4">
                 <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-5">
-                    <p className="text-[10px] uppercase tracking-wider text-emerald-300 font-semibold">Open Trades</p>
+                    <p className="text-micro uppercase tracking-wider text-emerald-300 font-semibold">Open Trades</p>
                     <p className="mt-1 text-2xl font-bold text-emerald-400">{openTrades.length}</p>
                 </div>
                 <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-5">
-                    <p className="text-[10px] uppercase tracking-wider text-emerald-300 font-semibold">Open P&amp;L</p>
+                    <p className="text-micro uppercase tracking-wider text-emerald-300 font-semibold">Open P&amp;L</p>
                     <p className={`mt-1 text-2xl font-bold ${openPnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                         {openPnl >= 0 ? "+" : ""}${openPnl.toLocaleString()}
                     </p>
                 </div>
                 <div className="rounded-xl border border-border bg-muted/30 p-5">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Total P&amp;L</p>
+                    <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Total P&amp;L</p>
                     <p className={`mt-1 text-2xl font-bold ${totalPnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                         {totalPnl >= 0 ? "+" : ""}${totalPnl.toLocaleString()}
                     </p>
                 </div>
                 <div className="rounded-xl border border-border bg-muted/30 p-5">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Total Trades</p>
+                    <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Total Trades</p>
                     <p className="mt-1 text-2xl font-bold text-foreground">{filtered.length}</p>
                 </div>
             </div>
@@ -114,7 +114,7 @@ export default function TradeTracker({ userId }: { userId: string }) {
                 </select>
             </div>
 
-            <div className="rounded-2xl border border-border bg-card overflow-hidden">
+            <div className="rounded-lg border border-border bg-card overflow-hidden">
                 <div className="px-5 py-4 border-b border-border">
                     <h3 className="font-semibold">Trades ({filtered.length})</h3>
                 </div>
@@ -149,7 +149,7 @@ export default function TradeTracker({ userId }: { userId: string }) {
                                                 {(trade.symbol ?? "?").toUpperCase()}
                                             </td>
                                             <td className="py-3 px-4">
-                                                <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                                                <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-micro font-semibold ${
                                                     side === "SELL"
                                                         ? "bg-rose-500/10 text-rose-400"
                                                         : "bg-emerald-500/10 text-emerald-400"
@@ -178,7 +178,7 @@ export default function TradeTracker({ userId }: { userId: string }) {
                                                 {new Date(Number(trade.openedAt ?? 0)).toLocaleString()}
                                             </td>
                                             <td className="py-3 px-4">
-                                                <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${open ? "bg-amber-500/10 text-amber-400" : "bg-muted text-muted-foreground"}`}>
+                                                <span className={`rounded-full px-2 py-0.5 text-micro font-medium ${open ? "bg-amber-500/10 text-amber-400" : "bg-muted text-muted-foreground"}`}>
                                                     {open ? "● Open" : "✕ Closed"}
                                                 </span>
                                             </td>

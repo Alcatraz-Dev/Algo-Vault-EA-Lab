@@ -154,7 +154,7 @@ export default function VisualAnalysis() {
             </div>
 
             {/* Input Row */}
-            <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="rounded-lg border border-border bg-card p-5">
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div>
                         <label className="mb-1 block text-xs font-medium text-muted-foreground">Pair</label>
@@ -211,7 +211,7 @@ export default function VisualAnalysis() {
 
             <div className="grid gap-6 lg:grid-cols-3">
                 {/* Indicators */}
-                <div className="lg:col-span-2 rounded-2xl border border-border bg-card p-5">
+                <div className="lg:col-span-2 rounded-lg border border-border bg-card p-5">
                     <h3 className="flex items-center gap-2 font-semibold">
                         <Activity size={16} className="text-violet-400" /> Indicators
                     </h3>
@@ -233,7 +233,7 @@ export default function VisualAnalysis() {
                                     </span>
                                 </div>
                                 <p className="mt-1 text-lg font-bold">{ind.value}</p>
-                                <p className="mt-0.5 text-[11px] text-muted-foreground">{ind.description}</p>
+                                <p className="mt-0.5 text-micro text-muted-foreground">{ind.description}</p>
                             </div>
                         ))}
                     </div>
@@ -260,7 +260,7 @@ export default function VisualAnalysis() {
                 </div>
 
                 {/* Key Levels */}
-                <div className="rounded-2xl border border-border bg-card p-5">
+                <div className="rounded-lg border border-border bg-card p-5">
                     <h3 className="flex items-center gap-2 font-semibold">
                         <Layers size={16} className="text-violet-400" /> Key Levels
                     </h3>
@@ -273,7 +273,7 @@ export default function VisualAnalysis() {
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between">
                                         <span className="text-xs font-medium text-muted-foreground">{level.label}</span>
-                                        <span className={`text-[10px] font-semibold uppercase ${
+                                        <span className={`text-micro font-semibold uppercase ${
                                             level.strength === "strong" ? "text-foreground" : "text-muted-foreground"
                                         }`}>
                                             {level.strength}
@@ -281,7 +281,7 @@ export default function VisualAnalysis() {
                                     </div>
                                     <p className="text-sm font-mono font-bold">{level.price.toFixed(2)}</p>
                                 </div>
-                                <span className={`text-[10px] font-semibold uppercase ${
+                                <span className={`text-micro font-semibold uppercase ${
                                     level.type === "support" ? "text-emerald-400" : "text-rose-400"
                                 }`}>
                                     {level.type === "support" ? "SUP" : "RES"}
@@ -292,7 +292,7 @@ export default function VisualAnalysis() {
 
                     {/* Price Position */}
                     <div className="mt-4 rounded-xl border border-border bg-muted/30 p-4">
-                        <p className="text-[11px] font-semibold uppercase text-muted-foreground">Price Position</p>
+                        <p className="text-micro font-semibold uppercase text-muted-foreground">Price Position</p>
                         <div className="mt-2 relative h-40 w-full">
                             <div className="absolute inset-0 flex flex-col justify-between">
                                 {levels.slice().reverse().map((level, i) => {
@@ -306,7 +306,7 @@ export default function VisualAnalysis() {
                                             }`}
                                             style={{ bottom: `${pct}%` }}
                                         >
-                                            <span className="absolute -top-3 right-0 text-[9px] font-mono text-muted-foreground">
+                                            <span className="absolute -top-3 right-0 text-micro font-mono text-muted-foreground">
                                                 {level.price.toFixed(2)}
                                             </span>
                                         </div>
@@ -318,7 +318,7 @@ export default function VisualAnalysis() {
                                         className="absolute w-full border-t-2 border-foreground"
                                         style={{ bottom: `${((c - l) / (h - l || 1)) * 100}%` }}
                                     >
-                                        <span className="absolute -top-5 left-0 rounded bg-foreground px-1.5 py-0.5 text-[9px] font-bold text-background">
+                                        <span className="absolute -top-5 left-0 rounded bg-foreground px-1.5 py-0.5 text-micro font-bold text-background">
                                             {c.toFixed(2)}
                                         </span>
                                     </div>
@@ -330,35 +330,35 @@ export default function VisualAnalysis() {
             </div>
 
             {/* Trade Plan */}
-            <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="rounded-lg border border-border bg-card p-5">
                 <h3 className="flex items-center gap-2 font-semibold">
                     <Target size={16} className="text-violet-400" /> Suggested Trade Plan
                 </h3>
                 <div className="mt-4 grid gap-4 sm:grid-cols-3">
                     <div className="rounded-xl border border-border bg-muted/30 p-4">
-                        <p className="text-[11px] font-semibold uppercase text-muted-foreground">Entry Zone</p>
+                        <p className="text-micro font-semibold uppercase text-muted-foreground">Entry Zone</p>
                         <p className="mt-1 text-lg font-bold font-mono">
                             {c.toFixed(2)}
                         </p>
-                        <p className="mt-0.5 text-[11px] text-muted-foreground">
+                        <p className="mt-0.5 text-micro text-muted-foreground">
                             Current close price
                         </p>
                     </div>
                     <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
-                        <p className="text-[11px] font-semibold uppercase text-emerald-400">Take Profit</p>
+                        <p className="text-micro font-semibold uppercase text-emerald-400">Take Profit</p>
                         <p className="mt-1 text-lg font-bold font-mono text-emerald-400">
                             {tp > 0 ? tp.toFixed(2) : "\u2014"}
                         </p>
-                        <p className="mt-0.5 text-[11px] text-muted-foreground">
+                        <p className="mt-0.5 text-micro text-muted-foreground">
                             {((Math.abs(tp - c) / c) * 100).toFixed(2)}% target
                         </p>
                     </div>
                     <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-4">
-                        <p className="text-[11px] font-semibold uppercase text-rose-400">Stop Loss</p>
+                        <p className="text-micro font-semibold uppercase text-rose-400">Stop Loss</p>
                         <p className="mt-1 text-lg font-bold font-mono text-rose-400">
                             {sl > 0 ? sl.toFixed(2) : "\u2014"}
                         </p>
-                        <p className="mt-0.5 text-[11px] text-muted-foreground">
+                        <p className="mt-0.5 text-micro text-muted-foreground">
                             {((Math.abs(sl - c) / c) * 100).toFixed(2)}% risk
                         </p>
                     </div>

@@ -10,9 +10,9 @@ type Props = {
 
 function getStateConfig(state: string) {
     switch (state) {
-        case "extreme": return { color: "text-rose-400", bg: "bg-rose-500/10", border: "border-rose-500/20", label: "Extreme" };
-        case "high": return { color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/20", label: "High" };
-        case "low": return { color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20", label: "Low" };
+        case "extreme": return { color: "text-negative", bg: "bg-negative/10", border: "border-negative/20", label: "Extreme" };
+        case "high": return { color: "text-warning", bg: "bg-warning/10", border: "border-warning/20", label: "High" };
+        case "low": return { color: "text-info", bg: "bg-info/10", border: "border-info/20", label: "Low" };
         default: return { color: "text-muted-foreground", bg: "bg-muted/10", border: "border-border/30", label: "Normal" };
     }
 }
@@ -29,24 +29,24 @@ export default function VolatilityPanel({ volatility }: Props) {
 
             <div className="grid grid-cols-2 gap-2">
                 <div className="rounded-lg bg-foreground/4 p-2.5">
-                    <p className="text-[10px] font-semibold uppercase text-foreground/50">ATR</p>
+                    <p className="text-micro font-semibold uppercase text-foreground/50">ATR</p>
                     <p className="mt-1 font-mono text-sm text-foreground/70">{volatility.atr.toFixed(volatility.atr >= 100 ? 2 : 5)}</p>
                 </div>
                 <div className="rounded-lg bg-foreground/4 p-2.5">
-                    <p className="text-[10px] font-semibold uppercase text-foreground/50">ATR %</p>
+                    <p className="text-micro font-semibold uppercase text-foreground/50">ATR %</p>
                     <p className={cn("mt-1 font-mono text-sm font-medium", config.color)}>{volatility.atrPercent.toFixed(3)}%</p>
                 </div>
                 <div className="rounded-lg bg-foreground/4 p-2.5">
-                    <p className="text-[10px] font-semibold uppercase text-foreground/50">Range Change</p>
+                    <p className="text-micro font-semibold uppercase text-foreground/50">Range Change</p>
                     <div className="mt-1 flex items-center gap-1">
-                        {volatility.rangeExpansion > 0 ? <TrendingUp size={11} className="text-emerald-400" /> : volatility.rangeExpansion < 0 ? <TrendingDown size={11} className="text-rose-400" /> : <Minus size={11} className="text-muted-foreground" />}
-                        <p className={cn("font-mono text-sm", volatility.rangeExpansion > 0 ? "text-emerald-400" : volatility.rangeExpansion < 0 ? "text-rose-400" : "text-muted-foreground")}>
+                        {volatility.rangeExpansion > 0 ? <TrendingUp size={11} className="text-positive" /> : volatility.rangeExpansion < 0 ? <TrendingDown size={11} className="text-negative" /> : <Minus size={11} className="text-muted-foreground" />}
+                        <p className={cn("font-mono text-sm", volatility.rangeExpansion > 0 ? "text-positive" : volatility.rangeExpansion < 0 ? "text-negative" : "text-muted-foreground")}>
                             {volatility.rangeExpansion > 0 ? "+" : ""}{volatility.rangeExpansion.toFixed(1)}%
                         </p>
                     </div>
                 </div>
                 <div className="rounded-lg bg-foreground/4 p-2.5">
-                    <p className="text-[10px] font-semibold uppercase text-foreground/50">Lookback</p>
+                    <p className="text-micro font-semibold uppercase text-foreground/50">Lookback</p>
                     <p className="mt-1 font-mono text-sm text-muted-foreground">{volatility.lookbackPeriods} periods</p>
                 </div>
             </div>

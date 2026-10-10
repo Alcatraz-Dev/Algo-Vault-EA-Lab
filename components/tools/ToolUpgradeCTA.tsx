@@ -42,7 +42,7 @@ export function ToolUpgradeCTA({
                             <h3 className="text-sm font-semibold text-foreground">
                                 Pro feature
                             </h3>
-                            <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                            <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-micro font-bold uppercase tracking-wider text-primary">
                                 <Crown className="size-2.5" />
                                 Pro
                             </span>
@@ -77,12 +77,12 @@ export function ToolUpgradeCTA({
     }
 
     return (
-        <div className="relative overflow-hidden rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/[0.08] via-card to-primary/[0.04]">
+        <div className="relative overflow-hidden rounded-lg border border-primary/25 bg-gradient-to-br from-primary/[0.08] via-card to-primary/[0.04]">
             <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
             <div className="relative flex flex-col gap-4 p-6 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                        <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-micro font-bold uppercase tracking-wider text-primary">
                             <Crown className="size-3" />
                             Pro unlocks
                         </span>
@@ -146,7 +146,7 @@ export function LockedSectionCard({
     proHref?: string;
 }) {
     return (
-        <div className="relative rounded-2xl border border-dashed border-primary/30 bg-primary/[0.03] p-5">
+        <div className="relative rounded-lg border border-dashed border-primary/30 bg-primary/[0.03] p-5">
             <div className="flex items-start gap-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
                     <Lock className="size-4" />
@@ -156,7 +156,7 @@ export function LockedSectionCard({
                         <h4 className="text-sm font-semibold text-foreground">
                             {title}
                         </h4>
-                        <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-micro font-bold uppercase tracking-wider text-primary">
                             <Crown className="size-2.5" />
                             Pro
                         </span>

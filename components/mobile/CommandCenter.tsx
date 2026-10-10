@@ -249,11 +249,11 @@ export function CommandCenter() {
                                             <span className="font-mono text-sm font-medium">
                                                 {setup.symbol ?? "—"}
                                             </span>
-                                            <span className="text-[11px] text-muted-foreground">
+                                            <span className="text-micro text-muted-foreground">
                                                 {setup.timeframe ?? ""}
                                             </span>
                                         </div>
-                                        <p className="truncate text-[11px] text-muted-foreground">
+                                        <p className="truncate text-micro text-muted-foreground">
                                             {setup.matchedCount}/{setup.totalCount} conditions matched
                                         </p>
                                     </div>
@@ -290,7 +290,7 @@ export function CommandCenter() {
                             <Metric label="Free margin" value={data.risk.account.freeMargin} kind="currency" />
                         </dl>
                         {data.limits === null && (
-                            <p className="text-[11px] text-muted-foreground">
+                            <p className="text-micro text-muted-foreground">
                                 Risk limits are undefined for this account, so no limit can be reported.
                             </p>
                         )}
@@ -349,7 +349,7 @@ function MarketRow({
                     <span className="font-mono text-sm font-medium">{market.symbol}</span>
                     <TrendPill trend={market.trend} />
                 </div>
-                <p className="truncate text-[11px] text-muted-foreground">
+                <p className="truncate text-micro text-muted-foreground">
                     {market.structure.replace(/_/g, " ")} · {market.volatility.state} vol
                     {market.activeFvg > 0 ? ` · ${market.activeFvg} active FVG` : ""}
                     {market.sweeps.length > 0 ? ` · ${market.sweeps.length} sweep(s)` : ""}
@@ -371,7 +371,7 @@ function TrendPill({ trend }: { trend: "bullish" | "bearish" | "neutral" }) {
               ? "bg-red-500/10 text-red-600 dark:text-red-400"
               : "bg-muted text-muted-foreground";
     return (
-        <span className={cn("rounded px-1 py-0.5 text-[10px] font-medium uppercase", tone)}>
+        <span className={cn("rounded px-1 py-0.5 text-micro font-medium uppercase", tone)}>
             {trend}
         </span>
     );
@@ -388,7 +388,7 @@ function SetupStatusBadge({ status }: { status: string }) {
         CANCELLED: "bg-muted text-muted-foreground",
     };
     return (
-        <span className={cn("rounded px-1.5 py-0.5 text-[10px] font-medium", tone[status] ?? "bg-muted text-muted-foreground")}>
+        <span className={cn("rounded px-1.5 py-0.5 text-micro font-medium", tone[status] ?? "bg-muted text-muted-foreground")}>
             {status.replace(/_/g, " ")}
         </span>
     );
@@ -404,7 +404,7 @@ function RiskBadge({ status }: { status: CommandCenterPayload["riskStatus"] }) {
     } as const;
     const entry = map[status];
     return (
-        <span className={cn("inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 text-[11px] font-medium", entry.className)}>
+        <span className={cn("inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 text-micro font-medium", entry.className)}>
             {status === "unavailable" ? (
                 <CircleSlash className="size-3" aria-hidden />
             ) : (
@@ -434,7 +434,7 @@ function UnavailableCard({ title, body }: { title: string; body: string }) {
             <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" aria-hidden />
             <div>
                 <p className="text-xs font-medium">{title}</p>
-                <p className="text-[11px] text-muted-foreground">{body}</p>
+                <p className="text-micro text-muted-foreground">{body}</p>
             </div>
         </div>
     );

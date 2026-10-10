@@ -40,7 +40,7 @@ export function RiskHud() {
         <section className="rounded-xl border border-border bg-card p-3" aria-label="Risk">
             <PanelErrorBoundary name="Risk" compact>
                 <div className="flex items-start justify-between gap-2">
-                    <h2 className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-foreground">
+                    <h2 className="flex items-center gap-1.5 text-micro font-semibold uppercase tracking-wide text-foreground">
                         <Shield className="size-3 text-primary" />
                         Risk
                     </h2>
@@ -48,11 +48,11 @@ export function RiskHud() {
                 </div>
 
                 {riskError ? (
-                    <p className="mt-2 text-[11px] leading-4 text-amber-400">
+                    <p className="mt-2 text-micro leading-4 text-amber-400">
                         Risk state unavailable — trading status cannot be verified.
                     </p>
                 ) : !risk || !risk.status ? (
-                    <p className="mt-2 text-[11px] leading-4 text-muted-foreground">
+                    <p className="mt-2 text-micro leading-4 text-muted-foreground">
                         No connected account — no risk state to report.
                     </p>
                 ) : (
@@ -114,14 +114,14 @@ export function RiskHud() {
                         {risk.reasons.length > 0 ? (
                             <ul className="mt-2 space-y-0.5 border-t border-border pt-1.5">
                                 {risk.reasons.map((r) => (
-                                    <li key={r} className="text-[10px] leading-4 text-amber-400">
+                                    <li key={r} className="text-micro leading-4 text-amber-400">
                                         • {r}
                                     </li>
                                 ))}
                             </ul>
                         ) : null}
 
-                        <p className="mt-2 border-t border-border pt-1.5 text-[10px] leading-4 text-muted-foreground">
+                        <p className="mt-2 border-t border-border pt-1.5 text-micro leading-4 text-muted-foreground">
                             Evaluated by the AlgoVault canonical Risk Engine. Limits shown as “—” are not configured on
                             this account, not zero.
                         </p>
@@ -136,10 +136,10 @@ function Cell({ label, value }: { label: string; value: string }) {
     const unavailable = value === "—";
     return (
         <div className="rounded-md border border-border/70 bg-background px-2 py-1.5">
-            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+            <div className="text-micro uppercase tracking-wide text-muted-foreground">{label}</div>
             <div
                 className={cn(
-                    "font-mono text-[11px] font-medium tabular-nums",
+                    "font-mono text-micro font-medium tabular-nums",
                     unavailable ? "italic text-muted-foreground/70" : "text-foreground"
                 )}
             >

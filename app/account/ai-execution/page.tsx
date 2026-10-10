@@ -270,12 +270,12 @@ export default function AiExecutionPage() {
                         ) : (
                             <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-positive"><CheckCircle2 className="h-4 w-4" /> Clear</p>
                         )}
-                        <p className="mt-3 text-[11px] text-muted-foreground">Platform admins can halt all automated execution instantly.</p>
+                        <p className="mt-3 text-micro text-muted-foreground">Platform admins can halt all automated execution instantly.</p>
                     </div>
                     <div className="rounded-lg border border-border bg-card p-4">
                         <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground"><Activity className="h-3.5 w-3.5" /> MT5 account</div>
                         <p className="mt-2 text-sm font-semibold">{state?.account.connected ? <span className="text-positive">Connected</span> : <span className="text-warning">Not connected</span>}</p>
-                        <p className="mt-1 text-[11px] text-muted-foreground">Execution runs through your existing gateway account.</p>
+                        <p className="mt-1 text-micro text-muted-foreground">Execution runs through your existing gateway account.</p>
                         {!state?.account.connected && (
                             <Link href="/account/trading-access" className="mt-3 inline-block text-xs text-primary hover:underline">Connect via Trading Access →</Link>
                         )}
@@ -292,7 +292,7 @@ export default function AiExecutionPage() {
                 {showPolicy && (
                     <div className="rounded-lg border border-border bg-card p-4">
                         <h3 className="text-sm font-semibold">Automation policy</h3>
-                        <p className="mt-1 text-[11px] text-muted-foreground">Limits are clamped server-side against platform hard ceilings — the UI can only narrow them, never widen.</p>
+                        <p className="mt-1 text-micro text-muted-foreground">Limits are clamped server-side against platform hard ceilings — the UI can only narrow them, never widen.</p>
 
                         <div className="mt-4 grid gap-3 sm:grid-cols-2">
                             <label className="flex flex-col gap-1 text-xs">
@@ -342,7 +342,7 @@ export default function AiExecutionPage() {
                                 {policyBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Settings2 className="h-3.5 w-3.5" />}
                                 Save policy
                             </button>
-                            <span className="text-[11px] text-muted-foreground">Switching back to Analysis or Approval disables automation immediately.</span>
+                            <span className="text-micro text-muted-foreground">Switching back to Analysis or Approval disables automation immediately.</span>
                         </div>
                     </div>
                 )}
@@ -380,12 +380,12 @@ export default function AiExecutionPage() {
                                 <tbody>
                                     {activePlans.map((p) => (
                                         <tr key={p.id} className="border-t border-border">
-                                            <td className="px-3 py-2 font-mono text-[11px]">{p.id.slice(0, 16)}…</td>
+                                            <td className="px-3 py-2 font-mono text-micro">{p.id.slice(0, 16)}…</td>
                                             <td className="px-3 py-2 font-mono">{p.instrument}</td>
                                             <td className={cn("px-3 py-2 font-semibold", p.direction === "BUY" ? "text-positive" : "text-negative")}>{p.direction}</td>
                                             <td className="px-3 py-2 font-numeric tabular-nums">{fmtPrice(p.entry, p.instrument)} / {fmtPrice(p.stopLoss, p.instrument)}</td>
                                             <td className={cn("px-3 py-2 font-semibold", STATUS_COLOR[p.status])}>{p.status}</td>
-                                            <td className="px-3 py-2 font-mono text-[11px]">{p.execution?.gatewayTicket ?? p.execution?.clientOrderId ?? "—"}</td>
+                                            <td className="px-3 py-2 font-mono text-micro">{p.execution?.gatewayTicket ?? p.execution?.clientOrderId ?? "—"}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -402,10 +402,10 @@ export default function AiExecutionPage() {
                             <p className="py-4 text-center text-xs text-muted-foreground">No audit events yet.</p>
                         ) : (
                             (state?.audit ?? []).map((e) => (
-                                <div key={e.id} className="flex items-center gap-2 border-b border-border/50 py-1.5 text-[11px] last:border-0">
+                                <div key={e.id} className="flex items-center gap-2 border-b border-border/50 py-1.5 text-micro last:border-0">
                                     <span className="font-numeric tabular-nums text-muted-foreground">{fmtTime(e.timestamp)}</span>
                                     <span className={cn("font-semibold", e.action.includes("REJECT") || e.action.includes("FAILED") ? "text-negative" : e.action.includes("APPROVAL") || e.action.includes("ACCEPTED") ? "text-positive" : "text-foreground")}>{e.action}</span>
-                                    {e.planId && <span className="font-mono text-[10px] text-muted-foreground">{e.planId.slice(0, 14)}…</span>}
+                                    {e.planId && <span className="font-mono text-micro text-muted-foreground">{e.planId.slice(0, 14)}…</span>}
                                     {e.reason && <span className="min-w-0 truncate text-muted-foreground">{e.reason}</span>}
                                 </div>
                             ))
@@ -413,7 +413,7 @@ export default function AiExecutionPage() {
                     </div>
                 </section>
 
-                <p className="text-[11px] leading-5 text-muted-foreground">
+                <p className="text-micro leading-5 text-muted-foreground">
                     Every AI-generated plan is grounded in evidence from AlgoVault&apos;s market-intelligence engines and passes a deterministic gate
                     (schema → evidence → freshness → setup lifecycle → risk → authorization → policy → duplicate check) before any order reaches your
                     MT5 account. AI confidence is never a guarantee, and backtest or replay results never represent live execution performance.
@@ -441,8 +441,8 @@ function ApprovalCard({ plan, busy, onDecision }: { plan: TradePlan; busy: boole
                     <span className="font-numeric tabular-nums">{fmtPrice(plan.entry, plan.instrument)}</span>
                     <span className="text-muted-foreground">SL {fmtPrice(plan.stopLoss, plan.instrument)}</span>
                     <span className="text-muted-foreground">TP {plan.takeProfits.map((t) => fmtPrice(t.price, plan.instrument)).join(" / ")}</span>
-                    <span className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">{plan.timeframe}</span>
-                    <span className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">risk {plan.riskPercent}%</span>
+                    <span className="rounded-full border border-border px-2 py-0.5 text-micro text-muted-foreground">{plan.timeframe}</span>
+                    <span className="rounded-full border border-border px-2 py-0.5 text-micro text-muted-foreground">risk {plan.riskPercent}%</span>
                 </div>
                 <ChevronRight className={cn("h-4 w-4 shrink-0 text-muted-foreground transition", open && "rotate-90")} />
             </button>
@@ -455,7 +455,7 @@ function ApprovalCard({ plan, busy, onDecision }: { plan: TradePlan; busy: boole
                             <ul className="mt-1 space-y-0.5">
                                 {nonAiEvidence.slice(0, 6).map((e) => (
                                     <li key={e.id} className="flex gap-1.5">
-                                        <span className="rounded bg-muted px-1 text-[10px] uppercase text-muted-foreground">{e.evidenceClass}</span>
+                                        <span className="rounded bg-muted px-1 text-micro uppercase text-muted-foreground">{e.evidenceClass}</span>
                                         <span className="min-w-0 flex-1 truncate">{e.label}: <span className="font-numeric">{String(e.value)}</span></span>
                                     </li>
                                 ))}
@@ -468,15 +468,15 @@ function ApprovalCard({ plan, busy, onDecision }: { plan: TradePlan; busy: boole
                             </ul>
                             {plan.aiInterpretation && (
                                 <>
-                                    <h4 className="mt-2 font-semibold text-muted-foreground">AI interpretation <span className="rounded bg-primary/10 px-1 text-[10px] uppercase text-primary">AI</span></h4>
-                                    <p className="mt-1 max-h-24 overflow-y-auto text-[11px] leading-4 text-muted-foreground">{plan.aiInterpretation}</p>
+                                    <h4 className="mt-2 font-semibold text-muted-foreground">AI interpretation <span className="rounded bg-primary/10 px-1 text-micro uppercase text-primary">AI</span></h4>
+                                    <p className="mt-1 max-h-24 overflow-y-auto text-micro leading-4 text-muted-foreground">{plan.aiInterpretation}</p>
                                 </>
                             )}
                         </div>
                     </div>
 
                     {plan.riskValidation && (
-                        <p className="mt-2 text-[11px] text-muted-foreground">
+                        <p className="mt-2 text-micro text-muted-foreground">
                             Last gate evaluation: <span className={plan.riskValidation.approved ? "text-positive" : "text-negative"}>{plan.riskValidation.code}</span>
                             {plan.riskValidation.reason ? ` — ${plan.riskValidation.reason}` : ""} at {fmtTime(plan.riskValidation.evaluatedAt)} (re-checked server-side on approval).
                         </p>
@@ -501,7 +501,7 @@ function ApprovalCard({ plan, busy, onDecision }: { plan: TradePlan; busy: boole
                             <XCircle className="h-3.5 w-3.5" />
                             Withdraw
                         </button>
-                        <span className="ml-auto text-[10px] text-muted-foreground">Destination: MT5 via your connected gateway account. The gate re-runs on approval — expired or risk-failing plans are refused.</span>
+                        <span className="ml-auto text-micro text-muted-foreground">Destination: MT5 via your connected gateway account. The gate re-runs on approval — expired or risk-failing plans are refused.</span>
                     </div>
                 </div>
             )}

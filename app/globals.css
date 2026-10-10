@@ -63,11 +63,16 @@
   --warning-muted: color-mix(in oklch, var(--warning) 14%, transparent);
   --info-muted: color-mix(in oklch, var(--info) 14%, transparent);
 
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.714);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+  /* ── Categorical chart series ──
+     Distinguishable hues for data visualization ONLY. Directional/profit
+     values use the semantic tokens (positive/negative/warning/info), never
+     these. Deliberately excludes Vault gold so brand accent stays special.
+     All >= 3:1 on --background/--card/--muted (graphical contrast). */
+  --chart-1: #7aa2ff; /* blue */
+  --chart-2: #3fd0c0; /* teal */
+  --chart-3: #b79dff; /* violet */
+  --chart-4: #f08fbf; /* pink */
+  --chart-5: #e0a83c; /* amber */
 }
 
 .light {
@@ -106,6 +111,12 @@
   --info-foreground: #0065b4;
   --success: var(--positive);
   --success-foreground: var(--positive-foreground);
+  /* Categorical chart series — deeper variants for light surfaces */
+  --chart-1: #2f6fd8; /* blue */
+  --chart-2: #0c7a6a; /* teal */
+  --chart-3: #6d4bd0; /* violet */
+  --chart-4: #c2478a; /* pink */
+  --chart-5: #9a6a12; /* amber */
 }
 
 @theme inline {
@@ -216,7 +227,7 @@
 
 /* ── PWA Offline State ── */
 .pwa-offline-banner {
-  @apply fixed top-0 left-0 right-0 z-50 bg-amber-500/90 text-amber-900 px-4 py-2 text-center text-sm font-medium;
+  @apply fixed top-0 left-0 right-0 z-50 bg-warning/90 text-background px-4 py-2 text-center text-sm font-medium;
 }
 
 .pwa-offline-content {
@@ -240,71 +251,19 @@
   display: none;
 }
 
-/* ── Glassmorphism / Frosted Glass ── */
-.glass {
-  background: rgba(24, 24, 24, 0.7);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+/* ── Glass is restricted to overlays/drawers above content ──
+   Institutional Command forbids glass cards: panels, tables, order entry and
+   charts are solid (surface tone + hairline border). A single scrim utility is
+   all that remains, so any floating surface can sit above content predictably.
+   Decorative gradient / glow / shimmer helpers were removed with the redesign. */
+.glass-scrim {
+  background: color-mix(in srgb, var(--background) 72%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
-
-.glass-strong {
-  background: rgba(24, 24, 24, 0.85);
-  backdrop-filter: blur(30px) saturate(200%);
-  -webkit-backdrop-filter: blur(30px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.glass-border {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.light .glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.light .glass-strong {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(30px) saturate(200%);
-  -webkit-backdrop-filter: blur(30px) saturate(200%);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-/* ── Iridescent Light Trail / Flow Animation ── */
-@keyframes shimmer-sweep {
-  0% { transform: translateX(-100%) skewX(-15deg); opacity: 0; }
-  20% { opacity: 1; }
-  80% { opacity: 1; }
-  100% { transform: translateX(200%) skewX(-15deg); opacity: 0; }
-}
-
-.shimmer-overlay::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    110deg,
-    transparent 40%,
-    rgba(255, 255, 255, 0.15) 50%,
-    transparent 60%
-  );
-  background-size: 200% 100%;
-  animation: shimmer-sweep 3s ease-in-out infinite;
-  pointer-events: none;
-  border-radius: inherit;
-}
-
-/* Decorative gradient / glow / glass / pipeline-orbit helpers (Gemini
-   gradients, integration web, stage orbit) were removed with the
-   Institutional Command redesign. Structure comes from tone + hairline
-   borders; the only blur allowed is on overlays/drawers above content. */
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-core-ping,
-  .shimmer-overlay::before {
+  .animate-core-ping {
     animation: none !important;
   }
 }
@@ -537,7 +496,7 @@ body {
   );
 }
 
-/* ── Trigger.dev-style hero light system (brand orange) ── */
+/* ── Trigger.dev-style hero light system (brand gold) ── */
 @keyframes av-beam-sweep {
   0%   { transform: translateX(-140%) skewX(-10deg); opacity: 0; }
   6%   { opacity: 1; }
@@ -703,8 +662,8 @@ body {
   box-shadow: 0 0 14px color-mix(in oklch, var(--positive) 70%, transparent);
 }
 
-/* Ecosystem — Gemini-style orbit around icon chips: a slow conic ring with
-   two glowing dots circling a calm center mark (sparkle effect, orange). */
+/* Ecosystem — orbit around icon chips: a slow conic ring with two glowing
+   dots circling a calm center mark (sparkle effect, brand gold). */
 @keyframes eco-orbit-spin {
   to { transform: rotate(360deg); }
 }

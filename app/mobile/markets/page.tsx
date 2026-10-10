@@ -275,7 +275,7 @@ export default function MobileMarketsPage() {
       <div className="flex-1 overflow-auto p-3 pb-20">
         {error && !loading && (
           <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground p-4">
-            <AlertCircle className="h-12 w-12 mb-3 opacity-50 text-rose-400" />
+            <AlertCircle className="h-12 w-12 mb-3 opacity-50 text-negative" />
             <p className="text-sm">{error}</p>
             <Button variant="outline" size="sm" className="mt-3" onClick={fetchMarketData}>
               <RefreshCw className="h-4 w-4 mr-1" />
@@ -304,11 +304,11 @@ export default function MobileMarketsPage() {
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="font-mono font-semibold text-sm truncate max-w-[100px]">{sym.symbol}</span>
-                        <span className="text-[10px] text-muted-foreground hidden sm:inline">{SYMBOL_NAMES[sym.symbol]}</span>
+                        <span className="text-micro text-muted-foreground hidden sm:inline">{SYMBOL_NAMES[sym.symbol]}</span>
                       </div>
                       <button
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(sym.symbol); }}
-                        className={cn("p-1 rounded-lg transition-colors touch-target", sym.isFavorite ? "text-amber-400 fill-current" : "text-muted-foreground hover:text-amber-400")}
+                        className={cn("p-1 rounded-lg transition-colors touch-target", sym.isFavorite ? "text-warning fill-current" : "text-muted-foreground hover:text-warning")}
                         aria-label={sym.isFavorite ? "Remove from favorites" : "Add to favorites"}
                         aria-pressed={sym.isFavorite}
                       >
@@ -317,11 +317,11 @@ export default function MobileMarketsPage() {
                     </div>
                     <div className="text-right min-w-[80px]">
                       {sym.error ? (
-                        <p className="font-mono font-semibold text-sm text-rose-400">{sym.error}</p>
+                        <p className="font-mono font-semibold text-sm text-negative">{sym.error}</p>
                       ) : (
                         <>
                           <p className="font-mono font-semibold text-sm">{formatPrice(sym.symbol, sym.bid)}</p>
-                          <p className={cn("font-mono text-[10px]", (sym.changePct ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400")}>
+                          <p className={cn("font-mono text-micro", (sym.changePct ?? 0) >= 0 ? "text-positive" : "text-negative")}>
                             {formatChangePct(sym.changePct ?? 0)}
                           </p>
                         </>
@@ -330,11 +330,11 @@ export default function MobileMarketsPage() {
                   </div>
                   
                   <div className="mt-2 flex items-center justify-between pt-2 border-t border-border/30">
-                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                    <div className="flex items-center gap-2 text-micro text-muted-foreground">
                       <Badge variant="outline" className={cn(
-                        (sym.volatility ?? "normal") === "high" && "border-rose-500/30 text-rose-400",
-                        (sym.volatility ?? "normal") === "extreme" && "border-rose-500 text-rose-400 bg-rose-500/10",
-                        (sym.volatility ?? "normal") === "low" && "border-emerald-500/30 text-emerald-400"
+                        (sym.volatility ?? "normal") === "high" && "border-negative/30 text-negative",
+                        (sym.volatility ?? "normal") === "extreme" && "border-negative text-negative bg-negative/10",
+                        (sym.volatility ?? "normal") === "low" && "border-positive/30 text-positive"
                       )}>
                         {(sym.volatility ?? "normal").charAt(0).toUpperCase() + (sym.volatility ?? "normal").slice(1)} Vol
                       </Badge>
@@ -344,13 +344,13 @@ export default function MobileMarketsPage() {
                     </div>
                     <div className="flex items-center gap-1">
                       {sym.signalStatus === "active" && (
-                        <Badge variant="default" className="bg-emerald-500/10 text-emerald-400 text-[10px] gap-1">
+                        <Badge variant="default" className="bg-positive/10 text-positive text-micro gap-1">
                           <Radio className="h-3 w-3" />
                           Signal
                         </Badge>
                       )}
                       {sym.signalStatus === "watch" && (
-                        <Badge variant="outline" className="border-amber-500/30 text-amber-400 text-[10px]">
+                        <Badge variant="outline" className="border-warning/30 text-warning text-micro">
                           Watch
                         </Badge>
                       )}

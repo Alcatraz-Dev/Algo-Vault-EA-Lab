@@ -42,7 +42,7 @@ export function HomeIntelligenceOS({ refreshKey }: { refreshKey: number }) {
       </header>
 
       {/* MARKET PULSE */}
-      <section className="rounded-xl border border-border/60 bg-card/40 p-4" data-guide="market-pulse">
+      <section className="rounded-lg border border-border bg-card p-4" data-guide="market-pulse">
         <div className="flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Market Pulse</h3>
@@ -58,9 +58,9 @@ export function HomeIntelligenceOS({ refreshKey }: { refreshKey: number }) {
       </section>
 
       {/* WHAT MATTERS NOW */}
-      <section className="rounded-xl border border-border/60 bg-card/40 p-4" data-guide="what-matters-now">
+      <section className="rounded-lg border border-border bg-card p-4" data-guide="what-matters-now">
         <div className="flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-amber-500" />
+          <AlertTriangle className="h-4 w-4 text-warning" />
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">What Matters Now</h3>
         </div>
         <ul className="mt-3 space-y-2">
@@ -77,7 +77,7 @@ export function HomeIntelligenceOS({ refreshKey }: { refreshKey: number }) {
       </section>
 
       {/* ACTIVE SETUPS */}
-      <section className="rounded-xl border border-border/60 bg-card/40 p-4" data-guide="active-setups">
+      <section className="rounded-lg border border-border bg-card p-4" data-guide="active-setups">
         <div className="flex items-center gap-2">
           <Settings className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Active Setups</h3>
@@ -103,7 +103,7 @@ export function HomeIntelligenceOS({ refreshKey }: { refreshKey: number }) {
       </section>
 
       {/* STRATEGY HEALTH */}
-      <section className="rounded-xl border border-border/60 bg-card/40 p-4" data-guide="strategy-health">
+      <section className="rounded-lg border border-border bg-card p-4" data-guide="strategy-health">
         <div className="flex items-center gap-2">
           <GitBranch className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Strategy Health</h3>
@@ -125,7 +125,7 @@ export function HomeIntelligenceOS({ refreshKey }: { refreshKey: number }) {
       </section>
 
       {/* RESEARCH */}
-      <section className="rounded-xl border border-border/60 bg-card/40 p-4" data-guide="research">
+      <section className="rounded-lg border border-border bg-card p-4" data-guide="research">
         <div className="flex items-center gap-2">
           <Activity className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Research</h3>
@@ -147,7 +147,7 @@ export function HomeIntelligenceOS({ refreshKey }: { refreshKey: number }) {
       </section>
 
       {/* RISK */}
-      <section className="rounded-xl border border-border/60 bg-card/40 p-4" data-guide="risk">
+      <section className="rounded-lg border border-border bg-card p-4" data-guide="risk">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Risk</h3>
@@ -166,7 +166,7 @@ export function HomeIntelligenceOS({ refreshKey }: { refreshKey: number }) {
       </section>
 
       {/* AI INSIGHT */}
-      <section className="rounded-xl border border-border/60 bg-card/40 p-4" data-guide="ai-insight">
+      <section className="rounded-lg border border-border bg-card p-4" data-guide="ai-insight">
         <div className="flex items-center gap-2">
           <Loader2 className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">AI Insight</h3>
@@ -180,7 +180,7 @@ export function HomeIntelligenceOS({ refreshKey }: { refreshKey: number }) {
       </section>
 
       {/* RECENT ACTIVITY */}
-      <section className="rounded-xl border border-border/60 bg-card/40 p-4" data-guide="recent-activity">
+      <section className="rounded-lg border border-border bg-card p-4" data-guide="recent-activity">
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Recent Activity</h3>
@@ -213,7 +213,7 @@ function HomeIntelligenceOSSkeleton() {
         <h2 className="h-6 w-48 animate-pulse rounded bg-muted" />
       </div>
       {[...Array(7)].map((_, i) => (
-        <div key={i} className="h-28 animate-pulse rounded-xl border border-border/60 bg-muted/30" />
+        <div key={i} className="h-28 animate-pulse rounded-lg border border-border/60 bg-muted/30" />
       ))}
     </section>
   );
@@ -226,7 +226,7 @@ function EventItem({ event }: { event: IntelligenceEvent }) {
   return (
     <li className="flex items-start gap-3 rounded-lg border border-border/50 bg-muted/20 p-3 text-sm">
       <div className="mt-0.5 shrink-0">
-        <span className={cn("rounded-full px-1.5 py-0.5 text-[10px] font-medium uppercase", priorityClass(event.priority))}>
+        <span className={cn("rounded-full px-1.5 py-0.5 text-micro font-medium uppercase", priorityClass(event.priority))}>
           {label}
         </span>
       </div>
@@ -234,9 +234,9 @@ function EventItem({ event }: { event: IntelligenceEvent }) {
         <p className="text-sm font-medium text-foreground">{event.title}</p>
         <p className="mt-0.5 text-xs text-muted-foreground">{event.summary}</p>
         {event.evidence && event.evidence.length > 0 && (
-          <p className="mt-1 text-[11px] text-muted-foreground">Evidence: {event.evidence.slice(0, 2).join("; ")}</p>
+          <p className="mt-1 text-micro text-muted-foreground">Evidence: {event.evidence.slice(0, 2).join("; ")}</p>
         )}
-        <p className="mt-1 text-[11px] text-muted-foreground">{reason}</p>
+        <p className="mt-1 text-micro text-muted-foreground">{reason}</p>
         {event.actions.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
             {event.actions.slice(0, 3).map((action) => (
@@ -245,7 +245,7 @@ function EventItem({ event }: { event: IntelligenceEvent }) {
           </div>
         )}
       </div>
-      <span className="shrink-0 text-[10px] text-muted-foreground">
+      <span className="shrink-0 text-micro text-muted-foreground">
         {new Date(event.timestamp).toLocaleTimeString()}
       </span>
     </li>
@@ -259,7 +259,7 @@ function ActionButton({ action }: { action: IntelligenceEvent["actions"][0] }) {
     return (
       <Link
         href={routeTarget.href}
-        className="text-[11px] underline underline-offset-2 decoration-muted-foreground hover:decoration-foreground"
+        className="text-micro underline underline-offset-2 decoration-muted-foreground hover:decoration-foreground"
       >
         {action.label}
       </Link>
@@ -269,7 +269,7 @@ function ActionButton({ action }: { action: IntelligenceEvent["actions"][0] }) {
   return (
     <button
       type="button"
-      className="text-[11px] underline underline-offset-2 decoration-muted-foreground hover:decoration-foreground"
+      className="text-micro underline underline-offset-2 decoration-muted-foreground hover:decoration-foreground"
       onClick={() => {
         // Contextual action dispatch — see lib/intelligence-os/types.ts §B.
       }}
@@ -280,13 +280,13 @@ function ActionButton({ action }: { action: IntelligenceEvent["actions"][0] }) {
 }
 
 function priorityClass(p: IntelligenceEvent["priority"]): string {
-  return p === "CRITICAL" ? "bg-red-500/10 text-red-600" : p === "HIGH" ? "bg-orange-500/10 text-orange-600" : p === "MEDIUM" ? "bg-amber-500/10 text-amber-600" : p === "LOW" ? "bg-sky-500/10 text-sky-600" : "bg-muted text-muted-foreground";
+  return p === "CRITICAL" ? "bg-destructive-muted text-destructive-foreground" : p === "HIGH" ? "bg-warning-muted text-warning-foreground" : p === "MEDIUM" ? "bg-warning/10 text-warning-foreground" : p === "LOW" ? "bg-info-muted text-info-foreground" : "bg-muted text-muted-foreground";
 }
 
 function riskClass(status?: string): string {
-  if (status === "normal") return "text-emerald-600 dark:text-emerald-400";
-  if (status === "caution") return "text-amber-600 dark:text-amber-400";
-  if (status === "restricted") return "text-orange-600 dark:text-orange-400";
-  if (status === "halted") return "text-red-600 dark:text-red-400";
+  if (status === "normal") return "text-positive";
+  if (status === "caution") return "text-warning";
+  if (status === "restricted") return "text-warning";
+  if (status === "halted") return "text-negative";
   return "text-muted-foreground";
 }

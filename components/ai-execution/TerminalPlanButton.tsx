@@ -81,7 +81,7 @@ export function GenerateTradePlanButton({ signal, token }: { signal: TerminalSig
                 disabled={!token || busy}
                 title="Generate an evidence-grounded TradePlan from this signal (no execution)"
                 className={cn(
-                    "inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary transition hover:bg-primary/20",
+                    "inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2 py-0.5 text-micro font-medium text-primary transition hover:bg-primary/20",
                     (!token || busy) && "opacity-50"
                 )}
             >
@@ -89,7 +89,7 @@ export function GenerateTradePlanButton({ signal, token }: { signal: TerminalSig
                 Trade Plan
             </button>
             {result && (
-                <span className={cn("max-w-64 text-[10px] leading-3", isError ? "text-negative" : "text-muted-foreground")} role="status">
+                <span className={cn("max-w-64 text-micro leading-3", isError ? "text-negative" : "text-muted-foreground")} role="status">
                     {result}
                 </span>
             )}

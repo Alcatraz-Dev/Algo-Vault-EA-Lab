@@ -55,10 +55,10 @@ export function WhatAreAITeams({ compact = false }: { compact?: boolean }) {
 function InfoItem({ title, children }: { title: string; children: React.ReactNode }) {
     return (
         <li className="rounded border border-border/60 bg-background/40 p-2.5">
-            <p className="mb-0.5 flex items-center gap-1.5 text-[11px] font-semibold text-foreground">
-                <Badge variant="outline" className="text-[9px]">{title}</Badge>
+            <p className="mb-0.5 flex items-center gap-1.5 text-micro font-semibold text-foreground">
+                <Badge variant="outline" className="text-micro">{title}</Badge>
             </p>
-            <p className="text-[11px] leading-relaxed text-muted-foreground">{children}</p>
+            <p className="text-micro leading-relaxed text-muted-foreground">{children}</p>
         </li>
     );
 }

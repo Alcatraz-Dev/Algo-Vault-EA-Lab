@@ -173,7 +173,7 @@ export default function AdminAiStudioPage() {
             </div>
 
             {error && (
-                <div className="mb-5 flex items-start gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 p-4">
+                <div className="mb-5 flex items-start gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-4">
                     <AlertCircle size={16} className="mt-0.5 shrink-0 text-red-300" />
                     <p className="text-sm text-red-300">{error}</p>
                 </div>
@@ -182,7 +182,7 @@ export default function AdminAiStudioPage() {
             <div className="grid gap-6 lg:grid-cols-5">
                 {/* Generator */}
                 <div className="lg:col-span-3">
-                    <div className="rounded-2xl border border-border/30 bg-muted/50 p-6">
+                    <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
                         <h3 className="flex items-center gap-2 text-sm font-semibold">
                             <Sparkles size={14} /> Describe the plugin
                         </h3>
@@ -266,13 +266,13 @@ export default function AdminAiStudioPage() {
 
                     {/* Result */}
                     {draft && (
-                        <div className="mt-5 rounded-2xl border border-border/30 bg-muted/50 p-6">
+                        <div className="mt-5 rounded-lg border border-border/30 bg-muted/50 p-6">
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 <div>
                                     <h3 className="flex items-center gap-2 text-sm font-semibold">
                                         <FileText size={14} /> {draft.displayName}
                                     </h3>
-                                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                                    <p className="mt-0.5 text-micro text-muted-foreground">
                                         {draft.id} · {CATEGORY_LABELS[draft.category]} · {draft.target}
                                         {draft.extensionType ? ` · ${EXTENSION_TYPE_LABELS[draft.extensionType] || draft.extensionType}` : ""}
                                         {jobId ? ` · job ${jobId}` : ""}
@@ -292,7 +292,7 @@ export default function AdminAiStudioPage() {
                                                 {ok ? <CheckCircle2 size={13} className="text-emerald-300" /> : <XCircle size={13} className="text-red-300" />}
                                                 <p className="text-xs font-medium">{step.label}</p>
                                             </div>
-                                            <p className="mt-1 text-[10px] leading-4 text-muted-foreground">{step.description}</p>
+                                            <p className="mt-1 text-micro leading-4 text-muted-foreground">{step.description}</p>
                                         </div>
                                     );
                                 })}
@@ -303,7 +303,7 @@ export default function AdminAiStudioPage() {
                                     <h4 className="text-xs font-medium">Validation messages</h4>
                                     <ul className="mt-2 space-y-1.5">
                                         {messages.map((m, i) => (
-                                            <li key={i} className={`flex gap-2 text-[11px] leading-5 ${m.toLowerCase().includes("unsupported") || m.toLowerCase().includes("fail") || m.toLowerCase().includes("error") ? "text-amber-200" : "text-muted-foreground"}`}>
+                                            <li key={i} className={`flex gap-2 text-micro leading-5 ${m.toLowerCase().includes("unsupported") || m.toLowerCase().includes("fail") || m.toLowerCase().includes("error") ? "text-amber-200" : "text-muted-foreground"}`}>
                                                 <span className="shrink-0">•</span>
                                                 {m}
                                             </li>
@@ -319,7 +319,7 @@ export default function AdminAiStudioPage() {
                                     </h4>
                                     <ul className="mt-2 space-y-2">
                                         {draft.spec.unsupportedCapabilities.map((u, i) => (
-                                            <li key={i} className="text-[11px] leading-5 text-amber-100/80">
+                                            <li key={i} className="text-micro leading-5 text-amber-100/80">
                                                 <span className="font-medium text-amber-200">{u.required}</span> — {u.suggestedImplementation}
                                             </li>
                                         ))}
@@ -333,19 +333,19 @@ export default function AdminAiStudioPage() {
                                     <h4 className="text-xs font-medium">Capabilities</h4>
                                     <div className="mt-2 flex flex-wrap gap-2">
                                         {(draft.spec?.capabilities || []).slice(0, 10).map((cap) => (
-                                            <span key={cap} className="rounded-lg bg-muted/5 px-2.5 py-1 text-[11px] text-muted-foreground">{cap}</span>
+                                            <span key={cap} className="rounded-lg bg-muted/5 px-2.5 py-1 text-micro text-muted-foreground">{cap}</span>
                                         ))}
-                                        {(draft.spec?.capabilities || []).length === 0 && <span className="text-[11px] text-muted-foreground">None declared.</span>}
+                                        {(draft.spec?.capabilities || []).length === 0 && <span className="text-micro text-muted-foreground">None declared.</span>}
                                     </div>
                                 </div>
                                 <div>
                                     <h4 className="text-xs font-medium">Permissions</h4>
                                     <div className="mt-2 flex flex-wrap gap-2">
                                         {(Object.keys(draft.permissions || {}) as PluginPermission[]).filter((p) => draft.permissions?.[p]).map((p) => (
-                                            <span key={p} className="rounded-lg bg-violet-500/10 px-2.5 py-1 text-[11px] text-violet-300">{permissionLabel(p)}</span>
+                                            <span key={p} className="rounded-lg bg-violet-500/10 px-2.5 py-1 text-micro text-violet-300">{permissionLabel(p)}</span>
                                         ))}
                                         {(Object.keys(draft.permissions || {}) as PluginPermission[]).filter((p) => draft.permissions?.[p]).length === 0 && (
-                                            <span className="text-[11px] text-muted-foreground">No permissions requested.</span>
+                                            <span className="text-micro text-muted-foreground">No permissions requested.</span>
                                         )}
                                     </div>
                                 </div>
@@ -360,7 +360,7 @@ export default function AdminAiStudioPage() {
                                     <div className="mt-3 space-y-4">
                                         <div className="rounded-xl border border-border/30 bg-muted/20 p-4">
                                             <h4 className="text-xs font-medium">Declarative condition</h4>
-                                            <pre className="mt-2 overflow-x-auto rounded-lg bg-background p-3 font-mono text-[11px] leading-5 text-muted-foreground">
+                                            <pre className="mt-2 overflow-x-auto rounded-lg bg-background p-3 font-mono text-micro leading-5 text-muted-foreground">
                                                 {JSON.stringify(draft.spec?.runtime?.condition || draft.spec?.manifest?.runtime?.condition, null, 2)}
                                             </pre>
                                         </div>
@@ -369,7 +369,7 @@ export default function AdminAiStudioPage() {
                                                 <h4 className="text-xs font-medium">Sandbox test cases</h4>
                                                 <ul className="mt-2 space-y-1.5">
                                                     {draft.spec.testCases.map((tc, i) => (
-                                                        <li key={i} className="flex gap-2 text-[11px] leading-5 text-muted-foreground">
+                                                        <li key={i} className="flex gap-2 text-micro leading-5 text-muted-foreground">
                                                             <CheckCircle2 size={12} className="mt-0.5 shrink-0 text-emerald-400" />
                                                             {tc}
                                                         </li>
@@ -404,7 +404,7 @@ export default function AdminAiStudioPage() {
                                     {publishing === "draft" ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                                     Save as catalog draft
                                 </button>
-                                <span className="text-[11px] text-muted-foreground">
+                                <span className="text-micro text-muted-foreground">
                                     {passed ? "All pipeline checks passed — publishing is allowed." : "Does not pass all pipeline checks — publishing is blocked."}
                                 </span>
                             </div>
@@ -413,7 +413,7 @@ export default function AdminAiStudioPage() {
 
                     {/* No result */}
                     {!draft && !generating && !error && (
-                        <div className="mt-5 rounded-2xl border border-dashed border-border/30 bg-muted/50 p-8 text-center">
+                        <div className="mt-5 rounded-lg border border-dashed border-border/30 bg-muted/50 p-8 text-center">
                             <Bot size={28} className="mx-auto text-muted-foreground" />
                             <p className="mt-3 text-sm font-medium">No plugin generated yet</p>
                             <p className="mx-auto mt-1 max-w-md text-xs leading-5 text-muted-foreground">
@@ -425,7 +425,7 @@ export default function AdminAiStudioPage() {
 
                 {/* Supported APIs + jobs */}
                 <div className="lg:col-span-2">
-                    <div className="rounded-2xl border border-border/30 bg-muted/50 p-6">
+                    <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
                         <h3 className="flex items-center gap-2 text-sm font-semibold">
                             <Shield size={14} /> Sandbox API surface
                         </h3>
@@ -438,18 +438,18 @@ export default function AdminAiStudioPage() {
                                 return (
                                     <div key={key} className="rounded-xl border border-border/30 bg-muted/20 p-3">
                                         <p className="text-xs font-medium text-foreground">{api?.label || key}</p>
-                                        <p className="mt-0.5 text-[11px] leading-5 text-muted-foreground">{api?.description || "Declarative sandbox API."}</p>
+                                        <p className="mt-0.5 text-micro leading-5 text-muted-foreground">{api?.description || "Declarative sandbox API."}</p>
                                     </div>
                                 );
                             })}
                         </div>
-                        <div className="mt-4 flex gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-[11px] leading-5 text-amber-200">
+                        <div className="mt-4 flex gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-micro leading-5 text-amber-200">
                             <Lock size={13} className="mt-0.5 shrink-0" />
                             Order placement, credentials access, external calls and arbitrary code are never generated.
                         </div>
                     </div>
 
-                    <div className="mt-5 rounded-2xl border border-border/30 bg-muted/50 p-6">
+                    <div className="mt-5 rounded-lg border border-border/30 bg-muted/50 p-6">
                         <div className="flex items-center justify-between">
                             <h3 className="flex items-center gap-2 text-sm font-semibold">
                                 <Terminal size={14} /> Generation jobs
@@ -473,15 +473,15 @@ export default function AdminAiStudioPage() {
                                     <div key={job.id} className="rounded-xl border border-border/30 bg-muted/20 p-3">
                                         <div className="flex items-center justify-between gap-2">
                                             <StatusBadge tone={job.status === "done" ? "positive" : job.status === "failed" ? "error" : "pending"} label={job.status} dot />
-                                            <span className="shrink-0 text-[10px] text-muted-foreground">{timeAgo(job.createdAt)}</span>
+                                            <span className="shrink-0 text-micro text-muted-foreground">{timeAgo(job.createdAt)}</span>
                                         </div>
-                                        <p className="mt-2 line-clamp-2 text-[11px] leading-5 text-muted-foreground">{job.prompt}</p>
-                                        <p className="mt-1 text-[10px] text-muted-foreground">
+                                        <p className="mt-2 line-clamp-2 text-micro leading-5 text-muted-foreground">{job.prompt}</p>
+                                        <p className="mt-1 text-micro text-muted-foreground">
                                             {job.target} · {CATEGORY_LABELS[job.category as PluginCategory] || job.category} · created {formatDate(job.createdAt)}
                                         </p>
-                                        {job.error && <p className="mt-1 text-[10px] leading-4 text-red-300">{job.error}</p>}
+                                        {job.error && <p className="mt-1 text-micro leading-4 text-red-300">{job.error}</p>}
                                         {job.draftId && (
-                                            <p className="mt-1 text-[10px] text-violet-300">{job.draftId} {job.status === "done" && "· validated"}</p>
+                                            <p className="mt-1 text-micro text-violet-300">{job.draftId} {job.status === "done" && "· validated"}</p>
                                         )}
                                     </div>
                                 ))}

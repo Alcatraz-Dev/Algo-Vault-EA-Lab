@@ -204,7 +204,7 @@ export function TeamBuilder({
                             key={template.id}
                             type="button"
                             onClick={() => applyTemplate(template)}
-                            className="rounded-full border border-border/70 bg-card/70 px-3 py-1 text-[11px] text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                            className="rounded-full border border-border/70 bg-card/70 px-3 py-1 text-micro text-muted-foreground hover:border-primary/50 hover:text-foreground"
                         >
                             {template.name}
                         </button>
@@ -221,7 +221,7 @@ export function TeamBuilder({
                                 type="button"
                                 onClick={() => setStep(index)}
                                 className={cn(
-                                    "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] transition-colors",
+                                    "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-micro transition-colors",
                                     index === step
                                         ? "border-primary/60 bg-primary/10 text-primary"
                                         : index < step
@@ -273,7 +273,7 @@ export function TeamBuilder({
                         <div>
                             <div className="mb-3 flex items-center justify-between">
                                 <p className="text-sm font-semibold">Step 5 · Select agents</p>
-                                <span className="text-[11px] text-muted-foreground">{selectedIds.length} selected</span>
+                                <span className="text-micro text-muted-foreground">{selectedIds.length} selected</span>
                             </div>
                             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                                 {selectable.map((agent) => {
@@ -292,7 +292,7 @@ export function TeamBuilder({
                                             <AgentAvatar visualType={agent.visualType} state={selected ? "completed" : "idle"} size={34} />
                                             <span className="min-w-0">
                                                 <span className="block truncate text-xs font-medium text-foreground">{agent.name}</span>
-                                                <span className="block truncate text-[10px] text-muted-foreground">{agent.category}</span>
+                                                <span className="block truncate text-micro text-muted-foreground">{agent.category}</span>
                                             </span>
                                         </button>
                                     );
@@ -329,7 +329,7 @@ export function TeamBuilder({
                                 </dl>
                                 <div className="mt-3 flex flex-wrap gap-1.5">
                                     {selectedIds.map((id) => (
-                                        <span key={id} className="inline-flex items-center gap-1 rounded border border-border/60 px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                                        <span key={id} className="inline-flex items-center gap-1 rounded border border-border/60 px-1.5 py-0.5 text-micro text-muted-foreground">
                                             <AgentStateDot state="idle" />
                                             {agents.find((a) => a.id === id)?.name ?? id}
                                         </span>
@@ -394,7 +394,7 @@ function Picker({
                         )}
                     >
                         <span className="block text-sm font-medium text-foreground">{option.label}</span>
-                        {option.hint ? <span className="mt-0.5 block text-[11px] text-muted-foreground">{option.hint}</span> : null}
+                        {option.hint ? <span className="mt-0.5 block text-micro text-muted-foreground">{option.hint}</span> : null}
                     </button>
                 ))}
             </div>
@@ -413,7 +413,7 @@ function TimeframeSelect({
 }) {
     return (
         <label className="block">
-            <span className="mb-1 block text-[11px] text-muted-foreground">{label}</span>
+            <span className="mb-1 block text-micro text-muted-foreground">{label}</span>
             <select
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
@@ -432,7 +432,7 @@ function TimeframeSelect({
 function Summary({ label, value }: { label: string; value: string }) {
     return (
         <div>
-            <dt className="text-[10px] tracking-wide text-muted-foreground uppercase">{label}</dt>
+            <dt className="text-micro tracking-wide text-muted-foreground uppercase">{label}</dt>
             <dd className="font-medium text-foreground capitalize">{value}</dd>
         </div>
     );

@@ -80,9 +80,9 @@ export default function AdminExtensionsPage() {
             </div>
 
             {loadError && (
-                <div className="mb-5 flex items-start justify-between gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 p-4">
-                    <p className="text-sm text-red-300">{loadError}</p>
-                    <button type="button" onClick={load} className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-300 transition hover:bg-red-500/20">
+                <div className="mb-5 flex items-start justify-between gap-3 rounded-lg border border-negative/30 bg-negative/10 p-4">
+                    <p className="text-sm text-negative">{loadError}</p>
+                    <button type="button" onClick={load} className="inline-flex items-center gap-1.5 rounded-lg border border-negative/30 px-3 py-1.5 text-xs text-negative transition hover:bg-negative/20">
                         <RefreshCw size={12} /> Retry
                     </button>
                 </div>
@@ -91,7 +91,7 @@ export default function AdminExtensionsPage() {
             {loading ? (
                 <div className="grid gap-3">
                     {[1, 2, 3].map((n) => (
-                        <div key={n} className="h-20 animate-pulse rounded-2xl border border-border/30 bg-muted/50" />
+                        <div key={n} className="h-20 animate-pulse rounded-lg border border-border/30 bg-muted/50" />
                     ))}
                 </div>
             ) : extensions.length === 0 ? (
@@ -111,11 +111,11 @@ export default function AdminExtensionsPage() {
                     }
                 />
             ) : (
-                <div className="overflow-hidden rounded-2xl border border-border/30 bg-muted/50">
+                <div className="overflow-hidden rounded-lg border border-border/30 bg-muted/50">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
-                                <tr className="border-b border-border/30 text-[11px] uppercase tracking-wide text-muted-foreground">
+                                <tr className="border-b border-border/30 text-micro uppercase tracking-wide text-muted-foreground">
                                     <th className="px-4 py-3">Extension</th>
                                     <th className="px-4 py-3">Type</th>
                                     <th className="px-4 py-3">Status</th>
@@ -132,10 +132,10 @@ export default function AdminExtensionsPage() {
                                         <tr key={ext.id} className="border-b border-border/20 last:border-0 hover:bg-muted/20">
                                             <td className="px-4 py-3">
                                                 <p className="text-sm font-medium text-foreground">{ext.displayName}</p>
-                                                <p className="text-[11px] text-muted-foreground">{ext.id}</p>
+                                                <p className="text-micro text-muted-foreground">{ext.id}</p>
                                             </td>
                                             <td className="px-4 py-3">
-                                                <span className="text-xs text-emerald-300">{EXTENSION_TYPE_LABELS[type] || type}</span>
+                                                <span className="text-xs text-positive">{EXTENSION_TYPE_LABELS[type] || type}</span>
                                             </td>
                                             <td className="px-4 py-3">
                                                 <StatusBadge tone={pluginStatusTone(ext.status)} label={ext.status} dot />
@@ -157,7 +157,7 @@ export default function AdminExtensionsPage() {
                                                         type="button"
                                                         disabled={deletingId === ext.id}
                                                         onClick={() => deleteExtension(ext)}
-                                                        className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 px-2.5 py-2 text-xs text-red-300 transition hover:bg-red-500/10 disabled:opacity-50"
+                                                        className="inline-flex items-center gap-1.5 rounded-lg border border-negative/30 px-2.5 py-2 text-xs text-negative transition hover:bg-negative/10 disabled:opacity-50"
                                                     >
                                                         {deletingId === ext.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
                                                         Delete

@@ -51,7 +51,7 @@ function Card({
     return (
         <section className={cn("rounded-xl border border-border bg-card", className)}>
             <header className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
-                <h2 className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-foreground">
+                <h2 className="flex items-center gap-1.5 text-micro font-semibold uppercase tracking-wide text-foreground">
                     {Icon ? <Icon className="size-3 text-primary" /> : null}
                     {title}
                 </h2>
@@ -65,7 +65,7 @@ function Card({
 function Stat({ label, value, hint, tone }: { label: string; value: string; hint?: string; tone?: "good" | "warn" | "bad" }) {
     return (
         <div className="rounded-md border border-border/70 bg-background px-2.5 py-2">
-            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+            <div className="text-micro uppercase tracking-wide text-muted-foreground">{label}</div>
             <div
                 className={cn(
                     "font-mono text-sm tabular-nums",
@@ -74,7 +74,7 @@ function Stat({ label, value, hint, tone }: { label: string; value: string; hint
             >
                 {value}
             </div>
-            {hint ? <div className="mt-0.5 text-[10px] text-muted-foreground">{hint}</div> : null}
+            {hint ? <div className="mt-0.5 text-micro text-muted-foreground">{hint}</div> : null}
         </div>
     );
 }
@@ -128,7 +128,7 @@ function CorrelationMatrixPanel({ snapshot }: { snapshot: PortfolioSnapshotPaylo
         <div className="space-y-2">
             {/* Horizontal scrolling on narrow screens rather than shrinking the cells. */}
             <div className="overflow-x-auto">
-                <table className="min-w-[420px] border-separate border-spacing-0.5 text-[10px]">
+                <table className="min-w-[420px] border-separate border-spacing-0.5 text-micro">
                     <caption className="sr-only">Rolling {matrix.window}-bar {matrix.timeframe} {matrix.method} correlation of held symbols</caption>
                     <thead>
                         <tr>
@@ -166,7 +166,7 @@ function CorrelationMatrixPanel({ snapshot }: { snapshot: PortfolioSnapshotPaylo
                     </tbody>
                 </table>
             </div>
-            <p className="text-[10px] leading-4 text-muted-foreground">
+            <p className="text-micro leading-4 text-muted-foreground">
                 Measured over the last {matrix.window} {matrix.timeframe} bars using {matrix.method} correlation. A correlation
                 value is a measured property of past returns — it is not a trading signal and it can break without warning.
             </p>
@@ -192,14 +192,14 @@ function RiskMapPanel({ snapshot }: { snapshot: PortfolioSnapshotPayload }) {
                 const total = row.slices.reduce((a, s) => a + s.grossWeight, 0) || 1;
                 return (
                     <div key={row.axis}>
-                        <div className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">{row.axis}</div>
+                        <div className="mb-1 text-micro uppercase tracking-wide text-muted-foreground">{row.axis}</div>
                         <div className="flex h-5 w-full overflow-hidden rounded border border-border">
                             {row.slices
                                 .filter((s) => s.status === "AVAILABLE" && s.grossWeight > 0)
                                 .map((s) => (
                                     <div
                                         key={s.key}
-                                        className="flex items-center justify-center overflow-hidden border-r border-card/60 bg-primary/70 text-[9px] font-semibold text-primary-foreground last:border-r-0"
+                                        className="flex items-center justify-center overflow-hidden border-r border-card/60 bg-primary/70 text-micro font-semibold text-primary-foreground last:border-r-0"
                                         style={{ width: `${(s.grossWeight / total) * 100}%` }}
                                         title={`${s.key}: ${fmtPct(s.grossWeight)}`}
                                     >
@@ -210,7 +210,7 @@ function RiskMapPanel({ snapshot }: { snapshot: PortfolioSnapshotPayload }) {
                     </div>
                 );
             })}
-            <p className="text-[10px] leading-4 text-muted-foreground">
+            <p className="text-micro leading-4 text-muted-foreground">
                 Bar width is each slice&apos;s share of gross notional on that axis. Asset-class slices with no determinable
                 instrument are reported as UNAVAILABLE, never redistributed.
             </p>
@@ -252,7 +252,7 @@ function AllocationPanel() {
                         if (res.data) setResult(res.data);
                     }}
                     disabled={loading}
-                    className="flex items-center gap-1 rounded border border-border px-2 py-1 text-[10px] text-muted-foreground transition hover:bg-muted disabled:opacity-50"
+                    className="flex items-center gap-1 rounded border border-border px-2 py-1 text-micro text-muted-foreground transition hover:bg-muted disabled:opacity-50"
                 >
                     {loading ? <Loader2 className="size-3 animate-spin" /> : null}
                     Compute recommendations
@@ -266,9 +266,9 @@ function AllocationPanel() {
                 <Empty message="No strategies are attributed to this portfolio, so no allocation recommendation was produced." />
             ) : (
                 <div className="overflow-x-auto">
-                    <table className="w-full min-w-[420px] text-[11px]">
+                    <table className="w-full min-w-[420px] text-micro">
                         <thead>
-                            <tr className="border-b border-border text-[10px] uppercase text-muted-foreground">
+                            <tr className="border-b border-border text-micro uppercase text-muted-foreground">
                                 <th className="px-2 py-1.5 text-left">Strategy</th>
                                 <th className="px-2 py-1.5 text-left">Action</th>
                                 <th className="px-2 py-1.5 text-right">Current</th>
@@ -283,7 +283,7 @@ function AllocationPanel() {
                                     <td className="px-2 py-1.5">
                                         <span
                                             className={cn(
-                                                "rounded border px-1.5 py-0.5 text-[10px] font-semibold",
+                                                "rounded border px-1.5 py-0.5 text-micro font-semibold",
                                                 r.action === "INCREASE"
                                                     ? "border-emerald-500/40 text-emerald-400"
                                                     : r.action === "REDUCE" || r.action === "PAUSE"
@@ -303,7 +303,7 @@ function AllocationPanel() {
                             ))}
                         </tbody>
                     </table>
-                    <p className="mt-2 text-[10px] leading-4 text-muted-foreground">
+                    <p className="mt-2 text-micro leading-4 text-muted-foreground">
                         Advisory only. AlgoVault never moves live capital automatically — every recommendation requires approval
                         and passes the existing Risk Engine and Execution Supervisor gates.
                     </p>
@@ -338,7 +338,7 @@ function StressPanel({ snapshot }: { snapshot: PortfolioSnapshotPayload }) {
                     type="button"
                     disabled={loading || snapshot.positionCount === 0}
                     onClick={() => void run({ kind: "CORRELATION_SPIKE" })}
-                    className="flex items-center gap-1 rounded border border-border px-2 py-1 text-[10px] text-muted-foreground transition hover:bg-muted disabled:opacity-50"
+                    className="flex items-center gap-1 rounded border border-border px-2 py-1 text-micro text-muted-foreground transition hover:bg-muted disabled:opacity-50"
                 >
                     {loading ? <Loader2 className="size-3 animate-spin" /> : null}
                     Run correlation spike
@@ -359,7 +359,7 @@ function StressPanel({ snapshot }: { snapshot: PortfolioSnapshotPayload }) {
                                 <span className="text-xs font-semibold text-foreground">{s.scenario.name}</span>
                                 <span
                                     className={cn(
-                                        "rounded border px-1.5 py-0.5 text-[9px] font-bold tracking-wide",
+                                        "rounded border px-1.5 py-0.5 text-micro font-bold tracking-wide",
                                         s.scenario.basis === "HISTORICAL"
                                             ? "border-emerald-500/40 text-emerald-400"
                                             : "border-amber-500/40 text-amber-400"
@@ -378,12 +378,12 @@ function StressPanel({ snapshot }: { snapshot: PortfolioSnapshotPayload }) {
                                 >
                                     {fmtMoney(s.pnlImpact)}
                                 </span>
-                                <span className="font-mono text-[11px] text-muted-foreground">{s.pnlImpactPercent.toFixed(2)}% of equity</span>
+                                <span className="font-mono text-micro text-muted-foreground">{s.pnlImpactPercent.toFixed(2)}% of equity</span>
                             </div>
                             {s.breaches.length > 0 ? (
                                 <ul className="mt-1 space-y-0.5">
                                     {s.breaches.map((b) => (
-                                        <li key={b} className="text-[10px] leading-4 text-amber-400">
+                                        <li key={b} className="text-micro leading-4 text-amber-400">
                                             • {b}
                                         </li>
                                     ))}
@@ -391,7 +391,7 @@ function StressPanel({ snapshot }: { snapshot: PortfolioSnapshotPayload }) {
                             ) : null}
                         </div>
                     ))}
-                    <p className="text-[10px] leading-4 text-muted-foreground">
+                    <p className="text-micro leading-4 text-muted-foreground">
                         SIMULATED scenarios are labelled as such and must not be read as historical fact.
                     </p>
                 </div>
@@ -432,7 +432,7 @@ export function PortfolioIntelligence({ portfolioId }: { portfolioId?: string })
                     <button
                         type="button"
                         onClick={reload}
-                        className="mt-3 inline-flex items-center gap-1.5 rounded border border-border px-2.5 py-1 text-[11px] text-muted-foreground transition hover:bg-muted"
+                        className="mt-3 inline-flex items-center gap-1.5 rounded border border-border px-2.5 py-1 text-micro text-muted-foreground transition hover:bg-muted"
                     >
                         <RefreshCw className="size-3" /> Retry
                     </button>
@@ -455,7 +455,7 @@ export function PortfolioIntelligence({ portfolioId }: { portfolioId?: string })
                     <h1 className="text-sm font-semibold text-foreground">Portfolio Intelligence</h1>
                     <span
                         className={cn(
-                            "rounded border px-1.5 py-0.5 text-[9px] font-bold tracking-wide",
+                            "rounded border px-1.5 py-0.5 text-micro font-bold tracking-wide",
                             freshness?.freshness === "FRESH"
                                 ? "border-emerald-500/40 text-emerald-400"
                                 : freshness?.freshness === "STALE"
@@ -467,14 +467,14 @@ export function PortfolioIntelligence({ portfolioId }: { portfolioId?: string })
                     </span>
                 </div>
                 <div className="flex items-center gap-3">
-                    <span className="font-mono text-[10px] text-muted-foreground">Updated {fmtAge(freshness)}</span>
-                    <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                    <span className="font-mono text-micro text-muted-foreground">Updated {fmtAge(freshness)}</span>
+                    <span className="rounded border border-border px-1.5 py-0.5 font-mono text-micro text-muted-foreground">
                         Regime {data.regime} · {(data.regimeState.confidence * 100).toFixed(0)}%
                     </span>
                     <button
                         type="button"
                         onClick={reload}
-                        className="flex items-center gap-1 rounded border border-border px-2 py-1 text-[10px] text-muted-foreground transition hover:bg-muted"
+                        className="flex items-center gap-1 rounded border border-border px-2 py-1 text-micro text-muted-foreground transition hover:bg-muted"
                     >
                         <RefreshCw className={cn("size-3", loading && "animate-spin")} />
                         Refresh
@@ -535,7 +535,7 @@ export function PortfolioIntelligence({ portfolioId }: { portfolioId?: string })
                             <li key={`${w.code}-${i}`} className="flex items-start gap-2 rounded border border-border bg-background px-2.5 py-2">
                                 <span
                                     className={cn(
-                                        "mt-0.5 rounded px-1.5 py-0.5 text-[9px] font-bold tracking-wide",
+                                        "mt-0.5 rounded px-1.5 py-0.5 text-micro font-bold tracking-wide",
                                         w.severity === "CRITICAL"
                                             ? "bg-rose-500/15 text-rose-400"
                                             : w.severity === "WARNING"
@@ -548,9 +548,9 @@ export function PortfolioIntelligence({ portfolioId }: { portfolioId?: string })
                                     {w.severity}
                                 </span>
                                 <div className="min-w-0">
-                                    <div className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">{w.code}</div>
+                                    <div className="font-mono text-micro uppercase tracking-wide text-muted-foreground">{w.code}</div>
                                     <p className="text-xs text-foreground">{w.message}</p>
-                                    {w.detail ? <p className="mt-0.5 text-[10px] leading-4 text-muted-foreground">{w.detail}</p> : null}
+                                    {w.detail ? <p className="mt-0.5 text-micro leading-4 text-muted-foreground">{w.detail}</p> : null}
                                 </div>
                             </li>
                         ))}
@@ -567,12 +567,12 @@ export function PortfolioIntelligence({ portfolioId }: { portfolioId?: string })
                             className={cn("rounded border px-2 py-1.5", RATING_TONE[c.rating] ?? RATING_TONE.UNKNOWN)}
                             title={c.reasons.join(" ")}
                         >
-                            <div className="text-[10px] uppercase tracking-wide opacity-80">{c.component}</div>
+                            <div className="text-micro uppercase tracking-wide opacity-80">{c.component}</div>
                             <div className="text-xs font-bold">{c.rating}</div>
                         </div>
                     ))}
                 </div>
-                <p className="mt-2 text-[10px] leading-4 text-muted-foreground">
+                <p className="mt-2 text-micro leading-4 text-muted-foreground">
                     Nine components, each with its own documented formula. The overall rating is the worst measured component —
                     it is deliberately not collapsed into a single score you are meant to optimise.
                 </p>
@@ -589,7 +589,7 @@ export function PortfolioIntelligence({ portfolioId }: { portfolioId?: string })
                 {data.correlation.evidence.length > 0 ? (
                     <ul className="mt-2 space-y-1 border-t border-border pt-2">
                         {data.correlation.evidence.map((e, i) => (
-                            <li key={i} className="text-[10px] leading-4 text-muted-foreground">
+                            <li key={i} className="text-micro leading-4 text-muted-foreground">
                                 <span className="font-semibold text-foreground">[{e.kind}]</span> {e.text}
                             </li>
                         ))}
@@ -608,7 +608,7 @@ export function PortfolioIntelligence({ portfolioId }: { portfolioId?: string })
                 <Card title="Limitations & data quality">
                     <ul className="space-y-1">
                         {limitations.slice(0, 10).map((l, i) => (
-                            <li key={i} className="text-[10px] leading-4 text-muted-foreground">
+                            <li key={i} className="text-micro leading-4 text-muted-foreground">
                                 • {l}
                             </li>
                         ))}

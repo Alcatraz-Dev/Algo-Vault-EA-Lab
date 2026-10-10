@@ -9,7 +9,7 @@ export function SystemHealthStrip({ context }: { context: IntelligenceOSContext 
   const overall = context.system.overall;
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-[11px]">
+    <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-micro">
       <span className="text-muted-foreground">System</span>
       <div className="flex flex-wrap gap-x-3 gap-y-1">
         {components.map((c) => (
@@ -32,18 +32,18 @@ function SystemChip({ component }: { component: IntelligenceOSContext["system"][
 }
 
 function statusDot(status: string): string {
-  if (status === "live" || status === "healthy") return "bg-emerald-500";
-  if (status === "degraded") return "bg-amber-500";
-  if (status === "stale") return "bg-orange-500";
-  if (status === "disconnected" || status === "unavailable") return "bg-red-500";
+  if (status === "live" || status === "healthy") return "bg-positive";
+  if (status === "degraded") return "bg-warning";
+  if (status === "stale") return "bg-warning";
+  if (status === "disconnected" || status === "unavailable") return "bg-negative";
   return "bg-muted-foreground/40";
 }
 
 function statusText(status: string): string {
-  if (status === "live" || status === "healthy") return "text-emerald-600 dark:text-emerald-400";
-  if (status === "degraded") return "text-amber-600 dark:text-amber-400";
-  if (status === "stale") return "text-orange-600 dark:text-orange-400";
-  if (status === "disconnected" || status === "unavailable") return "text-red-600 dark:text-red-400";
+  if (status === "live" || status === "healthy") return "text-positive";
+  if (status === "degraded") return "text-warning";
+  if (status === "stale") return "text-warning";
+  if (status === "disconnected" || status === "unavailable") return "text-negative";
   return "text-muted-foreground";
 }
 

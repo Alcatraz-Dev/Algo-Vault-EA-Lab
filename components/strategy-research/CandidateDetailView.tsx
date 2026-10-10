@@ -48,7 +48,7 @@ function lineageTone(status: LineageEntryView["status"]): "positive" | "negative
 function Metric({ label, value, tone }: { label: string; value: string; tone?: "positive" | "negative" | "warning" }) {
     return (
         <div className="rounded-lg border border-border/40 bg-background px-3 py-2">
-            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+            <div className="text-micro uppercase tracking-wide text-muted-foreground">{label}</div>
             <div
                 className={`text-sm font-semibold ${
                     tone === "positive" ? "text-emerald-600" : tone === "negative" ? "text-destructive" : tone === "warning" ? "text-amber-600" : "text-foreground"
@@ -159,7 +159,7 @@ export default function CandidateDetailView({
                 </Link>
 
                 {loading ? (
-                    <div className="rounded-2xl border border-border/30 bg-card/40 p-10 text-center text-sm text-muted-foreground">
+                    <div className="rounded-lg border border-border/30 bg-card/40 p-10 text-center text-sm text-muted-foreground">
                         Loading candidate…
                     </div>
                 ) : error && !candidate ? (
@@ -176,7 +176,7 @@ export default function CandidateDetailView({
                 ) : candidate ? (
                     <>
                         {/* Header */}
-                        <section className="rounded-2xl border border-border/30 bg-card/40 p-5 backdrop-blur-xl">
+                        <section className="rounded-lg border border-border/30 bg-card/40 p-5 backdrop-blur-xl">
                             <div className="flex flex-wrap items-start justify-between gap-3">
                                 <div>
                                     <h1 className="text-lg font-bold tracking-tight">
@@ -221,13 +221,13 @@ export default function CandidateDetailView({
 
                         <div className="grid gap-6 lg:grid-cols-3">
                             {/* Backtest + OOS metrics */}
-                            <section className="rounded-2xl border border-border/30 bg-card/40 p-5 backdrop-blur-xl lg:col-span-2">
+                            <section className="rounded-lg border border-border/30 bg-card/40 p-5 backdrop-blur-xl lg:col-span-2">
                                 <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
                                     <ShieldAlert className="h-4 w-4 text-primary" /> Validation Evidence
                                 </h2>
                                 {metrics ? (
                                     <>
-                                        <div className="mb-2 text-[11px] uppercase tracking-wide text-muted-foreground">Backtest (full window)</div>
+                                        <div className="mb-2 text-micro uppercase tracking-wide text-muted-foreground">Backtest (full window)</div>
                                         <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
                                             <Metric label="Trades" value={String(metrics.totalTrades)} />
                                             <Metric label="Win rate" value={`${metrics.winRate.toFixed(1)}%`} />
@@ -236,7 +236,7 @@ export default function CandidateDetailView({
                                             <Metric label="Net profit" value={metrics.netProfit.toFixed(2)} tone={metrics.netProfit > 0 ? "positive" : "negative"} />
                                         </div>
                                         {candidate.evaluation?.backtest?.window ? (
-                                            <p className="mt-2 text-[11px] text-muted-foreground">
+                                            <p className="mt-2 text-micro text-muted-foreground">
                                                 Window {new Date(candidate.evaluation.backtest.window.from).toLocaleDateString()} →{" "}
                                                 {new Date(candidate.evaluation.backtest.window.to).toLocaleDateString()} ·{" "}
                                                 {candidate.evaluation.backtest.window.bars} bars · source {candidate.evaluation.backtest.window.dataSource ?? "—"} ·
@@ -252,7 +252,7 @@ export default function CandidateDetailView({
 
                                 {validation ? (
                                     <>
-                                        <div className="mb-2 mt-4 text-[11px] uppercase tracking-wide text-muted-foreground">
+                                        <div className="mb-2 mt-4 text-micro uppercase tracking-wide text-muted-foreground">
                                             Out-of-sample · verdict{" "}
                                             <span
                                                 className={
@@ -277,12 +277,12 @@ export default function CandidateDetailView({
 
                                 {validation?.walkForward.enabled ? (
                                     <>
-                                        <div className="mb-2 mt-4 text-[11px] uppercase tracking-wide text-muted-foreground">
+                                        <div className="mb-2 mt-4 text-micro uppercase tracking-wide text-muted-foreground">
                                             Walk-forward · {validation.walkForward.windows.length} window(s) ·{" "}
                                             {validation.walkForward.stable ? "stable" : "unstable"}
                                         </div>
                                         <div className="overflow-x-auto">
-                                            <table className="w-full text-[11px]">
+                                            <table className="w-full text-micro">
                                                 <thead>
                                                     <tr className="text-muted-foreground">
                                                         <th className="px-2 py-1 text-left font-medium">Train</th>
@@ -312,7 +312,7 @@ export default function CandidateDetailView({
 
                                 {mc ? (
                                     <>
-                                        <div className="mb-2 mt-4 text-[11px] uppercase tracking-wide text-muted-foreground">Monte Carlo (seeded bootstrap)</div>
+                                        <div className="mb-2 mt-4 text-micro uppercase tracking-wide text-muted-foreground">Monte Carlo (seeded bootstrap)</div>
                                         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                                             <Metric label="Simulations" value={String(mc.simulations)} />
                                             <Metric
@@ -330,7 +330,7 @@ export default function CandidateDetailView({
                                             />
                                         </div>
                                         {mc.limitations.length > 0 ? (
-                                            <p className="mt-1.5 text-[11px] text-muted-foreground">Limitations: {mc.limitations.join("; ")}</p>
+                                            <p className="mt-1.5 text-micro text-muted-foreground">Limitations: {mc.limitations.join("; ")}</p>
                                         ) : null}
                                     </>
                                 ) : null}
@@ -338,11 +338,11 @@ export default function CandidateDetailView({
                                 {/* Trade-level evidence */}
                                 {backtest?.trades && backtest.trades.length > 0 ? (
                                     <>
-                                        <div className="mb-2 mt-4 text-[11px] uppercase tracking-wide text-muted-foreground">
+                                        <div className="mb-2 mt-4 text-micro uppercase tracking-wide text-muted-foreground">
                                             Trades ({backtest.trades.length})
                                         </div>
                                         <div className="max-h-56 overflow-y-auto rounded-lg border border-border/40">
-                                            <table className="w-full text-[11px]">
+                                            <table className="w-full text-micro">
                                                 <thead className="sticky top-0 bg-background">
                                                     <tr className="text-muted-foreground">
                                                         <th className="px-2 py-1 text-left font-medium">Opened</th>
@@ -376,7 +376,7 @@ export default function CandidateDetailView({
                             </section>
 
                             {/* Lineage */}
-                            <section className="rounded-2xl border border-border/30 bg-card/40 p-5 backdrop-blur-xl">
+                            <section className="rounded-lg border border-border/30 bg-card/40 p-5 backdrop-blur-xl">
                                 <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
                                     <GitBranch className="h-4 w-4 text-primary" /> Strategy Lineage
                                 </h2>
@@ -402,13 +402,13 @@ export default function CandidateDetailView({
                                                     <StatusBadge label={entry.status} tone={lineageTone(entry.status)} />
                                                 </div>
                                                 {entry.detail ? (
-                                                    <p className="break-words text-[11px] text-muted-foreground">{entry.detail}</p>
+                                                    <p className="break-words text-micro text-muted-foreground">{entry.detail}</p>
                                                 ) : null}
                                             </div>
                                         </li>
                                     ))}
                                 </ol>
-                                <p className="mt-3 rounded-lg border border-border/40 bg-background p-2 text-[10px] leading-relaxed text-muted-foreground">
+                                <p className="mt-3 rounded-lg border border-border/40 bg-background p-2 text-micro leading-relaxed text-muted-foreground">
                                     {data?.mission.lineageNote}
                                 </p>
                             </section>
@@ -416,7 +416,7 @@ export default function CandidateDetailView({
 
                         {/* Robustness + warnings + score */}
                         <div className="grid gap-6 lg:grid-cols-2">
-                            <section className="rounded-2xl border border-border/30 bg-card/40 p-5 backdrop-blur-xl">
+                            <section className="rounded-lg border border-border/30 bg-card/40 p-5 backdrop-blur-xl">
                                 <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
                                     <ShieldAlert className="h-4 w-4 text-primary" /> Robustness Report
                                 </h2>
@@ -435,7 +435,7 @@ export default function CandidateDetailView({
                                             >
                                                 {robustness.status}
                                             </Badge>
-                                            <span className="text-[11px] text-muted-foreground">
+                                            <span className="text-micro text-muted-foreground">
                                                 generated {new Date(robustness.generatedAt).toLocaleString()}
                                             </span>
                                         </div>
@@ -457,9 +457,9 @@ export default function CandidateDetailView({
                                                             }
                                                         />
                                                     </div>
-                                                    <p className="mt-0.5 text-[11px] text-muted-foreground">{d.detail}</p>
+                                                    <p className="mt-0.5 text-micro text-muted-foreground">{d.detail}</p>
                                                     {d.evidence.length > 0 ? (
-                                                        <p className="mt-0.5 break-words text-[10px] text-muted-foreground/70">
+                                                        <p className="mt-0.5 break-words text-micro text-muted-foreground/70">
                                                             evidence: {d.evidence.join(" · ")}
                                                         </p>
                                                     ) : null}
@@ -479,7 +479,7 @@ export default function CandidateDetailView({
                                         </div>
                                         <div className="space-y-1">
                                             {Object.entries(score.factors).map(([key, value]) => (
-                                                <div key={key} className="flex items-center gap-2 text-[11px]">
+                                                <div key={key} className="flex items-center gap-2 text-micro">
                                                     <span className="w-36 text-muted-foreground">{key.replace(/([A-Z])/g, " $1")}</span>
                                                     <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
                                                         <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, value)}%` }} />
@@ -488,14 +488,14 @@ export default function CandidateDetailView({
                                                 </div>
                                             ))}
                                         </div>
-                                        <p className="mt-2 text-[10px] text-muted-foreground">
+                                        <p className="mt-2 text-micro text-muted-foreground">
                                             Transparent internal research aid — not a performance prediction.
                                         </p>
                                     </div>
                                 ) : null}
                             </section>
 
-                            <section className="rounded-2xl border border-border/30 bg-card/40 p-5 backdrop-blur-xl">
+                            <section className="rounded-lg border border-border/30 bg-card/40 p-5 backdrop-blur-xl">
                                 <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
                                     <AlertTriangleIcon /> Research Warnings
                                 </h2>
@@ -520,7 +520,7 @@ export default function CandidateDetailView({
                                                 </div>
                                                 <p className="mt-0.5 text-muted-foreground">{w.message}</p>
                                                 {w.evidence.length > 0 ? (
-                                                    <p className="mt-0.5 break-words text-[10px] text-muted-foreground/70">
+                                                    <p className="mt-0.5 break-words text-micro text-muted-foreground/70">
                                                         evidence: {w.evidence.join(" · ")}
                                                     </p>
                                                 ) : null}
@@ -535,7 +535,7 @@ export default function CandidateDetailView({
                                 {(data?.knowledgeEdges ?? []).length === 0 ? (
                                     <p className="text-xs text-muted-foreground">No graph relationships recorded yet.</p>
                                 ) : (
-                                    <ul className="space-y-1 text-[11px]">
+                                    <ul className="space-y-1 text-micro">
                                         {(data?.knowledgeEdges ?? []).map((edge) => {
                                             const e = edge as { id: string; from: { type: string; id: string }; to: { type: string; id: string }; type: string };
                                             return (
@@ -562,14 +562,14 @@ export default function CandidateDetailView({
                         </div>
 
                         {/* Candidate-scoped research log */}
-                        <section className="rounded-2xl border border-border/30 bg-card/40 p-5 backdrop-blur-xl">
+                        <section className="rounded-lg border border-border/30 bg-card/40 p-5 backdrop-blur-xl">
                             <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
                                 <Sparkles className="h-4 w-4 text-primary" /> Candidate Research Log
                             </h2>
                             {events.length === 0 ? (
                                 <p className="text-xs text-muted-foreground">No events reference this candidate.</p>
                             ) : (
-                                <ul className="space-y-1 text-[11px]">
+                                <ul className="space-y-1 text-micro">
                                     {events.map((e) => (
                                         <li key={e.id} className="flex items-start justify-between gap-3 rounded-md border border-border/30 bg-background px-3 py-1.5">
                                             <span className={e.level === "error" ? "text-destructive" : e.level === "warn" ? "text-amber-600" : "text-foreground"}>

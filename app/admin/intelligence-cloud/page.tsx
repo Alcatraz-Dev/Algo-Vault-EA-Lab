@@ -26,7 +26,7 @@ export default function AdminIntelligenceCloud() {
     <div className="max-w-6xl mx-auto px-6 py-10 space-y-10">
       <header className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-          <ShieldCheck className="w-8 h-8 text-emerald-600" /> Intelligence Cloud — Admin
+          <ShieldCheck className="w-8 h-8 text-positive" /> Intelligence Cloud — Admin
         </h1>
         <p className="text-muted-foreground">
           Engine versions, data lineage, tenant isolation and certification policy.
@@ -63,7 +63,7 @@ export default function AdminIntelligenceCloud() {
                   <td className="px-4 py-2 font-mono text-xs">
                     {engine.version}
                     {!engine.versioned && (
-                      <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs">
+                      <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-warning-muted text-warning text-xs">
                         not versioned
                       </span>
                     )}
@@ -102,7 +102,7 @@ export default function AdminIntelligenceCloud() {
       <section>
         <h2 className="text-xl font-semibold mb-3">Operational Metrics</h2>
         <div className="border rounded-xl p-5 bg-card flex items-start gap-3">
-          <Info className="w-5 h-5 text-amber-500 mt-0.5" />
+          <Info className="w-5 h-5 text-warning mt-0.5" />
           <div className="space-y-1 text-sm">
             <p>
               <strong>Request volume, latency, webhook deliveries and tenant usage are not displayed.</strong>
@@ -168,7 +168,7 @@ function Stat({
       <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wide">
         {icon} {label}
       </div>
-      <div className={`text-3xl font-bold ${emphasis ? "text-amber-600" : ""}`}>{value}</div>
+      <div className={`text-3xl font-bold ${emphasis ? "text-warning" : ""}`}>{value}</div>
     </div>
   );
 }

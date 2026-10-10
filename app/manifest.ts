@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "AI-Powered Trading Platform - Markets, Bots, Signals, Analytics",
     start_url: "/",
     display: "standalone",
-    background_color: "#111111",
-    theme_color: "#ff4d00",
+    background_color: "#0b0c0e",
+    theme_color: "#0b0c0e",
     orientation: "portrait-primary",
     scope: "/",
     icons: [

@@ -66,10 +66,10 @@ export function BreakdownBars({
                 const pct = Math.min(100, (value / row.max) * 100);
                 return (
                     <div key={row.key}>
-                        <div className="flex items-baseline justify-between text-[10px]">
+                        <div className="flex items-baseline justify-between text-micro">
                             <span className="text-muted-foreground">
                                 {row.label}
-                                <span className="ml-1 text-[9px] opacity-60">
+                                <span className="ml-1 text-micro opacity-60">
                                     {row.penalty ? "−" : "+"}
                                 </span>
                             </span>

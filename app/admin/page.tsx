@@ -22,6 +22,8 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import AdminShell from "@/components/admin/AdminShell";
 import BarCompareChart from "@/components/charts/BarCompareChart";
+import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 type DashboardStats = {
     totalBots: number;
@@ -245,7 +247,7 @@ export default function AdminPage() {
                 <button
                     onClick={() => loadDashboard(true)}
                     disabled={refreshing || loading}
-                    className="flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted/70 hover:text-foreground disabled:opacity-50"
+                    className="flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground disabled:opacity-50"
                 >
                     <RefreshCw
                         size={16}
@@ -256,7 +258,7 @@ export default function AdminPage() {
 
                 <Link
                     href="/admin/bots/new"
-                    className="flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-background hover:bg-emerald-400"
+                    className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/80"
                 >
                     <Plus size={17} />
                     Add Bot
@@ -265,7 +267,7 @@ export default function AdminPage() {
 
                         {/* Error */}
                         {error && (
-                            <div className="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-600">
+                            <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
                                 {error}
                             </div>
                         )}
@@ -286,7 +288,7 @@ export default function AdminPage() {
                                             href={
                                                 stat.href
                                             }
-                                            className="rounded-2xl border border-border bg-muted/30 p-5 transition hover:border-border hover:bg-muted/50"
+                                            className="rounded-lg border border-border bg-card p-5 transition hover:border-border hover:bg-muted/50"
                                         >
 
                                             <div className="flex items-center justify-between">
@@ -314,7 +316,7 @@ export default function AdminPage() {
                                                 }
                                             </p>
 
-                                            <p className="mt-1 text-2xl font-semibold">
+                                            <p className="mt-1 font-numeric text-2xl font-semibold">
 
                                                 {loading
                                                     ? "—"
@@ -337,20 +339,20 @@ export default function AdminPage() {
 
                         {/* Quick Access */}
                         <div className="mt-6 grid gap-4 sm:grid-cols-3">
-                            <Link href="/ai-copilot" className="flex items-center gap-4 rounded-xl border border-violet-500/20 bg-violet-500/5 p-4 transition hover:bg-violet-500/10">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-500/20"><Brain size={20} className="text-violet-400" /></div>
+                            <Link href="/ai-copilot" className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground"><Brain size={20} /></div>
                                 <div><p className="text-sm font-semibold text-foreground">AI Copilot</p><p className="text-xs text-muted-foreground">Market analysis & trading insights</p></div>
                             </Link>
-                            <Link href="/scanner" className="flex items-center gap-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 transition hover:bg-emerald-500/10">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/20"><Activity size={20} className="text-emerald-400" /></div>
+                            <Link href="/scanner" className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground"><Activity size={20} /></div>
                                 <div><p className="text-sm font-semibold text-foreground">Market Scanner</p><p className="text-xs text-muted-foreground">Scan assets across markets</p></div>
                             </Link>
-                             <Link href="/insights" className="flex items-center gap-4 rounded-xl border border-sky-500/20 bg-sky-500/5 p-4 transition hover:bg-sky-500/10">
-                                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/20"><Sparkles size={20} className="text-sky-400" /></div>
+                             <Link href="/insights" className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50">
+                                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground"><Sparkles size={20} /></div>
                                  <div><p className="text-sm font-semibold text-foreground">AI Insights</p><p className="text-xs text-muted-foreground">Intelligence & trend analysis</p></div>
                              </Link>
-                             <Link href="/admin/workflows" className="flex items-center gap-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 transition hover:bg-amber-500/10">
-                                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/20"><GitBranch size={20} className="text-amber-400" /></div>
+                             <Link href="/admin/workflows" className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50">
+                                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground"><GitBranch size={20} /></div>
                                  <div><p className="text-sm font-semibold text-foreground">Workflow Studio</p><p className="text-xs text-muted-foreground">Monitor runs, manage templates, kill switch</p></div>
                              </Link>
                          </div>
@@ -358,7 +360,7 @@ export default function AdminPage() {
                         {/* Revenue + License overview */}
                         <div className="mt-6 grid gap-6 lg:grid-cols-2">
 
-                            <div className="rounded-2xl border border-border bg-muted/30 p-6">
+                            <div className="rounded-lg border border-border bg-card p-6">
 
                                 <div className="flex items-start justify-between">
 
@@ -367,7 +369,7 @@ export default function AdminPage() {
                                             Revenue
                                         </p>
 
-                                        <p className="mt-2 text-3xl font-semibold">
+                                        <p className="mt-2 font-numeric text-3xl font-semibold">
                                             {loading
                                                 ? "—"
                                                 : formatCurrency(
@@ -381,7 +383,7 @@ export default function AdminPage() {
                                         </p>
                                     </div>
 
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted/50">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/50">
                                         <DollarSign
                                             size={
                                                 18
@@ -397,7 +399,7 @@ export default function AdminPage() {
                                         Total revenue
                                     </span>
 
-                                    <span className="text-sm font-medium">
+                                    <span className="font-numeric text-sm font-medium">
                                         {loading
                                             ? "—"
                                             : formatCurrency(
@@ -411,7 +413,7 @@ export default function AdminPage() {
                                 {/* Revenue trend */}
                                 <div className="mt-6">
                                     {loading ? (
-                                        <div className="h-[180px] animate-pulse rounded-xl bg-muted/40" />
+                                        <div className="h-[180px] animate-pulse rounded-lg bg-muted/40" />
                                     ) : (
                                         <BarCompareChart
                                             data={data?.revenueSeries ?? []}
@@ -428,7 +430,7 @@ export default function AdminPage() {
 
                             </div>
 
-                            <div className="rounded-2xl border border-border bg-muted/30 p-6">
+                            <div className="rounded-lg border border-border bg-card p-6">
 
                                 <div className="flex items-start justify-between">
 
@@ -437,7 +439,7 @@ export default function AdminPage() {
                                             Licenses
                                         </p>
 
-                                        <p className="mt-2 text-3xl font-semibold">
+                                        <p className="mt-2 font-numeric text-3xl font-semibold">
                                             {loading
                                                 ? "—"
                                                 : stats?.activeLicenses ??
@@ -449,7 +451,7 @@ export default function AdminPage() {
                                         </p>
                                     </div>
 
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted/50">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/50">
                                         <KeyRound
                                             size={
                                                 18
@@ -492,7 +494,7 @@ export default function AdminPage() {
                         </div>
 
                         {/* Recent Bots */}
-                        <div className="mt-10 rounded-2xl border border-border bg-muted/30">
+                        <div className="mt-10 rounded-lg border border-border bg-card">
 
                             <div className="flex items-center justify-between border-b border-border p-5">
 
@@ -533,7 +535,7 @@ export default function AdminPage() {
 
                                                 <div className="flex items-center gap-4">
 
-                                                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted/50">
+                                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/50">
                                                         <Bot
                                                             size={
                                                                 18
@@ -567,27 +569,25 @@ export default function AdminPage() {
 
                                                 <div className="flex items-center gap-3">
 
-                                                    <span className="rounded-lg border border-border px-3 py-1.5 text-xs text-muted-foreground">
+                                                    <Badge variant="outline">
                                                         {
                                                             bot.type
                                                         }
-                                                    </span>
+                                                    </Badge>
 
-                                                    <span
-                                                        className={`rounded-lg px-3 py-1.5 text-xs ${bot.status ===
+                                                    <StatusBadge
+                                                        tone={
+                                                            bot.status ===
                                                             "published"
-                                                            ? "bg-muted text-foreground"
-                                                            : "bg-muted/50 text-muted-foreground"
-                                                            }`}
-                                                    >
-                                                        {
-                                                            bot.status
+                                                                ? "live"
+                                                                : "neutral"
                                                         }
-                                                    </span>
+                                                        label={bot.status}
+                                                    />
 
                                                     <Link
                                                         href={`/admin/bots`}
-                                                        className="rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-muted/70"
+                                                        className="rounded-md border border-border px-3 py-1.5 text-xs transition-colors hover:bg-muted/70"
                                                     >
                                                         Edit
                                                     </Link>
@@ -608,7 +608,7 @@ export default function AdminPage() {
                         </div>
 
                         {/* Recent Orders */}
-                        <div className="mt-6 rounded-2xl border border-border bg-muted/30">
+                        <div className="mt-6 rounded-lg border border-border bg-card">
 
                             <div className="flex items-center justify-between border-b border-border p-5">
 
@@ -649,7 +649,7 @@ export default function AdminPage() {
 
                                                 <div className="flex items-center gap-4">
 
-                                                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted/50">
+                                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/50">
                                                         <ShoppingCart
                                                             size={
                                                                 17
@@ -677,7 +677,7 @@ export default function AdminPage() {
                                                 <div className="flex items-center gap-5">
 
                                                     <div className="text-right">
-                                                        <p className="text-sm font-medium">
+                                                        <p className="font-numeric text-sm font-medium">
                                                             {formatCurrency(
                                                                 order.amount,
                                                                 order.currency
@@ -691,9 +691,7 @@ export default function AdminPage() {
                                                         </p>
                                                     </div>
 
-                                                    <span className="rounded-lg bg-muted px-3 py-1.5 text-xs text-foreground">
-                                                        Paid
-                                                    </span>
+                                                    <StatusBadge tone="positive" label="Paid" />
 
                                                 </div>
 
@@ -726,7 +724,7 @@ function LicenseStat({
                 {label}
             </p>
 
-            <p className="mt-1 text-sm font-medium">
+            <p className="mt-1 font-numeric text-sm font-medium">
                 {value}
             </p>
         </div>

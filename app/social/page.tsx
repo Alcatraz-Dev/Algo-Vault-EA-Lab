@@ -18,10 +18,10 @@ type Post = {
 };
 
 const TYPE_CONFIG = {
-    trade: { label: "Trade Idea", icon: Target, color: "text-blue-400", bg: "bg-blue-500/10" },
-    analysis: { label: "Analysis", icon: TrendingUp, color: "text-violet-400", bg: "bg-violet-500/10" },
-    idea: { label: "Market Idea", icon: Lightbulb, color: "text-amber-400", bg: "bg-amber-500/10" },
-    result: { label: "Result", icon: Award, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+    trade: { label: "Trade Idea", icon: Target, color: "text-info", bg: "bg-info/10" },
+    analysis: { label: "Analysis", icon: TrendingUp, color: "text-primary", bg: "bg-primary/10" },
+    idea: { label: "Market Idea", icon: Lightbulb, color: "text-warning", bg: "bg-warning/10" },
+    result: { label: "Result", icon: Award, color: "text-positive", bg: "bg-positive/10" },
 };
 
 export default function SocialPage() {
@@ -96,11 +96,11 @@ export default function SocialPage() {
     };
 
     if (authLoading) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><SiteNavbar /><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><SiteNavbar /><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></div>);
     }
 
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><SiteNavbar /><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><a href="/login" className="rounded-xl bg-violet-600 px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-violet-500 transition">Sign In</a></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><SiteNavbar /><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><a href="/login" className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary transition">Sign In</a></div></div>);
     }
 
     return (
@@ -112,21 +112,21 @@ export default function SocialPage() {
                         <h1 className="text-2xl font-bold text-foreground">Social Feed</h1>
                         <p className="mt-1 text-sm text-muted-foreground">Share ideas, analysis, and trade setups</p>
                     </div>
-                    <button type="button" onClick={() => setShowCreate(true)} className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-violet-500 transition">
+                    <button type="button" onClick={() => setShowCreate(true)} className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary transition">
                         <Plus size={14} /> New Post
                     </button>
                 </div>
 
                 {showCreate && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-sm">
-                        <div className="w-full max-w-lg rounded-2xl border border-border/40 bg-background p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
+                        <div className="w-full max-w-lg rounded-lg border border-border/40 bg-background p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
                             <h2 className="mb-4 text-lg font-semibold text-foreground">New Post</h2>
                             <div className="space-y-3">
                                 <div className="flex gap-2">
                                     {(Object.entries(TYPE_CONFIG) as [Post["type"], typeof TYPE_CONFIG.idea][]).map(([key, cfg]) => {
                                         const Icon = cfg.icon;
                                         return (
-                                            <button key={key} type="button" onClick={() => setFormType(key)} className={cn("flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs transition", formType === key ? `border-violet-500/40 ${cfg.bg} ${cfg.color}` : "border-border/30 bg-muted/50 text-muted-foreground")}>
+                                            <button key={key} type="button" onClick={() => setFormType(key)} className={cn("flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs transition", formType === key ? `border-primary/40 ${cfg.bg} ${cfg.color}` : "border-border/30 bg-muted/50 text-muted-foreground")}>
                                                 <Icon size={13} /> {cfg.label}
                                             </button>
                                         );
@@ -134,23 +134,23 @@ export default function SocialPage() {
                                 </div>
                                 {formType === "trade" && (
                                     <div className="grid grid-cols-2 gap-3">
-                                        <select value={formSymbol} onChange={(e) => setFormSymbol(e.target.value)} className="rounded-xl border border-border/40 bg-muted px-3 py-2.5 text-sm text-foreground focus:border-violet-500 focus:outline-none">
+                                        <select value={formSymbol} onChange={(e) => setFormSymbol(e.target.value)} className="rounded-xl border border-border/40 bg-muted px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none">
                                             {["XAUUSD", "EURUSD", "GBPUSD", "BTCUSD", "ETHUSD", "US30", "NAS100"].map((s) => <option key={s} value={s}>{s}</option>)}
                                         </select>
-                                        <select value={formDirection} onChange={(e) => setFormDirection(e.target.value as "BUY" | "SELL")} className="rounded-xl border border-border/40 bg-muted px-3 py-2.5 text-sm text-foreground focus:border-violet-500 focus:outline-none">
+                                        <select value={formDirection} onChange={(e) => setFormDirection(e.target.value as "BUY" | "SELL")} className="rounded-xl border border-border/40 bg-muted px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none">
                                             <option value="BUY">BUY</option><option value="SELL">SELL</option>
                                         </select>
-                                        <input type="number" step="any" value={formEntry} onChange={(e) => setFormEntry(e.target.value)} placeholder="Entry price" className="rounded-xl border border-border/40 bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-violet-500 focus:outline-none" />
-                                        <input type="number" step="any" value={formSL} onChange={(e) => setFormSL(e.target.value)} placeholder="Stop Loss" className="rounded-xl border border-border/40 bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-violet-500 focus:outline-none" />
-                                        <input type="number" step="any" value={formTP} onChange={(e) => setFormTP(e.target.value)} placeholder="Take Profit" className="col-span-2 rounded-xl border border-border/40 bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-violet-500 focus:outline-none" />
+                                        <input type="number" step="any" value={formEntry} onChange={(e) => setFormEntry(e.target.value)} placeholder="Entry price" className="rounded-xl border border-border/40 bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" />
+                                        <input type="number" step="any" value={formSL} onChange={(e) => setFormSL(e.target.value)} placeholder="Stop Loss" className="rounded-xl border border-border/40 bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" />
+                                        <input type="number" step="any" value={formTP} onChange={(e) => setFormTP(e.target.value)} placeholder="Take Profit" className="col-span-2 rounded-xl border border-border/40 bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" />
                                     </div>
                                 )}
-                                <input type="text" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="Title" className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-violet-500 focus:outline-none" />
-                                <textarea value={formContent} onChange={(e) => setFormContent(e.target.value)} placeholder="Share your analysis..." rows={4} className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-violet-500 focus:outline-none resize-none" />
-                                <input type="text" value={formTags} onChange={(e) => setFormTags(e.target.value)} placeholder="Tags (comma-separated)" className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-violet-500 focus:outline-none" />
+                                <input type="text" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="Title" className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" />
+                                <textarea value={formContent} onChange={(e) => setFormContent(e.target.value)} placeholder="Share your analysis..." rows={4} className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none resize-none" />
+                                <input type="text" value={formTags} onChange={(e) => setFormTags(e.target.value)} placeholder="Tags (comma-separated)" className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" />
                                 <div className="flex gap-3">
                                     <button type="button" onClick={() => setShowCreate(false)} className="flex-1 rounded-xl border border-border/30 px-4 py-2.5 text-sm text-muted-foreground hover:bg-muted">Cancel</button>
-                                    <button type="button" onClick={createPost} disabled={creating || !formTitle || !formContent} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-violet-500 transition disabled:opacity-50">
+                                    <button type="button" onClick={createPost} disabled={creating || !formTitle || !formContent} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary transition disabled:opacity-50">
                                         {creating ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} Post
                                     </button>
                                 </div>
@@ -160,7 +160,7 @@ export default function SocialPage() {
                 )}
 
                 {loading ? (
-                    <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div>
+                    <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
                 ) : posts.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-border/30 p-16 text-center">
                         <MessageCircle size={32} className="mx-auto text-muted-foreground" />
@@ -174,35 +174,35 @@ export default function SocialPage() {
                             return (
                                 <div key={post.id} className="rounded-xl border border-border/30 bg-muted/50 p-5">
                                     <div className="flex items-center gap-3 mb-3">
-                                        <div className="h-9 w-9 rounded-full bg-violet-500/20 flex items-center justify-center text-sm font-bold text-violet-400">
+                                        <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary">
                                             {post.displayName.charAt(0).toUpperCase()}
                                         </div>
                                         <div>
                                             <p className="text-sm font-semibold text-foreground">{post.displayName}</p>
-                                            <p className="text-[10px] text-muted-foreground">{new Date(post.createdAt).toLocaleString()}</p>
+                                            <p className="text-micro text-muted-foreground">{new Date(post.createdAt).toLocaleString()}</p>
                                         </div>
-                                        <span className={cn("ml-auto flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-medium", config.bg, config.color)}>
+                                        <span className={cn("ml-auto flex items-center gap-1 rounded-full px-2.5 py-0.5 text-micro font-medium", config.bg, config.color)}>
                                             <Icon size={10} /> {config.label}
                                         </span>
                                     </div>
                                     {post.symbol && (
                                         <div className="mb-3 flex items-center gap-2">
                                             <span className="rounded bg-muted/30 px-2 py-0.5 font-mono text-xs text-foreground">{post.symbol}</span>
-                                            <span className={cn("text-xs font-bold", post.direction === "BUY" ? "text-emerald-400" : "text-rose-400")}>{post.direction}</span>
-                                            {post.entryPrice && <span className="text-[10px] text-muted-foreground">@ {post.entryPrice}</span>}
-                                            {post.stopLoss && <span className="text-[10px] text-rose-400/60">SL: {post.stopLoss}</span>}
-                                            {post.takeProfit && <span className="text-[10px] text-emerald-400/60">TP: {post.takeProfit}</span>}
+                                            <span className={cn("text-xs font-bold", post.direction === "BUY" ? "text-positive" : "text-negative")}>{post.direction}</span>
+                                            {post.entryPrice && <span className="text-micro text-muted-foreground">@ {post.entryPrice}</span>}
+                                            {post.stopLoss && <span className="text-micro text-negative/60">SL: {post.stopLoss}</span>}
+                                            {post.takeProfit && <span className="text-micro text-positive/60">TP: {post.takeProfit}</span>}
                                         </div>
                                     )}
                                     <h3 className="text-base font-semibold text-foreground mb-1">{post.title}</h3>
                                     <p className="text-sm text-muted-foreground whitespace-pre-wrap">{post.content}</p>
                                     {post.tags && post.tags.length > 0 && (
                                         <div className="mt-3 flex flex-wrap gap-1.5">
-                                            {post.tags.map((tag) => <span key={tag} className="rounded bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">#{tag}</span>)}
+                                            {post.tags.map((tag) => <span key={tag} className="rounded bg-muted px-2 py-0.5 text-micro text-muted-foreground">#{tag}</span>)}
                                         </div>
                                     )}
                                     <div className="mt-3 flex items-center gap-4 border-t border-border/20 pt-3">
-                                        <button type="button" onClick={() => toggleLike(post.id)} className={cn("flex items-center gap-1.5 text-xs transition", post.likedByUser ? "text-rose-400" : "text-muted-foreground hover:text-rose-400")}>
+                                        <button type="button" onClick={() => toggleLike(post.id)} className={cn("flex items-center gap-1.5 text-xs transition", post.likedByUser ? "text-negative" : "text-muted-foreground hover:text-negative")}>
                                             <Heart size={14} fill={post.likedByUser ? "currentColor" : "none"} /> {post.likes}
                                         </button>
                                         <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><MessageCircle size={14} /> {post.comments}</span>

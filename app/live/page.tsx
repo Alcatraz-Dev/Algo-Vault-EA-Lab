@@ -46,8 +46,8 @@ function LiveTicker() {
   return (
     <div className="relative overflow-hidden rounded-xl border border-border bg-muted/30">
       <div className="flex items-center">
-        <div className="flex shrink-0 items-center gap-1.5 border-r border-border bg-background/60 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-          <Radio size={11} className={isLive ? "text-emerald-500" : "text-muted-foreground"} />
+        <div className="flex shrink-0 items-center gap-1.5 border-r border-border bg-background/60 px-3 py-2 text-micro font-bold uppercase tracking-widest text-muted-foreground">
+          <Radio size={11} className={isLive ? "text-positive" : "text-muted-foreground"} />
           Live
         </div>
         <div className="overflow-hidden">
@@ -151,20 +151,20 @@ export default function LivePage() {
               <div className="text-sm font-extrabold tracking-tight text-foreground group-hover:text-[#ff4d00] transition">
                 AlgoVault
               </div>
-              <div className="text-[10px] font-medium text-muted-foreground tracking-widest uppercase">Live</div>
+              <div className="text-micro font-medium text-muted-foreground tracking-widest uppercase">Live</div>
             </div>
           </Link>
           <div className="ml-auto flex items-center gap-2">
             {sessions.length > 0 && (
-              <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-600">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-positive/20 bg-positive/10 px-3 py-1 text-micro font-semibold text-positive">
+                <span className="h-1.5 w-1.5 rounded-full bg-positive animate-pulse" />
                 {sessions.join(" + ")} open
               </span>
             )}
             <button
               type="button"
               onClick={refresh}
-              className="rounded-full border border-border px-3 py-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition"
+              className="rounded-full border border-border px-3 py-1 text-micro font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition"
             >
               Refresh
             </button>
@@ -202,7 +202,7 @@ export default function LivePage() {
               light={!dark}
               sessions={sessions}
             />
-            <p className="mt-2 text-[11px] text-muted-foreground">
+            <p className="mt-2 text-micro text-muted-foreground">
               Hover a country for its aggregated breakdown.
             </p>
           </section>
@@ -236,13 +236,13 @@ export default function LivePage() {
                 <span className="text-xs font-bold text-foreground truncate">{c.country}</span>
               </div>
               <div className="mt-2 text-xl font-extrabold text-foreground tabular-nums">{c.activeUsers}</div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">active traders</div>
+              <div className="text-micro uppercase tracking-wider text-muted-foreground">active traders</div>
             </button>
           ))}
         </div>
 
         {/* Bottom info */}
-        <section className="rounded-2xl border border-border bg-gradient-to-r from-muted/40 to-muted/30 p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <section className="rounded-lg border border-border bg-gradient-to-r from-muted/40 to-muted/30 p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
             <h2 className="text-lg font-extrabold tracking-tight text-foreground mb-1">
               AlgoVault Live Intelligence

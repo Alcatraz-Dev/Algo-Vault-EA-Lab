@@ -173,7 +173,7 @@ export default function AdminAITradingTeamsPage() {
                                     ) : (
                                         <div className="mt-2 overflow-x-auto">
                                             <table className="w-full min-w-[520px] text-left text-xs">
-                                                <thead className="text-[10px] tracking-wide text-muted-foreground uppercase">
+                                                <thead className="text-micro tracking-wide text-muted-foreground uppercase">
                                                     <tr>
                                                         <th className="py-1.5 pr-3">Agent</th>
                                                         <th className="py-1.5 pr-3">Runs</th>
@@ -213,7 +213,7 @@ export default function AdminAITradingTeamsPage() {
                                         <ul className="mt-2 space-y-1 text-xs">
                                             {Object.entries(snapshot.dataModes).map(([mode, count]) => (
                                                 <li key={mode} className="flex items-center justify-between">
-                                                    <Badge variant="outline" className="text-[10px]">{mode.toUpperCase()}</Badge>
+                                                    <Badge variant="outline" className="text-micro">{mode.toUpperCase()}</Badge>
                                                     <span className="tabular-nums">{count}</span>
                                                 </li>
                                             ))}
@@ -258,7 +258,7 @@ export default function AdminAITradingTeamsPage() {
                                         ))}
                                     </ul>
                                 )}
-                                <p className="mt-3 text-[11px] text-muted-foreground">
+                                <p className="mt-3 text-micro text-muted-foreground">
                                     AI provider usage, tokens and estimated cost are tracked by the existing AI usage
                                     system under source <code className="rounded bg-muted px-1">agent / ai-trading-team/*</code>.
                                 </p>
@@ -374,17 +374,17 @@ export default function AdminAITradingTeamsPage() {
                                     <div className="flex items-start justify-between gap-2">
                                         <div>
                                             <p className="text-sm font-semibold">{template.name}</p>
-                                            <p className="text-[11px] text-muted-foreground">{template.description}</p>
+                                            <p className="text-micro text-muted-foreground">{template.description}</p>
                                         </div>
-                                        <Badge variant={template.scope === "admin" ? "secondary" : "outline"} className="text-[9px]">
+                                        <Badge variant={template.scope === "admin" ? "secondary" : "outline"} className="text-micro">
                                             {template.scope}
                                         </Badge>
                                     </div>
                                     <div className="mt-2 flex flex-wrap gap-1">
-                                        <Badge variant="outline" className="text-[10px]">{template.config.market}</Badge>
-                                        <Badge variant="outline" className="text-[10px] capitalize">{template.config.style}</Badge>
-                                        <Badge variant="outline" className="text-[10px] capitalize">{template.config.behavior}</Badge>
-                                        <Badge variant="outline" className="text-[10px]">{template.agentIds.length} agents</Badge>
+                                        <Badge variant="outline" className="text-micro">{template.config.market}</Badge>
+                                        <Badge variant="outline" className="text-micro capitalize">{template.config.style}</Badge>
+                                        <Badge variant="outline" className="text-micro capitalize">{template.config.behavior}</Badge>
+                                        <Badge variant="outline" className="text-micro">{template.agentIds.length} agents</Badge>
                                     </div>
                                     {template.scope === "admin" ? (
                                         <Button
@@ -420,11 +420,11 @@ function MetricCard({
     return (
         <div className="rounded-xl border border-border/60 bg-card p-4">
             <div className="flex items-center justify-between">
-                <span className="text-[11px] text-muted-foreground">{label}</span>
+                <span className="text-micro text-muted-foreground">{label}</span>
                 {icon}
             </div>
             <p className="mt-1 text-2xl font-bold tabular-nums">{value}</p>
-            {sub ? <p className="text-[10px] text-muted-foreground">{sub}</p> : null}
+            {sub ? <p className="text-micro text-muted-foreground">{sub}</p> : null}
         </div>
     );
 }
@@ -432,7 +432,7 @@ function MetricCard({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
     return (
         <label className="block">
-            <span className="mb-1 block text-[11px] text-muted-foreground">{label}</span>
+            <span className="mb-1 block text-micro text-muted-foreground">{label}</span>
             {children}
         </label>
     );

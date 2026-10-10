@@ -275,7 +275,7 @@ export function OrderTicket({
         <div className="rounded-lg border border-border bg-card">
             <div className="border-b border-border px-4 py-3">
                 <h3 className="text-sm font-semibold">Order ticket</h3>
-                <p className="text-[11px] text-muted-foreground">Virtual execution · market fills use the server’s latest quote and configured costs.</p>
+                <p className="text-micro text-muted-foreground">Virtual execution · market fills use the server’s latest quote and configured costs.</p>
             </div>
 
             <div className="space-y-3 p-4">
@@ -311,7 +311,7 @@ export function OrderTicket({
                 <div className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-muted/40 px-3 py-2 text-xs">
                     <span className="text-muted-foreground">{symbol} live quote</span>
                     {quote && quoteIsFresh
-                        ? <span className="font-mono font-medium text-foreground">{quote.price.toLocaleString(undefined, { maximumFractionDigits: 6 })} <span className="text-[10px] text-muted-foreground">{new Date(quote.timestamp).toLocaleTimeString()} · live</span></span>
+                        ? <span className="font-mono font-medium text-foreground">{quote.price.toLocaleString(undefined, { maximumFractionDigits: 6 })} <span className="text-micro text-muted-foreground">{new Date(quote.timestamp).toLocaleTimeString()} · live</span></span>
                         : <span className="text-amber-600">{quote ? "Quote stale" : "Quote unavailable"}</span>}
                 </div>
 
@@ -392,7 +392,7 @@ export function OrderTicket({
                                     }}
                                     disabled={disabled}
                                     className={cn(
-                                        "rounded px-2 py-0.5 text-[11px] font-medium capitalize transition",
+                                        "rounded px-2 py-0.5 text-micro font-medium capitalize transition",
                                         sizingMode === mode ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
                                     )}
                                 >
@@ -428,7 +428,7 @@ export function OrderTicket({
                                 </span>
                             </div>
                             {stopMicros === null ? (
-                                <p className="text-[10px] text-amber-600">
+                                <p className="text-micro text-amber-600">
                                     Without a stop-loss the risk cannot be measured, so no lot size can be solved from a risk percentage.
                                 </p>
                             ) : null}
@@ -458,7 +458,7 @@ export function OrderTicket({
                                 disabled={disabled || !quoteIsFresh}
                                 onClick={() => { setSizingMode("risk"); setRiskPctInput(String(pct)); }}
                                 title={`Risk ${pct}% of equity`}
-                                className="rounded border border-border bg-card px-2 py-0.5 font-mono text-[11px] text-muted-foreground transition hover:border-primary/40 hover:text-foreground disabled:opacity-40"
+                                className="rounded border border-border bg-card px-2 py-0.5 font-mono text-micro text-muted-foreground transition hover:border-primary/40 hover:text-foreground disabled:opacity-40"
                             >
                                 {pct}%
                             </button>
@@ -471,7 +471,7 @@ export function OrderTicket({
                                 setLotsInput(String(roundLots(centiLotsToLots(ceilingSolve?.ceilings.maxCentiLots ?? 0))));
                             }}
                             title={`Largest legal size right now (${ceilingSolve?.ceilings.bindingGate ?? "n/a"} limit)`}
-                            className="ml-auto rounded border border-border bg-card px-2 py-0.5 font-mono text-[11px] text-muted-foreground transition hover:border-primary/40 hover:text-foreground disabled:opacity-40"
+                            className="ml-auto rounded border border-border bg-card px-2 py-0.5 font-mono text-micro text-muted-foreground transition hover:border-primary/40 hover:text-foreground disabled:opacity-40"
                         >
                             Max
                         </button>
@@ -487,15 +487,15 @@ export function OrderTicket({
                     signedSymbolExposureCents={signedSymbolExposureCents}
                 />
 
-                <p className="text-[11px] leading-relaxed text-muted-foreground">{orderType === "market" ? "Market orders fill only when the server has a fresh quote. SL/TP are checked server-side." : "Pending orders are checked against live quotes while this challenge is being monitored; rules are reevaluated at trigger time and orders expire after 7 days or at challenge end."}</p>
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-micro leading-relaxed text-muted-foreground">{orderType === "market" ? "Market orders fill only when the server has a fresh quote. SL/TP are checked server-side." : "Pending orders are checked against live quotes while this challenge is being monitored; rules are reevaluated at trigger time and orders expire after 7 days or at challenge end."}</p>
+                <p className="text-micro text-muted-foreground">
                     Size limits for {symbol}: {minLot}–{roundLots(maxLotsNow)} lots · step {lotStep}
                     {policy ? ` · max risk/trade ${policy.maxRiskPerTradePct}% · max open risk ${effectiveAggregateRiskPct(policy)}%` : ""}
                 </p>
 
-                {sizeBelowMin ? <p role="alert" className="text-[11px] text-amber-600">Enter a size of at least {minLot} lots{policy ? ` — risk ceilings currently allow ${roundLots(maxLotsNow)} lots max` : ""}.</p> : null}
+                {sizeBelowMin ? <p role="alert" className="text-micro text-amber-600">Enter a size of at least {minLot} lots{policy ? ` — risk ceilings currently allow ${roundLots(maxLotsNow)} lots max` : ""}.</p> : null}
                 {oversizeOnly ? (
-                    <p className="flex items-start gap-1.5 text-[11px] text-amber-600">
+                    <p className="flex items-start gap-1.5 text-micro text-amber-600">
                         <ShieldAlert className="mt-0.5 h-3 w-3 shrink-0" />
                         <span>Size reduced to {roundLots(effectiveLotsNumber)} lots by the {gateLabel(preview?.ceilings.bindingGate)} limit ({policy ? effectiveAggregateRiskPct(policy) : "?"}% open-risk budget).</span>
                     </p>
@@ -513,10 +513,10 @@ export function OrderTicket({
                 </Button>
 
                 {disabled ? (
-                    <p className="text-[11px] text-muted-foreground">Trading is unavailable while the challenge is not ACTIVE.</p>
+                    <p className="text-micro text-muted-foreground">Trading is unavailable while the challenge is not ACTIVE.</p>
                 ) : null}
                 {!quoteIsFresh && !disabled ? (
-                    <p className="flex items-start gap-1.5 text-[11px] text-amber-600">
+                    <p className="flex items-start gap-1.5 text-micro text-amber-600">
                         <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
                         <span>A live quote is required before orders can be sized or placed.</span>
                     </p>
@@ -589,7 +589,7 @@ function SizingPreviewPanel({
 }) {
     if (!preview || preview.centiLots <= 0) {
         return (
-            <div className="rounded-md border border-border bg-muted/20 p-3 text-[11px] text-muted-foreground">
+            <div className="rounded-md border border-border bg-muted/20 p-3 text-micro text-muted-foreground">
                 Enter a size (or a risk %) to see notional, risk and reward before placing the order.
             </div>
         );
@@ -618,13 +618,13 @@ function SizingPreviewPanel({
         <div className="space-y-1.5 rounded-md border border-border bg-background/60 p-3">
             <div className="flex items-center justify-between gap-2">
                 <p className="text-xs font-medium text-muted-foreground">Sizing preview</p>
-                <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                <span className="rounded border border-border px-1.5 py-0.5 font-mono text-micro text-muted-foreground">
                     limit: {gateLabel(preview.ceilings.bindingGate)}
                 </span>
             </div>
             <dl className="space-y-1">
                 {rows.map(([label, value]) => (
-                    <div key={label} className="flex items-baseline justify-between gap-3 text-[11px]">
+                    <div key={label} className="flex items-baseline justify-between gap-3 text-micro">
                         <dt className="text-muted-foreground">{label}</dt>
                         <dd className="text-right font-mono tabular-nums text-foreground">{value}</dd>
                     </div>
@@ -636,7 +636,7 @@ function SizingPreviewPanel({
                 // Saying so up front is the difference between a trader
                 // understanding why their "sell 0.5" closed a long instead of
                 // opening a short, and thinking the platform is broken.
-                <p className="border-t border-border pt-1.5 text-[10px] text-muted-foreground">
+                <p className="border-t border-border pt-1.5 text-micro text-muted-foreground">
                     Netting: you already hold {signedSymbolExposureCents > 0 ? "long" : "short"} {symbol}. This {side} order{" "}
                     {(signedSymbolExposureCents > 0) === (side === "long")
                         ? "adds to that position."

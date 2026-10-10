@@ -84,7 +84,7 @@ export function WatchlistRail({ now }: { now: number }) {
         <section className="flex min-w-0 flex-col gap-2" aria-label="Watchlist">
             <div className="rounded-xl border border-border bg-card p-2.5">
                 <div className="flex items-center justify-between gap-2">
-                    <h2 className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-foreground">
+                    <h2 className="flex items-center gap-1.5 text-micro font-semibold uppercase tracking-wide text-foreground">
                         <LayoutGrid className="size-3 text-primary" />
                         Watchlist
                         <span className="font-mono text-muted-foreground">({state.watchlist.length})</span>
@@ -117,7 +117,7 @@ export function WatchlistRail({ now }: { now: number }) {
                         {query ? (
                             <ul className="mt-1 max-h-40 overflow-y-auto rounded-md border border-border bg-background p-1">
                                 {matches.length === 0 ? (
-                                    <li className="px-2 py-1.5 text-[11px] text-muted-foreground">No supported symbol matches.</li>
+                                    <li className="px-2 py-1.5 text-micro text-muted-foreground">No supported symbol matches.</li>
                                 ) : (
                                     matches.map((s) => {
                                         const already = state.watchlist.includes(s);
@@ -134,7 +134,7 @@ export function WatchlistRail({ now }: { now: number }) {
                                                     className="flex w-full items-center justify-between rounded px-2 py-1 text-left font-mono text-xs text-foreground transition hover:bg-muted disabled:opacity-50"
                                                 >
                                                     {s}
-                                                    <span className="text-[10px] text-muted-foreground">
+                                                    <span className="text-micro text-muted-foreground">
                                                         {already ? "in list" : groupOfSymbol(s)}
                                                     </span>
                                                 </button>
@@ -155,7 +155,7 @@ export function WatchlistRail({ now }: { now: number }) {
                             onClick={() => setChip(c)}
                             aria-pressed={chip === c}
                             className={cn(
-                                "rounded border px-1.5 py-0.5 text-[10px] font-medium transition",
+                                "rounded border px-1.5 py-0.5 text-micro font-medium transition",
                                 chip === c
                                     ? "border-primary/40 bg-primary/10 text-primary"
                                     : "border-border text-muted-foreground hover:bg-muted"
@@ -167,7 +167,7 @@ export function WatchlistRail({ now }: { now: number }) {
                     ))}
                 </div>
 
-                <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-2 border-b border-border pb-1 text-[9px] uppercase tracking-wider text-muted-foreground">
+                <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-2 border-b border-border pb-1 text-micro uppercase tracking-wider text-muted-foreground">
                     <span>Symbol</span>
                     <span className="text-right">Price</span>
                     <span className="text-right">Day</span>
@@ -175,7 +175,7 @@ export function WatchlistRail({ now }: { now: number }) {
 
                 <ul className="mt-1 max-h-[46vh] overflow-y-auto">
                     {visible.length === 0 ? (
-                        <li className="px-1 py-3 text-[11px] leading-4 text-muted-foreground">
+                        <li className="px-1 py-3 text-micro leading-4 text-muted-foreground">
                             {chip === "All"
                                 ? "Your watchlist is empty. Use + to add a symbol."
                                 : `No watchlist symbol in ${chip}.`}
@@ -208,7 +208,7 @@ export function WatchlistRail({ now }: { now: number }) {
                                         <span className="flex items-center gap-1">
                                             <span
                                                 className={cn(
-                                                    "font-mono text-[11px] font-semibold",
+                                                    "font-mono text-micro font-semibold",
                                                     active ? "text-primary" : "text-foreground"
                                                 )}
                                             >
@@ -230,13 +230,13 @@ export function WatchlistRail({ now }: { now: number }) {
                                         </span>
                                     </button>
 
-                                    <span className="text-right font-mono text-[11px] tabular-nums text-foreground">
+                                    <span className="text-right font-mono text-micro tabular-nums text-foreground">
                                         {price !== null ? fmtPrice(price) : quotesLoading ? "…" : "—"}
                                     </span>
 
                                     <span
                                         className={cn(
-                                            "w-14 text-right font-mono text-[11px] tabular-nums",
+                                            "w-14 text-right font-mono text-micro tabular-nums",
                                             change === null
                                                 ? "text-muted-foreground"
                                                 : change >= 0
@@ -290,7 +290,7 @@ export function WatchlistRail({ now }: { now: number }) {
                     })}
                 </ul>
 
-                <div className="mt-1.5 flex items-center justify-between border-t border-border pt-1.5 text-[10px] text-muted-foreground">
+                <div className="mt-1.5 flex items-center justify-between border-t border-border pt-1.5 text-micro text-muted-foreground">
                     <span className="inline-flex items-center gap-1">
                         {quotesLoading ? <Loader2 className="size-2.5 animate-spin" /> : quotesError ? <WifiOff className="size-2.5 text-amber-400" /> : null}
                         {quotesError ? "Quote feed unavailable" : "Quotes · 1h change"}
@@ -337,13 +337,13 @@ function MarketOverview({ now }: { now: number }) {
 
     return (
         <section className="rounded-xl border border-border bg-card p-2.5" aria-label="Market overview">
-            <h2 className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-foreground">
+            <h2 className="flex items-center justify-between text-micro font-semibold uppercase tracking-wide text-foreground">
                 <span>{state.symbol} overview</span>
-                <span className="font-mono text-[10px] text-muted-foreground">{state.timeframe}</span>
+                <span className="font-mono text-micro text-muted-foreground">{state.timeframe}</span>
             </h2>
             <dl className="mt-2 space-y-1">
                 {rows.map((r) => (
-                    <div key={r.label} className="flex items-center justify-between gap-2 text-[11px]">
+                    <div key={r.label} className="flex items-center justify-between gap-2 text-micro">
                         <dt className="text-muted-foreground">{r.label}</dt>
                         <dd
                             className={cn(
@@ -359,7 +359,7 @@ function MarketOverview({ now }: { now: number }) {
                     </div>
                 ))}
             </dl>
-            <p className="mt-2 border-t border-border pt-1.5 text-[10px] leading-4 text-muted-foreground">
+            <p className="mt-2 border-t border-border pt-1.5 text-micro leading-4 text-muted-foreground">
                 {analysisError
                     ? "Analysis feed unavailable — trend/regime not measured."
                     : analysisLoading && !analysis

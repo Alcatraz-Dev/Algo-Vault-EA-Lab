@@ -10,8 +10,8 @@ type Props = {
 
 function getBiasConfig(bias: string) {
     switch (bias) {
-        case "bullish": return { color: "text-emerald-400", bg: "bg-emerald-500/10", ring: "text-emerald-500" };
-        case "bearish": return { color: "text-rose-400", bg: "bg-rose-500/10", ring: "text-rose-500" };
+        case "bullish": return { color: "text-positive", bg: "bg-positive/10", ring: "text-positive" };
+        case "bearish": return { color: "text-negative", bg: "bg-negative/10", ring: "text-negative" };
         default: return { color: "text-muted-foreground", bg: "bg-muted/10", ring: "text-foreground/70" };
     }
 }
@@ -40,7 +40,7 @@ export default function MarketScorePanel({ score }: Props) {
                 </div>
                 <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                        {score.bias === "bullish" ? <TrendingUp size={14} className="text-emerald-400" /> : score.bias === "bearish" ? <TrendingDown size={14} className="text-rose-400" /> : <Minus size={14} className="text-muted-foreground" />}
+                        {score.bias === "bullish" ? <TrendingUp size={14} className="text-positive" /> : score.bias === "bearish" ? <TrendingDown size={14} className="text-negative" /> : <Minus size={14} className="text-muted-foreground" />}
                         <span className={cn("text-sm font-semibold uppercase", config.color)}>{score.bias}</span>
                     </div>
                     <p className="text-xs text-foreground/70">Confidence: <span className="text-foreground/70 capitalize">{score.confidence}</span></p>
@@ -55,19 +55,19 @@ export default function MarketScorePanel({ score }: Props) {
                         <div className="flex-1">
                             <div className="h-1.5 overflow-hidden rounded-full bg-foreground/10">
                                 <div
-                                    className={cn("h-full rounded-full", comp.direction === "bullish" ? "bg-emerald-500" : comp.direction === "bearish" ? "bg-rose-500" : "bg-muted")}
+                                    className={cn("h-full rounded-full", comp.direction === "bullish" ? "bg-positive" : comp.direction === "bearish" ? "bg-negative" : "bg-muted")}
                                     style={{ width: `${Math.abs(comp.value) / comp.max * 100}%` }}
                                 />
                             </div>
                         </div>
-                        <span className={cn("w-8 text-right font-mono text-[10px]", comp.direction === "bullish" ? "text-emerald-400" : comp.direction === "bearish" ? "text-rose-400" : "text-foreground/70")}>
+                        <span className={cn("w-8 text-right font-mono text-micro", comp.direction === "bullish" ? "text-positive" : comp.direction === "bearish" ? "text-negative" : "text-foreground/70")}>
                             {comp.value > 0 ? "+" : ""}{comp.value}
                         </span>
                     </div>
                 ))}
             </div>
 
-            <p className="rounded-lg bg-amber-500/[0.04] px-2.5 py-1.5 text-[10px] text-amber-400/70">
+            <p className="rounded-lg bg-warning/[0.04] px-2.5 py-1.5 text-micro text-warning/70">
                 Analytical score — Not a trading guarantee
             </p>
         </div>

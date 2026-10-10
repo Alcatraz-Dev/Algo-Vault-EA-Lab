@@ -131,17 +131,17 @@ export default function StatementPage() {
                 {accountsLoading ? (
                     <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div>
                 ) : accounts.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-border/40 p-16 text-center">
+                    <div className="rounded-lg border border-dashed border-border/40 p-16 text-center">
                         <Shield size={32} className="mx-auto text-muted-foreground" />
                         <p className="mt-3 text-sm text-muted-foreground">No trading accounts connected</p>
-                        <p className="mt-1 text-[10px] text-muted-foreground">Install the AlgoVault Gateway EA on your MT5 terminal to start streaming account data</p>
+                        <p className="mt-1 text-micro text-muted-foreground">Install the AlgoVault Gateway EA on your MT5 terminal to start streaming account data</p>
                     </div>
                 ) : loading && !data ? (
                     <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div>
                 ) : data && s ? (
                     <>
                         {/* Account Header */}
-                        <div className="mb-6 rounded-2xl border border-border/30 bg-muted/50 p-5">
+                        <div className="mb-6 rounded-lg border border-border/30 bg-muted/50 p-5">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-xs text-muted-foreground">Account Statement</p>
@@ -167,7 +167,7 @@ export default function StatementPage() {
 
                         {/* Breakdown */}
                         <div className="mb-6 grid gap-4 lg:grid-cols-2">
-                            <div className="rounded-2xl border border-border/30 bg-muted/50 p-5">
+                            <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
                                 <h3 className="mb-3 text-sm font-semibold text-foreground">P/L Breakdown</h3>
                                 <div className="space-y-2">
                                     {[
@@ -186,14 +186,14 @@ export default function StatementPage() {
                                 </div>
                             </div>
 
-                            <div className="rounded-2xl border border-border/30 bg-muted/50 p-5">
+                            <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
                                 <h3 className="mb-3 text-sm font-semibold text-foreground">By Symbol</h3>
                                 <div className="space-y-2">
                                     {data.bySymbol.map((sym) => (
                                         <div key={sym.symbol} className="flex items-center justify-between py-1.5 border-b border-border/15">
                                             <div className="flex items-center gap-2">
                                                 <span className="font-mono text-xs font-medium text-foreground">{sym.symbol}</span>
-                                                <span className="text-[10px] text-muted-foreground">{sym.trades} trades</span>
+                                                <span className="text-micro text-muted-foreground">{sym.trades} trades</span>
                                             </div>
                                             <span className={cn("font-mono text-xs font-bold", sym.profit >= 0 ? "text-emerald-400" : "text-rose-400")}>
                                                 {sym.profit >= 0 ? "+" : ""}${sym.profit.toFixed(2)}
@@ -205,14 +205,14 @@ export default function StatementPage() {
                         </div>
 
                         {/* Trades Table */}
-                        <div className="rounded-2xl border border-border/30 bg-muted/50 overflow-hidden">
+                        <div className="rounded-lg border border-border/30 bg-muted/50 overflow-hidden">
                             <div className="border-b border-border/20 px-5 py-3">
                                 <h3 className="text-sm font-semibold text-foreground">Trade History ({data.trades.length})</h3>
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-xs">
                                     <thead>
-                                        <tr className="border-b border-border/20 text-[10px] uppercase tracking-wider text-muted-foreground">
+                                        <tr className="border-b border-border/20 text-micro uppercase tracking-wider text-muted-foreground">
                                             <th className="px-4 py-2.5 text-left">Ticket</th>
                                             <th className="px-4 py-2.5 text-left">Symbol</th>
                                             <th className="px-4 py-2.5 text-left">Type</th>
@@ -253,7 +253,7 @@ export default function StatementPage() {
                         </div>
                     </>
                 ) : (
-                    <div className="rounded-2xl border border-dashed border-border/40 p-16 text-center">
+                    <div className="rounded-lg border border-dashed border-border/40 p-16 text-center">
                         <FileText size={32} className="mx-auto text-muted-foreground" />
                         <p className="mt-3 text-sm text-muted-foreground">Select an account to generate a statement</p>
                     </div>
@@ -265,8 +265,8 @@ export default function StatementPage() {
 
 function StatCard({ label, value, color }: { label: string; value: string; color?: string }) {
     return (
-        <div className="rounded-2xl border border-border/30 bg-muted/50 p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+        <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
+            <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
             <p className={cn("mt-1 text-lg font-bold font-mono", color || "text-foreground")}>{value}</p>
         </div>
     );

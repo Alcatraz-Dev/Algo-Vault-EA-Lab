@@ -696,7 +696,7 @@ function PurchasesContent() {
 
                         <Link
                             href="/login?redirect=/account/purchases"
-                            className="mt-6 inline-flex items-center rounded-md bg-foreground px-5 py-3 text-sm font-medium text-background transition hover:bg-muted"
+                            className="mt-6 inline-flex items-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/80"
                         >
                             Sign In
                         </Link>
@@ -820,7 +820,7 @@ function PurchasesContent() {
 
                             <Link
                                 href="/marketplace"
-                                className="mt-6 inline-flex items-center rounded-md bg-foreground px-5 py-3 text-sm font-medium text-background transition hover:bg-muted"
+                                className="mt-6 inline-flex items-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/80"
                             >
                                 Explore Marketplace
                             </Link>
@@ -973,7 +973,7 @@ function PurchasesContent() {
 
                                                     {typeof order.amount ===
                                                         "number" && (
-                                                            <p className="mt-2 text-xs text-muted-foreground">
+                                                            <p className="mt-2 font-numeric text-xs text-muted-foreground">
                                                                 {formatMoney(
                                                                     order.amount,
                                                                     order.currency
@@ -1082,7 +1082,7 @@ function PurchasesContent() {
                                                             );
                                                         }
                                                     }}
-                                                    className="inline-flex items-center justify-center gap-2 rounded-md bg-foreground px-5 py-3 text-sm font-medium text-background transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+                                                    className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/80 disabled:cursor-not-allowed disabled:opacity-40"
                                                 >
                                                     {downloading ===
                                                         order.productId ? (

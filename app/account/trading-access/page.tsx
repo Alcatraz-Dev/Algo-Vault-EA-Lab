@@ -355,7 +355,7 @@ export default function TradingAccessPage() {
                 {/* Trading Accounts — always visible. When the gateway has
                     linked at least one MT5 account the section shows a live
                     Connected status, independent of the license state. */}
-                <div className="rounded-2xl border border-border bg-muted/30 p-6">
+                <div className="rounded-lg border border-border bg-muted/30 p-6">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
                             <h2 className="font-semibold">Trading Accounts</h2>
@@ -436,7 +436,7 @@ export default function TradingAccessPage() {
                                         </div>
                                         <div className="flex flex-wrap gap-5">
                                             <div>
-                                                <p className="text-[11px] text-muted-foreground">
+                                                <p className="text-micro text-muted-foreground">
                                                     Balance
                                                 </p>
                                                 <p className="font-mono text-sm tabular-nums">
@@ -444,7 +444,7 @@ export default function TradingAccessPage() {
                                                 </p>
                                             </div>
                                             <div>
-                                                <p className="text-[11px] text-muted-foreground">
+                                                <p className="text-micro text-muted-foreground">
                                                     Equity
                                                 </p>
                                                 <p className="font-mono text-sm tabular-nums">
@@ -452,7 +452,7 @@ export default function TradingAccessPage() {
                                                 </p>
                                             </div>
                                             <div>
-                                                <p className="text-[11px] text-muted-foreground">
+                                                <p className="text-micro text-muted-foreground">
                                                     Gateway
                                                 </p>
                                                 <p className="text-sm">
@@ -460,7 +460,7 @@ export default function TradingAccessPage() {
                                                 </p>
                                             </div>
                                             <div>
-                                                <p className="text-[11px] text-muted-foreground">
+                                                <p className="text-micro text-muted-foreground">
                                                     Last Seen
                                                 </p>
                                                 <p className="flex items-center gap-1.5 text-sm">
@@ -490,7 +490,7 @@ export default function TradingAccessPage() {
 
                 {/* Gateway Download & Setup */}
                 {license?.status === "active" && (
-                    <div className="rounded-2xl border border-border bg-muted/30 p-6">
+                    <div className="rounded-lg border border-border bg-muted/30 p-6">
                         <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
                                 <Download

@@ -579,7 +579,7 @@ function ProLock({ label, hint }: { label: string; hint: string }) {
             <p className="max-w-[40ch] text-xs text-muted-foreground">{hint}</p>
             <a
                 href="/pricing"
-                className="mt-1 inline-flex items-center gap-1.5 rounded-md bg-primary px-2.5 py-1.5 text-[11px] font-medium text-primary-foreground transition hover:bg-primary/80"
+                className="mt-1 inline-flex items-center gap-1.5 rounded-md bg-primary px-2.5 py-1.5 text-micro font-medium text-primary-foreground transition hover:bg-primary/80"
             >
                 <Crown size={11} />
                 Upgrade to Pro
@@ -599,7 +599,7 @@ function Metric({
 }) {
     return (
         <div className="min-w-0">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="text-micro uppercase tracking-wide text-muted-foreground">{label}</p>
             <p
                 className={cn(
                     "font-numeric mt-1 truncate text-[15px] font-medium",
@@ -772,7 +772,7 @@ function AccountsWidget({ user, refreshKey }: WidgetProps) {
                         <p className="truncate text-[13px] font-medium text-foreground">
                             {acc.broker || acc.mt5Account || acc.accountId}
                         </p>
-                        <p className="truncate text-[11px] text-muted-foreground">
+                        <p className="truncate text-micro text-muted-foreground">
                             {acc.mt5Account ? `#${acc.mt5Account}` : acc.accountId} · {acc.status} ·{" "}
                             {relativeTime(acc.lastHeartbeatAt)}
                         </p>
@@ -781,7 +781,7 @@ function AccountsWidget({ user, refreshKey }: WidgetProps) {
                         <p className="font-numeric text-[13px] text-foreground">{money(acc.equity, acc.currency)}</p>
                         <p
                             className={cn(
-                                "font-numeric text-[11px]",
+                                "font-numeric text-micro",
                                 pnlTone(acc.floatingPnl) === "positive" && "text-positive",
                                 pnlTone(acc.floatingPnl) === "negative" && "text-negative",
                                 pnlTone(acc.floatingPnl) === "muted" && "text-muted-foreground"
@@ -794,7 +794,7 @@ function AccountsWidget({ user, refreshKey }: WidgetProps) {
                 </li>
             ))}
             {accounts.length > 5 && (
-                <li className="pt-2.5 text-[11px] text-muted-foreground">
+                <li className="pt-2.5 text-micro text-muted-foreground">
                     +{accounts.length - 5} more account{accounts.length - 5 === 1 ? "" : "s"}
                 </li>
             )}
@@ -867,7 +867,7 @@ function EquityCurveWidget({ user, refreshKey, accountId, config }: WidgetProps)
                 >
                     {change >= 0 ? "+" : ""}
                     {money(change)}
-                    <span className="ml-1 text-[11px] text-muted-foreground">over {curve.data.length} points</span>
+                    <span className="ml-1 text-micro text-muted-foreground">over {curve.data.length} points</span>
                 </p>
             </div>
             <AreaTrendChart
@@ -920,7 +920,7 @@ function MarketScoreWidget({ user, refreshKey, config }: WidgetProps) {
         <div className="space-y-4">
             <div className="flex items-end justify-between gap-4">
                 <div>
-                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    <p className="text-micro uppercase tracking-wide text-muted-foreground">
                         {symbol} · {timeframe}
                     </p>
                     <p
@@ -938,7 +938,7 @@ function MarketScoreWidget({ user, refreshKey, config }: WidgetProps) {
                 <div className="flex flex-col items-end gap-1.5">
                     <span
                         className={cn(
-                            "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium capitalize",
+                            "inline-flex items-center rounded-full border px-2.5 py-0.5 text-micro font-medium capitalize",
                             biasTone === "positive" && "border-positive/30 bg-positive/10 text-positive",
                             biasTone === "negative" && "border-negative/30 bg-negative/10 text-negative",
                             biasTone === "muted" && "border-border bg-muted text-muted-foreground"
@@ -946,7 +946,7 @@ function MarketScoreWidget({ user, refreshKey, config }: WidgetProps) {
                     >
                         {score.bias}
                     </span>
-                    <span className="text-[11px] text-muted-foreground">
+                    <span className="text-micro text-muted-foreground">
                         {score.confidence} confidence
                     </span>
                 </div>
@@ -1035,7 +1035,7 @@ function RiskWidget({ user, refreshKey, accountId }: WidgetProps) {
                     />
                 </div>
                 <div className="space-y-1.5 border-t border-border pt-3">
-                    <div className="flex items-center justify-between text-[11px]">
+                    <div className="flex items-center justify-between text-micro">
                         <span className="text-muted-foreground">Margin utilisation</span>
                         <span className="font-numeric text-foreground">{risk.marginUtilization.toFixed(1)}%</span>
                     </div>
@@ -1050,7 +1050,7 @@ function RiskWidget({ user, refreshKey, accountId }: WidgetProps) {
                             style={{ width: `${Math.min(100, Math.max(2, risk.marginUtilization))}%` }}
                         />
                     </div>
-                    <div className="flex items-center justify-between text-[11px]">
+                    <div className="flex items-center justify-between text-micro">
                         <span className="text-muted-foreground">Open risk exposure</span>
                         <span className="font-numeric text-foreground">
                             {money(risk.totalRiskExposure)} · {risk.positionsAtRisk}/{risk.totalPositions} at risk
@@ -1087,7 +1087,7 @@ function PositionsWidget({ user, refreshKey, accountId }: WidgetProps) {
     return (
         <div className="space-y-3">
             <div className="flex items-center justify-between">
-                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                <p className="text-micro uppercase tracking-wide text-muted-foreground">
                     {positions.length} open position{positions.length === 1 ? "" : "s"}
                 </p>
                 <p
@@ -1103,9 +1103,9 @@ function PositionsWidget({ user, refreshKey, accountId }: WidgetProps) {
                 </p>
             </div>
             <div className="-mx-1 overflow-x-auto">
-                <table className="w-full text-[11px]">
+                <table className="w-full text-micro">
                     <thead>
-                        <tr className="border-b border-border text-[11px] uppercase tracking-wide text-muted-foreground">
+                        <tr className="border-b border-border text-micro uppercase tracking-wide text-muted-foreground">
                             <th className="px-1 pb-2 text-left font-medium">Symbol</th>
                             <th className="px-1 pb-2 text-left font-medium">Side</th>
                             <th className="px-1 pb-2 text-right font-medium">Volume</th>
@@ -1153,7 +1153,7 @@ function PositionsWidget({ user, refreshKey, accountId }: WidgetProps) {
                 </table>
             </div>
             {positions.length > 8 && (
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-micro text-muted-foreground">
                     +{positions.length - 8} more — open Positions for the full list.
                 </p>
             )}
@@ -1186,7 +1186,7 @@ function ExposureWidget({ user, refreshKey }: WidgetProps) {
                 const tone = String(item.type).toUpperCase().startsWith("BUY") ? "positive" : "negative";
                 return (
                     <li key={`${item.symbol}_${item.type}`} className="space-y-1">
-                        <div className="flex items-center justify-between text-[11px]">
+                        <div className="flex items-center justify-between text-micro">
                             <span className="truncate font-medium text-foreground">
                                 {item.symbol}{" "}
                                 <span className={cn(tone === "positive" ? "text-positive" : "text-negative")}>
@@ -1248,20 +1248,20 @@ function RecentAlertsWidget({ user, refreshKey }: WidgetProps) {
                         <p className="truncate text-[13px] font-medium text-foreground">
                             {alert.symbol} · {String(alert.type).replace(/_/g, " ")}
                         </p>
-                        <p className="truncate text-[11px] text-muted-foreground">
+                        <p className="truncate text-micro text-muted-foreground">
                             {alert.message || `${alert.timeframe || "H1"} alert`}
                         </p>
                     </div>
                     <div className="shrink-0 text-right">
                         <p
                             className={cn(
-                                "text-[11px] font-medium",
+                                "text-micro font-medium",
                                 alert.triggered ? "text-primary" : "text-muted-foreground"
                             )}
                         >
                             {alert.triggered ? "Triggered" : "Armed"}
                         </p>
-                        <p className="text-[11px] text-muted-foreground">
+                        <p className="text-micro text-muted-foreground">
                             {relativeTime(alert.triggeredAt || alert.createdAt)}
                         </p>
                     </div>
@@ -1304,9 +1304,9 @@ function WatchlistWidget({ user, refreshKey, config }: WidgetProps) {
 
     return (
         <div className="-mx-1 overflow-x-auto">
-            <table className="w-full text-[11px]">
+            <table className="w-full text-micro">
                 <thead>
-                    <tr className="border-b border-border text-[11px] uppercase tracking-wide text-muted-foreground">
+                    <tr className="border-b border-border text-micro uppercase tracking-wide text-muted-foreground">
                         <th className="px-1 pb-2 text-left font-medium">Symbol</th>
                         <th className="px-1 pb-2 text-right font-medium">Bid</th>
                         <th className="px-1 pb-2 text-right font-medium">Ask</th>
@@ -1373,7 +1373,7 @@ function MarketClockWidget() {
                 <span className="font-numeric text-3xl font-semibold tracking-tight text-foreground">
                     {now.toLocaleTimeString("en-GB", { hour12: false })}
                 </span>
-                <span className="text-[11px] text-muted-foreground">local</span>
+                <span className="text-micro text-muted-foreground">local</span>
             </div>
             <div className="flex items-baseline gap-2">
                 <span className="font-numeric text-[15px] text-foreground">
@@ -1382,12 +1382,12 @@ function MarketClockWidget() {
                         timeZone: "UTC",
                     })}
                 </span>
-                <span className="text-[11px] text-muted-foreground">UTC</span>
+                <span className="text-micro text-muted-foreground">UTC</span>
             </div>
             <div className="flex flex-wrap items-center gap-1.5">
                 <span
                     className={cn(
-                        "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium",
+                        "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-micro font-medium",
                         marketOpen
                             ? "border-positive/30 bg-positive/10 text-positive"
                             : "border-border bg-muted text-muted-foreground"
@@ -1403,7 +1403,7 @@ function MarketClockWidget() {
                     {weekend ? "Weekend" : marketOpen ? "Market open" : "Between sessions"}
                 </span>
                 {active.length > 0 && (
-                    <span className="text-[11px] text-muted-foreground">Sessions: {active.join(", ")}</span>
+                    <span className="text-micro text-muted-foreground">Sessions: {active.join(", ")}</span>
                 )}
             </div>
         </div>
@@ -1461,7 +1461,7 @@ function MarketRegimeWidget({ user, refreshKey, config, isPro }: WidgetProps) {
         <div className="space-y-4">
             <div className="flex items-end justify-between gap-4">
                 <div>
-                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    <p className="text-micro uppercase tracking-wide text-muted-foreground">
                         {symbol} · {timeframe}
                     </p>
                     <p
@@ -1476,7 +1476,7 @@ function MarketRegimeWidget({ user, refreshKey, config, isPro }: WidgetProps) {
                     </p>
                 </div>
                 <div className="text-right">
-                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Confidence</p>
+                    <p className="text-micro uppercase tracking-wide text-muted-foreground">Confidence</p>
                     <p className="font-numeric mt-1 text-2xl font-semibold text-foreground">
                         {Math.round(regime.confidence)}
                         <span className="text-sm text-muted-foreground">%</span>
@@ -1498,7 +1498,7 @@ function MarketRegimeWidget({ user, refreshKey, config, isPro }: WidgetProps) {
 
             <ul className="space-y-1 border-t border-border pt-3">
                 {regime.factors.slice(0, 5).map((factor, i) => (
-                    <li key={i} className="flex items-start gap-2 text-[11px] text-muted-foreground">
+                    <li key={i} className="flex items-start gap-2 text-micro text-muted-foreground">
                         <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-muted-foreground/60" aria-hidden="true" />
                         <span className="min-w-0">{factor}</span>
                     </li>
@@ -1554,7 +1554,7 @@ function VolatilityWidget({ user, refreshKey, config, isPro }: WidgetProps) {
         <div className="space-y-4">
             <div className="flex items-end justify-between gap-4">
                 <div>
-                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    <p className="text-micro uppercase tracking-wide text-muted-foreground">
                         {symbol} · {timeframe}
                     </p>
                     <p
@@ -1569,7 +1569,7 @@ function VolatilityWidget({ user, refreshKey, config, isPro }: WidgetProps) {
                     </p>
                 </div>
                 <div className="text-right">
-                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">ATR</p>
+                    <p className="text-micro uppercase tracking-wide text-muted-foreground">ATR</p>
                     <p className="font-numeric mt-1 text-2xl font-semibold text-foreground">
                         {formatPrice(vol.atr)}
                     </p>
@@ -1645,7 +1645,7 @@ function VolumeAnalysisWidget({ user, refreshKey, config, isPro }: WidgetProps) 
         <div className="space-y-4">
             <div className="flex items-end justify-between gap-4">
                 <div>
-                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    <p className="text-micro uppercase tracking-wide text-muted-foreground">
                         {symbol} · {timeframe}
                     </p>
                     <p className="font-numeric mt-1 text-2xl font-semibold text-foreground">
@@ -1680,7 +1680,7 @@ function VolumeAnalysisWidget({ user, refreshKey, config, isPro }: WidgetProps) 
                         style={{ width: `${Math.min(100, Math.max(3, (vol.relativeVolume / 2) * 100))}%` }}
                     />
                 </div>
-                <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                <div className="flex items-center justify-between text-micro text-muted-foreground">
                     <span>0×</span>
                     <span>1× average</span>
                     <span>2×</span>
@@ -1693,7 +1693,7 @@ function VolumeAnalysisWidget({ user, refreshKey, config, isPro }: WidgetProps) 
             </div>
 
             {vol.isTickVolume && (
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-micro text-muted-foreground">
                     Source: tick volume — a proxy for participation, not centralized traded volume.
                 </p>
             )}
@@ -1749,7 +1749,7 @@ function StructureEventsWidget({ user, refreshKey, config, isPro }: WidgetProps)
 
     return (
         <div className="-mx-1 overflow-x-auto">
-            <table className="w-full text-[11px]">
+            <table className="w-full text-micro">
                 <thead>
                     <tr className="border-b border-border uppercase tracking-wide text-muted-foreground">
                         <th className="px-1 pb-2 text-left font-medium">Event</th>
@@ -1767,7 +1767,7 @@ function StructureEventsWidget({ user, refreshKey, config, isPro }: WidgetProps)
                                 <td className="px-1 py-2">
                                     <span
                                         className={cn(
-                                            "inline-flex rounded-full border px-1.5 py-0.5 text-[11px] font-medium",
+                                            "inline-flex rounded-full border px-1.5 py-0.5 text-micro font-medium",
                                             event.type === "CHOCH"
                                                 ? "border-warning/30 bg-warning/10 text-warning"
                                                 : "border-border bg-muted text-foreground"
@@ -1792,7 +1792,7 @@ function StructureEventsWidget({ user, refreshKey, config, isPro }: WidgetProps)
                 </tbody>
             </table>
             {events.length > 8 && (
-                <p className="pt-2 text-[11px] text-muted-foreground">+{events.length - 8} older events</p>
+                <p className="pt-2 text-micro text-muted-foreground">+{events.length - 8} older events</p>
             )}
         </div>
     );
@@ -1889,14 +1889,14 @@ function LiquidityMapWidget({ user, refreshKey, config, isPro }: WidgetProps) {
 
             {sweeps.length > 0 && (
                 <div className="space-y-2 border-t border-border pt-3">
-                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Recent sweeps</p>
+                    <p className="text-micro uppercase tracking-wide text-muted-foreground">Recent sweeps</p>
                     <ul className="space-y-1.5">
                         {sweeps.slice(0, 4).map((sweep) => {
                             const buySide = sweep.side === "buy_side";
                             return (
                                 <li
                                     key={sweep.id}
-                                    className="flex items-center justify-between gap-2 text-[11px]"
+                                    className="flex items-center justify-between gap-2 text-micro"
                                 >
                                     <span className={cn("font-medium", buySide ? "text-negative" : "text-positive")}>
                                         {buySide ? "Sell-side swept" : "Buy-side swept"}
@@ -1974,7 +1974,7 @@ function ZonesWidget({ user, refreshKey, config, isPro }: WidgetProps) {
 
     return (
         <div className="-mx-1 overflow-x-auto">
-            <table className="w-full text-[11px]">
+            <table className="w-full text-micro">
                 <thead>
                     <tr className="border-b border-border uppercase tracking-wide text-muted-foreground">
                         <th className="px-1 pb-2 text-left font-medium">Type</th>
@@ -2024,7 +2024,7 @@ function ZonesWidget({ user, refreshKey, config, isPro }: WidgetProps) {
                 </tbody>
             </table>
             {active.length > 8 && (
-                <p className="pt-2 text-[11px] text-muted-foreground">+{active.length - 8} more active zones</p>
+                <p className="pt-2 text-micro text-muted-foreground">+{active.length - 8} more active zones</p>
             )}
         </div>
     );
@@ -2081,7 +2081,7 @@ function CorrelationMatrixWidget({ user, refreshKey, isPro }: WidgetProps) {
     return (
         <div className="space-y-3">
             <div className="-mx-1 overflow-x-auto">
-                <table className="w-full text-[11px]">
+                <table className="w-full text-micro">
                     <thead>
                         <tr>
                             <th className="px-1 pb-2" />
@@ -2109,7 +2109,7 @@ function CorrelationMatrixWidget({ user, refreshKey, isPro }: WidgetProps) {
                                         <td
                                             key={col}
                                             className={cn(
-                                                "px-0.5 py-0.5 text-center font-numeric text-[11px]",
+                                                "px-0.5 py-0.5 text-center font-numeric text-micro",
                                                 !isDiagonal && "rounded-sm"
                                             )}
                                             style={
@@ -2135,7 +2135,7 @@ function CorrelationMatrixWidget({ user, refreshKey, isPro }: WidgetProps) {
                 </table>
             </div>
 
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-micro text-muted-foreground">
                 <span>Negative</span>
                 <span className="h-2 w-20 rounded-sm bg-negative/80" aria-hidden="true" />
                 <span className="h-2 w-6 rounded-sm bg-muted-foreground/20" aria-hidden="true" />
@@ -2218,12 +2218,12 @@ function MarketBreadthWidget({ user, refreshKey, config, isPro }: WidgetProps) {
 
     return (
         <div className="space-y-3">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{timeframe} market scores</p>
+            <p className="text-micro uppercase tracking-wide text-muted-foreground">{timeframe} market scores</p>
             <ul className="space-y-2.5">
                 {rows.map((row) => {
                     if (!row.score) {
                         return (
-                            <li key={row.symbol} className="flex items-center justify-between text-[11px]">
+                            <li key={row.symbol} className="flex items-center justify-between text-micro">
                                 <span className="font-medium text-foreground">{row.symbol}</span>
                                 <span className="text-muted-foreground">Unavailable</span>
                             </li>
@@ -2233,12 +2233,12 @@ function MarketBreadthWidget({ user, refreshKey, config, isPro }: WidgetProps) {
                     const tone = score.bias === "bullish" ? "positive" : score.bias === "bearish" ? "negative" : "muted";
                     return (
                         <li key={row.symbol} className="space-y-1">
-                            <div className="flex items-center justify-between text-[11px]">
+                            <div className="flex items-center justify-between text-micro">
                                 <span className="font-medium text-foreground">{row.symbol}</span>
                                 <span className="flex items-center gap-2">
                                     <span
                                         className={cn(
-                                            "rounded-full border px-1.5 py-0.5 text-[11px] capitalize",
+                                            "rounded-full border px-1.5 py-0.5 text-micro capitalize",
                                             tone === "positive" && "border-positive/30 bg-positive/10 text-positive",
                                             tone === "negative" && "border-negative/30 bg-negative/10 text-negative",
                                             tone === "muted" && "border-border bg-muted text-muted-foreground"
@@ -2384,7 +2384,7 @@ function BiasChip({ bias }: { bias: Score["bias"] }) {
     return (
         <span
             className={cn(
-                "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide",
+                "inline-flex items-center rounded-full border px-2 py-0.5 text-micro font-medium uppercase tracking-wide",
                 tone === "positive" && "border-positive/30 bg-positive/10 text-positive",
                 tone === "negative" && "border-negative/30 bg-negative/10 text-negative",
                 tone === "muted" && "border-border bg-muted text-muted-foreground"
@@ -2481,14 +2481,14 @@ export function SignalCoreView({
                     <div className="flex flex-wrap items-center gap-2">
                         <BiasChip bias={bias} />
                         {strength ? (
-                            <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-primary">
+                            <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-micro font-medium uppercase tracking-wide text-primary">
                                 {strength}
                             </span>
                         ) : null}
-                        <span className="font-numeric truncate text-[11px] uppercase tracking-wide text-muted-foreground">
+                        <span className="font-numeric truncate text-micro uppercase tracking-wide text-muted-foreground">
                             {symbol} · {ai?.timeframe ?? timeframe}
                         </span>
-                        <span className="text-[11px] text-muted-foreground">
+                        <span className="text-micro text-muted-foreground">
                             {relativeTime(ai?.createdAt ?? score?.timestamp)}
                         </span>
                     </div>
@@ -2497,7 +2497,7 @@ export function SignalCoreView({
                         {ai ? (
                             <>
                                 <div className="min-w-0">
-                                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                                    <p className="text-micro uppercase tracking-wide text-muted-foreground">
                                         AI confidence
                                     </p>
                                     <p className="font-numeric mt-1 text-2xl font-semibold text-foreground">
@@ -2514,7 +2514,7 @@ export function SignalCoreView({
                         ) : (
                             <>
                                 <div className="min-w-0">
-                                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                                    <p className="text-micro uppercase tracking-wide text-muted-foreground">
                                         Market score
                                     </p>
                                     <p className="font-numeric mt-1 text-2xl font-semibold text-foreground">
@@ -2533,11 +2533,11 @@ export function SignalCoreView({
 
             {ai?.reasoning ? (
                 <div className="border-t border-border pt-2.5">
-                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">AI reasoning</p>
+                    <p className="text-micro uppercase tracking-wide text-muted-foreground">AI reasoning</p>
                     <p className="mt-1 line-clamp-3 text-[12px] leading-relaxed text-foreground">{ai.reasoning}</p>
                 </div>
             ) : !ai ? (
-                <p className="border-t border-border pt-2.5 text-[11px] text-muted-foreground">
+                <p className="border-t border-border pt-2.5 text-micro text-muted-foreground">
                     No live AI signal for {symbol} — showing the deterministic market score
                     {score ? ` (${aligned}/${total} factors aligned)` : ""}.
                 </p>
@@ -2643,7 +2643,7 @@ export function ConfidenceView({
         <div className="space-y-4">
             <div className="flex items-end justify-between gap-3">
                 <div className="min-w-0">
-                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    <p className="text-micro uppercase tracking-wide text-muted-foreground">
                         {symbol} · {ai ? `AI confidence · ${ai.timeframe}` : `${timeframe} market score`}
                     </p>
                     <p
@@ -2659,7 +2659,7 @@ export function ConfidenceView({
                 </div>
                 <div className="flex flex-col items-end gap-1.5">
                     <BiasChip bias={bias} />
-                    <span className="text-[11px] text-muted-foreground">
+                    <span className="text-micro text-muted-foreground">
                         {ai
                             ? `${strength ?? ai.direction} · ${relativeTime(ai.createdAt)}`
                             : `${score?.confidence ?? "—"} confidence`}
@@ -2667,13 +2667,12 @@ export function ConfidenceView({
                 </div>
             </div>
 
-            {/* Meter — grows on mount, eases on every refresh, sweeps while live */}
+            {/* Meter — grows on mount, eases on every refresh. */}
             <div className="relative h-2.5 overflow-hidden rounded-full bg-muted">
                 <div
                     className="h-full rounded-full transition-[width] duration-1000 ease-out"
                     style={{ width: `${value}%`, background: biasColorVar(bias) }}
                 />
-                <div aria-hidden="true" className="shimmer-overlay absolute inset-0" />
             </div>
 
             {components.length > 0 ? (
@@ -2700,7 +2699,7 @@ export function ConfidenceView({
                             <span className="min-w-0 flex-1 truncate text-[12px] text-foreground">
                                 {component.name}
                             </span>
-                            <span className="font-numeric shrink-0 text-[11px] text-muted-foreground">
+                            <span className="font-numeric shrink-0 text-micro text-muted-foreground">
                                 {component.value > 0 ? "+" : ""}
                                 {Math.round(component.value)}/{component.max}
                             </span>
@@ -2709,12 +2708,12 @@ export function ConfidenceView({
                 })}
             </ul>
             ) : (
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-micro text-muted-foreground">
                     Model confluence factors are unavailable for this symbol right now.
                 </p>
             )}
 
-            <p className="border-t border-border pt-2.5 text-[11px] text-muted-foreground">
+            <p className="border-t border-border pt-2.5 text-micro text-muted-foreground">
                 {ai
                     ? `${ai.direction} AI signal · ${strength ?? "no strength label"} · ${relativeTime(ai.createdAt)}${
                           score ? ` · ${aligned}/${components.length} model factors align` : ""
@@ -2784,7 +2783,7 @@ function LiveChartWidget({ user, refreshKey, config, isPro }: WidgetProps) {
                 badgeValue ? (
                     <span className="flex items-center gap-1.5">
                         <BiasChip bias={bias} />
-                        <span className="font-numeric text-[11px] text-muted-foreground">{badgeValue}</span>
+                        <span className="font-numeric text-micro text-muted-foreground">{badgeValue}</span>
                     </span>
                 ) : null
             }
@@ -2883,17 +2882,17 @@ function MtfBiasWidget({ user, refreshKey, config, isPro }: WidgetProps) {
     return (
         <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="font-numeric text-[11px] uppercase tracking-wide text-muted-foreground">
+                <span className="font-numeric text-micro uppercase tracking-wide text-muted-foreground">
                     {symbol} · multi-timeframe
                 </span>
                 {known.length > 0 || ai ? (
                     <span className="flex items-center gap-1.5">
                         <BiasChip bias={dominant} />
-                        <span className="font-numeric text-[11px] text-muted-foreground">
+                        <span className="font-numeric text-micro text-muted-foreground">
                             {known.length > 0 ? `${aligned}/${known.length} aligned` : "—"}
                         </span>
                         {aiTimeframe ? (
-                            <span className="rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-primary">
+                            <span className="rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-primary">
                                 AI · {aiTimeframe}
                             </span>
                         ) : null}
@@ -2957,7 +2956,7 @@ function MtfRow({
 
     return (
         <li className="flex items-center gap-3">
-            <span className="font-numeric w-9 shrink-0 text-[11px] uppercase tracking-wide text-muted-foreground">
+            <span className="font-numeric w-9 shrink-0 text-micro uppercase tracking-wide text-muted-foreground">
                 {timeframe}
             </span>
             <span className="min-w-0 flex-1">
@@ -2972,18 +2971,18 @@ function MtfRow({
                     <span className="block h-7 w-full animate-pulse rounded-md bg-muted" />
                 )}
             </span>
-            <span className="font-numeric w-8 shrink-0 text-right text-[11px] text-muted-foreground">
+            <span className="font-numeric w-8 shrink-0 text-right text-micro text-muted-foreground">
                 {score ? Math.round(score.total) : "—"}
             </span>
             {isAiTimeframe ? (
-                <span className="rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-primary">
+                <span className="rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-primary">
                     AI
                 </span>
             ) : null}
             {score ? (
                 <BiasChip bias={score.bias} />
             ) : (
-                <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-micro text-muted-foreground">
                     {failed ? "n/a" : "…"}
                 </span>
             )}
@@ -3108,13 +3107,13 @@ export function WidgetPicker({
                                 {spec.label}
                             </span>
                             {spec.pro && (
-                                <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-primary">
+                                <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-primary">
                                     <Crown size={10} />
                                     Pro
                                 </span>
                             )}
                         </span>
-                        <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                        <span className="mt-0.5 block text-micro text-muted-foreground">
                             {spec.description}
                         </span>
                     </span>
@@ -3160,14 +3159,14 @@ export function WidgetPicker({
                 <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
                     <div className="min-w-0">
                         <h2 className="text-sm font-semibold text-foreground">Add widget</h2>
-                        <p className="text-[11px] text-muted-foreground">
+                        <p className="text-micro text-muted-foreground">
                             Every widget reads live data from your connected accounts.
                         </p>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="shrink-0 rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                        className="shrink-0 rounded-md border border-border px-2 py-1 text-micro text-muted-foreground transition hover:bg-muted hover:text-foreground"
                     >
                         Close
                     </button>
@@ -3179,12 +3178,12 @@ export function WidgetPicker({
                 {pro.length > 0 && (
                     <>
                         <div className="mb-2 mt-4 flex items-center gap-2">
-                            <h3 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            <h3 className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">
                                 Advanced analytics
                             </h3>
                             <span className="h-px flex-1 bg-border" aria-hidden="true" />
                             {!isPro && (
-                                <span className="text-[11px] text-muted-foreground">
+                                <span className="text-micro text-muted-foreground">
                                     Requires Pro
                                 </span>
                             )}

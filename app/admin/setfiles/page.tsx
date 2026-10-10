@@ -210,12 +210,12 @@ export default function AdminSetFilesPage() {
                         placeholder="Search by name, pair, or bot..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full rounded-xl border border-border bg-muted pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-emerald-500 focus:outline-none"
+                        className="w-full rounded-xl border border-border bg-muted pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-positive focus:outline-none"
                     />
                 </div>
                 <button
                     onClick={() => setShowModal(true)}
-                    className="flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-background transition hover:bg-emerald-400"
+                    className="flex items-center gap-2 rounded-xl bg-positive px-4 py-2 text-sm font-semibold text-background transition hover:bg-positive"
                 >
                     <Plus size={16} /> Add .set Preset
                 </button>
@@ -224,10 +224,10 @@ export default function AdminSetFilesPage() {
             {/* List */}
             {loading ? (
                 <div className="flex justify-center py-20">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent"></div>
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-positive border-t-transparent"></div>
                 </div>
             ) : filtered.length === 0 ? (
-                <div className="rounded-2xl border border-border bg-card p-12 text-center">
+                <div className="rounded-lg border border-border bg-card p-12 text-center">
                     <FileCode2 size={40} className="mx-auto text-muted-foreground mb-3" />
                     <h3 className="text-lg font-bold text-foreground">No Preset Files Found</h3>
                     <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
@@ -245,12 +245,12 @@ export default function AdminSetFilesPage() {
                     {filtered.map((item) => (
                         <div
                             key={item.id}
-                            className="rounded-2xl border border-border bg-card p-5 transition hover:border-border flex flex-col justify-between"
+                            className="rounded-lg border border-border bg-card p-5 transition hover:border-border flex flex-col justify-between"
                         >
                             <div>
                                 <div className="flex items-start justify-between">
                                     <div className="flex items-center gap-2.5">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-positive/10 text-positive border border-positive/20">
                                             <FileCode2 size={20} />
                                         </div>
                                         <div>
@@ -261,14 +261,14 @@ export default function AdminSetFilesPage() {
                                         </div>
                                     </div>
                                     <span
-                                        className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold border ${
+                                        className={`rounded-full px-2.5 py-0.5 text-micro font-semibold border ${
                                             item.riskLevel === "Low"
-                                                ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
+                                                ? "border-info/30 bg-info/10 text-info"
                                                 : item.riskLevel === "Medium"
-                                                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600"
+                                                ? "border-positive/30 bg-positive/10 text-positive"
                                                 : item.riskLevel === "High"
-                                                ? "border-amber-500/30 bg-amber-500/10 text-amber-400"
-                                                : "border-rose-500/30 bg-rose-500/10 text-rose-400"
+                                                ? "border-warning/30 bg-warning/10 text-warning"
+                                                : "border-negative/30 bg-negative/10 text-negative"
                                         }`}
                                     >
                                         {item.riskLevel} Risk
@@ -295,7 +295,7 @@ export default function AdminSetFilesPage() {
                                 </button>
                                 <button
                                     onClick={() => handleDelete(item)}
-                                    className="rounded-lg p-2 text-muted-foreground hover:bg-rose-500/10 hover:text-rose-400 transition"
+                                    className="rounded-lg p-2 text-muted-foreground hover:bg-negative/10 hover:text-negative transition"
                                     title="Delete .set file"
                                 >
                                     <Trash2 size={16} />
@@ -309,7 +309,7 @@ export default function AdminSetFilesPage() {
             {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 p-4 backdrop-blur-sm">
-                    <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-2xl">
+                    <div className="w-full max-w-lg rounded-lg border border-border bg-card p-6 shadow-2xl">
                         <div className="flex items-center justify-between border-b border-border pb-4">
                             <h3 className="text-lg font-bold text-foreground">Upload .set Preset File</h3>
                             <button onClick={() => setShowModal(false)} className="text-muted-foreground hover:text-foreground">
@@ -326,7 +326,7 @@ export default function AdminSetFilesPage() {
                                     placeholder="e.g. Scalper Gold Conservative 2026"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-emerald-500 focus:outline-none"
+                                    className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                 />
                             </div>
 
@@ -339,7 +339,7 @@ export default function AdminSetFilesPage() {
                                         placeholder="e.g. XAUUSD or EURUSD"
                                         value={pair}
                                         onChange={(e) => setPair(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-emerald-500 focus:outline-none"
+                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     />
                                 </div>
                                 <div>
@@ -347,7 +347,7 @@ export default function AdminSetFilesPage() {
                                     <select
                                         value={timeframe}
                                         onChange={(e) => setTimeframe(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-emerald-500 focus:outline-none"
+                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     >
                                         {["M1", "M5", "M15", "M30", "H1", "H4", "D1"].map((tf) => (
                                             <option key={tf} value={tf}>{tf}</option>
@@ -363,7 +363,7 @@ export default function AdminSetFilesPage() {
                                         required
                                         value={selectedBotId}
                                         onChange={(e) => setSelectedBotId(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-emerald-500 focus:outline-none"
+                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     >
                                         <option value="">Select a bot...</option>
                                         {bots.map((bot) => (
@@ -378,7 +378,7 @@ export default function AdminSetFilesPage() {
                                     <select
                                         value={riskLevel}
                                         onChange={(e) => setRiskLevel(e.target.value as "Low" | "Medium" | "High" | "Aggressive")}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-emerald-500 focus:outline-none"
+                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     >
                                         <option value="Low">Low Risk</option>
                                         <option value="Medium">Medium Risk</option>
@@ -390,11 +390,11 @@ export default function AdminSetFilesPage() {
 
                             <div>
                                 <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">.set File</label>
-                                <label className="flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted p-6 transition hover:border-emerald-500/50 hover:bg-card">
+                                <label className="flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted p-6 transition hover:border-positive/50 hover:bg-card">
                                     <Upload size={20} className="text-muted-foreground" />
                                     <span className="text-xs text-muted-foreground">
                                         {file ? (
-                                            <span className="font-medium text-emerald-600">{file.name}</span>
+                                            <span className="font-medium text-positive">{file.name}</span>
                                         ) : (
                                             "Click to upload .set file (max 5 MB)"
                                         )}
@@ -416,7 +416,7 @@ export default function AdminSetFilesPage() {
                                     placeholder="Recommended initial deposit: $500, Max Spread: 15..."
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
-                                    className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-emerald-500 focus:outline-none"
+                                    className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                 />
                             </div>
 
@@ -431,7 +431,7 @@ export default function AdminSetFilesPage() {
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-background hover:bg-emerald-400 disabled:opacity-50"
+                                    className="rounded-xl bg-positive px-5 py-2.5 text-sm font-semibold text-background hover:bg-positive disabled:opacity-50"
                                 >
                                     {saving ? "Uploading..." : "Upload Preset File"}
                                 </button>

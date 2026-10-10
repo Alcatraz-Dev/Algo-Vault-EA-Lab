@@ -130,10 +130,10 @@ const PANELS: PanelConfig[] = [
 
 function regimeColor(regime?: string): string {
     if (!regime) return "text-muted-foreground";
-    if (regime.includes("bullish")) return "text-emerald-400";
-    if (regime.includes("bearish")) return "text-rose-400";
+    if (regime.includes("bullish")) return "text-positive";
+    if (regime.includes("bearish")) return "text-negative";
     if (regime.includes("breakout")) return "text-primary";
-    return "text-amber-400";
+    return "text-warning";
 }
 
 function CollapsiblePanel({ panel, isOpen, onToggle, children }: { panel: PanelConfig; isOpen: boolean; onToggle: () => void; children: React.ReactNode }) {
@@ -280,7 +280,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
     if (!user) {
         return (
             <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-border bg-card">
+                <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-border bg-card">
                     <Lock size={28} className="text-muted-foreground" />
                 </div>
                 <h2 className="text-xl font-semibold text-foreground">Sign in required</h2>
@@ -358,12 +358,12 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                                             </select>
                                             {selectedAccount && (
                                                 <span className={cn(
-                                                    "flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-medium",
+                                                    "flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-micro font-medium",
                                                     selectedAccount.status === "connected"
-                                                        ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
+                                                        ? "border-positive/20 bg-positive/10 text-positive"
                                                         : "border-border bg-muted text-muted-foreground"
                                                 )}>
-                                                    <span className={cn("h-1.5 w-1.5 rounded-full", selectedAccount.status === "connected" ? "bg-emerald-400" : "bg-muted-foreground")} />
+                                                    <span className={cn("h-1.5 w-1.5 rounded-full", selectedAccount.status === "connected" ? "bg-positive" : "bg-muted-foreground")} />
                                                     {selectedAccount.status}
                                                 </span>
                                             )}
@@ -382,7 +382,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                                             <MiniStat label="Equity" value={`$${selectedAccount.equity.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} />
                                             <MiniStat label="Margin" value={`$${selectedAccount.margin.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} />
                                             <MiniStat label="Free Margin" value={`$${selectedAccount.freeMargin.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} />
-                                            <MiniStat label="Margin Level" value={`${selectedAccount.marginLevel.toFixed(0)}%`} color={selectedAccount.marginLevel < 200 ? "text-rose-400" : "text-foreground"} />
+                                            <MiniStat label="Margin Level" value={`${selectedAccount.marginLevel.toFixed(0)}%`} color={selectedAccount.marginLevel < 200 ? "text-negative" : "text-foreground"} />
                                         </div>
                                     )}
                                 </div>
@@ -396,7 +396,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                                 <StatCard
                                     label="Change"
                                     value={`${(data.quote?.changePercent || 0) >= 0 ? "+" : ""}${(data.quote?.changePercent || 0).toFixed(2)}%`}
-                                    color={(data.quote?.changePercent || 0) >= 0 ? "text-emerald-400" : "text-rose-400"}
+                                    color={(data.quote?.changePercent || 0) >= 0 ? "text-positive" : "text-negative"}
                                 />
                                 <StatCard label="ATR" value={data.volatility?.atr?.toFixed(data.volatility.atr >= 100 ? 2 : 5) || "—"} />
                                 <StatCard label="Regime" value={data.regime?.regime?.replace(/_/g, " ") || "—"} color={regimeColor(data.regime?.regime)} />
@@ -405,7 +405,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                             {/* Multi-timeframe bias */}
                             {data.multiTimeframe && data.multiTimeframe.length > 0 && (
                                 <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-                                    <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Multi-Timeframe Bias</p>
+                                    <p className="mb-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Multi-Timeframe Bias</p>
                                     <div className="flex flex-wrap gap-2">
                                         {data.multiTimeframe.map((mtf) => (
                                             <span
@@ -454,7 +454,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                                                 <Wallet size={13} className="text-primary" />
                                             </div>
                                             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Open Positions</span>
-                                            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">{positions.length}</span>
+                                            <span className="rounded-full bg-muted px-2 py-0.5 text-micro text-muted-foreground">{positions.length}</span>
                                         </div>
                                         {totalFloatingPnl !== 0 && (
                                             <span className={cn("font-mono text-xs font-bold tabular-nums", totalFloatingPnl >= 0 ? "text-emerald-400" : "text-rose-400")}>
@@ -470,7 +470,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-xs">
                                                 <thead>
-                                                    <tr className="border-b border-border text-[10px] uppercase tracking-wider text-muted-foreground">
+                                                    <tr className="border-b border-border text-micro uppercase tracking-wider text-muted-foreground">
                                                         <th className="px-4 py-2.5 text-left font-semibold">Symbol</th>
                                                         <th className="px-4 py-2.5 text-left font-semibold">Type</th>
                                                         <th className="px-4 py-2.5 text-right font-semibold">Volume</th>
@@ -491,7 +491,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                                                             <td className="px-4 py-2.5 text-right font-mono text-muted-foreground tabular-nums">{pos.currentPrice.toFixed(pos.currentPrice >= 100 ? 2 : 5)}</td>
                                                             <td className="px-4 py-2.5 text-right">
                                                                 {pos.sl > 0 ? (
-                                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-rose-500/25 bg-rose-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-rose-400">
+                                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-rose-500/25 bg-rose-500/10 px-2 py-0.5 font-mono text-micro font-semibold text-rose-400">
                                                                         <Shield size={8} className="opacity-60" />
                                                                         {pos.sl.toFixed(pos.sl >= 100 ? 2 : 5)}
                                                                     </span>
@@ -499,7 +499,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                                                             </td>
                                                             <td className="px-4 py-2.5 text-right">
                                                                 {pos.tp > 0 ? (
-                                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-emerald-400">
+                                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 font-mono text-micro font-semibold text-emerald-400">
                                                                         <Target size={8} className="opacity-60" />
                                                                         {pos.tp.toFixed(pos.tp >= 100 ? 2 : 5)}
                                                                     </span>
@@ -516,7 +516,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                             )}
 
                             {/* Risk disclaimer */}
-                            <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.03] p-3 text-[11px] text-amber-400/70">
+                            <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.03] p-3 text-micro text-amber-400/70">
                                 <Shield size={12} className="mr-1 inline" />
                                 Analytical tool — not financial advice. Scores and indicators are model-based estimates. Data from Biquote.io and your connected MT5 account.
                             </div>
@@ -556,7 +556,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
 function StatCard({ label, value, color }: { label: string; value: string; color?: string }) {
     return (
         <div className="rounded-xl border border-border bg-card px-3.5 py-3 shadow-sm transition-colors hover:border-primary/30">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+            <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
             <p className={cn("mt-1 font-mono text-sm font-semibold tabular-nums capitalize", color || "text-foreground")}>{value}</p>
         </div>
     );
@@ -565,7 +565,7 @@ function StatCard({ label, value, color }: { label: string; value: string; color
 function MiniStat({ label, value, color }: { label: string; value: string; color?: string }) {
     return (
         <div className="rounded-lg bg-muted/60 px-2.5 py-1.5">
-            <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+            <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
             <p className={cn("mt-0.5 font-mono text-xs font-medium tabular-nums", color || "text-foreground")}>{value}</p>
         </div>
     );

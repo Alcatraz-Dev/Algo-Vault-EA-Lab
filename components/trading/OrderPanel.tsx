@@ -215,7 +215,7 @@ export default function OrderPanel({
     if (!ticket?.result) return null;
     const r = ticket.result;
     return (
-      <div className="space-y-1.5 rounded-none border border-border bg-muted/40 px-3 py-2 text-[11px] leading-4">
+      <div className="space-y-1.5 rounded-none border border-border bg-muted/40 px-3 py-2 text-micro leading-4">
         <div className="flex justify-between gap-2">
           <span className="text-muted-foreground">Symbol</span>
           <span className="font-mono font-medium">{r.executionType === "PLACE_ORDER" ? symbol.toUpperCase() : "—"}</span>
@@ -276,7 +276,7 @@ export default function OrderPanel({
       <CardContent className="space-y-4">
         {/* Symbol */}
         <div className="space-y-1.5">
-          <label className="text-[11px] font-medium text-muted-foreground">Symbol</label>
+          <label className="text-micro font-medium text-muted-foreground">Symbol</label>
           <Input
             value={symbol}
             onChange={(e) => setSymbol(e.target.value.toUpperCase())}
@@ -287,7 +287,7 @@ export default function OrderPanel({
 
         {/* Side */}
         <div className="space-y-1.5">
-          <label className="text-[11px] font-medium text-muted-foreground">Side</label>
+          <label className="text-micro font-medium text-muted-foreground">Side</label>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
@@ -322,7 +322,7 @@ export default function OrderPanel({
 
         {/* Volume */}
         <div className="space-y-1.5">
-          <label className="text-[11px] font-medium text-muted-foreground">Volume</label>
+          <label className="text-micro font-medium text-muted-foreground">Volume</label>
           <Input
             type="number"
             value={volume}
@@ -335,7 +335,7 @@ export default function OrderPanel({
 
         {/* Order Type */}
         <div className="space-y-1.5">
-          <label className="text-[11px] font-medium text-muted-foreground">Order Type</label>
+          <label className="text-micro font-medium text-muted-foreground">Order Type</label>
           <div className="grid grid-cols-3 gap-1 rounded-none border border-border p-0.5">
             {(["market", "limit", "stop"] as OrderType[]).map((type) => (
               <button
@@ -359,7 +359,7 @@ export default function OrderPanel({
         {/* Price (limit/stop only) */}
         {orderType !== "market" && (
           <div className="space-y-1.5">
-            <label className="text-[11px] font-medium text-muted-foreground">Price</label>
+            <label className="text-micro font-medium text-muted-foreground">Price</label>
             <Input
               type="number"
               value={price}
@@ -374,7 +374,7 @@ export default function OrderPanel({
         {/* SL / TP */}
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1.5">
-            <label className="text-[11px] font-medium text-muted-foreground">Stop Loss</label>
+            <label className="text-micro font-medium text-muted-foreground">Stop Loss</label>
             <Input
               type="number"
               value={stopLoss}
@@ -385,7 +385,7 @@ export default function OrderPanel({
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-[11px] font-medium text-muted-foreground">Take Profit</label>
+            <label className="text-micro font-medium text-muted-foreground">Take Profit</label>
             <Input
               type="number"
               value={takeProfit}
@@ -442,7 +442,7 @@ export default function OrderPanel({
           {processing ? "Submitting…" : `PLACE ${side} ORDER`}
         </Button>
 
-        <p className="text-[10px] leading-4 text-muted-foreground">
+        <p className="text-micro leading-4 text-muted-foreground">
           Orders execute on your connected <span className="font-medium">DEMO</span> account
           through the AlgoVault Unified Trading API. Fills are confirmed by the
           broker, never simulated.

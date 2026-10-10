@@ -295,7 +295,7 @@ export default function PerformanceArenaAdminPage() {
                             ))}
                         </TableBody>
                     </Table>
-                    <p className="border-t border-border px-4 py-2 text-[11px] text-muted-foreground">
+                    <p className="border-t border-border px-4 py-2 text-micro text-muted-foreground">
                         Edits create a new policy version; existing attempts keep their immutable join-time policy snapshot. Full policy editing
                         (every rule field) is available via the definitions API with server-side validation.
                     </p>
@@ -360,7 +360,7 @@ export default function PerformanceArenaAdminPage() {
                                     {rewards.ledger.slice(0, 100).map((entry) => (
                                         <TableRow key={entry.rewardId}>
                                             <TableCell className="font-mono text-xs">{entry.userId.slice(-8)}</TableCell>
-                                            <TableCell className="font-mono text-[11px] text-muted-foreground">{entry.sourceId.slice(0, 18)}</TableCell>
+                                            <TableCell className="font-mono text-micro text-muted-foreground">{entry.sourceId.slice(0, 18)}</TableCell>
                                             <TableCell className="text-xs">{entry.rewardType}</TableCell>
                                             <TableCell className="text-right font-mono text-xs">{entry.amount}</TableCell>
                                             <TableCell>
@@ -368,7 +368,7 @@ export default function PerformanceArenaAdminPage() {
                                                     {entry.status}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell className="font-mono text-[11px] text-muted-foreground">
+                                            <TableCell className="font-mono text-micro text-muted-foreground">
                                                 {new Date(entry.createdAt).toLocaleString()}
                                             </TableCell>
                                         </TableRow>
@@ -376,7 +376,7 @@ export default function PerformanceArenaAdminPage() {
                                 </TableBody>
                             </Table>
                         </div>
-                        <p className="border-t border-border px-4 py-2 text-[11px] text-muted-foreground">
+                        <p className="border-t border-border px-4 py-2 text-micro text-muted-foreground">
                             Ledger entries are immutable and idempotent (deterministic ids). Admin UI cannot configure or grant CASH rewards — that
                             flag is env-only and cash is rejected server-side.
                         </p>
@@ -427,7 +427,7 @@ export default function PerformanceArenaAdminPage() {
                             </TableBody>
                         </Table>
                     )}
-                    <p className="border-t border-border px-4 py-2 text-[11px] text-muted-foreground">
+                    <p className="border-t border-border px-4 py-2 text-micro text-muted-foreground">
                         <Flame className="mr-1 inline h-3 w-3" />
                         Flags are review signals stored separately from performance data — they never alter challenge accounting automatically.
                     </p>
@@ -440,9 +440,9 @@ export default function PerformanceArenaAdminPage() {
 function Stat({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
     return (
         <div className="rounded-lg border border-border bg-card p-3">
-            <p className="text-[11px] text-muted-foreground">{label}</p>
+            <p className="text-micro text-muted-foreground">{label}</p>
             <p className="font-mono text-lg font-semibold tabular-nums">{value}</p>
-            {sub ? <p className="text-[11px] text-muted-foreground">{sub}</p> : null}
+            {sub ? <p className="text-micro text-muted-foreground">{sub}</p> : null}
         </div>
     );
 }

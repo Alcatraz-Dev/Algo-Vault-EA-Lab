@@ -190,7 +190,7 @@ export default function TradeReplayPage() {
             <div className="flex min-h-screen flex-col bg-background text-foreground">
                 <AccountShell title="Trade Replay Studio">
                     <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 text-center">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-muted/40">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-border bg-muted/40">
                             <Clock size={26} className="text-muted-foreground" />
                         </div>
                         <div>
@@ -245,7 +245,7 @@ export default function TradeReplayPage() {
                             <Sparkles size={15} /> AI Signal Replay
                             <span
                                 className={cn(
-                                    "rounded-md px-1.5 py-0.5 font-mono text-[10px]",
+                                    "rounded-md px-1.5 py-0.5 font-mono text-micro",
                                     activeTab === "signals" ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
                                 )}
                             >
@@ -302,22 +302,22 @@ export default function TradeReplayPage() {
                                 ].map((card) => (
                                     <div
                                         key={card.label}
-                                        className="rounded-2xl border border-border/80 bg-card/80 p-4 shadow-xs backdrop-blur-sm"
+                                        className="rounded-lg border border-border/80 bg-card/80 p-4 shadow-xs backdrop-blur-sm"
                                     >
                                         <div className="flex items-center justify-between">
-                                            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                            <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">
                                                 {card.label}
                                             </span>
                                             <card.icon size={14} className={card.tone} />
                                         </div>
                                         <div className={cn("mt-2 font-mono text-xl font-extrabold", card.tone)}>{card.value}</div>
-                                        <div className="mt-0.5 text-[10px] text-muted-foreground">{card.sub}</div>
+                                        <div className="mt-0.5 text-micro text-muted-foreground">{card.sub}</div>
                                     </div>
                                 ))}
                             </div>
 
                             {/* Filters Bar */}
-                            <div className="flex flex-col gap-3 rounded-2xl border border-border/80 bg-card/80 p-3.5 backdrop-blur-xl lg:flex-row lg:items-center">
+                            <div className="flex flex-col gap-3 rounded-lg border border-border/80 bg-card/80 p-3.5 backdrop-blur-xl lg:flex-row lg:items-center">
                                 <div className="relative flex flex-1 items-center">
                                     <Search size={15} className="absolute left-3 text-muted-foreground" />
                                     <input
@@ -399,7 +399,7 @@ export default function TradeReplayPage() {
                             </div>
 
                             {error && (
-                                <div className="flex items-center justify-between gap-3 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-300">
+                                <div className="flex items-center justify-between gap-3 rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-300">
                                     <span>{error}</span>
                                     <button
                                         type="button"
@@ -412,22 +412,22 @@ export default function TradeReplayPage() {
                             )}
 
                             {loading && signals.length === 0 ? (
-                                <div className="space-y-3 rounded-2xl border border-border/60 bg-card/40 p-6">
+                                <div className="space-y-3 rounded-lg border border-border/60 bg-card/40 p-6">
                                     <div className="h-8 w-1/3 animate-pulse rounded-lg bg-muted/60" />
                                     <div className="h-24 animate-pulse rounded-xl bg-muted/40" />
                                     <div className="h-5 animate-pulse rounded-lg bg-muted/60" />
-                                    <div className="h-[420px] animate-pulse rounded-2xl bg-muted/30" />
+                                    <div className="h-[420px] animate-pulse rounded-lg bg-muted/30" />
                                 </div>
                             ) : currentSignal && currentOutcome ? (
                                 <>
                                     {/* Signal Detail Panel */}
-                                    <div className="space-y-5 rounded-2xl border border-border/80 bg-card/90 p-5 shadow-xl sm:p-6">
+                                    <div className="space-y-5 rounded-lg border border-border/80 bg-card/90 p-5 shadow-xl sm:p-6">
                                         {/* Header strip */}
                                         <div className="flex flex-col justify-between gap-4 border-b border-border/40 pb-5 md:flex-row md:items-center">
                                             <div className="flex items-center gap-4">
                                                 <div
                                                     className={cn(
-                                                        "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border text-xl font-bold shadow-sm",
+                                                        "flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border text-xl font-bold shadow-sm",
                                                         currentSignal.direction === "BUY"
                                                             ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-400"
                                                             : "border-rose-500/30 bg-rose-500/15 text-rose-400"
@@ -475,12 +475,12 @@ export default function TradeReplayPage() {
                                                 <span>
                                                     Signal #{Math.min(currentIndex, filteredSignals.length - 1) + 1} of {filteredSignals.length}
                                                 </span>
-                                                <div className="mt-1 text-[11px] text-muted-foreground/70">
+                                                <div className="mt-1 text-micro text-muted-foreground/70">
                                                     Triggered {formatDateTime(currentSignal.createdAt)}
                                                 </div>
                                                 <Link
                                                     href={`/signals/${currentSignal.id}`}
-                                                    className="mt-2 inline-flex items-center gap-1 rounded-lg border border-border bg-background px-2.5 py-1 text-[11px] font-semibold text-foreground transition hover:border-violet-500/40 hover:text-violet-300"
+                                                    className="mt-2 inline-flex items-center gap-1 rounded-lg border border-border bg-background px-2.5 py-1 text-micro font-semibold text-foreground transition hover:border-violet-500/40 hover:text-violet-300"
                                                 >
                                                     <ExternalLink size={11} /> Open full dossier
                                                 </Link>
@@ -491,7 +491,7 @@ export default function TradeReplayPage() {
                                         <div className="grid gap-5 lg:grid-cols-5">
                                             {/* Price ladder */}
                                             <div className="space-y-2 lg:col-span-2">
-                                                <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                                                <div className="text-micro font-bold uppercase tracking-wider text-muted-foreground">
                                                     Execution ladder
                                                 </div>
                                                 {[
@@ -553,7 +553,7 @@ export default function TradeReplayPage() {
                                                             <span className="font-semibold text-foreground">{formatPrice(level.value)}</span>
                                                         </div>
                                                     ))}
-                                                <div className="flex flex-wrap gap-2 pt-1 text-[10px] font-bold uppercase tracking-wider">
+                                                <div className="flex flex-wrap gap-2 pt-1 text-micro font-bold uppercase tracking-wider">
                                                     <span className="rounded-md bg-muted px-2 py-1 text-muted-foreground">
                                                         R:R 1:{(Number(currentSignal.riskReward) || 0).toFixed(1)}
                                                     </span>
@@ -573,7 +573,7 @@ export default function TradeReplayPage() {
                                             {/* Confidence + reasoning */}
                                             <div className="space-y-3 lg:col-span-3">
                                                 <div className="rounded-xl border border-border/60 bg-background/50 p-4">
-                                                    <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                                                    <div className="flex items-center justify-between text-micro font-bold uppercase tracking-wider text-muted-foreground">
                                                         <span className="flex items-center gap-1.5">
                                                             <Sparkles size={12} className="text-violet-400" /> Engine confidence
                                                         </span>
@@ -589,7 +589,7 @@ export default function TradeReplayPage() {
                                                         {currentSignal.reasoning || "No engine reasoning recorded for this signal."}
                                                     </p>
                                                 </div>
-                                                <div className="flex items-center gap-2 font-mono text-[11px] text-muted-foreground">
+                                                <div className="flex items-center gap-2 font-mono text-micro text-muted-foreground">
                                                     <Keyboard size={13} />
                                                     Use ← / → to step through the replay timeline
                                                 </div>
@@ -601,7 +601,7 @@ export default function TradeReplayPage() {
                                             <div className="flex items-center justify-between font-mono text-xs text-muted-foreground">
                                                 <span className="flex items-center gap-3">
                                                     Signal timeline
-                                                    <span className="flex items-center gap-2 text-[10px]">
+                                                    <span className="flex items-center gap-2 text-micro">
                                                         {(["WIN", "LOSS", "BREAKEVEN", "OTHER"] as Outcome[]).map((o) => (
                                                             <span key={o} className="flex items-center gap-1">
                                                                 <span className={cn("inline-block h-2 w-2 rounded-full", OUTCOME_STYLES[o].bar)} />
@@ -663,7 +663,7 @@ export default function TradeReplayPage() {
                                     />
                                 </>
                             ) : (
-                                <div className="flex flex-col items-center gap-3 rounded-2xl border border-border/60 bg-card/40 p-10 text-center">
+                                <div className="flex flex-col items-center gap-3 rounded-lg border border-border/60 bg-card/40 p-10 text-center">
                                     <CircleSlash size={28} className="text-muted-foreground/60" />
                                     <p className="font-mono text-xs text-muted-foreground">
                                         {signals.length === 0

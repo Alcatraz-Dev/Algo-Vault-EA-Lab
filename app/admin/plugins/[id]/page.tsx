@@ -276,7 +276,7 @@ export default function AdminPluginDetailPage() {
             <AdminShell title="Plugin" subtitle="Administration">
                 <div className="grid gap-4">
                     {[1, 2, 3].map((n) => (
-                        <div key={n} className="h-32 animate-pulse rounded-2xl border border-border/30 bg-muted/50" />
+                        <div key={n} className="h-32 animate-pulse rounded-lg border border-border/30 bg-muted/50" />
                     ))}
                 </div>
             </AdminShell>
@@ -313,7 +313,7 @@ export default function AdminPluginDetailPage() {
 
             {notice && (
                 <div
-                    className={`mb-5 flex items-start gap-3 rounded-2xl border p-4 ${
+                    className={`mb-5 flex items-start gap-3 rounded-lg border p-4 ${
                         noticeTone === "error" ? "border-red-500/30 bg-red-500/10 text-red-300" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-100"
                     }`}
                 >
@@ -323,7 +323,7 @@ export default function AdminPluginDetailPage() {
             )}
 
             {/* Header */}
-            <div className="mb-5 rounded-2xl border border-border/30 bg-muted/50 p-5">
+            <div className="mb-5 rounded-lg border border-border/30 bg-muted/50 p-5">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex items-start gap-4">
                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
@@ -338,7 +338,7 @@ export default function AdminPluginDetailPage() {
                             <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground line-clamp-2">{record.description}</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground sm:grid-cols-4">
+                    <div className="grid grid-cols-2 gap-2 text-micro text-muted-foreground sm:grid-cols-4">
                         <MiniInfo label="Type" value={typeLabel} />
                         <MiniInfo label="Pricing" value={record.pricing?.type === "free" ? "Free" : formatPrice(record.pricing?.price, record.pricing?.currency)} />
                         <MiniInfo label="Installs" value={formatNumber(record.installs)} />
@@ -401,7 +401,7 @@ export default function AdminPluginDetailPage() {
             {tab === "overview" && (
                 <div className="grid gap-6 lg:grid-cols-2">
                     {/* Lifecycle */}
-                    <div className="rounded-2xl border border-border/30 bg-muted/50 p-6">
+                    <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
                         <h3 className="flex items-center gap-2 text-sm font-semibold">
                             <Activity size={14} /> Lifecycle status
                         </h3>
@@ -466,7 +466,7 @@ export default function AdminPluginDetailPage() {
                     </div>
 
                     {/* Manifest summary */}
-                    <div className="rounded-2xl border border-border/30 bg-muted/50 p-6">
+                    <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
                         <h3 className="flex items-center gap-2 text-sm font-semibold">
                             <Shield size={14} /> Manifest contract
                         </h3>
@@ -491,7 +491,7 @@ export default function AdminPluginDetailPage() {
                                 <span className="text-xs text-muted-foreground">No permissions granted.</span>
                             ) : (
                                 (Object.keys(record.permissions || {}) as PluginPermission[]).filter((p) => record.permissions?.[p]).map((p) => (
-                                    <span key={p} className="rounded-lg bg-muted/5 px-2.5 py-1 text-[11px] text-muted-foreground">
+                                    <span key={p} className="rounded-lg bg-muted/5 px-2.5 py-1 text-micro text-muted-foreground">
                                         {permissionLabel(p)}
                                     </span>
                                 ))
@@ -500,7 +500,7 @@ export default function AdminPluginDetailPage() {
 
                         <div className="mt-6 flex flex-wrap gap-2 border-t border-border/30 pt-4">
                             {(record.capabilities || []).slice(0, 8).map((cap) => (
-                                <span key={cap} className="rounded-lg border border-border/30 bg-muted/20 px-2.5 py-1 text-[11px] text-muted-foreground">
+                                <span key={cap} className="rounded-lg border border-border/30 bg-muted/20 px-2.5 py-1 text-micro text-muted-foreground">
                                     {cap}
                                 </span>
                             ))}
@@ -510,7 +510,7 @@ export default function AdminPluginDetailPage() {
             )}
 
             {tab === "edit" && (
-                <div className="rounded-2xl border border-border/30 bg-muted/50 p-6">
+                <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
                     <h3 className="flex items-center gap-2 text-sm font-semibold">
                         <Settings2 size={14} /> Metadata & pricing
                     </h3>
@@ -584,7 +584,7 @@ export default function AdminPluginDetailPage() {
                                         <p className="text-sm font-medium">{permissionLabel(permission)}</p>
                                         {enabled && <CheckCircle2 size={14} className="text-violet-300" />}
                                     </div>
-                                    <p className="mt-1 text-[11px] leading-5 text-muted-foreground">{permissionDescription(permission)}</p>
+                                    <p className="mt-1 text-micro leading-5 text-muted-foreground">{permissionDescription(permission)}</p>
                                 </button>
                             );
                         })}
@@ -614,7 +614,7 @@ export default function AdminPluginDetailPage() {
 
             {tab === "sandbox" && (
                 <div className="grid gap-6 lg:grid-cols-2">
-                    <div className="rounded-2xl border border-border/30 bg-muted/50 p-6">
+                    <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
                         <h3 className="flex items-center gap-2 text-sm font-semibold">
                             <FlaskConical size={14} /> Sandbox test
                         </h3>
@@ -652,7 +652,7 @@ export default function AdminPluginDetailPage() {
                                         {testResult.findings.map((f, i) => (
                                             <div key={i} className="rounded-lg border border-border/30 bg-muted/20 p-3">
                                                 <p className="text-xs font-medium text-foreground">{f.title}</p>
-                                                <p className="mt-0.5 text-[11px] text-muted-foreground">{f.detail}</p>
+                                                <p className="mt-0.5 text-micro text-muted-foreground">{f.detail}</p>
                                             </div>
                                         ))}
                                     </div>
@@ -661,7 +661,7 @@ export default function AdminPluginDetailPage() {
                         )}
                     </div>
 
-                    <div className="rounded-2xl border border-border/30 bg-muted/50 p-6">
+                    <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
                         <h3 className="flex items-center gap-2 text-sm font-semibold">
                             <FlaskConical size={14} /> What a test checks
                         </h3>
@@ -676,7 +676,7 @@ export default function AdminPluginDetailPage() {
             )}
 
             {tab === "audit" && (
-                <div className="rounded-2xl border border-border/30 bg-muted/50 p-6">
+                <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
                     <div className="flex items-center justify-between">
                         <h3 className="flex items-center gap-2 text-sm font-semibold">
                             <ScrollText size={14} /> Audit log
@@ -694,12 +694,12 @@ export default function AdminPluginDetailPage() {
                                 <div key={entry.id} className="flex flex-col gap-1 border-b border-border/30 p-3 last:border-0 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="min-w-0">
                                         <p className="text-xs font-medium text-foreground">{entry.action}</p>
-                                        <p className="mt-0.5 text-[11px] text-muted-foreground">
+                                        <p className="mt-0.5 text-micro text-muted-foreground">
                                             actor: {entry.actor}
                                             {entry.detail && Object.keys(entry.detail).length > 0 && ` · ${JSON.stringify(entry.detail)}`}
                                         </p>
                                     </div>
-                                    <span className="shrink-0 text-[11px] text-muted-foreground">{formatDate(entry.createdAt)}</span>
+                                    <span className="shrink-0 text-micro text-muted-foreground">{formatDate(entry.createdAt)}</span>
                                 </div>
                             ))}
                         </div>
@@ -729,7 +729,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function MiniInfo({ label, value }: { label: string; value: string }) {
     return (
         <div className="rounded-lg border border-border/30 bg-muted/20 p-2.5">
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="text-micro uppercase tracking-wide text-muted-foreground">{label}</p>
             <p className="mt-0.5 truncate text-xs font-medium text-foreground">{value}</p>
         </div>
     );

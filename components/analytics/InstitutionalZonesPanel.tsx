@@ -22,18 +22,18 @@ function getZoneTypeLabel(type: string): string {
 
 function getStatusIcon(status: string) {
     switch (status) {
-        case "active": return <CheckCircle size={11} className="text-emerald-400" />;
-        case "mitigated": return <AlertTriangle size={11} className="text-amber-400" />;
-        case "invalidated": return <XCircle size={11} className="text-rose-400" />;
+        case "active": return <CheckCircle size={11} className="text-positive" />;
+        case "mitigated": return <AlertTriangle size={11} className="text-warning" />;
+        case "invalidated": return <XCircle size={11} className="text-negative" />;
         default: return null;
     }
 }
 
 function getStatusColor(status: string): string {
     switch (status) {
-        case "active": return "border-emerald-500/20 bg-emerald-500/[0.04]";
-        case "mitigated": return "border-amber-500/20 bg-amber-500/[0.04]";
-        case "invalidated": return "border-rose-500/20 bg-rose-500/[0.04] opacity-50";
+        case "active": return "border-positive/20 bg-positive/[0.04]";
+        case "mitigated": return "border-warning/20 bg-warning/[0.04]";
+        case "invalidated": return "border-negative/20 bg-negative/[0.04] opacity-50";
         default: return "border-border/12 bg-foreground/4";
     }
 }
@@ -47,10 +47,10 @@ export default function InstitutionalZonesPanel({ zones, scores }: Props) {
 
     return (
         <div className="space-y-3">
-            <div className="flex items-center gap-3 text-[10px] text-foreground/70">
-                <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> {activeZones.length} Active</span>
-                <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-amber-400" /> {mitigated.length} Mitigated</span>
-                <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-rose-400" /> {invalidated.length} Invalidated</span>
+            <div className="flex items-center gap-3 text-micro text-foreground/70">
+                <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-positive" /> {activeZones.length} Active</span>
+                <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-warning" /> {mitigated.length} Mitigated</span>
+                <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-negative" /> {invalidated.length} Invalidated</span>
             </div>
 
             <div className="space-y-1.5">
@@ -65,24 +65,24 @@ export default function InstitutionalZonesPanel({ zones, scores }: Props) {
                                 <div className="flex items-center gap-2">
                                     {getStatusIcon(zone.status)}
                                     <span className="text-xs font-medium text-foreground/70">{getZoneTypeLabel(zone.type)}</span>
-                                    <span className={cn("text-[10px] font-medium", zone.direction === "bullish" ? "text-emerald-400" : zone.direction === "bearish" ? "text-rose-400" : "text-muted-foreground")}>
+                                    <span className={cn("text-micro font-medium", zone.direction === "bullish" ? "text-positive" : zone.direction === "bearish" ? "text-negative" : "text-muted-foreground")}>
                                         {zone.direction}
                                     </span>
                                 </div>
                                 {score && (
-                                    <span className={cn("font-mono text-[10px] font-bold", score.strength >= 70 ? "text-emerald-400" : score.strength >= 40 ? "text-amber-400" : "text-foreground/70")}>
+                                    <span className={cn("font-mono text-micro font-bold", score.strength >= 70 ? "text-positive" : score.strength >= 40 ? "text-warning" : "text-foreground/70")}>
                                         {score.strength}/100
                                     </span>
                                 )}
                             </div>
-                            <div className="mt-1 flex items-center gap-2 text-[10px] text-foreground/70">
+                            <div className="mt-1 flex items-center gap-2 text-micro text-foreground/70">
                                 <span className="font-mono">{zone.low.toFixed(zone.low >= 100 ? 2 : 5)} — {zone.high.toFixed(zone.high >= 100 ? 2 : 5)}</span>
                                 <span>{zone.timeframe}</span>
                             </div>
                             {score && score.reasons.length > 0 && (
                                 <div className="mt-1.5 flex flex-wrap gap-1">
                                     {score.reasons.slice(0, 3).map((reason, i) => (
-                                        <span key={i} className="rounded bg-foreground/8 px-1.5 py-0.5 text-[9px] text-foreground/70">{reason}</span>
+                                        <span key={i} className="rounded bg-foreground/8 px-1.5 py-0.5 text-micro text-foreground/70">{reason}</span>
                                     ))}
                                 </div>
                             )}
@@ -95,7 +95,7 @@ export default function InstitutionalZonesPanel({ zones, scores }: Props) {
                         <div className="flex items-center gap-2">
                             {getStatusIcon(zone.status)}
                             <span className="text-xs text-muted-foreground">{getZoneTypeLabel(zone.type)}</span>
-                            <span className="font-mono text-[10px] text-foreground/50">{zone.low.toFixed(zone.low >= 100 ? 2 : 5)} — {zone.high.toFixed(zone.high >= 100 ? 2 : 5)}</span>
+                            <span className="font-mono text-micro text-foreground/50">{zone.low.toFixed(zone.low >= 100 ? 2 : 5)} — {zone.high.toFixed(zone.high >= 100 ? 2 : 5)}</span>
                         </div>
                     </div>
                 ))}

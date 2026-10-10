@@ -147,10 +147,10 @@ export default function AdminCreatePluginPage() {
             </div>
 
             {error && (
-                <div className="mb-5 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">{error}</div>
+                <div className="mb-5 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">{error}</div>
             )}
 
-            <div className="rounded-2xl border border-border/30 bg-muted/50 p-6">
+            <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
                 <h3 className="text-sm font-semibold">Identity</h3>
                 <div className="mt-4 grid gap-4 lg:grid-cols-2">
                     <Field label="Plugin id (slug — lowercase letters, digits, dash)">
@@ -183,7 +183,7 @@ export default function AdminCreatePluginPage() {
                 </div>
             </div>
 
-            <div className="mt-5 rounded-2xl border border-border/30 bg-muted/50 p-6">
+            <div className="mt-5 rounded-lg border border-border/30 bg-muted/50 p-6">
                 <h3 className="text-sm font-semibold">Type, category & pricing</h3>
                 <div className="mt-4 grid gap-4 lg:grid-cols-2">
                     <Field label="Type">
@@ -276,7 +276,7 @@ export default function AdminCreatePluginPage() {
                 </div>
             </div>
 
-            <div className="mt-5 rounded-2xl border border-border/30 bg-muted/50 p-6">
+            <div className="mt-5 rounded-lg border border-border/30 bg-muted/50 p-6">
                 <h3 className="text-sm font-semibold">Runtime</h3>
                 <div className="mt-4 grid gap-4 lg:grid-cols-2">
                     <Field label="Interval">
@@ -329,7 +329,7 @@ export default function AdminCreatePluginPage() {
                 </div>
             </div>
 
-            <div className="mt-5 rounded-2xl border border-border/30 bg-muted/50 p-6">
+            <div className="mt-5 rounded-lg border border-border/30 bg-muted/50 p-6">
                 <h3 className="text-sm font-semibold">Permissions</h3>
                 <p className="mt-1 text-xs text-muted-foreground">
                     The runtime grants data access ONLY for permissions listed here.
@@ -350,14 +350,14 @@ export default function AdminCreatePluginPage() {
                                     <p className="text-sm font-medium">{permissionLabel(permission)}</p>
                                     {enabled && <CheckCircle2 size={14} className="text-violet-300" />}
                                 </div>
-                                <p className="mt-1 text-[11px] leading-5 text-muted-foreground">{permissionDescription(permission)}</p>
+                                <p className="mt-1 text-micro leading-5 text-muted-foreground">{permissionDescription(permission)}</p>
                             </button>
                         );
                     })}
                 </div>
             </div>
 
-            <div className="mt-5 rounded-2xl border border-border/30 bg-muted/50 p-6">
+            <div className="mt-5 rounded-lg border border-border/30 bg-muted/50 p-6">
                 <h3 className="text-sm font-semibold">Capabilities</h3>
                 <div className="mt-4">
                     <Field label="Comma-separated capability list">

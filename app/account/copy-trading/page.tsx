@@ -271,7 +271,7 @@ export default function AccountCopyTradingPage() {
                                                     {account.productName || "Master Account"}
                                                 </h2>
                                                 <span
-                                                    className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                                                    className={`rounded-full px-2.5 py-1 text-micro font-semibold ${
                                                         status.tone === "success"
                                                             ? "bg-emerald-500/10 text-emerald-600"
                                                             : status.tone === "danger"
@@ -308,25 +308,25 @@ export default function AccountCopyTradingPage() {
 
                                     <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                                         <div className="rounded-lg border border-border bg-muted/30 p-3">
-                                            <p className="text-[11px] text-muted-foreground">Balance</p>
+                                            <p className="text-micro text-muted-foreground">Balance</p>
                                             <p className="mt-1 text-sm font-semibold text-foreground">{formatMoney(account.balance)}</p>
                                         </div>
                                         <div className="rounded-lg border border-border bg-muted/30 p-3">
-                                            <p className="text-[11px] text-muted-foreground">Equity</p>
+                                            <p className="text-micro text-muted-foreground">Equity</p>
                                             <p className="mt-1 text-sm font-semibold text-foreground">{formatMoney(account.equity)}</p>
                                         </div>
                                         <div className="rounded-lg border border-border bg-muted/30 p-3">
-                                            <p className="text-[11px] text-muted-foreground">Drawdown</p>
+                                            <p className="text-micro text-muted-foreground">Drawdown</p>
                                             <p className="mt-1 text-sm font-semibold text-foreground">{Number(account.drawdown || 0).toFixed(2)}%</p>
                                         </div>
                                         <div className="rounded-lg border border-border bg-muted/30 p-3">
-                                            <p className="text-[11px] text-muted-foreground">Win rate</p>
+                                            <p className="text-micro text-muted-foreground">Win rate</p>
                                             <p className="mt-1 text-sm font-semibold text-foreground">
                                                 {account.stats?.winRate != null ? `${Number(account.stats.winRate).toFixed(1)}%` : "Pending"}
                                             </p>
                                         </div>
                                         <div className="rounded-lg border border-border bg-muted/30 p-3">
-                                            <p className="text-[11px] text-muted-foreground">Followers</p>
+                                            <p className="text-micro text-muted-foreground">Followers</p>
                                             <p className="mt-1 text-sm font-semibold text-foreground">{accountFollowers.length}</p>
                                         </div>
                                     </div>

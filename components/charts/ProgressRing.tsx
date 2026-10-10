@@ -65,7 +65,7 @@ export default function ProgressRing({
                     <span className="text-sm text-muted-foreground">%</span>
                 </span>
                 {label && (
-                    <span className="mt-0.5 text-[11px] uppercase tracking-wider text-muted-foreground">
+                    <span className="mt-0.5 text-micro uppercase tracking-wider text-muted-foreground">
                         {label}
                     </span>
                 )}

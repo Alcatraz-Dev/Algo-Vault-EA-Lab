@@ -114,7 +114,7 @@ export default function ExecutionLog({
               className="flex flex-wrap items-center gap-3 rounded-none border border-border px-3 py-2.5"
             >
               {/* Timestamp */}
-              <span className="font-mono text-[11px] text-muted-foreground tabular-nums">
+              <span className="font-mono text-micro text-muted-foreground tabular-nums">
                 {formatTimestamp(log.createdAt)}
               </span>
 
@@ -141,21 +141,21 @@ export default function ExecutionLog({
 
               {/* MT5 Ticket */}
               {log.mt5Ticket && (
-                <span className="font-mono text-[11px] text-muted-foreground tabular-nums">
+                <span className="font-mono text-micro text-muted-foreground tabular-nums">
                   #{log.mt5Ticket}
                 </span>
               )}
 
               {/* Execution Price */}
               {log.executionPrice > 0 && (
-                <span className="font-mono text-[11px] tabular-nums">
+                <span className="font-mono text-micro tabular-nums">
                   @ {formatNumber(log.executionPrice, 5)}
                 </span>
               )}
 
               {/* Error */}
               {log.errorMessage && (
-                <span className="flex items-center gap-1 text-[11px] text-rose-500">
+                <span className="flex items-center gap-1 text-micro text-rose-500">
                   <AlertTriangle size={10} />
                   {log.errorMessage}
                 </span>

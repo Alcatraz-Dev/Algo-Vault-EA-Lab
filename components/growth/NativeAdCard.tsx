@@ -38,24 +38,24 @@ export function NativeAdCard({ title, summary, url, placementKey, premiumMode, c
     return (
         <a
             href={url}
-            className={`block rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50/60 to-teal-50/40 p-4 shadow-sm hover:shadow transition ${
+            className={`block rounded-xl border border-positive bg-gradient-to-br from-positive/60 to-info/40 p-4 shadow-sm hover:shadow transition ${
                 premiumMode === "REDUCED" ? "opacity-70" : ""
             }`}
         >
             <div className="flex items-center gap-2">
-                <div className="text-[10px] uppercase tracking-wide text-emerald-700 font-medium">
+                <div className="text-micro uppercase tracking-wide text-positive font-medium">
                     {placementKey || "Native"}
                 </div>
                 {compliance.passed ? (
-                    <div className="text-[10px] text-neutral-400">Sponsored</div>
+                    <div className="text-micro text-muted-foreground">Sponsored</div>
                 ) : (
-                    <div className="text-[10px] text-red-600">Under review</div>
+                    <div className="text-micro text-negative">Under review</div>
                 )}
             </div>
             <h3 className="font-semibold text-sm mt-1">{title}</h3>
-            <p className="text-xs text-neutral-600 mt-1">{summary}</p>
+            <p className="text-xs text-muted-foreground mt-1">{summary}</p>
             {compliance.requiresRiskDisclosure && (
-                <p className="text-[10px] text-neutral-400 mt-1">{RISK_DISCLOSURE_TEXT}</p>
+                <p className="text-micro text-muted-foreground mt-1">{RISK_DISCLOSURE_TEXT}</p>
             )}
         </a>
     );

@@ -77,7 +77,7 @@ function CalculatorGrid() {
 
     return (
         <div className="grid gap-4 lg:grid-cols-3">
-            <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="rounded-lg border border-border bg-card p-5">
                 <h3 className="flex items-center gap-2 font-semibold">
                     <Calculator size={16} className="text-violet-400" /> Risk Calculator
                 </h3>
@@ -97,25 +97,25 @@ function CalculatorGrid() {
                     <div>
                         <label className="mb-1 block text-xs font-medium text-muted-foreground">Pip value per 1.00 lot ($)</label>
                         <input type="number" value={pipValuePerLot} onChange={(e) => setPipValuePerLot(e.target.value)} className={inputClass} />
-                        <p className="mt-1 text-[11px] text-muted-foreground">
+                        <p className="mt-1 text-micro text-muted-foreground">
                             Defaults: $10 (XAUUSD / 100k USD quote)
                         </p>
                     </div>
                 </div>
             </div>
-            <div className="rounded-2xl border border-violet-500/20 bg-violet-500/4 p-5 lg:col-span-2">
+            <div className="rounded-lg border border-violet-500/20 bg-violet-500/4 p-5 lg:col-span-2">
                 <h3 className="font-semibold">Results</h3>
                 <div className="mt-4 grid gap-3 sm:grid-cols-3">
                     <div className="rounded-xl border border-border bg-muted p-4 text-center">
-                        <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Risk Amount</p>
+                        <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Risk Amount</p>
                         <p className="mt-2 text-2xl font-bold text-foreground">${riskMoney.toFixed(2)}</p>
                     </div>
                     <div className="rounded-xl border border-violet-500/25 bg-violet-500/10 p-4 text-center">
-                        <p className="text-[11px] uppercase tracking-wider text-violet-300 font-semibold">Position Size</p>
+                        <p className="text-micro uppercase tracking-wider text-violet-300 font-semibold">Position Size</p>
                         <p className="mt-2 text-2xl font-bold text-violet-400">{positionSize.toFixed(2)} lots</p>
                     </div>
                     <div className="rounded-xl border border-border bg-muted p-4 text-center">
-                        <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Pip Value</p>
+                        <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Pip Value</p>
                         <p className="mt-2 text-2xl font-bold text-foreground">${pipValue.toFixed(2)}/pip</p>
                     </div>
                 </div>
@@ -157,7 +157,7 @@ function ProfitSplitCalculator() {
     const inputClass = "w-full rounded-xl border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-violet-500 focus:outline-none";
 
     return (
-        <div className="rounded-2xl border border-border bg-card p-5">
+        <div className="rounded-lg border border-border bg-card p-5">
             <h3 className="flex items-center gap-2 font-semibold">
                 <Zap size={16} className="text-violet-400" /> Profit Split Calculator
             </h3>
@@ -177,19 +177,19 @@ function ProfitSplitCalculator() {
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-4">
                 <div className="rounded-xl border border-border bg-muted p-3 text-center">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Investor %</p>
+                    <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Investor %</p>
                     <p className="mt-1 text-lg font-bold text-foreground">{investorPct.toFixed(1)}%</p>
                 </div>
                 <div className="rounded-xl border border-border bg-muted p-3 text-center">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Manager %</p>
+                    <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Manager %</p>
                     <p className="mt-1 text-lg font-bold text-foreground">{managerPct.toFixed(1)}%</p>
                 </div>
                 <div className="rounded-xl border border-violet-500/25 bg-violet-500/10 p-3 text-center">
-                    <p className="text-[10px] uppercase tracking-wider text-violet-300 font-semibold">Investor Share</p>
+                    <p className="text-micro uppercase tracking-wider text-violet-300 font-semibold">Investor Share</p>
                     <p className="mt-1 text-lg font-bold text-violet-400">${investorShare.toFixed(2)}</p>
                 </div>
                 <div className="rounded-xl border border-violet-500/25 bg-violet-500/10 p-3 text-center">
-                    <p className="text-[10px] uppercase tracking-wider text-violet-300 font-semibold">Manager Share</p>
+                    <p className="text-micro uppercase tracking-wider text-violet-300 font-semibold">Manager Share</p>
                     <p className="mt-1 text-lg font-bold text-violet-400">${managerShare.toFixed(2)}</p>
                 </div>
             </div>
@@ -212,7 +212,7 @@ function SwapCalculator() {
     const inputClass = "w-full rounded-xl border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-violet-500 focus:outline-none";
 
     return (
-        <div className="rounded-2xl border border-border bg-card p-5">
+        <div className="rounded-lg border border-border bg-card p-5">
             <h3 className="flex items-center gap-2 font-semibold">
                 <Activity size={16} className="text-violet-400" /> Swap Calculator
             </h3>
@@ -240,11 +240,11 @@ function SwapCalculator() {
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-orange-500/25 bg-orange-500/10 p-4 text-center">
-                    <p className="text-[10px] uppercase tracking-wider text-orange-300 font-semibold">Buy Swap Cost</p>
+                    <p className="text-micro uppercase tracking-wider text-orange-300 font-semibold">Buy Swap Cost</p>
                     <p className="mt-1 text-xl font-bold text-orange-400">${swapBuy.toFixed(2)}</p>
                 </div>
                 <div className="rounded-xl border border-blue-500/25 bg-blue-500/10 p-4 text-center">
-                    <p className="text-[10px] uppercase tracking-wider text-blue-300 font-semibold">Sell Swap Cost</p>
+                    <p className="text-micro uppercase tracking-wider text-blue-300 font-semibold">Sell Swap Cost</p>
                     <p className="mt-1 text-xl font-bold text-blue-400">${swapSell.toFixed(2)}</p>
                 </div>
             </div>
@@ -270,7 +270,7 @@ function SpreadAnalyzer() {
     const inputClass = "w-full rounded-xl border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-violet-500 focus:outline-none";
 
     return (
-        <div className="rounded-2xl border border-border bg-card p-5">
+        <div className="rounded-lg border border-border bg-card p-5">
             <h3 className="flex items-center gap-2 font-semibold">
                 <LineChart size={16} className="text-violet-400" /> Spread Analyzer
             </h3>
@@ -294,15 +294,15 @@ function SpreadAnalyzer() {
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 <div className="rounded-xl border border-border bg-muted p-4 text-center">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Spread (pips)</p>
+                    <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Spread (pips)</p>
                     <p className="mt-1 text-xl font-bold text-foreground">{spreadPips.toFixed(1)}</p>
                 </div>
                 <div className="rounded-xl border border-orange-500/25 bg-orange-500/10 p-4 text-center">
-                    <p className="text-[10px] uppercase tracking-wider text-orange-300 font-semibold">Spread Cost</p>
+                    <p className="text-micro uppercase tracking-wider text-orange-300 font-semibold">Spread Cost</p>
                     <p className="mt-1 text-xl font-bold text-orange-400">${spreadCost.toFixed(2)}</p>
                 </div>
                 <div className="rounded-xl border border-violet-500/25 bg-violet-500/10 p-4 text-center">
-                    <p className="text-[10px] uppercase tracking-wider text-violet-300 font-semibold">Spread %</p>
+                    <p className="text-micro uppercase tracking-wider text-violet-300 font-semibold">Spread %</p>
                     <p className="mt-1 text-xl font-bold text-violet-400">{spreadPercent.toFixed(4)}%</p>
                 </div>
             </div>
@@ -400,7 +400,7 @@ function NotebookView() {
 
             {tab === "entries" ? (
                 <div className="mt-6 grid gap-4 lg:grid-cols-2">
-                    <div className="rounded-2xl border border-border bg-card p-5">
+                    <div className="rounded-lg border border-border bg-card p-5">
                         <h3 className="flex items-center gap-2 font-semibold"><Plus size={16} className="text-violet-400" /> New Entry</h3>
                         <form onSubmit={saveNote} className="mt-4 space-y-3">
                             <div><label className="mb-1 block text-xs font-medium text-muted-foreground">Title</label><input type="text" required placeholder="e.g. GBPUSD London breakout setup" value={title} onChange={(e) => setTitle(e.target.value)} className={inputClass} /></div>
@@ -420,7 +420,7 @@ function NotebookView() {
                             </button>
                         </form>
                     </div>
-                    <div className="rounded-2xl border border-border bg-card p-5">
+                    <div className="rounded-lg border border-border bg-card p-5">
                         <h3 className="flex items-center gap-2 font-semibold"><BookOpen size={16} className="text-violet-400" /> Your Entries <span className="ml-auto rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">{notes.length}</span></h3>
                         {notesLoading ? (
                             <div className="flex items-center gap-3 py-10 text-sm text-muted-foreground"><Loader2 size={16} className="animate-spin" /> Loading your notebook...</div>
@@ -434,11 +434,11 @@ function NotebookView() {
                                             <div className="min-w-0">
                                                 <p className="font-medium text-foreground">{note.title}</p>
                                                 <div className="mt-1 flex flex-wrap items-center gap-2">
-                                                    {note.symbol && <span className="rounded-full border border-violet-500/25 bg-violet-500/10 px-2 py-0.5 text-[11px] font-mono text-violet-400">{note.symbol}</span>}
-                                                    {note.tradeOutcome && <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${note.tradeOutcome === "win" ? "bg-emerald-500/10 text-emerald-400" : note.tradeOutcome === "loss" ? "bg-rose-500/10 text-rose-400" : "bg-amber-500/10 text-amber-400"}`}>{note.tradeOutcome === "win" ? "Win" : note.tradeOutcome === "loss" ? "Loss" : "Breakeven"}</span>}
-                                                    {note.pnl !== null && note.pnl !== undefined && <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${note.pnl >= 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"}`}>{note.pnl >= 0 ? "+" : ""}${note.pnl.toFixed(2)}</span>}
-                                                    {note.tags?.map((tag) => <span key={tag} className="rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{tag}</span>)}
-                                                    <span className="text-[11px] text-muted-foreground">{note.updatedAt ? new Date(note.updatedAt).toLocaleString() : "—"}</span>
+                                                    {note.symbol && <span className="rounded-full border border-violet-500/25 bg-violet-500/10 px-2 py-0.5 text-micro font-mono text-violet-400">{note.symbol}</span>}
+                                                    {note.tradeOutcome && <span className={`rounded-full px-2 py-0.5 text-micro font-medium ${note.tradeOutcome === "win" ? "bg-emerald-500/10 text-emerald-400" : note.tradeOutcome === "loss" ? "bg-rose-500/10 text-rose-400" : "bg-amber-500/10 text-amber-400"}`}>{note.tradeOutcome === "win" ? "Win" : note.tradeOutcome === "loss" ? "Loss" : "Breakeven"}</span>}
+                                                    {note.pnl !== null && note.pnl !== undefined && <span className={`rounded-full px-2 py-0.5 text-micro font-medium ${note.pnl >= 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"}`}>{note.pnl >= 0 ? "+" : ""}${note.pnl.toFixed(2)}</span>}
+                                                    {note.tags?.map((tag) => <span key={tag} className="rounded-full border border-border bg-muted px-2 py-0.5 text-micro text-muted-foreground">{tag}</span>)}
+                                                    <span className="text-micro text-muted-foreground">{note.updatedAt ? new Date(note.updatedAt).toLocaleString() : "—"}</span>
                                                 </div>
                                             </div>
                                             <button type="button" onClick={() => deleteNote(note.id)} className="shrink-0 rounded-lg p-1.5 text-muted-foreground transition hover:text-rose-400"><Trash2 size={15} /></button>
@@ -468,25 +468,25 @@ function JournalView({ notes }: { notes: JournalEntry[] }) {
     const outcomeIcon = (outcome?: string) => { switch (outcome) { case "win": return "+"; case "loss": return "\u2212"; case "breakeven": return "\u00B1"; default: return "\u25CB"; } };
 
     if (notes.length === 0) {
-        return <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-20 text-center"><StickyNote className="mx-auto h-12 w-12 text-muted-foreground" /><h3 className="mt-4 text-lg font-semibold">No journal entries yet</h3><p className="mt-2 text-sm text-muted-foreground">Start logging your trades to track performance over time.</p></div>;
+        return <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-20 text-center"><StickyNote className="mx-auto h-12 w-12 text-muted-foreground" /><h3 className="mt-4 text-lg font-semibold">No journal entries yet</h3><p className="mt-2 text-sm text-muted-foreground">Start logging your trades to track performance over time.</p></div>;
     }
 
     return (
         <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-4">
-                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-center"><p className="text-[10px] uppercase tracking-wider text-emerald-300 font-semibold">Wins</p><p className="mt-1 text-2xl font-bold text-emerald-400">{wins}</p></div>
-                <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-center"><p className="text-[10px] uppercase tracking-wider text-rose-300 font-semibold">Losses</p><p className="mt-1 text-2xl font-bold text-rose-400">{losses}</p></div>
-                <div className="rounded-xl border border-border bg-muted/30 p-4 text-center"><p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Win Rate</p><p className="mt-1 text-2xl font-bold text-foreground">{wins + losses > 0 ? `${((wins / (wins + losses)) * 100).toFixed(0)}%` : "\u2014"}</p></div>
-                <div className={`rounded-xl border p-4 text-center ${totalPnl >= 0 ? "border-emerald-500/20 bg-emerald-500/10" : "border-rose-500/20 bg-rose-500/10"}`}><p className="text-[10px] uppercase tracking-wider font-semibold">Total P&amp;L</p><p className={`mt-1 text-2xl font-bold ${totalPnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{totalPnl >= 0 ? "+" : ""}${totalPnl.toFixed(2)}</p></div>
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-center"><p className="text-micro uppercase tracking-wider text-emerald-300 font-semibold">Wins</p><p className="mt-1 text-2xl font-bold text-emerald-400">{wins}</p></div>
+                <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-center"><p className="text-micro uppercase tracking-wider text-rose-300 font-semibold">Losses</p><p className="mt-1 text-2xl font-bold text-rose-400">{losses}</p></div>
+                <div className="rounded-xl border border-border bg-muted/30 p-4 text-center"><p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Win Rate</p><p className="mt-1 text-2xl font-bold text-foreground">{wins + losses > 0 ? `${((wins / (wins + losses)) * 100).toFixed(0)}%` : "\u2014"}</p></div>
+                <div className={`rounded-xl border p-4 text-center ${totalPnl >= 0 ? "border-emerald-500/20 bg-emerald-500/10" : "border-rose-500/20 bg-rose-500/10"}`}><p className="text-micro uppercase tracking-wider font-semibold">Total P&amp;L</p><p className={`mt-1 text-2xl font-bold ${totalPnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{totalPnl >= 0 ? "+" : ""}${totalPnl.toFixed(2)}</p></div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {notes.map((note) => (
                     <div key={note.id} className={`rounded-xl border p-4 ${outcomeColor(note.tradeOutcome)}`}>
                         <div className="flex items-center justify-between"><span className="text-xs font-medium text-muted-foreground">{note.symbol || "\u2014"}</span><span className="text-lg font-bold">{outcomeIcon(note.tradeOutcome)}</span></div>
                         <h4 className="mt-2 font-semibold text-sm">{note.title || "Untitled"}</h4>
-                        <div className="mt-2 flex flex-wrap gap-1.5">{note.tags?.map((tag) => <span key={tag} className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] text-muted-foreground">{tag}</span>)}</div>
+                        <div className="mt-2 flex flex-wrap gap-1.5">{note.tags?.map((tag) => <span key={tag} className="rounded-full border border-border bg-background px-2 py-0.5 text-micro text-muted-foreground">{tag}</span>)}</div>
                         {note.pnl !== null && note.pnl !== undefined && <p className={`mt-3 text-lg font-bold ${note.pnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{note.pnl >= 0 ? "+" : ""}${note.pnl.toFixed(2)}</p>}
-                        <p className="mt-1 text-[10px] text-muted-foreground">{note.updatedAt ? new Date(note.updatedAt).toLocaleString() : "\u2014"}</p>
+                        <p className="mt-1 text-micro text-muted-foreground">{note.updatedAt ? new Date(note.updatedAt).toLocaleString() : "\u2014"}</p>
                     </div>
                 ))}
             </div>
@@ -551,7 +551,7 @@ export default function ToolsPage() {
                             >
                                 <Icon size={13} />
                                 {t.label}
-                                {t.pro && <span className="rounded bg-violet-500/20 px-1 py-0.5 text-[9px] font-bold text-violet-400">PRO</span>}
+                                {t.pro && <span className="rounded bg-violet-500/20 px-1 py-0.5 text-micro font-bold text-violet-400">PRO</span>}
                             </button>
                         );
                     })}
@@ -580,7 +580,7 @@ export default function ToolsPage() {
                                     <Icon size={16} className={isActive ? "" : "text-muted-foreground"} />
                                     <span className="flex-1 text-left">{t.label}</span>
                                     {t.pro && (
-                                        <span className={`rounded px-1.5 py-0.5 text-[9px] font-bold ${
+                                        <span className={`rounded px-1.5 py-0.5 text-micro font-bold ${
                                             isActive ? "bg-background/20 text-background" : "bg-violet-500/15 text-violet-400"
                                         }`}>
                                             PRO

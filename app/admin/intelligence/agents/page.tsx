@@ -138,11 +138,11 @@ export default function AdminAgentsPage() {
             {loading ? (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {[1, 2, 3].map((n) => (
-                        <div key={n} className="h-40 animate-pulse rounded-2xl border border-border/30 bg-muted/50" />
+                        <div key={n} className="h-40 animate-pulse rounded-lg border border-border/30 bg-muted/50" />
                     ))}
                 </div>
             ) : filtered.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-border/30 bg-muted/50 px-6 py-20 text-center">
+                <div className="rounded-lg border border-dashed border-border/30 bg-muted/50 px-6 py-20 text-center">
                     <Bot size={40} className="mx-auto text-muted-foreground" />
                     <h3 className="mt-3 text-lg font-medium">No agents found</h3>
                     <p className="mt-1 text-sm text-muted-foreground">Try adjusting your filters or search query.</p>
@@ -175,7 +175,7 @@ function AgentCard({
     const isBuiltIn = !agent.createdBy || agent.createdBy === "admin";
 
     return (
-        <div className="rounded-2xl border border-border/30 bg-muted/50 overflow-hidden transition hover:border-border/50">
+        <div className="rounded-lg border border-border/30 bg-muted/50 overflow-hidden transition hover:border-border/50">
             <div className="p-5">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-4">
@@ -190,7 +190,7 @@ function AgentCard({
                                 >
                                     {agent.name}
                                 </Link>
-                                <span className="text-[10px] font-semibold uppercase tracking-wider text-yellow-300">
+                                <span className="text-micro font-semibold uppercase tracking-wider text-yellow-300">
                                     {ROLE_LABELS[agent.role] || agent.role}
                                 </span>
                                 {isBuiltIn && (
@@ -200,7 +200,7 @@ function AgentCard({
                                 )}
                             </div>
                             <p className="mt-1 max-w-xl text-xs text-muted-foreground truncate">{agent.description}</p>
-                            <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
+                            <div className="mt-2 flex items-center gap-2 text-micro text-muted-foreground">
                                 <span>v{agent.version}</span>
                                 <span className="text-muted-foreground/30">•</span>
                                 <StatusBadge tone={STATUS_TONES[agent.status]} label={agent.status} />
@@ -270,7 +270,7 @@ function AgentCard({
 function DetailRow({ label, value, copyable = false }: { label: string; value: string; copyable?: boolean }) {
     return (
         <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
+            <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
             <div className="flex items-center gap-2">
                 <code className="flex-1 text-xs bg-background/50 px-2 py-1 rounded text-foreground break-all">{value}</code>
                 {copyable && (

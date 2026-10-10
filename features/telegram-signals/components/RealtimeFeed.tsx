@@ -190,7 +190,10 @@ export function RealtimeFeed({
     const [loading, setLoading] = useState(true);
     const useApiFallback = useRef(false);
     const onSignalsChangeRef = useRef(onSignalsChange);
-    onSignalsChangeRef.current = onSignalsChange;
+
+    useEffect(() => {
+        onSignalsChangeRef.current = onSignalsChange;
+    }, [onSignalsChange]);
     // When the user clears signals, suppress Firebase listener re-population
     // until genuinely new data arrives (system node is not deleted for non-admins).
     const clearedRef = useRef(false);
@@ -386,8 +389,8 @@ export function RealtimeFeed({
 
     if (loading) {
         return (
-            <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border/30 bg-linear-to-br from-background/80 via-background/40 to-background/80 p-8 text-center backdrop-blur-xl">
-                <Loader2 className="h-7 w-7 animate-spin text-amber-400" />
+            <div className="flex min-h-72 flex-col items-center justify-center rounded-lg border border-border bg-card p-8 text-center">
+                <Loader2 className="h-7 w-7 animate-spin text-muted-foreground" />
                 <p className="mt-3 text-sm font-medium text-foreground">Listening for live Pro Signals...</p>
                 <p className="mt-1 text-xs text-muted-foreground">Connecting to your signal stream.</p>
             </div>
@@ -396,7 +399,7 @@ export function RealtimeFeed({
 
     if (activeSignals.length === 0) {
         return (
-            <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border/30 bg-linear-to-br from-background/80 via-background/40 to-background/80 p-8 text-center backdrop-blur-xl">
+            <div className="flex min-h-72 flex-col items-center justify-center rounded-lg border border-border bg-card p-8 text-center">
                 <Radio className="h-9 w-9 text-muted-foreground" />
                 <h3 className="mt-3 text-base font-semibold text-foreground">No Pro Signals Received Yet</h3>
                 <p className="mt-1 max-w-sm text-sm text-muted-foreground">

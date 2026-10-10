@@ -72,7 +72,7 @@ export function FreshnessBadge({ descriptor, showAge = true, compact = false, cl
             aria-live="polite"
             title={`${FRESHNESS_LABEL[descriptor.freshness]} · ${age} old · source: ${descriptor.source}${descriptor.fromCache ? " · cached" : ""}`}
             className={cn(
-                "inline-flex items-center gap-1.5 rounded-md border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide",
+                "inline-flex items-center gap-1.5 rounded-md border px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide",
                 tone.border,
                 tone.bg,
                 tone.text,

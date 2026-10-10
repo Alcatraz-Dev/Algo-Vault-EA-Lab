@@ -226,7 +226,7 @@ export default function Watchlist({
             <div className="min-w-0 max-h-[460px] overflow-y-auto">
                 <table className="w-full border-collapse text-xs">
                     <thead>
-                        <tr className="border-b border-border text-left text-[10px] uppercase tracking-wide text-muted-foreground sticky top-0 bg-card z-10">
+                        <tr className="border-b border-border text-left text-micro uppercase tracking-wide text-muted-foreground sticky top-0 bg-card z-10">
                             <th className="px-3 py-1.5 font-medium">Symbol</th>
                             <th className="px-2 py-1.5 text-right font-medium">Bid</th>
                             <th className="px-2 py-1.5 text-right font-medium">Chg%</th>
@@ -281,7 +281,7 @@ export default function Watchlist({
                                     </td>
                                     <td className="px-2 py-2 text-right">
                                         {quote && quote.spread > 0 ? (
-                                            <span className="font-mono text-[11px] text-muted-foreground tabular-nums">
+                                            <span className="font-mono text-micro text-muted-foreground tabular-nums">
                                                 {quote.spread.toFixed(quote.spread >= 1 ? 2 : 4)}
                                             </span>
                                         ) : (

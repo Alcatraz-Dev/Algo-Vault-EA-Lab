@@ -238,7 +238,7 @@ export default function BotDetailPage() {
                 </div>
 
                 {bot.description && (
-                    <p className="rounded-2xl border border-border bg-card px-5 py-4 text-sm text-muted-foreground">
+                    <p className="rounded-lg border border-border bg-card px-5 py-4 text-sm text-muted-foreground">
                         {bot.description}
                     </p>
                 )}
@@ -257,7 +257,7 @@ export default function BotDetailPage() {
                     <StatCard label="Max drawdown" icon={<TrendingDown size={16} />} value={`$${Math.abs(stats?.maxDrawdown || 0).toFixed(2)}`} accent="red" />
                 </div>
 
-                <div className="rounded-2xl border border-border bg-card p-5">
+                <div className="rounded-lg border border-border bg-card p-5">
                     <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
                         <Bot size={15} /> Trade
                     </h3>
@@ -273,7 +273,7 @@ export default function BotDetailPage() {
 
                 {/* Equity curve from bot trades */}
                 {chartData.length > 2 && (
-                    <div className="rounded-2xl border border-border bg-card p-5">
+                    <div className="rounded-lg border border-border bg-card p-5">
                         <h3 className="mb-3 text-sm font-semibold text-foreground">Equity curve (bot trades)</h3>
                         <ResponsiveContainer width="100%" height={240}>
                             <AreaChart data={chartData}>
@@ -295,14 +295,14 @@ export default function BotDetailPage() {
 
                 {/* Open positions */}
                 {positions.length > 0 && (
-                    <div className="rounded-2xl border border-border bg-card p-5">
+                    <div className="rounded-lg border border-border bg-card p-5">
                         <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
                             <MapPin size={15} /> Open Positions
                         </h3>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead>
-                                    <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+                                    <tr className="border-b border-border text-left text-micro uppercase tracking-wider text-muted-foreground">
                                         <th className="px-3 py-2">Ticket</th>
                                         <th className="px-3 py-2">Symbol</th>
                                         <th className="px-3 py-2">Type</th>
@@ -336,14 +336,14 @@ export default function BotDetailPage() {
 
                 {/* Trade history */}
                 {trades.length > 0 && (
-                    <div className="rounded-2xl border border-border bg-card p-5">
+                    <div className="rounded-lg border border-border bg-card p-5">
                         <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
                             <Clock size={15} /> Trade History
                         </h3>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead>
-                                    <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+                                    <tr className="border-b border-border text-left text-micro uppercase tracking-wider text-muted-foreground">
                                         <th className="px-3 py-2">Ticket</th>
                                         <th className="px-3 py-2">Symbol</th>
                                         <th className="px-3 py-2">Type</th>
@@ -378,7 +378,7 @@ export default function BotDetailPage() {
                 )}
 
                 {/* Notes */}
-                <div className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+                <div className="rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
                     <p className="flex items-center gap-2 font-medium text-foreground">
                         <ShieldCheck size={16} /> About bot equity & P/L
                     </p>
@@ -406,7 +406,7 @@ function StatCard({
 }) {
     const colors = accent === "emerald" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : accent === "red" ? "bg-destructive/10 text-destructive" : "bg-muted text-foreground";
     return (
-        <div className={`rounded-2xl border border-border p-4 ${colors}`}>
+        <div className={`rounded-lg border border-border p-4 ${colors}`}>
             <div className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider opacity-80">
                 {icon} {label}
             </div>

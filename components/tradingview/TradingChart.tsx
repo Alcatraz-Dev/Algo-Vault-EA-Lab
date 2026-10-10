@@ -236,7 +236,7 @@ export default function TradingChart({
                     <div className="absolute inset-0 z-10 flex items-center justify-center rounded-md border border-dashed border-border/40 bg-background/90 backdrop-blur-sm">
                         <div className="max-w-xs text-center">
                             <p className="text-xs font-medium text-muted-foreground">Market data temporarily unavailable</p>
-                            <p className="mt-1 text-[11px] leading-5 text-muted-foreground/70">
+                            <p className="mt-1 text-micro leading-5 text-muted-foreground/70">
                                 {marketError ?? `No candles were returned for ${feedSymbol} ${chartInterval}.`}
                             </p>
                         </div>
@@ -248,7 +248,7 @@ export default function TradingChart({
                     </div>
                 )}
                 {!marketLoading && candles.length > 0 && (
-                    <div className={`absolute right-2 top-2 z-10 flex items-center gap-1.5 rounded-full border border-border/40 bg-background/90 px-2 py-0.5 text-[10px] backdrop-blur-sm ${staleData ? "text-amber-500" : "text-muted-foreground"}`} role="status" aria-live="polite">
+                    <div className={`absolute right-2 top-2 z-10 flex items-center gap-1.5 rounded-full border border-border/40 bg-background/90 px-2 py-0.5 text-micro backdrop-blur-sm ${staleData ? "text-amber-500" : "text-muted-foreground"}`} role="status" aria-live="polite">
                         <span className={cnLiveDot(isLive && !staleData)} aria-hidden />
                         {staleData
                             ? quality === "market_closed" ? "Market closed · last data" : "Stale data · reconnecting"
@@ -261,7 +261,7 @@ export default function TradingChart({
                     </div>
                 )}
                 {loadingOlder && candles.length > 0 ? (
-                    <div className="pointer-events-none absolute bottom-3 left-3 z-20 rounded-full border border-border/40 bg-background/90 px-2 py-0.5 text-[10px] text-muted-foreground backdrop-blur-sm" role="status">
+                    <div className="pointer-events-none absolute bottom-3 left-3 z-20 rounded-full border border-border/40 bg-background/90 px-2 py-0.5 text-micro text-muted-foreground backdrop-blur-sm" role="status">
                         Loading older history…
                     </div>
                 ) : null}
@@ -272,7 +272,7 @@ export default function TradingChart({
                             setShowGoLive(false);
                             chartRef.current?.timeScale().scrollToRealTime();
                         }}
-                        className="absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/90 px-3 py-1 text-[11px] font-semibold text-primary shadow-sm backdrop-blur-sm transition hover:bg-primary/10"
+                        className="absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/90 px-3 py-1 text-micro font-semibold text-primary shadow-sm backdrop-blur-sm transition hover:bg-primary/10"
                     >
                         <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-pulse" aria-hidden />
                         Go to Live →

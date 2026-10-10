@@ -64,19 +64,19 @@ export default function FibonacciCalculator() {
                 "Export levels with metadata to clipboard",
             ]}
         >
-            <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="rounded-lg border border-border bg-card p-5">
                 <h2 className="mb-4 text-sm font-semibold text-foreground">Swing Points</h2>
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Swing High</label>
+                        <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Swing High</label>
                         <input type="number" step="any" value={high} onChange={(e) => setHigh(e.target.value)} placeholder="e.g. 1.12000" className={inputClass} />
                     </div>
                     <div>
-                        <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Swing Low</label>
+                        <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Swing Low</label>
                         <input type="number" step="any" value={low} onChange={(e) => setLow(e.target.value)} placeholder="e.g. 1.10000" className={inputClass} />
                     </div>
                 </div>
-                <p className="mt-3 text-[10px] text-muted-foreground">
+                <p className="mt-3 text-micro text-muted-foreground">
                     Direction is auto-detected: if high &gt; low the trend is up; otherwise down.
                 </p>
             </div>
@@ -105,8 +105,8 @@ export default function FibonacciCalculator() {
                                     >
                                         {level.percent}%
                                     </span>
-                                    {level.level === 0.5 && <span className="text-[9px] font-semibold uppercase text-primary/70">EQ</span>}
-                                    {level.level === 0.618 && <span className="text-[9px] font-semibold uppercase text-primary/70">GOLDEN</span>}
+                                    {level.level === 0.5 && <span className="text-micro font-semibold uppercase text-primary/70">EQ</span>}
+                                    {level.level === 0.618 && <span className="text-micro font-semibold uppercase text-primary/70">GOLDEN</span>}
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <span className="font-mono text-sm font-bold text-foreground">{level.price}</span>
@@ -121,7 +121,7 @@ export default function FibonacciCalculator() {
                     })}
                 </div>
             ) : (
-                <div className="rounded-2xl border border-dashed border-border p-12 text-center">
+                <div className="rounded-lg border border-dashed border-border p-12 text-center">
                     <TrendingUp size={28} className="mx-auto text-muted-foreground" />
                     <p className="mt-3 text-sm text-muted-foreground">Enter swing high and low to calculate retracement levels.</p>
                 </div>
@@ -150,11 +150,11 @@ function ProTile({ title, description }: { title: string; description: string })
     return (
         <Link
             href="/pricing"
-            className="group flex flex-col gap-2 rounded-2xl border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
+            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
         >
             <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-foreground">{title}</h4>
-                <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-micro font-bold uppercase tracking-wider text-primary">
                     <Crown className="size-2.5" />
                     Pro
                 </span>

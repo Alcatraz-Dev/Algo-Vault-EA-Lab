@@ -59,7 +59,7 @@ const SOURCE_LABELS: Record<string, string> = {
 function StateChip({ state }: { state: string }) {
     const tone = STATE_TONES[state] ?? STATE_TONES.AI_UNAVAILABLE;
     return (
-        <span className={cn("rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide", tone)}>
+        <span className={cn("rounded-full border px-2 py-0.5 text-micro font-semibold uppercase tracking-wide", tone)}>
             {state.replace("_", " ")}
         </span>
     );
@@ -68,7 +68,7 @@ function StateChip({ state }: { state: string }) {
 function FactorRow({ factor }: { factor: { source: string; label: string; value: string; negative?: boolean } }) {
     return (
         <li className="flex items-start justify-between gap-2 py-1">
-            <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground">
+            <span className="shrink-0 text-micro uppercase tracking-wide text-muted-foreground">
                 {SOURCE_LABELS[factor.source] ?? factor.source}
             </span>
             <span className={cn("min-w-0 flex-1 text-right text-xs", factor.negative ? "text-rose-400" : "text-foreground")}>
@@ -101,7 +101,7 @@ export function IntelligencePanel({
                     decision ? (
                         <StateChip state={decision.state} />
                     ) : (
-                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                        <span className="text-micro uppercase tracking-wide text-muted-foreground">
                             {loading ? "…" : !pro ? "PRO" : "OFF"}
                         </span>
                     )
@@ -125,14 +125,14 @@ export function IntelligencePanel({
                         <div className="flex items-center justify-between gap-2">
                             <div className="flex items-baseline gap-2">
                                 <span className="text-lg font-semibold tabular-nums text-foreground">{decision.confidence}%</span>
-                                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">AI confidence</span>
+                                <span className="text-micro uppercase tracking-wide text-muted-foreground">AI confidence</span>
                             </div>
                             <div className="flex items-center gap-1.5">
                                 <span className="text-xs font-semibold text-foreground">{decision.direction}</span>
                                 {decision.jev ? (
                                     <span
                                         className={cn(
-                                            "rounded-full border px-1.5 py-0.5 text-[10px] font-medium",
+                                            "rounded-full border px-1.5 py-0.5 text-micro font-medium",
                                             decision.jev.status === "VALIDATED"
                                                 ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
                                                 : "border-border bg-muted text-muted-foreground",
@@ -142,7 +142,7 @@ export function IntelligencePanel({
                                         JEV {decision.jev.confidence}%
                                     </span>
                                 ) : (
-                                    <span className="rounded-full border border-border bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                                    <span className="rounded-full border border-border bg-muted px-1.5 py-0.5 text-micro text-muted-foreground">
                                         JEV n/a
                                     </span>
                                 )}

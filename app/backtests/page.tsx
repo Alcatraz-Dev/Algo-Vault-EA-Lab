@@ -645,7 +645,7 @@ export default function BacktestsPage() {
                 </div>
 
                 {/* BOT SELECTOR BAR WITH REAL BOT LOGO */}
-                <div className="mt-8 rounded-2xl border border-border/30 bg-gradient-to-br from-background/80 via-background/40 to-background/80 p-5 backdrop-blur-xl" data-guide="bot-selector">
+                <div className="mt-8 rounded-lg border border-border/30 bg-gradient-to-br from-background/80 via-background/40 to-background/80 p-5 backdrop-blur-xl" data-guide="bot-selector">
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div className="flex items-center gap-4">
                             <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/30 bg-card">
@@ -754,7 +754,7 @@ export default function BacktestsPage() {
                     <div className="mt-8 space-y-8">
                         {/* KPI STAT CARDS */}
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-guide="metrics">
-                            <div className="rounded-2xl border border-border/30 bg-gradient-to-br from-emerald-500/10 via-background/60 to-background p-5 backdrop-blur-xl">
+                            <div className="rounded-lg border border-border/30 bg-gradient-to-br from-emerald-500/10 via-background/60 to-background p-5 backdrop-blur-xl">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Total Return</span>
                                     <TrendingUp className="h-4 w-4 text-emerald-400" />
@@ -767,7 +767,7 @@ export default function BacktestsPage() {
                                 </div>
                             </div>
 
-                            <div className="rounded-2xl border border-border/30 bg-gradient-to-br from-amber-500/10 via-background/60 to-background p-5 backdrop-blur-xl">
+                            <div className="rounded-lg border border-border/30 bg-gradient-to-br from-amber-500/10 via-background/60 to-background p-5 backdrop-blur-xl">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Win Rate</span>
                                     <Target className="h-4 w-4 text-amber-400" />
@@ -780,7 +780,7 @@ export default function BacktestsPage() {
                                 </div>
                             </div>
 
-                            <div className="rounded-2xl border border-border/30 bg-gradient-to-br from-blue-500/10 via-background/60 to-background p-5 backdrop-blur-xl">
+                            <div className="rounded-lg border border-border/30 bg-gradient-to-br from-blue-500/10 via-background/60 to-background p-5 backdrop-blur-xl">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Profit Factor</span>
                                     <BarChart3 className="h-4 w-4 text-blue-400" />
@@ -793,7 +793,7 @@ export default function BacktestsPage() {
                                 </div>
                             </div>
 
-                            <div className="rounded-2xl border border-border/30 bg-gradient-to-br from-red-500/10 via-background/60 to-background p-5 backdrop-blur-xl">
+                            <div className="rounded-lg border border-border/30 bg-gradient-to-br from-red-500/10 via-background/60 to-background p-5 backdrop-blur-xl">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Max Drawdown</span>
                                     <TrendingDown className="h-4 w-4 text-red-400" />
@@ -809,12 +809,12 @@ export default function BacktestsPage() {
 
                         {/* INTERACTIVE CHARTS SECTION - PRO ONLY */}
                         <ProGate>
-<div className="rounded-2xl border border-border/30 bg-card/60 p-6 backdrop-blur-xl" data-guide="charts">
+<div className="rounded-lg border border-border/30 bg-card/60 p-6 backdrop-blur-xl" data-guide="charts">
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
                                     <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                                         <span>Strategy Performance Charts</span>
-                                        <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] text-amber-400 font-semibold uppercase">
+                                        <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-micro text-amber-400 font-semibold uppercase">
                                             {metrics.isLive ? "Real MT5 Data" : "Database Record"}
                                         </span>
                                     </h2>
@@ -971,13 +971,13 @@ export default function BacktestsPage() {
                         {/* PRO STATISTICAL & RISK ANALYTICS CARDS */}
                         <div className="grid gap-6 md:grid-cols-3">
                             {/* RISK OF RUIN & DRAWDOWN STATS */}
-                            <div className="rounded-2xl border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
+                            <div className="rounded-lg border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
                                 <div className="flex items-center justify-between border-b border-border/30 pb-3">
                                     <h3 className="font-bold text-foreground flex items-center gap-2">
                                         <ShieldAlert className="h-4 w-4 text-amber-400" />
                                         <span>Risk of Ruin Matrix</span>
                                     </h3>
-                                    <span className="text-[10px] uppercase tracking-wider font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
+                                    <span className="text-micro uppercase tracking-wider font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
                                         {metrics.maxDrawdown < 15 ? "Low Risk" : "Moderate Risk"}
                                     </span>
                                 </div>
@@ -1009,13 +1009,13 @@ export default function BacktestsPage() {
                             </div>
 
                             {/* INSTITUTIONAL RATIOS */}
-                            <div className="rounded-2xl border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
+                            <div className="rounded-lg border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
                                 <div className="flex items-center justify-between border-b border-border/30 pb-3">
                                     <h3 className="font-bold text-foreground flex items-center gap-2">
                                         <Zap className="h-4 w-4 text-blue-400" />
                                         <span>Institutional Ratios</span>
                                     </h3>
-                                    <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded">
+                                    <span className="text-micro uppercase tracking-wider font-semibold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded">
                                         Calculated
                                     </span>
                                 </div>
@@ -1041,13 +1041,13 @@ export default function BacktestsPage() {
                             </div>
 
                             {/* TRADE EXECUTION PROFILE */}
-                            <div className="rounded-2xl border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
+                            <div className="rounded-lg border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
                                 <div className="flex items-center justify-between border-b border-border/30 pb-3">
                                     <h3 className="font-bold text-foreground flex items-center gap-2">
                                         <Clock className="h-4 w-4 text-emerald-400" />
                                         <span>Trade Execution Profile</span>
                                     </h3>
-                                    <span className="text-[10px] uppercase tracking-wider font-semibold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded">
+                                    <span className="text-micro uppercase tracking-wider font-semibold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded">
                                         Real Trades
                                     </span>
                                 </div>
@@ -1074,7 +1074,7 @@ export default function BacktestsPage() {
                         </div>
 
                         {/* MONTHLY RETURNS HEATMAP */}
-                        <div className="rounded-2xl border border-border/30 bg-card/60 p-6 backdrop-blur-xl">
+                        <div className="rounded-lg border border-border/30 bg-card/60 p-6 backdrop-blur-xl">
                             <h2 className="text-lg font-bold text-foreground mb-1">
                                 Monthly Return Breakdown ({metrics.isLive ? "$" : "%"})
                             </h2>
@@ -1100,7 +1100,7 @@ export default function BacktestsPage() {
                                             <div className="mt-2 text-xl font-bold">
                                                 {metrics.isLive ? `${isPositive ? "+" : ""}$${m.return}` : `${isPositive ? "+" : ""}${m.return}%`}
                                             </div>
-                                            <div className="mt-1 text-[10px] text-muted-foreground">
+                                            <div className="mt-1 text-micro text-muted-foreground">
                                                 {m.trades} trades executed
                                             </div>
                                         </div>
@@ -1117,7 +1117,7 @@ export default function BacktestsPage() {
 
                 {/* VIEW 2: MT5 OFFICIAL STRATEGY TESTER REPORT */}
                 {viewMode === "mt5" && (
-                    <div className="mt-8 rounded-2xl border border-border/30 bg-card/40 p-6 backdrop-blur-xl">
+                    <div className="mt-8 rounded-lg border border-border/30 bg-card/40 p-6 backdrop-blur-xl">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-border/30 pb-5">
                             <div className="flex items-center gap-4">
                                 <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/30 bg-card">
@@ -1261,7 +1261,7 @@ export default function BacktestsPage() {
 
                 {/* VIEW 3: LIVE MT5 CLOSED TRADES LOG */}
                 {viewMode === "trades" && (
-                    <div className="mt-8 rounded-2xl border border-border/30 bg-card/40 overflow-hidden backdrop-blur-xl">
+                    <div className="mt-8 rounded-lg border border-border/30 bg-card/40 overflow-hidden backdrop-blur-xl">
                         <div className="flex items-center justify-between border-b border-border/30 px-6 py-4">
                             <div>
                                 <h2 className="text-lg font-bold text-foreground">Live MT5 Trade Log</h2>
@@ -1324,7 +1324,7 @@ export default function BacktestsPage() {
                 {/* VIEW 4: LIVE VS BACKTEST BENCHMARK COMPARISON */}
                 {viewMode === "comparison" && (
                     <div className="mt-8 space-y-6">
-                        <div className="rounded-2xl border border-border/30 bg-card/40 p-6 backdrop-blur-xl">
+                        <div className="rounded-lg border border-border/30 bg-card/40 p-6 backdrop-blur-xl">
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-border/30 pb-4">
                                 <div className="flex items-center gap-4">
                                     <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/30 bg-card">

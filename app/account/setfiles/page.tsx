@@ -391,7 +391,7 @@ export default function SetFilesPage() {
                 {/* Count */}
                 {totalFiles > 0 && (
                     <div className="mb-6 flex justify-end">
-                        <div className="shrink-0 rounded-2xl border border-border bg-muted/50 px-5 py-3 text-center">
+                        <div className="shrink-0 rounded-lg border border-border bg-muted/50 px-5 py-3 text-center">
                             <p className="text-2xl font-bold text-foreground">{totalFiles}</p>
                             <p className="text-xs text-muted-foreground mt-0.5">Set Files Available</p>
                         </div>
@@ -399,7 +399,7 @@ export default function SetFilesPage() {
                 )}
 
                 {/* How To Use Card */}
-                <div className="mt-8 rounded-2xl border border-violet-500/20 bg-violet-500/[0.05] p-5">
+                <div className="mt-8 rounded-lg border border-violet-500/20 bg-violet-500/[0.05] p-5">
                     <div className="flex items-start gap-3">
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-500/10">
                             <Sparkles size={16} className="text-violet-400" />
@@ -419,7 +419,7 @@ export default function SetFilesPage() {
                 {/* Product Sections */}
                 <div className="mt-8 space-y-6">
                     {licenses.length === 0 && paidOrders.length === 0 ? (
-                        <div className="rounded-2xl border border-border bg-muted/30 p-14 text-center">
+                        <div className="rounded-lg border border-border bg-muted/30 p-14 text-center">
                             <Lock className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
                             <h3 className="text-base font-semibold text-foreground">No Active Licenses or Purchases</h3>
                             <p className="mt-2 text-sm text-muted-foreground">
@@ -434,7 +434,7 @@ export default function SetFilesPage() {
                             </Link>
                         </div>
                     ) : productSetFiles.length === 0 ? (
-                        <div className="rounded-2xl border border-border bg-muted/30 p-14 text-center">
+                        <div className="rounded-lg border border-border bg-muted/30 p-14 text-center">
                             <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground mb-3" />
                             <p className="text-sm text-muted-foreground">Loading set files...</p>
                         </div>
@@ -442,7 +442,7 @@ export default function SetFilesPage() {
                         productSetFiles.map((product) => (
                             <div
                                 key={product.productId}
-                                className="rounded-2xl border border-border bg-muted/40 overflow-hidden"
+                                className="rounded-lg border border-border bg-muted/40 overflow-hidden"
                             >
                                 {/* Product Header */}
                                 <div className="flex items-center gap-4 border-b border-border p-5">
@@ -454,12 +454,12 @@ export default function SetFilesPage() {
                                             {product.productName}
                                         </h2>
                                         <div className="mt-1 flex flex-wrap items-center gap-2">
-                                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-600">
+                                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-micro font-medium text-emerald-600">
                                                 <ShieldCheck size={10} />
                                                 Active License
                                             </span>
                                             {product.license.mt5Account && (
-                                                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2.5 py-0.5 text-[11px] font-mono text-muted-foreground">
+                                                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2.5 py-0.5 text-micro font-mono text-muted-foreground">
                                                     MT5 #{product.license.mt5Account}
                                                 </span>
                                             )}
@@ -467,7 +467,7 @@ export default function SetFilesPage() {
                                     </div>
                                     {product.license.expiresAt && (
                                         <div className="text-right shrink-0 hidden sm:block">
-                                            <p className="text-[11px] text-muted-foreground">Expires</p>
+                                            <p className="text-micro text-muted-foreground">Expires</p>
                                             <p className="text-xs font-medium text-foreground">
                                                 {new Date(product.license.expiresAt).toLocaleDateString("en-US", {
                                                     month: "short",
@@ -551,7 +551,7 @@ export default function SetFilesPage() {
 
                 {/* Owner/Admin publish panel */}
                 {(role === "admin" || ownedProducts.length > 0) && (
-                    <div className="mt-8 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.04] p-6">
+                    <div className="mt-8 rounded-lg border border-emerald-500/20 bg-emerald-500/[0.04] p-6">
                         <div className="flex items-center gap-3">
                             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10">
                                 <Upload size={17} className="text-emerald-400" />
@@ -594,7 +594,7 @@ export default function SetFilesPage() {
                                                 <FileCode2 size={15} className="shrink-0 text-emerald-400" />
                                                 <div className="min-w-0 flex-1">
                                                     <p className="truncate font-mono text-xs font-medium text-foreground">{f.fileName}</p>
-                                                    <p className="text-[11px] text-muted-foreground">
+                                                    <p className="text-micro text-muted-foreground">
                                                         {f.name} {f.pair && `• ${f.pair}`} {f.timeframe && `/ ${f.timeframe}`}
                                                     </p>
                                                 </div>

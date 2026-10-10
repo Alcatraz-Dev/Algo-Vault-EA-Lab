@@ -178,7 +178,7 @@ export function CompatibilityPanel({
                             <Badge variant={VERDICT[result.verdict]?.variant ?? "secondary"}>
                                 {VERDICT[result.verdict]?.label ?? result.verdict}
                             </Badge>
-                            <span className="font-mono text-[11px] text-muted-foreground">{result.challengeRulesSummary}</span>
+                            <span className="font-mono text-micro text-muted-foreground">{result.challengeRulesSummary}</span>
                         </div>
                         <ul className="space-y-1.5">
                             {result.findings.map((finding) => (
@@ -199,7 +199,7 @@ export function CompatibilityPanel({
                 ) : null}
 
                 {!compact ? (
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-micro text-muted-foreground">
                         Feed metrics from your Strategy Research / Backtest results. Backtest results do not guarantee challenge or live results.
                     </p>
                 ) : null}

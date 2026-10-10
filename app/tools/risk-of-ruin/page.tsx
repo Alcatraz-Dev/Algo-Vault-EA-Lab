@@ -67,31 +67,31 @@ export default function RiskOfRuinCalculator() {
             ]}
         >
             <div className="grid gap-6 lg:grid-cols-2">
-                <div className="rounded-2xl border border-border bg-card p-5">
+                <div className="rounded-lg border border-border bg-card p-5">
                     <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-foreground">
                         <Shield size={15} className="text-primary" /> Inputs
                     </h2>
                     <div className="space-y-3">
                         <div>
-                            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Win Rate (%)</label>
+                            <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Win Rate (%)</label>
                             <input type="number" step="0.1" value={winRate} onChange={(e) => setWinRate(e.target.value)} className={inputClass} />
                         </div>
                         <div>
-                            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Risk : Reward</label>
+                            <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Risk : Reward</label>
                             <input type="number" step="0.1" value={riskReward} onChange={(e) => setRiskReward(e.target.value)} className={inputClass} />
                         </div>
                         <div>
-                            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Risk Per Trade (%)</label>
+                            <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Risk Per Trade (%)</label>
                             <input type="number" step="0.1" value={riskPerTrade} onChange={(e) => setRiskPerTrade(e.target.value)} className={inputClass} />
                         </div>
                         <div>
-                            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Max Drawdown (%)</label>
+                            <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Max Drawdown (%)</label>
                             <input type="number" step="0.1" value={maxDrawdown} onChange={(e) => setMaxDrawdown(e.target.value)} className={inputClass} />
                         </div>
                         <div>
-                            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Account Size ($)</label>
+                            <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Account Size ($)</label>
                             <input type="number" value={accountSize} onChange={(e) => setAccountSize(e.target.value)} className={inputClass} />
-                            <p className="mt-1 text-[10px] text-muted-foreground">Lite gives you the ruin %. Pro gives the dollar answer too.</p>
+                            <p className="mt-1 text-micro text-muted-foreground">Lite gives you the ruin %. Pro gives the dollar answer too.</p>
                         </div>
                     </div>
                 </div>
@@ -101,7 +101,7 @@ export default function RiskOfRuinCalculator() {
                         <>
                             <div
                                 className={cn(
-                                    "rounded-2xl border p-5 text-center",
+                                    "rounded-lg border p-5 text-center",
                                     calc.riskOfRuin >= 10
                                         ? "border-negative/20 bg-negative/[0.05]"
                                         : calc.riskOfRuin >= 1
@@ -109,7 +109,7 @@ export default function RiskOfRuinCalculator() {
                                           : "border-positive/20 bg-positive/[0.05]",
                                 )}
                             >
-                                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Risk of Ruin</p>
+                                <p className="text-micro uppercase tracking-wider text-muted-foreground">Risk of Ruin</p>
                                 <p
                                     className={cn(
                                         "mt-1 font-mono text-4xl font-bold",
@@ -122,31 +122,31 @@ export default function RiskOfRuinCalculator() {
                                 >
                                     {calc.riskOfRuin < 0.0001 ? "< 0.0001" : `${calc.riskOfRuin}%`}
                                 </p>
-                                <p className="mt-1 text-[10px] text-muted-foreground">
+                                <p className="mt-1 text-micro text-muted-foreground">
                                     Probability the account breaches max drawdown at this setup.
                                 </p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="rounded-lg bg-muted p-4">
-                                    <p className="text-[10px] uppercase text-muted-foreground">Trades to Double</p>
+                                    <p className="text-micro uppercase text-muted-foreground">Trades to Double</p>
                                     <p className="mt-1 font-mono text-xl font-bold text-foreground">
                                         {calc.tradesToDouble === Infinity ? "∞" : calc.tradesToDouble}
                                     </p>
                                 </div>
                                 <div className="rounded-lg bg-muted p-4">
-                                    <p className="text-[10px] uppercase text-muted-foreground">Max Consec Losses</p>
+                                    <p className="text-micro uppercase text-muted-foreground">Max Consec Losses</p>
                                     <p className="mt-1 font-mono text-xl font-bold text-foreground">{calc.maxConsecLosses}</p>
                                 </div>
                             </div>
 
-                            <div className="rounded-2xl border border-info/15 bg-info/[0.04] p-3 text-xs text-info">
+                            <div className="rounded-lg border border-info/15 bg-info/[0.04] p-3 text-xs text-info">
                                 <Info size={12} className="mr-1 inline" />
                                 Keep risk-per-trade under 2% for the ruin % to stay under 1% on most setups.
                             </div>
                         </>
                     ) : (
-                        <div className="flex h-64 items-center justify-center rounded-2xl border border-dashed border-border text-xs text-muted-foreground">
+                        <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-border text-xs text-muted-foreground">
                             Enter win rate, RR and risk per trade.
                         </div>
                     )}
@@ -176,11 +176,11 @@ function ProTile({ title, description }: { title: string; description: string })
     return (
         <Link
             href="/pricing"
-            className="group flex flex-col gap-2 rounded-2xl border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
+            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
         >
             <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-foreground">{title}</h4>
-                <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-micro font-bold uppercase tracking-wider text-primary">
                     <Crown className="size-2.5" />
                     Pro
                 </span>

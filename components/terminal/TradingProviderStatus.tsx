@@ -113,14 +113,14 @@ export function TradingProviderStatus() {
           <WifiOff className="size-3 text-rose-500" />
         )}
         <span className={cn("size-1.5 rounded-full", DOT[state])} aria-hidden />
-        <span className="text-[11px] font-medium">{connection?.provider ?? "NO PROVIDER"}</span>
-        <span className="text-[11px] text-muted-foreground">
+        <span className="text-micro font-medium">{connection?.provider ?? "NO PROVIDER"}</span>
+        <span className="text-micro text-muted-foreground">
           {executable ? STATE_LABEL[state] : STATE_LABEL[state]}
         </span>
         {connection?.environment ? (
           <span
             className={cn(
-              "rounded border px-1 py-px text-[9px] font-semibold tracking-wide",
+              "rounded border px-1 py-px text-micro font-semibold tracking-wide",
               isDemo
                 ? "border-sky-500/40 bg-sky-500/10 text-sky-500"
                 : "border-rose-500/40 bg-rose-500/10 text-rose-500"
@@ -130,7 +130,7 @@ export function TradingProviderStatus() {
           </span>
         ) : null}
         {loading ? null : (
-          <span className="ml-auto flex items-center gap-1 font-mono text-[10px] text-muted-foreground">
+          <span className="ml-auto flex items-center gap-1 font-mono text-micro text-muted-foreground">
             <Clock className="size-2.5" />
             {connection?.lastHeartbeatAt
               ? new Date(connection.lastHeartbeatAt).toLocaleTimeString("en-GB")
@@ -140,13 +140,13 @@ export function TradingProviderStatus() {
       </div>
 
       {connection?.brokerName || connection?.serverName ? (
-        <p className="mt-1 truncate text-[10px] text-muted-foreground">
+        <p className="mt-1 truncate text-micro text-muted-foreground">
           {connection.brokerName ?? "Unknown broker"} · {connection.serverName ?? "unknown server"}
         </p>
       ) : null}
 
       {!executable ? (
-        <p className="mt-1.5 flex items-start gap-1.5 text-[10px] text-amber-500">
+        <p className="mt-1.5 flex items-start gap-1.5 text-micro text-amber-500">
           <ShieldAlert className="mt-px size-3 shrink-0" />
           <span>
             {state === "STALE"
@@ -157,14 +157,14 @@ export function TradingProviderStatus() {
       ) : null}
 
       {!isDemo && connection ? (
-        <p className="mt-1.5 flex items-start gap-1.5 text-[10px] text-rose-500">
+        <p className="mt-1.5 flex items-start gap-1.5 text-micro text-rose-500">
           <ShieldAlert className="mt-px size-3 shrink-0" />
           <span>Live (real-money) execution is disabled platform-wide.</span>
         </p>
       ) : null}
 
       {connection?.error ? (
-        <p className="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+        <p className="mt-1 flex items-center gap-1.5 text-micro text-muted-foreground">
           <Activity className="size-2.5" />
           {connection.error.code}
         </p>

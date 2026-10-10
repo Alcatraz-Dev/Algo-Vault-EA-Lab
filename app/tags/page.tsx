@@ -102,7 +102,7 @@ export default function TradeTagsPage() {
                 </div>
 
                 {showForm && (
-                    <div className="mb-6 rounded-2xl border border-violet-500/20 bg-violet-500/[0.04] p-5">
+                    <div className="mb-6 rounded-lg border border-violet-500/20 bg-violet-500/[0.04] p-5">
                         <h3 className="mb-3 text-sm font-semibold text-foreground">Create Tag</h3>
                         <div className="space-y-3">
                             <input
@@ -114,7 +114,7 @@ export default function TradeTagsPage() {
                                 onKeyDown={(e) => e.key === "Enter" && createTag()}
                             />
                             <div>
-                                <p className="mb-2 text-[10px] font-semibold uppercase text-muted-foreground">Color</p>
+                                <p className="mb-2 text-micro font-semibold uppercase text-muted-foreground">Color</p>
                                 <div className="flex gap-2">
                                     {COLORS.map((c) => (
                                         <button
@@ -145,17 +145,17 @@ export default function TradeTagsPage() {
                 {loading ? (
                     <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div>
                 ) : tags.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-border/40 p-16 text-center">
+                    <div className="rounded-lg border border-dashed border-border/40 p-16 text-center">
                         <Tag size={32} className="mx-auto text-muted-foreground" />
                         <p className="mt-3 text-sm text-muted-foreground">No tags yet</p>
-                        <p className="mt-1 text-[10px] text-muted-foreground">Create tags to organize your trades by strategy, setup, or market condition</p>
+                        <p className="mt-1 text-micro text-muted-foreground">Create tags to organize your trades by strategy, setup, or market condition</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         {tags.map((tag) => (
                             <div
                                 key={tag.id}
-                                className="group rounded-2xl border border-border/30 bg-muted/50 p-5 transition-all hover:bg-muted"
+                                className="group rounded-lg border border-border/30 bg-muted/50 p-5 transition-all hover:bg-muted"
                             >
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
@@ -170,10 +170,10 @@ export default function TradeTagsPage() {
                                         <Trash2 size={13} />
                                     </button>
                                 </div>
-                                <p className="mt-2 text-[10px] text-muted-foreground">
+                                <p className="mt-2 text-micro text-muted-foreground">
                                     {tag.trades.length} trade{tag.trades.length !== 1 ? "s" : ""} tagged
                                 </p>
-                                <p className="text-[9px] text-muted-foreground">Created {new Date(tag.createdAt).toLocaleDateString()}</p>
+                                <p className="text-micro text-muted-foreground">Created {new Date(tag.createdAt).toLocaleDateString()}</p>
                             </div>
                         ))}
                     </div>

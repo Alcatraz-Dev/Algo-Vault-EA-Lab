@@ -197,7 +197,7 @@ export default function ScannerPage() {
                 <div className="overflow-x-auto rounded-xl border border-border/30 bg-muted/50" data-guide="results">
                     <table className="w-full text-xs">
                         <thead>
-                            <tr className="border-b border-border/20 text-[10px] uppercase text-muted-foreground">
+                            <tr className="border-b border-border/20 text-micro uppercase text-muted-foreground">
                                 <th className="px-4 py-3 text-left">Symbol</th>
                                 <th className="px-4 py-3 text-left">Direction</th>
                                 <th className="px-4 py-3 text-right">Strength</th>
@@ -219,12 +219,12 @@ export default function ScannerPage() {
                                         <td className="px-4 py-3 font-mono font-bold text-foreground">{r.symbol}</td>
                                         <td className={cn("px-4 py-3 font-medium", r.direction === "BUY" ? "text-emerald-400" : r.direction === "SELL" ? "text-rose-400" : "text-muted-foreground")}>
                                             {r.direction}
-                                            {(r.strength ?? 0) >= 80 && <span className="ml-1 text-[10px] text-amber-400">●</span>}
+                                            {(r.strength ?? 0) >= 80 && <span className="ml-1 text-micro text-amber-400">●</span>}
                                         </td>
                                         <td className="px-4 py-3 text-right font-mono font-bold" style={{ color: (r.strength ?? 0) >= 80 ? "#10b981" : (r.strength ?? 0) >= 60 ? "#f59e0b" : "#ef4444" }}>{r.strength}</td>
                                         <td className="px-4 py-3 text-right text-muted-foreground">{r.trend}</td>
                                         <td className="px-4 py-3 text-right font-mono text-muted-foreground">{r.momentum}</td>
-                                        <td className="px-4 py-3 text-left"><span className={cn("rounded px-1.5 py-0.5 text-[10px]", r.volatility === "high" ? "bg-rose-500/10 text-rose-400" : r.volatility === "low" ? "bg-emerald-500/10 text-emerald-400" : "bg-muted/10 text-muted-foreground")}>{r.volatility}</span></td>
+                                        <td className="px-4 py-3 text-left"><span className={cn("rounded px-1.5 py-0.5 text-micro", r.volatility === "high" ? "bg-rose-500/10 text-rose-400" : r.volatility === "low" ? "bg-emerald-500/10 text-emerald-400" : "bg-muted/10 text-muted-foreground")}>{r.volatility}</span></td>
                                         <td className="px-4 py-3 text-left text-muted-foreground">{r.regime}</td>
                                         <td className="px-4 py-3 text-left text-muted-foreground">{r.liquidity}</td>
                                     </tr>
@@ -234,7 +234,7 @@ export default function ScannerPage() {
                     </table>
                 </div>
 
-                <div className="rounded-xl border border-amber-500/10 bg-amber-500/[0.03] p-3 text-[11px] text-amber-400/60">
+                <div className="rounded-xl border border-amber-500/10 bg-amber-500/[0.03] p-3 text-micro text-amber-400/60">
                     Market Scanner uses real-time data from connected market sources. Pro subscribers can upload chart screenshots for AI-powered analysis combined with real market data. Strength scores reflect current market conditions based on trend, structure, liquidity, momentum, and volume analysis. Not financial advice.
                 </div>
             </div>

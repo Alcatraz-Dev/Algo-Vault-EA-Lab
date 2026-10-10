@@ -63,14 +63,14 @@ function fmtTime(ts: number | null | undefined): string {
 function StateBadge({ value }: { value: string }) {
     const tone =
         value === "healthy" || value === "closed" || value === "READY" || value === "VALIDATED" || value === "APPROVED"
-            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+            ? "border-positive/40 bg-positive/10 text-positive"
             : value === "open" || value === "BLOCKED" || value === "RISK_BLOCKED"
-              ? "border-rose-500/40 bg-rose-500/10 text-rose-400"
+              ? "border-negative/40 bg-negative/10 text-negative"
               : value === "half_open" || value === "degraded" || value === "WAITING"
-                ? "border-amber-500/40 bg-amber-500/10 text-amber-400"
+                ? "border-warning/40 bg-warning/10 text-warning"
                 : "border-border bg-muted text-muted-foreground";
     return (
-        <span className={`rounded-full border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ${tone}`}>
+        <span className={`rounded-full border px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide ${tone}`}>
             {value.replace(/_/g, " ")}
         </span>
     );
@@ -117,7 +117,7 @@ export default function AdminAIMonitorPage() {
                     <Activity className="mr-2 size-4 animate-pulse" /> Loading…
                 </div>
             ) : !user ? (
-                <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card p-10 text-center">
+                <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border bg-card p-10 text-center">
                     <BrainCircuit className="size-8 text-muted-foreground" />
                     <p className="text-sm font-medium text-foreground">Admin sign-in required</p>
                     <a
@@ -139,10 +139,10 @@ export default function AdminAIMonitorPage() {
                             <RefreshCw className="size-3" /> Refresh
                         </button>
                     </div>
-                    {error ? <p className="text-xs text-rose-400">{error}</p> : null}
+                    {error ? <p className="text-xs text-negative">{error}</p> : null}
                     <div className="overflow-x-auto rounded-lg border border-border bg-card">
                         <table className="w-full min-w-[760px] text-left text-xs">
-                            <thead className="border-b border-border text-[10px] uppercase tracking-wide text-muted-foreground">
+                            <thead className="border-b border-border text-micro uppercase tracking-wide text-muted-foreground">
                                 <tr>
                                     <th className="px-3 py-2">Provider</th>
                                     <th className="px-3 py-2">Type</th>
@@ -191,12 +191,12 @@ export default function AdminAIMonitorPage() {
                     </div>
 
                     <h2 className="mt-4 text-sm font-semibold text-foreground">Decision Monitor</h2>
-                    <p className="-mt-2 text-[10px] text-muted-foreground">
+                    <p className="-mt-2 text-micro text-muted-foreground">
                         Recent orchestrated decisions from ai/decisions. Concise rationale and evidence only — no hidden reasoning traces are stored or displayed.
                     </p>
                     <div className="overflow-x-auto rounded-lg border border-border bg-card">
                         <table className="w-full min-w-[720px] text-left text-xs">
-                            <thead className="border-b border-border text-[10px] uppercase tracking-wide text-muted-foreground">
+                            <thead className="border-b border-border text-micro uppercase tracking-wide text-muted-foreground">
                                 <tr>
                                     <th className="px-3 py-2">Time</th>
                                     <th className="px-3 py-2">Symbol</th>

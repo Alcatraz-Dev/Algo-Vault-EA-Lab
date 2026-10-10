@@ -495,7 +495,7 @@ export default function ProductVersionHistory({
 
     if (loading) {
         return (
-            <section className="rounded-2xl border border-border/20 bg-foreground/4 p-6 md:p-7">
+            <section className="rounded-lg border border-border/20 bg-foreground/4 p-6 md:p-7">
                 <div className="mb-6 flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3">
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/20 bg-foreground/10">
@@ -531,7 +531,7 @@ export default function ProductVersionHistory({
     // --------------------------------------------------
 
     return (
-        <section className="rounded-2xl border border-border/20 bg-foreground/4 p-6 md:p-7">
+        <section className="rounded-lg border border-border/20 bg-foreground/4 p-6 md:p-7">
             <div className="mb-6 flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/20 bg-foreground/10">
@@ -566,13 +566,13 @@ export default function ProductVersionHistory({
             </div>
 
             {error && (
-                <div className="mb-5 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-xs text-red-300">
+                <div className="mb-5 rounded-xl border border-negative/20 bg-negative/5 px-4 py-3 text-xs text-negative">
                     {error}
                 </div>
             )}
 
             {message && (
-                <div className="mb-5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-xs text-emerald-300">
+                <div className="mb-5 rounded-xl border border-positive/20 bg-positive/5 px-4 py-3 text-xs text-positive">
                     {message}
                 </div>
             )}
@@ -631,7 +631,7 @@ export default function ProductVersionHistory({
                                                 </span>
 
                                                 {isCurrent && (
-                                                    <span className="inline-flex items-center gap-1 rounded-full border border-border/20 bg-foreground/10 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-foreground/70">
+                                                    <span className="inline-flex items-center gap-1 rounded-full border border-border/20 bg-foreground/10 px-2.5 py-1 text-micro font-medium uppercase tracking-wide text-foreground/70">
                                                         <Star
                                                             size={
                                                                 10
@@ -757,7 +757,7 @@ export default function ProductVersionHistory({
                                                         null
                                                     }
                                                     title="Delete version"
-                                                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/20 text-foreground/70 transition hover:border-red-500/20 hover:bg-red-500/5 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-50"
+                                                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/20 text-foreground/70 transition hover:border-negative/20 hover:bg-negative/5 hover:text-negative disabled:cursor-not-allowed disabled:opacity-50"
                                                 >
                                                     {isBusy ? (
                                                         <Loader2

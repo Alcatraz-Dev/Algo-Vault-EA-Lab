@@ -106,7 +106,7 @@ function SummaryStat({
 }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-[11px] text-muted-foreground">{label}</span>
+      <span className="text-micro text-muted-foreground">{label}</span>
       <span
         className={cn(
           "font-numeric text-sm font-semibold tabular-nums",
@@ -207,7 +207,7 @@ export default function TradeHistory({ trades }: { trades: ClosedTrade[] }) {
           }
         />
         <SummaryStat label="Wins / Losses" value={`${stats.wins} / ${stats.losses}`} />
-        <span className="ml-auto flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <span className="ml-auto flex items-center gap-1.5 text-micro text-muted-foreground">
           <span className="relative flex size-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
             <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
@@ -293,7 +293,7 @@ export default function TradeHistory({ trades }: { trades: ClosedTrade[] }) {
         </Table>
       </div>
       {sorted.length > 100 ? (
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-micro text-muted-foreground">
           Showing the 100 most recent of {sorted.length} closed trades.
         </p>
       ) : null}

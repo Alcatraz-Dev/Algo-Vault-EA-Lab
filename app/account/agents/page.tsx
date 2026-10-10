@@ -67,7 +67,7 @@ export default function AccountAgentsPage() {
             onBack={() => router.push("/account")}
         >
             {loadError && (
-                <div className="mb-5 flex items-start gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 p-4">
+                <div className="mb-5 flex items-start gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-4">
                     <AlertCircle size={16} className="mt-0.5 shrink-0 text-red-300" />
                     <p className="text-sm text-red-300">{loadError}</p>
                 </div>
@@ -83,7 +83,7 @@ export default function AccountAgentsPage() {
             {loading ? (
                 <div className="grid gap-4">
                     {[1, 2].map((n) => (
-                        <div key={n} className="h-40 animate-pulse rounded-2xl border border-border/30 bg-muted/50" />
+                        <div key={n} className="h-40 animate-pulse rounded-lg border border-border/30 bg-muted/50" />
                     ))}
                 </div>
             ) : agents.length === 0 ? (
@@ -103,7 +103,7 @@ export default function AccountAgentsPage() {
                         if (!plugin) return null;
                         const isActive = install.status === "active";
                         return (
-                            <div key={install.pluginId} className="rounded-2xl border border-border/30 bg-muted/50 p-5">
+                            <div key={install.pluginId} className="rounded-lg border border-border/30 bg-muted/50 p-5">
                                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                     <div className="flex items-start gap-4">
                                         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
@@ -113,12 +113,12 @@ export default function AccountAgentsPage() {
                                             <div className="flex flex-wrap items-center gap-2">
                                                 <span className="text-sm font-semibold text-foreground">{plugin.displayName}</span>
                                                 <StatusBadge tone={installStatusTone(install.status)} label={install.status} dot={isActive} pulse={isActive} />
-                                                <span className="rounded-lg border border-border/30 bg-muted/5 px-2 py-0.5 text-[10px] text-muted-foreground">
+                                                <span className="rounded-lg border border-border/30 bg-muted/5 px-2 py-0.5 text-micro text-muted-foreground">
                                                     {CATEGORY_LABELS[plugin.category]}
                                                 </span>
                                             </div>
                                             <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground line-clamp-1">{plugin.description}</p>
-                                            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                                            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-micro text-muted-foreground">
                                                 <span>Interval: {config?.interval || plugin.manifest?.runtime?.interval || "manual"}</span>
                                                 <span>Next run: {nextRunLabel(runtime?.nextRunAt, runtime?.status)}</span>
                                                 <span>Last run: {runtime?.lastRunAt ? timeAgo(runtime.lastRunAt) : "never"}</span>
@@ -139,7 +139,7 @@ export default function AccountAgentsPage() {
 
                                 {recent && recent.length > 0 && (
                                     <div className="mt-4 rounded-xl border border-border/30 bg-muted/20 p-4">
-                                        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Recent runs</p>
+                                        <p className="text-micro font-medium uppercase tracking-wide text-muted-foreground">Recent runs</p>
                                         <div className="mt-2 space-y-2">
                                             {recent.slice(0, 3).map((exec) => (
                                                 <div key={exec.id} className="flex items-start justify-between gap-3 text-xs">
@@ -180,7 +180,7 @@ export default function AccountAgentsPage() {
 
 function SummaryCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
     return (
-        <div className="flex items-center gap-4 rounded-2xl border border-border/30 bg-muted/50 p-5">
+        <div className="flex items-center gap-4 rounded-lg border border-border/30 bg-muted/50 p-5">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/30 bg-muted/5 text-muted-foreground">
                 {icon}
             </div>

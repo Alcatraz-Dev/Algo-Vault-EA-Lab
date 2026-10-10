@@ -475,7 +475,7 @@ export default function AdminGrowthOverviewPage() {
                                         Records in period: <b className="text-foreground">{revenueForRange.entries.length}</b>
                                     </span>
                                     {revenueForRange.estimated > 0 && (
-                                        <span className="text-amber-600">
+                                        <span className="text-warning">
                                             Estimated portion: <b>{fmtCurrency(revenueForRange.estimated)}</b> (derived from eCPM/contracts — never presented as confirmed)
                                         </span>
                                     )}

@@ -295,7 +295,7 @@ export const AgentNode = memo(function AgentNode({
             </span>
             <span className="w-full min-w-0">
                 <span className="block truncate text-xs font-semibold text-foreground">{agent.name}</span>
-                <span className="mt-0.5 flex items-center justify-center gap-1.5 text-[10px] capitalize text-muted-foreground">
+                <span className="mt-0.5 flex items-center justify-center gap-1.5 text-micro capitalize text-muted-foreground">
                     {agent.category.replace("-", " ")}
                     {typeof confidence === "number" && confidence > 0 ? (
                         <span className="tabular-nums text-foreground/70">{Math.round(confidence * 100)}%</span>
@@ -303,7 +303,7 @@ export const AgentNode = memo(function AgentNode({
                 </span>
             </span>
             {latestFinding ? (
-                <span className="line-clamp-2 w-full text-[10px] leading-snug text-muted-foreground">{latestFinding}</span>
+                <span className="line-clamp-2 w-full text-micro leading-snug text-muted-foreground">{latestFinding}</span>
             ) : null}
         </button>
     );
@@ -336,7 +336,7 @@ export function stateLabel(state: AgentVisualState): string {
 
 export function LegendItem({ state, label, icon }: { state: AgentVisualState; label: string; icon?: ReactNode }) {
     return (
-        <span className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground">
+        <span className="inline-flex items-center gap-1.5 text-micro text-muted-foreground">
             <AgentStateDot state={state} />
             {icon}
             {label}

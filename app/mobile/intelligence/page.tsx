@@ -88,12 +88,12 @@ export default function IntelligenceHub() {
                                     <div className="flex items-center gap-2">
                                         <span className="text-sm font-medium">{destination.label}</span>
                                         {destination.pro && (
-                                            <span className="rounded bg-primary/10 px-1 py-0.5 text-[10px] font-medium text-primary">
+                                            <span className="rounded bg-primary/10 px-1 py-0.5 text-micro font-medium text-primary">
                                                 PRO
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-[11px] text-muted-foreground">{destination.purpose}</p>
+                                    <p className="text-micro text-muted-foreground">{destination.purpose}</p>
                                 </div>
                                 {count !== undefined && count !== null && (
                                     <span className="shrink-0 text-xs tabular-nums text-muted-foreground">

@@ -72,13 +72,13 @@ const EXAMPLE_PROMPTS = [
 function stateIcon(status: TaskState) {
   switch (status) {
     case "DONE":
-      return <CheckCircle2 size={14} className="text-emerald-500" />;
+      return <CheckCircle2 size={14} className="text-positive" />;
     case "RUNNING":
       return <Loader2 size={14} className="animate-spin text-primary" />;
     case "FAILED":
-      return <XCircle size={14} className="text-red-500" />;
+      return <XCircle size={14} className="text-negative" />;
     case "BLOCKED":
-      return <TriangleAlert size={14} className="text-amber-500" />;
+      return <TriangleAlert size={14} className="text-warning" />;
     case "SKIPPED":
       return <Circle size={14} className="text-muted-foreground/50" />;
     default:
@@ -225,7 +225,7 @@ export default function MarketingAgentPage() {
                   key={i}
                   type="button"
                   onClick={() => setPrompt(p)}
-                  className="max-w-[280px] truncate rounded-full border px-2.5 py-1 text-[11px] text-muted-foreground hover:bg-muted/60"
+                  className="max-w-[280px] truncate rounded-full border px-2.5 py-1 text-micro text-muted-foreground hover:bg-muted/60"
                   title={p}
                 >
                   Example {i + 1}
@@ -236,7 +236,7 @@ export default function MarketingAgentPage() {
               {busy ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />} Run agent
             </Button>
           </div>
-          {error && <p className="text-xs text-red-500">{error}</p>}
+          {error && <p className="text-xs text-negative">{error}</p>}
         </CardContent>
       </Card>
 
@@ -247,9 +247,9 @@ export default function MarketingAgentPage() {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold">Execution timeline</span>
-                <Badge variant="secondary" className="text-[10px]">{activeJob.state}</Badge>
-                <Badge variant="outline" className="text-[10px]">{activeJob.mode}</Badge>
-                <Badge variant="outline" className="text-[10px]">{activeJob.consumedUnits}/{activeJob.estimatedUnits} units</Badge>
+                <Badge variant="secondary" className="text-micro">{activeJob.state}</Badge>
+                <Badge variant="outline" className="text-micro">{activeJob.mode}</Badge>
+                <Badge variant="outline" className="text-micro">{activeJob.consumedUnits}/{activeJob.estimatedUnits} units</Badge>
               </div>
               <div className="flex gap-1.5">
                 {activeJob.state === "AWAITING_APPROVAL" && (
@@ -283,35 +283,35 @@ export default function MarketingAgentPage() {
                   key={t.id}
                   className={`flex items-start gap-2 rounded-md border px-2.5 py-1.5 text-xs ${
                     t.status === "DONE"
-                      ? "border-emerald-500/30 bg-emerald-500/5"
+                      ? "border-positive/30 bg-positive/5"
                       : t.status === "RUNNING"
                         ? "border-primary/50 bg-primary/5"
                         : t.status === "FAILED"
-                          ? "border-red-500/40 bg-red-500/5"
+                          ? "border-negative/40 bg-negative/5"
                           : "bg-card"
                   }`}
                 >
                   <span className="mt-0.5">{stateIcon(t.status)}</span>
                   <span className="min-w-0 flex-1">
                     <span className="font-medium">{t.label}</span>
-                    {t.summary && <span className="block truncate text-[11px] text-muted-foreground" title={t.summary}>{t.summary}</span>}
-                    {t.error && <span className="block text-[11px] text-red-500">{t.error}</span>}
+                    {t.summary && <span className="block truncate text-micro text-muted-foreground" title={t.summary}>{t.summary}</span>}
+                    {t.error && <span className="block text-micro text-negative">{t.error}</span>}
                   </span>
                 </li>
               ))}
             </ol>
 
             {activeJob.approval?.required && !activeJob.approval.decision && (
-              <p className="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
+              <p className="flex items-center gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs">
                 <ShieldCheck size={14} /> {activeJob.blockedReason || "Approval required before scheduling or publishing."}
               </p>
             )}
-            {activeJob.error && <p className="text-xs text-red-500">{activeJob.error}</p>}
+            {activeJob.error && <p className="text-xs text-negative">{activeJob.error}</p>}
 
             {activeJob.artifacts.length > 0 && (
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {activeJob.artifacts.map((a) => (
-                  <Badge key={`${a.key}_${a.createdAt}`} variant="outline" className="text-[10px] font-normal">
+                  <Badge key={`${a.key}_${a.createdAt}`} variant="outline" className="text-micro font-normal">
                     {a.label}
                   </Badge>
                 ))}
@@ -337,9 +337,9 @@ export default function MarketingAgentPage() {
             >
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-medium">{j.prompt}</span>
-                <span className="text-[10px] text-muted-foreground">{new Date(j.createdAt).toLocaleString()} · {j.tasks.filter((t) => t.status === "DONE").length}/{j.tasks.length} tasks</span>
+                <span className="text-micro text-muted-foreground">{new Date(j.createdAt).toLocaleString()} · {j.tasks.filter((t) => t.status === "DONE").length}/{j.tasks.length} tasks</span>
               </span>
-              <Badge variant="secondary" className="shrink-0 text-[10px]">{j.state}</Badge>
+              <Badge variant="secondary" className="shrink-0 text-micro">{j.state}</Badge>
             </button>
           ))}
           {(jobs.data?.jobs ?? []).length === 0 && (
@@ -363,8 +363,8 @@ export default function MarketingAgentPage() {
                   <li key={p.id} className="flex items-center justify-between gap-2 rounded border px-2 py-1.5 text-xs">
                     <span className="truncate">{p.platform}</span>
                     <span className="flex items-center gap-2">
-                      {p.externalId && <span className="text-[10px] text-muted-foreground">#{p.externalId.slice(0, 8)}</span>}
-                      <Badge variant={p.state === "PUBLISHED" ? "secondary" : p.state === "FAILED" ? "destructive" : "outline"} className="text-[10px]">{p.state}</Badge>
+                      {p.externalId && <span className="text-micro text-muted-foreground">#{p.externalId.slice(0, 8)}</span>}
+                      <Badge variant={p.state === "PUBLISHED" ? "secondary" : p.state === "FAILED" ? "destructive" : "outline"} className="text-micro">{p.state}</Badge>
                     </span>
                   </li>
                 ))}
@@ -384,7 +384,7 @@ export default function MarketingAgentPage() {
                 {(schedules.data?.schedules ?? []).slice(0, 10).map((s) => (
                   <li key={s.id} className="flex items-center justify-between gap-2 rounded border px-2 py-1.5 text-xs">
                     <span className="truncate">{s.platform} · {new Date(s.scheduledFor).toLocaleString()}</span>
-                    <Badge variant="outline" className="text-[10px]">{s.state}</Badge>
+                    <Badge variant="outline" className="text-micro">{s.state}</Badge>
                   </li>
                 ))}
               </ul>
@@ -402,17 +402,17 @@ export default function MarketingAgentPage() {
               <div key={h.id} className="rounded-lg border px-3 py-2">
                 <div className="truncate text-xs font-medium">{h.label}</div>
                 <div
-                  className={`text-[11px] ${
+                  className={`text-micro ${
                     h.state === "CONNECTED" || h.state === "READY"
-                      ? "text-emerald-500"
+                      ? "text-positive"
                       : h.state === "DEGRADED"
-                        ? "text-amber-500"
+                        ? "text-warning"
                         : "text-muted-foreground"
                   }`}
                 >
                   {h.state}
                 </div>
-                {h.detail && <div className="truncate text-[10px] text-muted-foreground" title={h.detail}>{h.detail}</div>}
+                {h.detail && <div className="truncate text-micro text-muted-foreground" title={h.detail}>{h.detail}</div>}
               </div>
             ))}
             {health.length === 0 && <p className="text-xs text-muted-foreground">Loading status…</p>}
@@ -425,7 +425,7 @@ export default function MarketingAgentPage() {
         <CardContent className="space-y-3 p-4">
           <h3 className="text-sm font-semibold">Platform publishing capabilities</h3>
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-[11px]">
+            <table className="w-full text-left text-micro">
               <thead className="text-muted-foreground">
                 <tr>
                   <th className="py-1 pr-3">Platform</th>
@@ -472,9 +472,9 @@ export default function MarketingAgentPage() {
               <div key={c.platform} className="rounded-lg border px-3 py-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium">{c.platform}</span>
-                  <Badge variant={c.state === "CONNECTED" ? "secondary" : "outline"} className="text-[10px]">{c.state}</Badge>
+                  <Badge variant={c.state === "CONNECTED" ? "secondary" : "outline"} className="text-micro">{c.state}</Badge>
                 </div>
-                <div className="text-[10px] text-muted-foreground">
+                <div className="text-micro text-muted-foreground">
                   {c.state === "CONNECTED" ? `${c.permissions.length} permission(s)` : c.reason || "Not configured"}
                 </div>
               </div>

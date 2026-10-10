@@ -332,12 +332,12 @@ export default function MyBotsPage() {
             <div className="space-y-6" data-guide="page-header">
                 {/* Alerts */}
                 {error && (
-                    <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                    <div className="rounded-lg border border-negative/30 bg-negative-muted px-4 py-3 text-sm text-negative-foreground">
                         {error}
                     </div>
                 )}
                 {notice && (
-                    <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-500">
+                    <div className="rounded-lg border border-positive/30 bg-positive-muted px-4 py-3 text-sm text-positive-foreground">
                         {notice}
                     </div>
                 )}
@@ -356,7 +356,7 @@ export default function MyBotsPage() {
                                 setShowConnect((v) => !v);
                                 setConnectError("");
                             }}
-                            className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-medium transition hover:bg-muted"
+                            className="flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium transition hover:bg-muted"
                         >
                             <Wallet size={15} />
                             Connect Marketplace Bot
@@ -364,14 +364,14 @@ export default function MyBotsPage() {
                         <button
                             type="button"
                             onClick={handleRefresh}
-                            className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-medium transition hover:bg-muted"
+                            className="flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium transition hover:bg-muted"
                         >
                             <RefreshCw size={15} className={refreshing ? "animate-spin" : ""} />
                             Refresh
                         </button>
                         <Link
                             href="/pricing"
-                            className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-medium transition hover:bg-muted"
+                            className="flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium transition hover:bg-muted"
                         >
                             <ShieldCheck size={15} />
                             Upgrade
@@ -382,7 +382,7 @@ export default function MyBotsPage() {
                                 setShowAdd((v) => !v);
                                 setError("");
                             }}
-                            className="flex items-center gap-2 rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background transition hover:opacity-90"
+                            className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/80"
                         >
                             <Plus size={15} />
                             Add Custom Bot
@@ -392,7 +392,7 @@ export default function MyBotsPage() {
 
                 {/* Add custom bot form */}
                 {showAdd && (
-                    <div className="rounded-2xl border border-border bg-card p-6">
+                    <div className="rounded-lg border border-border bg-card p-6">
                         <div className="mb-4 flex items-center gap-2">
                             <Bot size={18} />
                             <h2 className="text-lg font-bold">Register a Custom / Legacy MT5 EA</h2>
@@ -406,7 +406,7 @@ export default function MyBotsPage() {
                                     value={form.name}
                                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                                     placeholder="Bot name (e.g. Gold Scalper)"
-                                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                    className="w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                                 />
                             </div>
                             <div>
@@ -414,7 +414,7 @@ export default function MyBotsPage() {
                                     value={form.magicNumber}
                                     onChange={(e) => setForm({ ...form, magicNumber: e.target.value.replace(/[^\d]/g, "") })}
                                     placeholder="Magic number (e.g. 10001)"
-                                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                    className="w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                                 />
                             </div>
                             <div>
@@ -422,7 +422,7 @@ export default function MyBotsPage() {
                                     value={form.mt5Account}
                                     onChange={(e) => setForm({ ...form, mt5Account: e.target.value.replace(/[^\d]/g, "") })}
                                     placeholder="MT5 account (optional)"
-                                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                    className="w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                                 />
                             </div>
                             <div>
@@ -430,7 +430,7 @@ export default function MyBotsPage() {
                                     value={form.symbol}
                                     onChange={(e) => setForm({ ...form, symbol: e.target.value })}
                                     placeholder="Symbol (e.g. XAUUSD)"
-                                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                    className="w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                                 />
                             </div>
                             <div>
@@ -438,7 +438,7 @@ export default function MyBotsPage() {
                                     value={form.timeframe}
                                     onChange={(e) => setForm({ ...form, timeframe: e.target.value })}
                                     placeholder="Timeframe (e.g. M15)"
-                                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                    className="w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                                 />
                             </div>
                             <div className="md:col-span-2">
@@ -446,7 +446,7 @@ export default function MyBotsPage() {
                                     value={form.commentFilter}
                                     onChange={(e) => setForm({ ...form, commentFilter: e.target.value })}
                                     placeholder="MT5 comment filter (optional — extra safety when several EAs share an account)"
-                                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                    className="w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                                 />
                             </div>
                             <div className="md:col-span-2">
@@ -455,7 +455,7 @@ export default function MyBotsPage() {
                                     onChange={(e) => setForm({ ...form, description: e.target.value })}
                                     placeholder="Description (optional)"
                                     rows={2}
-                                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                    className="w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                                 />
                             </div>
                         </div>
@@ -463,7 +463,7 @@ export default function MyBotsPage() {
                             <button
                                 type="button"
                                 onClick={() => setShowAdd(false)}
-                                className="rounded-xl border border-border px-4 py-2 text-sm transition hover:bg-muted"
+                                className="rounded-md border border-border px-4 py-2 text-sm transition hover:bg-muted"
                             >
                                 Cancel
                             </button>
@@ -471,7 +471,7 @@ export default function MyBotsPage() {
                                 type="button"
                                 onClick={handleCreateBot}
                                 disabled={saving}
-                                className="flex items-center gap-2 rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background transition hover:opacity-90 disabled:opacity-50"
+                                className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50"
                             >
                                 {saving && <Loader2 size={15} className="animate-spin" />}
                                 Register Bot
@@ -482,7 +482,7 @@ export default function MyBotsPage() {
 
                 {/* Connect marketplace bot */}
                 {showConnect && (
-                    <div className="rounded-2xl border border-border bg-card p-6">
+                    <div className="rounded-lg border border-border bg-card p-6">
                         <div className="mb-4 flex items-center gap-2">
                             <Wallet size={18} />
                             <h2 className="text-lg font-bold">Connect a Marketplace Bot</h2>
@@ -493,7 +493,7 @@ export default function MyBotsPage() {
                         </p>
 
                         {licenses.length === 0 ? (
-                            <p className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+                            <p className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
                                 No marketplace licenses found. Purchase a bot on the Marketplace to connect it here.
                             </p>
                         ) : (
@@ -501,7 +501,7 @@ export default function MyBotsPage() {
                                 <select
                                     value={connectLicenseId}
                                     onChange={(e) => setConnectLicenseId(e.target.value)}
-                                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                    className="w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                                 >
                                     <option value="">Select a product license…</option>
                                     {licenses
@@ -517,17 +517,17 @@ export default function MyBotsPage() {
                                         value={connectAccount}
                                         onChange={(e) => setConnectAccount(e.target.value.replace(/[^\d]/g, ""))}
                                         placeholder="MT5 account number"
-                                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                        className="w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                                     />
                                     <input
                                         value={connectMagic}
                                         onChange={(e) => setConnectMagic(e.target.value.replace(/[^\d]/g, ""))}
                                         placeholder="Magic number (EA input)"
-                                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                        className="w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                                     />
                                 </div>
                                 {connectError && (
-                                    <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                                    <div className="rounded-md border border-negative/30 bg-negative-muted px-3 py-2 text-sm text-negative-foreground">
                                         {connectError}
                                     </div>
                                 )}
@@ -535,7 +535,7 @@ export default function MyBotsPage() {
                                     <button
                                         type="button"
                                         onClick={() => setShowConnect(false)}
-                                        className="rounded-xl border border-border px-4 py-2 text-sm transition hover:bg-muted"
+                                        className="rounded-md border border-border px-4 py-2 text-sm transition hover:bg-muted"
                                     >
                                         Cancel
                                     </button>
@@ -543,7 +543,7 @@ export default function MyBotsPage() {
                                         type="button"
                                         onClick={handleConnectMarketplace}
                                         disabled={connectSaving || !connectLicenseId}
-                                        className="flex items-center gap-2 rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background transition hover:opacity-90 disabled:opacity-50"
+                                        className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50"
                                     >
                                         {connectSaving && <Loader2 size={15} className="animate-spin" />}
                                         Connect
@@ -559,7 +559,7 @@ export default function MyBotsPage() {
                         <Loader2 size={22} className="animate-spin" />
                     </div>
                 ) : bots.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-border bg-card p-12 text-center">
+                    <div className="rounded-lg border border-dashed border-border bg-card p-12 text-center">
                         <Bot size={32} className="mx-auto mb-3 text-muted-foreground" />
                         <h3 className="text-lg font-bold">No bots connected yet</h3>
                         <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
@@ -614,7 +614,7 @@ export default function MyBotsPage() {
                 {/* Mapping panel */}
                 {mappingBotId && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 p-4 backdrop-blur-sm">
-                        <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-xl">
+                        <div className="w-full max-w-lg rounded-lg border border-border bg-card p-6 shadow-xl">
                             <div className="mb-4 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <MapPin size={18} />
@@ -637,31 +637,31 @@ export default function MyBotsPage() {
                                     value={mapping.mt5Account}
                                     onChange={(e) => setMapping({ ...mapping, mt5Account: e.target.value.replace(/[^\d]/g, "") })}
                                     placeholder="MT5 account number"
-                                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                    className="w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                                 />
                                 <input
                                     value={mapping.magicNumber}
                                     onChange={(e) => setMapping({ ...mapping, magicNumber: e.target.value.replace(/[^\d]/g, "") })}
                                     placeholder="Magic number"
-                                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                    className="w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                                 />
                                 <div className="grid grid-cols-2 gap-3">
                                     <input
                                         value={mapping.symbol}
                                         onChange={(e) => setMapping({ ...mapping, symbol: e.target.value })}
                                         placeholder="Symbol (optional)"
-                                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                        className="w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                                     />
                                     <input
                                         value={mapping.comment}
                                         onChange={(e) => setMapping({ ...mapping, comment: e.target.value })}
                                         placeholder="Comment (optional)"
-                                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                        className="w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                                     />
                                 </div>
                             </div>
                             {mappingError && (
-                                <div className="mt-3 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                                <div className="mt-3 rounded-md border border-negative/30 bg-negative-muted px-3 py-2 text-sm text-negative-foreground">
                                     {mappingError}
                                 </div>
                             )}
@@ -669,7 +669,7 @@ export default function MyBotsPage() {
                                 <button
                                     type="button"
                                     onClick={() => setMappingBotId("")}
-                                    className="rounded-xl border border-border px-4 py-2 text-sm transition hover:bg-muted"
+                                    className="rounded-md border border-border px-4 py-2 text-sm transition hover:bg-muted"
                                 >
                                     Cancel
                                 </button>
@@ -677,7 +677,7 @@ export default function MyBotsPage() {
                                     type="button"
                                     onClick={() => handleSaveMapping(mappingBotId)}
                                     disabled={mappingSaving || !mapping.mt5Account}
-                                    className="flex items-center gap-2 rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background transition hover:opacity-90 disabled:opacity-50"
+                                    className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50"
                                 >
                                     {mappingSaving && <Loader2 size={15} className="animate-spin" />}
                                     Save Mapping
@@ -688,7 +688,7 @@ export default function MyBotsPage() {
                 )}
 
                 {/* Free/Pro note */}
-                <div className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+                <div className="rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
                     <p className="flex items-center gap-2 font-medium text-foreground">
                         <ShieldCheck size={16} /> How custom bot monitoring works
                     </p>
@@ -723,26 +723,26 @@ function BotCard({
     const lastHeartbeat = bot.lastHeartbeatAt;
 
     return (
-        <div className="flex flex-col rounded-2xl border border-border bg-card p-5 transition hover:border-primary/40">
+        <div className="flex flex-col rounded-lg border border-border bg-card p-5 transition hover:border-primary/40">
             <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2">
                     <span className={`relative flex h-2.5 w-2.5 ${online ? "" : ""}`}>
                         {online && (
-                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-60" />
                         )}
                         <span
                             className={`relative inline-flex h-2.5 w-2.5 rounded-full ${
-                                online ? "bg-emerald-500" : "bg-slate-400"
+                                online ? "bg-positive" : "bg-muted-foreground"
                             }`}
                         />
                     </span>
                     <h3 className="truncate text-base font-bold">{bot.name}</h3>
                 </div>
                 <span
-                    className={`rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
+                    className={`rounded-full px-2 py-0.5 text-micro font-semibold uppercase tracking-wide ${
                         isMarketplace
-                            ? "bg-primary/15 text-primary"
-                            : "bg-violet-500/15 text-violet-500"
+                            ? "bg-primary/10 text-primary"
+                            : "bg-muted text-muted-foreground"
                     }`}
                 >
                     {isMarketplace ? "Marketplace" : "Custom"}
@@ -765,22 +765,22 @@ function BotCard({
                 <Info label="Magic" value={bot.magicNumber || "—"} />
             </div>
 
-                            <div className="mt-4 space-y-1.5 rounded-xl bg-muted/60 p-3 text-sm" data-guide="stats">
+                            <div className="mt-4 space-y-1.5 rounded-lg bg-muted/60 p-3 text-sm" data-guide="stats">
                 <Row label="Total P/L">
-                    <span className={Number(bot.stats?.totalPnl || 0) >= 0 ? "font-semibold text-emerald-500" : "font-semibold text-destructive"}>
+                    <span className={Number(bot.stats?.totalPnl || 0) >= 0 ? "font-numeric font-semibold text-positive" : "font-numeric font-semibold text-negative"}>
                         {formatPnl(bot.stats?.totalPnl)}
                     </span>
                 </Row>
                 <Row label="Today P/L">
-                    <span className={Number(bot.stats?.todayPnl || 0) >= 0 ? "font-semibold text-emerald-500" : "font-semibold text-destructive"}>
+                    <span className={Number(bot.stats?.todayPnl || 0) >= 0 ? "font-numeric font-semibold text-positive" : "font-numeric font-semibold text-negative"}>
                         {formatPnl(bot.stats?.todayPnl)}
                     </span>
                 </Row>
                 <Row label="Win rate">
-                    <span>{bot.stats ? `${bot.stats.winRate}%` : "—"}</span>
+                    <span className="font-numeric">{bot.stats ? `${bot.stats.winRate}%` : "—"}</span>
                 </Row>
                 <Row label="Trades">
-                    <span>{bot.stats?.totalTrades ?? 0} closed · {openCount} open</span>
+                    <span className="font-numeric">{bot.stats?.totalTrades ?? 0} closed · {openCount} open</span>
                 </Row>
             </div>
 
@@ -795,14 +795,14 @@ function BotCard({
                 <button
                     type="button"
                     onClick={onOpen}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-foreground px-3 py-2 text-xs font-semibold text-background transition hover:opacity-90"
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/80"
                 >
                     Details <ChevronRight size={13} />
                 </button>
                 <button
                     type="button"
                     onClick={() => onMap(bot)}
-                    className="flex items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-xs font-medium transition hover:bg-muted"
+                    className="flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs font-medium transition hover:bg-muted"
                 >
                     <Settings2 size={13} /> Map
                 </button>
@@ -810,7 +810,7 @@ function BotCard({
                     <button
                         type="button"
                         onClick={() => onDisconnect(bot)}
-                        className="flex items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-xs font-medium text-muted-foreground transition hover:border-destructive/40 hover:text-destructive"
+                        className="flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs font-medium text-muted-foreground transition hover:border-destructive/40 hover:text-destructive"
                     >
                         <ArrowRight size={13} className="rotate-180" />
                     </button>
@@ -823,7 +823,7 @@ function BotCard({
 function Info({ label, value }: { label: string; value: string }) {
     return (
         <div>
-            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
+            <p className="text-micro uppercase tracking-wider text-muted-foreground">{label}</p>
             <p className="truncate font-medium">{value}</p>
         </div>
     );

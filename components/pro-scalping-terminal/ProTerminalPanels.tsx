@@ -111,7 +111,7 @@ function BiasChip({ bias }: { bias: string | null | undefined }) {
               ? "border-rose-500/40 bg-rose-500/10 text-rose-400"
               : "border-border bg-muted text-muted-foreground";
     return (
-        <span className={cn("rounded-full border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide", tone)}>
+        <span className={cn("rounded-full border px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide", tone)}>
             {bias}
         </span>
     );
@@ -127,7 +127,7 @@ function ConfidenceBar({ value }: { value: number | null }) {
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                 <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
             </div>
-            <span className="font-mono text-[10px] tabular-nums text-muted-foreground">{pct.toFixed(0)}</span>
+            <span className="font-mono text-micro tabular-nums text-muted-foreground">{pct.toFixed(0)}</span>
         </div>
     );
 }
@@ -234,7 +234,7 @@ export const WatchlistPanel = memo(function WatchlistPanel({
                 ) : (
                     <table className="w-full border-collapse text-xs">
                         <thead>
-                            <tr className="border-b border-border text-left text-[10px] uppercase tracking-wide text-muted-foreground">
+                            <tr className="border-b border-border text-left text-micro uppercase tracking-wide text-muted-foreground">
                                 <th className="px-3 py-1.5 font-medium">Symbol</th>
                                 <th className="px-2 py-1.5 text-right font-medium">Bid</th>
                                 <th className="px-2 py-1.5 text-right font-medium">Chg%</th>
@@ -326,7 +326,7 @@ export const SessionsPanel = memo(function SessionsPanel({ now }: { now: number 
                 meta={st.activeLabel}
                 right={
                     st.nextEventLabel ? (
-                        <span className="rounded-full border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                        <span className="rounded-full border border-border px-1.5 py-0.5 font-mono text-micro text-muted-foreground">
                             {st.nextEventLabel} in {fmtCountdown(st.nextEventInMin)}
                         </span>
                     ) : null
@@ -338,7 +338,7 @@ export const SessionsPanel = memo(function SessionsPanel({ now }: { now: number 
                         <div className="flex items-baseline justify-between gap-2 text-xs">
                             <span className={cn("font-medium", s.active ? "text-foreground" : "text-muted-foreground")}>
                                 {s.name}
-                                <span className="ml-1.5 font-mono text-[10px] text-muted-foreground/70">
+                                <span className="ml-1.5 font-mono text-micro text-muted-foreground/70">
                                     {String(Math.floor(s.startMin / 60)).padStart(2, "0")}:
                                     {String(s.startMin % 60).padStart(2, "0")}–
                                     {String(Math.floor(s.endMin / 60)).padStart(2, "0")}:
@@ -346,7 +346,7 @@ export const SessionsPanel = memo(function SessionsPanel({ now }: { now: number 
                                 </span>
                             </span>
                             {s.active ? (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-400">
+                                <span className="inline-flex items-center gap-1 text-micro font-semibold uppercase tracking-wide text-emerald-400">
                                     <span className="size-1.5 animate-pulse rounded-full bg-emerald-400" />
                                     live
                                 </span>
@@ -360,7 +360,7 @@ export const SessionsPanel = memo(function SessionsPanel({ now }: { now: number 
                         </div>
                     </div>
                 ))}
-                <p className="text-[10px] leading-4 text-muted-foreground">
+                <p className="text-micro leading-4 text-muted-foreground">
                     Session ranges shown in the chart come from real candles inside each UTC window.
                 </p>
             </div>
@@ -417,7 +417,7 @@ export const MtfPanel = memo(function MtfPanel({
                 <div className="min-w-0 overflow-x-auto">
                     <table className="w-full border-collapse text-xs">
                         <thead>
-                            <tr className="border-b border-border text-left text-[10px] uppercase tracking-wide text-muted-foreground">
+                            <tr className="border-b border-border text-left text-micro uppercase tracking-wide text-muted-foreground">
                                 <th className="px-3 py-1.5 font-medium">TF</th>
                                 <th className="px-2 py-1.5 text-right font-medium">Trend</th>
                                 <th className="px-2 py-1.5 text-right font-medium">Mom</th>
@@ -450,7 +450,7 @@ export const MtfPanel = memo(function MtfPanel({
                                     <td className="px-3 py-1.5 text-right">
                                         <span
                                             className={cn(
-                                                "text-[10px] font-medium uppercase",
+                                                "text-micro font-medium uppercase",
                                                 r.alignment.value === "aligned"
                                                     ? "text-emerald-400"
                                                     : r.alignment.value === "conflicting"
@@ -469,7 +469,7 @@ export const MtfPanel = memo(function MtfPanel({
             )}
             {analysis ? (
                 <div className="border-t border-border px-3 py-2">
-                    <p className="text-[10px] leading-4 text-muted-foreground">
+                    <p className="text-micro leading-4 text-muted-foreground">
                         {analysis.multiTimeframe.summary.value ??
                             analysis.multiTimeframe.summary.reason ??
                             "Multi-timeframe summary unavailable."}
@@ -542,7 +542,7 @@ export const LiquidityPanel = memo(function LiquidityPanel({
 
                     {nearest && nearest.length > 0 ? (
                         <div className="rounded-md border border-border/70">
-                            <div className="border-b border-border/60 px-2 py-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                            <div className="border-b border-border/60 px-2 py-1 text-micro uppercase tracking-wide text-muted-foreground">
                                 Nearest liquidity levels
                             </div>
                             <ul className="divide-y divide-border/50">
@@ -550,7 +550,7 @@ export const LiquidityPanel = memo(function LiquidityPanel({
                                     <li key={l.id} className="flex items-center justify-between gap-2 px-2 py-1 text-xs">
                                         <span className="min-w-0 truncate text-muted-foreground">
                                             {humaniseKey(l.type)}
-                                            <span className="ml-1 font-mono text-[10px] text-muted-foreground/60">
+                                            <span className="ml-1 font-mono text-micro text-muted-foreground/60">
                                                 {l.timeframe}
                                             </span>
                                         </span>
@@ -567,7 +567,7 @@ export const LiquidityPanel = memo(function LiquidityPanel({
 
                     {a.scoredZones.length > 0 ? (
                         <div className="rounded-md border border-border/70">
-                            <div className="border-b border-border/60 px-2 py-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                            <div className="border-b border-border/60 px-2 py-1 text-micro uppercase tracking-wide text-muted-foreground">
                                 Top zones by score
                             </div>
                             <ul className="divide-y divide-border/50">
@@ -582,7 +582,7 @@ export const LiquidityPanel = memo(function LiquidityPanel({
                                             </span>
                                         </div>
                                         <div className="mt-0.5 flex items-center justify-between gap-2">
-                                            <span className="min-w-0 truncate text-[10px] text-muted-foreground/70">
+                                            <span className="min-w-0 truncate text-micro text-muted-foreground/70">
                                                 {reasons.slice(0, 2).join(" · ")}
                                             </span>
                                             <Val value={score} format={(v) => Number(v).toFixed(2)} title="Zone score" />
@@ -603,7 +603,7 @@ export const LiquidityPanel = memo(function LiquidityPanel({
 function Stat({ label, value, title }: { label: string; value: string | null; title?: string }) {
     return (
         <div className="rounded-md border border-border/70 bg-background px-2 py-1.5" title={title}>
-            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+            <div className="text-micro uppercase tracking-wide text-muted-foreground">{label}</div>
             <div className="text-xs font-medium text-foreground">
                 {value ?? <span className="italic text-muted-foreground">—</span>}
             </div>
@@ -638,7 +638,7 @@ export const RegimeStrip = memo(function RegimeStrip({
                 <ConfidenceBar value={confidence} />
             </span>
             {analysis?.regime.classifierFactors.length ? (
-                <span className="min-w-0 flex-1 truncate text-[10px] text-muted-foreground" title={analysis.regime.classifierFactors.join(" · ")}>
+                <span className="min-w-0 flex-1 truncate text-micro text-muted-foreground" title={analysis.regime.classifierFactors.join(" · ")}>
                     {analysis.regime.classifierFactors.join(" · ")}
                 </span>
             ) : null}
@@ -687,7 +687,7 @@ export const RadarMiniPanel = memo(function RadarMiniPanel({
                     {radar && radar.failed.length > 0 ? (
                         <ul className="mt-2 space-y-1">
                             {radar.failed.map((f) => (
-                                <li key={f.symbol} className="text-[10px] text-muted-foreground">
+                                <li key={f.symbol} className="text-micro text-muted-foreground">
                                     <span className="font-mono">{f.symbol}</span> — {f.reason}
                                 </li>
                             ))}
@@ -698,7 +698,7 @@ export const RadarMiniPanel = memo(function RadarMiniPanel({
                 <div className="min-w-0 overflow-x-auto">
                     <table className="w-full border-collapse text-xs">
                         <thead>
-                            <tr className="border-b border-border text-left text-[10px] uppercase tracking-wide text-muted-foreground">
+                            <tr className="border-b border-border text-left text-micro uppercase tracking-wide text-muted-foreground">
                                 <th className="px-3 py-1.5 font-medium">Symbol</th>
                                 <th className="px-2 py-1.5 text-right font-medium">Last</th>
                                 <th className="px-2 py-1.5 text-right font-medium">Chg%</th>
@@ -723,7 +723,7 @@ export const RadarMiniPanel = memo(function RadarMiniPanel({
                                     >
                                         <td className="px-3 py-1.5 font-mono font-semibold text-foreground">
                                             {r.symbol}
-                                            {r.stale ? <span className="ml-1 text-[10px] text-amber-400">stale</span> : null}
+                                            {r.stale ? <span className="ml-1 text-micro text-amber-400">stale</span> : null}
                                         </td>
                                         <td className="px-2 py-1.5 text-right">
                                             <Val value={r.lastPrice.status === "available" ? r.lastPrice.value : null} format={(v) => fmtPrice(Number(v), r.symbol)} />
@@ -753,7 +753,7 @@ export const RadarMiniPanel = memo(function RadarMiniPanel({
             )}
             {radar ? (
                 <div className="border-t border-border px-3 py-1.5">
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-micro text-muted-foreground">
                         Source: {radar.dataSource.label} · deterministic pipeline, no AI spend
                     </p>
                 </div>
@@ -808,7 +808,7 @@ export const SignalsMiniPanel = memo(function SignalsMiniPanel({
                                     <span className="font-mono text-xs font-semibold text-foreground">{s.symbol}</span>
                                     <span
                                         className={cn(
-                                            "rounded-full border px-1.5 py-0.5 text-[10px] font-bold tracking-wide",
+                                            "rounded-full border px-1.5 py-0.5 text-micro font-bold tracking-wide",
                                             isLong
                                                 ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
                                                 : "border-rose-500/40 bg-rose-500/10 text-rose-400"
@@ -816,14 +816,14 @@ export const SignalsMiniPanel = memo(function SignalsMiniPanel({
                                     >
                                         {isLong ? "LONG" : "SHORT"}
                                     </span>
-                                    <span className="rounded-full border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                                    <span className="rounded-full border border-border px-1.5 py-0.5 font-mono text-micro text-muted-foreground">
                                         {s.timeframe}
                                     </span>
-                                    <span className="ml-auto font-mono text-[10px] text-muted-foreground">
+                                    <span className="ml-auto font-mono text-micro text-muted-foreground">
                                         {ageMin < 1 ? "just now" : `${ageMin}m ago`}
                                     </span>
                                 </div>
-                                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-[11px] tabular-nums">
+                                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-micro tabular-nums">
                                     <span className="text-muted-foreground">
                                         E <span className="text-foreground">{fmtPrice(s.entry, s.symbol)}</span>
                                     </span>
@@ -838,7 +838,7 @@ export const SignalsMiniPanel = memo(function SignalsMiniPanel({
                                     </span>
                                 </div>
                                 {s.evidence.length > 0 ? (
-                                    <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-muted-foreground" title={s.evidence.join(" · ")}>
+                                    <p className="mt-1 line-clamp-2 text-micro leading-4 text-muted-foreground" title={s.evidence.join(" · ")}>
                                         {s.evidence.slice(0, 2).join(" · ")}
                                     </p>
                                 ) : null}
@@ -861,7 +861,7 @@ export const SignalsMiniPanel = memo(function SignalsMiniPanel({
                         type="button"
                         onClick={() => setShowRejected((v) => !v)}
                         aria-expanded={showRejected}
-                        className="inline-flex items-center gap-1 text-[10px] text-muted-foreground transition hover:text-foreground"
+                        className="inline-flex items-center gap-1 text-micro text-muted-foreground transition hover:text-foreground"
                     >
                         <Target className="size-3" />
                         {rejected.length} symbol{rejected.length === 1 ? "" : "s"} did not qualify
@@ -870,7 +870,7 @@ export const SignalsMiniPanel = memo(function SignalsMiniPanel({
                     {showRejected ? (
                         <ul className="mt-1.5 space-y-1">
                             {rejected.map((r) => (
-                                <li key={r.symbol} className="text-[10px] leading-4 text-muted-foreground">
+                                <li key={r.symbol} className="text-micro leading-4 text-muted-foreground">
                                     <span className="font-mono text-foreground/80">{r.symbol}</span> — {r.reason}
                                 </li>
                             ))}
@@ -923,7 +923,7 @@ export function CalendarPanel({
                 title="Economic Calendar"
                 meta={relevant.length > 0 ? `${relevant.join(", ")} focus` : undefined}
                 right={
-                    <span className="text-[10px] text-muted-foreground">
+                    <span className="text-micro text-muted-foreground">
                         {loading ? "loading…" : `${events.length} events`}
                     </span>
                 }
@@ -957,15 +957,15 @@ export function CalendarPanel({
                                     relevantEvent && !past && "bg-primary/[0.04]"
                                 )}
                             >
-                                <span className="w-14 shrink-0 font-mono text-[10px] text-muted-foreground">
+                                <span className="w-14 shrink-0 font-mono text-micro text-muted-foreground">
                                     {e.timeUtc || "—"}
                                 </span>
-                                <span className="w-9 shrink-0 font-mono text-[10px] text-muted-foreground">
+                                <span className="w-9 shrink-0 font-mono text-micro text-muted-foreground">
                                     {e.currency}
                                 </span>
                                 <span
                                     className={cn(
-                                        "shrink-0 rounded border px-1 py-0.5 text-[9px] font-semibold uppercase",
+                                        "shrink-0 rounded border px-1 py-0.5 text-micro font-semibold uppercase",
                                         IMPACT_TONE[e.impact]
                                     )}
                                 >
@@ -974,7 +974,7 @@ export function CalendarPanel({
                                 <span className="min-w-0 flex-1 truncate" title={e.title}>
                                     {e.title}
                                 </span>
-                                <span className="hidden shrink-0 gap-2 font-mono text-[10px] tabular-nums text-muted-foreground sm:flex">
+                                <span className="hidden shrink-0 gap-2 font-mono text-micro tabular-nums text-muted-foreground sm:flex">
                                     <span title="Forecast">F {e.forecast}</span>
                                     <span title="Previous">P {e.previous}</span>
                                     {e.actual ? <span title="Actual" className="text-foreground">A {e.actual}</span> : null}
@@ -982,7 +982,7 @@ export function CalendarPanel({
                             </div>
                         );
                     })}
-                    <p className="px-3 py-1.5 text-[10px] text-muted-foreground">
+                    <p className="px-3 py-1.5 text-micro text-muted-foreground">
                         Times in UTC from the {source === "tradingview-mcp" ? "TradingView MCP" : "platform calendar"} feed. Rows relevant to {activeSymbol} are highlighted.
                     </p>
                 </div>

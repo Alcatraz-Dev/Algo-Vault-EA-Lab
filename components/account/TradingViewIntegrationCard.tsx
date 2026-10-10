@@ -178,7 +178,7 @@ export function TradingViewIntegrationCard({ user, showToast }: TradingViewInteg
 
     if (loading && !status) {
         return (
-            <div className="rounded-2xl border border-border bg-foreground/[0.035] p-6">
+            <div className="rounded-lg border border-border bg-foreground/[0.035] p-6">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Loading TradingView integration…
@@ -188,7 +188,7 @@ export function TradingViewIntegrationCard({ user, showToast }: TradingViewInteg
     }
 
     return (
-        <div className="rounded-2xl border border-border bg-foreground/[0.035] p-6 backdrop-blur-xl">
+        <div className="rounded-lg border border-border bg-foreground/[0.035] p-6 backdrop-blur-xl">
             <div className="mb-4 flex flex-wrap items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600/15">
                     <PlugZap size={16} className="text-blue-500" />
@@ -254,7 +254,7 @@ export function TradingViewIntegrationCard({ user, showToast }: TradingViewInteg
                                 <span className={enabled ? "text-foreground" : "text-muted-foreground"}>
                                     {cap.label.charAt(0).toUpperCase() + cap.label.slice(1)}
                                 </span>
-                                <span className="ml-auto text-[10px] text-muted-foreground">read-only</span>
+                                <span className="ml-auto text-micro text-muted-foreground">read-only</span>
                             </div>
                         );
                     })}
@@ -307,7 +307,7 @@ export function TradingViewIntegrationCard({ user, showToast }: TradingViewInteg
             </div>
 
             {/* Notices */}
-            <div className="mt-4 grid gap-2 text-[11px] leading-4 text-muted-foreground">
+            <div className="mt-4 grid gap-2 text-micro leading-4 text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                     <CheckCircle2 size={12} className="shrink-0 text-muted-foreground" />
                     <span>

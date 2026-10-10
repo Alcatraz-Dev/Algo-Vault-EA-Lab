@@ -77,7 +77,7 @@ function StructureBlock() {
         <div className="flex flex-col gap-2 p-3">
             <div className="grid grid-cols-2 gap-1.5">
                 <div className="rounded-md border border-border/70 bg-background px-2 py-1.5">
-                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Structure bias</div>
+                    <div className="text-micro uppercase tracking-wide text-muted-foreground">Structure bias</div>
                     <div
                         className={cn(
                             "text-xs font-semibold capitalize",
@@ -88,7 +88,7 @@ function StructureBlock() {
                     </div>
                 </div>
                 <div className="rounded-md border border-border/70 bg-background px-2 py-1.5">
-                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Reversal setup</div>
+                    <div className="text-micro uppercase tracking-wide text-muted-foreground">Reversal setup</div>
                     <div className="text-xs font-semibold text-foreground">
                         {analysis.structure.reversalSetup.value?.detected
                             ? `${analysis.structure.reversalSetup.value.priorBias} → ${analysis.structure.reversalSetup.value.currentBias}`
@@ -98,7 +98,7 @@ function StructureBlock() {
             </div>
 
             <div className="rounded-md border border-border/70">
-                <div className="border-b border-border/60 px-2 py-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                <div className="border-b border-border/60 px-2 py-1 text-micro uppercase tracking-wide text-muted-foreground">
                     Recent breaks
                 </div>
                 {events.length === 0 ? (
@@ -112,7 +112,7 @@ function StructureBlock() {
                                 <span className="flex min-w-0 items-center gap-1.5">
                                     <span
                                         className={cn(
-                                            "rounded border px-1 font-mono text-[9px] font-bold",
+                                            "rounded border px-1 font-mono text-micro font-bold",
                                             e.type === "BOS" ? "border-sky-500/40 text-sky-400" : "border-amber-500/40 text-amber-400"
                                         )}
                                     >
@@ -121,9 +121,9 @@ function StructureBlock() {
                                     <span className={cn("capitalize", e.direction === "bullish" ? "text-emerald-400" : "text-rose-400")}>
                                         {e.direction}
                                     </span>
-                                    <span className="font-mono text-[10px] text-muted-foreground">{e.timeframe}</span>
+                                    <span className="font-mono text-micro text-muted-foreground">{e.timeframe}</span>
                                 </span>
-                                <span className="shrink-0 font-mono text-[10px] tabular-nums text-muted-foreground">
+                                <span className="shrink-0 font-mono text-micro tabular-nums text-muted-foreground">
                                     {new Date(e.timestamp).toISOString().slice(11, 16)} · {e.price}
                                 </span>
                             </li>
@@ -132,10 +132,10 @@ function StructureBlock() {
                 )}
             </div>
 
-            <p className="text-[10px] leading-4 text-muted-foreground">
+            <p className="text-micro leading-4 text-muted-foreground">
                 {analysis.multiTimeframe.summary.value ?? analysis.multiTimeframe.summary.reason ?? ""}
             </p>
-            <p className="font-mono text-[10px] text-muted-foreground/70">
+            <p className="font-mono text-micro text-muted-foreground/70">
                 Active chart: {state.symbol} {state.timeframe}
             </p>
         </div>
@@ -189,12 +189,12 @@ function SetupCard() {
                         aria-label={`${s.symbol} ${s.timeframe} setup`}
                     >
                         <header className="flex items-center justify-between gap-2">
-                            <span className="font-mono text-[11px] font-bold text-foreground">
+                            <span className="font-mono text-micro font-bold text-foreground">
                                 {s.symbol} {s.timeframe}
                             </span>
                             <span
                                 className={cn(
-                                    "rounded border px-1.5 py-0.5 text-[10px] font-bold tracking-wider",
+                                    "rounded border px-1.5 py-0.5 text-micro font-bold tracking-wider",
                                     invalid
                                         ? "border-rose-500/50 text-rose-400"
                                         : s.direction === "long"
@@ -206,7 +206,7 @@ function SetupCard() {
                             </span>
                         </header>
 
-                        <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
+                        <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-micro">
                             <div className="flex justify-between">
                                 <dt className="text-muted-foreground">Entry</dt>
                                 <dd className="font-mono tabular-nums text-foreground">{s.entry}</dd>
@@ -237,7 +237,7 @@ function SetupCard() {
 
                         <ul className="mt-2 space-y-0.5 border-t border-border pt-1.5">
                             {s.evidence.slice(0, 4).map((ev, i) => (
-                                <li key={i} className="flex gap-1.5 text-[10px] leading-4 text-muted-foreground">
+                                <li key={i} className="flex gap-1.5 text-micro leading-4 text-muted-foreground">
                                     <span className="text-emerald-400">✓</span>
                                     <span className="min-w-0">{ev}</span>
                                 </li>
@@ -265,7 +265,7 @@ function SetupCard() {
                                 </span>
                             ))}
                         </div>
-                        <p className="mt-1 font-mono text-[9px] uppercase tracking-wide text-muted-foreground">
+                        <p className="mt-1 font-mono text-micro uppercase tracking-wide text-muted-foreground">
                             status: {invalid ? "INVALIDATED" : s.status}
                         </p>
                     </article>
@@ -307,7 +307,7 @@ function RiskSummary() {
             >
                 {risk.status}
             </div>
-            <dl className="space-y-1 text-[11px]">
+            <dl className="space-y-1 text-micro">
                 {rows.map(([k, v]) => (
                     <div key={k} className="flex justify-between gap-2">
                         <dt className="text-muted-foreground">{k}</dt>
@@ -320,7 +320,7 @@ function RiskSummary() {
             {risk.reasons.length > 0 ? (
                 <ul className="space-y-0.5 border-t border-border pt-1.5">
                     {risk.reasons.map((r) => (
-                        <li key={r} className="text-[10px] leading-4 text-amber-400">
+                        <li key={r} className="text-micro leading-4 text-amber-400">
                             • {r}
                         </li>
                     ))}
@@ -370,7 +370,7 @@ export function IntelligenceRail({ now }: { now: number }) {
                                 aria-selected={active}
                                 onClick={() => setIntelligenceMode(t.id)}
                                 className={cn(
-                                    "inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium transition",
+                                    "inline-flex items-center gap-1 rounded-md px-2 py-1 text-micro font-medium transition",
                                     active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
                                 )}
                             >
@@ -385,12 +385,12 @@ export function IntelligenceRail({ now }: { now: number }) {
             <PanelErrorBoundary name="Intelligence">
                 <div className="rounded-xl border border-border bg-card">
                     <div className="border-b border-border px-3 py-2">
-                        <h2 className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-foreground">
+                        <h2 className="flex items-center justify-between text-micro font-semibold uppercase tracking-wide text-foreground">
                             <span className="flex items-center gap-1.5">
                                 {mode === "ai" ? <Sparkles className="size-3 text-primary" /> : <ListChecks className="size-3 text-primary" />}
                                 {TABS.find((t) => t.id === mode)?.label}
                             </span>
-                            <span className="font-mono text-[10px] text-muted-foreground">
+                            <span className="font-mono text-micro text-muted-foreground">
                                 {state.symbol} {state.timeframe}
                             </span>
                         </h2>

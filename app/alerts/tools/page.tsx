@@ -227,24 +227,24 @@ export default function ToolAlertsPage() {
 
                 {/* Stats */}
                 <div className="mb-6 grid grid-cols-3 gap-4" data-guide="stats">
-                    <div className="rounded-2xl border border-border/30 bg-muted/50 p-4">
+                    <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
                         <div className="flex items-center gap-2 mb-1">
                             <Bell size={13} className="text-violet-400" />
-                            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Total</span>
+                            <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Total</span>
                         </div>
                         <p className="text-xl font-bold font-mono text-foreground">{stats.total}</p>
                     </div>
-                    <div className="rounded-2xl border border-emerald-500/10 bg-emerald-500/[0.03] p-4">
+                    <div className="rounded-lg border border-emerald-500/10 bg-emerald-500/[0.03] p-4">
                         <div className="flex items-center gap-2 mb-1">
                             <CheckCircle size={13} className="text-emerald-400" />
-                            <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-500/60">Active</span>
+                            <span className="text-micro font-semibold uppercase tracking-wider text-emerald-500/60">Active</span>
                         </div>
                         <p className="text-xl font-bold font-mono text-emerald-400">{stats.active}</p>
                     </div>
-                    <div className="rounded-2xl border border-rose-500/10 bg-rose-500/[0.03] p-4">
+                    <div className="rounded-lg border border-rose-500/10 bg-rose-500/[0.03] p-4">
                         <div className="flex items-center gap-2 mb-1">
                             <AlertTriangle size={13} className="text-rose-400" />
-                            <span className="text-[10px] font-semibold uppercase tracking-wider text-rose-500/60">Expired</span>
+                            <span className="text-micro font-semibold uppercase tracking-wider text-rose-500/60">Expired</span>
                         </div>
                         <p className="text-xl font-bold font-mono text-rose-400">{stats.expired}</p>
                     </div>
@@ -273,7 +273,7 @@ export default function ToolAlertsPage() {
                         <button
                             type="button"
                             onClick={selected.size === filtered.length ? deselectAll : selectAll}
-                            className="text-[11px] text-muted-foreground hover:text-foreground transition"
+                            className="text-micro text-muted-foreground hover:text-foreground transition"
                         >
                             {selected.size === filtered.length ? "Deselect all" : "Select all"}
                         </button>
@@ -285,12 +285,12 @@ export default function ToolAlertsPage() {
                         <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
                     </div>
                 ) : filtered.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-border/40 p-16 text-center">
+                    <div className="rounded-lg border border-dashed border-border/40 p-16 text-center">
                         <Bell size={32} className="mx-auto text-muted-foreground" />
                         <p className="mt-3 text-sm text-muted-foreground">
                             {filter === "all" ? "No tool alerts configured" : `No ${filter} alerts`}
                         </p>
-                        <p className="mt-1 text-[11px] text-muted-foreground/60">
+                        <p className="mt-1 text-micro text-muted-foreground/60">
                             Create alerts from the TradingView chart using Pine Script
                         </p>
                     </div>
@@ -302,7 +302,7 @@ export default function ToolAlertsPage() {
                                 <div
                                     key={def.id}
                                     className={cn(
-                                        "group flex items-center gap-4 rounded-2xl border p-4 transition-all",
+                                        "group flex items-center gap-4 rounded-lg border p-4 transition-all",
                                         expired
                                             ? "border-rose-500/10 bg-rose-500/[0.02] opacity-60"
                                             : "border-border/30 bg-muted/50 hover:bg-muted"
@@ -333,22 +333,22 @@ export default function ToolAlertsPage() {
                                             <span className="font-mono text-sm font-bold text-foreground">{def.symbol}</span>
                                             <span className="text-xs text-muted-foreground">{def.alertTitle || def.scriptName}</span>
                                             {def.direction && def.direction !== "neutral" && (
-                                                <span className={cn("rounded-md px-1.5 py-0.5 text-[9px] font-medium", DIRECTION_COLORS[def.direction] || "text-muted-foreground bg-muted")}>
+                                                <span className={cn("rounded-md px-1.5 py-0.5 text-micro font-medium", DIRECTION_COLORS[def.direction] || "text-muted-foreground bg-muted")}>
                                                     {def.direction.toUpperCase()}
                                                 </span>
                                             )}
                                             {def.price && (
-                                                <span className="font-mono text-[10px] text-muted-foreground">@ {def.price}</span>
+                                                <span className="font-mono text-micro text-muted-foreground">@ {def.price}</span>
                                             )}
-                                            <span className="rounded-md bg-muted px-1.5 py-0.5 text-[9px] text-muted-foreground">{def.timeframe}</span>
-                                            <span className="rounded-md bg-muted px-1.5 py-0.5 text-[9px] text-muted-foreground">
+                                            <span className="rounded-md bg-muted px-1.5 py-0.5 text-micro text-muted-foreground">{def.timeframe}</span>
+                                            <span className="rounded-md bg-muted px-1.5 py-0.5 text-micro text-muted-foreground">
                                                 {FREQUENCY_LABELS[def.frequency] || def.frequency}
                                             </span>
                                         </div>
                                         {def.message && (
-                                            <p className="mt-0.5 text-[11px] text-muted-foreground truncate max-w-lg">{def.message}</p>
+                                            <p className="mt-0.5 text-micro text-muted-foreground truncate max-w-lg">{def.message}</p>
                                         )}
-                                        <div className="mt-1.5 flex items-center gap-3 text-[10px] text-muted-foreground/60">
+                                        <div className="mt-1.5 flex items-center gap-3 text-micro text-muted-foreground/60">
                                             <span>Created {new Date(def.createdAt).toLocaleDateString()}</span>
                                             {def.expiredAt && (
                                                 <span>Expires {new Date(def.expiredAt).toLocaleDateString()}</span>
@@ -360,7 +360,7 @@ export default function ToolAlertsPage() {
                                     </div>
 
                                     {/* Notification channels */}
-                                    <div className="hidden sm:flex items-center gap-2 text-[10px] text-muted-foreground/60 flex-shrink-0">
+                                    <div className="hidden sm:flex items-center gap-2 text-micro text-muted-foreground/60 flex-shrink-0">
                                         {def.notifyDiscord && <span className="rounded bg-muted px-1.5 py-0.5">Discord</span>}
                                         {def.notifyTelegram && <span className="rounded bg-muted px-1.5 py-0.5">Telegram</span>}
                                         {def.notifyWebhook && <span className="rounded bg-muted px-1.5 py-0.5">Webhook</span>}

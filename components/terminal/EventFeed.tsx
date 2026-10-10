@@ -57,7 +57,7 @@ export function EventFeed({ now, limit = 40 }: { now: number; limit?: number }) 
     return (
         <section className="flex min-w-0 flex-col rounded-xl border border-border bg-card" aria-label="Market monitor">
             <header className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2">
-                <h2 className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-foreground">
+                <h2 className="flex items-center gap-1.5 text-micro font-semibold uppercase tracking-wide text-foreground">
                     <Radio className="size-3 text-primary" />
                     Market monitor
                     <span className="font-mono text-muted-foreground">({events.length})</span>
@@ -71,7 +71,7 @@ export function EventFeed({ now, limit = 40 }: { now: number; limit?: number }) 
                             onClick={() => setSource(s)}
                             aria-pressed={source === s}
                             className={cn(
-                                "rounded border px-1.5 py-0.5 text-[10px] capitalize transition",
+                                "rounded border px-1.5 py-0.5 text-micro capitalize transition",
                                 source === s
                                     ? "border-primary/40 bg-primary/10 text-primary"
                                     : "border-border text-muted-foreground hover:bg-muted"
@@ -85,7 +85,7 @@ export function EventFeed({ now, limit = 40 }: { now: number; limit?: number }) 
 
             <ul className="max-h-[38vh] min-h-[6rem] overflow-y-auto">
                 {visible.length === 0 ? (
-                    <li className="px-3 py-4 text-[11px] leading-4 text-muted-foreground">
+                    <li className="px-3 py-4 text-micro leading-4 text-muted-foreground">
                         No events from {source === "all" ? "any engine" : source} yet. Events appear as soon as an
                         engine reports one — this feed never pads itself.
                     </li>
@@ -101,26 +101,26 @@ export function EventFeed({ now, limit = 40 }: { now: number; limit?: number }) 
                                 )}
                                 title="Focus the chart on this event"
                             >
-                                <span className="w-9 shrink-0 pt-0.5 font-mono text-[10px] tabular-nums text-muted-foreground">
+                                <span className="w-9 shrink-0 pt-0.5 font-mono text-micro tabular-nums text-muted-foreground">
                                     {eventTimeLabel(e.timestamp)}
                                 </span>
                                 <span className="min-w-0 flex-1">
                                     <span className="flex flex-wrap items-center gap-1.5">
                                         <span
                                             className={cn(
-                                                "rounded border px-1 font-mono text-[9px] font-bold tracking-wide",
+                                                "rounded border px-1 font-mono text-micro font-bold tracking-wide",
                                                 TYPE_STYLE[e.type] ?? "border-border text-muted-foreground"
                                             )}
                                         >
                                             {e.type.replace("_", " ")}
                                         </span>
-                                        <span className="font-mono text-[10px] font-semibold text-foreground">{e.symbol}</span>
-                                        <span className="font-mono text-[10px] text-muted-foreground">{e.timeframe}</span>
-                                        <span className="text-[10px] text-muted-foreground">· {e.source}</span>
+                                        <span className="font-mono text-micro font-semibold text-foreground">{e.symbol}</span>
+                                        <span className="font-mono text-micro text-muted-foreground">{e.timeframe}</span>
+                                        <span className="text-micro text-muted-foreground">· {e.source}</span>
                                     </span>
-                                    <span className="mt-0.5 block truncate text-[11px] text-foreground">{e.title}</span>
+                                    <span className="mt-0.5 block truncate text-micro text-foreground">{e.title}</span>
                                     {e.detail ? (
-                                        <span className="block truncate font-mono text-[10px] text-muted-foreground">{e.detail}</span>
+                                        <span className="block truncate font-mono text-micro text-muted-foreground">{e.detail}</span>
                                     ) : null}
                                 </span>
                                 <Crosshair
@@ -135,7 +135,7 @@ export function EventFeed({ now, limit = 40 }: { now: number; limit?: number }) 
                 )}
             </ul>
 
-            <footer className="border-t border-border px-3 py-1.5 text-[10px] text-muted-foreground">
+            <footer className="border-t border-border px-3 py-1.5 text-micro text-muted-foreground">
                 Clicking an event selects its symbol/timeframe and navigates the chart
                 {state.symbol ? ` (now ${state.symbol} ${state.timeframe})` : ""}. Updated{" "}
                 {new Date(now).toISOString().slice(11, 19)} UTC.

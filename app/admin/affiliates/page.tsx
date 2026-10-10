@@ -1172,7 +1172,7 @@ export default function AdminAffiliatesPage() {
 
                 <button
                     onClick={openCreateModal}
-                    className="inline-flex h-10 items-center gap-2 rounded-xl bg-emerald-500 px-4 text-sm font-semibold text-background transition hover:bg-emerald-400"
+                    className="inline-flex h-10 items-center gap-2 rounded-xl bg-positive px-4 text-sm font-semibold text-background transition hover:bg-positive"
                 >
                     <Plus className="h-4 w-4" />
                     Add Affiliate
@@ -1181,7 +1181,7 @@ export default function AdminAffiliatesPage() {
 
             {/* Alerts */}
             {error && (
-                <div className="mb-5 flex items-start justify-between gap-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                <div className="mb-5 flex items-start justify-between gap-4 rounded-xl border border-negative/20 bg-negative/10 px-4 py-3 text-sm text-negative">
                     <span>
                         {error}
                     </span>
@@ -1192,7 +1192,7 @@ export default function AdminAffiliatesPage() {
                                 ""
                             )
                         }
-                        className="text-red-200/60 hover:text-red-200"
+                        className="text-negative/60 hover:text-negative"
                     >
                         <X className="h-4 w-4" />
                     </button>
@@ -1200,7 +1200,7 @@ export default function AdminAffiliatesPage() {
             )}
 
             {success && (
-                <div className="mb-5 flex items-start justify-between gap-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                <div className="mb-5 flex items-start justify-between gap-4 rounded-xl border border-positive/20 bg-positive/10 px-4 py-3 text-sm text-positive">
                     <span>
                         {success}
                     </span>
@@ -1211,7 +1211,7 @@ export default function AdminAffiliatesPage() {
                                 ""
                             )
                         }
-                        className="text-emerald-200/60 hover:text-emerald-200"
+                        className="text-positive/60 hover:text-positive"
                     >
                         <X className="h-4 w-4" />
                     </button>
@@ -1326,7 +1326,7 @@ export default function AdminAffiliatesPage() {
             </div>
 
             {/* Table */}
-            <div className="overflow-hidden rounded-2xl border border-border bg-muted/30">
+            <div className="overflow-hidden rounded-lg border border-border bg-muted/30">
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[1050px] text-left">
                         <thead className="border-b border-border bg-foreground/[0.025]">
@@ -1447,7 +1447,7 @@ export default function AdminAffiliatesPage() {
                                                             </span>
 
                                                             {offer.featured && (
-                                                                <Star className="h-3.5 w-3.5 shrink-0 fill-current text-yellow-600" />
+                                                                <Star className="h-3.5 w-3.5 shrink-0 fill-current text-warning" />
                                                             )}
                                                         </div>
 
@@ -1511,7 +1511,7 @@ export default function AdminAffiliatesPage() {
                                                     <span
                                                         className={`h-2 w-2 rounded-full ${offer.status ===
                                                             "active"
-                                                            ? "bg-emerald-400"
+                                                            ? "bg-positive"
                                                             : "bg-foreground/25"
                                                             }`}
                                                     />
@@ -1519,7 +1519,7 @@ export default function AdminAffiliatesPage() {
                                                     <span
                                                         className={`text-xs font-medium ${offer.status ===
                                                             "active"
-                                                            ? "text-emerald-600"
+                                                            ? "text-positive"
                                                             : "text-foreground/50"
                                                             }`}
                                                     >
@@ -1573,7 +1573,7 @@ export default function AdminAffiliatesPage() {
                                                             deletingId ===
                                                             offer.id
                                                         }
-                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-500/10 bg-red-500/5 text-red-600/60 transition hover:bg-red-500/10 hover:text-red-600 disabled:opacity-50"
+                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-negative/10 bg-negative/5 text-negative/60 transition hover:bg-negative/10 hover:text-negative disabled:opacity-50"
                                                         title="Delete"
                                                     >
                                                         {deletingId ===
@@ -1642,7 +1642,7 @@ export default function AdminAffiliatesPage() {
     {
         showModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/75 p-4 backdrop-blur-sm">
-                <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-card shadow-2xl">
+                <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-border bg-card shadow-2xl">
                     <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card px-6 py-5">
                         <div>
                             <h2 className="text-lg font-semibold">
@@ -1673,7 +1673,7 @@ export default function AdminAffiliatesPage() {
 
                     <div className="space-y-5 p-6">
                         {error && (
-                            <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                            <div className="rounded-lg border border-negative/20 bg-negative/10 px-3 py-2 text-sm text-negative">
                                 {
                                     error
                                 }
@@ -1684,7 +1684,7 @@ export default function AdminAffiliatesPage() {
                         <Field label="Broker Logo">
                             <div className="rounded-xl border border-border bg-muted/30 p-4">
                                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                                    <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted/50">
+                                    <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted/50">
                                         {logoPreview ? (
                                             <img
                                                 src={
@@ -1758,13 +1758,13 @@ export default function AdminAffiliatesPage() {
                                         {!logoFile &&
                                             editingId &&
                                             logoPreview && (
-                                                <p className="mt-1 text-xs text-emerald-600/70">
+                                                <p className="mt-1 text-xs text-positive/70">
                                                     Current logo
                                                 </p>
                                             )}
 
                                         {logoError && (
-                                            <p className="mt-2 text-xs text-red-600">
+                                            <p className="mt-2 text-xs text-negative">
                                                 {
                                                     logoError
                                                 }
@@ -2053,7 +2053,7 @@ export default function AdminAffiliatesPage() {
                                     />
 
                                     <span className="flex items-center gap-2 text-sm text-foreground/70">
-                                        <Star className="h-4 w-4 text-yellow-600" />
+                                        <Star className="h-4 w-4 text-warning" />
                                         Featured offer
                                     </span>
                                 </label>
@@ -2124,7 +2124,7 @@ function StatCard({
     icon: React.ReactNode;
 }) {
     return (
-        <div className="rounded-2xl border border-border bg-foreground/[0.025] p-5">
+        <div className="rounded-lg border border-border bg-foreground/[0.025] p-5">
             <div className="mb-4 flex items-center justify-between">
                 <span className="text-sm text-foreground/45">
                     {label}
@@ -2157,7 +2157,7 @@ function Field({
                 {label}
 
                 {required && (
-                    <span className="ml-1 text-red-500">
+                    <span className="ml-1 text-negative">
                         *
                     </span>
                 )}

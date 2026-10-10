@@ -13,7 +13,7 @@ export default function MarketIntelligenceCommandCenterPage() {
     <AppShell navGroups={nav} title="Market Intelligence — Command Center" subtitle="Analyze → Detect → Validate → Research → Build" maxWidth="max-w-[1600px]">
       <div className="flex flex-col gap-4">
         {/* Global Context Bar */}
-        <div className="rounded-xl border border-border/30 bg-card/60 p-3 backdrop-blur-xl flex flex-wrap items-center gap-3 text-[11px] font-mono">
+        <div className="rounded-lg border border-border bg-card p-3 flex flex-wrap items-center gap-3 text-micro">
           <div className="font-black text-sm">COMMAND CENTER</div>
           <div className="rounded bg-muted/30 px-2 py-0.5">XAUUSD</div>
           <div className="rounded bg-muted/30 px-2 py-0.5">M5</div>
@@ -30,20 +30,20 @@ export default function MarketIntelligenceCommandCenterPage() {
 
         <div className="grid lg:grid-cols-[1fr_320px] gap-4">
           {/* Main Chart Workspace */}
-          <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
-            <div className="flex items-center justify-between mb-3 text-xs font-mono uppercase tracking-wider text-muted-foreground">
+          <div className="rounded-lg border border-border bg-card p-4">
+            <div className="flex items-center justify-between mb-3 text-xs uppercase tracking-wider text-muted-foreground">
               <span>Market Workspace</span>
               <span>Existing chart overlay adapter · Smart Money · Sessions · Indicators</span>
             </div>
-            <div className="h-[460px] w-full rounded-xl border border-border/20 bg-background/30 flex items-center justify-center text-sm text-muted-foreground relative">
+            <div className="h-[460px] w-full rounded-lg border border-border/20 bg-background/30 flex items-center justify-center text-sm text-muted-foreground relative">
               Professional chart workspace (reuse existing overlay adapter)
-              <div className="absolute bottom-2 left-2 text-[10px]">Candles · Structure · Liquidity · FVG · OB · Sessions · Indicators · Trades</div>
+              <div className="absolute bottom-2 left-2 text-micro">Candles · Structure · Liquidity · FVG · OB · Sessions · Indicators · Trades</div>
             </div>
           </div>
 
           {/* Intelligence / Evidence */}
           <div className="flex flex-col gap-4">
-            <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+            <div className="rounded-lg border border-border bg-card p-4">
               <h3 className="font-bold text-sm mb-2">Intelligence Layer (Phase 7.4)</h3>
               <div className="text-xs space-y-2 text-muted-foreground">
                 <div><strong>Facts</strong> — deterministic engine outputs (SMC / Indicators / MTF / Sessions)</div>
@@ -51,13 +51,13 @@ export default function MarketIntelligenceCommandCenterPage() {
                 <div><strong>Limitations</strong> — OHLC only · replay excludes future data</div>
                 <div><strong>Evidence</strong> — references use real IDs only</div>
               </div>
-              <div className="mt-3 flex gap-1 text-[10px]">
+              <div className="mt-3 flex gap-1 text-micro">
                 <span className="rounded border border-border/30 px-1.5 py-0.5">No confidence scores</span>
                 <span className="rounded border border-border/30 px-1.5 py-0.5">Replay-safe</span>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+            <div className="rounded-lg border border-border bg-card p-4">
               <h3 className="font-bold text-sm mb-2">Smart Money Summary</h3>
               <div className="text-xs text-muted-foreground space-y-1">
                 <div><strong>Structure</strong> — unknown (engine state required)</div>
@@ -66,24 +66,24 @@ export default function MarketIntelligenceCommandCenterPage() {
                 <div><strong>Order Blocks</strong> — not loaded</div>
                 <div><strong>Sessions</strong> — not loaded</div>
               </div>
-              <div className="mt-2 text-[10px] text-amber-300">Only real engine outputs displayed.</div>
+              <div className="mt-2 text-micro text-warning">Only real engine outputs displayed.</div>
             </div>
           </div>
         </div>
 
         {/* Bottom: Replay / Evidence / Quick Actions / Trade Journal / Performance Summary */}
         <div className="grid lg:grid-cols-3 gap-4">
-          <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
-            <div className="flex items-center justify-between mb-3 text-xs font-mono uppercase">
+          <div className="rounded-lg border border-border bg-card p-4">
+            <div className="flex items-center justify-between mb-3 text-xs uppercase">
               <span>Replay Controls</span>
               <span>ReplayEngine reused — future-safe</span>
             </div>
-            <div className="rounded-xl border border-border/20 bg-background/20 p-4 min-h-[100px] flex items-center justify-center text-xs text-muted-foreground">
+            <div className="rounded-lg border border-border/20 bg-background/20 p-4 min-h-[100px] flex items-center justify-center text-xs text-muted-foreground">
               Replay workspace — future candles/events/trades hidden · incremental event generation
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+          <div className="rounded-lg border border-border bg-card p-4">
             <h3 className="font-bold text-sm mb-2">Evidence Chain</h3>
             <div className="text-xs text-muted-foreground space-y-1">
               <div>Market Event → Smart Money → Trade → Backtest → Research</div>
@@ -91,7 +91,7 @@ export default function MarketIntelligenceCommandCenterPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+          <div className="rounded-lg border border-border bg-card p-4">
             <h3 className="font-bold text-sm mb-2">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <a href="/advanced-analysis" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20">Advanced Analysis</a>
@@ -103,27 +103,27 @@ export default function MarketIntelligenceCommandCenterPage() {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-4">
-          <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
-            <div className="flex items-center justify-between mb-3 text-xs font-mono uppercase tracking-wider text-muted-foreground">
+          <div className="rounded-lg border border-border bg-card p-4">
+            <div className="flex items-center justify-between mb-3 text-xs uppercase tracking-wider text-muted-foreground">
               <span>Live Monitor</span>
               <span>Existing data + Smart Money + Indicators + MTF</span>
             </div>
-            <div className="rounded-xl border border-border/20 bg-background/20 p-4 min-h-[100px] text-xs text-muted-foreground">Monitoring uses existing analytics. No new engine.</div>
+            <div className="rounded-lg border border-border/20 bg-background/20 p-4 min-h-[100px] text-xs text-muted-foreground">Monitoring uses existing analytics. No new engine.</div>
           </div>
-          <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+          <div className="rounded-lg border border-border bg-card p-4">
             <h3 className="font-bold text-sm mb-2">Watchlist (Live)</h3>
-            <table className="w-full text-[10px] text-left border-collapse"><thead className="text-[9px] uppercase tracking-wider text-muted-foreground border-b border-border/20"><tr><th>Symbol</th><th>TF</th><th>Data</th><th>Setup</th></tr></thead><tbody className="divide-y divide-white/5"><tr><td>XAUUSD</td><td>M5</td><td>LIVE</td><td>—</td></tr><tr><td>EURUSD</td><td>M15</td><td>LIVE</td><td>—</td></tr></tbody></table>
+            <table className="w-full text-micro text-left border-collapse"><thead className="text-micro uppercase tracking-wider text-muted-foreground border-b border-border/20"><tr><th>Symbol</th><th>TF</th><th>Data</th><th>Setup</th></tr></thead><tbody className="divide-y divide-border/50"><tr><td>XAUUSD</td><td>M5</td><td>LIVE</td><td>—</td></tr><tr><td>EURUSD</td><td>M15</td><td>LIVE</td><td>—</td></tr></tbody></table>
           </div>
-          <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+          <div className="rounded-lg border border-border bg-card p-4">
             <h3 className="font-bold text-sm mb-2">Active Setups</h3>
             <div className="text-xs text-muted-foreground">No setups configured. Create from existing conditions.</div>
           </div>
-          <div className="rounded-2xl border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+          <div className="rounded-lg border border-border bg-card p-4">
             <h3 className="font-bold text-sm mb-2">Setup Memory (Phase 10)</h3>
             <div className="text-xs text-muted-foreground">Persistent lifecycle of monitored setups. Real evidence only. No fabricated predictions or scores.</div>
           </div>
         </div>
-        <div className="rounded-xl border border-border/20 bg-background/30 p-4 text-xs text-muted-foreground">
+        <div className="rounded-lg border border-border/20 bg-background/30 p-4 text-xs text-muted-foreground">
           <strong>Market Intelligence Command Center — Phase 9 Live Monitor</strong> — continuous monitoring uses existing Smart Money / Indicators / MTF / Sessions / Replay / Backtest / Intelligence / Workspace adapters. No replacement analytics or backtest engine. Event normalization and setup evaluation deterministic only. No predictive confidence or auto-trading.
         </div>
       </div>

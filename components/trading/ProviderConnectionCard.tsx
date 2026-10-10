@@ -141,7 +141,7 @@ export default function ProviderConnectionCard({ className }: { className?: stri
       <header className="flex items-center gap-2 border-b border-border px-3 py-2">
         <Server className="size-3.5 text-muted-foreground" />
         <h2 className="text-sm font-semibold">Trading Accounts</h2>
-        <span className="ml-auto rounded border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+        <span className="ml-auto rounded border border-border px-1.5 py-0.5 font-mono text-micro text-muted-foreground">
           DEMO ONLY
         </span>
       </header>
@@ -154,15 +154,15 @@ export default function ProviderConnectionCard({ className }: { className?: stri
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm font-medium">{provider.label}</span>
                 {provider.status === "COMING_SOON" ? (
-                  <span className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  <span className="rounded border border-border bg-muted px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wide text-muted-foreground">
                     Coming Soon
                   </span>
                 ) : (
-                  <span className="rounded border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-500">
+                  <span className="rounded border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wide text-emerald-500">
                     Demo
                   </span>
                 )}
-                <span className="ml-auto font-mono text-[10px] text-muted-foreground">
+                <span className="ml-auto font-mono text-micro text-muted-foreground">
                   {provider.environments.join(" / ")}
                 </span>
               </div>
@@ -170,12 +170,12 @@ export default function ProviderConnectionCard({ className }: { className?: stri
               <p className="mt-1 text-xs text-muted-foreground">{provider.note}</p>
 
               {provider.status === "COMING_SOON" ? (
-                <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <p className="mt-1.5 flex items-center gap-1.5 text-micro text-muted-foreground">
                   <CircleDashed className="size-3" />
                   Not implemented. This provider cannot be connected or executed.
                 </p>
               ) : linked.length === 0 ? (
-                <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <p className="mt-1.5 flex items-center gap-1.5 text-micro text-muted-foreground">
                   <WifiOff className="size-3" />
                   No account connected. Start the AlgoVault Trade Gateway EA on an MT5 demo terminal.
                 </p>
@@ -194,15 +194,15 @@ export default function ProviderConnectionCard({ className }: { className?: stri
                         <span className="font-mono text-xs">
                           {account.externalAccountId ?? account.id}
                         </span>
-                        <span className="text-[11px] text-muted-foreground">
+                        <span className="text-micro text-muted-foreground">
                           {account.brokerName ?? "Unknown broker"} · {account.serverName ?? "unknown server"}
                         </span>
-                        <span className="text-[11px] text-muted-foreground">{style.label}</span>
-                        <span className="ml-auto font-mono text-[10px] text-muted-foreground">
+                        <span className="text-micro text-muted-foreground">{style.label}</span>
+                        <span className="ml-auto font-mono text-micro text-muted-foreground">
                           hb {relative(account.lastHeartbeatAt)}
                           {account.gatewayVersion ? ` · v${account.gatewayVersion}` : ""}
                         </span>
-                        <span className="w-full font-mono text-[11px] text-muted-foreground sm:w-auto">
+                        <span className="w-full font-mono text-micro text-muted-foreground sm:w-auto">
                           bal {money(account.metrics.balance)} · eq {money(account.metrics.equity)} · fm{" "}
                           {money(account.metrics.freeMargin)}
                         </span>
@@ -216,7 +216,7 @@ export default function ProviderConnectionCard({ className }: { className?: stri
         })}
       </div>
 
-      <footer className="flex items-start gap-2 border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
+      <footer className="flex items-start gap-2 border-t border-border px-3 py-2 text-micro text-muted-foreground">
         {error ? (
           <>
             <ShieldAlert className="mt-0.5 size-3 text-amber-500" />

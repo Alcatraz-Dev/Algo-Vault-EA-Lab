@@ -271,7 +271,7 @@ function TeamWorkspaceView(props: WorkspaceProps & { uid: string | null }) {
                             <h1 className="text-lg font-bold tracking-tight">{team.name}</h1>
                             {run ? <StatusBadge tone={runStatusTone as never} label={run.status} dot pulse={isRunning} /> : null}
                         </div>
-                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
+                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-micro">
                             <Badge variant="outline">{team.config.market}</Badge>
                             <Badge variant="outline">Entry {team.config.entryTimeframe}</Badge>
                             <Badge variant="outline">Confirm {team.config.confirmationTimeframe}</Badge>
@@ -288,7 +288,7 @@ function TeamWorkspaceView(props: WorkspaceProps & { uid: string | null }) {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
-                        <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                        <label className="flex items-center gap-1.5 text-micro text-muted-foreground">
                             Mode
                             <select
                                 value={mode}
@@ -304,7 +304,7 @@ function TeamWorkspaceView(props: WorkspaceProps & { uid: string | null }) {
                             </select>
                         </label>
                         {mode !== "live" ? (
-                            <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                            <label className="flex items-center gap-1.5 text-micro text-muted-foreground">
                                 As of
                                 <input
                                     type="datetime-local"
@@ -374,7 +374,7 @@ function TeamWorkspaceView(props: WorkspaceProps & { uid: string | null }) {
                     <div className="rounded-xl border border-border/60 bg-card/60 p-3">
                         <SectionHeader
                             title="Agents"
-                            meta={<span className="text-[10px] text-muted-foreground">{agents.length} members</span>}
+                            meta={<span className="text-micro text-muted-foreground">{agents.length} members</span>}
                         />
                         <ul className="mt-2 space-y-1">
                             {agents.map((agent) => {
@@ -395,7 +395,7 @@ function TeamWorkspaceView(props: WorkspaceProps & { uid: string | null }) {
                                             <AgentStateDot state={state} />
                                             <span className="min-w-0 flex-1">
                                                 <span className="block truncate text-xs font-medium text-foreground">{agent.name}</span>
-                                                <span className="block truncate text-[10px] text-muted-foreground">
+                                                <span className="block truncate text-micro text-muted-foreground">
                                                     {output?.status === "failed"
                                                         ? output.error ?? "failed"
                                                         : output?.summary || stateLabel(state)}
@@ -409,10 +409,10 @@ function TeamWorkspaceView(props: WorkspaceProps & { uid: string | null }) {
 
                         {run?.skipped?.length ? (
                             <div className="mt-3 border-t border-border/50 pt-2">
-                                <p className="text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">Not executed</p>
+                                <p className="text-micro font-semibold tracking-wide text-muted-foreground uppercase">Not executed</p>
                                 <ul className="mt-1 space-y-0.5">
                                     {run.skipped.map((s) => (
-                                        <li key={s.agentId} className="text-[10px] leading-snug text-muted-foreground">
+                                        <li key={s.agentId} className="text-micro leading-snug text-muted-foreground">
                                             {agentById.get(s.agentId)?.name ?? s.agentId}: {s.reason}
                                         </li>
                                     ))}
@@ -437,7 +437,7 @@ function TeamWorkspaceView(props: WorkspaceProps & { uid: string | null }) {
                             icon={<Radio className="size-4" />}
                             meta={
                                 run?.budget ? (
-                                    <span className="hidden text-[10px] text-muted-foreground tabular-nums sm:inline">
+                                    <span className="hidden text-micro text-muted-foreground tabular-nums sm:inline">
                                         {run.budget.agentsExecuted} executed · {run.budget.aiCalls} AI calls
                                     </span>
                                 ) : undefined
@@ -466,7 +466,7 @@ function TeamWorkspaceView(props: WorkspaceProps & { uid: string | null }) {
                             </div>
                         ) : null}
                         {!run ? (
-                            <p className="mt-3 flex items-center gap-1.5 text-center text-[11px] text-muted-foreground justify-center">
+                            <p className="mt-3 flex items-center gap-1.5 text-center text-micro text-muted-foreground justify-center">
                                 <Activity className="size-3.5" /> No run selected. Press “Run analysis” to activate the desk.
                             </p>
                         ) : null}
@@ -485,7 +485,7 @@ function TeamWorkspaceView(props: WorkspaceProps & { uid: string | null }) {
                                             type="button"
                                             onClick={() => item.id && openHistoryRun(String(item.id))}
                                             className={cn(
-                                                "flex w-full items-center justify-between gap-2 rounded border px-2 py-1.5 text-left text-[11px] hover:bg-muted/40",
+                                                "flex w-full items-center justify-between gap-2 rounded border px-2 py-1.5 text-left text-micro hover:bg-muted/40",
                                                 item.id === runId ? "border-primary/50 bg-primary/5" : "border-border/50",
                                             )}
                                         >
@@ -493,9 +493,9 @@ function TeamWorkspaceView(props: WorkspaceProps & { uid: string | null }) {
                                                 {new Date(item.startedAt ?? 0).toLocaleString()} · {item.status}
                                             </span>
                                             <span className="flex shrink-0 items-center gap-1.5">
-                                                <Badge variant="outline" className="text-[9px]">{item.dataMode ?? "live"}</Badge>
+                                                <Badge variant="outline" className="text-micro">{item.dataMode ?? "live"}</Badge>
                                                 {item.setupState ? (
-                                                    <Badge variant="secondary" className="text-[9px]">{item.setupState}</Badge>
+                                                    <Badge variant="secondary" className="text-micro">{item.setupState}</Badge>
                                                 ) : null}
                                             </span>
                                         </button>
@@ -545,7 +545,7 @@ function TeamWorkspaceView(props: WorkspaceProps & { uid: string | null }) {
                                     ))
                                 )}
                                 {chiefOutput && chiefOutput.status !== "completed" ? (
-                                    <p className="rounded border border-warning/40 bg-warning/5 px-2 py-1.5 text-[11px] text-warning">
+                                    <p className="rounded border border-warning/40 bg-warning/5 px-2 py-1.5 text-micro text-warning">
                                         Chief Analyst: {chiefOutput.status === "failed" ? chiefOutput.error ?? "failed" : chiefOutput.summary || chiefOutput.status}
                                     </p>
                                 ) : null}
@@ -562,7 +562,7 @@ function TeamWorkspaceView(props: WorkspaceProps & { uid: string | null }) {
                             description="Execution order, completions and failures"
                             meta={
                                 run?.waves?.length ? (
-                                    <span className="text-[10px] text-muted-foreground">{run.waves.length} wave(s)</span>
+                                    <span className="text-micro text-muted-foreground">{run.waves.length} wave(s)</span>
                                 ) : undefined
                             }
                         />

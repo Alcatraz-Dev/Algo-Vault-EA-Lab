@@ -31,7 +31,7 @@ const GUIDE_STEPS: GuideStep[] = [
   {
     title: "Welcome to Workflow Studio",
     subtitle: "Build, test, and deploy automated trading strategies without writing code.",
-    icon: <Sparkles className="w-8 h-8 text-blue-500" />,
+    icon: <Sparkles className="w-8 h-8 text-info" />,
     content:
       "Workflow Studio provides a visual DAG (Directed Acyclic Graph) canvas powered by React Flow. You can chain market data triggers, technical indicators, risk filters, AI decision routers, and alert channels.",
     tips: [
@@ -43,7 +43,7 @@ const GUIDE_STEPS: GuideStep[] = [
   {
     title: "Configuring Node Parameters",
     subtitle: "Customize indicators, symbols, timeframes, and thresholds.",
-    icon: <SlidersHorizontal className="w-8 h-8 text-amber-500" />,
+    icon: <SlidersHorizontal className="w-8 h-8 text-warning" />,
     content:
       "Clicking any node on the canvas opens the Inspector panel on the right. Here you can edit custom labels, symbols (e.g. XAUUSD), timeframes (M5, H1), indicator periods (RSI period 14, EMA 200), and logic conditions.",
     tips: [
@@ -66,7 +66,7 @@ const GUIDE_STEPS: GuideStep[] = [
   {
     title: "Battle-Tested Workflow Templates",
     subtitle: "Kickstart your strategy with pre-built templates.",
-    icon: <Layers className="w-8 h-8 text-emerald-500" />,
+    icon: <Layers className="w-8 h-8 text-positive" />,
     content:
       "Access pre-configured templates such as Multi-Timeframe RSI Confirmation, Trailing Stop Alert, Volatility Spike Scalper, and Breakout Confirmation.",
     tips: [
@@ -77,7 +77,7 @@ const GUIDE_STEPS: GuideStep[] = [
   {
     title: "Test Execution & Live Deployment",
     subtitle: "Validate safety before going live.",
-    icon: <Play className="w-8 h-8 text-emerald-400" />,
+    icon: <Play className="w-8 h-8 text-positive" />,
     content:
       "Use 'Validate' to check for missing inputs or broken connections. Click 'Run Test' to simulate execution against real-time market snapshots and view live log outputs in the Execution Logs drawer.",
     tips: [
@@ -133,17 +133,17 @@ export function WorkflowGuideTour({ pageKey = "workflow_studio", title = "Page G
         }}
         className="text-xs h-8 gap-1.5 border-border hover:bg-muted font-medium"
       >
-        <HelpCircle size={14} className="text-blue-500" />
+        <HelpCircle size={14} className="text-info" />
         {title}
       </Button>
 
       {/* Guide Dialog Modal */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-xl md:max-w-2xl p-0 overflow-hidden rounded-2xl border border-border">
+        <DialogContent className="w-[95vw] sm:max-w-xl md:max-w-2xl p-0 overflow-hidden rounded-lg border border-border">
           {/* Header */}
           <div className="px-6 pt-5 pb-4 border-b border-border bg-card flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+              <Badge variant="secondary" className="text-micro px-2 py-0.5">
                 Step {stepIndex + 1} of {GUIDE_STEPS.length}
               </Badge>
               <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
@@ -159,9 +159,9 @@ export function WorkflowGuideTour({ pageKey = "workflow_studio", title = "Page G
                   onClick={() => setStepIndex(idx)}
                   className={`w-2 h-2 rounded-full transition-all ${
                     idx === stepIndex
-                      ? "w-6 bg-blue-500"
+                      ? "w-6 bg-info"
                       : idx < stepIndex
-                      ? "bg-blue-500/40"
+                      ? "bg-info/40"
                       : "bg-muted-foreground/30"
                   }`}
                 />
@@ -172,7 +172,7 @@ export function WorkflowGuideTour({ pageKey = "workflow_studio", title = "Page G
           {/* Step Body */}
           <div className="p-6 space-y-5 bg-background">
             <div className="flex items-start gap-4">
-              <div className="p-3 rounded-2xl bg-muted/30 border border-border shrink-0">
+              <div className="p-3 rounded-lg bg-muted/30 border border-border shrink-0">
                 {currentStep.icon}
               </div>
               <div>
@@ -188,12 +188,12 @@ export function WorkflowGuideTour({ pageKey = "workflow_studio", title = "Page G
             {/* Tips section */}
             <div className="rounded-xl border border-border bg-card p-4 space-y-2.5">
               <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                <Info size={14} className="text-blue-500" /> Key Features &amp; Best Practices
+                <Info size={14} className="text-info" /> Key Features &amp; Best Practices
               </div>
               <ul className="space-y-1.5 text-xs text-muted-foreground">
                 {currentStep.tips.map((tip, i) => (
                   <li key={i} className="flex items-start gap-2">
-                    <CheckCircle2 size={13} className="text-emerald-500 shrink-0 mt-0.5" />
+                    <CheckCircle2 size={13} className="text-positive shrink-0 mt-0.5" />
                     <span>{tip}</span>
                   </li>
                 ))}
@@ -220,7 +220,7 @@ export function WorkflowGuideTour({ pageKey = "workflow_studio", title = "Page G
               <Button
                 size="sm"
                 onClick={handleNext}
-                className="text-xs bg-gradient-to-r from-blue-600 to-violet-600 text-white"
+                className="text-xs bg-gradient-to-r from-info to-violet-600 text-white"
               >
                 {stepIndex === GUIDE_STEPS.length - 1 ? (
                   <>

@@ -89,7 +89,7 @@ export default function CorrelationPage() {
                                     <div key={i} className={cn("rounded-lg border p-3", c.concentration > 70 ? "border-rose-500/20 bg-rose-500/[0.03]" : c.concentration > 40 ? "border-amber-500/20 bg-amber-500/[0.03]" : "border-emerald-500/20 bg-emerald-500/[0.03]")}>
                                         <div className="flex items-center justify-between">
                                             <span className="font-mono text-sm font-bold text-foreground">{c.group.replace(/_/g, " ").toUpperCase()}</span>
-                                            <span className={cn("rounded px-2 py-0.5 text-[10px] font-medium", c.concentration > 70 ? "bg-rose-500/10 text-rose-400" : c.concentration > 40 ? "bg-amber-500/10 text-amber-400" : "bg-emerald-500/10 text-emerald-400")}>
+                                            <span className={cn("rounded px-2 py-0.5 text-micro font-medium", c.concentration > 70 ? "bg-rose-500/10 text-rose-400" : c.concentration > 40 ? "bg-amber-500/10 text-amber-400" : "bg-emerald-500/10 text-emerald-400")}>
                                                 {c.concentration}% concentration
                                             </span>
                                         </div>
@@ -110,7 +110,7 @@ export default function CorrelationPage() {
                             <div className="overflow-x-auto">
                                 <table className="w-full text-xs">
                                     <thead>
-                                        <tr className="border-b border-border/20 text-[10px] uppercase text-muted-foreground">
+                                        <tr className="border-b border-border/20 text-micro uppercase text-muted-foreground">
                                             <th className="px-4 py-2.5 text-left">Symbol</th>
                                             <th className="px-4 py-2.5 text-left">Type</th>
                                             <th className="px-4 py-2.5 text-right">Volume</th>

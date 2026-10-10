@@ -45,7 +45,7 @@ export default function IntelligenceCloudOverview() {
             "research:read", "research:create", "strategy:validate", "backtest:create",
             "strategy:read", "journal:read"
           ].map((s) => (
-            <div key={s} className="flex items-center gap-2 px-3 py-2 rounded-md bg-muted"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> <code className="text-xs">{s}</code></div>
+            <div key={s} className="flex items-center gap-2 px-3 py-2 rounded-md bg-muted"><CheckCircle2 className="w-3.5 h-3.5 text-positive" /> <code className="text-xs">{s}</code></div>
           ))}
         </div>
         <p className="text-xs text-muted-foreground">Execution scopes (execution:prepare / approve / live) are separate and disabled by default.</p>
@@ -53,7 +53,7 @@ export default function IntelligenceCloudOverview() {
 
       <section id="sdk" className="border rounded-xl p-6 bg-card space-y-4">
         <h2 className="text-xl font-semibold flex items-center gap-2"><Code2 className="w-5 h-5" /> SDK Concept</h2>
-        <pre className="text-xs bg-slate-950 text-emerald-100 rounded-lg p-4 overflow-x-auto">
+        <pre className="text-xs bg-background text-positive rounded-lg p-4 overflow-x-auto">
 {`const client = createSDK({ apiKey: "av_key_...", baseUrl: "https://api.algovault.io/intelligence/v2" });
 const market = await client.market.intelligence({ symbol: "XAUUSD", timeframe: "5m", context: { smartMoney: true } });
 console.log(market.smartMoney, market.indicators, market.engineVersions);`}
@@ -69,7 +69,7 @@ function Card({ title, icon, desc, endpoint }: { title: string; icon: React.Reac
     <Link href="#" className="block rounded-xl border p-5 bg-card hover:border-foreground/20 transition-colors space-y-2">
       <div className="flex items-center gap-2 text-lg font-semibold">{icon} {title}</div>
       <p className="text-sm text-muted-foreground">{desc}</p>
-      <code className="text-xs text-emerald-600 font-mono">{endpoint}</code>
+      <code className="text-xs text-positive font-mono">{endpoint}</code>
     </Link>
   );
 }

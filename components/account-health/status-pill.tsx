@@ -37,12 +37,12 @@ export function StatusPill({
     return (
         <span
             className={cn(
-                "inline-flex items-center gap-1.5 rounded-md border px-1.5 py-[3px] text-[10px] font-medium leading-none",
+                "inline-flex items-center gap-1.5 rounded-md border px-1.5 py-[3px] text-micro font-medium leading-none",
                 value ? TONE[value] : IDLE,
                 className,
             )}
         >
-            <span className="text-[9px] font-normal opacity-60">{label}</span>
+            <span className="text-micro font-normal opacity-60">{label}</span>
             <span
                 aria-hidden
                 className={cn("h-1.5 w-1.5 shrink-0 rounded-full bg-current", value ? "opacity-90" : "opacity-40")}
@@ -83,7 +83,7 @@ export function NoDataPill({ className }: { className?: string }) {
     return (
         <span
             className={cn(
-                "inline-flex items-center gap-1.5 rounded-md border border-border/40 bg-muted/30 px-1.5 py-[3px] text-[10px] font-medium leading-none text-muted-foreground",
+                "inline-flex items-center gap-1.5 rounded-md border border-border/40 bg-muted/30 px-1.5 py-[3px] text-micro font-medium leading-none text-muted-foreground",
                 className,
             )}
         >

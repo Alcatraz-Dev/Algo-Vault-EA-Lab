@@ -36,7 +36,7 @@ export default function ToolsLandingPage() {
         <div className="min-h-screen bg-background text-foreground">
             <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
                 <header className="mb-10">
-                    <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.04] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                    <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.04] px-2.5 py-1 text-micro font-semibold uppercase tracking-wider text-primary">
                         <Sparkles className="size-3" /> Tool Library
                     </div>
                     <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
@@ -80,7 +80,7 @@ export default function ToolsLandingPage() {
                                     </h2>
                                     <p className="mt-1 text-xs text-muted-foreground">{group.description}</p>
                                 </div>
-                                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                                <span className="text-micro uppercase tracking-wider text-muted-foreground">
                                     {tools.length} tool{tools.length > 1 ? "s" : ""}
                                 </span>
                             </div>
@@ -94,7 +94,7 @@ export default function ToolsLandingPage() {
                     );
                 })}
 
-                <section className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/[0.06] via-card to-primary/[0.02] p-6 sm:p-8">
+                <section className="rounded-lg border border-primary/20 bg-gradient-to-br from-primary/[0.06] via-card to-primary/[0.02] p-6 sm:p-8">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="max-w-2xl">
                             <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground">
@@ -127,7 +127,7 @@ function ToolCard({ tool }: { tool: ToolCatalogEntry }) {
         <Link
             href={tool.href}
             className={cn(
-                "group relative flex flex-col gap-3 rounded-2xl border bg-card p-5 transition-all",
+                "group relative flex flex-col gap-3 rounded-lg border bg-card p-5 transition-all",
                 isPro
                     ? "border-primary/15 hover:border-primary/30 hover:bg-card/80"
                     : "border-border hover:border-primary/20 hover:bg-card/80",
@@ -147,17 +147,17 @@ function ToolCard({ tool }: { tool: ToolCatalogEntry }) {
             </div>
             <ul className="space-y-1.5">
                 {(isPro ? tool.proFeatures : tool.liteFeatures).slice(0, 3).map((f) => (
-                    <li key={f} className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
+                    <li key={f} className="flex items-start gap-1.5 text-micro text-muted-foreground">
                         <span className={cn("mt-1.5 inline-block h-1 w-1 shrink-0 rounded-full", isPro ? "bg-primary" : "bg-muted-foreground/50")} />
                         <span>{f}</span>
                     </li>
                 ))}
             </ul>
             <div className="mt-auto flex items-center justify-between border-t border-border/40 pt-3">
-                <span className={cn("text-[10px] font-semibold uppercase tracking-wider", isPro ? "text-primary" : "text-muted-foreground")}>
+                <span className={cn("text-micro font-semibold uppercase tracking-wider", isPro ? "text-primary" : "text-muted-foreground")}>
                     {isPro ? "Pro" : "Lite"}
                 </span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground transition group-hover:gap-1.5">
+                <span className="inline-flex items-center gap-1 text-micro font-medium text-foreground transition group-hover:gap-1.5">
                     Open <ArrowRight className="size-3" />
                 </span>
             </div>

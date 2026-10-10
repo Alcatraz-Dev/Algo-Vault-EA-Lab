@@ -130,7 +130,7 @@ export default function AdminPluginsPage() {
     return (
         <AdminShell title="Plugins & Extensions" subtitle="Catalog administration, lifecycle and runtime control.">
             {loadError && (
-                <div className="mb-5 flex items-start justify-between gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 p-4">
+                <div className="mb-5 flex items-start justify-between gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-4">
                     <p className="text-sm text-red-300">{loadError}</p>
                     <button type="button" onClick={load} className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-300 transition hover:bg-red-500/20">
                         <RefreshCw size={12} /> Retry
@@ -138,7 +138,7 @@ export default function AdminPluginsPage() {
                 </div>
             )}
             {seedNotice && (
-                <div className="mb-5 flex items-start gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-100">
+                <div className="mb-5 flex items-start gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-100">
                     <CheckCircle2 size={16} className="mt-0.5 shrink-0" />
                     {seedNotice}
                 </div>
@@ -181,7 +181,7 @@ export default function AdminPluginsPage() {
             {loading ? (
                 <div className="grid gap-3">
                     {[1, 2, 3].map((n) => (
-                        <div key={n} className="h-20 animate-pulse rounded-2xl border border-border/30 bg-muted/50" />
+                        <div key={n} className="h-20 animate-pulse rounded-lg border border-border/30 bg-muted/50" />
                     ))}
                 </div>
             ) : records.length === 0 ? (
@@ -191,11 +191,11 @@ export default function AdminPluginsPage() {
                     description="Seed the built-in catalog below to load the 10 plugins and 5 extensions, then manage their lifecycle from here."
                 />
             ) : (
-                <div className="overflow-hidden rounded-2xl border border-border/30 bg-muted/50">
+                <div className="overflow-hidden rounded-lg border border-border/30 bg-muted/50">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
-                                <tr className="border-b border-border/30 text-[11px] uppercase tracking-wide text-muted-foreground">
+                                <tr className="border-b border-border/30 text-micro uppercase tracking-wide text-muted-foreground">
                                     <th className="px-4 py-3">Record</th>
                                     <th className="px-4 py-3">Type</th>
                                     <th className="px-4 py-3">Status</th>
@@ -214,7 +214,7 @@ export default function AdminPluginsPage() {
                                         <tr key={record.id} className="border-b border-border/20 last:border-0 hover:bg-muted/20">
                                             <td className="px-4 py-3">
                                                 <p className="text-sm font-medium text-foreground">{record.displayName}</p>
-                                                <p className="text-[11px] text-muted-foreground">{record.id}</p>
+                                                <p className="text-micro text-muted-foreground">{record.id}</p>
                                             </td>
                                             <td className="px-4 py-3">
                                                 {record.type === "extension" ? (
@@ -270,10 +270,10 @@ export default function AdminPluginsPage() {
 
 function MetricCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
     return (
-        <div className="rounded-2xl border border-border/30 bg-muted/50 p-4">
+        <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
             <div className="flex items-center gap-2 text-muted-foreground">
                 {icon}
-                <span className="text-[11px]">{label}</span>
+                <span className="text-micro">{label}</span>
             </div>
             <p className="mt-2 text-xl font-semibold">{value}</p>
         </div>

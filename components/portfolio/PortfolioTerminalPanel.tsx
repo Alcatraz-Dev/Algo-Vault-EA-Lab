@@ -43,7 +43,7 @@ function Panel({
             <button
                 type="button"
                 onClick={() => onToggle(id)}
-                className="flex w-full items-center gap-1.5 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground transition hover:text-foreground"
+                className="flex w-full items-center gap-1.5 px-3 py-1.5 text-micro font-semibold uppercase tracking-wide text-muted-foreground transition hover:text-foreground"
             >
                 {open ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
                 {title}
@@ -119,10 +119,10 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
         return (
             <div className="p-3">
                 <div className="rounded-md border border-amber-500/30 bg-amber-500/[0.04] p-2.5">
-                    <div className="flex items-center gap-1.5 text-[11px] font-semibold text-amber-400">
+                    <div className="flex items-center gap-1.5 text-micro font-semibold text-amber-400">
                         <ShieldAlert className="size-3" /> Portfolio intelligence unavailable
                     </div>
-                    <p className="mt-1 text-[10px] leading-4 text-muted-foreground">
+                    <p className="mt-1 text-micro leading-4 text-muted-foreground">
                         {message ?? "Reason: portfolio data could not be loaded."} Automated live action is not authorised in
                         this state.
                     </p>
@@ -131,7 +131,7 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
         );
     }
 
-    if (!data) return <p className="p-3 text-[11px] italic text-muted-foreground">No portfolio data.</p>;
+    if (!data) return <p className="p-3 text-micro italic text-muted-foreground">No portfolio data.</p>;
 
     const hasPosition = position.length > 0;
 
@@ -140,14 +140,14 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
             {/* Symbol context header */}
             <div className="border-b border-border px-3 py-2">
                 <div className="flex items-center justify-between">
-                    <span className="font-mono text-[11px] font-semibold text-foreground">
+                    <span className="font-mono text-micro font-semibold text-foreground">
                         {symbolUpper} · {timeframe}
                     </span>
-                    <span className="font-mono text-[9px] text-muted-foreground">
+                    <span className="font-mono text-micro text-muted-foreground">
                         {freshness?.freshness === "STALE" ? "STALE DATA" : freshness?.freshness === "UNAVAILABLE" ? "UNAVAILABLE" : "LIVE"}
                     </span>
                 </div>
-                <p className="mt-0.5 text-[10px] text-muted-foreground">
+                <p className="mt-0.5 text-micro text-muted-foreground">
                     {hasPosition
                         ? `${position.length} open position(s) · ${fmtPct(symbolSlice?.grossWeight ?? 0)} of gross exposure`
                         : "No open position on this symbol."}
@@ -157,7 +157,7 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
             {/* Current position */}
             <Panel title="Current position" defaultOpen id="position" isExpanded={isSectionOpen} onToggle={toggleSection}>
                 {hasPosition ? (
-                    <dl className="space-y-0.5 text-[10px]">
+                    <dl className="space-y-0.5 text-micro">
                         {position.map((p) => (
                             <div key={p.positionId} className="flex items-center justify-between gap-2">
                                 <dt className={cn("font-mono font-semibold", p.side === "LONG" ? "text-emerald-400" : "text-rose-400")}>
@@ -179,13 +179,13 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
                         </div>
                     </dl>
                 ) : (
-                    <p className="text-[10px] italic text-muted-foreground">Nothing open on this symbol.</p>
+                    <p className="text-micro italic text-muted-foreground">Nothing open on this symbol.</p>
                 )}
             </Panel>
 
             {/* Portfolio exposure */}
             <Panel title="Portfolio exposure" id="exposure" isExpanded={isSectionOpen} onToggle={toggleSection}>
-                <dl className="space-y-0.5 text-[10px]">
+                <dl className="space-y-0.5 text-micro">
                     <Row label={`${symbolUpper} weight`} value={fmtPct(symbolSlice?.grossWeight ?? 0)} />
                     <Row label="Portfolio gross" value={fmtMoney(data.grossExposure, data.baseCurrency, 0)} />
                     <Row label="Portfolio net" value={fmtMoney(data.netExposure, data.baseCurrency, 0)} />
@@ -200,13 +200,13 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
             {/* Correlation */}
             <Panel title="Correlated assets" id="correlation" isExpanded={isSectionOpen} onToggle={toggleSection}>
                 {correlations.length === 0 ? (
-                    <p className="text-[10px] italic text-muted-foreground">
+                    <p className="text-micro italic text-muted-foreground">
                         Correlation is UNAVAILABLE for this symbol — no aligned price history. It is not reported as zero.
                     </p>
                 ) : (
                     <ul className="space-y-0.5">
                         {correlations.slice(0, 6).map((c) => (
-                            <li key={c.other} className="flex items-center justify-between gap-2 text-[10px]">
+                            <li key={c.other} className="flex items-center justify-between gap-2 text-micro">
                                 <span className="font-mono text-foreground">{c.other}</span>
                                 <span
                                     className={cn(
@@ -226,14 +226,14 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
                         ))}
                     </ul>
                 )}
-                <p className="mt-1.5 text-[9px] leading-4 text-muted-foreground">
+                <p className="mt-1.5 text-micro leading-4 text-muted-foreground">
                     Measured co-movement over the trailing window. A correlation is not a signal.
                 </p>
             </Panel>
 
             {/* Risk contribution */}
             <Panel title="Risk contribution" id="risk" isExpanded={isSectionOpen} onToggle={toggleSection}>
-                <dl className="space-y-0.5 text-[10px]">
+                <dl className="space-y-0.5 text-micro">
                     <Row label="Cash risk to stop" value={position.reduce((a, p) => a + (p.riskAmount ?? 0), 0) === 0 && !hasPosition ? "unavailable" : fmtMoney(position.reduce((a, p) => a + (p.riskAmount ?? 0), 0), data.baseCurrency, 0)} />
                     <Row label="Portfolio open risk" value={data.risk.openRiskPercent === null ? "unavailable" : `${data.risk.openRiskPercent.toFixed(2)}%`} />
                     <Row
@@ -251,11 +251,11 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
             {/* Related positions */}
             <Panel title="Related positions" id="related" isExpanded={isSectionOpen} onToggle={toggleSection}>
                 {related.length === 0 ? (
-                    <p className="text-[10px] italic text-muted-foreground">No other open positions.</p>
+                    <p className="text-micro italic text-muted-foreground">No other open positions.</p>
                 ) : (
                     <ul className="space-y-0.5">
                         {related.map((p) => (
-                            <li key={p.positionId} className="flex items-center justify-between gap-2 text-[10px]">
+                            <li key={p.positionId} className="flex items-center justify-between gap-2 text-micro">
                                 <span className="font-mono text-foreground">
                                     {p.symbol} <span className="text-muted-foreground">{p.strategyId}</span>
                                 </span>
@@ -279,7 +279,7 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
                                 if (a.run) a.run();
                                 else if (a.toggle) toggleSection(a.toggle);
                             }}
-                            className="rounded border border-border px-1.5 py-1 text-[9px] text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                            className="rounded border border-border px-1.5 py-1 text-micro text-muted-foreground transition hover:bg-muted hover:text-foreground"
                         >
                             {a.label}
                         </button>
@@ -288,14 +288,14 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
                         <button
                             type="button"
                             onClick={onOpenPortfolioAnalysis}
-                            className="rounded border border-primary/40 px-1.5 py-1 text-[9px] text-primary transition hover:bg-primary/10"
+                            className="rounded border border-primary/40 px-1.5 py-1 text-micro text-primary transition hover:bg-primary/10"
                         >
                             Open portfolio analysis
                         </button>
                     ) : null}
                 </div>
                 {precheck.loading ? (
-                    <p className="mt-1.5 flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <p className="mt-1.5 flex items-center gap-1 text-micro text-muted-foreground">
                         <Loader2 className="size-3 animate-spin" /> Running portfolio impact check…
                     </p>
                 ) : precheck.data?.precheck ? (
@@ -303,7 +303,7 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
                         <div className="flex items-center gap-1.5">
                             <span
                                 className={cn(
-                                    "rounded border px-1.5 py-0.5 text-[9px] font-bold tracking-wide",
+                                    "rounded border px-1.5 py-0.5 text-micro font-bold tracking-wide",
                                     precheck.data.precheck.verdict === "TRADE_ACCEPTABLE"
                                         ? "border-emerald-500/40 text-emerald-400"
                                         : precheck.data.precheck.verdict === "TRADE_BLOCKED"
@@ -313,14 +313,14 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
                             >
                                 {precheck.data.precheck.verdict}
                             </span>
-                            <span className="text-[9px] text-muted-foreground">
+                            <span className="text-micro text-muted-foreground">
                                 trade risk {precheck.data.precheck.individualTradeRisk} · portfolio impact{" "}
                                 {precheck.data.precheck.portfolioImpact}
                             </span>
                         </div>
                         <ul className="mt-1 space-y-0.5">
                             {precheck.data.precheck.reasons.slice(0, 4).map((r, i) => (
-                                <li key={i} className="text-[9px] leading-4 text-muted-foreground">
+                                <li key={i} className="text-micro leading-4 text-muted-foreground">
                                     • {r}
                                 </li>
                             ))}

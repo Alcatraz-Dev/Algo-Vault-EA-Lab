@@ -344,11 +344,11 @@ export default function AdminAIAgentsPage() {
                                         <AgentAvatar visualType={agent.visualType} state={agent.enabled === false ? "disabled" : "idle"} size={30} />
                                         <span className="min-w-0 flex-1">
                                             <span className="block truncate text-xs font-medium">{agent.name}</span>
-                                            <span className="block truncate text-[10px] text-muted-foreground">
+                                            <span className="block truncate text-micro text-muted-foreground">
                                                 {agent.category} · v{agent.version}
                                             </span>
                                         </span>
-                                        {agent.overridden ? <Badge variant="secondary" className="text-[9px]">admin</Badge> : null}
+                                        {agent.overridden ? <Badge variant="secondary" className="text-micro">admin</Badge> : null}
                                     </button>
                                 </li>
                             ))}
@@ -371,7 +371,7 @@ export default function AdminAIAgentsPage() {
                                     <AgentAvatar visualType={draft.visualType} state={visualState} size={64} />
                                     <div>
                                         <h2 className="text-base font-bold">{draft.name}</h2>
-                                        <p className="text-[11px] text-muted-foreground ">
+                                        <p className="text-micro text-muted-foreground ">
                                             {draft.id} · v{draft.version} ·{" "}
                                             {draft.builtin ? "built-in" : "admin-managed"}
                                         </p>
@@ -416,7 +416,7 @@ export default function AdminAIAgentsPage() {
                                         key={item.id}
                                         type="button"
                                         onClick={() => setSection(item.id)}
-                                        className={`shrink-0 rounded-md px-2.5 py-1 text-[11px] ${
+                                        className={`shrink-0 rounded-md px-2.5 py-1 text-micro ${
                                             section === item.id ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
                                         }`}
                                     >
@@ -467,7 +467,7 @@ export default function AdminAIAgentsPage() {
                                             value={String(draft.maxRetries ?? 1)}
                                             onChange={(v) => update({ maxRetries: Number(v) })}
                                         />
-                                        <div className="sm:col-span-3 rounded border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground">
+                                        <div className="sm:col-span-3 rounded border border-border/60 bg-muted/30 p-3 text-micro text-muted-foreground">
                                             The orchestrator enforces wave timeouts, run-level budgets and cooperative
                                             cancellation on top of these per-agent limits. Invalid JSON or failed
                                             validation is retried, then the agent fails structurally — never fakes output.
@@ -489,7 +489,7 @@ export default function AdminAIAgentsPage() {
                                     </div>
                                 ) : section === "tools" ? (
                                     <div className="space-y-2">
-                                        <p className="text-[11px] text-muted-foreground">
+                                        <p className="text-micro text-muted-foreground">
                                             Only allow-listed tools can be granted. Custom prompts can never expand this set.
                                         </p>
                                         <div className="flex flex-wrap gap-1.5">
@@ -507,7 +507,7 @@ export default function AdminAIAgentsPage() {
                                                                     : [...draft.tools, tool as never],
                                                             })
                                                         }
-                                                        className={`rounded-full border px-2.5 py-1 text-[10px] ${
+                                                        className={`rounded-full border px-2.5 py-1 text-micro ${
                                                             active ? "border-primary/60 bg-primary/10 text-primary" : "border-border/70 text-muted-foreground"
                                                         }`}
                                                     >
@@ -532,7 +532,7 @@ export default function AdminAIAgentsPage() {
                                     </div>
                                 ) : section === "outputs" ? (
                                     <div className="space-y-2">
-                                        <p className="text-[11px] text-muted-foreground">
+                                        <p className="text-micro text-muted-foreground">
                                             Output contract. Every agent MUST return the shared structured protocol
                                             (summary, observations, evidence, interpretation, stance, confidence,
                                             invalidations, risks, toolsUsed, limitations); this schema declares any
@@ -564,14 +564,14 @@ export default function AdminAIAgentsPage() {
                                             value={draft.requiredSections.join(", ")}
                                             onChange={(v) => update({ requiredSections: v.split(",").map((s) => s.trim()).filter(Boolean) })}
                                         />
-                                        <div className="rounded border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground">
+                                        <div className="rounded border border-border/60 bg-muted/30 p-3 text-micro text-muted-foreground">
                                             Relevance filtering: agents whose activation tags do not match the request
                                             intents are skipped with a reason — a technical-only question will not wake
                                             every agent.
                                         </div>
                                     </div>
                                 ) : section === "memory" ? (
-                                    <div className="space-y-2 text-[11px] text-muted-foreground">
+                                    <div className="space-y-2 text-micro text-muted-foreground">
                                         <p>
                                             Agents do not hold private conversational memory. Durable learning lives in
                                             structured <strong className="text-foreground">team memory</strong>: preferred
@@ -585,7 +585,7 @@ export default function AdminAIAgentsPage() {
                                         </p>
                                     </div>
                                 ) : section === "security" ? (
-                                    <ul className="space-y-1.5 text-[11px] text-muted-foreground">
+                                    <ul className="space-y-1.5 text-micro text-muted-foreground">
                                         <li>• Tool access is limited to the allow-list above; no secret or admin tools exist for agents.</li>
                                         <li>• FACT observations without a dossier reference are demoted to UNKNOWN server-side.</li>
                                         <li>• All AI calls run through the platform router (no provider keys are exposed to agents or clients).</li>
@@ -597,7 +597,7 @@ export default function AdminAIAgentsPage() {
                                     <div className="grid gap-3 sm:grid-cols-3">
                                         <div className="flex items-center gap-3">
                                             <AgentAvatar visualType={draft.visualType} state="analyzing" size={72} />
-                                            <div className="text-[11px] text-muted-foreground">
+                                            <div className="text-micro text-muted-foreground">
                                                 Live preview
                                                 <br />
                                                 (state: analyzing)
@@ -637,15 +637,15 @@ export default function AdminAIAgentsPage() {
                                         {testResult ? (
                                             <div className="grid gap-3 lg:grid-cols-2">
                                                 <div className="rounded border border-border/60 bg-muted/20 p-3">
-                                                    <p className="text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">Input</p>
-                                                    <pre className="mt-1 max-h-48 overflow-auto text-[10px] whitespace-pre-wrap">
+                                                    <p className="text-micro font-semibold tracking-wide text-muted-foreground uppercase">Input</p>
+                                                    <pre className="mt-1 max-h-48 overflow-auto text-micro whitespace-pre-wrap">
                                                         {JSON.stringify(testResult.input, null, 2)}
                                                     </pre>
-                                                    <p className="mt-2 text-[11px] text-muted-foreground">
+                                                    <p className="mt-2 text-micro text-muted-foreground">
                                                         Latency {testResult.latencyMs}ms · provider {testResult.provider ?? "—"} · model{" "}
                                                         {testResult.model ?? "—"}
                                                     </p>
-                                                    <p className="text-[11px] text-muted-foreground">
+                                                    <p className="text-micro text-muted-foreground">
                                                         Validation: {testResult.validation.status}
                                                         {testResult.validation.error ? ` · ${testResult.validation.error}` : ""}
                                                         {testResult.validation.demotedObservations
@@ -653,12 +653,12 @@ export default function AdminAIAgentsPage() {
                                                             : ""}
                                                     </p>
                                                     {testResult.validation.warnings.map((warning, i) => (
-                                                        <p key={i} className="text-[10px] text-warning">{warning}</p>
+                                                        <p key={i} className="text-micro text-warning">{warning}</p>
                                                     ))}
                                                 </div>
                                                 <div className="rounded border border-border/60 bg-muted/20 p-3">
-                                                    <p className="text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">Output</p>
-                                                    <pre className="mt-1 max-h-72 overflow-auto text-[10px] whitespace-pre-wrap">
+                                                    <p className="text-micro font-semibold tracking-wide text-muted-foreground uppercase">Output</p>
+                                                    <pre className="mt-1 max-h-72 overflow-auto text-micro whitespace-pre-wrap">
                                                         {JSON.stringify(testResult.output, null, 2)}
                                                     </pre>
                                                 </div>
@@ -727,7 +727,7 @@ function LabeledInput({
 }) {
     return (
         <label className={`block ${wide ? "sm:col-span-2" : ""}`}>
-            <span className="mb-1 block text-[11px] text-muted-foreground">{label}</span>
+            <span className="mb-1 block text-micro text-muted-foreground">{label}</span>
             {textarea ? (
                 <textarea
                     rows={5}
@@ -762,7 +762,7 @@ function LabeledSelect({
 }) {
     return (
         <label className="block">
-            <span className="mb-1 block text-[11px] text-muted-foreground">{label}</span>
+            <span className="mb-1 block text-micro text-muted-foreground">{label}</span>
             <select
                 value={value}
                 onChange={(e) => onChange(e.target.value)}

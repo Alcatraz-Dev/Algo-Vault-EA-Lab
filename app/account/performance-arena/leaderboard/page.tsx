@@ -125,7 +125,7 @@ export default function AccountLeaderboardPage() {
                 ))}
               </TableBody>
             </Table>
-            <p className="border-t border-border px-4 py-2 text-[11px] text-muted-foreground">{snapshot.disclaimer || ARENA_DISCLAIMERS.leaderboard}</p>
+            <p className="border-t border-border px-4 py-2 text-micro text-muted-foreground">{snapshot.disclaimer || ARENA_DISCLAIMERS.leaderboard}</p>
           </div>
         ) : (
           <p className="rounded-lg border border-border bg-card p-6 text-center text-sm text-muted-foreground">

@@ -18,25 +18,25 @@ export default function ERPNextAdminPanel() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="rounded-xl border bg-card p-4 shadow-sm">
           <div className="text-xs text-muted-foreground">Enabled</div>
-          <div className={`font-bold ${status.enabled ? "text-emerald-600" : "text-rose-600"}`}>{status.enabled ? "Yes" : "No"}</div>
+          <div className={`font-bold ${status.enabled ? "text-positive" : "text-negative"}`}>{status.enabled ? "Yes" : "No"}</div>
         </div>
         <div className="rounded-xl border bg-card p-4 shadow-sm">
           <div className="text-xs text-muted-foreground">Reachable</div>
-          <div className={`font-bold ${status.reachable ? "text-emerald-600" : "text-rose-600"}`}>{status.reachable ? "Yes" : "No"}</div>
+          <div className={`font-bold ${status.reachable ? "text-positive" : "text-negative"}`}>{status.reachable ? "Yes" : "No"}</div>
         </div>
         <div className="rounded-xl border bg-card p-4 shadow-sm">
           <div className="text-xs text-muted-foreground">Pending</div>
-          <div className="font-bold text-amber-600">{status.pendingEvents}</div>
+          <div className="font-bold text-warning">{status.pendingEvents}</div>
         </div>
         <div className="rounded-xl border bg-card p-4 shadow-sm">
           <div className="text-xs text-muted-foreground">Failed</div>
-          <div className={`font-bold ${status.failedEvents > 0 ? "text-rose-600" : "text-emerald-600"}`}>{status.failedEvents}</div>
+          <div className={`font-bold ${status.failedEvents > 0 ? "text-negative" : "text-positive"}`}>{status.failedEvents}</div>
         </div>
       </div>
       <div className="rounded-xl border bg-card p-6 shadow-sm">
         <h3 className="font-semibold mb-2">Status</h3>
         <div className="text-sm text-muted-foreground">Last sync: {status.lastSyncAt ? new Date(status.lastSyncAt).toLocaleString() : "Never"}</div>
-        <div className="mt-4 text-xs text-slate-400">ERPNext is invisible business infrastructure. Trading, AI, licensing and Stripe remain authoritative.</div>
+        <div className="mt-4 text-xs text-muted-foreground">ERPNext is invisible business infrastructure. Trading, AI, licensing and Stripe remain authoritative.</div>
       </div>
     </AdminShell>
   );

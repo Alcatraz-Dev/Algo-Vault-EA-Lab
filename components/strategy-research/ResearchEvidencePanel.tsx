@@ -68,10 +68,10 @@ export default function ResearchEvidencePanel({ symbol }: { symbol: string }) {
     const loading = current.loading;
 
     return (
-        <div className="rounded-xl border bg-card p-5 shadow-sm">
+        <div className="rounded-lg border bg-card p-5">
             <div className="mb-2 flex items-center justify-between">
                 <h2 className="flex items-center gap-2 text-sm font-semibold">
-                    <FlaskConical className="h-4 w-4 text-violet-600" /> Research Similar Strategies
+                    <FlaskConical className="h-4 w-4 text-muted-foreground" /> Research Similar Strategies
                 </h2>
                 <button
                     type="button"
@@ -87,7 +87,7 @@ export default function ResearchEvidencePanel({ symbol }: { symbol: string }) {
                 Strategy Research Engine — read-only; live signals are untouched.
             </p>
 
-            {error ? <p className="text-xs text-amber-600">{error}</p> : null}
+            {error ? <p className="text-xs text-negative">{error}</p> : null}
 
             {rows && rows.length === 0 && !error ? (
                 <p className="text-xs text-muted-foreground">
@@ -106,10 +106,10 @@ export default function ResearchEvidencePanel({ symbol }: { symbol: string }) {
                                 <span className="truncate font-medium">{r.name}</span>
                                 <Badge variant="outline">{r.lifecycle}</Badge>
                             </div>
-                            <div className="mt-0.5 text-[11px] text-muted-foreground">
+                            <div className="mt-0.5 text-micro text-muted-foreground">
                                 {r.timeframe ?? "—"} · {r.direction} · {r.concepts.slice(0, 4).join(", ")}
                             </div>
-                            <div className="mt-0.5 flex flex-wrap gap-x-3 text-[11px] text-muted-foreground">
+                            <div className="mt-0.5 flex flex-wrap gap-x-3 text-micro text-muted-foreground">
                                 {r.backtest ? (
                                     <span>
                                         {r.backtest.totalTrades}T · PF {r.backtest.profitFactor.toFixed(2)} · DD {r.backtest.maxDrawdownPct.toFixed(1)}%
@@ -117,11 +117,11 @@ export default function ResearchEvidencePanel({ symbol }: { symbol: string }) {
                                 ) : null}
                                 {r.outOfSample ? <span>OOS {r.outOfSample.verdict}</span> : null}
                                 {r.score ? <span>score {r.score.total}</span> : null}
-                                {r.warnings > 0 ? <span className="text-amber-600">{r.warnings} warnings</span> : null}
+                                {r.warnings > 0 ? <span className="text-warning">{r.warnings} warnings</span> : null}
                             </div>
                             <Link
                                 href={`/strategy-research/${r.missionId}/${r.candidateId}`}
-                                className="mt-0.5 inline-block text-[11px] text-primary hover:underline"
+                                className="mt-0.5 inline-block text-micro text-primary hover:underline"
                             >
                                 Open lineage →
                             </Link>

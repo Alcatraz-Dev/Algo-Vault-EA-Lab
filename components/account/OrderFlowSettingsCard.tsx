@@ -46,7 +46,7 @@ function NumField({
                 }}
                 className="w-full rounded-xl border border-border bg-muted/50 px-3 py-2 text-sm tabular-nums text-foreground focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-border/50"
             />
-            {hint ? <span className="text-[10px] leading-4 text-muted-foreground">{hint}</span> : null}
+            {hint ? <span className="text-micro leading-4 text-muted-foreground">{hint}</span> : null}
         </label>
     );
 }
@@ -61,13 +61,13 @@ export function OrderFlowSettingsCard() {
     };
 
     return (
-        <div className="rounded-2xl border border-border bg-foreground/[0.035] p-6 backdrop-blur-xl">
+        <div className="rounded-lg border border-border bg-foreground/[0.035] p-6 backdrop-blur-xl">
             <div className="mb-1 flex items-center justify-between gap-2">
                 <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
                     <Activity className="size-4 text-primary" />
                     Order Flow Intelligence
                 </h2>
-                <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                <span className="rounded-full border border-border px-2 py-0.5 text-micro uppercase tracking-wide text-muted-foreground">
                     {ORDER_FLOW_FLAGS["orderFlow.enabled"] ? "Enabled" : "Disabled by flag"}
                 </span>
             </div>
@@ -197,12 +197,12 @@ export function OrderFlowSettingsCard() {
                     <RotateCcw className="size-3" />
                     Reset to defaults
                 </button>
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-micro text-muted-foreground">
                     {savedFlash ? "Saved ✓" : synced ? "Synced to your account" : "Saving to this device until you sign in"}
                 </span>
             </div>
 
-            <p className="mt-4 border-t border-border/60 pt-3 text-[10px] leading-4 text-muted-foreground">
+            <p className="mt-4 border-t border-border/60 pt-3 text-micro leading-4 text-muted-foreground">
                 Current feed provides OHLCV only. True bid/ask delta, footprint, Level 2 liquidity/heatmap and GEX stay
                 explicitly unavailable until a provider with that data is connected — the platform never substitutes
                 estimates for those capabilities.

@@ -75,7 +75,7 @@ export default function WorkflowsPage() {
       navGroups={navGroups}
       title="Workflow Automation"
       subtitle={pro ? "Pro — build trading workflows" : "Upgrade to Pro to create workflows"}
-      eyebrow={pro ? <Badge className="bg-amber-500 text-white hover:bg-amber-600">Pro</Badge> : <Badge variant="outline">Free</Badge>}
+      eyebrow={pro ? <Badge className="bg-warning text-white hover:bg-warning">Pro</Badge> : <Badge variant="outline">Free</Badge>}
     >
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -89,8 +89,8 @@ export default function WorkflowsPage() {
         </div>
 
         {!pro ? (
-          <div className="rounded-2xl border bg-gradient-to-br from-amber-50 to-amber-100/40 dark:from-amber-950/30 dark:to-amber-900/20 p-8 text-center">
-            <Zap className="mx-auto h-10 w-10 text-amber-500 mb-3" />
+          <div className="rounded-lg border bg-gradient-to-br from-warning to-warning/40 dark:from-warning/30 dark:to-warning/20 p-8 text-center">
+            <Zap className="mx-auto h-10 w-10 text-warning mb-3" />
             <h3 className="text-lg font-semibold">Workflow Automation is a Pro feature</h3>
             <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">Build DAG workflows with market data, AI analysis, signals, and execution. Upgrade to Pro for unlimited nodes, schedules, and AI Builder.</p>
             <Link href="/pricing" className="inline-block mt-4"><Button>Upgrade to Pro</Button></Link>
@@ -106,9 +106,9 @@ export default function WorkflowsPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {workflows.map((w) => (
-              <Link key={w.id} href={`/workflows/${w.id}`} className="group block rounded-2xl border bg-card p-5 transition hover:shadow hover:-translate-y-0.5">
+              <Link key={w.id} href={`/workflows/${w.id}`} className="group block rounded-lg border bg-card p-5 transition hover:shadow hover:-translate-y-0.5">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold leading-snug group-hover:text-amber-600 dark:group-hover:text-amber-400">{w.name}</h3>
+                  <h3 className="font-semibold leading-snug group-hover:text-warning dark:group-hover:text-warning">{w.name}</h3>
                    <StatusBadge label={w.status} tone={w.status === "active" ? "positive" : w.status === "paused" ? "warning" : w.status === "disabled" ? "negative" : "neutral"} />
                 </div>
                 <p className="text-xs text-muted-foreground truncate">{w.description || "No description."}</p>
@@ -118,8 +118,8 @@ export default function WorkflowsPage() {
                   <span className="inline-flex items-center gap-1"><CheckCircle2 size={10} /> {w.version}</span>
                 </div>
                 <div className="mt-3 flex gap-2">
-                  <Badge variant="secondary" className="text-[10px]">{w.requiredPermissions?.join(", ") || "none"}</Badge>
-                  {w.schedule?.enabled && <Badge variant="outline" className="text-[10px] text-amber-600 dark:text-amber-400">Scheduled</Badge>}
+                  <Badge variant="secondary" className="text-micro">{w.requiredPermissions?.join(", ") || "none"}</Badge>
+                  {w.schedule?.enabled && <Badge variant="outline" className="text-micro text-warning dark:text-warning">Scheduled</Badge>}
                 </div>
               </Link>
             ))}

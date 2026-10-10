@@ -34,10 +34,10 @@ function StatusBadge({ status }: { status: string }) {
         <span
             className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
                 s === "active"
-                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600"
+                    ? "border-positive/30 bg-positive/10 text-positive"
                     : s === "expired"
-                    ? "border-amber-500/30 bg-amber-500/10 text-amber-400"
-                    : "border-rose-500/30 bg-rose-500/10 text-rose-400"
+                    ? "border-warning/30 bg-warning/10 text-warning"
+                    : "border-negative/30 bg-negative/10 text-negative"
             }`}
         >
             {status.toUpperCase()}
@@ -204,13 +204,13 @@ export default function AdminTradingLicensesPage() {
                             placeholder="Search email, name, or plan..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full rounded-xl border border-border bg-muted pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-emerald-500 focus:outline-none"
+                            className="w-full rounded-xl border border-border bg-muted pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-positive focus:outline-none"
                         />
                     </div>
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="rounded-xl border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-emerald-500 focus:outline-none"
+                        className="rounded-xl border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-positive focus:outline-none"
                     >
                         <option value="all">All Status</option>
                         <option value="active">Active</option>
@@ -230,10 +230,10 @@ export default function AdminTradingLicensesPage() {
             {/* Table */}
             {loading ? (
                 <div className="flex justify-center py-20">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-positive border-t-transparent" />
                 </div>
             ) : filtered.length === 0 ? (
-                <div className="rounded-2xl border border-border bg-card p-12 text-center">
+                <div className="rounded-lg border border-border bg-card p-12 text-center">
                     <Shield
                         size={40}
                         className="mx-auto text-muted-foreground mb-3"
@@ -247,7 +247,7 @@ export default function AdminTradingLicensesPage() {
                     </p>
                 </div>
             ) : (
-                <div className="overflow-hidden rounded-2xl border border-border bg-card">
+                <div className="overflow-hidden rounded-lg border border-border bg-card">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-foreground">
                             <thead className="border-b border-border bg-muted text-xs uppercase font-semibold text-muted-foreground">
@@ -303,7 +303,7 @@ export default function AdminTradingLicensesPage() {
                                                         disabled={
                                                             actionLoading === item.id
                                                         }
-                                                        className="inline-flex items-center gap-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-400 hover:bg-rose-500/20 transition disabled:opacity-50"
+                                                        className="inline-flex items-center gap-1.5 rounded-lg border border-negative/30 bg-negative/10 px-3 py-1.5 text-xs font-semibold text-negative hover:bg-negative/20 transition disabled:opacity-50"
                                                     >
                                                         <Ban size={13} /> Revoke
                                                     </button>
@@ -315,7 +315,7 @@ export default function AdminTradingLicensesPage() {
                                                         disabled={
                                                             actionLoading === item.id
                                                         }
-                                                        className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-500 hover:bg-emerald-500/20 transition disabled:opacity-50"
+                                                        className="inline-flex items-center gap-1.5 rounded-lg border border-positive/30 bg-positive/10 px-3 py-1.5 text-xs font-semibold text-positive hover:bg-positive/20 transition disabled:opacity-50"
                                                     >
                                                         <RotateCcw size={13} /> Reactivate
                                                     </button>
