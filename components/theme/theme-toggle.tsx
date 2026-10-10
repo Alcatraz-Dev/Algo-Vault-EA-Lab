@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 function subscribe(callback: () => void) {
     const observer = new MutationObserver(callback);
@@ -16,12 +17,19 @@ export function isDarkMode(): boolean {
     return !document.documentElement.classList.contains("light");
 }
 
-export default function ThemeToggle() {
+/**
+ * ThemeToggle — theme switch.
+ * `compact` renders the header-chip variant (icon only, same size/surface as the
+ * other topbar controls) so the app shell stays consistent on narrow screens.
+ */
+export default function ThemeToggle({ compact = false }: { compact?: boolean }) {
     const dark = useSyncExternalStore<boolean>(
         subscribe,
         isDarkMode,
         () => true
     );
+
+    const label = dark ? "Switch to light theme" : "Switch to dark theme";
 
     const toggle = () => {
         const next = !dark;
@@ -40,11 +48,17 @@ export default function ThemeToggle() {
         <button
             type="button"
             onClick={toggle}
-            aria-label="Toggle color theme"
-            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border bg-card px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground focus:outline-none focus:ring-0"
+            aria-label={label}
+            title={compact ? label : undefined}
+            className={cn(
+                "inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+                compact
+                    ? "h-10 w-10 shrink-0 justify-center rounded-button border border-border bg-card hover:bg-muted sm:h-9 sm:w-9"
+                    : "h-8 rounded-full border border-border bg-card px-2.5 hover:border-primary/50"
+            )}
         >
-            {dark ? <Sun size={14} /> : <Moon size={14} />}
-            <span>{dark ? "Light" : "Dark"}</span>
+            {dark ? <Sun size={compact ? 16 : 14} /> : <Moon size={compact ? 16 : 14} />}
+            {compact ? null : <span>{dark ? "Light" : "Dark"}</span>}
         </button>
     );
 }

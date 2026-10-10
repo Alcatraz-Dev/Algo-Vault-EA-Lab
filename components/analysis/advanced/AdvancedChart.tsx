@@ -399,7 +399,7 @@ function readPalette() {
         text: read("--muted-foreground", "oklch(0.65 0.02 260)"),
         grid: read("--border", "oklch(0.28 0.01 260)"),
         border: read("--border", "oklch(0.28 0.01 260)"),
-        accent: read("--primary", "#daba6b"),
+        accent: read("--primary", "#de661c"),
         positive: read("--positive", "oklch(0.55 0.18 142)"),
         negative: read("--negative", "oklch(0.577 0.245 27.32)"),
     };

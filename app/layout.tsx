@@ -96,7 +96,7 @@ export const metadata: Metadata = {
       { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
     ],
     other: [
-      { rel: "mask-icon", url: "/logos/logo.png", color: "#daba6b" },
+      { rel: "mask-icon", url: "/logos/logo.png", color: "#de661c" },
     ],
   },
   manifest: "/manifest.webmanifest",

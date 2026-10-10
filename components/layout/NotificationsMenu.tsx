@@ -20,9 +20,11 @@ type AppNotification = {
 
 type NotificationsMenuProps = {
   user: FirebaseUser | null;
+  /** Header-chip variant: matches the other topbar controls (larger touch target on phones). */
+  compact?: boolean;
 };
 
-export function NotificationsMenu({ user }: NotificationsMenuProps) {
+export function NotificationsMenu({ user, compact = false }: NotificationsMenuProps) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -123,7 +125,14 @@ export function NotificationsMenu({ user }: NotificationsMenuProps) {
         onClick={() => setOpen((current) => !current)}
         aria-label={open ? "Notifications" : `Notifications${unreadCount ? ` (${unreadCount} unread)` : ""}`}
         aria-expanded={open}
-        className={cn("h-9 w-9 rounded-button transition-colors", open && "bg-muted")}
+        title={compact ? "Notifications" : undefined}
+        className={cn(
+          "rounded-button transition-colors",
+          compact
+            ? "h-10 w-10 shrink-0 border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground sm:h-9 sm:w-9"
+            : "h-9 w-9",
+          open && "bg-muted"
+        )}
       >
         <Bell size={16} className="text-muted-foreground" />
         {unreadCount > 0 && !open ? (

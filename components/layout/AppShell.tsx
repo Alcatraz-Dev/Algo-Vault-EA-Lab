@@ -418,14 +418,21 @@ export function AppShell({
   // chart keeps its vertical space; every other page gets the full title band.
   const compactHeader = Boolean(fullscreen || hideSidebar);
 
+  // One control language for the whole topbar: hairline chip on the card surface,
+  // muted icon that brightens on hover, a bigger touch target on phones and a
+  // visible keyboard focus ring (DESIGN §14).
+  const controlChip =
+    "h-10 w-10 shrink-0 rounded-button border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 sm:h-9 sm:w-9";
+
   const headerRight = (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1.5 sm:gap-2">
       {headerActions}
+      {/* Command palette: labelled control from md up, icon chip on phones. */}
       <button
         type="button"
         onClick={() => setCommandOpen(true)}
         aria-label="Open command palette"
-        className="hidden h-9 items-center gap-2 rounded-full border border-border bg-muted/40 px-3 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-0 md:inline-flex"
+        className="hidden h-9 items-center gap-2 rounded-pill border border-border bg-card px-3 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:inline-flex"
       >
         <Search size={14} aria-hidden="true" />
         <span>Search</span>
@@ -438,13 +445,13 @@ export function AppShell({
         variant="ghost"
         size="icon"
         onClick={() => setCommandOpen(true)}
-        className="md:hidden"
         aria-label="Open command palette"
+        className={cn("md:hidden", controlChip)}
       >
         <Search size={16} />
       </Button>
-      <NotificationsMenu key={user?.uid ?? "signed-out"} user={user} />
-      <ThemeToggle />
+      <NotificationsMenu key={user?.uid ?? "signed-out"} user={user} compact />
+      <ThemeToggle compact />
       {/* Account menu */}
       <div ref={accountRef} className="relative">
         <Button
@@ -452,13 +459,12 @@ export function AppShell({
           size="icon"
           onClick={() => setAccountOpen((o) => !o)}
           aria-label="Account menu"
-          className={cn(
-            "h-9 w-9 rounded-button transition-colors",
-            accountOpen && "bg-muted"
-          )}
+          aria-expanded={accountOpen}
+          title="Account menu"
+          className={cn(controlChip, accountOpen && "bg-muted text-foreground")}
         >
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-muted-foreground">
-            <User size={12} />
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-muted-foreground sm:h-7 sm:w-7">
+            <User size={13} />
           </span>
         </Button>
         {accountOpen ? (
@@ -579,8 +585,9 @@ export function AppShell({
                   variant="ghost"
                   size="icon"
                   onClick={() => setMobileOpen(true)}
-                  className="lg:hidden"
+                  className={cn("lg:hidden", controlChip)}
                   aria-label="Open navigation menu"
+                  title="Open navigation menu"
                 >
                   <Menu size={16} />
                 </Button>
@@ -592,7 +599,8 @@ export function AppShell({
                   size="icon"
                   onClick={onBack}
                   aria-label="Go back"
-                  className="h-8 w-8 shrink-0 rounded-button border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:h-9 sm:w-9"
+                  title="Go back"
+                  className={controlChip}
                 >
                   <ArrowLeft size={16} aria-hidden="true" />
                 </Button>
