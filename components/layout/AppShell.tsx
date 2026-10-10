@@ -190,7 +190,7 @@ export function AppShell({
   const renderChip = (item: NavItem) => {
     if (item.pro) {
       return (
-        <span className="ml-auto inline-flex h-3 shrink-0 items-center rounded-md border border-primary/30 bg-primary/10 px-0.5 text-[9px] font-bold uppercase leading-none tracking-wide text-foreground">
+        <span className="ml-auto inline-flex h-3 shrink-0 items-center rounded-md border border-primary/30 bg-primary/10 px-1 text-micro font-bold uppercase leading-none tracking-wide text-foreground">
           Pro
         </span>
       );
@@ -205,7 +205,7 @@ export function AppShell({
     return (
       <span
         className={cn(
-          "ml-auto inline-flex h-3 shrink-0 items-center rounded-md border px-0.5 text-[9px] font-bold uppercase leading-none tracking-wide",
+          "ml-auto inline-flex h-3 shrink-0 items-center rounded-md border px-1 text-micro font-bold uppercase leading-none tracking-wide",
           tone
         )}
       >
@@ -384,7 +384,7 @@ export function AppShell({
             value={searchValue}
             onChange={(e) => handleSearch(e.target.value)}
             placeholder="Search navigation…"
-            className="h-7 w-full rounded-full border border-border bg-muted/40 pl-7 pr-2 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+            className="h-7 w-full rounded-full border border-border bg-muted/40 pl-7 pr-2 text-xs placeholder:text-muted-foreground focus:outline-none"
           />
           {searchValue ? (
             <button
@@ -410,7 +410,7 @@ export function AppShell({
         type="button"
         onClick={() => setCommandOpen(true)}
         aria-label="Open command palette"
-        className="hidden h-9 items-center gap-2 rounded-button border border-border bg-muted/40 px-2.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:inline-flex"
+        className="hidden h-9 items-center gap-2 rounded-full border border-border bg-muted/40 px-3 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-0 md:inline-flex"
       >
         <Search size={14} aria-hidden="true" />
         <span>Search</span>

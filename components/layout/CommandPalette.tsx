@@ -187,7 +187,8 @@ function CommandList({
                     aria-activedescendant={filtered[safeIndex] ? `command-item-${safeIndex}` : undefined}
                     aria-autocomplete="list"
                     placeholder="Search pages, tools and settings…"
-                    className="h-12 w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                    style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
+                    className="h-12 w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground border-0 focus:outline-none focus:ring-0"
                 />
                 <kbd className="hidden shrink-0 rounded border border-border bg-muted px-1.5 py-0.5 text-micro font-medium text-muted-foreground sm:block">
                     Esc

@@ -140,6 +140,14 @@ export default function AdminShell({
         : NAV_ITEMS;
 
     const sidebarSearch = (
+        <>
+            <style>{`
+                input[type="search"]::-webkit-search-cancel-button,
+                input[type="search"]::-webkit-search-decoration {
+                    -webkit-appearance: none;
+                    appearance: none;
+                }
+            `}</style>
         <div className="border-b border-border px-3 py-2">
             <div className="relative">
                 <Search
@@ -151,7 +159,7 @@ export default function AdminShell({
                     value={navSearch}
                     onChange={(e) => setNavSearch(e.target.value)}
                     placeholder="Search navigation…"
-                    className="h-7 w-full rounded-md border border-border bg-muted/40 pl-7 pr-7 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                    className="h-7 w-full rounded-full border border-border bg-muted/40 pl-7 pr-7 text-xs placeholder:text-muted-foreground focus:outline-none"
                 />
                 {navSearch ? (
                     <button
@@ -165,6 +173,7 @@ export default function AdminShell({
                 ) : null}
             </div>
         </div>
+        </>
     );
 
     const nav = (
