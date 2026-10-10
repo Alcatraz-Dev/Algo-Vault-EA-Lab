@@ -301,7 +301,7 @@ export default function ProSignalsPage() {
                     <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                         <Link
                             href="/pricing"
-                            className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-button bg-warning px-4 py-2.5 text-sm font-semibold text-warning-foreground transition-colors hover:bg-warning/90"
+                            className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-button bg-warning px-4 py-2.5 text-sm font-semibold text-background transition-colors hover:bg-warning/90"
                         >
                             <Zap className="h-4 w-4 fill-current" />
                             Upgrade to Pro

@@ -5,14 +5,18 @@ import {
   Activity as ActivityIcon,
   AlertTriangle,
   Brain,
+  CalendarClock,
   Check,
+  FileText,
   GitBranch,
   Link2,
+  ListChecks,
   Loader2,
   Plus,
   ShieldCheck,
   Trash2,
   Wallet,
+  Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,8 +36,12 @@ import type {
   CandelActivity,
   CandelApprovalRequest,
   CandelAutomation,
+  CandelJob,
   CandelMemoryEntry,
+  CandelPage,
   CandelPermissions,
+  CandelProposal,
+  CandelToolCall,
 } from "@/lib/candel/types";
 
 /**
@@ -957,6 +965,528 @@ export function ApprovalsPanel({
             </div>
           ) : null}
         </div>
+      </PanelBody>
+    </div>
+  );
+}
+
+// ─── Workspace pages ────────────────────────────────────────────────────────
+
+/** Compact, safe preview of a JSON-ish value (arguments, payloads, results). */
+function summarize(value: unknown, max = 140): string {
+  if (value === undefined || value === null) return "—";
+  if (typeof value === "string") return value.length > max ? `${value.slice(0, max)}…` : value;
+  try {
+    const text = JSON.stringify(value);
+    return text.length > max ? `${text.slice(0, max)}…` : text;
+  } catch {
+    return String(value);
+  }
+}
+
+const TEXTAREA_CLASS =
+  "min-h-24 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm text-foreground transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 dark:bg-input/30";
+
+/**
+ * Workspace pages — the notes, research and plans a Candel keeps. Creation and
+ * deletion are owner-scoped server-side; this panel only ever renders what the
+ * server returned for the selected Candel.
+ */
+export function WorkspacePanel({ candelId }: { candelId: string }) {
+  const [pages, setPages] = useState<CandelPage[] | null>(null);
+  const [error, setError] = useState("");
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const next = await candelApi.workspacePages(candelId);
+        if (!cancelled) {
+          setPages(next);
+          setError("");
+        }
+      } catch (err) {
+        if (!cancelled) setError(candelErrorMessage(err));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [candelId]);
+
+  async function create() {
+    if (!title.trim()) return;
+    setSaving(true);
+    setError("");
+    try {
+      const page = await candelApi.createWorkspacePage(candelId, {
+        title: title.trim(),
+        content: content.trim(),
+      });
+      setPages((prev) => [...(prev ?? []), page]);
+      setOpenId(page.id);
+      setTitle("");
+      setContent("");
+    } catch (err) {
+      setError(candelErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function remove(pageId: string) {
+    try {
+      await candelApi.deleteWorkspacePage(candelId, pageId);
+      setPages((prev) => (prev ?? []).filter((page) => page.id !== pageId));
+    } catch (err) {
+      setError(candelErrorMessage(err));
+    }
+  }
+
+  const list = pages ?? [];
+  const ordered = [...list].sort((a, b) => b.updatedAt - a.updatedAt);
+
+  return (
+    <div className="space-y-4">
+      <SectionHeader
+        icon={<FileText className="size-4" />}
+        title="Workspace"
+        description="Notes, research and plans this Candel keeps between conversations."
+        meta={<span className="text-xs text-muted-foreground">{list.length} pages</span>}
+      />
+
+      <div className="space-y-2 rounded-lg border border-border p-3">
+        <Input
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+          placeholder="Page title (e.g. XAUUSD weekly plan)"
+        />
+        <textarea
+          value={content}
+          onChange={(event) => setContent(event.target.value)}
+          className={TEXTAREA_CLASS}
+          placeholder="What should this page hold? Markdown is fine."
+        />
+        <Button type="button" onClick={() => void create()} disabled={saving || !title.trim()}>
+          {saving ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
+          Create page
+        </Button>
+      </div>
+
+      <PanelBody
+        data={pages}
+        error={error}
+        empty={
+          <EmptyState
+            compact
+            icon={<FileText className="size-4" />}
+            title="No workspace pages"
+            description="Create a page above, or let this Candel save research here as it works."
+          />
+        }
+      >
+        <ul className="divide-y divide-border rounded-lg border border-border">
+          {ordered.map((page) => {
+            const open = openId === page.id;
+            return (
+              <li key={page.id} className="px-3 py-2">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    className="min-w-0 flex-1 text-left"
+                    onClick={() => setOpenId(open ? null : page.id)}
+                  >
+                    <p className="truncate text-sm text-foreground">{page.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      rev {page.revision} · updated {timeAgo(page.updatedAt)}
+                    </p>
+                  </button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    aria-label="Delete workspace page"
+                    onClick={() => void remove(page.id)}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </div>
+                {open ? (
+                  <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-md border border-border bg-muted/40 p-3 text-xs text-foreground">
+                    {page.content || "(empty page)"}
+                  </pre>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+      </PanelBody>
+    </div>
+  );
+}
+
+// ─── Proposals ──────────────────────────────────────────────────────────────
+
+const PROPOSAL_STATUS_VARIANT: Record<
+  CandelProposal["status"],
+  "warning" | "success" | "destructive" | "default" | "outline"
+> = {
+  pending: "warning",
+  approved: "success",
+  executing: "default",
+  executed: "success",
+  rejected: "destructive",
+  failed: "destructive",
+  blocked: "destructive",
+};
+
+const RISK_VARIANT: Record<CandelProposal["riskLevel"], "outline" | "warning" | "destructive"> = {
+  read_only: "outline",
+  low_risk: "outline",
+  user_confirmation: "warning",
+  high_risk: "warning",
+  live_trading: "destructive",
+};
+
+/**
+ * Proposals — the intents a Candel recorded for this user. Read-only: a
+ * proposal becomes an approval request (see the Approvals inbox) before any
+ * live action can happen.
+ */
+export function ProposalsPanel({
+  candelId,
+  reloadKey = 0,
+}: {
+  candelId: string;
+  reloadKey?: number;
+}) {
+  const [proposals, setProposals] = useState<CandelProposal[] | null>(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const next = await candelApi.proposals(candelId);
+        if (!cancelled) {
+          setProposals(next);
+          setError("");
+        }
+      } catch (err) {
+        if (!cancelled) setError(candelErrorMessage(err));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [candelId, reloadKey]);
+
+  const list = proposals ?? [];
+  const ordered = [...list].sort((a, b) => b.proposedAt - a.proposedAt);
+
+  return (
+    <div className="space-y-4">
+      <SectionHeader
+        icon={<ListChecks className="size-4" />}
+        title="Proposals"
+        description="Intents this Candel prepared. Nothing here has touched an account."
+        meta={<span className="text-xs text-muted-foreground">{list.length} total</span>}
+      />
+      <PanelBody
+        data={proposals}
+        error={error}
+        empty={
+          <EmptyState
+            compact
+            icon={<ListChecks className="size-4" />}
+            title="No proposals yet"
+            description="When this Candel prepares a setup or an order intent it will be recorded here."
+          />
+        }
+      >
+        <ul className="divide-y divide-border rounded-lg border border-border">
+          {ordered.map((proposal) => (
+            <li key={proposal.id} className="space-y-1.5 px-3 py-2.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-foreground">{proposal.type}</span>
+                <Badge variant={PROPOSAL_STATUS_VARIANT[proposal.status]}>{proposal.status}</Badge>
+                <Badge variant={RISK_VARIANT[proposal.riskLevel]}>{proposal.riskLevel}</Badge>
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {timeAgo(proposal.proposedAt)}
+                </span>
+              </div>
+              {proposal.reason ? (
+                <p className="text-xs text-muted-foreground">{proposal.reason}</p>
+              ) : null}
+              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                {proposal.contextSymbol ? (
+                  <span>
+                    {proposal.contextSymbol}
+                    {proposal.contextTimeframe ? ` · ${proposal.contextTimeframe}` : ""}
+                  </span>
+                ) : null}
+                <span title="Self-reported by the Candel when it prepared this proposal — not a measured success rate.">model confidence {(proposal.confidence * 100).toFixed(0)}%</span>
+                <span className="truncate">{summarize(proposal.payload)}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </PanelBody>
+    </div>
+  );
+}
+
+// ─── Background jobs ────────────────────────────────────────────────────────
+
+const JOB_STATUS_VARIANT: Record<CandelJob["status"], "outline" | "default" | "success" | "destructive"> = {
+  queued: "outline",
+  running: "default",
+  completed: "success",
+  failed: "destructive",
+  cancelled: "outline",
+};
+
+/**
+ * Background jobs — scheduled work registered for this Candel. Creating a job
+ * only enqueues it; the runner is a separate, server-side concern.
+ */
+export function JobsPanel({ candelId }: { candelId: string }) {
+  const [jobs, setJobs] = useState<CandelJob[] | null>(null);
+  const [error, setError] = useState("");
+  const [name, setName] = useState("");
+  const [cron, setCron] = useState("0 8 * * 1-5");
+  const [action, setAction] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const next = await candelApi.jobs(candelId);
+        if (!cancelled) {
+          setJobs(next);
+          setError("");
+        }
+      } catch (err) {
+        if (!cancelled) setError(candelErrorMessage(err));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [candelId]);
+
+  async function create() {
+    if (!name.trim() || !cron.trim() || !action.trim()) return;
+    setSaving(true);
+    setError("");
+    try {
+      const job = await candelApi.createJob(candelId, {
+        name: name.trim(),
+        cron: cron.trim(),
+        action: action.trim(),
+      });
+      setJobs((prev) => [...(prev ?? []), job]);
+      setName("");
+      setAction("");
+    } catch (err) {
+      setError(candelErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function cancel(jobId: string) {
+    try {
+      await candelApi.deleteJob(candelId, jobId);
+      setJobs((prev) => (prev ?? []).filter((job) => job.id !== jobId));
+    } catch (err) {
+      setError(candelErrorMessage(err));
+    }
+  }
+
+  const list = jobs ?? [];
+
+  return (
+    <div className="space-y-4">
+      <SectionHeader
+        icon={<CalendarClock className="size-4" />}
+        title="Background jobs"
+        description="Work this Candel runs on a schedule, without you asking each time."
+        meta={<span className="text-xs text-muted-foreground">{list.length} registered</span>}
+      />
+
+      <div className="grid gap-2 rounded-lg border border-border p-3 sm:grid-cols-[1fr_0.8fr_1fr_auto]">
+        <Input
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder="Job name"
+        />
+        <Input
+          value={cron}
+          onChange={(event) => setCron(event.target.value)}
+          placeholder="0 8 * * 1-5"
+        />
+        <Input
+          value={action}
+          onChange={(event) => setAction(event.target.value)}
+          placeholder="Action / prompt to run"
+        />
+        <Button
+          type="button"
+          onClick={() => void create()}
+          disabled={saving || !name.trim() || !cron.trim() || !action.trim()}
+        >
+          {saving ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
+          Schedule
+        </Button>
+      </div>
+
+      <PanelBody
+        data={jobs}
+        error={error}
+        empty={
+          <EmptyState
+            compact
+            icon={<CalendarClock className="size-4" />}
+            title="No background jobs"
+            description="Schedule this Candel to run a prompt later — e.g. a morning market brief."
+          />
+        }
+      >
+        <ul className="divide-y divide-border rounded-lg border border-border">
+          {list.map((job) => (
+            <li key={job.id} className="flex items-center gap-3 px-3 py-2">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-sm text-foreground">{job.spec}</span>
+                  <Badge variant={JOB_STATUS_VARIANT[job.status]}>{job.status}</Badge>
+                  {!job.enabled ? <Badge variant="outline">paused</Badge> : null}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {job.lastRunAt ? `last ${timeAgo(job.lastRunAt)} · ` : "never run · "}
+                  next {timeAgo(job.nextRunAt)}
+                  {job.error ? ` · ${job.error}` : ""}
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                aria-label="Cancel job"
+                onClick={() => void cancel(job.id)}
+              >
+                <Trash2 className="size-3.5" />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      </PanelBody>
+    </div>
+  );
+}
+
+// ─── Tool calls ─────────────────────────────────────────────────────────────
+
+const TOOL_STATUS_VARIANT: Record<
+  CandelToolCall["status"],
+  "outline" | "default" | "success" | "destructive"
+> = {
+  pending: "outline",
+  running: "default",
+  completed: "success",
+  failed: "destructive",
+  blocked: "destructive",
+};
+
+/**
+ * Tool calls — the audit of every tool a Candel invoked. Read-only: the server
+ * records these, the panel just proves what a Candel actually did.
+ */
+export function ToolCallsPanel({
+  candelId,
+  reloadKey = 0,
+}: {
+  candelId: string;
+  reloadKey?: number;
+}) {
+  const [calls, setCalls] = useState<CandelToolCall[] | null>(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const next = await candelApi.toolCalls(candelId);
+        if (!cancelled) {
+          setCalls(next);
+          setError("");
+        }
+      } catch (err) {
+        if (!cancelled) setError(candelErrorMessage(err));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [candelId, reloadKey]);
+
+  const list = calls ?? [];
+  const ordered = [...list].sort((a, b) => (b.startedAt ?? 0) - (a.startedAt ?? 0));
+
+  return (
+    <div className="space-y-4">
+      <SectionHeader
+        icon={<Wrench className="size-4" />}
+        title="Tool calls"
+        description="Every tool this Candel invoked, with its permission check and result."
+        meta={<span className="text-xs text-muted-foreground">{list.length} recorded</span>}
+      />
+      <PanelBody
+        data={calls}
+        error={error}
+        empty={
+          <EmptyState
+            compact
+            icon={<Wrench className="size-4" />}
+            title="No tool calls yet"
+            description="When this Candel reaches for market data, memory or an account, the call is recorded here."
+          />
+        }
+      >
+        <ol className="relative space-y-3 border-l border-border pl-4">
+          {ordered.map((call) => (
+            <li key={call.id} className="relative">
+              <span className="absolute -left-[21px] top-1.5 size-1.5 rounded-full bg-muted-foreground" />
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-medium text-foreground">{call.toolName}</span>
+                <Badge variant={TOOL_STATUS_VARIANT[call.status]}>{call.status}</Badge>
+                {call.permissionChecked ? (
+                  <Badge variant="outline">permission checked</Badge>
+                ) : (
+                  <Badge variant="warning">unchecked</Badge>
+                )}
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {timeAgo(call.startedAt)}
+                </span>
+              </div>
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                {summarize(call.arguments)}
+              </p>
+              {call.error ? (
+                <p className="mt-0.5 line-clamp-2 text-xs text-destructive">{call.error}</p>
+              ) : call.result !== undefined ? (
+                <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                  {summarize(call.result)}
+                </p>
+              ) : null}
+            </li>
+          ))}
+        </ol>
       </PanelBody>
     </div>
   );

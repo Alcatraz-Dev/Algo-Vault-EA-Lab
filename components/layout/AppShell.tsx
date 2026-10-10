@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import {
+  ChevronDown,
   LogOut,
   Menu,
   Search,
@@ -33,6 +34,9 @@ export type NavGroup = {
   label: string;
   items: NavItem[];
 };
+
+/** localStorage key holding the labels of collapsed sidebar groups. */
+const NAV_COLLAPSED_KEY = "algovault.nav.collapsed";
 
 /**
  * AppShell — canonical authenticated application shell.
@@ -82,11 +86,63 @@ export function AppShell({
   const [internalNavSearch, setInternalNavSearch] = useState("");
   const searchValue = navSearch !== undefined ? navSearch : internalNavSearch;
   const handleSearch = onNavSearch ?? setInternalNavSearch;
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+  const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => setUser(u));
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      setAuthReady(true);
+    });
     return () => unsub();
   }, []);
+
+  // Restore collapsed sidebar groups from the previous session.
+  useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- one-shot localStorage hydration: SSR has no storage, so the persisted collapsed state must be read after mount. */
+    try {
+      const raw = window.localStorage.getItem(NAV_COLLAPSED_KEY);
+      if (!raw) return;
+      const parsed: unknown = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        setCollapsedGroups(
+          Object.fromEntries(
+            parsed
+              .filter((label): label is string => typeof label === "string")
+              .map((label) => [label, true])
+          )
+        );
+      }
+    } catch {
+      /* ignore malformed or unavailable storage */
+    }
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, []);
+
+  const toggleGroup = (label: string) => {
+    setCollapsedGroups((prev) => {
+      const next = { ...prev, [label]: !prev[label] };
+      try {
+        window.localStorage.setItem(
+          NAV_COLLAPSED_KEY,
+          JSON.stringify(Object.keys(next).filter((key) => next[key]))
+        );
+      } catch {
+        /* ignore write failure */
+      }
+      return next;
+    });
+  };
+
+  // Lock body scroll while the mobile drawer is open.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [mobileOpen]);
 
   useEffect(() => {
     const settingsRef = ref(database, "settings/siteName");
@@ -127,91 +183,170 @@ export function AppShell({
         .filter((group) => group.items.length > 0)
     : navGroups;
 
+  const searching = searchValue.trim().length > 0;
+
+  const renderChip = (item: NavItem) => {
+    if (item.pro) {
+      return (
+        <span className="ml-auto inline-flex h-4 shrink-0 items-center rounded-[4px] border border-primary/30 bg-primary/10 px-1 text-micro font-bold uppercase leading-none tracking-wide text-foreground">
+          Pro
+        </span>
+      );
+    }
+    if (!item.badge) return null;
+    const tone =
+      item.badge.toUpperCase() === "PRO"
+        ? "border-warning/40 bg-warning/10 text-warning-foreground"
+        : item.badge.toUpperCase() === "LITE"
+          ? "border-primary/30 bg-primary/10 text-foreground"
+          : "border-border bg-secondary text-muted-foreground";
+    return (
+      <span
+        className={cn(
+          "ml-auto inline-flex h-4 shrink-0 items-center rounded-[4px] border px-1 text-micro font-bold uppercase leading-none tracking-wide",
+          tone
+        )}
+      >
+        {item.badge}
+      </span>
+    );
+  };
+
   const navInner = (
-    <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4" aria-label="Primary">
+    <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Primary">
       {displayedGroups.length === 0 ? (
         <p className="px-2.5 py-4 text-center text-xs text-muted-foreground">
           No navigation items found
         </p>
       ) : (
-        displayedGroups.map((group) => (
-        <div key={group.label}>
-          <p className="px-2.5 pb-1.5 text-micro font-medium uppercase tracking-wider text-muted-foreground">
-            {group.label}
-          </p>
-          <div className="space-y-0.5">
-            {group.items.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  aria-current={active ? "page" : undefined}
+        displayedGroups.map((group) => {
+          const hasActive = group.items.some((item) => isActive(item.href));
+          // While searching, and for the group holding the current page, keep
+          // the group open regardless of the stored collapsed state.
+          const expanded = searching || hasActive || !collapsedGroups[group.label];
+          return (
+            <div key={group.label} className="py-1">
+              <button
+                type="button"
+                onClick={() => toggleGroup(group.label)}
+                aria-expanded={expanded}
+                className="flex w-full items-center justify-between gap-2 rounded-button px-2.5 py-1 text-micro font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <span>{group.label}</span>
+                <ChevronDown
+                  size={12}
+                  aria-hidden="true"
                   className={cn(
-                    "group/item relative flex h-8 items-center gap-2.5 rounded-button px-2.5 text-xs font-medium transition-colors",
-                    active
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    "shrink-0 transition-transform duration-150 motion-reduce:transition-none",
+                    expanded ? "rotate-0" : "-rotate-90"
                   )}
-                >
-                  <Icon
-                    size={15}
-                    className={cn(
-                      "shrink-0",
-                      active ? "text-primary" : "text-muted-foreground group-hover/item:text-foreground"
-                    )}
-                  />
-                  <span className="truncate">{item.label}</span>
-                  {item.badge ? (
-                    <span
-                      className={cn(
-                        "ml-auto inline-flex h-4 shrink-0 items-center rounded-[4px] border px-1 text-[8px] font-bold uppercase leading-none tracking-wide",
-                        item.badge.toUpperCase() === "PRO"
-                          ? "border-amber-500/40 bg-amber-500/10 text-amber-500"
-                          : item.badge.toUpperCase() === "LITE"
-                            ? "border-primary/30 bg-primary/10 text-primary"
-                            : "border-border bg-secondary text-muted-foreground"
-                      )}
-                    >
-                      {item.badge}
-                    </span>
-                  ) : null}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      ))
-    )}
+                />
+              </button>
+              <div
+                className={cn(
+                  "grid transition-[grid-template-rows,visibility] duration-200 ease-[var(--ease-standard)] motion-reduce:transition-none",
+                  expanded ? "visible grid-rows-[1fr]" : "invisible grid-rows-[0fr]"
+                )}
+              >
+                <div className="overflow-hidden">
+                  <div className="space-y-0.5 pt-0.5">
+                    {group.items.map((item) => {
+                      const Icon = item.icon;
+                      const active = isActive(item.href);
+                      return (
+                        <Link
+                          key={`${group.label}:${item.href}:${item.label}`}
+                          href={item.href}
+                          onClick={() => setMobileOpen(false)}
+                          aria-current={active ? "page" : undefined}
+                          className={cn(
+                            "group/item relative flex h-8 items-center gap-2.5 rounded-button px-2.5 text-xs font-medium transition-colors",
+                            active
+                              ? "bg-primary/10 text-foreground"
+                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          )}
+                        >
+                          {active ? (
+                            <span
+                              aria-hidden="true"
+                              className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-primary"
+                            />
+                          ) : null}
+                          <Icon
+                            size={15}
+                            className={cn(
+                              "shrink-0",
+                              active
+                                ? "text-primary"
+                                : "text-muted-foreground group-hover/item:text-foreground"
+                            )}
+                          />
+                          <span className="truncate">{item.label}</span>
+                          {renderChip(item)}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })
+      )}
     </nav>
   );
 
   const sidebarFooter = (
     <div className="border-t border-border p-3">
-      <div className="flex items-center gap-2.5 rounded-button px-2 py-2">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
-          <User size={15} className="text-muted-foreground" />
+      {!authReady ? (
+        <div className="flex items-center gap-2.5 rounded-button px-2 py-2" aria-hidden="true">
+          <div className="h-8 w-8 shrink-0 rounded-full bg-muted" />
+          <div className="flex-1 space-y-1.5">
+            <div className="h-2.5 w-24 rounded bg-muted" />
+            <div className="h-2 w-32 rounded bg-muted" />
+          </div>
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-body-sm font-medium text-foreground">
-            {user?.displayName || user?.email?.split("@")[0] || "Trader"}
+      ) : user ? (
+        <>
+          <div className="flex items-center gap-2.5 rounded-button px-2 py-2">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
+              <User size={15} className="text-muted-foreground" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-body-sm font-medium text-foreground">
+                {user.displayName || user.email?.split("@")[0] || "Trader"}
+              </p>
+              <p className="truncate text-meta text-muted-foreground">{user.email}</p>
+            </div>
+          </div>
+          <div className="mt-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={handleSignOut}
+            >
+              <LogOut size={13} className="mr-1.5" />
+              Sign out
+            </Button>
+          </div>
+        </>
+      ) : (
+        <div className="rounded-button px-2 py-2">
+          <p className="text-body-sm font-medium text-foreground">Not signed in</p>
+          <p className="mt-0.5 text-meta text-muted-foreground">
+            Sign in to access your account.
           </p>
-          <p className="truncate text-meta text-muted-foreground">{user?.email}</p>
+          <Button
+            variant="default"
+            size="sm"
+            className="mt-2 w-full"
+            onClick={() => router.push("/login")}
+          >
+            Sign in
+          </Button>
         </div>
-      </div>
-      <div className="mt-1">
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full"
-          onClick={handleSignOut}
-        >
-          <LogOut size={13} className="mr-1.5" />
-          Sign out
-        </Button>
-      </div>
+      )}
     </div>
   );
 
@@ -337,13 +472,27 @@ export function AppShell({
       )}
 
       {/* Mobile drawer */}
-      {mobileOpen && !hideSidebar && !fullscreen ? (
-        <div className="fixed inset-0 z-50 flex lg:hidden">
+      {hideSidebar || fullscreen ? null : (
+        <div
+          className={cn(
+            "fixed inset-0 z-50 transition-[visibility] duration-200 motion-reduce:transition-none lg:hidden",
+            mobileOpen ? "visible" : "invisible pointer-events-none"
+          )}
+          aria-hidden={!mobileOpen}
+        >
           <div
-            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+            className={cn(
+              "absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity duration-200 motion-reduce:transition-none",
+              mobileOpen ? "opacity-100" : "opacity-0"
+            )}
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="relative flex w-64 shrink-0 flex-col border-r border-border bg-card">
+          <aside
+            className={cn(
+              "relative flex h-full w-64 shrink-0 flex-col border-r border-border bg-card shadow-lg transition-transform duration-200 ease-[var(--ease-standard)] motion-reduce:transition-none",
+              mobileOpen ? "translate-x-0" : "-translate-x-full"
+            )}
+          >
             <Button
               type="button"
               variant="ghost"
@@ -357,7 +506,7 @@ export function AppShell({
             {sidebarInner}
           </aside>
         </div>
-      ) : null}
+      )}
 
       {/* Content column */}
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
@@ -390,7 +539,7 @@ export function AppShell({
                 </svg>
               </Button>
             ) : null}
-            <div className="min-w-0" data-guide="page-header">
+            <div className="min-w-0">
               {title || eyebrow ? (
                 <div className="flex min-w-0 items-center gap-2">
                   {title ? (

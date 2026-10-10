@@ -67,15 +67,15 @@ function StatusDot({ status, lastHeartbeat }: { status: TradingAccount["status"]
   const isOffline = !isConnected || age > 120;
 
   const dotClass = isConnected && !isUnstable
-    ? "bg-emerald-500"
+    ? "bg-positive"
     : isUnstable
-    ? "bg-yellow-500"
-    : "bg-rose-500";
+    ? "bg-warning"
+    : "bg-negative";
 
   return (
     <span className="relative flex h-2.5 w-2.5">
       {isConnected && !isUnstable && (
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-60" />
       )}
       <span className={cn("relative inline-flex h-2.5 w-2.5 rounded-full", dotClass)} />
     </span>
@@ -93,8 +93,8 @@ function StatItem({
 }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-[11px] text-muted-foreground">{label}</span>
-      <span className={cn("text-sm font-semibold", mono && "font-mono tabular-nums")}>
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className={cn("text-sm font-semibold", mono && "font-numeric")}>
         {value}
       </span>
     </div>
@@ -160,7 +160,7 @@ export default function AccountHeader({
               <span className="text-sm font-semibold">
                 {account.broker}
               </span>
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {account.mt5Account} · {account.server}
               </span>
             </div>
@@ -185,15 +185,15 @@ export default function AccountHeader({
 
           {/* Meta info */}
           <div className="flex flex-col gap-0.5">
-            <span className="text-[11px] text-muted-foreground">Last Update</span>
-            <span className="flex items-center gap-1.5 text-sm font-mono tabular-nums">
+            <span className="text-xs text-muted-foreground">Last Update</span>
+            <span className="flex items-center gap-1.5 text-sm font-numeric">
               <Clock size={12} className="text-muted-foreground" />
               {formatRelativeTime(account.lastHeartbeatAt)}
             </span>
           </div>
 
           <div className="flex flex-col gap-0.5">
-            <span className="text-[11px] text-muted-foreground">Gateway</span>
+            <span className="text-xs text-muted-foreground">Gateway</span>
             <span className="flex items-center gap-1.5 text-sm">
               <Activity size={12} className="text-muted-foreground" />
               v{account.gatewayVersion}
@@ -201,13 +201,13 @@ export default function AccountHeader({
           </div>
 
           <div className="flex flex-col gap-0.5">
-            <span className="text-[11px] text-muted-foreground">Leverage</span>
-            <span className="text-sm font-mono tabular-nums">1:{account.leverage}</span>
+            <span className="text-xs text-muted-foreground">Leverage</span>
+            <span className="text-sm font-numeric">1:{account.leverage}</span>
           </div>
 
           <div className="flex flex-col gap-0.5">
-            <span className="text-[11px] text-muted-foreground">Currency</span>
-            <span className="text-sm font-mono tabular-nums">{account.currency}</span>
+            <span className="text-xs text-muted-foreground">Currency</span>
+            <span className="text-sm font-numeric">{account.currency}</span>
           </div>
         </div>
       </CardContent>

@@ -19,7 +19,7 @@ export type StatusTone =
 
 const TONE_CLASSES: Record<StatusTone, string> = {
   live: "bg-success-muted text-success-foreground border-success/30",
-  active: "bg-accent-muted text-accent border-accent/30",
+  active: "bg-primary/10 text-foreground border-primary/40",
   positive: "bg-success-muted text-success-foreground border-success/30",
   negative: "bg-destructive-muted text-destructive-foreground border-destructive/30",
   warning: "bg-warning-muted text-warning-foreground border-warning/30",
@@ -52,7 +52,7 @@ export function StatusBadge({
   return (
     <span
       className={cn(
-        "inline-flex h-5 items-center gap-1.5 rounded-pill border px-2 py-0.5  text-xs whitespace-nowrap font-medium text-yellow-300",
+        "inline-flex h-5 items-center gap-1.5 rounded-pill border px-2 py-0.5 text-xs font-medium whitespace-nowrap",
         TONE_CLASSES[tone],
         className
       )}

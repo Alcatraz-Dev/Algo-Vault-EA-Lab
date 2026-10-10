@@ -24,6 +24,15 @@ if (!script) {
 // Load .env.local / .env the same way `next dev` does.
 loadEnvConfig(process.cwd());
 
+// When the test surface touches security/auth/monitoring modules we route the
+// firebase-admin family to an in-memory test seam so the authorization
+// gates under test never touch real credentials or the network:
+//   tests/security/route-auth-negative.test.ts
+//   tests/security/fakes.ts
+// Any runner under tests/security/ gets the seam (path-based, so new security
+// suites do not silently fall through to the real SDK).
+const isSecurityTest = script.includes("tests/security/");
+
 const jiti = createJiti(process.cwd(), {
     // Enable tsconfig `paths` resolution ("@/*" → repo root).
     tsconfigPaths: true,
@@ -32,6 +41,16 @@ const jiti = createJiti(process.cwd(), {
     // (e.g. the dashboard widget catalog). Purely additive: files without
     // JSX are parsed exactly as before.
     jsx: true,
+    ...(isSecurityTest
+        ? {
+              alias: {
+                  "firebase-admin": resolve(process.cwd(), "tests/security/firebase-admin-stub.ts"),
+                  "firebase-admin/app": resolve(process.cwd(), "tests/security/firebase-admin-stub.ts"),
+                  "firebase-admin/auth": resolve(process.cwd(), "tests/security/firebase-admin-stub.ts"),
+                  "firebase-admin/database": resolve(process.cwd(), "tests/security/firebase-admin-stub.ts"),
+              },
+          }
+        : {}),
 });
 
 await jiti.import(resolve(process.cwd(), script)).catch((error) => {

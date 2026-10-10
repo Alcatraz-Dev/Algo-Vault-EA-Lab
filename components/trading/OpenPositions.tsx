@@ -187,8 +187,8 @@ export default function OpenPositions({
             <span>Open Positions ({positions.length})</span>
             <span
               className={cn(
-                "font-mono text-sm font-semibold",
-                totalProfit >= 0 ? "text-emerald-500" : "text-rose-500"
+                "font-numeric text-sm font-semibold",
+                totalProfit >= 0 ? "text-positive" : "text-negative"
               )}
             >
               {totalProfit >= 0 ? "+" : ""}${formatNumber(totalProfit)}
@@ -199,7 +199,7 @@ export default function OpenPositions({
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-border text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+                <tr className="border-b border-border text-left text-micro uppercase tracking-wider text-muted-foreground">
                   <th className="py-2 pr-3 font-medium">Symbol</th>
                   <th className="py-2 pr-3 font-medium">Side</th>
                   <th className="py-2 pr-3 text-right font-medium">Volume</th>
@@ -224,40 +224,40 @@ export default function OpenPositions({
                         <span
                           className={cn(
                             "font-semibold",
-                            pos.type === "BUY" ? "text-emerald-500" : "text-rose-500"
+                            pos.type === "BUY" ? "text-positive" : "text-negative"
                           )}
                         >
                           {pos.type}
                         </span>
                       </td>
-                      <td className="py-2 pr-3 text-right font-mono tabular-nums">
+                      <td className="py-2 pr-3 text-right font-numeric">
                         {actionPending ? (
                           <Loader2 className="inline size-3 animate-spin text-muted-foreground" />
                         ) : null}
                         {formatNumber(pos.volume)}
                       </td>
-                      <td className="py-2 pr-3 text-right font-mono tabular-nums">
+                      <td className="py-2 pr-3 text-right font-numeric">
                         {formatNumber(pos.openPrice, 5)}
                       </td>
-                      <td className="py-2 pr-3 text-right font-mono tabular-nums">
+                      <td className="py-2 pr-3 text-right font-numeric">
                         {pos.currentPrice > 0 ? formatNumber(pos.currentPrice, 5) : "—"}
                       </td>
-                      <td className="py-2 pr-3 text-right font-mono tabular-nums text-muted-foreground">
+                      <td className="py-2 pr-3 text-right font-numeric text-muted-foreground">
                         {pos.sl > 0 ? formatNumber(pos.sl, 5) : "—"} /{" "}
                         {pos.tp > 0 ? formatNumber(pos.tp, 5) : "—"}
                       </td>
                       <td
                         className={cn(
-                          "py-2 pr-3 text-right font-mono font-semibold tabular-nums",
-                          pos.profit >= 0 ? "text-emerald-500" : "text-rose-500"
+                          "py-2 pr-3 text-right font-numeric font-semibold",
+                          pos.profit >= 0 ? "text-positive" : "text-negative"
                         )}
                       >
                         {pos.profit >= 0 ? "+" : ""}${formatNumber(pos.profit)}
                       </td>
-                      <td className="py-2 pr-3 text-right font-mono tabular-nums text-muted-foreground">
+                      <td className="py-2 pr-3 text-right font-numeric text-muted-foreground">
                         {pnlPct !== null ? `${pnlPct >= 0 ? "+" : ""}${formatNumber(pnlPct, 1)}%` : "—"}
                       </td>
-                      <td className="py-2 pr-3 text-right font-mono text-muted-foreground">
+                      <td className="py-2 pr-3 text-right font-numeric text-muted-foreground">
                         {pos.ticket}
                       </td>
                       <td className="py-2">
@@ -326,7 +326,7 @@ export default function OpenPositions({
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <label className="text-[11px] font-medium text-muted-foreground">
+              <label className="text-xs font-medium text-muted-foreground">
                 Percentage of position volume (1–100)
               </label>
               <Input
@@ -339,14 +339,14 @@ export default function OpenPositions({
               />
             </div>
             {partialPreview ? (
-              <div className="space-y-1 rounded-none border border-border bg-muted/40 px-3 py-2 text-[11px] leading-4">
+              <div className="space-y-1 rounded-none border border-border bg-muted/40 px-3 py-2 text-xs leading-4">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Open volume</span>
-                  <span className="font-mono font-medium">{formatNumber(partialPreview.pos.volume)} lots</span>
+                  <span className="font-numeric font-medium">{formatNumber(partialPreview.pos.volume)} lots</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Will close</span>
-                  <span className="font-mono font-medium">
+                  <span className="font-numeric font-medium">
                     {partialPreview.roundsToFull
                       ? `${formatNumber(partialPreview.volume)} lots (full close)`
                       : `${formatNumber(partialPreview.volume)} lots`}
@@ -355,16 +355,16 @@ export default function OpenPositions({
                 {!partialPreview.roundsToFull ? (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Will remain</span>
-                    <span className="font-mono font-medium">{formatNumber(partialPreview.remaining)} lots</span>
+                    <span className="font-numeric font-medium">{formatNumber(partialPreview.remaining)} lots</span>
                   </div>
                 ) : null}
-                <p className="pt-1 text-[10px] text-muted-foreground">
+                <p className="pt-1 text-micro text-muted-foreground">
                   Volume-based: realized P/L is the closed volume&apos;s share, reported by the
                   broker. Profit percentage is never used as volume.
                 </p>
               </div>
             ) : (
-              <p className="text-[11px] text-rose-500">Enter a percentage between 1 and 100.</p>
+              <p className="text-xs text-negative">Enter a percentage between 1 and 100.</p>
             )}
           </div>
           <DialogFooter>
@@ -389,7 +389,7 @@ export default function OpenPositions({
           </DialogHeader>
           <div className="space-y-2">
             <div className="space-y-1.5">
-              <label className="text-[11px] font-medium text-muted-foreground">Stop Loss</label>
+              <label className="text-xs font-medium text-muted-foreground">Stop Loss</label>
               <Input
                 type="number"
                 value={modifySL}
@@ -399,7 +399,7 @@ export default function OpenPositions({
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[11px] font-medium text-muted-foreground">Take Profit</label>
+              <label className="text-xs font-medium text-muted-foreground">Take Profit</label>
               <Input
                 type="number"
                 value={modifyTP}
@@ -408,7 +408,7 @@ export default function OpenPositions({
                 step="0.00001"
               />
             </div>
-            <p className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+            <p className="flex items-center gap-1.5 text-micro text-muted-foreground">
               <ShieldAlert size={11} />
               The broker validates stop distance against the live price; a rejected
               modification is reported as-is.

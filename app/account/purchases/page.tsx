@@ -131,7 +131,7 @@ function getLicenseStatus(
         return {
             label: "Active",
             className:
-                "border-emerald-400/20 bg-emerald-400/10 text-emerald-600",
+                "border-positive/30 bg-positive-muted text-positive-foreground",
         };
     }
 
@@ -141,7 +141,7 @@ function getLicenseStatus(
                 ? "Revoked"
                 : "Expired",
         className:
-            "border-red-400/20 bg-red-400/10 text-red-600",
+            "border-negative/30 bg-negative-muted text-negative-foreground",
     };
 }
 
@@ -680,7 +680,7 @@ function PurchasesContent() {
         return (
             <AccountShell title="My Purchases" subtitle="Access your purchased trading products, licenses and EX5 files">
                 <div className="mx-auto flex min-h-screen max-w-3xl items-center justify-center">
-                    <div className="w-full rounded-2xl border border-border bg-muted/40 p-8 text-center">
+                    <div className="w-full rounded-lg border border-border bg-muted/40 p-8 text-center">
                         <Package
                             className="mx-auto mb-5 text-muted-foreground"
                             size={42}
@@ -696,7 +696,7 @@ function PurchasesContent() {
 
                         <Link
                             href="/login?redirect=/account/purchases"
-                            className="mt-6 inline-flex items-center rounded-xl bg-foreground px-5 py-3 text-sm font-medium text-background transition hover:bg-muted"
+                            className="mt-6 inline-flex items-center rounded-md bg-foreground px-5 py-3 text-sm font-medium text-background transition hover:bg-muted"
                         >
                             Sign In
                         </Link>
@@ -721,7 +721,7 @@ function PurchasesContent() {
                 <div className="mb-6 flex justify-end" data-guide="page-header">
                     <Link
                         href="/marketplace"
-                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-muted/40 px-4 py-2.5 text-sm text-foreground transition hover:bg-muted/60 hover:text-foreground"
+                        className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-muted/40 px-4 py-2.5 text-sm text-foreground transition hover:bg-muted/60 hover:text-foreground"
                     >
                         Browse Marketplace
                         <ExternalLink
@@ -735,7 +735,7 @@ function PurchasesContent() {
                 {paymentStatus === "success" &&
                     successOrderId &&
                     verifyingPayment && (
-                        <div className="mb-6 flex items-center gap-3 rounded-xl border border-blue-400/20 bg-blue-400/5 p-4 text-sm text-blue-600">
+                        <div className="mb-6 flex items-center gap-3 rounded-lg border border-info/30 bg-info-muted p-4 text-sm text-info-foreground">
                             <Loader2
                                 size={18}
                                 className="animate-spin"
@@ -755,7 +755,7 @@ function PurchasesContent() {
                             purchase.order.id ===
                             successOrderId
                     ) && (
-                        <div className="mb-6 flex items-center gap-3 rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm text-emerald-600">
+                        <div className="mb-6 flex items-center gap-3 rounded-lg border border-positive/30 bg-positive-muted p-4 text-sm text-positive-foreground">
                             <CheckCircle2
                                 size={18}
                             />
@@ -769,7 +769,7 @@ function PurchasesContent() {
                 {/* Error */}
 
                 {error && (
-                    <div className="mb-6 flex items-start gap-3 rounded-xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-600">
+                    <div className="mb-6 flex items-start gap-3 rounded-lg border border-negative/30 bg-negative-muted p-4 text-sm text-negative-foreground">
                         <AlertCircle
                             size={18}
                             className="mt-0.5 shrink-0"
@@ -802,8 +802,8 @@ function PurchasesContent() {
 
                 {!loading &&
                     purchases.length === 0 && (
-                        <div className="rounded-2xl border border-border bg-muted/30 p-12 text-center">
-                            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-muted/50">
+                        <div className="rounded-lg border border-border bg-muted/30 p-12 text-center">
+                            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg border border-border bg-muted/50">
                                 <Package
                                     size={24}
                                     className="text-muted-foreground"
@@ -820,7 +820,7 @@ function PurchasesContent() {
 
                             <Link
                                 href="/marketplace"
-                                className="mt-6 inline-flex items-center rounded-xl bg-foreground px-5 py-3 text-sm font-medium text-background transition hover:bg-muted"
+                                className="mt-6 inline-flex items-center rounded-md bg-foreground px-5 py-3 text-sm font-medium text-background transition hover:bg-muted"
                             >
                                 Explore Marketplace
                             </Link>
@@ -868,14 +868,14 @@ function PurchasesContent() {
                                             key={
                                                 order.id
                                             }
-                                            className="overflow-hidden rounded-2xl border border-border bg-muted/30"
+                                            className="overflow-hidden rounded-lg border border-border bg-muted/30"
                                         >
                                             {/* Product Header */}
 
                                             <div className="border-b border-border p-6 md:p-7">
                                                 <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                                                     <div className="flex items-start gap-4">
-                                                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-border bg-muted/50">
+                                                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/50">
                                                             <FileCode2
                                                                 size={24}
                                                                 className="text-foreground"
@@ -891,7 +891,7 @@ function PurchasesContent() {
                                                                 </h2>
 
                                                                 <span
-                                                                    className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${status.className}`}
+                                                                    className={`rounded-full border px-2.5 py-1 text-xs font-medium ${status.className}`}
                                                                 >
                                                                     {
                                                                         status.label
@@ -935,7 +935,7 @@ function PurchasesContent() {
                                                     {product?.slug && (
                                                         <Link
                                                             href={`/marketplace/${product.slug}`}
-                                                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm text-foreground transition hover:bg-muted/70 hover:text-foreground"
+                                                            className="inline-flex items-center justify-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm text-foreground transition hover:bg-muted/70 hover:text-foreground"
                                                         >
                                                             View Product
                                                             <ExternalLink
@@ -960,7 +960,7 @@ function PurchasesContent() {
                                                         Payment
                                                     </div>
 
-                                                    <p className="text-sm font-medium text-emerald-600">
+                                                    <p className="text-sm font-medium text-positive">
                                                         Paid
                                                     </p>
 
@@ -992,7 +992,7 @@ function PurchasesContent() {
                                                         License
                                                     </div>
 
-                                                    <p className="truncate font-mono text-xs text-foreground">
+                                                    <p className="truncate font-numeric text-xs text-foreground">
                                                         {license?.licenseKey ||
                                                             "—"}
                                                     </p>
@@ -1038,7 +1038,7 @@ function PurchasesContent() {
                                                         MT5 Account
                                                     </div>
 
-                                                    <p className="font-mono text-sm text-foreground">
+                                                    <p className="font-numeric text-sm text-foreground">
                                                         {license?.mt5Account ||
                                                             "Not bound yet"}
                                                     </p>
@@ -1082,7 +1082,7 @@ function PurchasesContent() {
                                                             );
                                                         }
                                                     }}
-                                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-foreground px-5 py-3 text-sm font-medium text-background transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+                                                    className="inline-flex items-center justify-center gap-2 rounded-md bg-foreground px-5 py-3 text-sm font-medium text-background transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
                                                 >
                                                     {downloading ===
                                                         order.productId ? (
@@ -1115,7 +1115,7 @@ function PurchasesContent() {
 
                 {/* Security Notice */}
 
-                <div className="mt-8 rounded-2xl border border-border bg-muted/30 p-5" data-guide="security">
+                <div className="mt-8 rounded-lg border border-border bg-muted/30 p-5" data-guide="security">
                     <div className="flex items-start gap-3">
                         <ShieldCheck
                             size={19}

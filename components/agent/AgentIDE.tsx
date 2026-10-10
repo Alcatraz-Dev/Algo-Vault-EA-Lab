@@ -348,7 +348,7 @@ export default function AgentIDE() {
                                                 <button
                                                     type="button"
                                                     onClick={() => grant(code)}
-                                                    className="rounded-md bg-positive px-3 py-1.5 text-[11px] font-semibold text-white transition-opacity"
+                                                    className="rounded-md bg-positive px-3 py-1.5 text-[11px] font-semibold text-background transition-opacity"
                                                 >
                                                     Approve
                                                 </button>

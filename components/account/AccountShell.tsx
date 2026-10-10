@@ -1,79 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import ScalpingTerminal from "@/components/live/ScalpingTerminal";
-import {
-  Activity,
-  AlertTriangle,
-  ArrowLeft,
-  BarChart3,
-  Bell,
-  Bot,
-  Brain,
-  Calculator,
-  Calendar,
-  Code,
-  Copy,
-  CreditCard,
-  Crown,
-  DollarSign,
-  FileCode2,
-  FileKey2,
-  FileText,
-  FlaskConical,
-  Gift,
-  GitBranch,
-  Globe,
-  LayoutDashboard,
-  LineChart,
-  LogOut,
-  Menu,
-  MonitorSmartphone,
-  Plug,
-  Radio,
-  Search,
-  Settings,
-  Cpu,
-  RotateCcw,
-  Shield,
-  ShieldCheck,
-  Target,
-  Tag,
-  Trophy,
-  TrendingUp,
-  Users,
-  Wallet,
-  X,
-  Zap,
-  Terminal,
-} from "lucide-react";
-import { signOut, onAuthStateChanged, User } from "firebase/auth";
-import { auth, database } from "@/lib/firebase";
-import { ref, onValue } from "firebase/database";
-import SiteLogo from "@/components/ui/site-logo";
-import { cn } from "@/lib/utils";
-import { AppShell, type NavGroup } from "@/components/layout/AppShell";
+import { usePathname } from "next/navigation";
+import { onAuthStateChanged, type User } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { AppShell } from "@/components/layout/AppShell";
 import { ACCOUNT_NAV } from "./account-nav";
-
-/**
- * Candel workspace navigation. The Candel area is its own product surface, so
- * it gets its own nav group instead of the generic account menu.
- */
-const CANDEL_NAV: NavGroup[] = [
-  {
-    label: "Candels",
-    items: [
-      { href: "/account/candels", label: "My Candels", icon: Bot },
-      { href: "/account/candels/builder", label: "Builder", icon: Zap },
-      { href: "/account/candels/approvals", label: "Approvals", icon: ShieldCheck },
-      { href: "/account/candels/memory", label: "Memory", icon: Brain },
-      { href: "/account/candels/activity", label: "Activity", icon: Activity },
-      { href: "/account/candels/automations", label: "Automations", icon: GitBranch },
-    ],
-  },
-];
+import { CANDEL_NAV } from "@/components/candel/candel-nav";
 
 export default function AccountShell({
   children,
@@ -95,9 +28,7 @@ export default function AccountShell({
   fullscreen?: boolean;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [siteName, setSiteName] = useState("AlgoVault");
   const [navSearch, setNavSearch] = useState("");
 
   useEffect(() => {
@@ -106,20 +37,6 @@ export default function AccountShell({
     });
     return () => unsub();
   }, []);
-
-  useEffect(() => {
-    const settingsRef = ref(database, "settings/siteName");
-    const unsub = onValue(settingsRef, (snap) => {
-      const val = snap.val();
-      if (val && typeof val === "string") setSiteName(val);
-    });
-    return () => unsub();
-  }, []);
-
-  const handleSignOut = async () => {
-    await signOut(auth);
-    router.push("/");
-  };
 
   const headerActions = (
     <div className="flex items-center gap-3">

@@ -223,9 +223,9 @@ function RegisterForm() {
 
                     {/* Register Card */}
                     {referralCode && (
-                        <div className="mb-4 flex items-center gap-3 rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-4 py-3">
-                            <Gift className="h-4 w-4 shrink-0 text-emerald-400" />
-                            <p className="text-xs text-emerald-200/90">
+                        <div className="mb-4 flex items-center gap-3 rounded-lg border border-positive/30 bg-positive-muted px-4 py-3">
+                            <Gift className="h-4 w-4 shrink-0 text-positive" />
+                            <p className="text-xs text-positive-foreground">
                                 You were invited by a friend. Creating your account will credit them with a referral.
                             </p>
                         </div>

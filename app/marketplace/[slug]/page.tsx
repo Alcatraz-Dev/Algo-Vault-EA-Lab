@@ -131,13 +131,13 @@ function MediaGallery({ imageUrl, images, videoUrl }: { imageUrl?: string; image
     if (allImages.length === 0 && !video) return null;
 
     return (
-        <div className="mt-8 rounded-3xl border border-border/30 bg-muted/50 p-6 space-y-6">
+        <div className="mt-8 rounded-lg border border-border/30 bg-muted/50 p-6 space-y-6">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                <Video size={16} className="text-violet-400" /> Media Demonstration & Previews
+                <Video size={16} className="text-primary" /> Media Demonstration & Previews
             </h3>
 
             {video && (
-                <div className="overflow-hidden rounded-2xl border border-border/30 bg-black aspect-video relative">
+                <div className="overflow-hidden rounded-lg border border-border/30 bg-black aspect-video relative">
                     {video.isEmbed ? (
                         <iframe
                             src={video.src}
@@ -155,7 +155,7 @@ function MediaGallery({ imageUrl, images, videoUrl }: { imageUrl?: string; image
             {allImages.length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {allImages.map((img, idx) => (
-                        <div key={idx} className="group overflow-hidden rounded-2xl border border-border/20 bg-muted aspect-video relative">
+                        <div key={idx} className="group overflow-hidden rounded-lg border border-border/20 bg-muted aspect-video relative">
                             {/* eslint-disable-next-html-element-is-necessary */}
                             <img src={img} alt={`Preview ${idx + 1}`} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                         </div>
@@ -413,9 +413,9 @@ export default function ProductDetailsPage() {
 
                     <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_380px]">
 
-                        <div className="h-[600px] animate-pulse rounded-2xl border border-border/30 bg-muted/50" />
+                        <div className="h-[600px] animate-pulse rounded-lg border border-border/30 bg-muted/50" />
 
-                        <div className="h-[400px] animate-pulse rounded-2xl border border-border/30 bg-muted/50" />
+                        <div className="h-[400px] animate-pulse rounded-lg border border-border/30 bg-muted/50" />
 
                     </div>
 
@@ -448,7 +448,7 @@ export default function ProductDetailsPage() {
 
                     <Link
                         href="/marketplace"
-                        className="mt-6 inline-flex items-center gap-2 rounded-xl bg-background px-5 py-3 text-sm font-medium text-foreground"
+                        className="mt-6 inline-flex items-center gap-2 rounded-md bg-background px-5 py-3 text-sm font-medium text-foreground"
                     >
                         <ArrowLeft size={16} />
                         Back to Marketplace
@@ -512,10 +512,10 @@ export default function ProductDetailsPage() {
             <div className="mx-auto max-w-7xl px-6 py-10">
 
                 {/* Product Hero */}
-                <div className="overflow-hidden rounded-3xl border border-border/30 bg-muted/50" data-guide="page-header">
+                <div className="overflow-hidden rounded-lg border border-border/30 bg-muted/50" data-guide="page-header">
 
                     {/* Banner */}
-                    <div className="relative h-64 overflow-hidden bg-gradient-to-br from-white/[0.08] via-background to-foreground md:h-80">
+                    <div className="relative h-64 overflow-hidden bg-muted md:h-80">
 
                         {hasBanner ? (
                             <>
@@ -556,10 +556,10 @@ export default function ProductDetailsPage() {
                                             product={product}
                                             type="icon"
                                             size="lg"
-                                            className="shrink-0 border-border/50 bg-card/60 shadow-2xl backdrop-blur-xl"
+                                            className="shrink-0 border-border/50 bg-card"
                                         />
                                     ) : (
-                                        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-border/30 bg-card/60 shadow-2xl backdrop-blur-xl">
+                                        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-card">
 
                                             {isIndicator || isPineStrategy ? (
                                                 <LineChart
@@ -578,12 +578,12 @@ export default function ProductDetailsPage() {
 
                                         <div className="flex flex-wrap items-center gap-2">
 
-                                            <span className="rounded-lg border border-border/30 bg-background/950 px-2.5 py-1 text-[11px] text-muted-foreground backdrop-blur-md">
+                                            <span className="rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground">
                                                 {productTypeLabel}
                                             </span>
 
                                             {product.platform && (
-                                                <span className="rounded-lg border border-border/30 bg-background/950 px-2.5 py-1 text-[11px] text-muted-foreground backdrop-blur-md">
+                                                <span className="rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground">
                                                     {
                                                         product.platform
                                                     }
@@ -592,7 +592,7 @@ export default function ProductDetailsPage() {
 
                                         </div>
 
-                                        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground drop-shadow-xl md:text-4xl">
+                                        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
                                             {
                                                 product.name
                                             }
@@ -601,12 +601,12 @@ export default function ProductDetailsPage() {
                                         <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                                             <span>by {product.developer || "AlgoVault Team"}</span>
                                             {product.sellerType === "admin" || !product.developerUid ? (
-                                                <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-400">
+                                                <span className="inline-flex items-center gap-1 rounded-full border border-warning/30 bg-warning-muted px-2 py-0.5 text-micro font-medium text-warning-foreground">
                                                     <ShieldCheck size={11} />
                                                     Platform Official
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1 rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-400">
+                                                <span className="inline-flex items-center gap-1 rounded-full border border-info/30 bg-info-muted px-2 py-0.5 text-micro font-medium text-info-foreground">
                                                     <CheckCircle2 size={11} />
                                                     Verified Developer
                                                 </span>
@@ -724,11 +724,11 @@ export default function ProductDetailsPage() {
                     <div>
 
                         {/* Performance */}
-                        <section className="rounded-3xl border border-border/30 bg-muted/50 p-7 md:p-9">
+                        <section className="rounded-lg border border-border/30 bg-muted/50 p-7 md:p-9">
 
                             <div className="flex items-center gap-3">
 
-                                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
 
                                     <BarChart3
                                         size={18}
@@ -858,7 +858,7 @@ export default function ProductDetailsPage() {
 
                             </div>
 
-                            <div className="mt-6 rounded-xl border border-border/30 bg-muted/20 p-4">
+                            <div className="mt-6 rounded-lg border border-border/30 bg-muted/20 p-4">
 
                                 <p className="text-xs leading-6 text-muted-foreground">
                                     Performance figures shown
@@ -885,11 +885,11 @@ export default function ProductDetailsPage() {
                         {/* License */}
                         {product.license
                             ?.required && (
-                                <section className="mt-6 rounded-3xl border border-border/30 bg-muted/50 p-7 md:p-9">
+                                <section className="mt-6 rounded-lg border border-border/30 bg-muted/50 p-7 md:p-9">
 
                                     <div className="flex items-center gap-3">
 
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
 
                                             <CheckCircle2
                                                 size={18}
@@ -939,7 +939,7 @@ export default function ProductDetailsPage() {
                     {/* Purchase Card */}
                     <aside className="lg:sticky lg:top-6 lg:self-start">
 
-                        <div className="rounded-3xl border border-border/30 bg-muted p-6">
+                        <div className="rounded-lg border border-border/30 bg-muted p-6">
 
                             <p className="text-xs text-muted-foreground">
                                 Access
@@ -949,7 +949,7 @@ export default function ProductDetailsPage() {
 
                                 <div>
 
-                                    <span className="text-3xl font-semibold">
+                                    <span className="font-numeric text-3xl font-semibold">
 
                                         {isFree
                                             ? "Free"
@@ -1017,7 +1017,7 @@ export default function ProductDetailsPage() {
                                 disabled={
                                     creatingOrder
                                 }
-                                className="mt-10 flex w-full items-center justify-center gap-2 rounded-xl bg-background px-5 py-3.5 text-sm font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                                className="mt-10 flex w-full items-center justify-center gap-2 rounded-md bg-primary px-5 py-3.5 text-sm font-semibold text-background transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                             >
 
                                 {isFree ? (
@@ -1045,12 +1045,12 @@ export default function ProductDetailsPage() {
                             </button>
 
                             {orderError && (
-                                <p className="mt-3 text-sm text-red-400">
+                                <p className="mt-3 text-sm text-negative">
                                     {orderError}
                                 </p>
                             )}
 
-                            <p className="mt-4 text-center text-[11px] leading-5 text-muted-foreground">
+                            <p className="mt-4 text-center text-xs leading-5 text-muted-foreground">
                                 Secure checkout,
                                 licensing and protected
                                 product delivery are used
@@ -1060,7 +1060,7 @@ export default function ProductDetailsPage() {
                         </div>
 
                         {/* Risk */}
-                        <div className="mt-4 rounded-2xl border border-border/30 bg-muted/50 p-5">
+                        <div className="mt-4 rounded-lg border border-border/30 bg-muted/50 p-5">
 
                             <div className="flex gap-3">
 
@@ -1069,7 +1069,7 @@ export default function ProductDetailsPage() {
                                     className="mt-0.5 shrink-0 text-muted-foreground"
                                 />
 
-                                <p className="text-[11px] leading-5 text-muted-foreground">
+                                <p className="text-xs leading-5 text-muted-foreground">
                                     Trading involves
                                     substantial risk. Past
                                     performance does not
@@ -1100,13 +1100,13 @@ function InfoCard({
     value: string;
 }) {
     return (
-        <div className="rounded-xl border border-border/30 bg-muted/20 p-4">
+        <div className="rounded-lg border border-border/30 bg-muted/20 p-4">
 
             <div className="flex items-center gap-2 text-muted-foreground">
 
                 {icon}
 
-                <span className="text-[11px]">
+                <span className="text-xs">
                     {label}
                 </span>
 
@@ -1130,7 +1130,7 @@ function PerformanceCard({
     value: string;
 }) {
     return (
-        <div className="rounded-xl border border-border/30 bg-muted/20 p-5">
+        <div className="rounded-lg border border-border/30 bg-muted/20 p-5">
 
             <div className="flex items-center gap-2 text-muted-foreground">
 

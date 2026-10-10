@@ -1,4 +1,5 @@
 import type { NavGroup } from "@/components/layout/AppShell";
+import { CANDEL_NAV_ITEMS } from "@/components/candel/candel-nav";
 import {
   Activity,
   AlertTriangle,
@@ -6,7 +7,6 @@ import {
   BarChart3,
   Bell,
   Bot,
-  Brain,
   Calculator,
   Calendar,
   Code,
@@ -99,14 +99,9 @@ export const ACCOUNT_NAV: NavGroup[] = [
     ],
   },
   {
+    // Same list the Candel area uses, so the two sidebars cannot drift apart.
     label: "AI Workspace",
-    items: [
-      { icon: Bot, label: "Candels", href: "/account/candels", badge: "AI" },
-      { icon: FileText, label: "Workspace", href: "/account/candels/workspace" },
-      { icon: Brain, label: "Memory", href: "/account/candels/memory" },
-      { icon: Activity, label: "Activity", href: "/account/candels/activity" },
-      { icon: GitBranch, label: "Automations", href: "/account/candels/automations" },
-    ],
+    items: CANDEL_NAV_ITEMS,
   },
   {
     label: "Intelligence",

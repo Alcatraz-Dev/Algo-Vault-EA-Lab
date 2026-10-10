@@ -27,7 +27,8 @@ export function PageHeader({
         className
       )}
     >
-      <div data-guide="page-header" className="min-w-0">
+      {/* No data-guide here: AppShell/AdminShell topbars own the page-header anchor. */}
+      <div className="min-w-0">
         {eyebrow ? (
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             {eyebrow}

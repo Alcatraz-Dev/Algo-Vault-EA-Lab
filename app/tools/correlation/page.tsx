@@ -14,13 +14,13 @@ type MatrixData = {
 };
 
 function getCorrelationColor(value: number): string {
-    if (value >= 0.7) return "bg-positive/80 text-foreground";
+    if (value >= 0.7) return "bg-positive/80 text-background";
     if (value >= 0.4) return "bg-positive/30 text-positive";
     if (value >= 0.1) return "bg-positive/10 text-positive";
     if (value > -0.1) return "bg-muted text-muted-foreground";
     if (value > -0.4) return "bg-negative/10 text-negative";
     if (value > -0.7) return "bg-negative/30 text-negative";
-    return "bg-negative/80 text-foreground";
+    return "bg-negative/80 text-background";
 }
 
 export default function CorrelationPage() {

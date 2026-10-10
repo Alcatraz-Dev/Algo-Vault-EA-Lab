@@ -487,7 +487,7 @@ function ApprovalCard({ plan, busy, onDecision }: { plan: TradePlan; busy: boole
                             type="button"
                             onClick={() => onDecision("approve")}
                             disabled={busy}
-                            className="inline-flex items-center gap-1.5 rounded-md bg-positive px-4 py-1.5 text-xs font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+                            className="inline-flex items-center gap-1.5 rounded-md bg-positive px-4 py-1.5 text-xs font-semibold text-background transition hover:opacity-90 disabled:opacity-50"
                         >
                             {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
                             Approve &amp; execute

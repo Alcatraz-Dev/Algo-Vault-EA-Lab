@@ -36,6 +36,7 @@
     "test:portfolio": "node scripts/jiti-tsrun.mjs lib/portfolio/__tests__/run-portfolio-tests.ts",
     "test:cross-asset": "node scripts/jiti-tsrun.mjs lib/cross-asset/__tests__/run-cross-asset-tests.ts",
     "test:portfolio-security": "node scripts/jiti-tsrun.mjs lib/portfolio/__tests__/run-portfolio-security-tests.ts",
+    "test:security": "node scripts/jiti-tsrun.mjs tests/security/route-auth-negative.test.ts",
     "test:terminal": "node scripts/jiti-tsrun.mjs lib/terminal/__tests__/run-terminal-tests.ts",
     "test:trading": "node scripts/jiti-tsrun.mjs lib/trading/__tests__/run-trading-tests.ts",
     "test:unified-trading": "node scripts/jiti-tsrun.mjs lib/trading/unified/__tests__/run-unified-trading-tests.ts",

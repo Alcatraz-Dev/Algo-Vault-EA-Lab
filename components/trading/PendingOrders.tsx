@@ -40,10 +40,10 @@ function StatusBadge({ status }: { status: string }) {
       className={cn(
         "border-none",
         s === "active" || s === "placed"
-          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+          ? "bg-positive-muted text-positive-foreground"
           : s === "cancelled"
           ? "bg-muted text-muted-foreground"
-          : "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
+          : "bg-warning-muted text-warning-foreground"
       )}
     >
       {status}
@@ -98,20 +98,20 @@ export default function PendingOrders({
                     className={cn(
                       "font-semibold",
                       order.type.toUpperCase().includes("BUY") || order.type.toUpperCase() === "BUYLIMIT" || order.type.toUpperCase() === "BUYSTOP"
-                        ? "text-emerald-500"
-                        : "text-rose-500"
+                        ? "text-positive"
+                        : "text-negative"
                     )}
                   >
                     {order.type}
                   </span>
                 </TableCell>
-                <TableCell className="text-right font-mono tabular-nums">
+                <TableCell className="text-right font-numeric">
                   {formatNumber(order.volume)}
                 </TableCell>
-                <TableCell className="text-right font-mono tabular-nums">
+                <TableCell className="text-right font-numeric">
                   {formatNumber(order.price, 5)}
                 </TableCell>
-                <TableCell className="text-right font-mono tabular-nums text-muted-foreground">
+                <TableCell className="text-right font-numeric text-muted-foreground">
                   {order.sl > 0 ? formatNumber(order.sl, 5) : "—"} /{" "}
                   {order.tp > 0 ? formatNumber(order.tp, 5) : "—"}
                 </TableCell>

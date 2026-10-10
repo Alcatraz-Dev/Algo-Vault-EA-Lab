@@ -23,12 +23,12 @@ import { CATEGORY_LABELS, EXTENSION_TYPE_LABELS, grantedPermissions, permissionL
 import { StatusBadge } from "@/components/ui/status-badge";
 
 const EXT_TYPE_ICONS: Record<string, React.ReactNode> = {
-    webhook: <Cable size={20} className="text-emerald-300" />,
-    telegram: <Globe size={20} className="text-sky-300" />,
-    discord: <Globe size={20} className="text-indigo-300" />,
-    browser: <Globe size={20} className="text-amber-300" />,
-    tradingview: <Braces size={20} className="text-cyan-300" />,
-    api: <Cable size={20} className="text-violet-300" />,
+    webhook: <Cable size={20} className="text-muted-foreground" />,
+    telegram: <Globe size={20} className="text-muted-foreground" />,
+    discord: <Globe size={20} className="text-muted-foreground" />,
+    browser: <Globe size={20} className="text-muted-foreground" />,
+    tradingview: <Braces size={20} className="text-muted-foreground" />,
+    api: <Cable size={20} className="text-muted-foreground" />,
 };
 
 export default function ExtensionsMarketplacePage() {
@@ -85,7 +85,7 @@ export default function ExtensionsMarketplacePage() {
 
                     <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
                         <div className="max-w-2xl">
-                            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-emerald-400">
+                            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
                                 <Sparkles size={14} />
                                 Plugins &amp; Extensions Ecosystem
                             </div>
@@ -135,13 +135,13 @@ export default function ExtensionsMarketplacePage() {
                 {loading && (
                     <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
                         {[1, 2, 3].map((item) => (
-                            <div key={item} className="h-72 animate-pulse rounded-2xl border border-border/30 bg-muted/50" />
+                            <div key={item} className="h-72 animate-pulse rounded-lg border border-border/30 bg-muted/50" />
                         ))}
                     </div>
                 )}
 
                 {!loading && filtered.length === 0 && (
-                    <div className="rounded-2xl border border-dashed border-border/30 bg-muted/50 px-6 py-20 text-center">
+                    <div className="rounded-lg border border-dashed border-border/30 bg-muted/50 px-6 py-20 text-center">
                         <Puzzle size={40} className="mx-auto text-muted-foreground" />
                         <h2 className="mt-5 text-lg font-medium">No extensions found</h2>
                         <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
@@ -158,7 +158,7 @@ export default function ExtensionsMarketplacePage() {
                     </div>
                 )}
 
-                <div className="mt-10 rounded-2xl border border-border/30 bg-muted/50 p-5">
+                <div className="mt-10 rounded-lg border border-border/30 bg-muted/50 p-5">
                     <div className="flex gap-3">
                         <Shield size={18} className="mt-0.5 shrink-0 text-muted-foreground" />
                         <p className="text-xs leading-6 text-muted-foreground">
@@ -189,15 +189,15 @@ function HubLink({
     return (
         <Link
             href={href}
-            className={`w-full rounded-2xl border p-4 transition sm:w-56 ${
-                active ? "border-emerald-500/40 bg-emerald-500/10" : "border-border/30 bg-muted/50 hover:border-border/50"
+            className={`w-full rounded-lg border p-4 transition sm:w-56 ${
+                active ? "border-primary/40 bg-primary/10" : "border-border/30 bg-muted/50 hover:border-border/50"
             }`}
         >
             <div className="flex items-center gap-2 text-sm font-medium">
                 {icon}
                 {title}
             </div>
-            <p className="mt-1 text-[11px] leading-5 text-muted-foreground">{subtitle}</p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">{subtitle}</p>
         </Link>
     );
 }
@@ -207,24 +207,23 @@ function ExtensionCard({ extension }: { extension: PluginRecord }) {
     const extType = typed.extensionType || "browser";
     const perms = grantedPermissions(extension.permissions);
     return (
-        <article className="group flex flex-col overflow-hidden rounded-2xl border border-border/30 bg-muted/50 transition hover:border-border/50 hover:bg-foreground/8">
-            <div className="relative h-44 overflow-hidden border-b border-border/30 bg-gradient-to-br from-background via-muted to-foreground">
-                <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-emerald-500/10 blur-3xl" />
-                <div className="absolute bottom-0 right-0 h-40 w-40 rounded-full bg-cyan-500/10 blur-3xl" />
+        <article className="group flex flex-col overflow-hidden rounded-lg border border-border/30 bg-card transition hover:border-border/60">
+            <div className="relative h-44 overflow-hidden border-b border-border/30 bg-muted">
+                <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
                 <div className="relative z-10 flex h-full flex-col justify-between p-5">
                     <div className="flex items-start justify-between gap-3">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-border/50 bg-background/75 shadow-xl backdrop-blur-xl">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-border/50 bg-background">
                             {EXT_TYPE_ICONS[extType] || <Puzzle size={20} />}
                         </div>
-                        <span className="rounded-lg border border-border/30 bg-background/70 px-2.5 py-1 text-[11px] font-medium tracking-wide shadow-lg backdrop-blur-md">
+                        <span className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium tracking-wide">
                             {EXTENSION_TYPE_LABELS[extType]}
                         </span>
                     </div>
                     <div>
-                        <span className="inline-block text-[10px] font-semibold uppercase tracking-wider text-emerald-400">
+                        <span className="inline-block text-micro font-semibold uppercase tracking-wider text-positive">
                             Extension
                         </span>
-                        <h2 className="mt-0.5 line-clamp-1 text-lg font-semibold text-foreground drop-shadow-md transition group-hover:text-emerald-300">
+                        <h2 className="mt-0.5 line-clamp-1 text-lg font-semibold text-foreground transition group-hover:text-primary">
                             {extension.displayName}
                         </h2>
                         <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
@@ -243,12 +242,12 @@ function ExtensionCard({ extension }: { extension: PluginRecord }) {
 
                 <div className="mt-4 flex flex-wrap gap-2">
                     {perms.slice(0, 3).map((p) => (
-                        <span key={p} className="rounded-lg bg-muted/5 px-2.5 py-1 text-[11px] text-muted-foreground">
+                        <span key={p} className="rounded-md bg-muted px-2.5 py-1 text-xs text-muted-foreground">
                             {permissionLabel(p)}
                         </span>
                     ))}
                     {perms.length > 3 && (
-                        <span className="rounded-lg bg-muted/5 px-2.5 py-1 text-[11px] text-muted-foreground">
+                        <span className="rounded-md bg-muted px-2.5 py-1 text-xs text-muted-foreground">
                             +{perms.length - 3} more
                         </span>
                     )}
@@ -260,12 +259,12 @@ function ExtensionCard({ extension }: { extension: PluginRecord }) {
                 </div>
 
                 <div className="mt-5 flex items-center justify-between border-t border-border/30 pt-5">
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                         {(extension.capabilities || []).length || 0} capabilities
                     </p>
                     <Link
                         href={`/marketplace/extensions/${extension.slug || extension.id}`}
-                        className="flex items-center gap-2 rounded-xl bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted"
+                        className="flex items-center gap-2 rounded-md border border-border bg-secondary px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted"
                     >
                         View Extension <ArrowRight size={14} />
                     </Link>

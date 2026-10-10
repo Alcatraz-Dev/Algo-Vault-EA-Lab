@@ -153,7 +153,7 @@ Negative cases are exercised by `tests/security/route-auth-negative.test.ts` (ap
 | Checked-in `database.rules.json` audited | Done | Static path listing above |
 | Emulator rules test | BLOCKED | No Firebase credentials in repo; cannot run emulator locally. Exact next step: `firebase login` + `firebase emulators:start --only auth,database`, then run a Jest test with `initializeTestApp` + `getDatabase(emulator)` to assert the new paths |
 | Production rules deployed | BLOCKED | `firebase DeployDatabase` not run in this environment. Exact next step: `firebase deploy --only database` then re-audit `database.rules.json` against live config |
-| Application-layer auth tests | PASS | `npm run test:security` (route-auth-negative) |
+| Application-layer auth tests | PASS | `npm run test:security` (route-auth-negative) → 25/25 checks, exit 0; negative control (one inverted assertion) exits 1 |
 | Integrated trading suites | PASS | trading 32, unified-trading 112/112 |
 
 ## 8. Cache coherence / server-client boundary

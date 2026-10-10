@@ -91,15 +91,31 @@ Phase 2 (tokens + shared components) → Phase 3 (shell) → Phase 4 (terminal) 
 
 ## Phase 2 — Design-system foundation
 
-See the phase report in `RECOVERY_LOG.md` (entry `UI-001`) for files changed and verification.
+Complete. Full report in `RECOVERY_LOG.md` (entry `UI-001`). Summary:
+- Missing tokens added and all semantic colors rebalanced to pass **AA on both themes** (verified via DOM/computed styles against the real OKLCH tints).
+- `--info` changed from grey to blue; `--primary-foreground` changed to dark ink (user-approved) so solid primary fills pass AA while keeping the exact `#ff4d00` orange.
+- `StatusBadge` repaired (was rendering an unstyled yellow pill in 42 files); `FormError`/`FormSuccess` and the admin `*-muted` banners are now legible.
+- Solid semantic fills that carry text now use `text-background`; no function/API changed.
+- Decision recorded: non-primary `*-foreground` tokens are the legible on-tint text color (their only real usage), not solid-pair colors.
 
 ## Phase 3 — Global shell
 
-See `UI-002`.
+Complete. Full report in `RECOVERY_LOG.md` (entry `UI-002`). Summary:
+- Collapsible nav groups (persisted), real Pro/badge chips, fixed signed-out footer, animated mobile drawer + scroll-lock.
+- Single `page-header` guide anchor (removed the `PageHeader` duplicate); single-source Candel nav; dead code removed.
+- Duplicate `/scanner` nav entry already gone; page-body `data-guide` sweep deferred as a bounded follow-up.
 
 ## Phase 4 — Pro Terminal
 
-See `UI-003`.
+First slice complete (`UI-003`): `AccountPanel`, `OpenPositions`, `PendingOrders`, `AccountHeader` moved to semantic tokens + `font-numeric` + allowed micro type (335 terminal + 32 trading tests green). Chart engine and wider layout untouched by rule.
+
+## Phase 5 — Marketplace / Candel / Account / Admin
+
+Complete for the premium-SaaS scope (`UI-004`, `UI-005`):
+- **Marketplace** (list, detail, plugins, extensions): one calm card system, semantic tokens, type floor, `font-numeric` money/stats, single `primary/10` brand wash; orange spent only on title hover + solid Buy Now CTA. Vendor data shown as-is with "—" fallbacks; developer-results disclaimer kept.
+- **Candel**: panels already drift-clean; proposal confidence relabeled "model confidence" + self-reported tooltip (no fake meters).
+- **Account**: purchases/licenses onto semantic status tokens; **Auth**: login/register notices to AA positive tokens.
+- Untouched by rule: Stripe/licensing/entitlement logic, Candel data flow, chart engine. Admin tables remain a tracked follow-up (operational, no fake data added).
 
 ## Phase 5 — Marketplace / Candel / Account / Admin
 

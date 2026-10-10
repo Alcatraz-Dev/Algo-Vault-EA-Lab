@@ -110,14 +110,14 @@ export function AccountPanel() {
                             onClick={() => setTab(t.id)}
                             aria-pressed={active}
                             className={cn(
-                                "inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium transition",
+                                "inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition",
                                 active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
                             )}
                         >
                             <Icon className="size-3" />
                             {t.label}
                             {t.id !== "account" ? (
-                                <span className="font-mono text-[10px] text-muted-foreground">
+                                <span className="font-numeric text-micro text-muted-foreground">
                                     {counts[t.id as "positions" | "orders"]}
                                 </span>
                             ) : null}
@@ -128,11 +128,11 @@ export function AccountPanel() {
                 <span className="ml-auto flex items-center gap-1.5">
                     <span
                         className={cn(
-                            "rounded border px-1.5 py-0.5 text-[9px] font-bold tracking-wider",
+                            "rounded border px-1.5 py-0.5 text-micro font-bold tracking-wider",
                             state.accountMode === "live"
-                                ? "border-rose-500/50 bg-rose-500/10 text-rose-400"
+                                ? "border-negative/40 bg-negative-muted text-negative-foreground"
                                 : state.accountMode === "paper"
-                                  ? "border-sky-500/50 bg-sky-500/10 text-sky-400"
+                                  ? "border-info/40 bg-info-muted text-info-foreground"
                                   : "border-border text-muted-foreground"
                         )}
                     >
@@ -141,7 +141,7 @@ export function AccountPanel() {
                     {!hasAccount && !data.accountLoading ? (
                         <Link
                             href="/account/trading-access"
-                            className="inline-flex items-center gap-1 rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground transition hover:bg-muted"
+                            className="inline-flex items-center gap-1 rounded border border-border px-1.5 py-0.5 text-micro text-muted-foreground transition hover:bg-muted"
                         >
                             Connect account <ExternalLink className="size-2.5" />
                         </Link>
@@ -164,7 +164,7 @@ export function AccountPanel() {
                     ) : (
                         <>
                             {actionError ? (
-                                <div className="mb-3 flex items-start justify-between gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+                                <div className="mb-3 flex items-start justify-between gap-2 rounded-lg border border-warning/30 bg-warning-muted px-3 py-2 text-xs text-warning-foreground">
                                     <span>{actionError}</span>
                                     <button
                                         type="button"

@@ -127,7 +127,7 @@ export function NotificationsMenu({ user }: NotificationsMenuProps) {
       >
         <Bell size={16} className="text-muted-foreground" />
         {unreadCount > 0 && !open ? (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-pill bg-negative px-1 text-[10px] font-bold text-negative-foreground">
+          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-pill bg-negative px-1 text-micro font-bold text-background">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         ) : null}

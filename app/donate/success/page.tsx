@@ -335,7 +335,7 @@ function SuccessContent() {
                                 </p>
                                 <Link
                                     href="/login"
-                                    className="mt-4 inline-flex items-center gap-2 rounded-xl bg-warning px-5 py-2.5 text-sm font-bold text-foreground transition hover:bg-warning/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+                                    className="mt-4 inline-flex items-center gap-2 rounded-xl bg-warning px-5 py-2.5 text-sm font-bold text-background transition hover:bg-warning/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
                                 >
                                     Sign In to Claim
                                     <ArrowRight size={14} />

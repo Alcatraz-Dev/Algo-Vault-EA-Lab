@@ -7,13 +7,17 @@ import {
   Activity as ActivityIcon,
   ArrowLeft,
   Brain,
+  CalendarClock,
+  FileText,
   GitBranch,
+  ListChecks,
   Loader2,
   Pause,
   Play,
   Settings2,
   ShieldCheck,
   Wallet,
+  Wrench,
 } from "lucide-react";
 import AccountShell from "@/components/account/AccountShell";
 import { Button } from "@/components/ui/button";
@@ -30,8 +34,12 @@ import {
   ApprovalsPanel,
   AutomationsPanel,
   BindingsPanel,
+  JobsPanel,
   MemoryPanel,
   PermissionsPanel,
+  ProposalsPanel,
+  ToolCallsPanel,
+  WorkspacePanel,
 } from "@/components/candel/panels";
 import { candelApi, candelErrorMessage } from "@/lib/candel/client";
 import { isApprovalPending } from "@/lib/candel/approvals";
@@ -192,8 +200,11 @@ export default function CandelStudioPage() {
         {error ? <FormError>{error}</FormError> : null}
 
         <Tabs defaultValue="chat" className="min-h-0 flex-1">
-          <TabsList variant="line">
+          <TabsList variant="line" className="h-auto flex-wrap">
             <TabsTrigger value="chat">Chat</TabsTrigger>
+            <TabsTrigger value="workspace">
+              <FileText className="size-3.5" /> Workspace
+            </TabsTrigger>
             <TabsTrigger value="memory">
               <Brain className="size-3.5" /> Memory
             </TabsTrigger>
@@ -206,11 +217,20 @@ export default function CandelStudioPage() {
                 <Badge variant="warning">{pendingApprovalCount}</Badge>
               ) : null}
             </TabsTrigger>
-            <TabsTrigger value="permissions">
-              <ShieldCheck className="size-3.5" /> Permissions
+            <TabsTrigger value="proposals">
+              <ListChecks className="size-3.5" /> Proposals
+            </TabsTrigger>
+            <TabsTrigger value="tool-calls">
+              <Wrench className="size-3.5" /> Tool calls
             </TabsTrigger>
             <TabsTrigger value="automations">
               <GitBranch className="size-3.5" /> Automations
+            </TabsTrigger>
+            <TabsTrigger value="jobs">
+              <CalendarClock className="size-3.5" /> Jobs
+            </TabsTrigger>
+            <TabsTrigger value="permissions">
+              <ShieldCheck className="size-3.5" /> Permissions
             </TabsTrigger>
             <TabsTrigger value="accounts">
               <Wallet className="size-3.5" /> Accounts
@@ -233,6 +253,10 @@ export default function CandelStudioPage() {
             </div>
           </TabsContent>
 
+          <TabsContent value="workspace">
+            <WorkspacePanel candelId={instance.id} />
+          </TabsContent>
+
           <TabsContent value="memory">
             <MemoryPanel candelId={instance.id} />
           </TabsContent>
@@ -249,12 +273,24 @@ export default function CandelStudioPage() {
             />
           </TabsContent>
 
-          <TabsContent value="permissions">
-            <PermissionsPanel candelId={instance.id} />
+          <TabsContent value="proposals">
+            <ProposalsPanel candelId={instance.id} reloadKey={activityReload} />
+          </TabsContent>
+
+          <TabsContent value="tool-calls">
+            <ToolCallsPanel candelId={instance.id} reloadKey={activityReload} />
           </TabsContent>
 
           <TabsContent value="automations">
             <AutomationsPanel candelId={instance.id} />
+          </TabsContent>
+
+          <TabsContent value="jobs">
+            <JobsPanel candelId={instance.id} />
+          </TabsContent>
+
+          <TabsContent value="permissions">
+            <PermissionsPanel candelId={instance.id} />
           </TabsContent>
 
           <TabsContent value="accounts">

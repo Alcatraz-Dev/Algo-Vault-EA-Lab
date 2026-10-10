@@ -375,7 +375,7 @@ export default function LicensesPage() {
 
                 <div className="mx-auto flex min-h-screen max-w-2xl items-center justify-center">
 
-                    <div className="w-full rounded-2xl border border-border bg-muted/30 p-8 text-center">
+                    <div className="w-full rounded-lg border border-border bg-muted/30 p-8 text-center">
 
                         <ShieldCheck
                             size={42}
@@ -394,7 +394,7 @@ export default function LicensesPage() {
 
                         <Link
                             href="/login"
-                            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-foreground px-5 py-3 text-sm font-medium text-background transition hover:bg-muted"
+                            className="mt-6 inline-flex items-center gap-2 rounded-md bg-foreground px-5 py-3 text-sm font-medium text-background transition hover:bg-muted"
                         >
                             Sign In
 
@@ -420,7 +420,7 @@ export default function LicensesPage() {
                     type="button"
                     onClick={handleRefresh}
                     disabled={refreshing}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-muted/40 px-4 py-2.5 text-xs text-muted-foreground transition hover:bg-muted/60 disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-muted/40 px-4 py-2.5 text-xs text-muted-foreground transition hover:bg-muted/60 disabled:opacity-50"
                 >
                     {refreshing ? (
                         <Loader2 size={14} className="animate-spin" />
@@ -489,7 +489,7 @@ export default function LicensesPage() {
 
                 {/* Error */}
                 {error && (
-                    <div className="mt-6 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-600">
+                    <div className="mt-6 rounded-lg border border-negative/30 bg-negative-muted px-4 py-3 text-sm text-negative-foreground">
                         {error}
                     </div>
                 )}
@@ -502,7 +502,7 @@ export default function LicensesPage() {
                             (item) => (
                                 <div
                                     key={item}
-                                    className="h-72 animate-pulse rounded-2xl border border-border bg-muted/30"
+                                    className="h-72 animate-pulse rounded-lg border border-border bg-muted/30"
                                 />
                             )
                         )}
@@ -515,7 +515,7 @@ export default function LicensesPage() {
                     !error &&
                     licenses.length ===
                     0 && (
-                        <div className="mt-8 rounded-2xl border border-dashed border-border bg-muted/30 px-6 py-20 text-center">
+                        <div className="mt-8 rounded-lg border border-dashed border-border bg-muted/30 px-6 py-20 text-center">
 
                             <KeyRound
                                 size={42}
@@ -535,7 +535,7 @@ export default function LicensesPage() {
 
                             <Link
                                 href="/marketplace"
-                                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-foreground px-5 py-3 text-xs font-medium text-background transition hover:bg-muted"
+                                className="mt-6 inline-flex items-center gap-2 rounded-md bg-foreground px-5 py-3 text-xs font-medium text-background transition hover:bg-muted"
                             >
                                 Browse Marketplace
 
@@ -581,7 +581,7 @@ export default function LicensesPage() {
                 {!loading &&
                     licenses.length >
                     0 && (
-                        <div className="mt-8 rounded-2xl border border-border bg-muted/30 p-5">
+                        <div className="mt-8 rounded-lg border border-border bg-muted/30 p-5">
 
                             <div className="flex gap-3">
 
@@ -669,7 +669,7 @@ function LicenseCard({
         ).trim() !== "";
 
     return (
-        <article className="overflow-hidden rounded-2xl border border-border bg-muted/30 transition hover:border-border">
+        <article className="overflow-hidden rounded-lg border border-border bg-muted/30 transition hover:border-border">
 
             {/* Top */}
             <div className="border-b border-border p-5">
@@ -678,7 +678,7 @@ function LicenseCard({
 
                     <div className="flex min-w-0 items-center gap-3">
 
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-card">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-card">
 
                             {product?.branding
                                 ?.icon
@@ -711,7 +711,7 @@ function LicenseCard({
                                 </h2>
 
                                 <span
-                                    className={`inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-[10px] font-medium ${stateConfig.className}`}
+                                    className={`inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-micro font-medium ${stateConfig.className}`}
                                 >
                                     {
                                         stateConfig.icon
@@ -724,7 +724,7 @@ function LicenseCard({
 
                             </div>
 
-                            <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+                            <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
 
                                 {product?.platform && (
                                     <span>
@@ -776,13 +776,13 @@ function LicenseCard({
             {/* License Key */}
             <div className="p-5">
 
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                <p className="text-micro uppercase tracking-wider text-muted-foreground">
                     License Key
                 </p>
 
                 <div className="mt-2 flex items-center gap-2">
 
-                    <div className="min-w-0 flex-1 overflow-hidden rounded-xl border border-border bg-muted/40 px-3 py-3">
+                    <div className="min-w-0 flex-1 overflow-hidden rounded-lg border border-border bg-muted/40 px-3 py-3">
 
                         <code className="block truncate text-xs text-foreground">
                             {license.licenseKey ||
@@ -799,7 +799,7 @@ function LicenseCard({
                                     license.licenseKey!
                                 )
                             }
-                            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/40 text-muted-foreground transition hover:bg-foreground/[0.07] hover:text-foreground"
+                            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/40 text-muted-foreground transition hover:bg-foreground/[0.07] hover:text-foreground"
                             title="Copy license key"
                         >
                             {copiedKey ===
@@ -819,7 +819,7 @@ function LicenseCard({
 
                 {copiedKey ===
                     license.licenseKey && (
-                        <p className="mt-2 text-[10px] text-muted-foreground">
+                        <p className="mt-2 text-micro text-muted-foreground">
                             License key copied.
                         </p>
                     )}
@@ -871,13 +871,13 @@ function LicenseCard({
                 </div>
 
                 {/* Days */}
-                <div className="mt-4 rounded-xl border border-border bg-muted p-4">
+                <div className="mt-4 rounded-lg border border-border bg-muted p-4">
 
                     <div className="flex items-center justify-between gap-4">
 
                         <div>
 
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                            <p className="text-micro uppercase tracking-wider text-muted-foreground">
                                 License Status
                             </p>
 
@@ -897,7 +897,7 @@ function LicenseCard({
                             "active" && (
                                 <div className="text-right">
 
-                                    <p className="text-[10px] text-muted-foreground">
+                                    <p className="text-micro text-muted-foreground">
                                         Valid until
                                     </p>
 
@@ -922,7 +922,7 @@ function LicenseCard({
                     {productSlug && (
                         <Link
                             href={`/marketplace/${productSlug}`}
-                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-muted/40 px-4 py-3 text-xs font-medium text-foreground transition hover:bg-foreground/[0.07]"
+                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-border bg-muted/40 px-4 py-3 text-xs font-medium text-foreground transition hover:bg-foreground/[0.07]"
                         >
                             View Product
 
@@ -941,7 +941,7 @@ function LicenseCard({
                                     license.productId ||
                                     ""
                                 )}`}
-                                className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-foreground px-4 py-3 text-xs font-medium text-background transition hover:bg-muted"
+                                className="inline-flex flex-1 items-center justify-center gap-2 rounded-md bg-foreground px-4 py-3 text-xs font-medium text-background transition hover:bg-muted"
                                 onClick={(event) => {
                                     /*
                                      * The actual protected download
@@ -981,7 +981,7 @@ function LicenseCard({
                 {/* Protection note */}
                 {state ===
                     "active" && (
-                        <p className="mt-4 text-[10px] leading-5 text-muted-foreground">
+                        <p className="mt-4 text-micro leading-5 text-muted-foreground">
                             This license is linked to your
                             account and may be bound to an MT5
                             trading account according to the
@@ -1011,7 +1011,7 @@ function SummaryCard({
     value: number;
 }) {
     return (
-        <div className="rounded-2xl border border-border bg-muted/30 p-5">
+        <div className="rounded-lg border border-border bg-muted/30 p-5">
 
             <div className="flex items-center gap-2 text-muted-foreground">
 
@@ -1045,9 +1045,9 @@ function Detail({
     value: string;
 }) {
     return (
-        <div className="rounded-xl border border-border bg-muted p-3">
+        <div className="rounded-lg border border-border bg-muted p-3">
 
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-micro text-muted-foreground">
                 {label}
             </p>
 
@@ -1110,7 +1110,7 @@ function getStateConfig(
             return {
                 label: "Active",
                 className:
-                    "border-emerald-500/20 bg-emerald-500/10 text-emerald-600",
+                    "border-positive/30 bg-positive-muted text-positive-foreground",
                 icon: (
                     <CheckCircle2
                         size={11}
@@ -1122,7 +1122,7 @@ function getStateConfig(
             return {
                 label: "Expired",
                 className:
-                    "border-amber-500/20 bg-amber-500/10 text-amber-400",
+                    "border-warning/30 bg-warning-muted text-warning-foreground",
                 icon: (
                     <Clock3
                         size={11}
@@ -1134,7 +1134,7 @@ function getStateConfig(
             return {
                 label: "Revoked",
                 className:
-                    "border-red-500/20 bg-red-500/10 text-red-500",
+                    "border-negative/30 bg-negative-muted text-negative-foreground",
                 icon: (
                     <XCircle
                         size={11}

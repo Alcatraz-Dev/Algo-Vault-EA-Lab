@@ -329,7 +329,7 @@ function LoginForm() {
                             {message && (
                                 <div
                                     role="status"
-                                    className="rounded-md border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-400"
+                                    className="rounded-md border border-positive/30 bg-positive-muted px-3 py-2 text-xs text-positive-foreground"
                                 >
                                     {message}
                                 </div>

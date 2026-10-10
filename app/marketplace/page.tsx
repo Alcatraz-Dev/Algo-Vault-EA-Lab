@@ -367,7 +367,7 @@ export default function MarketplacePage() {
                 <div className="mx-auto max-w-7xl px-6 py-8">
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                         <div className="max-w-xl">
-                            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-violet-400">
+                            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
                                 <Sparkles size={14} />
                                 Plugins &amp; Extensions 
                             </div>
@@ -411,7 +411,7 @@ export default function MarketplacePage() {
                                 )
                             }
                             placeholder="Search products, symbols..."
-                            className="w-full rounded-xl border border-border/30 bg-muted py-3 pl-11 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                            className="w-full rounded-md border border-border/30 bg-muted py-3 pl-11 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                         />
 
                     </div>
@@ -439,7 +439,7 @@ export default function MarketplacePage() {
                                     filter.value
                                 )
                             }
-                            className={`whitespace-nowrap rounded-xl border px-4 py-2.5 text-xs transition ${activeFilter ===
+                            className={`whitespace-nowrap rounded-md border px-4 py-2.5 text-xs transition ${activeFilter ===
                                 filter.value
                                 ? "border-border/50 bg-background text-foreground"
                                 : "border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/5"
@@ -460,7 +460,7 @@ export default function MarketplacePage() {
                             (item) => (
                                 <div
                                     key={item}
-                                    className="h-80 animate-pulse rounded-2xl border border-border/30 bg-muted/50"
+                                    className="h-80 animate-pulse rounded-lg border border-border/30 bg-muted/50"
                                 />
                             )
                         )}
@@ -472,7 +472,7 @@ export default function MarketplacePage() {
                 {!loading &&
                     filteredProducts.length ===
                     0 && (
-                        <div className="rounded-2xl border border-dashed border-border/30 bg-muted/50 px-6 py-20 text-center">
+                        <div className="rounded-lg border border-dashed border-border/30 bg-muted/50 px-6 py-20 text-center">
 
                             <Bot
                                 size={40}
@@ -516,7 +516,7 @@ export default function MarketplacePage() {
                     )}
 
                 {/* Risk */}
-                <div className="mt-10 rounded-2xl border border-border/30 bg-muted/50 p-5">
+                <div className="mt-10 rounded-lg border border-border/30 bg-muted/50 p-5">
 
                     <div className="flex gap-3">
 
@@ -571,10 +571,10 @@ function ProductCard({
     const hasLogo = hasBrandingItem(product.branding?.logo);
 
     return (
-        <article className="group flex flex-col overflow-hidden rounded-2xl border border-border/30 bg-muted/50 transition hover:border-border/50 hover:bg-foreground/8">
+        <article className="group flex flex-col overflow-hidden rounded-lg border border-border/30 bg-card transition hover:border-border/60">
 
             {/* Banner / Product Visual Header */}
-            <div className="relative h-52 overflow-hidden border-b border-border/30 bg-gradient-to-br from-background via-muted to-foreground">
+            <div className="relative h-52 overflow-hidden border-b border-border/30 bg-muted">
 
                 {hasBanner ? (
                     <>
@@ -589,9 +589,7 @@ function ProductCard({
                     </>
                 ) : (
                     <div className="absolute inset-0">
-                        <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-emerald-500/10 blur-3xl" />
-                        <div className="absolute right-0 bottom-0 h-40 w-40 rounded-full bg-cyan-500/10 blur-3xl" />
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.06),transparent_40%)]" />
+                        <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
                     </div>
                 )}
 
@@ -610,20 +608,20 @@ function ProductCard({
                                     product={product}
                                     type="logo"
                                     size="md"
-                                    className="rounded-2xl border border-border/50 bg-background/75 shadow-2xl backdrop-blur-xl transition group-hover:border-border/60"
+                                    className="rounded-lg border border-border/50 bg-background transition group-hover:border-primary/30"
                                 />
                             ) : (
                                 <ProductBranding
                                     product={product}
                                     type="icon"
                                     size="md"
-                                    className="rounded-2xl border border-border/50 bg-background/75 shadow-2xl backdrop-blur-xl transition group-hover:border-border/60"
+                                    className="rounded-lg border border-border/50 bg-background transition group-hover:border-primary/30"
                                 />
                             )}
 
                             {/* Smaller Sub-Icon Badge on the Bottom-Right Corner of the Logo */}
                             {hasLogo && hasIcon && (
-                                <div className="absolute -bottom-28 -right-72 flex h-6 w-6 items-center justify-center rounded-lg border border-border/50 bg-background shadow-xl backdrop-blur-md">
+                                <div className="absolute -bottom-28 -right-72 flex h-6 w-6 items-center justify-center rounded-md border border-border bg-card">
                                     <ProductBranding
                                         product={product}
                                         type="icon"
@@ -637,7 +635,7 @@ function ProductCard({
 
                         {/* Platform Badge */}
                         {product.platform && (
-                            <span className="rounded-lg border border-border/30 bg-background/70 px-2.5 py-1 text-[11px] font-medium tracking-wide text-foreground shadow-lg backdrop-blur-md">
+                            <span className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium tracking-wide text-foreground">
                                 {product.platform}
                             </span>
                         )}
@@ -646,17 +644,17 @@ function ProductCard({
 
                     {/* Bottom Row: Category Tag & Product Name */}
                     <div>
-                        <span className="inline-block text-[10px] font-semibold uppercase tracking-wider text-emerald-400">
+                        <span className="inline-block text-micro font-semibold uppercase tracking-wider text-positive">
                             {productType}
                         </span>
 
-                        <h2 className="mt-0.5 line-clamp-1 text-lg font-semibold text-foreground drop-shadow-md transition group-hover:text-emerald-300">
+                        <h2 className="mt-0.5 line-clamp-1 text-lg font-semibold text-foreground transition group-hover:text-primary">
                             {product.name}
                         </h2>
                         {(product.rating?.count ?? 0) > 0 && (
                             <div className="mt-3 flex items-center gap-2 text-sm">
                                 <div className="flex items-center gap-1">
-                                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                    <Star className="h-4 w-4 fill-warning text-warning" />
                                     <span className="font-semibold text-foreground">
                                         {(product.rating?.average ?? 0).toFixed(1)}
                                     </span>
@@ -692,19 +690,19 @@ function ProductCard({
                 <div className="mt-5 flex flex-wrap gap-2">
 
                     {product.symbol && (
-                        <span className="rounded-lg bg-muted/5 px-2.5 py-1 text-[11px] text-muted-foreground">
+                        <span className="rounded-md bg-muted px-2.5 py-1 text-xs text-muted-foreground">
                             {product.symbol}
                         </span>
                     )}
 
                     {product.timeframe && (
-                        <span className="rounded-lg bg-muted/5 px-2.5 py-1 text-[11px] text-muted-foreground">
+                        <span className="rounded-md bg-muted px-2.5 py-1 text-xs text-muted-foreground">
                             {product.timeframe}
                         </span>
                     )}
 
                     {product.risk?.level && (
-                        <span className="rounded-lg bg-muted/5 px-2.5 py-1 text-[11px] text-muted-foreground">
+                        <span className="rounded-md bg-muted px-2.5 py-1 text-xs text-muted-foreground">
                             Risk:{" "}
                             {product.risk.level}
                         </span>
@@ -760,11 +758,11 @@ function ProductCard({
 
                     <div>
 
-                        <p className="text-[11px] text-muted-foreground">
+                        <p className="text-micro text-muted-foreground">
                             Price
                         </p>
 
-                        <p className="mt-1 text-lg font-semibold">
+                        <p className="mt-1 font-numeric text-lg font-semibold">
                             {isFree
                                 ? "Free"
                                 : `${pricing?.price || 0} ${pricing?.currency ||
@@ -776,7 +774,7 @@ function ProductCard({
 
                     <Link
                         href={`/marketplace/${product.slug}`}
-                        className="flex items-center gap-2 rounded-xl bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted"
+                        className="flex items-center gap-2 rounded-md border border-border bg-secondary px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted"
                     >
                         View Product
 
@@ -808,13 +806,13 @@ function Stat({
     value: string;
 }) {
     return (
-        <div className="rounded-xl border border-border/30 bg-muted/30 p-3">
+        <div className="rounded-lg border border-border/30 bg-muted/30 p-3">
 
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-micro text-muted-foreground">
                 {label}
             </p>
 
-            <p className="mt-1 text-sm font-medium">
+            <p className="mt-1 font-numeric text-sm font-medium">
                 {value}
             </p>
 
@@ -832,7 +830,7 @@ function MiniStat({
     label: string;
 }) {
     return (
-        <div className="min-w-[90px] rounded-xl border border-border/30 bg-muted/50 p-3">
+        <div className="min-w-[90px] rounded-lg border border-border/30 bg-muted/50 p-3">
 
             <div className="flex items-center gap-2 text-muted-foreground">
 
@@ -844,7 +842,7 @@ function MiniStat({
 
             </div>
 
-            <p className="mt-2 text-lg font-semibold">
+            <p className="mt-2 font-numeric text-lg font-semibold">
                 {value}
             </p>
 
@@ -868,15 +866,15 @@ function HubLink({
     return (
         <Link
             href={href}
-            className={`w-full rounded-2xl border p-4 transition sm:w-56 ${
-                active ? "border-violet-500/40 bg-violet-500/10" : "border-border/30 bg-muted/50 hover:border-border/50"
+            className={`w-full rounded-lg border p-4 transition sm:w-56 ${
+                active ? "border-primary/40 bg-primary/10" : "border-border/30 bg-muted/50 hover:border-border/50"
             }`}
         >
             <div className="flex items-center gap-2 text-sm font-medium">
                 {icon}
                 {title}
             </div>
-            <p className="mt-1 text-[11px] leading-5 text-muted-foreground">{subtitle}</p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">{subtitle}</p>
         </Link>
     );
 }

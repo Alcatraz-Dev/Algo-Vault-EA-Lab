@@ -24,7 +24,6 @@ import {
   Newspaper,
   Radio,
   Receipt,
-  Repeat,
   Rocket,
   ScrollText,
   Shield,
@@ -63,7 +62,6 @@ export const APP_NAV: NavGroup[] = [
     label: "Markets",
     items: [
       { href: "/scanner", label: "Market Scanner", icon: Activity },
-      { href: "/scanner", label: "Charts", icon: CandlestickChart },
       { href: "/economic-calendar", label: "Economic Calendar", icon: Newspaper },
       { href: "/risk", label: "Risk Analysis", icon: Shield, pro: true },
       { href: "/cross-asset", label: "Market Relationships", icon: Network, pro: true },

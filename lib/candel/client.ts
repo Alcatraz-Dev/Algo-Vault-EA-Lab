@@ -19,9 +19,12 @@ import type {
   CandelAutomation,
   CandelConversation,
   CandelInstance,
+  CandelJob,
   CandelMemoryEntry,
   CandelMessage,
+  CandelPage,
   CandelPermissions,
+  CandelProposal,
   CandelTemplate,
   CandelToolCall,
 } from "@/lib/candel/types";
@@ -364,6 +367,64 @@ export const candelApi = {
 
   async deleteAutomation(candelId: string, automationId: string): Promise<void> {
     await candelFetch(`${BASE}/automations${query({ candelId, automationId })}`, {
+      method: "DELETE",
+    });
+  },
+
+  // ── Workspace pages (Candel notes / research) ────────────────────────────
+  async workspacePages(candelId: string): Promise<CandelPage[]> {
+    const data = await candelFetch<{ pages: CandelPage[] }>(
+      `${BASE}/workspace${query({ candelId })}`,
+    );
+    return data.pages ?? [];
+  },
+
+  async createWorkspacePage(
+    candelId: string,
+    input: { title: string; content?: string },
+  ): Promise<CandelPage> {
+    const data = await candelFetch<{ page: CandelPage }>(
+      `${BASE}/workspace${query({ candelId })}`,
+      { method: "POST", json: input },
+    );
+    return data.page;
+  },
+
+  async deleteWorkspacePage(candelId: string, pageId: string): Promise<void> {
+    await candelFetch(`${BASE}/workspace${query({ candelId, pageId })}`, {
+      method: "DELETE",
+    });
+  },
+
+  // ── Proposals (intents the Candel prepared) ──────────────────────────────
+  async proposals(candelId: string): Promise<CandelProposal[]> {
+    const data = await candelFetch<{ proposals: CandelProposal[] }>(
+      `${BASE}/proposals${query({ candelId })}`,
+    );
+    return data.proposals ?? [];
+  },
+
+  // ── Background jobs (scheduled work) ─────────────────────────────────────
+  async jobs(candelId: string): Promise<CandelJob[]> {
+    const data = await candelFetch<{ jobs: CandelJob[] }>(
+      `${BASE}/jobs${query({ candelId })}`,
+    );
+    return data.jobs ?? [];
+  },
+
+  async createJob(
+    candelId: string,
+    input: { name: string; cron: string; action: string; enabled?: boolean },
+  ): Promise<CandelJob> {
+    const data = await candelFetch<{ job: CandelJob }>(
+      `${BASE}/jobs${query({ candelId })}`,
+      { method: "POST", json: input },
+    );
+    return data.job;
+  },
+
+  async deleteJob(candelId: string, jobId: string): Promise<void> {
+    await candelFetch(`${BASE}/jobs${query({ candelId, jobId })}`, {
       method: "DELETE",
     });
   },

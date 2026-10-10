@@ -8,29 +8,47 @@
   --popover: #1f1f1f;
   --popover-foreground: #f9f9f9;
   --primary: #ff4d00;
-  --primary-foreground: #ffffff;
+  /* Dark ink on the vivid orange: 5.3:1 (AA) vs the 3.33:1 white previously. */
+  --primary-foreground: #1a1204;
   --secondary: #232323;
   --secondary-foreground: #f9f9f9;
   --muted: #232323;
   --muted-foreground: #a3a3a3;
   --accent: #232323;
   --accent-foreground: #f9f9f9;
-  --destructive: #d96b5f;
-  --destructive-foreground: #ffffff;
+  --destructive: #f85149;
+  --destructive-foreground: #f85149;
   --border: #383838;
   --input: #444444;
   --ring: #ff4d00;
 
   --radius: 0.5rem;
 
-  --positive: oklch(0.55 0.18 142);
-  --positive-foreground: oklch(1 0 0);
-  --negative: oklch(0.577 0.245 27.32);
-  --negative-foreground: oklch(1 0 0);
-  --warning: #ff4d00;
-  --warning-foreground: #ffffff;
-  --info: #a3a3a3;
-  --info-foreground: #ffffff;
+  /* Motion system — shared easing so timing stays consistent app-wide. */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Semantic colors. Verified >= 4.5:1 as text on --background, --card and
+     --muted (WCAG AA). The `-foreground` tokens are the legible text color for
+     the matching low-opacity tint (e.g. bg-positive/10 text-positive-foreground).
+     For solid semantic fills use `text-background` (adaptive ink) instead. */
+  --positive: #3fb950;
+  --positive-foreground: #3fb950;
+  --negative: #f85149;
+  --negative-foreground: #f85149;
+  --warning: #ff922b;
+  --warning-foreground: #ff922b;
+  --info: #58a6ff;
+  --info-foreground: #58a6ff;
+  --success: var(--positive);
+  --success-foreground: var(--positive-foreground);
+
+  --positive-muted: color-mix(in oklch, var(--positive) 14%, transparent);
+  --negative-muted: color-mix(in oklch, var(--negative) 14%, transparent);
+  --success-muted: color-mix(in oklch, var(--success) 14%, transparent);
+  --destructive-muted: color-mix(in oklch, var(--destructive) 14%, transparent);
+  --warning-muted: color-mix(in oklch, var(--warning) 14%, transparent);
+  --info-muted: color-mix(in oklch, var(--info) 14%, transparent);
 
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.714);
@@ -47,27 +65,29 @@
   --popover: #ffffff;
   --popover-foreground: #262626;
   --primary: #ff4d00;
-  --primary-foreground: #ffffff;
+  --primary-foreground: #1a1204;
   --secondary: #f1f1f1;
   --secondary-foreground: #262626;
   --muted: #f1f1f1;
-  --muted-foreground: #727272;
+  --muted-foreground: #6b6b6b;
   --accent: #f1f1f1;
   --accent-foreground: #262626;
-  --destructive: #c9574d;
-  --destructive-foreground: #ffffff;
+  --destructive: #991b1b;
+  --destructive-foreground: #991b1b;
   --border: #e5e7eb;
   --input: #c7c7c7;
   --ring: #ff4d00;
 
-  --positive: oklch(0.55 0.18 142);
-  --positive-foreground: oklch(1 0 0);
-  --negative: oklch(0.577 0.245 27.32);
-  --negative-foreground: oklch(1 0 0);
-  --warning: #ff4d00;
-  --warning-foreground: #ffffff;
-  --info: #727272;
-  --info-foreground: #ffffff;
+  --positive: #166534;
+  --positive-foreground: #166534;
+  --negative: #991b1b;
+  --negative-foreground: #991b1b;
+  --warning: #9a3412;
+  --warning-foreground: #9a3412;
+  --info: #1d4ed8;
+  --info-foreground: #1d4ed8;
+  --success: var(--positive);
+  --success-foreground: var(--positive-foreground);
 }
 
 @theme inline {
@@ -98,6 +118,14 @@
   --color-warning-foreground: var(--warning-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-positive-muted: var(--positive-muted);
+  --color-negative-muted: var(--negative-muted);
+  --color-success-muted: var(--success-muted);
+  --color-destructive-muted: var(--destructive-muted);
+  --color-warning-muted: var(--warning-muted);
+  --color-info-muted: var(--info-muted);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
