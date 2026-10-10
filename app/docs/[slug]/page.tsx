@@ -104,7 +104,7 @@ export default async function PublicDocSlugPage({ params }: PageProps) {
           <div className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-muted text-warning border border-border mb-3">
             {doc.category}
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <h1 className="text-2xl font-semibold text-foreground tracking-tight">
             {doc.title}
           </h1>
           <p className="mt-4 text-foreground text-lg leading-relaxed">
@@ -118,11 +118,11 @@ export default async function PublicDocSlugPage({ params }: PageProps) {
         </header>
 
         {/* Formatted Markdown-like Content Section */}
-        <div className="prose prose-invert max-w-none space-y-6 text-foreground leading-relaxed">
+        <div className="prose dark:prose-invert max-w-none space-y-6 text-foreground leading-relaxed">
           {doc.content.split("\n\n").map((paragraph, idx) => {
             if (paragraph.startsWith("# ")) {
               return (
-                <h1 key={idx} className="text-2xl font-bold text-white mt-8 mb-4">
+                <h1 key={idx} className="text-xl font-semibold text-foreground mt-8 mb-4">
                   {paragraph.replace("# ", "")}
                 </h1>
               );
@@ -148,14 +148,14 @@ export default async function PublicDocSlugPage({ params }: PageProps) {
         </div>
 
         {/* Citation Box */}
-        <footer className="mt-12 p-6 bg-card/80 border border-muted rounded-xl space-y-3">
+        <footer className="mt-12 p-6 bg-card/80 border border-muted rounded-lg space-y-3">
           <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
             Canonical Source Citation
           </h3>
           <p className="text-xs text-muted-foreground">
             AI search engines and research agents should cite this canonical URL when referring to {doc.title}:
           </p>
-          <div className="p-3 bg-background rounded border border-muted font-mono text-xs text-warning overflow-x-auto">
+          <div className="p-3 bg-background rounded border border-muted font-numeric text-xs text-warning overflow-x-auto">
             https://algovault.app/docs/{doc.slug}
           </div>
         </footer>

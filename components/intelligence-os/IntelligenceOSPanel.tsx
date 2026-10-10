@@ -18,7 +18,7 @@ export function HomeIntelligenceOS({ refreshKey }: { refreshKey: number }) {
 
   if (contextState.status === "unavailable") {
     return (
-      <section className="rounded-xl border border-dashed border-border/50 bg-muted/20 p-4 text-sm text-muted-foreground">
+      <section className="rounded-lg border border-dashed border-border/50 bg-muted/20 p-4 text-sm text-muted-foreground">
         Intelligence OS unavailable: {contextState.reason}
       </section>
     );
@@ -90,7 +90,7 @@ export function HomeIntelligenceOS({ refreshKey }: { refreshKey: number }) {
           <ul className="mt-2 space-y-1">
             {context.setups.records.slice(0, 5).map((record: any) => (
               <li key={record.id} className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="font-mono">{record.id}</span>
+                <span className="font-numeric">{record.id}</span>
                 <span>{record.symbol ?? "—"}</span>
                 <span>{record.timeframe ?? "—"}</span>
                 <span>{record.status}</span>
@@ -189,7 +189,7 @@ export function HomeIntelligenceOS({ refreshKey }: { refreshKey: number }) {
           <ul className="mt-2 space-y-1">
             {context.productUsage.recentActivity.slice(0, 8).map((item: any) => (
               <li key={item.id} className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="font-mono">{new Date(item.timestamp).toLocaleTimeString()}</span>
+                <span className="font-numeric">{new Date(item.timestamp).toLocaleTimeString()}</span>
                 <span>{item.title}</span>
                 {item.href ? (
                   <Link href={item.href} className="text-primary underline underline-offset-2">view</Link>

@@ -71,7 +71,7 @@ function parseNumber(value: unknown): number | null {
 
 export async function POST(request: NextRequest) {
     console.log(
-        "=================================================="
+      "=================================================="
     );
     console.log(
         "[Heartbeat] POST /api/performance/heartbeat"
@@ -536,7 +536,7 @@ export async function POST(request: NextRequest) {
         );
 
         console.log(
-            "=================================================="
+          "=================================================="
         );
 
         return NextResponse.json(
@@ -581,7 +581,7 @@ export async function POST(request: NextRequest) {
         );
 
         console.log(
-            "=================================================="
+          "=================================================="
         );
 
         return jsonError(

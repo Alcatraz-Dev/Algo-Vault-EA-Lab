@@ -53,12 +53,12 @@ export default function PineWorkspaceSection() {
  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
 
  {/* Left Code Editor Preview */}
- <div className="lg:col-span-6 rounded-lg border border-border/60 bg-background/90 p-4 font-mono text-xs flex flex-col justify-between">
+ <div className="lg:col-span-6 rounded-lg border border-border/60 bg-background/90 p-4 font-numeric text-xs flex flex-col justify-between">
  <div className="flex items-center justify-between border-b border-border/40 pb-2 text-muted-foreground">
  <span className="flex items-center gap-1.5 font-bold text-foreground"><Code2 size={14} className="text-primary" /> Pine v5 Editor</span>
  <span className="text-micro bg-primary/10 text-primary px-2 py-0.5 rounded border border-primary/20">Pine v5 Interpreter Active</span>
  </div>
- <pre className="my-3 text-micro text-muted-foreground leading-relaxed overflow-x-auto no-scrollbar font-mono">
+ <pre className="my-3 text-micro text-muted-foreground leading-relaxed overflow-x-auto no-scrollbar font-numeric">
  <code>{SAMPLE_PINE_CODE}</code>
  </pre>
  <div className="flex items-center justify-between pt-2 border-t border-border/40 text-micro text-muted-foreground">
@@ -68,7 +68,7 @@ export default function PineWorkspaceSection() {
  </div>
 
  {/* Right Chart & Alert Output Preview */}
- <div className="lg:col-span-6 rounded-lg border border-border/60 bg-background/90 p-4 font-mono text-xs space-y-4 flex flex-col justify-between">
+ <div className="lg:col-span-6 rounded-lg border border-border/60 bg-background/90 p-4 font-numeric text-xs space-y-4 flex flex-col justify-between">
  <div className="flex items-center justify-between border-b border-border/40 pb-2 text-muted-foreground">
  <span className="flex items-center gap-1.5 font-bold text-foreground"><LineChart size={14} className="text-info" /> Rendered Chart Overlay</span>
  <span className="text-positive font-bold">Execution Time: 4ms</span>

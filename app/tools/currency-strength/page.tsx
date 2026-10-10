@@ -78,7 +78,7 @@ export default function CurrencyStrengthPage() {
         >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-border bg-card p-4">
                 <div className="flex items-center gap-3 text-xs">
-                    <span className="rounded-full border border-border bg-muted px-2 py-0.5 font-mono text-muted-foreground">
+                    <span className="rounded-full border border-border bg-muted px-2 py-0.5 font-numeric text-muted-foreground">
                         Timeframe: H1 (Lite)
                     </span>
                     <span className="text-muted-foreground">Pro adds M15, H4, D1 and divergence detector.</span>
@@ -144,10 +144,10 @@ export default function CurrencyStrengthPage() {
                                                 <span className="text-sm font-bold text-foreground">{curr.currency}</span>
                                             </div>
                                             <div className="flex items-center gap-3">
-                                                <span className={cn("font-mono text-sm font-bold", curr.score > 0 ? "text-positive" : curr.score < 0 ? "text-negative" : "text-muted-foreground")}>
+                                                <span className={cn("font-numeric text-sm font-bold", curr.score > 0 ? "text-positive" : curr.score < 0 ? "text-negative" : "text-muted-foreground")}>
                                                     {curr.score > 0 ? "+" : ""}{curr.score.toFixed(1)}
                                                 </span>
-                                                <span className={cn("font-mono text-xs", curr.change >= 0 ? "text-positive/70" : "text-negative/70")}>
+                                                <span className={cn("font-numeric text-xs", curr.change >= 0 ? "text-positive/70" : "text-negative/70")}>
                                                     {curr.change >= 0 ? "+" : ""}{curr.change.toFixed(2)}%
                                                 </span>
                                             </div>
@@ -164,8 +164,8 @@ export default function CurrencyStrengthPage() {
                                             <div className="mt-3 grid grid-cols-2 gap-1.5 pt-3 border-t border-border/20">
                                                 {curr.pairs.map((p) => (
                                                     <div key={p.pair} className="flex items-center justify-between rounded-md bg-muted px-3 py-1.5">
-                                                        <span className="font-mono text-micro text-muted-foreground">{p.pair}</span>
-                                                        <span className={cn("font-mono text-micro font-bold", p.change > 0 ? "text-positive" : p.change < 0 ? "text-negative" : "text-muted-foreground")}>
+                                                        <span className="font-numeric text-micro text-muted-foreground">{p.pair}</span>
+                                                        <span className={cn("font-numeric text-micro font-bold", p.change > 0 ? "text-positive" : p.change < 0 ? "text-negative" : "text-muted-foreground")}>
                                                             {p.change >= 0 ? "+" : ""}{p.change.toFixed(2)}%
                                                         </span>
                                                     </div>
@@ -186,7 +186,7 @@ export default function CurrencyStrengthPage() {
                             <p className="mt-2 text-xs text-muted-foreground">
                                 Based on current strength: <span className="font-bold text-positive">{strongest.currency}</span> is the strongest and <span className="font-bold text-negative">{weakest.currency}</span> is the weakest.
                             </p>
-                            <p className="mt-1 font-mono text-lg font-bold text-foreground">
+                            <p className="mt-1 font-numeric text-lg font-bold text-foreground">
                                 {strongest.currency}{weakest.currency}
                             </p>
                             <p className="mt-1 text-micro text-muted-foreground">

@@ -118,11 +118,11 @@ export function ApprovalCard({
 
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
           <span>
-            permission <code className="font-mono text-foreground">{request.permissionRequired}</code>
+            permission <code className="font-numeric text-foreground">{request.permissionRequired}</code>
           </span>
           {request.targetId ? (
             <span>
-              account <code className="font-mono text-foreground">{request.targetId}</code>
+              account <code className="font-numeric text-foreground">{request.targetId}</code>
             </span>
           ) : null}
           <span>requested {timeAgo(request.createdAt)}</span>
@@ -133,7 +133,7 @@ export function ApprovalCard({
             {rows.map(([key, value]) => (
               <div key={key} className="contents">
                 <dt className="text-xs text-muted-foreground">{key}</dt>
-                <dd className="truncate font-mono text-xs text-foreground">{value}</dd>
+                <dd className="truncate font-numeric text-xs text-foreground">{value}</dd>
               </div>
             ))}
           </dl>
@@ -143,7 +143,7 @@ export function ApprovalCard({
           <ul className="space-y-0.5 text-xs text-muted-foreground">
             {request.evidence.slice(0, 4).map((item) => (
               <li key={`${item.sourceType}:${item.sourceId}`}>
-                evidence · <span className="font-mono text-foreground">{item.sourceType}</span>
+                evidence · <span className="font-numeric text-foreground">{item.sourceType}</span>
                 {item.sourceId ? ` · ${item.sourceId}` : ""}
               </li>
             ))}

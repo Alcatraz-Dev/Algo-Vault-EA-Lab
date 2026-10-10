@@ -383,8 +383,8 @@ export default function SetFilesPage() {
         <AccountShell title="Set Files" subtitle="Download pre-configured .set files for your licensed EAs">
             {/* Background Blurs */}
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute left-1/2 top-[-250px] h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-chart-3/10 blur-[130px]" />
-                <div className="absolute bottom-[-200px] right-[-100px] h-[450px] w-[450px] rounded-full bg-info/10 blur-[130px]" />
+                <div className="absolute left-1/2 top-[-250px] h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-chart-3/10 hidden" />
+                <div className="absolute bottom-[-200px] right-[-100px] h-[450px] w-[450px] rounded-full bg-info/10 hidden" />
             </div>
 
             <div className="relative mx-auto max-w-5xl" data-guide="page-header">
@@ -427,7 +427,7 @@ export default function SetFilesPage() {
                             </p>
                             <Link
                                 href="/marketplace"
-                                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-muted px-5 py-2.5 text-sm font-medium text-foreground transition hover:bg-muted"
+                                className="mt-5 inline-flex items-center gap-2 rounded-lg bg-muted px-5 py-2.5 text-sm font-medium text-foreground transition hover:bg-muted"
                             >
                                 <Package size={16} />
                                 Browse Marketplace
@@ -446,7 +446,7 @@ export default function SetFilesPage() {
                             >
                                 {/* Product Header */}
                                 <div className="flex items-center gap-4 border-b border-border p-5">
-                                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-muted/50 border border-border">
+                                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-muted/50 border border-border">
                                         <Bot size={20} className="text-primary" />
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -459,7 +459,7 @@ export default function SetFilesPage() {
                                                 Active License
                                             </span>
                                             {product.license.mt5Account && (
-                                                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2.5 py-0.5 text-micro font-mono text-muted-foreground">
+                                                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2.5 py-0.5 text-micro font-numeric text-muted-foreground">
                                                     MT5 #{product.license.mt5Account}
                                                 </span>
                                             )}
@@ -487,7 +487,7 @@ export default function SetFilesPage() {
                                             Loading available set files...
                                         </div>
                                     ) : product.files.length === 0 ? (
-                                        <div className="rounded-xl border border-dashed border-border p-8 text-center">
+                                        <div className="rounded-lg border border-dashed border-border p-8 text-center">
                                             <FileText className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                                             <p className="text-sm text-muted-foreground font-medium">No set files yet</p>
                                             <p className="mt-1 text-xs text-muted-foreground">
@@ -503,14 +503,14 @@ export default function SetFilesPage() {
                                                 return (
                                                     <div
                                                         key={file.name}
-                                                        className="flex items-center gap-4 rounded-xl border border-border bg-muted/40 px-4 py-3.5 transition hover:border-border hover:bg-background/70"
+                                                        className="flex items-center gap-4 rounded-lg border border-border bg-muted/40 px-4 py-3.5 transition hover:border-border hover:bg-background/70"
                                                     >
                                                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-chart-3/10 border border-chart-3/20">
                                                             <FileCode2 size={16} className="text-primary" />
                                                         </div>
 
                                                         <div className="flex-1 min-w-0">
-                                                            <p className="text-sm font-medium text-foreground font-mono truncate">
+                                                            <p className="text-sm font-medium text-foreground font-numeric truncate">
                                                                 {file.name}
                                                             </p>
                                                             <p className="mt-0.5 text-xs text-muted-foreground">
@@ -524,7 +524,7 @@ export default function SetFilesPage() {
                                                                 handleDownload(product.productId, file.name)
                                                             }
                                                             disabled={isDownloading}
-                                                            className="flex shrink-0 items-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary/20 hover:text-foreground disabled:opacity-50"
+                                                            className="flex shrink-0 items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary/20 hover:text-foreground disabled:opacity-50"
                                                         >
                                                             {isDownloading ? (
                                                                 <>
@@ -553,7 +553,7 @@ export default function SetFilesPage() {
                 {(role === "admin" || ownedProducts.length > 0) && (
                     <div className="mt-8 rounded-lg border border-positive/20 bg-positive/[0.04] p-6">
                         <div className="flex items-center gap-3">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-positive/10">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-positive/10">
                                 <Upload size={17} className="text-positive" />
                             </div>
                             <div>
@@ -568,7 +568,7 @@ export default function SetFilesPage() {
 
                         {pubMsg && (
                             <div
-                                className={`mt-4 flex items-center gap-2 rounded-xl border px-4 py-3 text-xs font-medium ${
+                                className={`mt-4 flex items-center gap-2 rounded-lg border px-4 py-3 text-xs font-medium ${
                                     pubMsg.type === "success"
                                         ? "border-positive/25 bg-positive/10 text-positive"
                                         : "border-negative/25 bg-negative/10 text-negative"
@@ -584,16 +584,16 @@ export default function SetFilesPage() {
                             <div>
                                 <h3 className="text-sm font-semibold text-foreground mb-3">Published set files</h3>
                                 {ownPublished.length === 0 ? (
-                                    <div className="rounded-xl border border-dashed border-positive/20 p-6 text-center text-sm text-muted-foreground">
+                                    <div className="rounded-lg border border-dashed border-positive/20 p-6 text-center text-sm text-muted-foreground">
                                         Nothing published yet — upload your first .set file.
                                     </div>
                                 ) : (
                                     <div className="max-h-[320px] space-y-2 overflow-y-auto pr-1">
                                         {ownPublished.map((f) => (
-                                            <div key={f.id} className="flex items-center gap-3 rounded-xl border border-border bg-card px-3.5 py-2.5">
+                                            <div key={f.id} className="flex items-center gap-3 rounded-lg border border-border bg-card px-3.5 py-2.5">
                                                 <FileCode2 size={15} className="shrink-0 text-positive" />
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="truncate font-mono text-xs font-medium text-foreground">{f.fileName}</p>
+                                                    <p className="truncate font-numeric text-xs font-medium text-foreground">{f.fileName}</p>
                                                     <p className="text-micro text-muted-foreground">
                                                         {f.name} {f.pair && `• ${f.pair}`} {f.timeframe && `/ ${f.timeframe}`}
                                                     </p>
@@ -624,7 +624,7 @@ export default function SetFilesPage() {
                                     <select
                                         value={pubProductId}
                                         onChange={(e) => setPubProductId(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground focus:border-foreground/40 focus:outline-none"
+                                        className="w-full rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm text-foreground focus:border-foreground/40 focus:outline-none"
                                     >
                                         <option value="">Select your product</option>
                                         {(role === "admin" ? allProducts : ownedProducts).map((p) => (
@@ -642,7 +642,7 @@ export default function SetFilesPage() {
                                         value={pubName}
                                         onChange={(e) => setPubName(e.target.value)}
                                         placeholder="e.g. Gold Scalper V3 — Aggressive"
-                                        className="w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-foreground/40 focus:outline-none"
+                                        className="w-full rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-foreground/40 focus:outline-none"
                                     />
                                 </div>
                                 <div className="grid grid-cols-3 gap-3">
@@ -653,7 +653,7 @@ export default function SetFilesPage() {
                                             value={pubPair}
                                             onChange={(e) => setPubPair(e.target.value)}
                                             placeholder="XAUUSD"
-                                            className="w-full rounded-xl border border-border bg-card px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-foreground/40 focus:outline-none"
+                                            className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-foreground/40 focus:outline-none"
                                         />
                                     </div>
                                     <div>
@@ -663,7 +663,7 @@ export default function SetFilesPage() {
                                             value={pubTimeframe}
                                             onChange={(e) => setPubTimeframe(e.target.value)}
                                             placeholder="M15"
-                                            className="w-full rounded-xl border border-border bg-card px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-foreground/40 focus:outline-none"
+                                            className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-foreground/40 focus:outline-none"
                                         />
                                     </div>
                                     <div>
@@ -671,7 +671,7 @@ export default function SetFilesPage() {
                                         <select
                                             value={pubRisk}
                                             onChange={(e) => setPubRisk(e.target.value)}
-                                            className="w-full rounded-xl border border-border bg-card px-3 py-2.5 text-sm text-foreground focus:border-foreground/40 focus:outline-none"
+                                            className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm text-foreground focus:border-foreground/40 focus:outline-none"
                                         >
                                             {["Low", "Medium", "High", "Aggressive"].map((r) => (
                                                 <option key={r} value={r}>
@@ -688,7 +688,7 @@ export default function SetFilesPage() {
                                         value={pubDescription}
                                         onChange={(e) => setPubDescription(e.target.value)}
                                         placeholder="Short description of the preset"
-                                        className="w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-foreground/40 focus:outline-none"
+                                        className="w-full rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-foreground/40 focus:outline-none"
                                     />
                                 </div>
                                 <div>
@@ -698,13 +698,13 @@ export default function SetFilesPage() {
                                         required
                                         accept=".set"
                                         onChange={(e) => setPubFile(e.target.files?.[0] ?? null)}
-                                        className="w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-positive/15 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-positive"
+                                        className="w-full rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm text-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-positive/15 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-positive"
                                     />
                                 </div>
                                 <button
                                     type="submit"
                                     disabled={pubSaving || !pubProductId || !pubFile}
-                                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-positive px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-positive disabled:opacity-50"
+                                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-positive px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-positive disabled:opacity-50"
                                 >
                                     {pubSaving ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
                                     Publish Set File

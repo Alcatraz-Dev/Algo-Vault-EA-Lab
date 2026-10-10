@@ -156,7 +156,7 @@ export default function HomePage({ data }: { data: HomeData }) {
 
                         <Reveal delay={140} className="pb-16 md:pb-24">
                             <div className="mt-14">
-                                <div className="av-panel av-edge rounded-lg border border-border bg-card/90 shadow-[0_0_120px_-40px_color-mix(in_oklch,var(--primary)_55%,transparent)]">
+                                <div className="av-panel av-edge rounded-lg border border-border bg-card/90 ">
                                     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3 text-xs text-muted-foreground">
                                         <span className="flex items-center gap-2"><Terminal size={14} className="text-primary" />Operating console</span>
                                         <span className="flex items-center gap-2">

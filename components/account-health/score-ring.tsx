@@ -21,9 +21,9 @@ import { useCountUp } from "./motion";
 import type { RiskLevel } from "@/lib/account-health/types";
 
 const RING: Record<RiskLevel, { stroke: string; text: string; glow: string }> = {
-    LOW: { stroke: "stroke-positive", text: "text-positive", glow: "drop-shadow-[0_0_6px_rgba(16,185,129,0.35)]" },
-    MODERATE: { stroke: "stroke-warning", text: "text-warning", glow: "drop-shadow-[0_0_6px_rgba(245,158,11,0.35)]" },
-    HIGH: { stroke: "stroke-negative", text: "text-negative", glow: "drop-shadow-[0_0_6px_rgba(244,63,94,0.35)]" },
+    LOW: { stroke: "stroke-positive", text: "text-positive", glow: "drop-" },
+    MODERATE: { stroke: "stroke-warning", text: "text-warning", glow: "drop-" },
+    HIGH: { stroke: "stroke-negative", text: "text-negative", glow: "drop-" },
 };
 
 export function ScoreRing({
@@ -80,7 +80,7 @@ export function ScoreRing({
             <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span
                     className={cn(
-                        "font-mono font-bold tabular-nums leading-none",
+                        "font-numeric font-bold tabular-nums leading-none",
                         hasData ? tone.text : "text-muted-foreground",
                     )}
                     style={{ fontSize: size * 0.27 }}

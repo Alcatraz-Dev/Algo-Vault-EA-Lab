@@ -46,7 +46,7 @@ export function MetricTile({
     className?: string;
 }) {
     return (
-        <div className={cn("rounded-xl border border-border/30 bg-muted/50 px-3 py-2.5", className)}>
+        <div className={cn("rounded-lg border border-border/30 bg-muted/50 px-3 py-2.5", className)}>
             <div className="flex items-center gap-1.5">
                 <Icon size={11} className="shrink-0 text-muted-foreground" />
                 <span className="truncate text-micro font-semibold uppercase tracking-wide text-muted-foreground">
@@ -55,7 +55,7 @@ export function MetricTile({
             </div>
             <p
                 className={cn(
-                    "mt-1.5 font-mono text-[13px] font-semibold tabular-nums",
+                    "mt-1.5 font-numeric text-[13px] font-semibold tabular-nums",
                     tone === "positive" && "text-positive",
                     tone === "negative" && "text-negative",
                     tone === "warning" && "text-warning",

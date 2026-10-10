@@ -14,11 +14,11 @@ const ALLOWED_TYPES = new Set([
 ]);
 
 const ALLOWED_EXTENSIONS = new Set([
-    ".png",
+  ".png",
     ".jpg",
-    ".jpeg",
-    ".webp",
-    ".svg",
+      ".jpeg",
+        ".webp",
+          ".svg",
 ]);
 
 const ALLOWED_BRANDING_TYPES = new Set([
@@ -304,11 +304,11 @@ export async function POST(
          * EX5 files remain completely untouched.
          */
         const possibleExtensions = [
-            ".png",
+          ".png",
             ".jpg",
-            ".jpeg",
-            ".webp",
-            ".svg",
+              ".jpeg",
+                ".webp",
+                  ".svg",
         ];
 
         for (

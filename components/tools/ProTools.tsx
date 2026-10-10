@@ -222,7 +222,7 @@ export function StrategyOptimizer() {
             <div className="grid gap-4 md:grid-cols-3">
                 <div className="rounded-lg border border-border bg-card p-5">
                     <h3 className="flex items-center gap-2 font-semibold">
-                        <Sparkles size={16} className="text-violet-400" />
+                        <Sparkles size={16} className="text-primary" />
                         Strategy Optimizer
                     </h3>
                     <p className="mt-1 text-xs text-muted-foreground">
@@ -239,8 +239,8 @@ export function StrategyOptimizer() {
                         <span>{direction === "long" ? "Long" : "Short"}</span>
                     </div>
                 </div>
-                <div className="rounded-lg border border-violet-500/25 bg-violet-500/10 p-5">
-                    <div className="flex items-center gap-2 text-sm text-violet-300">
+                <div className="rounded-lg border border-primary/25 bg-primary/10 p-5">
+                    <div className="flex items-center gap-2 text-sm text-primary">
                         <Zap size={16} />
                         <span>Pro Feature</span>
                     </div>
@@ -254,7 +254,7 @@ export function StrategyOptimizer() {
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <label className="mb-1 block text-xs font-medium text-muted-foreground">Symbol</label>
-                                <select value={symbol} onChange={(e) => { setSymbol(e.target.value as SupportedSymbol); setResults(null); setError(null); }} className="w-full rounded-xl border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-violet-500 focus:outline-none">
+                                <select value={symbol} onChange={(e) => { setSymbol(e.target.value as SupportedSymbol); setResults(null); setError(null); }} className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none">
                                     <option value="EURUSD">EUR/USD</option>
                                     <option value="GBPUSD">GBP/USD</option>
                                     <option value="XAUUSD">XAU/USD</option>
@@ -265,7 +265,7 @@ export function StrategyOptimizer() {
                             </div>
                             <div>
                                 <label className="mb-1 block text-xs font-medium text-muted-foreground">Timeframe</label>
-                                <select value={timeframe} onChange={(e) => { setTimeframe(e.target.value); setResults(null); setError(null); }} className="w-full rounded-xl border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-violet-500 focus:outline-none">
+                                <select value={timeframe} onChange={(e) => { setTimeframe(e.target.value); setResults(null); setError(null); }} className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none">
                                     <option value="M5">M5</option>
                                     <option value="M15">M15</option>
                                     <option value="M30">M30</option>
@@ -283,11 +283,11 @@ export function StrategyOptimizer() {
                                         key={d}
                                         type="button"
                                         onClick={() => { setDirection(d); setResults(null); setError(null); }}
-                                        className={`rounded-xl border px-3 py-2 text-sm font-medium transition ${
+                                        className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
                                             direction === d
                                                 ? d === "long"
-                                                    ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
-                                                    : "border-rose-500/40 bg-rose-500/10 text-rose-400"
+                                                    ? "border-positive/40 bg-positive/10 text-positive"
+                                                    : "border-negative/40 bg-negative/10 text-negative"
                                                 : "border-border bg-muted text-muted-foreground hover:text-foreground"
                                         }`}
                                     >
@@ -298,7 +298,7 @@ export function StrategyOptimizer() {
                         </div>
                         <div>
                             <label className="mb-1 block text-xs font-medium text-muted-foreground">Optimize Parameter</label>
-                            <select value={paramKey} onChange={(e) => selectParam(e.target.value as OptimizeParam)} className="w-full rounded-xl border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-violet-500 focus:outline-none">
+                            <select value={paramKey} onChange={(e) => selectParam(e.target.value as OptimizeParam)} className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none">
                                 {OPTIMIZE_PARAMS.map((p) => (
                                     <option key={p.param} value={p.param}>{p.label}</option>
                                 ))}
@@ -308,15 +308,15 @@ export function StrategyOptimizer() {
                         <div className="grid grid-cols-3 gap-3">
                             <div>
                                 <label className="mb-1 block text-xs font-medium text-muted-foreground">Min</label>
-                                <input type="number" step={activeParam.step} value={min} onChange={(e) => setMin(e.target.value)} className="w-full rounded-xl border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-violet-500 focus:outline-none" />
+                                <input type="number" step={activeParam.step} value={min} onChange={(e) => setMin(e.target.value)} className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none" />
                             </div>
                             <div>
                                 <label className="mb-1 block text-xs font-medium text-muted-foreground">Max</label>
-                                <input type="number" step={activeParam.step} value={max} onChange={(e) => setMax(e.target.value)} className="w-full rounded-xl border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-violet-500 focus:outline-none" />
+                                <input type="number" step={activeParam.step} value={max} onChange={(e) => setMax(e.target.value)} className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none" />
                             </div>
                             <div>
                                 <label className="mb-1 block text-xs font-medium text-muted-foreground">Step</label>
-                                <input type="number" step="0.1" value={step} onChange={(e) => setStep(e.target.value)} className="w-full rounded-xl border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-violet-500 focus:outline-none" />
+                                <input type="number" step="0.1" value={step} onChange={(e) => setStep(e.target.value)} className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none" />
                             </div>
                         </div>
                         <p className="text-micro text-muted-foreground">
@@ -328,7 +328,7 @@ export function StrategyOptimizer() {
                         <button
                             onClick={runOptimization}
                             disabled={optimizationRunning || !user}
-                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-violet-500 disabled:opacity-50"
+                            className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-primary disabled:opacity-50"
                         >
                             {optimizationRunning ? (
                                 <>
@@ -346,7 +346,7 @@ export function StrategyOptimizer() {
                             <p className="text-center text-micro text-muted-foreground">Sign in to run optimizations.</p>
                         )}
                         {error && (
-                            <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2.5 text-xs text-rose-300">
+                            <div className="rounded-lg border border-negative/30 bg-negative/10 px-3 py-2.5 text-xs text-negative">
                                 {error}
                             </div>
                         )}
@@ -356,11 +356,11 @@ export function StrategyOptimizer() {
                 <div className="rounded-lg border border-border bg-card p-6">
                     <h3 className="font-semibold mb-4">Optimization Results</h3>
                     {results === null ? (
-                        <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">
+                        <div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground">
                             Run optimization to see results
                         </div>
                     ) : results.length === 0 ? (
-                        <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">
+                        <div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground">
                             No tradable parameter combinations found in this range.
                         </div>
                     ) : (
@@ -374,18 +374,18 @@ export function StrategyOptimizer() {
                                 return (
                                     <div
                                         key={i}
-                                        className={`rounded-xl border p-3 ${i === 0 ? "border-emerald-500/30 bg-emerald-500/5" : "border-border bg-muted/30"}`}
+                                        className={`rounded-lg border p-3 ${i === 0 ? "border-positive/30 bg-positive/5" : "border-border bg-muted/30"}`}
                                     >
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm font-medium">{activeParam.label} = {String(comboValue ?? "—")}</span>
                                             <span className="flex items-center gap-1.5">
-                                                {i === 0 && <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-micro font-bold text-foreground">BEST</span>}
+                                                {i === 0 && <span className="rounded-full bg-positive px-2 py-0.5 text-micro font-bold text-foreground">BEST</span>}
                                                 <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-micro text-muted-foreground">score {result.score?.toFixed(1) ?? "—"}</span>
                                             </span>
                                         </div>
                                         {bestValue > 0 && (
                                             <div className="mt-1.5 h-1 w-full rounded-full bg-muted">
-                                                <div className="h-1 rounded-full bg-violet-500/80" style={{ width: `${pct}%` }} />
+                                                <div className="h-1 rounded-full bg-primary/80" style={{ width: `${pct}%` }} />
                                             </div>
                                         )}
                                         <div className="mt-2 grid grid-cols-4 gap-2 text-xs">
@@ -399,7 +399,7 @@ export function StrategyOptimizer() {
                                             </div>
                                             <div>
                                                 <p className="text-muted-foreground">Net P/L</p>
-                                                <p className={`font-semibold ${(result.metrics?.netProfit ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                                                <p className={`font-semibold ${(result.metrics?.netProfit ?? 0) >= 0 ? "text-positive" : "text-negative"}`}>
                                                     {result.metrics?.netProfit !== undefined ? (result.metrics.netProfit >= 0 ? "+" : "") + `${result.metrics.netProfit.toFixed(0)}` : "—"}
                                                 </p>
                                             </div>
@@ -423,8 +423,8 @@ export function StrategyOptimizer() {
 
             {best && (
                 <ProGate>
-                    <div className="rounded-lg border border-violet-500/30 bg-violet-500/5 p-6">
-                        <h3 className="flex items-center gap-2 font-semibold text-violet-300">
+                    <div className="rounded-lg border border-primary/30 bg-primary/5 p-6">
+                        <h3 className="flex items-center gap-2 font-semibold text-primary">
                             <Target size={18} />
                             Recommended Strategy Configuration
                         </h3>
@@ -435,7 +435,7 @@ export function StrategyOptimizer() {
                             {Number.isFinite(best.metrics?.profitFactor) ? best.metrics.profitFactor.toFixed(2) : "—"} over{" "}
                             {best.metrics?.totalTrades ?? 0} trades.
                         </p>
-                        <button className="mt-4 flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-violet-500">
+                        <button className="mt-4 flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-primary">
                             <Zap size={14} />
                             Apply to Strategy
                         </button>
@@ -473,7 +473,7 @@ export function RiskManager() {
     return (
         <div className="space-y-6">
             <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Shield size={20} className="text-emerald-400" />
+                <Shield size={20} className="text-positive" />
                 Risk Manager (Pro)
             </h3>
             <div className="grid gap-4 md:grid-cols-2">
@@ -482,32 +482,32 @@ export function RiskManager() {
                     <div className="space-y-4">
                         <div>
                             <label className="mb-1 block text-xs text-muted-foreground">Account Size ($)</label>
-                            <input type="number" value={accountSize} onChange={(e) => setAccountSize(Number(e.target.value))} className="w-full rounded-xl border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-emerald-500 focus:outline-none" />
+                            <input type="number" value={accountSize} onChange={(e) => setAccountSize(Number(e.target.value))} className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-positive focus:outline-none" />
                         </div>
                         <div>
                             <label className="mb-1 block text-xs text-muted-foreground">Risk Per Trade (%)</label>
-                            <input type="number" step="0.1" value={riskPerTrade} onChange={(e) => setRiskPerTrade(Number(e.target.value))} className="w-full rounded-xl border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-emerald-500 focus:outline-none" />
+                            <input type="number" step="0.1" value={riskPerTrade} onChange={(e) => setRiskPerTrade(Number(e.target.value))} className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-positive focus:outline-none" />
                         </div>
                         <div>
                             <label className="mb-1 block text-xs text-muted-foreground">Max Daily Loss (%)</label>
-                            <input type="number" step="0.1" value={maxDailyLoss} onChange={(e) => setMaxDailyLoss(Number(e.target.value))} className="w-full rounded-xl border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-emerald-500 focus:outline-none" />
+                            <input type="number" step="0.1" value={maxDailyLoss} onChange={(e) => setMaxDailyLoss(Number(e.target.value))} className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-positive focus:outline-none" />
                         </div>
                         <div>
                             <label className="mb-1 block text-xs text-muted-foreground">Max Drawdown (%)</label>
-                            <input type="number" step="0.1" value={maxDrawdown} onChange={(e) => setMaxDrawdown(Number(e.target.value))} className="w-full rounded-xl border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-emerald-500 focus:outline-none" />
+                            <input type="number" step="0.1" value={maxDrawdown} onChange={(e) => setMaxDrawdown(Number(e.target.value))} className="w-full rounded-lg border border-border bg-muted px-3 py-2.5 text-sm text-foreground focus:border-positive focus:outline-none" />
                         </div>
                     </div>
                 </div>
-                <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/5 p-5">
+                <div className="rounded-lg border border-positive/25 bg-positive/5 p-5">
                     <h4 className="font-semibold mb-4">Risk Metrics</h4>
                     <div className="grid gap-3">
                         <div className="rounded-lg bg-muted/30 p-3">
                             <p className="text-micro uppercase text-muted-foreground">Risk per Trade</p>
-                            <p className="text-xl font-bold text-emerald-400">${riskMetrics.riskPerTradeAmount.toFixed(2)}</p>
+                            <p className="text-xl font-bold text-positive">${riskMetrics.riskPerTradeAmount.toFixed(2)}</p>
                         </div>
                         <div className="rounded-lg bg-muted/30 p-3">
                             <p className="text-micro uppercase text-muted-foreground">Max Daily Loss</p>
-                            <p className="text-xl font-bold text-amber-400">${riskMetrics.maxDailyLossAmount.toFixed(2)}</p>
+                            <p className="text-xl font-bold text-warning">${riskMetrics.maxDailyLossAmount.toFixed(2)}</p>
                         </div>
                         <div className="rounded-lg bg-muted/30 p-3">
                             <p className="text-micro uppercase text-muted-foreground">Max Trades/Day</p>
@@ -517,9 +517,9 @@ export function RiskManager() {
                             <p className="text-micro uppercase text-muted-foreground">Position Size</p>
                             <p className="text-xl font-bold text-foreground">{riskMetrics.positionSize.toFixed(2)} lots</p>
                         </div>
-                        <div className="rounded-lg bg-emerald-500/10 p-3">
+                        <div className="rounded-lg bg-positive/10 p-3">
                             <p className="text-micro uppercase text-muted-foreground">Safety Score</p>
-                            <p className={`text-xl font-bold ${riskMetrics.safetyScore > 70 ? "text-emerald-400" : "text-amber-400"}`}>
+                            <p className={`text-xl font-bold ${riskMetrics.safetyScore > 70 ? "text-positive" : "text-warning"}`}>
                                 {riskMetrics.safetyScore}/100
                             </p>
                         </div>

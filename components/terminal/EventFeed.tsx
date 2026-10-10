@@ -55,12 +55,12 @@ export function EventFeed({ now, limit = 40 }: { now: number; limit?: number }) 
     };
 
     return (
-        <section className="flex min-w-0 flex-col rounded-xl border border-border bg-card" aria-label="Market monitor">
+        <section className="flex min-w-0 flex-col rounded-lg border border-border bg-card" aria-label="Market monitor">
             <header className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2">
                 <h2 className="flex items-center gap-1.5 text-micro font-semibold uppercase tracking-wide text-foreground">
                     <Radio className="size-3 text-primary" />
                     Market monitor
-                    <span className="font-mono text-muted-foreground">({events.length})</span>
+                    <span className="font-numeric text-muted-foreground">({events.length})</span>
                 </h2>
                 <div className="flex items-center gap-1">
                     <Filter className="size-3 text-muted-foreground" />
@@ -101,26 +101,26 @@ export function EventFeed({ now, limit = 40 }: { now: number; limit?: number }) 
                                 )}
                                 title="Focus the chart on this event"
                             >
-                                <span className="w-9 shrink-0 pt-0.5 font-mono text-micro tabular-nums text-muted-foreground">
+                                <span className="w-9 shrink-0 pt-0.5 font-numeric text-micro tabular-nums text-muted-foreground">
                                     {eventTimeLabel(e.timestamp)}
                                 </span>
                                 <span className="min-w-0 flex-1">
                                     <span className="flex flex-wrap items-center gap-1.5">
                                         <span
                                             className={cn(
-                                                "rounded border px-1 font-mono text-micro font-bold tracking-wide",
+                                                "rounded border px-1 font-numeric text-micro font-bold tracking-wide",
                                                 TYPE_STYLE[e.type] ?? "border-border text-muted-foreground"
                                             )}
                                         >
                                             {e.type.replace("_", " ")}
                                         </span>
-                                        <span className="font-mono text-micro font-semibold text-foreground">{e.symbol}</span>
-                                        <span className="font-mono text-micro text-muted-foreground">{e.timeframe}</span>
+                                        <span className="font-numeric text-micro font-semibold text-foreground">{e.symbol}</span>
+                                        <span className="font-numeric text-micro text-muted-foreground">{e.timeframe}</span>
                                         <span className="text-micro text-muted-foreground">· {e.source}</span>
                                     </span>
                                     <span className="mt-0.5 block truncate text-micro text-foreground">{e.title}</span>
                                     {e.detail ? (
-                                        <span className="block truncate font-mono text-micro text-muted-foreground">{e.detail}</span>
+                                        <span className="block truncate font-numeric text-micro text-muted-foreground">{e.detail}</span>
                                     ) : null}
                                 </span>
                                 <Crosshair

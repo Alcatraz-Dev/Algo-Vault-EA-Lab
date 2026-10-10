@@ -194,7 +194,7 @@ export default function AdminTradingProvidersPage() {
               <span
                 key={key}
                 className={cn(
-                  "rounded border px-1.5 py-0.5 font-mono text-micro",
+                  "rounded border px-1.5 py-0.5 font-numeric text-micro",
                   value === true
                     ? "border-positive/40 bg-positive/10 text-positive"
                     : value === false
@@ -224,7 +224,7 @@ export default function AdminTradingProvidersPage() {
                 {providers.map((provider) => (
                   <tr key={provider.provider} className="border-b border-border last:border-0">
                     <td className="px-3 py-2 font-medium">{provider.label}</td>
-                    <td className="px-3 py-2 font-mono text-muted-foreground">
+                    <td className="px-3 py-2 font-numeric text-muted-foreground">
                       {provider.environments.join(" / ")}
                     </td>
                     <td className="px-3 py-2">
@@ -267,15 +267,15 @@ export default function AdminTradingProvidersPage() {
                       key={`${account.userId}/${account.accountId}`}
                       className="border-b border-border last:border-0"
                     >
-                      <td className="px-3 py-2 font-mono">{account.externalAccountId ?? account.accountId}</td>
+                      <td className="px-3 py-2 font-numeric">{account.externalAccountId ?? account.accountId}</td>
                       <td className="px-3 py-2">{account.provider}</td>
-                      <td className="px-3 py-2 font-mono">{account.environment}</td>
+                      <td className="px-3 py-2 font-numeric">{account.environment}</td>
                       <td className="px-3 py-2">
                         <StateBadge state={account.connection} />
                       </td>
                       <td className="px-3 py-2 text-muted-foreground">{ago(account.lastHeartbeatAt)}</td>
-                      <td className="px-3 py-2 font-mono tabular-nums">{money(account.balance)}</td>
-                      <td className="px-3 py-2 font-mono tabular-nums">{money(account.equity)}</td>
+                      <td className="px-3 py-2 font-numeric tabular-nums">{money(account.balance)}</td>
+                      <td className="px-3 py-2 font-numeric tabular-nums">{money(account.equity)}</td>
                       <td className="px-3 py-2 text-muted-foreground">
                         {account.connectionError?.code ?? "—"}
                       </td>
@@ -315,15 +315,15 @@ export default function AdminTradingProvidersPage() {
                       className="border-b border-border last:border-0"
                     >
                       <td className="px-3 py-2 text-muted-foreground">{ago(execution.createdAt)}</td>
-                      <td className="px-3 py-2 font-mono">{execution.executionType}</td>
-                      <td className="px-3 py-2 font-mono">{execution.accountId}</td>
+                      <td className="px-3 py-2 font-numeric">{execution.executionType}</td>
+                      <td className="px-3 py-2 font-numeric">{execution.accountId}</td>
                       <td className="px-3 py-2">
                         <StateBadge
                           state={execution.status === "SUCCEEDED" ? "CONNECTED" : "ERROR"}
                         />
-                        <span className="ml-1.5 font-mono text-micro">{execution.status}</span>
+                        <span className="ml-1.5 font-numeric text-micro">{execution.status}</span>
                       </td>
-                      <td className="px-3 py-2 font-mono">{execution.providerRef ?? "—"}</td>
+                      <td className="px-3 py-2 font-numeric">{execution.providerRef ?? "—"}</td>
                       <td className="px-3 py-2 text-muted-foreground">{execution.error?.code ?? "—"}</td>
                     </tr>
                   ))
@@ -345,12 +345,12 @@ export default function AdminTradingProvidersPage() {
                   className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border px-3 py-1.5 text-micro last:border-0"
                 >
                   <Activity className="size-2.5 text-muted-foreground" />
-                  <span className="font-mono text-muted-foreground">{ago(event.timestamp)}</span>
+                  <span className="font-numeric text-muted-foreground">{ago(event.timestamp)}</span>
                   <span className="font-medium">{event.action}</span>
-                  <span className="font-mono text-muted-foreground">{event.provider ?? "—"}</span>
-                  {event.symbol ? <span className="font-mono">{event.symbol}</span> : null}
+                  <span className="font-numeric text-muted-foreground">{event.provider ?? "—"}</span>
+                  {event.symbol ? <span className="font-numeric">{event.symbol}</span> : null}
                   {typeof event.volume === "number" ? (
-                    <span className="font-mono text-muted-foreground">{event.volume}</span>
+                    <span className="font-numeric text-muted-foreground">{event.volume}</span>
                   ) : null}
                   {event.errorCode ? <span className="text-negative">{event.errorCode}</span> : null}
                 </div>

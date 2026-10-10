@@ -73,7 +73,7 @@
  * painted ahead of the coordinate system it depends on. The SVG layer itself
  * is a pure function of the projected scene — no effects, no state — so there
  * is no child-effect ordering hazard to reason about.
- */
+  */
 
 import { createElement, type ReactElement, type ReactNode } from "react";
 import type { DrawingItem, DrawingTool } from "./ProTerminalChart";
@@ -96,7 +96,7 @@ import {
  * The candle series' transform as the drawing surface reads it: price → y for
  * every tool, plus the inverse y → price that the live preview's *measurement*
  * labels need (the ruler's Δ, the Fibonacci retracement being dragged).
- */
+  */
 export type DrawingSeriesTransform = MarketPriceTransform & {
     coordinateToPrice?(y: number): number | null;
 };
@@ -109,7 +109,7 @@ export type DrawingToolSettings = ChartSettings["tools"];
  * being dragged. It is deliberately in PIXEL space: it is transient UI, never
  * persisted, and the committed drawing is derived from market coordinates by
  * the parent on pointer-up.
- */
+  */
 export type DrawingPreviewState = {
     tool: DrawingTool;
     startX: number;
@@ -727,7 +727,7 @@ export class DrawingRenderer {
  * `children` are painted between the committed drawings/selection and the live
  * preview, which is exactly where the parent's AI direction badge sat before the
  * extraction — passing it through keeps the paint order byte-for-byte.
- */
+  */
 const el = createElement;
 
 /** One committed drawing → its SVG element. Identity comes from the drawing id. */
@@ -735,14 +735,14 @@ function drawingElement(v: DrawingVisual): ReactElement {
     switch (v.kind) {
         case "horizontal":
             return el(
-                "g",
+              "g",
                 { key: v.id },
                 el("line", { x1: 0, y1: v.y, x2: v.width, y2: v.y, stroke: v.color, strokeWidth: v.strokeWidth, strokeDasharray: v.dash }),
                 el("text", { x: 4, y: v.y - 4, fill: v.color, fontSize: v.fontSize, fontFamily: "monospace" }, v.label)
             );
         case "vertical":
             return el(
-                "g",
+              "g",
                 { key: v.id },
                 el("line", { x1: v.x, y1: 0, x2: v.x, y2: v.height, stroke: v.color, strokeWidth: v.strokeWidth, strokeDasharray: v.dash })
             );
@@ -752,7 +752,7 @@ function drawingElement(v: DrawingVisual): ReactElement {
             return el("line", { key: v.id, x1: v.x1, y1: v.y1, x2: v.endX, y2: v.endY, stroke: v.color, strokeWidth: v.strokeWidth, strokeDasharray: v.dash, markerEnd: "url(#arrow)" });
         case "arrow":
             return el(
-                "g",
+              "g",
                 { key: v.id },
                 el("line", { x1: v.x1, y1: v.y1, x2: v.x2, y2: v.y2, stroke: v.color, strokeWidth: v.strokeWidth, strokeDasharray: v.dash, markerEnd: "url(#arrow)" }),
                 el("polygon", { points: `${v.x2},${v.y2 - 4} ${v.x2 - 4},${v.y2 + 3} ${v.x2 + 4},${v.y2 + 3}`, fill: v.color, opacity: 0.85 })
@@ -770,11 +770,11 @@ function drawingElement(v: DrawingVisual): ReactElement {
             });
         case "fibo":
             return el(
-                "g",
+              "g",
                 { key: v.id },
                 v.levels.map((lv) =>
                     el(
-                        "g",
+                      "g",
                         { key: lv.level },
                         el("line", { x1: v.left, y1: lv.y, x2: v.right, y2: lv.y, stroke: v.color, strokeWidth: 1, strokeDasharray: "4,3", opacity: 0.8 }),
                         el("text", { x: v.right + 4, y: lv.y + 4, fill: v.color, fontSize: v.labelSize, fontFamily: "monospace" }, `${(lv.level * 100).toFixed(1)}%`)
@@ -783,7 +783,7 @@ function drawingElement(v: DrawingVisual): ReactElement {
             );
         case "ruler":
             return el(
-                "g",
+              "g",
                 { key: v.id },
                 el("line", { x1: v.x1, y1: v.y1, x2: v.x2, y2: v.y2, stroke: v.color, strokeWidth: v.strokeWidth, strokeDasharray: v.dash }),
                 el("line", { x1: v.x1, y1: v.y1, x2: v.x1, y2: v.y2, stroke: v.color, strokeWidth: 1, opacity: 0.5 }),
@@ -805,12 +805,12 @@ function selectionElement(selection: DrawingSelectionVisual | null): ReactElemen
     const box = selection.box;
     const handles = selection.handles;
     return el(
-        "g",
+      "g",
         null,
         el("rect", { x: box.x, y: box.y, width: box.w, height: box.h, rx: 4, fill: "none", stroke: "#38bdf8", strokeWidth: 1, strokeDasharray: "4,3", opacity: 0.9 }),
         handles.length === 2
             ? el(
-                  "g",
+              "g",
                   null,
                   el("circle", { cx: handles[0].x, cy: handles[0].y, r: 3.5, fill: "#38bdf8" }),
                   el("circle", { cx: handles[1].x, cy: handles[1].y, r: 3.5, fill: "#38bdf8" })
@@ -830,11 +830,11 @@ function previewElement(pv: DrawingPreviewVisual): ReactElement {
             return el("rect", { x: pv.x, y: pv.y, width: pv.w, height: pv.h, stroke: pv.color, strokeWidth: pv.strokeWidth, fill: `${pv.color}18`, opacity: 0.85 });
         case "fibo":
             return el(
-                "g",
+              "g",
                 { opacity: 0.8 },
                 pv.levels.map((lv) =>
                     el(
-                        "g",
+                      "g",
                         { key: lv.level },
                         el("line", { x1: pv.left, y1: lv.y, x2: pv.right, y2: lv.y, stroke: pv.color, strokeWidth: 1, strokeDasharray: "4,3" }),
                         el("text", { x: pv.right + 4, y: lv.y + 4, fill: pv.color, fontSize: pv.labelSize, fontFamily: "monospace" }, `${(lv.level * 100).toFixed(1)}%`)
@@ -843,7 +843,7 @@ function previewElement(pv: DrawingPreviewVisual): ReactElement {
             );
         case "ruler":
             return el(
-                "g",
+              "g",
                 { opacity: 0.85 },
                 el("line", { x1: pv.x1, y1: pv.y1, x2: pv.x2, y2: pv.y2, stroke: pv.color, strokeWidth: pv.strokeWidth, strokeDasharray: "6,2" }),
                 el("line", { x1: pv.x1, y1: pv.y1, x2: pv.x1, y2: pv.y2, stroke: pv.color, strokeWidth: 1, opacity: 0.5 }),
@@ -856,7 +856,7 @@ function previewElement(pv: DrawingPreviewVisual): ReactElement {
             );
         case "arrow":
             return el(
-                "g",
+              "g",
                 { opacity: 0.85 },
                 el("line", { x1: pv.x1, y1: pv.y1, x2: pv.x2, y2: pv.y2, stroke: pv.color, strokeWidth: pv.strokeWidth, markerEnd: "url(#arrow)" }),
                 el("polygon", { points: `${pv.x2},${pv.y2 - 4} ${pv.x2 - 4},${pv.y2 + 3} ${pv.x2 + 4},${pv.y2 + 3}`, fill: pv.color, opacity: 0.85 })

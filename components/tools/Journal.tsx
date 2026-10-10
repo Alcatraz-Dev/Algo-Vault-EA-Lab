@@ -42,9 +42,9 @@ function MarkdownRenderer({ content }: { content: string }) {
 
 const outcomeBadge = (outcome: string) => {
     switch (outcome) {
-        case "win": return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-        case "loss": return "bg-rose-500/10 text-rose-400 border-rose-500/20";
-        case "breakeven": return "bg-amber-500/10 text-amber-400 border-amber-500/20";
+        case "win": return "bg-positive/10 text-positive border-positive/20";
+        case "loss": return "bg-negative/10 text-negative border-negative/20";
+        case "breakeven": return "bg-warning/10 text-warning border-warning/20";
         default: return "bg-border text-muted-foreground";
     }
 };
@@ -68,25 +68,25 @@ export default function Journal() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-5">
-                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-center">
-                    <p className="text-micro uppercase tracking-wider text-emerald-300 font-semibold">Wins</p>
-                    <p className="mt-1 text-2xl font-bold text-emerald-400">{wins}</p>
+                <div className="rounded-lg border border-positive/20 bg-positive/10 p-4 text-center">
+                    <p className="text-micro uppercase tracking-wider text-positive font-semibold">Wins</p>
+                    <p className="mt-1 text-2xl font-bold text-positive">{wins}</p>
                 </div>
-                <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-center">
-                    <p className="text-micro uppercase tracking-wider text-rose-300 font-semibold">Losses</p>
-                    <p className="mt-1 text-2xl font-bold text-rose-400">{losses}</p>
+                <div className="rounded-lg border border-negative/20 bg-negative/10 p-4 text-center">
+                    <p className="text-micro uppercase tracking-wider text-negative font-semibold">Losses</p>
+                    <p className="mt-1 text-2xl font-bold text-negative">{losses}</p>
                 </div>
-                <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-center">
-                    <p className="text-micro uppercase tracking-wider text-amber-300 font-semibold">Flat</p>
-                    <p className="mt-1 text-2xl font-bold text-amber-400">{breakevens}</p>
+                <div className="rounded-lg border border-warning/20 bg-warning/10 p-4 text-center">
+                    <p className="text-micro uppercase tracking-wider text-warning font-semibold">Flat</p>
+                    <p className="mt-1 text-2xl font-bold text-warning">{breakevens}</p>
                 </div>
-                <div className="rounded-xl border border-border bg-muted/30 p-4 text-center">
+                <div className="rounded-lg border border-border bg-muted/30 p-4 text-center">
                     <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Win Rate</p>
                     <p className="mt-1 text-2xl font-bold text-foreground">{winRate}%</p>
                 </div>
-                <div className={`rounded-xl border p-4 text-center ${totalPnl >= 0 ? "border-emerald-500/20 bg-emerald-500/10" : "border-rose-500/20 bg-rose-500/10"}`}>
+                <div className={`rounded-lg border p-4 text-center ${totalPnl >= 0 ? "border-positive/20 bg-positive/10" : "border-negative/20 bg-negative/10"}`}>
                     <p className="text-micro uppercase tracking-wider font-semibold">Total P&L</p>
-                    <p className={`mt-1 text-2xl font-bold ${totalPnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                    <p className={`mt-1 text-2xl font-bold ${totalPnl >= 0 ? "text-positive" : "text-negative"}`}>
                         {totalPnl >= 0 ? "+" : ""}${totalPnl.toFixed(2)}
                     </p>
                 </div>
@@ -117,15 +117,15 @@ export default function Journal() {
                                     <td className="py-3 px-5 text-muted-foreground">{entry.date}</td>
                                     <td className="py-3 px-4 font-medium">{entry.symbol}</td>
                                     <td className="py-3 px-4 text-muted-foreground">{entry.strategy}</td>
-                                    <td className="py-3 px-4 font-mono text-xs">{entry.entry}</td>
-                                    <td className="py-3 px-4 font-mono text-xs">{entry.exit}</td>
+                                    <td className="py-3 px-4 font-numeric text-xs">{entry.entry}</td>
+                                    <td className="py-3 px-4 font-numeric text-xs">{entry.exit}</td>
                                     <td className="py-3 px-4">{entry.lots}</td>
                                     <td className="py-3 px-4">
                                         <span className={`rounded-full border px-2 py-0.5 text-micro font-semibold ${outcomeBadge(entry.outcome)}`}>
                                             {entry.outcome === "win" ? "WIN" : entry.outcome === "loss" ? "LOSS" : "FLAT"}
                                         </span>
                                     </td>
-                                    <td className={`py-3 px-4 font-medium ${entry.pnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                                    <td className={`py-3 px-4 font-medium ${entry.pnl >= 0 ? "text-positive" : "text-negative"}`}>
                                         {entry.pnl >= 0 ? "+" : ""}${entry.pnl.toFixed(2)}
                                     </td>
                                     <td className="py-3 px-4">
@@ -139,23 +139,23 @@ export default function Journal() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-4">
-                <div className="rounded-xl border border-border bg-card p-5">
-                    <TrendingUp size={14} className="text-emerald-400 mb-2" />
+                <div className="rounded-lg border border-border bg-card p-5">
+                    <TrendingUp size={14} className="text-positive mb-2" />
                     <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Avg Win</p>
-                    <p className="mt-1 text-lg font-bold text-emerald-400">+${avgWin}</p>
+                    <p className="mt-1 text-lg font-bold text-positive">+${avgWin}</p>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-5">
-                    <TrendingDown size={14} className="text-rose-400 mb-2" />
+                <div className="rounded-lg border border-border bg-card p-5">
+                    <TrendingDown size={14} className="text-negative mb-2" />
                     <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Avg Loss</p>
-                    <p className="mt-1 text-lg font-bold text-rose-400">${avgLoss}</p>
+                    <p className="mt-1 text-lg font-bold text-negative">${avgLoss}</p>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-5">
-                    <ArrowUpRight size={14} className="text-violet-400 mb-2" />
+                <div className="rounded-lg border border-border bg-card p-5">
+                    <ArrowUpRight size={14} className="text-primary mb-2" />
                     <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Profit Factor</p>
                     <p className="mt-1 text-lg font-bold text-foreground">{profitFactor}</p>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-5">
-                    <ArrowDownRight size={14} className="text-amber-400 mb-2" />
+                <div className="rounded-lg border border-border bg-card p-5">
+                    <ArrowDownRight size={14} className="text-warning mb-2" />
                     <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Expectancy</p>
                     <p className="mt-1 text-lg font-bold text-foreground">
                         ${expectancy.toFixed(2)}/trade

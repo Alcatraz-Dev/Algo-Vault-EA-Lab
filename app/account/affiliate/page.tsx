@@ -149,8 +149,8 @@ export default function AffiliatePage() {
         <AccountShell title="Affiliates" subtitle="Refer traders, grow the community, and earn">
             {/* Background blurs */}
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute left-1/2 top-[-300px] h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-chart-3/10 blur-[130px]" />
-                <div className="absolute bottom-[-200px] right-[-100px] h-[450px] w-[450px] rounded-full bg-info/10 blur-[130px]" />
+                <div className="absolute left-1/2 top-[-300px] h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-chart-3/10 hidden" />
+                <div className="absolute bottom-[-200px] right-[-100px] h-[450px] w-[450px] rounded-full bg-info/10 hidden" />
             </div>
 
             <div className="relative mx-auto max-w-5xl" data-guide="page-header">
@@ -204,10 +204,10 @@ export default function AffiliatePage() {
                             </div>
 
                             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                                <div className="rounded-xl border border-border bg-muted p-4">
+                                <div className="rounded-lg border border-border bg-muted p-4">
                                     <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Code</p>
                                     <div className="mt-2 flex items-center justify-between gap-3">
-                                        <span className="font-mono text-lg font-bold text-foreground">{summary.code}</span>
+                                        <span className="font-numeric text-lg font-bold text-foreground">{summary.code}</span>
                                         <button
                                             type="button"
                                             onClick={() => copyText("code", summary.code)}
@@ -219,10 +219,10 @@ export default function AffiliatePage() {
                                     </div>
                                 </div>
 
-                                <div className="rounded-xl border border-border bg-muted p-4">
+                                <div className="rounded-lg border border-border bg-muted p-4">
                                     <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Share Link</p>
                                     <div className="mt-2 flex items-center justify-between gap-3">
-                                        <span className="truncate text-sm font-mono text-foreground">{shareLink}</span>
+                                        <span className="truncate text-sm font-numeric text-foreground">{shareLink}</span>
                                         <button
                                             type="button"
                                             onClick={() => copyText("link", shareLink)}
@@ -240,7 +240,7 @@ export default function AffiliatePage() {
                                     href={shareLink}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-primary"
+                                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-primary"
                                 >
                                     <Globe size={14} /> Preview Link
                                 </a>
@@ -248,7 +248,7 @@ export default function AffiliatePage() {
                                     href={telegramShare}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="inline-flex items-center gap-2 rounded-xl border border-border bg-muted px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-muted/70"
+                                    className="inline-flex items-center gap-2 rounded-lg border border-border bg-muted px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-muted/70"
                                 >
                                     <Share2 size={14} /> Share on Telegram
                                 </a>
@@ -309,8 +309,8 @@ export default function AffiliatePage() {
                                 <li>3. When someone signs up, every purchase they make earns you <span className="font-semibold text-chart-3">{commissionRate}% commission</span>.</li>
                             </ol>
                             {summary.referredBy && (
-                                <p className="mt-4 rounded-xl bg-muted px-4 py-3 text-xs text-muted-foreground">
-                                    You were referred by code <span className="font-mono text-foreground">{summary.referredBy}</span>.
+                                <p className="mt-4 rounded-lg bg-muted px-4 py-3 text-xs text-muted-foreground">
+                                    You were referred by code <span className="font-numeric text-foreground">{summary.referredBy}</span>.
                                 </p>
                             )}
                         </div>

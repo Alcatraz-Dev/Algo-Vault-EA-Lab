@@ -260,7 +260,7 @@ export default function ChallengeDashboardPage() {
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
                             <ChallengeStatusBadge status={state.attempt.status} />
-                            <span className="font-mono text-xs text-muted-foreground">
+                            <span className="font-numeric text-xs text-muted-foreground">
                                 Started {new Date(state.attempt.startedAt).toLocaleDateString()} · expires{" "}
                                 {new Date(state.attempt.expiresAt).toLocaleDateString()}
                             </span>
@@ -350,7 +350,7 @@ export default function ChallengeDashboardPage() {
                         <div className="min-w-0 overflow-hidden rounded-lg border border-border bg-card">
                             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2">
                                 <label className="sr-only" htmlFor="arena-chart-symbol">Chart symbol</label>
-                                <select id="arena-chart-symbol" value={chartSymbol} onChange={(event) => setChartSymbol(event.target.value)} className="max-w-44 rounded-md border border-border bg-background px-2 py-1.5 font-mono text-xs text-foreground">
+                                <select id="arena-chart-symbol" value={chartSymbol} onChange={(event) => setChartSymbol(event.target.value)} className="max-w-44 rounded-md border border-border bg-background px-2 py-1.5 font-numeric text-xs text-foreground">
                                     {symbols.map((symbol) => <option key={symbol} value={symbol}>{symbol} · {marketOfSymbol(symbol)}</option>)}
                                 </select>
                                 <div className="flex flex-wrap items-center gap-2 text-micro text-muted-foreground">

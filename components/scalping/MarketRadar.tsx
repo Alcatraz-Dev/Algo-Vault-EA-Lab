@@ -39,13 +39,13 @@ const RadarRow = memo(function RadarRowView({ row }: { row: RadarRowType }) {
       highlight={row.stale === false && row.confidence.status === "available"}
       cells={[
         <span key="sym" className="flex flex-col gap-0.5">
-          <span className="font-mono text-xs font-semibold text-foreground">{row.symbol}</span>
+          <span className="font-numeric text-xs font-semibold text-foreground">{row.symbol}</span>
           <span className="text-xs text-muted-foreground">
             {row.timeframe}
             {row.stale ? <span className="ml-1 text-warning">· stale</span> : null}
           </span>
         </span>,
-        <span key="px" className="font-mono tabular-nums">
+        <span key="px" className="font-numeric tabular-nums">
           <SourcedValue metric={row.lastPrice} format={(v) => formatPrice(v)} />
         </span>,
         <span
@@ -53,7 +53,7 @@ const RadarRow = memo(function RadarRowView({ row }: { row: RadarRowType }) {
           className={
             change === null
               ? ""
-              : `font-mono tabular-nums ${change >= 0 ? "text-positive" : "text-negative"}`
+              : `font-numeric tabular-nums ${change >= 0 ? "text-positive" : "text-negative"}`
           }
         >
           <SourcedValue metric={row.changePercent} format={(v) => formatSigned(v, 3)} />
@@ -71,7 +71,7 @@ const RadarRow = memo(function RadarRowView({ row }: { row: RadarRowType }) {
             fallbackText="Data unavailable"
           />
         </span>,
-        <span key="liq" className="font-mono tabular-nums">
+        <span key="liq" className="font-numeric tabular-nums">
           {row.liquidity.value ? row.liquidity.value.levelCount : "—"}
         </span>,
         <span key="regime" className="text-xs text-muted-foreground">
@@ -91,7 +91,7 @@ const RadarRow = memo(function RadarRowView({ row }: { row: RadarRowType }) {
             metric={row.confidence}
             label2={
               row.confidence.status === "available" ? (
-                <span className="font-mono tabular-nums">{row.confidence.value?.toFixed(0)}</span>
+                <span className="font-numeric tabular-nums">{row.confidence.value?.toFixed(0)}</span>
               ) : undefined
             }
           />
@@ -141,7 +141,7 @@ export function MarketRadar({
           <div className="mt-3 space-y-1">
             {radar.failed.map((f) => (
               <p key={f.symbol} className="text-xs text-muted-foreground">
-                <span className="font-mono">{f.symbol}</span> — {f.reason}
+                <span className="font-numeric">{f.symbol}</span> — {f.reason}
               </p>
             ))}
           </div>
@@ -219,7 +219,7 @@ export function MarketRadar({
             .filter((r) => r.degraded.length > 0)
             .map((r) => (
               <p key={r.symbol} className="text-xs text-muted-foreground">
-                <span className="font-mono">{r.symbol}</span>:{" "}
+                <span className="font-numeric">{r.symbol}</span>:{" "}
                 {r.degraded.map((d) => `${d.agent} — ${d.reason}`).join("; ")}
               </p>
             ))}

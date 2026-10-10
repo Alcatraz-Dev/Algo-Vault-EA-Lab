@@ -68,8 +68,8 @@ export default function TermsPage() {
 
                     <section>
                         <h2 className="text-lg font-semibold text-foreground mb-3">5. Trading Disclaimer</h2>
-                        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 mb-3">
-                            <p className="font-medium text-amber-600 dark:text-amber-400">
+                        <div className="rounded-lg border border-warning/20 bg-warning/5 p-4 mb-3">
+                            <p className="font-medium text-warning dark:text-warning">
                                 Important Risk Warning
                             </p>
                         </div>

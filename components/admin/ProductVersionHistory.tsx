@@ -122,7 +122,7 @@ export default function ProductVersionHistory({
 
                 if (!user) {
                     throw new Error(
-                        "You must be logged in."
+                      "You must be logged in."
                     );
                 }
 
@@ -152,7 +152,7 @@ export default function ProductVersionHistory({
                 ) {
                     throw new Error(
                         data.error ||
-                        "Failed to load versions."
+                          "Failed to load versions."
                     );
                 }
 
@@ -171,7 +171,7 @@ export default function ProductVersionHistory({
 
                 setError(
                     error?.message ||
-                    "Failed to load versions."
+                      "Failed to load versions."
                 );
             } finally {
                 setLoading(false);
@@ -221,7 +221,7 @@ export default function ProductVersionHistory({
 
             if (!user) {
                 throw new Error(
-                    "You must be logged in."
+                  "You must be logged in."
                 );
             }
 
@@ -254,7 +254,7 @@ export default function ProductVersionHistory({
             ) {
                 throw new Error(
                     data.error ||
-                    "Failed to set current version."
+                      "Failed to set current version."
                 );
             }
 
@@ -271,7 +271,7 @@ export default function ProductVersionHistory({
 
             setError(
                 error?.message ||
-                "Failed to set current version."
+                  "Failed to set current version."
             );
         } finally {
             setSettingCurrent(null);
@@ -295,7 +295,7 @@ export default function ProductVersionHistory({
 
             if (!user) {
                 throw new Error(
-                    "You must be logged in."
+                  "You must be logged in."
                 );
             }
 
@@ -327,7 +327,7 @@ export default function ProductVersionHistory({
 
                 throw new Error(
                     data?.error ||
-                    "Download failed."
+                      "Download failed."
                 );
             }
 
@@ -389,7 +389,7 @@ export default function ProductVersionHistory({
 
             setError(
                 error?.message ||
-                "Download failed."
+                  "Download failed."
             );
         } finally {
             setActionVersion(null);
@@ -432,7 +432,7 @@ export default function ProductVersionHistory({
 
             if (!user) {
                 throw new Error(
-                    "You must be logged in."
+                  "You must be logged in."
                 );
             }
 
@@ -465,7 +465,7 @@ export default function ProductVersionHistory({
             ) {
                 throw new Error(
                     data.error ||
-                    "Failed to delete version."
+                      "Failed to delete version."
                 );
             }
 
@@ -482,7 +482,7 @@ export default function ProductVersionHistory({
 
             setError(
                 error?.message ||
-                "Failed to delete version."
+                  "Failed to delete version."
             );
         } finally {
             setActionVersion(null);
@@ -498,7 +498,7 @@ export default function ProductVersionHistory({
             <section className="rounded-lg border border-border/20 bg-foreground/4 p-6 md:p-7">
                 <div className="mb-6 flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/20 bg-foreground/10">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border/20 bg-foreground/10">
                             <FileCode2 size={18} />
                         </div>
 
@@ -534,7 +534,7 @@ export default function ProductVersionHistory({
         <section className="rounded-lg border border-border/20 bg-foreground/4 p-6 md:p-7">
             <div className="mb-6 flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/20 bg-foreground/10">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border/20 bg-foreground/10">
                         <FileCode2 size={18} />
                     </div>
 
@@ -557,7 +557,7 @@ export default function ProductVersionHistory({
                         actionVersion !== null ||
                         settingCurrent !== null
                     }
-                    className="flex items-center gap-2 rounded-xl border border-border/20 px-3 py-2 text-xs text-muted-foreground transition hover:bg-foreground/10 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex items-center gap-2 rounded-lg border border-border/20 px-3 py-2 text-xs text-muted-foreground transition hover:bg-foreground/10 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     <RefreshCw size={14} />
 
@@ -566,19 +566,19 @@ export default function ProductVersionHistory({
             </div>
 
             {error && (
-                <div className="mb-5 rounded-xl border border-negative/20 bg-negative/5 px-4 py-3 text-xs text-negative">
+                <div className="mb-5 rounded-lg border border-negative/20 bg-negative/5 px-4 py-3 text-xs text-negative">
                     {error}
                 </div>
             )}
 
             {message && (
-                <div className="mb-5 rounded-xl border border-positive/20 bg-positive/5 px-4 py-3 text-xs text-positive">
+                <div className="mb-5 rounded-lg border border-positive/20 bg-positive/5 px-4 py-3 text-xs text-positive">
                     {message}
                 </div>
             )}
 
             {versions.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-border/20 bg-foreground/10 p-8 text-center">
+                <div className="rounded-lg border border-dashed border-border/20 bg-foreground/10 p-8 text-center">
                     <FileCode2
                         size={24}
                         className="mx-auto text-foreground/50"
@@ -615,7 +615,7 @@ export default function ProductVersionHistory({
                                     key={
                                         item.id
                                     }
-                                    className={`rounded-xl border p-4 transition ${isCurrent
+                                    className={`rounded-lg border p-4 transition ${isCurrent
                                             ? "border-border/40 bg-foreground/8"
                                             : "border-border/20 bg-foreground/10 hover:bg-foreground/6"
                                         }`}
@@ -688,7 +688,7 @@ export default function ProductVersionHistory({
                                                         settingCurrent !==
                                                         null
                                                     }
-                                                    className="flex items-center gap-2 rounded-xl border border-border/20 px-3 py-2 text-xs text-muted-foreground transition hover:bg-foreground/10 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                                                    className="flex items-center gap-2 rounded-lg border border-border/20 px-3 py-2 text-xs text-muted-foreground transition hover:bg-foreground/10 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
                                                 >
                                                     {isSettingCurrent ? (
                                                         <Loader2
@@ -723,7 +723,7 @@ export default function ProductVersionHistory({
                                                     settingCurrent !==
                                                     null
                                                 }
-                                                className="flex items-center gap-2 rounded-xl border border-border/20 px-3 py-2 text-xs text-muted-foreground transition hover:bg-foreground/10 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                                                className="flex items-center gap-2 rounded-lg border border-border/20 px-3 py-2 text-xs text-muted-foreground transition hover:bg-foreground/10 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
                                             >
                                                 {isBusy ? (
                                                     <Loader2
@@ -757,7 +757,7 @@ export default function ProductVersionHistory({
                                                         null
                                                     }
                                                     title="Delete version"
-                                                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/20 text-foreground/70 transition hover:border-destructive/20 hover:bg-destructive/5 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
+                                                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/20 text-foreground/70 transition hover:border-destructive/20 hover:bg-destructive/5 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
                                                 >
                                                     {isBusy ? (
                                                         <Loader2

@@ -102,7 +102,7 @@ export default function ComparePage() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                     <Shield size={40} className="text-muted-foreground" />
                     <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
-                    <Link href="/login" className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary transition">
+                    <Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary transition">
                         Sign In
                     </Link>
                 </div>
@@ -124,8 +124,8 @@ export default function ComparePage() {
     return (
         <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 blur-[120px]" />
-                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 blur-[120px]" />
+                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 hidden" />
+                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 {/* Header */}
@@ -135,14 +135,14 @@ export default function ComparePage() {
                     </Link>
                     <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Account Comparison</h1>
+                            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Account Comparison</h1>
                             <p className="mt-1.5 text-sm text-muted-foreground">Side-by-side metrics for all connected MT5 accounts</p>
                         </div>
                         <button
                             type="button"
                             onClick={fetchData}
                             disabled={loading}
-                            className="flex items-center gap-2 rounded-xl border border-border/40 bg-muted px-4 py-2.5 text-xs font-medium text-muted-foreground hover:bg-background/15 hover:text-foreground transition disabled:opacity-50"
+                            className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs font-medium text-muted-foreground hover:bg-background/15 hover:text-foreground transition disabled:opacity-50"
                         >
                             <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                         </button>
@@ -160,7 +160,7 @@ export default function ComparePage() {
                         </div>
                         <h3 className="mt-4 text-base font-semibold text-foreground">No accounts to compare</h3>
                         <p className="mt-1.5 text-sm text-muted-foreground">Connect your MT5 accounts to see a side-by-side comparison.</p>
-                        <Link href="/admin/trading-accounts" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary transition">
+                        <Link href="/admin/trading-accounts" className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary transition">
                             Connect Account
                         </Link>
                     </div>
@@ -176,7 +176,7 @@ export default function ComparePage() {
                                         </div>
                                         <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Balance</span>
                                     </div>
-                                    <p className="text-xl font-bold font-mono text-foreground">
+                                    <p className="text-xl font-bold font-numeric text-foreground">
                                         ${comparison.totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>
@@ -187,7 +187,7 @@ export default function ComparePage() {
                                         </div>
                                         <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Equity</span>
                                     </div>
-                                    <p className="text-xl font-bold font-mono text-foreground">
+                                    <p className="text-xl font-bold font-numeric text-foreground">
                                         ${comparison.totalEquity.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>
@@ -198,7 +198,7 @@ export default function ComparePage() {
                                         </div>
                                         <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Trades</span>
                                     </div>
-                                    <p className="text-xl font-bold font-mono text-foreground">{comparison.totalTrades}</p>
+                                    <p className="text-xl font-bold font-numeric text-foreground">{comparison.totalTrades}</p>
                                 </div>
                                 <div className="rounded-lg border border-positive/10 bg-positive/[0.03] p-4">
                                     <div className="flex items-center gap-2 mb-2">
@@ -263,21 +263,21 @@ export default function ComparePage() {
                                                 <td className="px-5 py-4">
                                                     <div className="flex items-center gap-3">
                                                         <div className={cn(
-                                                            "flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold",
+                                                          "flex h-9 w-9 items-center justify-center rounded-lg text-xs font-bold",
                                                             acc.online ? "bg-positive/10 text-positive" : "bg-muted/50/30 text-muted-foreground"
                                                         )}>
                                                             {acc.broker.charAt(0)}
                                                         </div>
                                                         <div>
                                                             <p className="font-medium text-foreground">{acc.broker}</p>
-                                                            <p className="text-micro text-muted-foreground font-mono">{acc.mt5Account}</p>
+                                                            <p className="text-micro text-muted-foreground font-numeric">{acc.mt5Account}</p>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 {COLUMNS.map((col) => {
                                                     const val = Number(acc[col.key] || 0);
                                                     return (
-                                                        <td key={col.key} className={cn("px-4 py-4 text-right font-mono text-xs", getValueColor(col.key, val))}>
+                                                        <td key={col.key} className={cn("px-4 py-4 text-right font-numeric text-xs", getValueColor(col.key, val))}>
                                                             {formatValue(val, col.format)}
                                                         </td>
                                                     );

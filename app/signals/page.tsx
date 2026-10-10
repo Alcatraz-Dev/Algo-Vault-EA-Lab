@@ -347,7 +347,7 @@ export default function AiSignalsPage() {
                             Multi-Asset AI Signal Engine
                         </div>
 
-                        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+                        <h1 className="text-2xl font-semibold tracking-tight mt-2">
                             Live AI Signals
                         </h1>
 

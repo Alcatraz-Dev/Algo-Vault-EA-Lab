@@ -698,15 +698,15 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="text-xs text-muted-foreground">Engine Version</span>
-                                    <span className="font-mono text-xs text-muted-foreground">{signal.engineVersion}</span>
+                                    <span className="font-numeric text-xs text-muted-foreground">{signal.engineVersion}</span>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="text-xs text-muted-foreground">Strategy Version</span>
-                                    <span className="font-mono text-xs text-muted-foreground">{signal.strategyVersion}</span>
+                                    <span className="font-numeric text-xs text-muted-foreground">{signal.strategyVersion}</span>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="text-xs text-muted-foreground">Analysis Version</span>
-                                    <span className="font-mono text-xs text-muted-foreground">{signal.analysisVersion || "—"}</span>
+                                    <span className="font-numeric text-xs text-muted-foreground">{signal.analysisVersion || "—"}</span>
                                 </div>
                                 <div className="h-px bg-muted/5" />
                                 <div className="flex items-center justify-between">

@@ -71,7 +71,7 @@ function MarketNodeCard({ data }: NodeProps<MarketFlowNode>) {
             )}
             title={`${data.kind}${data.assetClass ? ` · ${data.assetClass}` : ""}`}
         >
-            <span className="block truncate font-mono">{data.label}</span>
+            <span className="block truncate font-numeric">{data.label}</span>
             {data.badge ? <span className="block text-micro text-muted-foreground">{data.badge}</span> : null}
             <Handle type="target" position={Position.Left} className="!hidden" />
             <Handle type="source" position={Position.Right} className="!hidden" />
@@ -256,7 +256,7 @@ export function EdgeInspector({
         <div className="rounded-lg border border-border bg-card p-3 text-xs">
             <div className="flex items-start justify-between gap-2">
                 <div>
-                    <p className="font-mono text-sm font-semibold text-foreground">
+                    <p className="font-numeric text-sm font-semibold text-foreground">
                         {edge.sourceNodeId.replace("instrument:", "")} ↔ {edge.targetNodeId.replace(/^instrument:|^assetclass:|^currency:|^factor:/, "")}
                     </p>
                     <p className="text-micro uppercase tracking-wide text-muted-foreground">
@@ -273,7 +273,7 @@ export function EdgeInspector({
                 </button>
             </div>
 
-            <div className="mt-2 grid grid-cols-3 gap-2 font-mono text-micro">
+            <div className="mt-2 grid grid-cols-3 gap-2 font-numeric text-micro">
                 <div>
                     <span className="text-muted-foreground">ρ</span>{" "}
                     <span className="text-foreground">{edge.coefficient === null ? "n/a" : edge.coefficient.toFixed(2)}</span>
@@ -302,7 +302,7 @@ export function EdgeInspector({
                     <li key={claim.id} className="text-micro leading-4 text-muted-foreground">
                         <span
                             className={cn(
-                                "mr-1 rounded px-1 py-0.5 font-mono text-micro",
+                                "mr-1 rounded px-1 py-0.5 font-numeric text-micro",
                                 claim.kind === "OBSERVED" && "bg-positive/15 text-positive",
                                 claim.kind === "CALCULATED" && "bg-info/15 text-info",
                                 claim.kind === "CONFIGURED" && "bg-muted/20 text-muted-foreground",
@@ -322,7 +322,7 @@ export function EdgeInspector({
                 <>
                     <p className="mt-2 text-micro font-semibold uppercase tracking-wide text-muted-foreground">Rolling observations</p>
                     <div className="mt-1 max-h-28 overflow-y-auto">
-                        <table className="w-full font-mono text-micro">
+                        <table className="w-full font-numeric text-micro">
                             <thead>
                                 <tr className="text-left text-muted-foreground">
                                     <th className="py-0.5">window end</th>

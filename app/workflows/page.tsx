@@ -75,7 +75,7 @@ export default function WorkflowsPage() {
       navGroups={navGroups}
       title="Workflow Automation"
       subtitle={pro ? "Pro — build trading workflows" : "Upgrade to Pro to create workflows"}
-      eyebrow={pro ? <Badge className="bg-warning text-white hover:bg-warning">Pro</Badge> : <Badge variant="outline">Free</Badge>}
+      eyebrow={pro ? <Badge className="bg-warning text-background hover:bg-warning">Pro</Badge> : <Badge variant="outline">Free</Badge>}
     >
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -89,7 +89,7 @@ export default function WorkflowsPage() {
         </div>
 
         {!pro ? (
-          <div className="rounded-lg border bg-gradient-to-br from-warning to-warning/40 dark:from-warning/30 dark:to-warning/20 p-8 text-center">
+          <div className="rounded-lg border border-warning/30 bg-warning-muted p-8 text-center">
             <Zap className="mx-auto h-10 w-10 text-warning mb-3" />
             <h3 className="text-lg font-semibold">Workflow Automation is a Pro feature</h3>
             <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">Build DAG workflows with market data, AI analysis, signals, and execution. Upgrade to Pro for unlimited nodes, schedules, and AI Builder.</p>
@@ -98,7 +98,7 @@ export default function WorkflowsPage() {
         ) : loading ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="rounded-xl border p-5 animate-pulse bg-muted/30 h-40" />
+              <div key={i} className="rounded-lg border p-5 animate-pulse bg-muted/30 h-40" />
             ))}
           </div>
         ) : workflows.length === 0 ? (

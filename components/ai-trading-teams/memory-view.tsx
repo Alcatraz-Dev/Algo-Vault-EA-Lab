@@ -139,7 +139,7 @@ export function TeamMemoryView({ teamId, canRun }: { teamId: string; canRun: boo
             )}
 
             <div className="grid gap-3 md:grid-cols-2">
-                <div className="rounded-xl border border-border/60 bg-card/60 p-4">
+                <div className="rounded-lg border border-border/60 bg-card/60 p-4">
                     <p className="text-micro font-semibold tracking-wide text-muted-foreground uppercase">Preferences</p>
                     <label className="mt-2 block">
                         <span className="mb-1 block text-micro text-muted-foreground">Strategy preferences (comma separated)</span>
@@ -163,7 +163,7 @@ export function TeamMemoryView({ teamId, canRun }: { teamId: string; canRun: boo
                     </label>
                 </div>
 
-                <div className="rounded-xl border border-border/60 bg-card/60 p-4">
+                <div className="rounded-lg border border-border/60 bg-card/60 p-4">
                     <p className="text-micro font-semibold tracking-wide text-muted-foreground uppercase">Agent performance metadata</p>
                     {memory && Object.keys(memory.agentPerformance).length > 0 ? (
                         <ul className="mt-2 space-y-1.5">
@@ -205,7 +205,7 @@ function MemoryList({
     const toneClass =
         tone === "positive" ? "border-positive/40" : tone === "negative" ? "border-destructive/40" : "border-border/60";
     return (
-        <div className={`rounded-xl border ${toneClass} bg-card/60 p-3`}>
+        <div className={`rounded-lg border ${toneClass} bg-card/60 p-3`}>
             <p className="text-micro font-semibold tracking-wide text-muted-foreground uppercase">
                 {title} ({items.length})
             </p>

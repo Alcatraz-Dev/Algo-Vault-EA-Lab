@@ -22,7 +22,7 @@ export default function TelegramPipelineSection() {
  <div className="mt-12 rounded-lg border border-border/80 bg-card/80 p-6 md:p-8 space-y-8">
 
  {/* Pipeline Nodes Flow */}
- <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 font-mono text-center text-xs">
+ <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 font-numeric text-center text-xs">
  {[
  { name: "Telegram", desc: "Private Channels", color: "text-info" },
  { name: "MTProto", desc: "Native GramJS", color: "text-info" },
@@ -43,7 +43,7 @@ export default function TelegramPipelineSection() {
 
  {/* Example Raw vs Parsed Signal Demo Card */}
  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
- <div className="lg:col-span-6 rounded-lg border border-border/60 bg-background/90 p-5 font-mono text-xs space-y-3">
+ <div className="lg:col-span-6 rounded-lg border border-border/60 bg-background/90 p-5 font-numeric text-xs space-y-3">
  <div className="flex items-center justify-between text-muted-foreground border-b border-border/40 pb-2">
  <span className="flex items-center gap-1.5 font-bold text-foreground"><Send size={14} className="text-info" /> Incoming Telegram Text Message</span>
  <span className="text-micro text-info font-bold">PRIVATE CHANNEL</span>
@@ -53,7 +53,7 @@ export default function TelegramPipelineSection() {
  </div>
  </div>
 
- <div className="lg:col-span-6 rounded-lg border border-positive/30 bg-positive/5 p-5 font-mono text-xs space-y-3">
+ <div className="lg:col-span-6 rounded-lg border border-positive/30 bg-positive/5 p-5 font-numeric text-xs space-y-3">
  <div className="flex items-center justify-between border-b border-positive/20 pb-2">
  <span className="flex items-center gap-1.5 font-bold text-positive"><Brain size={14} /> Normalized Signal Output</span>
  <span className="text-micro bg-positive/20 text-positive px-2 py-0.5 rounded font-bold">READY FOR RISK</span>
@@ -69,7 +69,7 @@ export default function TelegramPipelineSection() {
  </div>
  </div>
 
- <div className="rounded-xl bg-background/60 p-3 border border-border/40 flex items-center justify-between text-xs font-mono text-muted-foreground">
+ <div className="rounded-xl bg-background/60 p-3 border border-border/40 flex items-center justify-between text-xs font-numeric text-muted-foreground">
  <span className="flex items-center gap-1.5"><Lock size={13} className="text-primary" /> Telegram Channel Management & MTProto Session storage is strictly ADMIN-ONLY.</span>
  <span className="text-positive font-bold">RBAC Enforced</span>
  </div>

@@ -60,7 +60,7 @@ export default function MarketScorePanel({ score }: Props) {
                                 />
                             </div>
                         </div>
-                        <span className={cn("w-8 text-right font-mono text-micro", comp.direction === "bullish" ? "text-positive" : comp.direction === "bearish" ? "text-negative" : "text-foreground/70")}>
+                        <span className={cn("w-8 text-right font-numeric text-micro", comp.direction === "bullish" ? "text-positive" : comp.direction === "bearish" ? "text-negative" : "text-foreground/70")}>
                             {comp.value > 0 ? "+" : ""}{comp.value}
                         </span>
                     </div>

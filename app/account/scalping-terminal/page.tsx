@@ -67,7 +67,7 @@ export default function ScalpTerminalPage() {
                     <p className="text-sm font-medium text-foreground">Sign in to open the Pro Scalping Terminal</p>
                     <a
                         href="/login?redirect=/account/scalping-terminal"
-                        className="rounded-xl bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition hover:opacity-90"
+                        className="rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition hover:opacity-90"
                     >
                         Sign In
                     </a>
@@ -92,10 +92,10 @@ export default function ScalpTerminalPage() {
                         to every signal.
                     </p>
                     <div className="flex flex-wrap justify-center gap-3">
-                        <a href="/account/subscribe" className="rounded-xl bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition hover:opacity-90">
+                        <a href="/account/subscribe" className="rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition hover:opacity-90">
                             Upgrade to Pro
                         </a>
-                        <a href="/pricing" className="rounded-xl border border-border bg-background px-5 py-2.5 text-sm font-medium text-foreground transition hover:bg-muted">
+                        <a href="/pricing" className="rounded-lg border border-border bg-background px-5 py-2.5 text-sm font-medium text-foreground transition hover:bg-muted">
                             View pricing
                         </a>
                     </div>

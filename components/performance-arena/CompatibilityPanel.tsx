@@ -114,7 +114,7 @@ export function CompatibilityPanel({
                 value={metrics[key]}
                 placeholder={placeholder}
                 onChange={(e) => setMetrics((m) => ({ ...m, [key]: e.target.value }))}
-                className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 font-mono text-sm text-foreground"
+                className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 font-numeric text-sm text-foreground"
             />
         </label>
     );
@@ -178,7 +178,7 @@ export function CompatibilityPanel({
                             <Badge variant={VERDICT[result.verdict]?.variant ?? "secondary"}>
                                 {VERDICT[result.verdict]?.label ?? result.verdict}
                             </Badge>
-                            <span className="font-mono text-micro text-muted-foreground">{result.challengeRulesSummary}</span>
+                            <span className="font-numeric text-micro text-muted-foreground">{result.challengeRulesSummary}</span>
                         </div>
                         <ul className="space-y-1.5">
                             {result.findings.map((finding) => (

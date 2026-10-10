@@ -44,7 +44,7 @@ function LiveTicker() {
   }
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-border bg-muted/30">
+    <div className="relative overflow-hidden rounded-lg border border-border bg-muted/30">
       <div className="flex items-center">
         <div className="flex shrink-0 items-center gap-1.5 border-r border-border bg-background/60 px-3 py-2 text-micro font-bold uppercase tracking-widest text-muted-foreground">
           <Radio size={11} className={isLive ? "text-positive" : "text-muted-foreground"} />
@@ -54,8 +54,8 @@ function LiveTicker() {
           <div className="ticker-track">
             {[...rows, ...rows].map((r, i) => (
               <span key={`${r.symbol}-${i}`} className="flex items-center gap-2 px-4 py-2 text-xs">
-                <span className="font-mono font-bold text-foreground">{r.symbol}</span>
-                <span className="font-mono text-muted-foreground tabular-nums">
+                <span className="font-numeric font-bold text-foreground">{r.symbol}</span>
+                <span className="font-numeric text-muted-foreground tabular-nums">
                   {r.price >= 100 ? r.price.toFixed(2) : r.price.toFixed(4)}
                 </span>
               </span>
@@ -80,7 +80,7 @@ function UpdatedBadge({ lastTick }: { lastTick: number }) {
   const secs = lastTick && now ? Math.max(0, Math.round((now - lastTick) / 1000)) : 0;
   return (
     <div className="shrink-0 flex items-center gap-2 text-xs font-medium text-muted-foreground bg-muted border border-border rounded-full px-3 py-1.5">
-      <Globe className="w-3.5 h-3.5 text-[#ff4d00]" />
+      <Globe className="w-3.5 h-3.5 text-primary" />
       {lastTick ? `Updated ${secs}s ago` : "Connecting…"}
     </div>
   );
@@ -144,11 +144,11 @@ export default function LivePage() {
           </Link>
           <div className="w-px h-6 bg-border" />
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-[#ff4d00] flex items-center justify-center shadow-lg shadow-[#ff4d00]/20">
-              <Sparkles className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-primary-foreground" />
             </div>
             <div className="leading-none">
-              <div className="text-sm font-extrabold tracking-tight text-foreground group-hover:text-[#ff4d00] transition">
+              <div className="text-sm font-extrabold tracking-tight text-foreground group-hover:text-primary transition">
                 AlgoVault
               </div>
               <div className="text-micro font-medium text-muted-foreground tracking-widest uppercase">Live</div>
@@ -176,7 +176,7 @@ export default function LivePage() {
         {/* Title */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-foreground leading-[1.1]">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground leading-[1.1]">
               AlgoVault <span className="text-[#2563eb]">Live</span>
             </h1>
             <p className="mt-3 text-sm md:text-base text-muted-foreground max-w-2xl leading-relaxed">
@@ -225,9 +225,9 @@ export default function LivePage() {
               onMouseLeave={() => setHoveredCountry(undefined)}
               onFocus={() => setHoveredCountry(c.country)}
               onBlur={() => setHoveredCountry(undefined)}
-              className={`text-left rounded-xl border p-4 transition ${
+              className={`text-left rounded-lg border p-4 transition ${
                 hoveredCountry === c.country
-                  ? "border-[#ff4d00]/50 bg-[#ff4d00]/5"
+                  ? "border-primary/50 bg-primary/5"
                   : "border-border bg-card/60 hover:border-border hover:bg-muted/40"
               }`}
             >
@@ -242,7 +242,7 @@ export default function LivePage() {
         </div>
 
         {/* Bottom info */}
-        <section className="rounded-lg border border-border bg-gradient-to-r from-muted/40 to-muted/30 p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <section className="rounded-lg border border-border bg-card p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
             <h2 className="text-lg font-extrabold tracking-tight text-foreground mb-1">
               AlgoVault Live Intelligence
@@ -255,7 +255,7 @@ export default function LivePage() {
           <div className="flex items-center gap-3 shrink-0">
             <Link
               href="/market-intelligence"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#ff4d00] text-white text-sm font-bold hover:bg-[#e64400] transition shadow-lg shadow-[#ff4d00]/20"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/80 transition"
             >
               Market Intelligence
             </Link>

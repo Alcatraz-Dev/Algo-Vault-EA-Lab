@@ -23,12 +23,12 @@ export default function AIOptimizationSection() {
 
  {/* Left Optimization Pipeline Visual */}
  <div className="lg:col-span-6 rounded-lg border border-border/80 bg-card/80 p-6 space-y-4">
- <div className="flex items-center justify-between border-b border-border/40 pb-3 text-xs font-mono">
+ <div className="flex items-center justify-between border-b border-border/40 pb-3 text-xs font-numeric">
  <span className="font-bold text-foreground flex items-center gap-1.5"><Cpu size={14} className="text-primary" /> Parameter Grid Search (240 Candidates)</span>
  <span className="text-positive font-bold">Grade A (Score: 84)</span>
  </div>
 
- <div className="space-y-2 font-mono text-xs">
+ <div className="space-y-2 font-numeric text-xs">
  <div className="flex items-center justify-between rounded-xl bg-background/80 p-3 border border-border/40">
  <span>1. Parameter Sampling</span>
  <span className="text-muted-foreground">SL ATR: [1.2 - 2.5] | TP R: [1.5 - 3.5]</span>

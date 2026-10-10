@@ -42,19 +42,19 @@ export default function SessionPanel({ session, currentPrice }: Props) {
                     <p className="text-micro font-semibold uppercase text-foreground/50">High</p>
                     <div className="mt-1 flex items-center gap-1">
                         <TrendingUp size={11} className="text-positive" />
-                        <p className="font-mono text-xs text-positive">{session.high.toFixed(session.high >= 100 ? 2 : 5)}</p>
+                        <p className="font-numeric text-xs text-positive">{session.high.toFixed(session.high >= 100 ? 2 : 5)}</p>
                     </div>
                 </div>
                 <div className="rounded-lg bg-foreground/4 p-2.5">
                     <p className="text-micro font-semibold uppercase text-foreground/50">Low</p>
                     <div className="mt-1 flex items-center gap-1">
                         <TrendingDown size={11} className="text-negative" />
-                        <p className="font-mono text-xs text-negative">{session.low.toFixed(session.low >= 100 ? 2 : 5)}</p>
+                        <p className="font-numeric text-xs text-negative">{session.low.toFixed(session.low >= 100 ? 2 : 5)}</p>
                     </div>
                 </div>
                 <div className="rounded-lg bg-foreground/4 p-2.5">
                     <p className="text-micro font-semibold uppercase text-foreground/50">Range</p>
-                    <p className="mt-1 font-mono text-xs text-foreground/70">{session.range.toFixed(session.range >= 100 ? 2 : 5)}</p>
+                    <p className="mt-1 font-numeric text-xs text-foreground/70">{session.range.toFixed(session.range >= 100 ? 2 : 5)}</p>
                 </div>
             </div>
 
@@ -67,11 +67,11 @@ export default function SessionPanel({ session, currentPrice }: Props) {
                     </div>
                     <div className="relative mt-1.5 h-2 overflow-hidden rounded-full bg-foreground/10">
                         <div
-                            className="absolute h-full rounded-full bg-gradient-to-r from-negative via-warning to-positive"
+                            className="absolute h-full rounded-full bg-muted-foreground"
                             style={{ width: "100%" }}
                         />
                         <div
-                            className="absolute top-0 h-full w-1 rounded-full bg-background shadow-[0_0_6px_rgba(255,255,255,0.5)]"
+                            className="absolute top-0 h-full w-1 rounded-full bg-background "
                             style={{ left: `${Math.max(0, Math.min(100, positionInRange))}%` }}
                         />
                     </div>

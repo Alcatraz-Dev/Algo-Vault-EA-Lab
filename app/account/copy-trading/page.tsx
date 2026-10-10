@@ -209,29 +209,29 @@ export default function AccountCopyTradingPage() {
         <AccountShell title="Master Copy Trading" subtitle="Control which of your live MT5 accounts can be copied">
             <div className="mx-auto max-w-6xl space-y-6" data-guide="page-header">
                 {!copyTradingEnabled && (
-                    <div className="rounded-xl border border-warning/20 bg-warning/10 p-4 text-sm text-warning">
+                    <div className="rounded-lg border border-warning/20 bg-warning/10 p-4 text-sm text-warning">
                         Copy trading is disabled platform-wide. Master controls are read-only until an admin enables it again.
                     </div>
                 )}
                 {errorMessage && (
-                    <div className="rounded-xl border border-negative/20 bg-negative/10 p-4 text-sm text-negative">
+                    <div className="rounded-lg border border-negative/20 bg-negative/10 p-4 text-sm text-negative">
                         {errorMessage}
                     </div>
                 )}
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-guide="stats">
-                    <div className="rounded-xl border border-border bg-muted/30 p-5">
+                    <div className="rounded-lg border border-border bg-muted/30 p-5">
                         <p className="text-xs text-muted-foreground">Master accounts</p>
                         <p className="mt-2 text-2xl font-bold text-foreground">{accounts.length}</p>
                     </div>
-                    <div className="rounded-xl border border-border bg-muted/30 p-5">
+                    <div className="rounded-lg border border-border bg-muted/30 p-5">
                         <p className="text-xs text-muted-foreground">Active followers</p>
                         <p className="mt-2 text-2xl font-bold text-foreground">{metrics.activeFollowers}</p>
                     </div>
-                    <div className="rounded-xl border border-border bg-muted/30 p-5">
+                    <div className="rounded-lg border border-border bg-muted/30 p-5">
                         <p className="text-xs text-muted-foreground">Copied trades</p>
                         <p className="mt-2 text-2xl font-bold text-foreground">{metrics.totalCopied}</p>
                     </div>
-                    <div className="rounded-xl border border-border bg-muted/30 p-5">
+                    <div className="rounded-lg border border-border bg-muted/30 p-5">
                         <p className="text-xs text-muted-foreground">Follower P/L</p>
                         <p className={`mt-2 text-2xl font-bold ${metrics.totalProfit >= 0 ? "text-positive" : "text-negative"}`}>
                             {formatMoney(metrics.totalProfit)}
@@ -240,7 +240,7 @@ export default function AccountCopyTradingPage() {
                 </div>
 
                 {accounts.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-border bg-muted/20 p-12 text-center">
+                    <div className="rounded-lg border border-dashed border-border bg-muted/20 p-12 text-center">
                         <Radio className="mx-auto h-9 w-9 text-muted-foreground" />
                         <h2 className="mt-4 text-lg font-semibold text-foreground">No live master accounts yet</h2>
                         <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
@@ -263,7 +263,7 @@ export default function AccountCopyTradingPage() {
                                 savingId === account.id;
 
                             return (
-                                <div key={account.id} className="rounded-xl border border-border bg-foreground/[0.035] p-5">
+                                <div key={account.id} className="rounded-lg border border-border bg-foreground/[0.035] p-5">
                                     <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                                         <div className="min-w-0">
                                             <div className="flex flex-wrap items-center gap-2">
@@ -295,7 +295,7 @@ export default function AccountCopyTradingPage() {
                                             type="button"
                                             onClick={() => toggleAllowCopyTrading(account)}
                                             disabled={disabled}
-                                            className={`inline-flex min-w-44 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                                            className={`inline-flex min-w-44 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                                                 account.allowCopyTrading
                                                     ? "bg-positive text-foreground hover:bg-positive"
                                                     : "border border-border bg-muted text-foreground hover:bg-muted/70"
@@ -332,7 +332,7 @@ export default function AccountCopyTradingPage() {
                                     </div>
 
                                     {accountFollowers.length > 0 ? (
-                                        <div className="mt-5 overflow-hidden rounded-xl border border-border">
+                                        <div className="mt-5 overflow-hidden rounded-lg border border-border">
                                             <div className="grid grid-cols-4 gap-3 border-b border-border bg-muted/30 px-4 py-3 text-xs font-semibold text-muted-foreground">
                                                 <span>Follower</span>
                                                 <span>Status</span>
@@ -341,7 +341,7 @@ export default function AccountCopyTradingPage() {
                                             </div>
                                             {accountFollowers.slice(0, 5).map((cfg) => (
                                                 <div key={`${cfg.ownerUid}_${cfg.id}`} className="grid grid-cols-4 gap-3 px-4 py-3 text-xs">
-                                                    <span className="font-mono text-foreground">#{cfg.followerMt5Account}</span>
+                                                    <span className="font-numeric text-foreground">#{cfg.followerMt5Account}</span>
                                                     <span className={cfg.isActive === false ? "text-warning" : "text-positive"}>
                                                         {cfg.isActive === false ? "Paused" : "Active"}
                                                     </span>
@@ -353,7 +353,7 @@ export default function AccountCopyTradingPage() {
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="mt-5 flex items-start gap-3 rounded-xl border border-border bg-muted/20 p-4">
+                                        <div className="mt-5 flex items-start gap-3 rounded-lg border border-border bg-muted/20 p-4">
                                             <Users className="mt-0.5 h-4 w-4 text-muted-foreground" />
                                             <p className="text-xs leading-5 text-muted-foreground">
                                                 No followers yet. Once this account is listed, followers can discover it from the Copy Trading marketplace.
@@ -366,7 +366,7 @@ export default function AccountCopyTradingPage() {
                     </div>
                 )}
 
-                <div className="rounded-xl border border-border bg-muted/20 p-5">
+                <div className="rounded-lg border border-border bg-muted/20 p-5">
                     <div className="flex items-start gap-3">
                         <AlertCircle className="mt-0.5 h-5 w-5 text-warning" />
                         <div>
@@ -382,7 +382,7 @@ export default function AccountCopyTradingPage() {
                     </div>
                 </div>
 
-                <div className="rounded-xl border border-border bg-muted/20 p-5">
+                <div className="rounded-lg border border-border bg-muted/20 p-5">
                     <div className="flex items-start gap-3">
                         <SlidersHorizontal className="mt-0.5 h-5 w-5 text-muted-foreground" />
                         <div>

@@ -95,8 +95,8 @@ export default async function StorePage({
     return (
         <main className="min-h-screen bg-background text-foreground">
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-primary/10 blur-[120px]" />
-                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-warning/10 blur-[120px]" />
+                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-primary/10 hidden" />
+                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-warning/10 hidden" />
             </div>
 
             <div className="relative mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
@@ -109,7 +109,7 @@ export default async function StorePage({
                         <Store size={22} className="text-primary" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold sm:text-3xl">{displayName}</h1>
+                        <h1 className="text-2xl font-semibold tracking-tight">{displayName}</h1>
                         <p className="mt-1 text-sm text-muted-foreground">
                             Official storefront on AlgoVault
                         </p>
@@ -148,7 +148,7 @@ export default async function StorePage({
                                         {product.description || "Trading software by this developer."}
                                     </p>
                                     <div className="mt-4 flex items-center justify-between">
-                                        <span className="font-mono text-lg font-bold text-positive">
+                                        <span className="font-numeric text-lg font-bold text-positive">
                                             {price
                                                 ? formatPrice(price.unit_amount, price.currency)
                                                 : "—"}

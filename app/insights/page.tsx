@@ -68,7 +68,7 @@ export default function AIInsightsPage() {
     };
 
     if (authLoading) {
-        return (<div className="flex min-h-screen flex-col bg-background"><AccountShell title="AI Insights Center"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div></AccountShell></div>);
+        return (<div className="flex min-h-screen flex-col bg-background"><AccountShell title="AI Insights Center"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></AccountShell></div>);
     }
     if (!user) {
         return (<div className="flex min-h-screen flex-col bg-background"><AccountShell title="AI Insights Center"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Brain size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1></div></AccountShell></div>);
@@ -81,51 +81,51 @@ export default function AIInsightsPage() {
                     <div className="lg:col-span-2 space-y-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <Brain size={20} className="text-violet-400" />
+                                <Brain size={20} className="text-primary" />
                                 <h2 className="text-lg font-bold text-foreground">Insights</h2>
                                 {generatedAt > 0 && <span className="text-micro text-muted-foreground">Last: {new Date(generatedAt).toLocaleTimeString()}</span>}
                             </div>
-                            <button type="button" onClick={generateAll} disabled={loading} className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-xs font-semibold text-foreground hover:bg-violet-500 transition disabled:opacity-50">
+                            <button type="button" onClick={generateAll} disabled={loading} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-foreground hover:bg-primary transition disabled:opacity-50">
                                 {loading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} Generate All Insights
                             </button>
                         </div>
 
                         {insights.overview && (
-                            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.03] p-5">
-                                <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-emerald-400"><Sparkles size={14} />Comprehensive Overview</div>
+                            <div className="rounded-lg border border-positive/20 bg-positive/[0.03] p-5">
+                                <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-positive"><Sparkles size={14} />Comprehensive Overview</div>
                                 <p className="text-sm text-muted-foreground whitespace-pre-line">{insights.overview}</p>
                             </div>
                         )}
 
                         <div className="space-y-2">
                             {SECTIONS.map((section) => (
-                                <button key={section.id} type="button" onClick={() => { setActiveSection(section.id); generateInsight(section.id); }} className={cn("flex w-full items-center gap-4 rounded-xl border p-4 text-left transition", activeSection === section.id ? "border-violet-500/30 bg-violet-500/[0.03]" : "border-border/30 bg-muted/50 hover:bg-muted")}>
-                                    <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", activeSection === section.id ? "bg-violet-500/10" : "bg-muted")}>
-                                        <section.icon size={18} className={activeSection === section.id ? "text-violet-400" : "text-muted-foreground"} />
+                                <button key={section.id} type="button" onClick={() => { setActiveSection(section.id); generateInsight(section.id); }} className={cn("flex w-full items-center gap-4 rounded-lg border p-4 text-left transition", activeSection === section.id ? "border-primary/30 bg-primary/[0.03]" : "border-border/30 bg-muted/50 hover:bg-muted")}>
+                                    <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg", activeSection === section.id ? "bg-primary/10" : "bg-muted")}>
+                                        <section.icon size={18} className={activeSection === section.id ? "text-primary" : "text-muted-foreground"} />
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-sm font-semibold text-foreground">{section.label}</p>
                                         <p className="text-micro text-muted-foreground">{section.description}</p>
                                     </div>
-                                    {loading && activeSection === section.id && <Loader2 size={14} className="animate-spin text-violet-400" />}
+                                    {loading && activeSection === section.id && <Loader2 size={14} className="animate-spin text-primary" />}
                                 </button>
                             ))}
                         </div>
                     </div>
 
                     <div className="space-y-4">
-                        <div className="rounded-xl border border-border/30 bg-muted/50 p-5">
-                            <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><Layers size={16} className="text-violet-400" />Active Sections</h3>
+                        <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                            <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><Layers size={16} className="text-primary" />Active Sections</h3>
                             <div className="space-y-2">
                                 {SECTIONS.map((s) => (
-                                    <div key={s.id} className={cn("flex items-center gap-2 rounded-lg px-3 py-2 text-xs", activeSection === s.id ? "bg-violet-500/10 text-violet-400" : "text-muted-foreground")}>
-                                        {activeSection === s.id ? <div className="h-1.5 w-1.5 rounded-full bg-violet-400" /> : <div className="h-1.5 w-1.5 rounded-full bg-muted" />}
+                                    <div key={s.id} className={cn("flex items-center gap-2 rounded-lg px-3 py-2 text-xs", activeSection === s.id ? "bg-primary/10 text-primary" : "text-muted-foreground")}>
+                                        {activeSection === s.id ? <div className="h-1.5 w-1.5 rounded-full bg-primary" /> : <div className="h-1.5 w-1.5 rounded-full bg-muted" />}
                                         {s.label}
                                     </div>
                                 ))}
                             </div>
                         </div>
-                        <div className="rounded-xl border border-amber-500/10 bg-amber-500/[0.03] p-4 text-micro text-amber-400/60">
+                        <div className="rounded-lg border border-warning/10 bg-warning/[0.03] p-4 text-micro text-warning/60">
                             <Brain size={12} className="mr-1 inline" />
                             All insights are generated from your real platform data. AI outputs are analytical estimates, not financial advice.
                         </div>

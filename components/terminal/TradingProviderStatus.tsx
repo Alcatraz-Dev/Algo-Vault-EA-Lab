@@ -130,7 +130,7 @@ export function TradingProviderStatus() {
           </span>
         ) : null}
         {loading ? null : (
-          <span className="ml-auto flex items-center gap-1 font-mono text-micro text-muted-foreground">
+          <span className="ml-auto flex items-center gap-1 font-numeric text-micro text-muted-foreground">
             <Clock className="size-2.5" />
             {connection?.lastHeartbeatAt
               ? new Date(connection.lastHeartbeatAt).toLocaleTimeString("en-GB")

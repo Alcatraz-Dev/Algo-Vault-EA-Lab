@@ -112,7 +112,7 @@ export default function PortfolioPage() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                     <Wallet size={40} className="text-muted-foreground" />
                     <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
-                    <a href="/login" className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-primary transition">Sign In</a>
+                    <a href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-primary transition">Sign In</a>
                 </div>
             </div>
         );
@@ -124,10 +124,10 @@ export default function PortfolioPage() {
             <div className="mx-auto max-w-7xl px-4 py-8">
                 <div className="mb-6 flex items-center justify-between" data-guide="page-header">
                     <div>
-                        <h1 className="text-2xl font-bold text-foreground">Portfolio Overview</h1>
+                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Portfolio Overview</h1>
                         <p className="mt-1 text-sm text-muted-foreground">Aggregated view of all connected MT5 accounts</p>
                     </div>
-                    <button type="button" onClick={fetchPortfolio} disabled={loading} className="flex items-center gap-2 rounded-xl border border-border/30 bg-muted px-4 py-2 text-xs text-muted-foreground hover:bg-muted/30 transition disabled:opacity-50">
+                    <button type="button" onClick={fetchPortfolio} disabled={loading} className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2 text-xs text-muted-foreground hover:bg-muted/30 transition disabled:opacity-50">
                         <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                     </button>
                 </div>
@@ -147,7 +147,7 @@ export default function PortfolioPage() {
                         </div>
 
                         {/* Accounts Table */}
-                        <div className="mb-6 rounded-xl border border-border/30 bg-muted/50" data-guide="accounts">
+                        <div className="mb-6 rounded-lg border border-border/30 bg-muted/50" data-guide="accounts">
                             <div className="border-b border-border/20 px-4 py-3">
                                 <h2 className="text-sm font-semibold text-foreground">Connected Accounts</h2>
                             </div>
@@ -176,13 +176,13 @@ export default function PortfolioPage() {
                                                     </span>
                                                 </td>
                                                 <td className="px-4 py-2.5 text-sm text-foreground">{acc.broker}</td>
-                                                <td className="px-4 py-2.5 font-mono text-muted-foreground">{acc.mt5Account}</td>
-                                                <td className="px-4 py-2.5 text-right font-mono text-muted-foreground">${acc.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                                <td className="px-4 py-2.5 text-right font-mono text-muted-foreground">${acc.equity.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                                <td className={cn("px-4 py-2.5 text-right font-mono font-medium", acc.floatingPnl >= 0 ? "text-positive" : "text-negative")}>
+                                                <td className="px-4 py-2.5 font-numeric text-muted-foreground">{acc.mt5Account}</td>
+                                                <td className="px-4 py-2.5 text-right font-numeric text-muted-foreground">${acc.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                                <td className="px-4 py-2.5 text-right font-numeric text-muted-foreground">${acc.equity.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                                <td className={cn("px-4 py-2.5 text-right font-numeric font-medium", acc.floatingPnl >= 0 ? "text-positive" : "text-negative")}>
                                                     {acc.floatingPnl >= 0 ? "+" : ""}${acc.floatingPnl.toFixed(2)}
                                                 </td>
-                                                <td className={cn("px-4 py-2.5 text-right font-mono", acc.drawdown > 10 ? "text-negative" : acc.drawdown > 5 ? "text-warning" : "text-muted-foreground")}>
+                                                <td className={cn("px-4 py-2.5 text-right font-numeric", acc.drawdown > 10 ? "text-negative" : acc.drawdown > 5 ? "text-warning" : "text-muted-foreground")}>
                                                     {acc.drawdown.toFixed(2)}%
                                                 </td>
                                                 <td className="px-4 py-2.5 text-right text-muted-foreground">{acc.positionsCount}</td>
@@ -201,7 +201,7 @@ export default function PortfolioPage() {
 
                         {/* Exposure */}
                         {portfolio.exposure.length > 0 && (
-                            <div className="rounded-xl border border-border/30 bg-muted/50">
+                            <div className="rounded-lg border border-border/30 bg-muted/50">
                                 <div className="border-b border-border/20 px-4 py-3">
                                     <h2 className="text-sm font-semibold text-foreground">Position Exposure</h2>
                                 </div>
@@ -218,10 +218,10 @@ export default function PortfolioPage() {
                                         <tbody>
                                             {portfolio.exposure.map((exp) => (
                                                 <tr key={`${exp.symbol}_${exp.type}`} className="border-b border-border/10">
-                                                    <td className="px-4 py-2.5 font-mono font-medium text-foreground">{exp.symbol}</td>
+                                                    <td className="px-4 py-2.5 font-numeric font-medium text-foreground">{exp.symbol}</td>
                                                     <td className={cn("px-4 py-2.5 font-medium", exp.type === "BUY" ? "text-positive" : "text-negative")}>{exp.type}</td>
-                                                    <td className="px-4 py-2.5 text-right font-mono text-muted-foreground">{exp.volume.toFixed(2)}</td>
-                                                    <td className={cn("px-4 py-2.5 text-right font-mono font-medium", exp.pnl >= 0 ? "text-positive" : "text-negative")}>
+                                                    <td className="px-4 py-2.5 text-right font-numeric text-muted-foreground">{exp.volume.toFixed(2)}</td>
+                                                    <td className={cn("px-4 py-2.5 text-right font-numeric font-medium", exp.pnl >= 0 ? "text-positive" : "text-negative")}>
                                                         {exp.pnl >= 0 ? "+" : ""}${exp.pnl.toFixed(2)}
                                                     </td>
                                                 </tr>
@@ -233,7 +233,7 @@ export default function PortfolioPage() {
                         )}
                     </>
                 ) : (
-                    <div className="rounded-xl border border-border/30 bg-muted/50 p-16 text-center">
+                    <div className="rounded-lg border border-border/30 bg-muted/50 p-16 text-center">
                         <Wallet size={32} className="mx-auto text-muted-foreground" />
                         <p className="mt-3 text-sm text-muted-foreground">No accounts connected</p>
                         <p className="mt-1 text-xs text-muted-foreground">Connect your MT5 account via the Trading Gateway</p>
@@ -246,12 +246,12 @@ export default function PortfolioPage() {
 
 function SummaryCard({ icon: Icon, label, value, color }: { icon: React.ElementType; label: string; value: string; color?: string }) {
     return (
-        <div className="rounded-xl border border-border/30 bg-muted/50 p-4">
+        <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
             <div className="flex items-center gap-2">
                 <Icon size={14} className="text-primary" />
                 <span className="text-micro font-semibold uppercase text-muted-foreground">{label}</span>
             </div>
-            <p className={cn("mt-2 font-mono text-lg font-bold", color || "text-foreground")}>{value}</p>
+            <p className={cn("mt-2 font-numeric text-lg font-bold", color || "text-foreground")}>{value}</p>
         </div>
     );
 }

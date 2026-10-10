@@ -70,13 +70,13 @@ export default function InstitutionalZonesPanel({ zones, scores }: Props) {
                                     </span>
                                 </div>
                                 {score && (
-                                    <span className={cn("font-mono text-micro font-bold", score.strength >= 70 ? "text-positive" : score.strength >= 40 ? "text-warning" : "text-foreground/70")}>
+                                    <span className={cn("font-numeric text-micro font-bold", score.strength >= 70 ? "text-positive" : score.strength >= 40 ? "text-warning" : "text-foreground/70")}>
                                         {score.strength}/100
                                     </span>
                                 )}
                             </div>
                             <div className="mt-1 flex items-center gap-2 text-micro text-foreground/70">
-                                <span className="font-mono">{zone.low.toFixed(zone.low >= 100 ? 2 : 5)} — {zone.high.toFixed(zone.high >= 100 ? 2 : 5)}</span>
+                                <span className="font-numeric">{zone.low.toFixed(zone.low >= 100 ? 2 : 5)} — {zone.high.toFixed(zone.high >= 100 ? 2 : 5)}</span>
                                 <span>{zone.timeframe}</span>
                             </div>
                             {score && score.reasons.length > 0 && (
@@ -95,7 +95,7 @@ export default function InstitutionalZonesPanel({ zones, scores }: Props) {
                         <div className="flex items-center gap-2">
                             {getStatusIcon(zone.status)}
                             <span className="text-xs text-muted-foreground">{getZoneTypeLabel(zone.type)}</span>
-                            <span className="font-mono text-micro text-foreground/50">{zone.low.toFixed(zone.low >= 100 ? 2 : 5)} — {zone.high.toFixed(zone.high >= 100 ? 2 : 5)}</span>
+                            <span className="font-numeric text-micro text-foreground/50">{zone.low.toFixed(zone.low >= 100 ? 2 : 5)} — {zone.high.toFixed(zone.high >= 100 ? 2 : 5)}</span>
                         </div>
                     </div>
                 ))}

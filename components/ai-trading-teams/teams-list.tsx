@@ -60,7 +60,7 @@ export function TeamsList({
                 return (
                     <article
                         key={team.id}
-                        className="group relative flex flex-col gap-3 rounded-xl border border-border/60 bg-card/60 p-4 transition-colors hover:border-primary/40"
+                        className="group relative flex flex-col gap-3 rounded-lg border border-border/60 bg-card/60 p-4 transition-colors hover:border-primary/40"
                     >
                         <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
@@ -137,7 +137,7 @@ export function TemplatesGrid({
     return (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {templates.map((template) => (
-                <article key={template.id} className="flex flex-col gap-2 rounded-xl border border-border/60 bg-card/60 p-4">
+                <article key={template.id} className="flex flex-col gap-2 rounded-lg border border-border/60 bg-card/60 p-4">
                     <div className="flex items-center justify-between gap-2">
                         <h3 className="text-sm font-semibold">{template.name}</h3>
                         <Badge variant={template.scope === "admin" ? "secondary" : "outline"} className="text-micro">

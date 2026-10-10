@@ -144,7 +144,7 @@ export function EngineFeed({
                                     key={e.key}
                                     className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 border-b border-border/50 px-3 py-1.5 last:border-0"
                                 >
-                                    <span className="font-mono text-xs font-medium text-foreground">
+                                    <span className="font-numeric text-xs font-medium text-foreground">
                                         {e.symbol}
                                     </span>
                                     <span className="text-xs text-muted-foreground">{e.label}</span>
@@ -154,7 +154,7 @@ export function EngineFeed({
                                         <Icon className="size-3" />
                                         {e.status}
                                     </span>
-                                    <span className="ml-auto font-mono text-xs tabular-nums text-muted-foreground">
+                                    <span className="ml-auto font-numeric text-xs tabular-nums text-muted-foreground">
                                         {Math.round(e.durationMs)}ms
                                     </span>
                                     {e.reason ? (
@@ -197,10 +197,10 @@ export function AgentHealthStrip({
                         className="inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 text-xs"
                         title={r.degraded.map((d) => `${d.agent}: ${d.reason}`).join(" · ") || "All agents completed."}
                     >
-                        <span className="font-mono font-medium text-foreground">{r.symbol}</span>
+                        <span className="font-numeric font-medium text-foreground">{r.symbol}</span>
                         <span
                             className={cn(
-                                "font-mono tabular-nums",
+                                "font-numeric tabular-nums",
                                 ok === total ? "text-positive" : "text-negative"
                             )}
                         >

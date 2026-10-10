@@ -70,10 +70,10 @@ export default function AdminExtensionsPage() {
                     <ArrowLeft size={14} /> Back to Plugins
                 </Link>
                 <div className="flex flex-wrap items-center gap-2">
-                    <Link href="/admin/plugins/create?type=extension" className="inline-flex items-center gap-2 rounded-xl bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
+                    <Link href="/admin/plugins/create?type=extension" className="inline-flex items-center gap-2 rounded-lg bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
                         <Puzzle size={14} /> New Extension
                     </Link>
-                    <Link href="/admin/plugins/ai-studio" className="inline-flex items-center gap-2 rounded-xl border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground">
+                    <Link href="/admin/plugins/ai-studio" className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground">
                         <Sparkles size={14} /> AI Generate
                     </Link>
                 </div>
@@ -101,10 +101,10 @@ export default function AdminExtensionsPage() {
                     description="Seed the built-in catalog from the Plugins page, or create extensions through the AI Plugin Studio."
                     action={
                         <div className="flex flex-wrap items-center justify-center gap-2">
-                            <Link href="/admin/plugins" className="inline-flex items-center gap-2 rounded-xl bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
+                            <Link href="/admin/plugins" className="inline-flex items-center gap-2 rounded-lg bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
                                 Go to Plugins
                             </Link>
-                            <Link href="/admin/plugins/ai-studio" className="inline-flex items-center gap-2 rounded-xl border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground">
+                            <Link href="/admin/plugins/ai-studio" className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground">
                                 AI Plugin Studio
                             </Link>
                         </div>

@@ -68,7 +68,7 @@ export function AccountHealthReportView({
             {header}
 
             {!health.hasData && (
-                <div className="flex items-start gap-2 rounded-xl border border-border/30 bg-muted/40 px-3 py-2.5">
+                <div className="flex items-start gap-2 rounded-lg border border-border/30 bg-muted/40 px-3 py-2.5">
                     <AlertTriangle size={13} className="mt-0.5 shrink-0 text-muted-foreground" />
                     <p className="text-micro leading-5 text-muted-foreground">
                         No trading account is linked to this user — no broker account, no balance and
@@ -99,19 +99,19 @@ export function AccountHealthReportView({
                             )}
                             <dl className="grid grid-cols-2 gap-x-4 gap-y-1 pt-1 text-micro">
                                 <dt className="text-muted-foreground">Drawdown</dt>
-                                <dd className="text-right font-mono tabular-nums text-foreground">
+                                <dd className="text-right font-numeric tabular-nums text-foreground">
                                     {metrics.drawdown.toFixed(1)}%
                                 </dd>
                                 <dt className="text-muted-foreground">Max drawdown</dt>
-                                <dd className="text-right font-mono tabular-nums text-foreground">
+                                <dd className="text-right font-numeric tabular-nums text-foreground">
                                     {metrics.maxDrawdown.toFixed(1)}%
                                 </dd>
                                 <dt className="text-muted-foreground">Margin used</dt>
-                                <dd className="text-right font-mono tabular-nums text-foreground">
+                                <dd className="text-right font-numeric tabular-nums text-foreground">
                                     {metrics.marginUtilization.toFixed(1)}%
                                 </dd>
                                 <dt className="text-muted-foreground">At risk</dt>
-                                <dd className="text-right font-mono tabular-nums text-foreground">
+                                <dd className="text-right font-numeric tabular-nums text-foreground">
                                     {metrics.positionsAtRisk}/{metrics.totalPositions}
                                 </dd>
                             </dl>
@@ -152,18 +152,18 @@ export function AccountHealthReportView({
                                                 {a.currency}
                                             </span>
                                         </td>
-                                        <td className="py-1.5 text-right font-mono tabular-nums text-foreground">
+                                        <td className="py-1.5 text-right font-numeric tabular-nums text-foreground">
                                             {a.balance.toFixed(2)}
                                         </td>
-                                        <td className="py-1.5 text-right font-mono tabular-nums text-foreground">
+                                        <td className="py-1.5 text-right font-numeric tabular-nums text-foreground">
                                             {a.equity.toFixed(2)}
                                         </td>
-                                        <td className="py-1.5 text-right font-mono tabular-nums text-muted-foreground">
+                                        <td className="py-1.5 text-right font-numeric tabular-nums text-muted-foreground">
                                             {a.margin > 0
                                                 ? `${a.margin.toFixed(2)} (${a.marginLevel.toFixed(0)}%)`
                                                 : "—"}
                                         </td>
-                                        <td className="py-1.5 text-right font-mono tabular-nums text-muted-foreground">
+                                        <td className="py-1.5 text-right font-numeric tabular-nums text-muted-foreground">
                                             {a.positions}
                                         </td>
                                         <td className="py-1.5 text-right">
@@ -216,12 +216,12 @@ export function AccountHealthReportView({
                                     <tr key={`${p.symbol}-${i}`}>
                                         <td className="py-1.5 font-medium text-foreground">{p.symbol}</td>
                                         <td className="py-1.5 uppercase text-muted-foreground">{p.type}</td>
-                                        <td className="py-1.5 text-right font-mono tabular-nums text-muted-foreground">
+                                        <td className="py-1.5 text-right font-numeric tabular-nums text-muted-foreground">
                                             {p.volume}
                                         </td>
                                         <td
                                             className={cn(
-                                                "py-1.5 text-right font-mono tabular-nums",
+                                                "py-1.5 text-right font-numeric tabular-nums",
                                                 p.profit > 0 ? "text-positive" : p.profit < 0 ? "text-negative" : "text-muted-foreground",
                                             )}
                                         >
@@ -229,7 +229,7 @@ export function AccountHealthReportView({
                                         </td>
                                         <td
                                             className={cn(
-                                                "py-1.5 text-right font-mono tabular-nums",
+                                                "py-1.5 text-right font-numeric tabular-nums",
                                                 p.atRisk ? "text-negative" : "text-muted-foreground",
                                             )}
                                         >
@@ -249,11 +249,11 @@ export function AccountHealthReportView({
                         <>
                             <span>
                                 Signal library win rate:{" "}
-                                <span className="font-mono text-foreground">{trading.winRate}%</span>
+                                <span className="font-numeric text-foreground">{trading.winRate}%</span>
                             </span>
                             <span>
                                 Average R:{" "}
-                                <span className="font-mono text-foreground">
+                                <span className="font-numeric text-foreground">
                                     {trading.averageR ?? "—"}R
                                 </span>
                             </span>
@@ -267,12 +267,12 @@ export function AccountHealthReportView({
                     )}
                     <span>
                         Signals tracked:{" "}
-                        <span className="font-mono text-foreground">{trading.totalSignals}</span>
+                        <span className="font-numeric text-foreground">{trading.totalSignals}</span>
                     </span>
                     {hasSignalSample && (
                         <span>
                             Resolved:{" "}
-                            <span className="font-mono text-foreground">{trading.resolvedSignals}</span>
+                            <span className="font-numeric text-foreground">{trading.resolvedSignals}</span>
                         </span>
                     )}
                 </div>

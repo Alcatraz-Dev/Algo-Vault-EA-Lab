@@ -198,37 +198,37 @@ function PositionSizeCalc() {
                 <h2 className="mb-4 text-sm font-semibold text-foreground">Result</h2>
                 {result ? (
                     <div className="space-y-3">
-                        <div className="rounded-xl border border-positive/20 bg-positive/[0.06] p-5 text-center">
+                        <div className="rounded-lg border border-positive/20 bg-positive/[0.06] p-5 text-center">
                             <p className="text-micro uppercase tracking-wider text-muted-foreground">Position Size</p>
-                            <p className="mt-1 font-mono text-3xl font-bold text-positive">{result.lotSize} lots</p>
+                            <p className="mt-1 font-numeric text-3xl font-bold text-positive">{result.lotSize} lots</p>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="rounded-lg bg-muted p-3">
                                 <p className="text-micro uppercase text-muted-foreground">Risk Amount</p>
-                                <p className="font-mono text-sm font-bold text-negative">${result.actualRisk}</p>
+                                <p className="font-numeric text-sm font-bold text-negative">${result.actualRisk}</p>
                             </div>
                             <div className="rounded-lg bg-muted p-3">
                                 <p className="text-micro uppercase text-muted-foreground">Risk:Reward</p>
-                                <p className={cn("font-mono text-sm font-bold", result.riskReward >= 2 ? "text-positive" : result.riskReward >= 1 ? "text-warning" : "text-negative")}>1:{result.riskReward}</p>
+                                <p className={cn("font-numeric text-sm font-bold", result.riskReward >= 2 ? "text-positive" : result.riskReward >= 1 ? "text-warning" : "text-negative")}>1:{result.riskReward}</p>
                             </div>
                             <div className="rounded-lg bg-muted p-3">
                                 <p className="text-micro uppercase text-muted-foreground">Stop Distance</p>
-                                <p className="font-mono text-sm font-bold text-muted-foreground">{result.stopDistance}</p>
+                                <p className="font-numeric text-sm font-bold text-muted-foreground">{result.stopDistance}</p>
                             </div>
                             <div className="rounded-lg bg-muted p-3">
                                 <p className="text-micro uppercase text-muted-foreground">Pips to SL</p>
-                                <p className="font-mono text-sm font-bold text-muted-foreground">{result.pipDistance} pips</p>
+                                <p className="font-numeric text-sm font-bold text-muted-foreground">{result.pipDistance} pips</p>
                             </div>
                             {result.tpPips > 0 && (
                                 <div className="rounded-lg bg-muted p-3">
                                     <p className="text-micro uppercase text-muted-foreground">Pips to TP</p>
-                                    <p className="font-mono text-sm font-bold text-positive">{result.tpPips} pips</p>
+                                    <p className="font-numeric text-sm font-bold text-positive">{result.tpPips} pips</p>
                                 </div>
                             )}
                         </div>
                     </div>
                 ) : (
-                    <div className="flex h-48 items-center justify-center rounded-xl border border-dashed border-border text-xs text-muted-foreground">
+                    <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-border text-xs text-muted-foreground">
                         Enter balance, risk %, entry and stop loss.
                     </div>
                 )}
@@ -308,9 +308,9 @@ function PipValueCalc() {
                 <h2 className="mb-4 text-sm font-semibold text-foreground">Pip Math</h2>
                 {result ? (
                     <div className="space-y-3">
-                        <div className="rounded-xl border border-info/20 bg-info/[0.06] p-5 text-center">
+                        <div className="rounded-lg border border-info/20 bg-info/[0.06] p-5 text-center">
                             <p className="text-micro uppercase tracking-wider text-muted-foreground">Value per Pip</p>
-                            <p className="mt-1 font-mono text-3xl font-bold text-info">
+                            <p className="mt-1 font-numeric text-3xl font-bold text-info">
                                 ${result.totalValuePerPip}
                             </p>
                             <p className="mt-1 text-micro text-muted-foreground">{lotSize} lot(s) of {instrument}</p>
@@ -318,16 +318,16 @@ function PipValueCalc() {
                         <div className="grid grid-cols-2 gap-3">
                             <div className="rounded-lg bg-muted p-3">
                                 <p className="text-micro uppercase text-muted-foreground">Pip Size</p>
-                                <p className="font-mono text-sm font-bold text-foreground">{result.pipSize}</p>
+                                <p className="font-numeric text-sm font-bold text-foreground">{result.pipSize}</p>
                             </div>
                             <div className="rounded-lg bg-muted p-3">
                                 <p className="text-micro uppercase text-muted-foreground">Contract Size</p>
-                                <p className="font-mono text-sm font-bold text-foreground">{result.contractSize.toLocaleString()}</p>
+                                <p className="font-numeric text-sm font-bold text-foreground">{result.contractSize.toLocaleString()}</p>
                             </div>
                         </div>
                     </div>
                 ) : (
-                    <div className="flex h-48 items-center justify-center rounded-xl border border-dashed border-border text-xs text-muted-foreground">
+                    <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-border text-xs text-muted-foreground">
                         Enter a lot size.
                     </div>
                 )}

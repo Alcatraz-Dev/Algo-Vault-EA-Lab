@@ -193,13 +193,13 @@ export default function BotDetailPage() {
             <AccountShell title="Bot Details">
                 <div className="space-y-4">
                     {error && (
-                        <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                        <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                             {error}
                         </div>
                     )}
                     <Link
                         href="/account/bots"
-                        className="flex w-fit items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm transition hover:bg-muted"
+                        className="flex w-fit items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm transition hover:bg-muted"
                     >
                         <ArrowLeft size={15} /> Back to My Bots
                     </Link>
@@ -218,7 +218,7 @@ export default function BotDetailPage() {
                     <div className="flex items-center gap-2">
                         <Link
                             href="/account/bots"
-                            className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm transition hover:bg-muted"
+                            className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm transition hover:bg-muted"
                         >
                             <ArrowLeft size={14} /> All Bots
                         </Link>
@@ -230,7 +230,7 @@ export default function BotDetailPage() {
                     <div className="flex gap-2">
                         <Link
                             href="/pricing"
-                            className="flex items-center gap-1.5 rounded-xl border border-border bg-card px-4 py-2 text-sm transition hover:bg-muted"
+                            className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-4 py-2 text-sm transition hover:bg-muted"
                         >
                             <ShieldCheck size={14} /> Upgrade
                         </Link>
@@ -315,7 +315,7 @@ export default function BotDetailPage() {
                                 <tbody>
                                     {positions.map((p) => (
                                         <tr key={p.ticket} className="border-b border-border/50 hover:bg-muted/30">
-                                            <td className="px-3 py-2 font-mono text-xs">{p.ticket}</td>
+                                            <td className="px-3 py-2 font-numeric text-xs">{p.ticket}</td>
                                             <td className="px-3 py-2">{p.symbol}</td>
                                             <td className="px-3 py-2">
                                                 <span className={p.type === "BUY" ? "text-positive" : "text-destructive"}>{p.type}</span>
@@ -357,7 +357,7 @@ export default function BotDetailPage() {
                                 <tbody>
                                     {trades.slice(0, 100).map((t) => (
                                         <tr key={t.ticket} className="border-b border-border/50 hover:bg-muted/30">
-                                            <td className="px-3 py-2 font-mono text-xs">{t.ticket}</td>
+                                            <td className="px-3 py-2 font-numeric text-xs">{t.ticket}</td>
                                             <td className="px-3 py-2">{t.symbol}</td>
                                             <td className="px-3 py-2">
                                                 <span className={t.type === "BUY" ? "text-positive" : "text-destructive"}>{t.type}</span>

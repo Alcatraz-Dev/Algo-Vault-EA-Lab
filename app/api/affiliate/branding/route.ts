@@ -230,7 +230,7 @@ export async function GET(request: NextRequest) {
             );
 
             return new NextResponse(
-                "Invalid path.",
+              "Invalid path.",
                 {
                     status: 400,
                 }
@@ -316,7 +316,7 @@ export async function GET(request: NextRequest) {
                     )
                 ) {
                     return new NextResponse(
-                        "Invalid path.",
+                      "Invalid path.",
                         {
                             status: 400,
                         }
@@ -343,14 +343,14 @@ export async function GET(request: NextRequest) {
                     {
                         status: 200,
                         headers: {
-                            "Content-Type":
+                          "Content-Type":
                                 MIME_TYPES[
                                 fallbackExtension
                                 ],
-                            "Cache-Control":
-                                "public, max-age=3600, stale-while-revalidate=86400",
-                            "X-Content-Type-Options":
-                                "nosniff",
+                                  "Cache-Control":
+                                    "public, max-age=3600, stale-while-revalidate=86400",
+                                      "X-Content-Type-Options":
+                                        "nosniff",
                         },
                     }
                 );
@@ -377,12 +377,12 @@ export async function GET(request: NextRequest) {
             {
                 status: 200,
                 headers: {
-                    "Content-Type":
+                  "Content-Type":
                         MIME_TYPES[extension],
-                    "Cache-Control":
-                        "public, max-age=3600, stale-while-revalidate=86400",
-                    "X-Content-Type-Options":
-                        "nosniff",
+                          "Cache-Control":
+                            "public, max-age=3600, stale-while-revalidate=86400",
+                              "X-Content-Type-Options":
+                                "nosniff",
                 },
             }
         );

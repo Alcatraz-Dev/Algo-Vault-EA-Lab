@@ -10,7 +10,7 @@ export default function IntelligenceCloudOverview() {
   return (
     <div className="max-w-5xl mx-auto px-6 py-10 space-y-10">
       <header className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Intelligence Cloud</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Intelligence Cloud</h1>
         <p className="text-muted-foreground">AlgoVault's deterministic intelligence layer — market, indicators, smart money, strategy validation, and research — exposed through versioned APIs.</p>
       </header>
 
@@ -26,7 +26,7 @@ export default function IntelligenceCloudOverview() {
         <Card title="SDK Contracts" icon={<Code2 />} desc="Conceptual contracts for TypeScript / Python SDK integration." endpoint="#sdk" />
       </section>
 
-      <section className="border rounded-xl p-6 bg-card space-y-4">
+      <section className="border rounded-lg p-6 bg-card space-y-4">
         <h2 className="text-xl font-semibold flex items-center gap-2"><BookOpen className="w-5 h-5" /> API Contracts & Versioning</h2>
         <p>Every response includes <code>apiVersion</code>, <code>engineVersions</code>, <code>dataTimestamp</code>, and optional <code>dataLineage</code>. Snapshots are immutable by reference.</p>
         <ul className="list-disc pl-6 text-sm text-muted-foreground space-y-1">
@@ -37,7 +37,7 @@ export default function IntelligenceCloudOverview() {
         </ul>
       </section>
 
-      <section className="border rounded-xl p-6 bg-card space-y-4">
+      <section className="border rounded-lg p-6 bg-card space-y-4">
         <h2 className="text-xl font-semibold flex items-center gap-2"><Key className="w-5 h-5" /> Authentication & Scopes</h2>
         <div className="grid md:grid-cols-2 gap-3 text-sm">
           {[
@@ -51,7 +51,7 @@ export default function IntelligenceCloudOverview() {
         <p className="text-xs text-muted-foreground">Execution scopes (execution:prepare / approve / live) are separate and disabled by default.</p>
       </section>
 
-      <section id="sdk" className="border rounded-xl p-6 bg-card space-y-4">
+      <section id="sdk" className="border rounded-lg p-6 bg-card space-y-4">
         <h2 className="text-xl font-semibold flex items-center gap-2"><Code2 className="w-5 h-5" /> SDK Concept</h2>
         <pre className="text-xs bg-background text-positive rounded-lg p-4 overflow-x-auto">
 {`const client = createSDK({ apiKey: "av_key_...", baseUrl: "https://api.algovault.io/intelligence/v2" });
@@ -66,10 +66,10 @@ console.log(market.smartMoney, market.indicators, market.engineVersions);`}
 
 function Card({ title, icon, desc, endpoint }: { title: string; icon: React.ReactNode; desc: string; endpoint: string }) {
   return (
-    <Link href="#" className="block rounded-xl border p-5 bg-card hover:border-foreground/20 transition-colors space-y-2">
+    <Link href="#" className="block rounded-lg border p-5 bg-card hover:border-foreground/20 transition-colors space-y-2">
       <div className="flex items-center gap-2 text-lg font-semibold">{icon} {title}</div>
       <p className="text-sm text-muted-foreground">{desc}</p>
-      <code className="text-xs text-positive font-mono">{endpoint}</code>
+      <code className="text-xs text-positive font-numeric">{endpoint}</code>
     </Link>
   );
 }

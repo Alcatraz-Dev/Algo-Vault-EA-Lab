@@ -9,7 +9,7 @@ export function PatternExplorer({ patterns }: { patterns: PatternRow[] }) {
         <tbody className="divide-y divide-border/50">
           {patterns.map((p) => (
             <tr key={p.key} className="text-muted-foreground">
-              <td className="font-mono">{p.key}</td>
+              <td className="font-numeric">{p.key}</td>
               <td>{p.symbol || "—"}</td>
               <td>{p.timeframe || "—"}</td>
               <td className="text-right font-numeric">{p.occurrences}</td>

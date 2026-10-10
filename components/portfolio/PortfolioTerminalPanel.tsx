@@ -140,10 +140,10 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
             {/* Symbol context header */}
             <div className="border-b border-border px-3 py-2">
                 <div className="flex items-center justify-between">
-                    <span className="font-mono text-micro font-semibold text-foreground">
+                    <span className="font-numeric text-micro font-semibold text-foreground">
                         {symbolUpper} · {timeframe}
                     </span>
-                    <span className="font-mono text-micro text-muted-foreground">
+                    <span className="font-numeric text-micro text-muted-foreground">
                         {freshness?.freshness === "STALE" ? "STALE DATA" : freshness?.freshness === "UNAVAILABLE" ? "UNAVAILABLE" : "LIVE"}
                     </span>
                 </div>
@@ -160,10 +160,10 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
                     <dl className="space-y-0.5 text-micro">
                         {position.map((p) => (
                             <div key={p.positionId} className="flex items-center justify-between gap-2">
-                                <dt className={cn("font-mono font-semibold", p.side === "LONG" ? "text-positive" : "text-negative")}>
+                                <dt className={cn("font-numeric font-semibold", p.side === "LONG" ? "text-positive" : "text-negative")}>
                                     {p.side} {p.quantity}
                                 </dt>
-                                <dd className="font-mono tabular-nums text-muted-foreground">
+                                <dd className="font-numeric tabular-nums text-muted-foreground">
                                     {fmtMoney(p.unrealizedPnL, data.baseCurrency, 0)} · risk{" "}
                                     {p.riskAmount === null ? "unavailable" : fmtMoney(p.riskAmount, data.baseCurrency, 0)}
                                 </dd>
@@ -171,11 +171,11 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
                         ))}
                         <div className="flex items-center justify-between gap-2 border-t border-border pt-1">
                             <dt className="text-muted-foreground">Strategy</dt>
-                            <dd className="font-mono text-foreground">{position[0].strategyId}</dd>
+                            <dd className="font-numeric text-foreground">{position[0].strategyId}</dd>
                         </div>
                         <div className="flex items-center justify-between gap-2">
                             <dt className="text-muted-foreground">Asset class</dt>
-                            <dd className="font-mono text-foreground">{position[0].assetClass}</dd>
+                            <dd className="font-numeric text-foreground">{position[0].assetClass}</dd>
                         </div>
                     </dl>
                 ) : (
@@ -207,10 +207,10 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
                     <ul className="space-y-0.5">
                         {correlations.slice(0, 6).map((c) => (
                             <li key={c.other} className="flex items-center justify-between gap-2 text-micro">
-                                <span className="font-mono text-foreground">{c.other}</span>
+                                <span className="font-numeric text-foreground">{c.other}</span>
                                 <span
                                     className={cn(
-                                        "font-mono tabular-nums",
+                                        "font-numeric tabular-nums",
                                         c.value === null
                                             ? "italic text-muted-foreground"
                                             : c.value >= 0.3
@@ -256,10 +256,10 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
                     <ul className="space-y-0.5">
                         {related.map((p) => (
                             <li key={p.positionId} className="flex items-center justify-between gap-2 text-micro">
-                                <span className="font-mono text-foreground">
+                                <span className="font-numeric text-foreground">
                                     {p.symbol} <span className="text-muted-foreground">{p.strategyId}</span>
                                 </span>
-                                <span className={cn("font-mono tabular-nums", p.unrealizedPnL < 0 ? "text-negative" : "text-positive")}>
+                                <span className={cn("font-numeric tabular-nums", p.unrealizedPnL < 0 ? "text-negative" : "text-positive")}>
                                     {fmtMoney(p.unrealizedPnL, data.baseCurrency, 0)}
                                 </span>
                             </li>
@@ -336,7 +336,7 @@ function Row({ label, value }: { label: string; value: string }) {
     return (
         <div className="flex items-center justify-between gap-2">
             <dt className="text-muted-foreground">{label}</dt>
-            <dd className="font-mono tabular-nums text-foreground">{value}</dd>
+            <dd className="font-numeric tabular-nums text-foreground">{value}</dd>
         </div>
     );
 }

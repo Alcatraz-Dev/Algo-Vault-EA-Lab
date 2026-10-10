@@ -86,7 +86,7 @@ export default function PluginDetailsPage() {
  .then((data) => {
  if (Array.isArray((data as { reviews?: PluginReview[] }).reviews)) {
  setReviews((data as { reviews: PluginReview[] }).reviews);
- }
+  }
  })
  .catch(() => setReviews([]));
  }, [plugin?.id]);
@@ -100,7 +100,7 @@ export default function PluginDetailsPage() {
  if (!user) {
  router.push(`/login?redirect=/marketplace/plugins/${plugin.slug || plugin.id}`);
  return;
- }
+    }
  const token = await user.getIdToken();
  const res = await fetch("/api/plugins/install", {
  method: "POST",
@@ -113,8 +113,8 @@ export default function PluginDetailsPage() {
  } catch (err) {
  setActionError(err instanceof Error ? err.message : "Unable to install the plugin.");
  setBusy(false);
- }
- }
+      }
+        }
 
  async function handleBuy() {
  if (!plugin) return;
@@ -125,7 +125,7 @@ export default function PluginDetailsPage() {
  if (!user) {
  router.push(`/login?redirect=/marketplace/plugins/${plugin.slug || plugin.id}`);
  return;
- }
+          }
  const ordersRef = ref(database, `orders/${user.uid}`);
  const newOrderRef = push(ordersRef);
  const order = {
@@ -144,7 +144,7 @@ export default function PluginDetailsPage() {
  paymentProvider: null,
  createdAt: Date.now(),
  updatedAt: Date.now(),
- };
+            };
  await set(newOrderRef, order);
 
  const token = await user.getIdToken();
@@ -160,8 +160,8 @@ export default function PluginDetailsPage() {
  } catch (err) {
  setActionError(err instanceof Error ? err.message : "Unable to start payment.");
  setBusy(false);
- }
- }
+              }
+                }
 
  async function handleReviewSubmit() {
  if (!plugin || !reviewComment.trim()) return;
@@ -170,7 +170,7 @@ export default function PluginDetailsPage() {
  if (!user) {
  router.push(`/login?redirect=/marketplace/plugins/${plugin.slug || plugin.id}`);
  return;
- }
+                  }
  try {
  const token = await user.getIdToken();
  const res = await fetch(`/api/plugins/${plugin.id}/reviews`, {
@@ -190,8 +190,8 @@ export default function PluginDetailsPage() {
  setActionError(err instanceof Error ? err.message : "Unable to submit the review.");
  } finally {
  setReviewBusy(false);
- }
- }
+                    }
+                      }
 
  if (loading) {
  return (
@@ -205,20 +205,20 @@ export default function PluginDetailsPage() {
  </div>
  </main>
  );
- }
+                        }
 
  if (!plugin) {
  return (
  <main className="flex min-h-screen items-center justify-center bg-background px-6 text-foreground">
  <div className="text-center">
  <Plug size={45} className="mx-auto text-muted-foreground" />
- <h1 className="mt-5 text-2xl font-semibold">Plugin not found</h1>
+ <h1 className="text-2xl font-semibold tracking-tight mt-5">Plugin not found</h1>
  <p className="mt-2 text-sm text-muted-foreground">
  This plugin may have been removed or is no longer published.
  </p>
  <Link
  href="/marketplace/plugins"
- className="mt-6 inline-flex items-center gap-2 rounded-xl bg-background px-5 py-3 text-sm font-medium text-foreground"
+                          className="mt-6 inline-flex items-center gap-2 rounded-lg bg-background px-5 py-3 text-sm font-medium text-foreground"
  >
  <ArrowLeft size={16} />
  Back to Plugins
@@ -226,7 +226,7 @@ export default function PluginDetailsPage() {
  </div>
  </main>
  );
- }
+                            }
 
  const isFree = plugin.pricing?.type === "free";
  const perms = grantedPermissions(plugin.permissions);
@@ -253,10 +253,10 @@ export default function PluginDetailsPage() {
  <div className="mx-auto max-w-7xl px-6 py-10">
  <div className="overflow-hidden rounded-lg border border-border/30 bg-muted/50">
  {/* Hero */}
- <div className="relative h-56 overflow-hidden bg-gradient-to-br from-primary/15 via-background to-foreground md:h-64">
- <div className="absolute left-20 top-10 h-48 w-48 rounded-full bg-muted/10 blur-3xl" />
- <div className="absolute right-20 bottom-0 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
- <div className="absolute inset-0 bg-gradient-to-t from-muted via-transparent to-transparent" />
+ <div className="relative h-56 overflow-hidden bg-primary/10 md:h-64">
+ <div className="absolute left-20 top-10 h-48 w-48 rounded-full bg-muted/10 hidden" />
+ <div className="absolute right-20 bottom-0 h-56 w-56 rounded-full hidden bg-primary/10" />
+ <div className="absolute inset-0 bg-background/70" />
  <div className="absolute inset-x-0 bottom-0">
  <div className="flex flex-col gap-5 p-6 md:p-9 lg:flex-row lg:items-end lg:justify-between">
  <div className="flex items-end gap-5">
@@ -274,7 +274,7 @@ export default function PluginDetailsPage() {
  {CATEGORY_LABELS[plugin.category]}
  </span>
  </div>
- <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground drop- md:text-4xl">
+ <h1 className="text-2xl font-semibold tracking-tight mt-2 text-foreground drop-">
  {plugin.displayName}
  </h1>
  <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
@@ -308,7 +308,7 @@ export default function PluginDetailsPage() {
  <h2 className="text-sm font-medium">Capabilities</h2>
  <div className="mt-3 grid gap-2 sm:grid-cols-2">
  {plugin.capabilities.map((cap) => (
- <div key={cap} className="flex items-center gap-3 rounded-xl border border-border/30 bg-muted/20 p-3">
+                              <div key={cap} className="flex items-center gap-3 rounded-lg border border-border/30 bg-muted/20 p-3">
  <CheckCircle2 size={15} className="shrink-0 text-positive" />
  <span className="text-sm text-muted-foreground">{cap}</span>
  </div>
@@ -325,7 +325,7 @@ export default function PluginDetailsPage() {
  </p>
  <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
  {perms.map((permission) => (
- <div key={permission} className="rounded-xl border border-border/30 bg-muted/20 p-4">
+                                <div key={permission} className="rounded-lg border border-border/30 bg-muted/20 p-4">
  <p className="text-sm font-medium">{permissionLabel(permission)}</p>
  <p className="mt-1 text-xs leading-5 text-muted-foreground">{permissionDescription(permission)}</p>
  </div>
@@ -352,14 +352,14 @@ export default function PluginDetailsPage() {
  {line.replace(/^##\s+/, "")}
  </h3>
  );
- }
+                                  }
  if (line.startsWith("- ")) {
  return (
  <p key={i} className="mt-1 text-xs leading-6 text-muted-foreground">
  • {line.replace(/^-\s+/, "")}
  </p>
  );
- }
+                                    }
  if (!line.trim()) return <div key={i} className="h-2" />;
  return (
  <p key={i} className="mt-1 text-xs leading-6 text-muted-foreground">
@@ -378,7 +378,7 @@ export default function PluginDetailsPage() {
  {/* Lifecycle */}
  <section className="rounded-lg border border-border/30 bg-muted/50 p-7 md:p-9">
  <div className="flex items-center gap-3">
- <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
+                                      <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
  <Settings2 size={18} />
  </div>
  <div>
@@ -410,7 +410,7 @@ export default function PluginDetailsPage() {
  {/* Reviews */}
  <section className="rounded-lg border border-border/30 bg-muted/50 p-7 md:p-9">
  <div className="flex items-center gap-3">
- <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
  <Star size={18} />
  </div>
  <div>
@@ -441,13 +441,13 @@ export default function PluginDetailsPage() {
  onChange={(e) => setReviewComment(e.target.value)}
  placeholder="What did this plugin help you with? (optional)"
  rows={2}
- className="mt-3 w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                                          className="mt-3 w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
  />
  <button
  type="button"
  onClick={handleReviewSubmit}
  disabled={reviewBusy || !reviewComment.trim()}
- className="mt-3 rounded-xl bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="mt-3 rounded-lg bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
  >
  {reviewBusy ? "Submitting..." : "Submit review"}
  </button>
@@ -525,7 +525,7 @@ export default function PluginDetailsPage() {
  type="button"
  onClick={isFree ? handleFreeInstall : handleBuy}
  disabled={busy}
- className="mt-10 flex w-full items-center justify-center gap-2 rounded-xl bg-background px-5 py-3.5 text-sm font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                                              className="mt-10 flex w-full items-center justify-center gap-2 rounded-lg bg-background px-5 py-3.5 text-sm font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
  >
  {isFree ? (
  <>
@@ -568,7 +568,7 @@ export default function PluginDetailsPage() {
 
 function InfoCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
  return (
- <div className="rounded-xl border border-border/30 bg-muted/20 p-4">
+  <div className="rounded-lg border border-border/30 bg-muted/20 p-4">
  <div className="flex items-center gap-2 text-muted-foreground">
  {icon}
  <span className="text-micro">{label}</span>

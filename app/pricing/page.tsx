@@ -219,7 +219,7 @@ export default function PricingPage() {
                                 )}
 
                                 <div className="flex items-center gap-3">
-                                    <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${tier.highlighted ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                                    <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${tier.highlighted ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
                                         <Icon size={20} />
                                     </div>
                                     <div>
@@ -247,7 +247,7 @@ export default function PricingPage() {
                                 <button
                                     type="button"
                                     onClick={() => handleCta(tier)}
-                                    className={`mt-8 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                                    className={`mt-8 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition ${
                                         tier.highlighted
                                             ? "bg-primary text-primary-foreground hover:bg-primary/90"
                                             : "border border-border hover:bg-muted"
@@ -365,7 +365,7 @@ export default function PricingPage() {
                         { q: "What payment methods do you accept?", a: "All major credit cards via Stripe. Enterprise plans support invoice billing." },
                         { q: "Do you offer refunds?", a: "Yes — within 14 days of purchase for monthly subscriptions, no questions asked." },
                     ].map((item, i) => (
-                        <div key={i} className="rounded-xl border border-border bg-card p-5">
+                        <div key={i} className="rounded-lg border border-border bg-card p-5">
                             <h3 className="font-semibold">{item.q}</h3>
                             <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.a}</p>
                         </div>

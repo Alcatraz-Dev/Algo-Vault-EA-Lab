@@ -100,7 +100,7 @@ export function MtfLadderPanel({
                             metric={mtf.alignmentRatio}
                             label="Alignment ratio"
                             label2={
-                                <span className="font-mono tabular-nums">
+                                <span className="font-numeric tabular-nums">
                                     {mtf.alignedCount}A / {mtf.conflictingCount}C
                                 </span>
                             }
@@ -124,7 +124,7 @@ export function MtfLadderPanel({
                     {
                         label: "Coverage",
                         value: (
-                            <span className="font-mono tabular-nums">
+                            <span className="font-numeric tabular-nums">
                                 {mtf.availableCount} of {mtf.requestedCount} rungs measured
                             </span>
                         ),
@@ -154,12 +154,12 @@ function LadderRow({
                         type="button"
                         onClick={() => onSelect(tf.timeframe)}
                         disabled={unavailable}
-                        className="rounded border border-border px-1.5 py-0.5 font-mono text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded border border-border px-1.5 py-0.5 font-numeric text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         {tf.timeframe}
                     </button>
                 ) : (
-                    <span className="font-mono text-xs font-medium text-foreground">{tf.timeframe}</span>
+                    <span className="font-numeric text-xs font-medium text-foreground">{tf.timeframe}</span>
                 )}
                 {isPrimary ? <span className="ml-1 text-xs text-primary">·</span> : null}
             </td>
@@ -178,7 +178,7 @@ function LadderRow({
                 {unavailable ? (
                     <span className="text-muted-foreground/40">—</span>
                 ) : (
-                    <span className="font-mono text-xs capitalize text-muted-foreground">
+                    <span className="font-numeric text-xs capitalize text-muted-foreground">
                         {tf.volatilityState.value ?? "unavailable"}
                     </span>
                 )}
@@ -187,7 +187,7 @@ function LadderRow({
                 {unavailable ? (
                     <span className="text-muted-foreground/40">—</span>
                 ) : (
-                    <span className="font-mono text-xs text-muted-foreground">
+                    <span className="font-numeric text-xs text-muted-foreground">
                         {String(tf.regime.value ?? "unavailable").replace(/_/g, " ")}
                     </span>
                 )}
@@ -196,19 +196,19 @@ function LadderRow({
                 {unavailable ? (
                     <span className="text-muted-foreground/40">—</span>
                 ) : (
-                    <span className="font-mono text-xs text-muted-foreground">
+                    <span className="font-numeric text-xs text-muted-foreground">
                         {tf.vwapPosition.value ?? "unavailable"}
                     </span>
                 )}
             </Cell>
             <Cell>
-                <span className="font-mono text-xs tabular-nums text-muted-foreground">{tf.bars}</span>
+                <span className="font-numeric text-xs tabular-nums text-muted-foreground">{tf.bars}</span>
             </Cell>
             <Cell>
                 {unavailable ? (
                     <span className="text-muted-foreground/40">—</span>
                 ) : (
-                    <span className={cn("font-mono text-xs", ALIGNMENT_TONE[tf.alignment.value ?? "neutral"])}>
+                    <span className={cn("font-numeric text-xs", ALIGNMENT_TONE[tf.alignment.value ?? "neutral"])}>
                         {tf.alignment.value ?? "unavailable"}
                     </span>
                 )}

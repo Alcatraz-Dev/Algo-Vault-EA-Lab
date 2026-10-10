@@ -113,7 +113,7 @@ export function PipelineView({
                                     style={{ width: `${Math.max(s.count > 0 ? 3 : 0, (s.count / max) * 100)}%` }}
                                 />
                             </span>
-                            <span className="w-12 shrink-0 text-right font-mono text-xs tabular-nums text-foreground">
+                            <span className="w-12 shrink-0 text-right font-numeric text-xs tabular-nums text-foreground">
                                 {s.count.toLocaleString()}
                             </span>
                             <span className="w-full text-xs text-muted-foreground sm:w-auto sm:min-w-0 sm:flex-1 sm:truncate">
@@ -127,12 +127,12 @@ export function PipelineView({
             <div className="border-t border-border px-3 py-2">
                 <StatRow
                     label="Candidates this generation"
-                    value={<span className="font-mono tabular-nums">{report.candidates.toLocaleString()}</span>}
+                    value={<span className="font-numeric tabular-nums">{report.candidates.toLocaleString()}</span>}
                 />
                 <StatRow
                     label="Backtested"
                     value={
-                        <span className="font-mono tabular-nums">
+                        <span className="font-numeric tabular-nums">
                             {report.evaluated.toLocaleString()}
                             {report.unevaluated > 0 ? (
                                 <span className="text-warning"> · {report.unevaluated} not evaluable</span>
@@ -142,11 +142,11 @@ export function PipelineView({
                 />
                 <StatRow
                     label="Survivors"
-                    value={<span className="font-mono tabular-nums">{report.survivors.toLocaleString()}</span>}
+                    value={<span className="font-numeric tabular-nums">{report.survivors.toLocaleString()}</span>}
                 />
                 <StatRow
                     label="Mutations"
-                    value={<span className="font-mono tabular-nums">{report.mutations.toLocaleString()}</span>}
+                    value={<span className="font-numeric tabular-nums">{report.mutations.toLocaleString()}</span>}
                 />
             </div>
         </TerminalPanel>
@@ -172,7 +172,7 @@ function GenerationPicker({
                     onClick={() => onSelect(g.generation)}
                     aria-pressed={g.generation === selected}
                     className={cn(
-                        "rounded-md border border-border px-1.5 py-0.5 font-mono text-xs transition",
+                        "rounded-md border border-border px-1.5 py-0.5 font-numeric text-xs transition",
                         g.generation === selected
                             ? "bg-primary/10 text-primary"
                             : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -222,7 +222,7 @@ export function DnaInspector({ dna }: { dna: StrategyDna | null }) {
             title="Strategy DNA"
             icon={<Dna className="size-3.5" />}
             meta={
-                <span className="font-mono">
+                <span className="font-numeric">
                     {active.symbol} {active.timeframe} {active.direction.toUpperCase()}
                 </span>
             }
@@ -242,18 +242,18 @@ export function DnaInspector({ dna }: { dna: StrategyDna | null }) {
                     label="Parent"
                     value={
                         active.parentId ? (
-                            <span className="font-mono">{active.parentId}</span>
+                            <span className="font-numeric">{active.parentId}</span>
                         ) : (
                             <span className="text-muted-foreground">seed</span>
                         )
                     }
                 />
-                <StatRow label="Label" value={<span className="font-mono">{active.label}</span>} />
+                <StatRow label="Label" value={<span className="font-numeric">{active.label}</span>} />
                 <StatRow
                     label="Signature"
                     value={
                         <span
-                            className="truncate font-mono text-xs"
+                            className="truncate font-numeric text-xs"
                             title={dnaSignature(active)}
                         >
                           {dnaSignature(active)}
@@ -280,7 +280,7 @@ export function DnaInspector({ dna }: { dna: StrategyDna | null }) {
             <div className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
                 Toggling a block edits a local draft only. A draft becomes a strategy solely through
                 the server-side pipeline, which converts the DNA and re-runs{" "}
-                <span className="font-mono">backtestStrategy</span> before anything is recorded — so an
+                <span className="font-numeric">backtestStrategy</span> before anything is recorded — so an
                 unvalidated genome can never enter the record.
             </div>
         </TerminalPanel>
@@ -300,7 +300,7 @@ function DnaGroup({
         <div className="border-t border-border px-3 py-2">
             <p className="mb-1 text-xs font-medium text-foreground">
                 {title}
-                <span className="ml-1.5 font-mono text-muted-foreground">
+                <span className="ml-1.5 font-numeric text-muted-foreground">
                     {components.filter((c) => c.active).length}/{components.length}
                 </span>
             </p>
@@ -318,14 +318,14 @@ function DnaGroup({
                             <span className="flex flex-wrap items-baseline gap-x-1.5">
                                 <span
                                     className={cn(
-                                        "font-mono text-xs",
+                                        "font-numeric text-xs",
                                         c.active ? "text-foreground" : "text-muted-foreground/60"
                                     )}
                                 >
                                     {c.block}
                                 </span>
                                 {c.value !== undefined ? (
-                                    <span className="font-mono text-xs tabular-nums text-muted-foreground">
+                                    <span className="font-numeric text-xs tabular-nums text-muted-foreground">
                                         {c.value}
                                     </span>
                                 ) : null}
@@ -361,12 +361,12 @@ export function EvolutionRulesPanel({ className }: { className?: string }) {
                     <p className="mb-1 text-xs font-medium text-muted-foreground">Survivor thresholds</p>
                     <StatRow
                         label="Minimum closed trades"
-                        value={<span className="font-mono tabular-nums">{SURVIVOR_THRESHOLDS.minTrades}</span>}
+                        value={<span className="font-numeric tabular-nums">{SURVIVOR_THRESHOLDS.minTrades}</span>}
                     />
                     <StatRow
                         label="Minimum expectancy"
                         value={
-                            <span className="font-mono tabular-nums">
+                            <span className="font-numeric tabular-nums">
                                 {SURVIVOR_THRESHOLDS.minExpectancyR}R
                             </span>
                         }
@@ -374,7 +374,7 @@ export function EvolutionRulesPanel({ className }: { className?: string }) {
                     <StatRow
                         label="Minimum profit factor"
                         value={
-                            <span className="font-mono tabular-nums">
+                            <span className="font-numeric tabular-nums">
                                 {SURVIVOR_THRESHOLDS.minProfitFactor}
                             </span>
                         }
@@ -382,7 +382,7 @@ export function EvolutionRulesPanel({ className }: { className?: string }) {
                     <StatRow
                         label="Maximum drawdown"
                         value={
-                            <span className="font-mono tabular-nums">
+                            <span className="font-numeric tabular-nums">
                                 {SURVIVOR_THRESHOLDS.maxDrawdownPct}%
                             </span>
                         }
@@ -392,25 +392,25 @@ export function EvolutionRulesPanel({ className }: { className?: string }) {
                     <p className="mb-1 text-xs font-medium text-muted-foreground">Run limits</p>
                     <StatRow
                         label="Max seeds"
-                        value={<span className="font-mono tabular-nums">{LIMITS.maxSeeds}</span>}
+                        value={<span className="font-numeric tabular-nums">{LIMITS.maxSeeds}</span>}
                     />
                     <StatRow
                         label="Max children / generation"
                         value={
-                            <span className="font-mono tabular-nums">{LIMITS.maxChildrenPerGeneration}</span>
+                            <span className="font-numeric tabular-nums">{LIMITS.maxChildrenPerGeneration}</span>
                         }
                     />
                     <StatRow
                         label="Max generations"
                         value={
-                            <span className="font-mono tabular-nums">{LIMITS.maxGenerations}</span>
+                            <span className="font-numeric tabular-nums">{LIMITS.maxGenerations}</span>
                         }
                     />
                 </div>
             </div>
             <p className="mt-3 text-xs text-muted-foreground">
                 The pipeline runs{" "}
-                <span className="font-mono">{PIPELINE_STAGES.length} stages</span> per generation:
+                <span className="font-numeric">{PIPELINE_STAGES.length} stages</span> per generation:
                 feature extraction, candidate generation, backtest, risk evaluation, out-of-sample
                 validation, scoring, selection, mutation and reporting. The random generator is seeded
                 per run, so a rerun of the same inputs reproduces the same population.

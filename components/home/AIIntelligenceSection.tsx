@@ -82,7 +82,7 @@ export default function AIIntelligenceSection() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <div>
-            <p className="font-mono text-xs font-semibold uppercase tracking-widest text-accent">
+            <p className="font-numeric text-xs font-semibold uppercase tracking-widest text-accent">
               Intelligence Stack
             </p>
             <h2 className="mt-3 font-display text-4xl md:text-5xl lg:text-6xl font-medium leading-[1.05] tracking-tight text-text-primary">
@@ -137,7 +137,7 @@ export default function AIIntelligenceSection() {
                   </li>
                 ))}
               </ul>
-              <Badge variant="success" className="mt-4 flex items-center gap-1.5 text-meta font-mono">
+              <Badge variant="success" className="mt-4 flex items-center gap-1.5 text-meta font-numeric">
                 <ShieldCheck size={13} />
                 Deterministic — reproducible from raw candles
               </Badge>
@@ -177,7 +177,7 @@ export default function AIIntelligenceSection() {
                   </li>
                 ))}
               </ul>
-              <Badge variant="warning" className="mt-4 flex items-center gap-1.5 text-meta font-mono">
+              <Badge variant="warning" className="mt-4 flex items-center gap-1.5 text-meta font-numeric">
                 <Layers size={13} />
                 Interpretation only — cannot override deterministic risk checks
               </Badge>

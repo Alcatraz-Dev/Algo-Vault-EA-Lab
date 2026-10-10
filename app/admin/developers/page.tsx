@@ -238,7 +238,7 @@ export default function AdminDevelopersPage() {
                 <button
                     onClick={() => load(true)}
                     disabled={loading || refreshing}
-                    className="flex items-center justify-center gap-2 rounded-xl border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted/70 hover:text-foreground disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted/70 hover:text-foreground disabled:opacity-50"
                 >
                     <RefreshCw
                         size={16}
@@ -250,7 +250,7 @@ export default function AdminDevelopersPage() {
 
             {/* Error */}
             {error && (
-                <div className="mb-6 rounded-xl border border-negative/20 bg-negative/10 p-4 text-sm text-negative">
+                <div className="mb-6 rounded-lg border border-negative/20 bg-negative/10 p-4 text-sm text-negative">
                     {error}
                 </div>
             )}
@@ -301,7 +301,7 @@ export default function AdminDevelopersPage() {
                                             type="button"
                                             onClick={() => handleRequestAction(req.uid, "approve")}
                                             disabled={actionLoading === req.uid}
-                                            className="flex items-center gap-1.5 rounded-xl bg-positive px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-positive disabled:opacity-50"
+                                            className="flex items-center gap-1.5 rounded-lg bg-positive px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-positive disabled:opacity-50"
                                         >
                                                 {actionLoading === req.uid ? (
                                                     <Loader2 size={13} className="animate-spin" />
@@ -314,7 +314,7 @@ export default function AdminDevelopersPage() {
                                             type="button"
                                             onClick={() => handleRequestAction(req.uid, "reject")}
                                             disabled={actionLoading === req.uid}
-                                            className="flex items-center gap-1.5 rounded-xl border border-negative/20 bg-negative/10 px-4 py-2 text-xs font-semibold text-negative transition hover:bg-negative/20 disabled:opacity-50"
+                                            className="flex items-center gap-1.5 rounded-lg border border-negative/20 bg-negative/10 px-4 py-2 text-xs font-semibold text-negative transition hover:bg-negative/20 disabled:opacity-50"
                                         >
                                                 {actionLoading === req.uid ? (
                                                     <Loader2 size={13} className="animate-spin" />
@@ -375,7 +375,7 @@ export default function AdminDevelopersPage() {
                                     {value}
                                 </p>
                             </div>
-                            <div className="rounded-xl border border-border bg-muted/50 p-2.5">
+                            <div className="rounded-lg border border-border bg-muted/50 p-2.5">
                                 <Icon className="h-5 w-5 text-foreground" />
                             </div>
                         </div>
@@ -390,13 +390,13 @@ export default function AdminDevelopersPage() {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Search by name, email, account ID..."
-                        className="h-11 w-full rounded-xl border border-border bg-muted/30 pl-4 pr-4 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-border"
+                        className="h-11 w-full rounded-lg border border-border bg-muted/30 pl-4 pr-4 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-border"
                     />
                 </div>
 
                 <button
                     onClick={() => setShowNotConnected((v) => !v)}
-                    className={`flex h-11 items-center gap-2 rounded-xl border px-4 text-sm transition ${
+                    className={`flex h-11 items-center gap-2 rounded-lg border px-4 text-sm transition ${
                         showNotConnected
                             ? "border-border bg-muted/40 text-foreground"
                             : "border-border text-muted-foreground hover:bg-muted/30"
@@ -511,7 +511,7 @@ export default function AdminDevelopersPage() {
                                             <td className="px-5 py-4">
                                                 {dev.accountId ? (
                                                     <div>
-                                                        <p className="font-mono text-xs text-foreground">
+                                                        <p className="font-numeric text-xs text-foreground">
                                                             {dev.accountId}
                                                         </p>
                                                         {dev.payoutsEnabled && (

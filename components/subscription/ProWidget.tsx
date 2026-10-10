@@ -32,12 +32,12 @@ export function ProWidget({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-primary/10 p-4  ",
+        "relative overflow-hidden rounded-lg border border-primary/30 bg-primary/10 p-4 ",
         className
       )}
     >
       {/* Glow accent */}
-      <div className="pointer-events-none absolute inset-0 rounded-xl bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent opacity-60" />
+      <div className="pointer-events-none absolute inset-0 rounded-lg bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent opacity-60" />
 
       <div className="relative flex flex-col gap-3">
         <div className="flex items-start justify-between gap-2">

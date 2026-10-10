@@ -17,7 +17,7 @@
  *   └ account (positions / orders / account)    │ chat               ┘
  *
  * Mobile degrades to tabs over the same panels (§36) — no second engine.
- */
+  */
 
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -351,7 +351,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
     // Surface the persisted workspace honestly before the panels mount.
     if (!hydrated) {
         return (
-            <div className="flex min-h-[50vh] items-center justify-center rounded-xl border border-border bg-card">
+            <div className="flex min-h-[50vh] items-center justify-center rounded-lg border border-border bg-card">
                 <p className="text-sm text-muted-foreground">Loading workspace…</p>
             </div>
         );
@@ -379,7 +379,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
             </div>
 
             {panelsOpen ? (
-                <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2">
+                <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2">
                     <LayoutList className="size-3.5 text-muted-foreground" />
                     {PANEL_TOGGLE.map((p) => (
                         <button
@@ -401,7 +401,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
             ) : null}
 
             {/* mobile tab bar */}
-            <div className="flex gap-1 rounded-xl border border-border bg-card p-1 xl:hidden" role="tablist" aria-label="Terminal sections">
+            <div className="flex gap-1 rounded-lg border border-border bg-card p-1 xl:hidden" role="tablist" aria-label="Terminal sections">
                 {MOBILE_TABS.map((t) => {
                     const Icon = t.icon;
                     const active = mobileTab === t.id;
@@ -454,7 +454,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                         <p className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
                             <span>
                                 Position{" "}
-                                <span className="font-mono font-semibold text-foreground">{selectedPositionTicket}</span>{" "}
+                                <span className="font-numeric font-semibold text-foreground">{selectedPositionTicket}</span>{" "}
                                 selected on the chart — manage it in the account panel below.
                             </span>
                             <button
@@ -481,7 +481,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                     {visible("chat") && !state.chatOpen ? (
                         <button
                             type="button"
-                            className="rounded-xl border border-border bg-card px-3 py-2 text-left text-xs text-muted-foreground transition hover:bg-muted"
+                            className="rounded-lg border border-border bg-card px-3 py-2 text-left text-xs text-muted-foreground transition hover:bg-muted"
                         >
                             <MessagesSquare className="mr-1.5 inline size-3.5" />
                             Open Trading Chat

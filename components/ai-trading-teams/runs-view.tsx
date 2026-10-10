@@ -79,7 +79,7 @@ export function TeamRunsView({ onOpenRun }: { onOpenRun?: (run: TeamRun) => void
                 description="Run an analysis from a team workspace — every run is persisted with its configuration, agent versions and data timestamp."
             />
         ) : (
-            <div className="overflow-x-auto rounded-xl border border-border/60">
+            <div className="overflow-x-auto rounded-lg border border-border/60">
                 <table className="w-full min-w-[720px] text-left text-xs">
                     <thead className="bg-muted/40 text-micro tracking-wide text-muted-foreground uppercase">
                         <tr>

@@ -30,8 +30,8 @@ function expandToContainer(el: HTMLElement): HTMLElement {
         "section",
         "article",
         "form",
-        "[class*='rounded-2xl']",
-        "[class*='rounded-xl']",
+        "[class*='rounded-lg']",
+        "[class*='rounded-lg']",
         "[class*='rounded-lg']",
         "[class*='border border-']",
         "[class*='border-border']",
@@ -134,8 +134,8 @@ function scoutTarget(offset: number): HTMLElement | null {
 
     // Fall back to structural content blocks
     const selector =
-        "section, article, form, fieldset, table, .rounded-2xl, .rounded-xl, " +
-        "main > div > div.border, main > div > div.rounded-2xl, main > div > div.rounded-xl";
+      "section, article, form, fieldset, table, .rounded-lg, .rounded-lg, " +
+        "main > div > div.border, main > div > div.rounded-lg, main > div > div.rounded-lg";
     const blocks = Array.from(root.querySelectorAll<HTMLElement>(selector)).filter(
         (el) => !isInvalid(el)
     );
@@ -387,7 +387,7 @@ export default function TourGuide({
                     type="button"
                     id="tour-guide-open-btn"
                     onClick={() => { setStepIndex(0); setOpen(true); }}
-                    className="fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-xs font-semibold text-background shadow-xl ring-1 ring-border/40 transition hover:opacity-90 active:scale-95"
+                    className="fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 rounded-lg bg-foreground px-4 py-2.5 text-xs font-semibold text-background shadow-xl ring-1 ring-border/40 transition hover:opacity-90 active:scale-95"
                 >
                     <Map size={14} />
                     Page Guide

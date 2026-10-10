@@ -96,16 +96,16 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
           : "NO SETUPS";
 
   return (
-    <div className="relative overflow-hidden rounded-lg border border-border bg-card/70 backdrop-blur-xl shadow-[0_0_40px_-12px_rgba(255,77,0,0.15)]">
-      {/* Top gradient bar */}
-      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#ff4d00]/60 to-transparent" />
+    <div className="relative overflow-hidden rounded-lg border border-border bg-card">
+      {/* Top accent bar */}
+      <div className="absolute inset-x-0 top-0 h-[2px] bg-primary/50" />
 
       <div className="p-5">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#ff4d00] to-warning shadow-lg shadow-[#ff4d00]/20">
-              <Zap size={16} className="text-white" />
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+              <Zap size={16} className="text-primary" />
             </span>
             <div>
               <h3 className="text-sm font-extrabold tracking-tight text-foreground leading-none">SCALPING TERMINAL</h3>
@@ -129,10 +129,10 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
         </div>
 
         {!pro && (
-          <div className="rounded-xl bg-gradient-to-r from-warning/[0.08] to-negative/[0.08] border border-warning/20 p-4 mb-4">
+          <div className="rounded-lg bg-warning-muted border border-warning/20 p-4 mb-4">
             <div className="text-sm font-semibold text-warning mb-1">Unlock full terminal access</div>
             <p className="text-xs text-muted-foreground mb-3">Get real-time scalping signals, smart-money tracking, and AI execution hooks.</p>
-            <Link href="/pricing" className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#ff4d00] to-warning px-4 py-2 text-xs font-extrabold text-white shadow-lg shadow-[#ff4d00]/25 hover:shadow-[#ff4d00]/40 transition hover:-translate-y-px">
+            <Link href="/pricing" className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/80">
               GO PRO <ArrowUpRight size={12} />
             </Link>
           </div>
@@ -178,9 +178,9 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
                   <div className="flex items-center gap-3">
                     <span className={`inline-flex h-6 w-9 items-center justify-center rounded-md text-micro font-extrabold ${bg} ${color}`}>{long ? "BUY" : "SELL"}</span>
                     <span className="text-xs font-semibold text-foreground">{s.symbol}</span>
-                    <span className="rounded border border-border px-1 py-0.5 font-mono text-micro text-muted-foreground">{s.timeframe}</span>
+                    <span className="rounded border border-border px-1 py-0.5 font-numeric text-micro text-muted-foreground">{s.timeframe}</span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs font-mono">
+                  <div className="flex items-center gap-3 text-xs font-numeric">
                     <span className="text-muted-foreground">R:R {s.riskReward.toFixed(1)}</span>
                     <span className={`font-bold ${color}`}>{Math.round(s.confidence)}%</span>
                   </div>
@@ -191,7 +191,7 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
         </div>
 
         {/* Bottom status bar */}
-        <div className="mt-4 h-1 rounded-full bg-gradient-to-r from-warning via-positive to-info animate-pulse opacity-80" />
+        <div className="mt-4 h-1 rounded-full bg-warning animate-pulse opacity-80" />
         <div className="mt-3 flex flex-wrap items-center gap-3 text-micro text-muted-foreground font-medium">
           <span className="inline-flex items-center gap-1 text-positive">
             <span className={`h-1.5 w-1.5 rounded-full ${!signedIn || error ? "bg-warning" : "bg-positive animate-pulse"}`} />

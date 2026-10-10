@@ -34,7 +34,7 @@
  * The chart itself is the same ProTerminalChart used everywhere — every
  * page that renders this workspace renders the same engine, the same
  * overlays, the same drawing persistence and the same set of buttons.
- */
+  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -454,10 +454,10 @@ export function ProTerminalChartWorkspace({
             data-pro-terminal-workspace
         >
             {/* ── Professional top toolbar ─────────────────────────────────── */}
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/50 bg-card/80 px-4 py-2.5 shadow-sm backdrop-blur-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/50 bg-card/80 px-4 py-2.5 shadow-sm">
                 <div className="flex flex-wrap items-center gap-3">
                     <span
-                        className="rounded-md border border-primary/40 bg-primary/10 px-3 py-1 font-mono text-base font-bold text-primary tracking-tight"
+                        className="rounded-md border border-primary/40 bg-primary/10 px-3 py-1 font-numeric text-base font-bold text-primary tracking-tight"
                         title="Active symbol"
                     >
                         {cleanSymbol}
@@ -470,7 +470,7 @@ export function ProTerminalChartWorkspace({
                                 onClick={() => selectTimeframe(tf)}
                                 aria-pressed={timeframe === tf}
                                 className={cn(
-                                    "rounded-md px-2.5 py-1 font-mono text-xs font-semibold transition-all",
+                                    "rounded-md px-2.5 py-1 font-numeric text-xs font-semibold transition-all",
                                     timeframe === tf
                                         ? "bg-primary text-primary-foreground shadow-sm"
                                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -500,7 +500,7 @@ export function ProTerminalChartWorkspace({
                         <span className="hidden sm:inline">Indicators</span>
                         <span className="inline sm:hidden">Indicators</span>
                         {activeLayerCount > 0 && (
-                            <span className="rounded-full bg-primary/20 px-2 py-0.5 font-mono text-micro text-primary">
+                            <span className="rounded-full bg-primary/20 px-2 py-0.5 font-numeric text-micro text-primary">
                                 {activeLayerCount}
                             </span>
                         )}
@@ -563,7 +563,7 @@ export function ProTerminalChartWorkspace({
 
             {/* ── Layer picker (collapsible) ─────────────────────────────── */}
             {layersOpen ? (
-                <div className="rounded-xl border border-border/50 bg-card p-4 shadow-md">
+                <div className="rounded-lg border border-border/50 bg-card p-4 shadow-md">
                     <div className="mb-4 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <Layers className="size-4 text-primary" />
@@ -687,7 +687,7 @@ function ChartInfo({
 }) {
     const Icon = CHART_TYPE_ICONS[chartType];
     return (
-        <div className="hidden items-center gap-2 rounded-lg border border-border/60 bg-background px-2.5 py-1 font-mono text-micro text-muted-foreground md:flex">
+        <div className="hidden items-center gap-2 rounded-lg border border-border/60 bg-background px-2.5 py-1 font-numeric text-micro text-muted-foreground md:flex">
             <span className="inline-flex items-center gap-1.5">
                 <Icon className="size-3 text-primary" />
                 <span className="font-semibold text-foreground">{chartType.toUpperCase()}</span>
@@ -729,7 +729,7 @@ function ChartInfoCard({
     onClearLayers: () => void;
 }) {
     return (
-        <div className="rounded-xl border border-border bg-card p-3 text-xs shadow-sm">
+        <div className="rounded-lg border border-border bg-card p-3 text-xs shadow-sm">
             <div className="flex items-center gap-1.5 border-b border-border pb-1.5">
                 <Layers className="size-3.5 text-muted-foreground" />
                 <h3 className="font-semibold uppercase tracking-wide text-foreground">Chart Info</h3>
@@ -786,7 +786,7 @@ function ChartInfoCard({
                 </>
             )}
             <p className="mt-2 text-micro text-muted-foreground">
-                Draw with the toolbar above. Press <kbd className="rounded border border-border px-1 font-mono text-micro">Esc</kbd> to
+                Draw with the toolbar above. Press <kbd className="rounded border border-border px-1 font-numeric text-micro">Esc</kbd> to
                 return to pointer.
             </p>
         </div>
@@ -797,7 +797,7 @@ function Row({ label, value, mono = false }: { label: string; value: string; mon
     return (
         <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">{label}</dt>
-            <dd className={cn("text-foreground", mono && "font-mono")}>{value}</dd>
+            <dd className={cn("text-foreground", mono && "font-numeric")}>{value}</dd>
         </div>
     );
 }

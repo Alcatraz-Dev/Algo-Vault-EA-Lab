@@ -97,30 +97,30 @@ export function PositionsTable({
                         const { trade, markPriceMicros, unrealizedPnLCents, stale } = marked;
                         return (
                         <TableRow key={trade.tradeId}>
-                            <TableCell className="font-mono text-xs">{trade.symbol}</TableCell>
+                            <TableCell className="font-numeric text-xs">{trade.symbol}</TableCell>
                             <TableCell><SideBadge side={trade.side} /></TableCell>
-                            <TableCell className="font-mono text-xs">{centiLotsToNumber(trade.sizeCentiLots).toFixed(2)}</TableCell>
-                            <TableCell className="text-right font-mono text-xs">{priceMicrosToNumber(trade.entryPriceMicros)}</TableCell>
-                            <TableCell className="text-right font-mono text-xs">
+                            <TableCell className="font-numeric text-xs">{centiLotsToNumber(trade.sizeCentiLots).toFixed(2)}</TableCell>
+                            <TableCell className="text-right font-numeric text-xs">{priceMicrosToNumber(trade.entryPriceMicros)}</TableCell>
+                            <TableCell className="text-right font-numeric text-xs">
                                 {markPriceMicros !== null ? priceMicrosToNumber(markPriceMicros) : <span className="text-warning">stale</span>}
                             </TableCell>
                             <TableCell className="text-right">
                                 <Money cents={unrealizedPnLCents} signed />
                                 {stale ? <span className="ml-1 text-micro text-warning">·</span> : null}
                             </TableCell>
-                            <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                            <TableCell className="text-right font-numeric text-xs text-muted-foreground">
                                 {trade.riskCents !== null ? `$${(trade.riskCents / 100).toFixed(2)}` : "no stop"}
                             </TableCell>
                             <TableCell>
                                 {editingId === trade.tradeId ? (
                                     <div className="flex min-w-48 items-center gap-1">
-                                        <input aria-label={`Stop loss for ${trade.symbol}`} value={stopLoss} onChange={(event) => setStopLoss(event.target.value)} placeholder={trade.stopLossMicros === null ? "SL" : priceMicrosToNumber(trade.stopLossMicros).toString()} className="w-20 rounded border border-border bg-background px-1.5 py-1 font-mono text-micro" />
-                                        <input aria-label={`Take profit for ${trade.symbol}`} value={takeProfit} onChange={(event) => setTakeProfit(event.target.value)} placeholder={trade.takeProfitMicros === null ? "TP" : priceMicrosToNumber(trade.takeProfitMicros).toString()} className="w-20 rounded border border-border bg-background px-1.5 py-1 font-mono text-micro" />
+                                        <input aria-label={`Stop loss for ${trade.symbol}`} value={stopLoss} onChange={(event) => setStopLoss(event.target.value)} placeholder={trade.stopLossMicros === null ? "SL" : priceMicrosToNumber(trade.stopLossMicros).toString()} className="w-20 rounded border border-border bg-background px-1.5 py-1 font-numeric text-micro" />
+                                        <input aria-label={`Take profit for ${trade.symbol}`} value={takeProfit} onChange={(event) => setTakeProfit(event.target.value)} placeholder={trade.takeProfitMicros === null ? "TP" : priceMicrosToNumber(trade.takeProfitMicros).toString()} className="w-20 rounded border border-border bg-background px-1.5 py-1 font-numeric text-micro" />
                                         <button type="button" aria-label="Save protection levels" disabled={savingStops} onClick={() => void saveStops(trade.tradeId)} className="rounded p-1 text-positive disabled:opacity-50">{savingStops ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}</button>
                                         <button type="button" aria-label="Cancel edit" disabled={savingStops} onClick={() => setEditingId(null)} className="rounded p-1 text-muted-foreground"><X className="h-3 w-3" /></button>
                                     </div>
                                 ) : (
-                                    <div className="flex items-center gap-1.5 font-mono text-micro text-muted-foreground">
+                                    <div className="flex items-center gap-1.5 font-numeric text-micro text-muted-foreground">
                                         <span>SL {trade.stopLossMicros === null ? "—" : priceMicrosToNumber(trade.stopLossMicros)}</span>
                                         <span>TP {trade.takeProfitMicros === null ? "—" : priceMicrosToNumber(trade.takeProfitMicros)}</span>
                                         {canModifyStops && onModifyStops ? <button type="button" aria-label={`Edit protection for ${trade.symbol}`} onClick={() => { setStopLoss(trade.stopLossMicros === null ? "" : priceMicrosToNumber(trade.stopLossMicros).toString()); setTakeProfit(trade.takeProfitMicros === null ? "" : priceMicrosToNumber(trade.takeProfitMicros).toString()); setEditingId(trade.tradeId); setActionError(null); }} className="rounded p-1 hover:bg-muted"><Pencil className="h-3 w-3" /></button> : null}
@@ -198,7 +198,7 @@ export function PendingOrdersTable({ orders, canCancel, onCancel }: { orders: Ch
             <Table className="min-w-[680px]">
                 <TableHeader><TableRow><TableHead>Symbol</TableHead><TableHead>Type</TableHead><TableHead>Side</TableHead><TableHead className="text-right">Size</TableHead><TableHead className="text-right">Trigger price</TableHead><TableHead>Expires</TableHead><TableHead /></TableRow></TableHeader>
                 <TableBody>{pending.map((order) => <TableRow key={order.orderId}>
-                    <TableCell className="font-mono">{order.symbol}</TableCell><TableCell className="capitalize">{order.orderType}</TableCell><TableCell><SideBadge side={order.side} /></TableCell><TableCell className="text-right font-mono">{centiLotsToNumber(order.sizeCentiLots).toFixed(2)}</TableCell><TableCell className="text-right font-mono">{priceMicrosToNumber(order.entryPriceMicros)}</TableCell><TableCell>{new Date(order.expiresAt).toLocaleDateString()}</TableCell><TableCell className="text-right"><button type="button" disabled={!canCancel || cancelling === order.orderId} onClick={() => void cancel(order.orderId)} className="rounded border border-border px-2 py-1 text-xs disabled:opacity-50">{cancelling === order.orderId ? "Cancelling…" : "Cancel"}</button></TableCell>
+                    <TableCell className="font-numeric">{order.symbol}</TableCell><TableCell className="capitalize">{order.orderType}</TableCell><TableCell><SideBadge side={order.side} /></TableCell><TableCell className="text-right font-numeric">{centiLotsToNumber(order.sizeCentiLots).toFixed(2)}</TableCell><TableCell className="text-right font-numeric">{priceMicrosToNumber(order.entryPriceMicros)}</TableCell><TableCell>{new Date(order.expiresAt).toLocaleDateString()}</TableCell><TableCell className="text-right"><button type="button" disabled={!canCancel || cancelling === order.orderId} onClick={() => void cancel(order.orderId)} className="rounded border border-border px-2 py-1 text-xs disabled:opacity-50">{cancelling === order.orderId ? "Cancelling…" : "Cancel"}</button></TableCell>
                 </TableRow>)}</TableBody>
             </Table>
             {error ? <p role="alert" className="border-t border-destructive/30 p-2 text-xs text-destructive">{error}</p> : null}
@@ -226,9 +226,9 @@ export function RecentTradesTable({ trades }: { trades: ChallengeTrade[] }) {
                 <TableBody>
                     {trades.slice(0, 20).map((trade) => (
                         <TableRow key={trade.tradeId}>
-                            <TableCell className="font-mono text-xs">{trade.symbol}</TableCell>
+                            <TableCell className="font-numeric text-xs">{trade.symbol}</TableCell>
                             <TableCell><SideBadge side={trade.side} /></TableCell>
-                            <TableCell className="text-right font-mono text-xs">{centiLotsToNumber(trade.sizeCentiLots).toFixed(2)}</TableCell>
+                            <TableCell className="text-right font-numeric text-xs">{centiLotsToNumber(trade.sizeCentiLots).toFixed(2)}</TableCell>
                             <TableCell className="text-right">
                                 {trade.status === "closed" && trade.realizedPnLCents !== null ? (
                                     <Money cents={trade.realizedPnLCents} signed />
@@ -236,7 +236,7 @@ export function RecentTradesTable({ trades }: { trades: ChallengeTrade[] }) {
                                     <span className="text-xs text-muted-foreground">open</span>
                                 )}
                             </TableCell>
-                            <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                            <TableCell className="text-right font-numeric text-xs text-muted-foreground">
                                 {trade.exitPriceMicros !== null && Number.isFinite(trade.exitPriceMicros) ? priceMicrosToNumber(trade.exitPriceMicros) : "—"}
                             </TableCell>
                             <TableCell>

@@ -105,17 +105,17 @@ export default function AdminAgentsPage() {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Search agents..."
-                        className="w-full rounded-xl border border-border/30 bg-muted py-3 pl-11 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                        className="w-full rounded-lg border border-border/30 bg-muted py-3 pl-11 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                     />
                 </div>
                 <div className="flex items-center gap-2">
-                    <Link href="/admin/intelligence/agents/create" className="inline-flex items-center gap-1.5 rounded-xl border border-blue-500/40 bg-blue-500/15 px-3 py-2.5 text-xs font-bold text-blue-200 transition hover:text-white hover:bg-blue-500/25 shadow-[0_0_12px_rgba(59,130,246,0.12)]">
+                    <Link href="/admin/intelligence/agents/create" className="inline-flex items-center gap-1.5 rounded-lg border border-info/40 bg-info/15 px-3 py-2.5 text-xs font-bold text-info transition hover:text-background hover:bg-info/25 ">
                         <Bot size={14} /> Create New Agent
                     </Link>
                     <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
-                        className="rounded-xl border border-border/30 bg-muted px-4 py-2.5 text-xs outline-none"
+                        className="rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs outline-none"
                     >
                         <option value="all">All Statuses</option>
                         {(["draft", "testing", "active", "paused", "disabled", "deprecated"] as AgentStatus[]).map((s) => (
@@ -125,7 +125,7 @@ export default function AdminAgentsPage() {
                     <select
                         value={filterRole}
                         onChange={(e) => setFilterRole(e.target.value)}
-                        className="rounded-xl border border-border/30 bg-muted px-4 py-2.5 text-xs outline-none"
+                        className="rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs outline-none"
                     >
                         <option value="all">All Roles</option>
                         {roles.map((r) => (
@@ -179,22 +179,22 @@ function AgentCard({
             <div className="p-5">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-4">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
-                            <Bot size={20} className="text-yellow-300/60" />
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
+                            <Bot size={20} className="text-warning/60" />
                         </div>
                         <div className="min-w-0">
                             <div className="flex items-center gap-2">
                                 <Link
                                     href={`/admin/intelligence/agents/${agent.id}`}
-                                    className="text-sm font-semibold text-foreground transition hover:text-yellow-300 truncate"
+                                    className="text-sm font-semibold text-foreground transition hover:text-warning truncate"
                                 >
                                     {agent.name}
                                 </Link>
-                                <span className="text-micro font-semibold uppercase tracking-wider text-yellow-300">
+                                <span className="text-micro font-semibold uppercase tracking-wider text-warning">
                                     {ROLE_LABELS[agent.role] || agent.role}
                                 </span>
                                 {isBuiltIn && (
-                                    <span className="rounded-full bg-blue-500/10 px-2 py-0.5 text-[8px] text-yellow-300">
+                                    <span className="rounded-full bg-info/10 px-2 py-0.5 text-[8px] text-warning">
                                         Built-in
                                     </span>
                                 )}
@@ -213,14 +213,14 @@ function AgentCard({
                     </div>
                     <button
                         onClick={onToggle}
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5 transition hover:bg-muted/10"
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5 transition hover:bg-muted/10"
                     >
                         {isExpanded ? <ChevronUp size={16} className="text-muted-foreground" /> : <ChevronDown size={16} className="text-muted-foreground" />}
                     </button>
                 </div>
 
                 {isExpanded && (
-                    <div className="mt-4 rounded-xl border border-border/30 bg-muted/30 p-4">
+                    <div className="mt-4 rounded-lg border border-border/30 bg-muted/30 p-4">
                         <div className="grid gap-3 md:grid-cols-2">
                             <DetailRow label="ID" value={agent.id} copyable />
                             <DetailRow label="Created" value={agent.createdAt ? new Date(agent.createdAt).toLocaleString() : "—"} />
@@ -246,7 +246,7 @@ function AgentCard({
                         <div className="mt-4 flex items-center gap-2">
                             <Link
                                 href={`/admin/intelligence/agents/${agent.id}`}
-                                className="inline-flex items-center gap-1.5 rounded-xl bg-background px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-background px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
                             >
                                 <Edit size={13} />
                                 Edit
@@ -254,7 +254,7 @@ function AgentCard({
                             <Link
                                 href={`/api/agents/${agent.id}`}
                                 target="_blank"
-                                className="inline-flex items-center gap-1.5 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/5 px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground"
                             >
                                 <Copy size={13} />
                                 Copy API

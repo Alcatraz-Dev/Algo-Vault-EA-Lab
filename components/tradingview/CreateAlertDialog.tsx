@@ -397,7 +397,7 @@ export default function CreateAlertDialog({
                 <DialogHeader className="border-b border-border bg-muted/20 px-4 py-4 sm:px-6">
                     <div className="flex items-center justify-between pr-8">
                         <div className="flex items-center gap-3 min-w-0">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
                                 <Bell size={18} />
                             </div>
                             <div className="min-w-0">
@@ -459,7 +459,7 @@ export default function CreateAlertDialog({
                 <div className="p-4 sm:p-6 max-h-[70vh] sm:max-h-[460px] overflow-y-auto overscroll-contain space-y-5 text-xs">
                     {feedback && (
                         <div
-                            className={`flex items-center gap-2 rounded-xl p-3 text-xs border ${
+                            className={`flex items-center gap-2 rounded-lg p-3 text-xs border ${
                                 feedback.type === "success"
                                     ? "border-positive/30 bg-positive/10 text-positive"
                                     : "border-negative/30 bg-negative/10 text-negative"
@@ -484,7 +484,7 @@ export default function CreateAlertDialog({
                                     <select
                                         value={selectedScriptKey}
                                         onChange={(e) => handleScriptSelect(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-medium text-foreground outline-none focus:border-primary"
+                                        className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-xs font-medium text-foreground outline-none focus:border-primary"
                                     >
                                         <option value="__current__">
                                             Current Script — {scriptName || "Pine Script"}
@@ -508,7 +508,7 @@ export default function CreateAlertDialog({
                                     <select
                                         value={selectedSymbol}
                                         onChange={(e) => setSelectedSymbol(e.target.value as SupportedSymbol)}
-                                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-medium text-foreground outline-none focus:border-primary"
+                                        className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-xs font-medium text-foreground outline-none focus:border-primary"
                                     >
                                         {ALERT_SYMBOL_OPTIONS.reduce<{ group: string; options: typeof ALERT_SYMBOL_OPTIONS }[]>(
                                             (acc, opt) => {
@@ -534,7 +534,7 @@ export default function CreateAlertDialog({
                                     <select
                                         value={selectedTimeframe}
                                         onChange={(e) => setSelectedTimeframe(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-medium text-foreground outline-none focus:border-primary"
+                                        className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-xs font-medium text-foreground outline-none focus:border-primary"
                                     >
                                         {TIMEFRAME_OPTIONS.map((tf) => (
                                             <option key={tf} value={tf}>
@@ -551,7 +551,7 @@ export default function CreateAlertDialog({
                                 <select
                                     value={selectedConditionSignal}
                                     onChange={(e) => handleSignalChange(e.target.value)}
-                                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-medium text-foreground outline-none focus:border-primary"
+                                    className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-xs font-medium text-foreground outline-none focus:border-primary"
                                 >
                                     {scriptAlerts.length > 0 ? (
                                         scriptAlerts.map((a) => (
@@ -587,7 +587,7 @@ export default function CreateAlertDialog({
                                         step="0.0001"
                                         value={targetPrice}
                                         onChange={(e) => setTargetPrice(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-mono text-foreground outline-none focus:border-primary"
+                                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs font-numeric text-foreground outline-none focus:border-primary"
                                     />
                                 </div>
                             )}
@@ -606,7 +606,7 @@ export default function CreateAlertDialog({
                                             key={item.id}
                                             type="button"
                                             onClick={() => setFrequency(item.id as any)}
-                                            className={`rounded-xl border p-2.5 text-left transition ${
+                                            className={`rounded-lg border p-2.5 text-left transition ${
                                                 frequency === item.id
                                                     ? "border-primary bg-primary/10 text-foreground"
                                                     : "border-border bg-background/50 text-muted-foreground hover:border-border/80"
@@ -653,7 +653,7 @@ export default function CreateAlertDialog({
                     {/* TAB 2: ACTIONS & WEBHOOK */}
                     {activeTab === "notifications" && (
                         <div className="space-y-4">
-                            <div className="rounded-xl border border-border bg-background p-4 space-y-3">
+                            <div className="rounded-lg border border-border bg-background p-4 space-y-3">
                                 <h4 className="font-semibold text-foreground text-xs flex items-center gap-1.5">
                                     <Globe size={14} className="text-primary" />
                                     Notification Destinations &amp; Automations
@@ -698,28 +698,28 @@ export default function CreateAlertDialog({
                                             value={webhookUrl}
                                             onChange={(e) => setWebhookUrl(e.target.value)}
                                             placeholder="https://your-trading-bot.com/api/webhook"
-                                            className="w-full rounded-lg border border-border bg-card px-3 py-2 font-mono text-xs text-foreground outline-none focus:border-primary"
+                                            className="w-full rounded-lg border border-border bg-card px-3 py-2 font-numeric text-xs text-foreground outline-none focus:border-primary"
                                         />
                                     )}
                                 </div>
 
                                 {/* Discord / Telegram / Email */}
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
-                                    <label className={`flex items-center justify-between rounded-xl border p-2.5 cursor-pointer transition ${notifyDiscord ? "border-primary bg-primary/10" : "border-border bg-card"}`}>
+                                    <label className={`flex items-center justify-between rounded-lg border p-2.5 cursor-pointer transition ${notifyDiscord ? "border-primary bg-primary/10" : "border-border bg-card"}`}>
                                         <span className="flex items-center gap-1.5 text-xs font-medium text-foreground">
                                             <Send size={12} className="text-primary" /> Discord
                                         </span>
                                         <input type="checkbox" checked={notifyDiscord} onChange={(e) => setNotifyDiscord(e.target.checked)} className="h-3.5 w-3.5" />
                                     </label>
 
-                                    <label className={`flex items-center justify-between rounded-xl border p-2.5 cursor-pointer transition ${notifyTelegram ? "border-primary bg-primary/10" : "border-border bg-card"}`}>
+                                    <label className={`flex items-center justify-between rounded-lg border p-2.5 cursor-pointer transition ${notifyTelegram ? "border-primary bg-primary/10" : "border-border bg-card"}`}>
                                         <span className="flex items-center gap-1.5 text-xs font-medium text-foreground">
                                             <Send size={12} className="text-info" /> Telegram
                                         </span>
                                         <input type="checkbox" checked={notifyTelegram} onChange={(e) => setNotifyTelegram(e.target.checked)} className="h-3.5 w-3.5" />
                                     </label>
 
-                                    <label className={`flex items-center justify-between rounded-xl border p-2.5 cursor-pointer transition ${notifyEmail ? "border-primary bg-primary/10" : "border-border bg-card"}`}>
+                                    <label className={`flex items-center justify-between rounded-lg border p-2.5 cursor-pointer transition ${notifyEmail ? "border-primary bg-primary/10" : "border-border bg-card"}`}>
                                         <span className="flex items-center gap-1.5 text-xs font-medium text-foreground">
                                             <Mail size={12} className="text-warning" /> Email
                                         </span>
@@ -734,7 +734,7 @@ export default function CreateAlertDialog({
                             </div>
 
                             {/* Sound Options */}
-                            <div className="rounded-xl border border-border bg-background p-4 space-y-3">
+                            <div className="rounded-lg border border-border bg-background p-4 space-y-3">
                                 <div className="flex items-center justify-between">
                                     <span className="font-semibold text-foreground text-xs flex items-center gap-1.5">
                                         <Volume2 size={14} className="text-primary" /> Audio Sound Tone
@@ -751,7 +751,7 @@ export default function CreateAlertDialog({
                                         <select
                                             value={soundName}
                                             onChange={(e) => setSoundName(e.target.value)}
-                                            className="flex-1 rounded-xl border border-border bg-card px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-primary"
+                                            className="flex-1 rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-primary"
                                         >
                                             <option value="Chime">Chime (High Tone)</option>
                                             <option value="Bell">Bell (Classic Ring)</option>
@@ -761,7 +761,7 @@ export default function CreateAlertDialog({
                                         <button
                                             type="button"
                                             onClick={handleTestSound}
-                                            className="inline-flex items-center gap-1 rounded-xl border border-border bg-muted/30 px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
+                                            className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
                                         >
                                             <Play size={12} /> Test Sound
                                         </button>
@@ -780,7 +780,7 @@ export default function CreateAlertDialog({
                                     type="text"
                                     value={alertName}
                                     onChange={(e) => setAlertName(e.target.value)}
-                                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-medium text-foreground outline-none focus:border-primary"
+                                    className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-xs font-medium text-foreground outline-none focus:border-primary"
                                 />
                             </div>
 
@@ -805,7 +805,7 @@ export default function CreateAlertDialog({
                                 </div>
 
                                 {showAiWriter && (
-                                    <div className="mb-2 space-y-2 rounded-xl border border-primary/30 bg-primary/5 p-2.5">
+                                    <div className="mb-2 space-y-2 rounded-lg border border-primary/30 bg-primary/5 p-2.5">
                                         <input
                                             type="text"
                                             value={aiInstruction}
@@ -822,7 +822,7 @@ export default function CreateAlertDialog({
                                                         onClick={() => setAiFormat(f)}
                                                         className={`px-2.5 py-1 text-micro font-semibold uppercase transition ${
                                                             aiFormat === f
-                                                                ? "bg-primary text-white"
+                                                                ? "bg-primary text-primary-foreground"
                                                                 : "bg-card text-muted-foreground hover:bg-muted"
                                                         }`}
                                                     >
@@ -834,7 +834,7 @@ export default function CreateAlertDialog({
                                                 type="button"
                                                 onClick={handleAiWrite}
                                                 disabled={aiLoading}
-                                                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-micro font-semibold text-white transition hover:bg-primary disabled:opacity-60"
+                                                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-micro font-semibold text-primary-foreground transition hover:bg-primary disabled:opacity-60"
                                             >
                                                 {aiLoading ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />}
                                                 {aiLoading ? "Generating..." : "Generate"}
@@ -862,7 +862,7 @@ export default function CreateAlertDialog({
                                     value={alertMessage}
                                     onChange={(e) => setAlertMessage(e.target.value)}
                                     rows={4}
-                                    className="w-full rounded-xl border border-border bg-background p-3 font-mono text-xs text-foreground outline-none focus:border-primary leading-5"
+                                    className="w-full rounded-lg border border-border bg-background p-3 font-numeric text-xs text-foreground outline-none focus:border-primary leading-5"
                                 />
                             </div>
 
@@ -882,7 +882,7 @@ export default function CreateAlertDialog({
                                             key={v}
                                             type="button"
                                             onClick={() => insertVariable(v)}
-                                            className="rounded-lg border border-border bg-background/50 px-2 py-1 font-mono text-micro text-primary hover:bg-primary/10 transition"
+                                            className="rounded-lg border border-border bg-background/50 px-2 py-1 font-numeric text-micro text-primary hover:bg-primary/10 transition"
                                         >
                                             + {v}
                                         </button>
@@ -906,7 +906,7 @@ export default function CreateAlertDialog({
                         <button
                             type="button"
                             onClick={() => onOpenChange(false)}
-                            className="flex-1 sm:flex-none rounded-xl border border-border bg-background px-4 py-2 text-xs font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                            className="flex-1 sm:flex-none rounded-lg border border-border bg-background px-4 py-2 text-xs font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
                         >
                             Cancel
                         </button>
@@ -914,7 +914,7 @@ export default function CreateAlertDialog({
                             type="button"
                             onClick={handleCreate}
                             disabled={isSubmitting}
-                            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary px-5 py-2 text-xs font-semibold text-white shadow-lg shadow-primary/25 transition hover:bg-primary disabled:opacity-50"
+                            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-lg  transition hover:bg-primary disabled:opacity-50"
                         >
                             {isSubmitting ? (
                                 <>

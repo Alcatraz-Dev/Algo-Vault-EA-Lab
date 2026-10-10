@@ -168,7 +168,7 @@ export default function ProductBranding({
 
             return (
                 <div
-                    className={`relative flex min-h-[180px] w-full items-center justify-center overflow-hidden rounded-lg border border-border/20 bg-gradient-to-br from-background via-muted to-background ${className}`}
+                    className={`relative flex min-h-[180px] w-full items-center justify-center overflow-hidden rounded-lg border border-border/20 bg-background ${className}`}
                 >
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_35%)]" />
 
@@ -199,7 +199,7 @@ export default function ProductBranding({
                     }
                 />
 
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                <div className="pointer-events-none absolute inset-0 bg-background/60" />
             </div>
         );
     }
@@ -217,7 +217,7 @@ export default function ProductBranding({
 
         return (
             <div
-                className={`flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/20 bg-background ${classes.container} ${className}`}
+                className={`flex shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/20 bg-background ${classes.container} ${className}`}
                 title={productName}
             >
                 {type === "logo" ? (
@@ -241,7 +241,7 @@ export default function ProductBranding({
 
     return (
         <div
-            className={`flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/20 bg-background ${classes.container} ${className}`}
+            className={`flex shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/20 bg-background ${classes.container} ${className}`}
             title={productName}
         >
             <img

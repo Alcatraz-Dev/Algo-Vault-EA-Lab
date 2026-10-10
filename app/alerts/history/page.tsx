@@ -17,14 +17,14 @@ type AlertHistory = {
 };
 
 const TYPE_ICONS: Record<string, { icon: React.ElementType; color: string }> = {
-    price_above: { icon: TrendingUp, color: "text-emerald-400" },
-    price_below: { icon: TrendingDown, color: "text-rose-400" },
-    structure_bos: { icon: Zap, color: "text-violet-400" },
-    structure_choch: { icon: Activity, color: "text-amber-400" },
-    zone_entry: { icon: Bell, color: "text-blue-400" },
-    volatility_high: { icon: Zap, color: "text-orange-400" },
-    session_start: { icon: Clock, color: "text-cyan-400" },
-    tool_alert: { icon: BellRing, color: "text-violet-400" },
+    price_above: { icon: TrendingUp, color: "text-positive" },
+    price_below: { icon: TrendingDown, color: "text-negative" },
+    structure_bos: { icon: Zap, color: "text-primary" },
+    structure_choch: { icon: Activity, color: "text-warning" },
+    zone_entry: { icon: Bell, color: "text-info" },
+    volatility_high: { icon: Zap, color: "text-warning" },
+    session_start: { icon: Clock, color: "text-info" },
+    tool_alert: { icon: BellRing, color: "text-primary" },
 };
 
 export default function AlertHistoryPage() {
@@ -140,11 +140,11 @@ export default function AlertHistoryPage() {
     };
 
     if (authLoading) {
-        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></div>);
     }
 
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-xl bg-violet-600 px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-violet-500 transition">Sign In</Link></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-primary transition">Sign In</Link></div></div>);
     }
 
     const filtered = getFiltered();
@@ -152,10 +152,10 @@ export default function AlertHistoryPage() {
     const toolCount = history.filter((a) => a.source === "tool").length;
 
     return (
-        <div className="min-h-screen bg-background text-foreground selection:bg-amber-500/30">
+        <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px]" />
-                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-blue-500/10 blur-[120px]" />
+                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 hidden" />
+                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
             <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
                 <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-muted-foreground transition">
@@ -164,7 +164,7 @@ export default function AlertHistoryPage() {
 
                 <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between" data-guide="page-header">
                     <div>
-                        <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Alert History</h1>
+                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Alert History</h1>
                         <p className="mt-1.5 text-sm text-muted-foreground">View all alerts and their trigger history</p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -173,13 +173,13 @@ export default function AlertHistoryPage() {
                                 type="button"
                                 onClick={bulkDelete}
                                 disabled={deleting}
-                                className="flex items-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-2.5 text-xs font-semibold text-rose-400 hover:bg-rose-500/20 transition disabled:opacity-50"
+                                className="flex items-center gap-2 rounded-lg border border-negative/20 bg-negative/10 px-4 py-2.5 text-xs font-semibold text-negative hover:bg-negative/20 transition disabled:opacity-50"
                             >
                                 {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
                                 Delete ({selected.size})
                             </button>
                         )}
-                        <Link href="/alerts" className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-violet-500 transition">
+                        <Link href="/alerts" className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-primary transition">
                             <BellRing size={13} /> New Alert
                         </Link>
                     </div>
@@ -188,20 +188,20 @@ export default function AlertHistoryPage() {
                 {/* Stats */}
                 <div className="mb-6 grid grid-cols-4 gap-4" data-guide="stats">
                     <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
-                        <div className="flex items-center gap-2 mb-1"><Bell size={13} className="text-violet-400" /><span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Total</span></div>
-                        <p className="text-xl font-bold font-mono text-foreground">{stats.total}</p>
+                        <div className="flex items-center gap-2 mb-1"><Bell size={13} className="text-primary" /><span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Total</span></div>
+                        <p className="text-xl font-bold font-numeric text-foreground">{stats.total}</p>
                     </div>
-                    <div className="rounded-lg border border-emerald-500/10 bg-emerald-500/[0.03] p-4">
-                        <div className="flex items-center gap-2 mb-1"><CheckCircle size={13} className="text-emerald-400" /><span className="text-micro font-semibold uppercase tracking-wider text-emerald-500/60">Triggered</span></div>
-                        <p className="text-xl font-bold font-mono text-emerald-400">{stats.triggered}</p>
+                    <div className="rounded-lg border border-positive/10 bg-positive/[0.03] p-4">
+                        <div className="flex items-center gap-2 mb-1"><CheckCircle size={13} className="text-positive" /><span className="text-micro font-semibold uppercase tracking-wider text-positive/60">Triggered</span></div>
+                        <p className="text-xl font-bold font-numeric text-positive">{stats.triggered}</p>
                     </div>
-                    <div className="rounded-lg border border-amber-500/10 bg-amber-500/[0.03] p-4">
-                        <div className="flex items-center gap-2 mb-1"><Clock size={13} className="text-amber-400" /><span className="text-micro font-semibold uppercase tracking-wider text-amber-500/60">Active</span></div>
-                        <p className="text-xl font-bold font-mono text-amber-400">{stats.active}</p>
+                    <div className="rounded-lg border border-warning/10 bg-warning/[0.03] p-4">
+                        <div className="flex items-center gap-2 mb-1"><Clock size={13} className="text-warning" /><span className="text-micro font-semibold uppercase tracking-wider text-warning/60">Active</span></div>
+                        <p className="text-xl font-bold font-numeric text-warning">{stats.active}</p>
                     </div>
-                    <div className="rounded-lg border border-blue-500/10 bg-blue-500/[0.03] p-4">
-                        <div className="flex items-center gap-2 mb-1"><Zap size={13} className="text-blue-400" /><span className="text-micro font-semibold uppercase tracking-wider text-blue-500/60">Sources</span></div>
-                        <p className="text-sm font-mono text-foreground"><span className="text-blue-400">{manualCount}</span> <span className="text-muted-foreground text-micro">manual</span> / <span className="text-violet-400">{toolCount}</span> <span className="text-muted-foreground text-micro">tool</span></p>
+                    <div className="rounded-lg border border-info/10 bg-info/[0.03] p-4">
+                        <div className="flex items-center gap-2 mb-1"><Zap size={13} className="text-info" /><span className="text-micro font-semibold uppercase tracking-wider text-info/60">Sources</span></div>
+                        <p className="text-sm font-numeric text-foreground"><span className="text-info">{manualCount}</span> <span className="text-muted-foreground text-micro">manual</span> / <span className="text-primary">{toolCount}</span> <span className="text-muted-foreground text-micro">tool</span></p>
                     </div>
                 </div>
 
@@ -209,7 +209,7 @@ export default function AlertHistoryPage() {
                 <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex flex-wrap gap-2">
                         {/* Status filter */}
-                        <div className="flex gap-1.5 rounded-xl border border-border/30 bg-muted/30 p-1">
+                        <div className="flex gap-1.5 rounded-lg border border-border/30 bg-muted/30 p-1">
                             {(["all", "triggered", "active"] as const).map((f) => (
                                 <button
                                     key={f}
@@ -218,7 +218,7 @@ export default function AlertHistoryPage() {
                                     className={cn(
                                         "rounded-lg px-3 py-1.5 text-micro font-medium transition-all",
                                         filter === f
-                                            ? f === "triggered" ? "bg-emerald-500/20 text-emerald-400" : f === "active" ? "bg-amber-500/20 text-amber-400" : "bg-violet-600 text-foreground"
+                                            ? f === "triggered" ? "bg-positive/20 text-positive" : f === "active" ? "bg-warning/20 text-warning" : "bg-primary text-foreground"
                                             : "text-muted-foreground hover:text-foreground"
                                     )}
                                 >
@@ -227,7 +227,7 @@ export default function AlertHistoryPage() {
                             ))}
                         </div>
                         {/* Source filter */}
-                        <div className="flex gap-1.5 rounded-xl border border-border/30 bg-muted/30 p-1">
+                        <div className="flex gap-1.5 rounded-lg border border-border/30 bg-muted/30 p-1">
                             {(["all", "manual", "tool"] as const).map((s) => (
                                 <button
                                     key={s}
@@ -236,7 +236,7 @@ export default function AlertHistoryPage() {
                                     className={cn(
                                         "rounded-lg px-3 py-1.5 text-micro font-medium transition-all",
                                         sourceFilter === s
-                                            ? s === "tool" ? "bg-violet-500/20 text-violet-400" : s === "manual" ? "bg-blue-500/20 text-blue-400" : "bg-violet-600 text-foreground"
+                                            ? s === "tool" ? "bg-primary/20 text-primary" : s === "manual" ? "bg-info/20 text-info" : "bg-primary text-foreground"
                                             : "text-muted-foreground hover:text-foreground"
                                     )}
                                 >
@@ -257,7 +257,7 @@ export default function AlertHistoryPage() {
                 </div>
 
                 {loading && history.length === 0 ? (
-                    <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div>
+                    <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
                 ) : filtered.length === 0 ? (
                     <div className="rounded-lg border border-dashed border-border/40 p-16 text-center">
                         <Bell size={32} className="mx-auto text-muted-foreground" />
@@ -265,7 +265,7 @@ export default function AlertHistoryPage() {
                             {history.length === 0 ? "No alerts found" : "No alerts match your filters"}
                         </p>
                         {history.length === 0 && (
-                            <Link href="/alerts" className="mt-3 inline-flex items-center gap-1 text-xs text-violet-400 hover:underline">Create an alert</Link>
+                            <Link href="/alerts" className="mt-3 inline-flex items-center gap-1 text-xs text-primary hover:underline">Create an alert</Link>
                         )}
                     </div>
                 ) : (
@@ -280,9 +280,9 @@ export default function AlertHistoryPage() {
                                     className={cn(
                                         "group flex items-center gap-4 rounded-lg border p-4 transition-all",
                                         selected.has(alert.id)
-                                            ? "border-violet-500/30 bg-violet-500/5"
+                                            ? "border-primary/30 bg-primary/5"
                                             : alert.triggered
-                                                ? "border-emerald-500/10 bg-emerald-500/[0.02] hover:bg-emerald-500/[0.04]"
+                                                ? "border-positive/10 bg-positive/[0.02] hover:bg-positive/[0.04]"
                                                 : "border-border/30 bg-muted/50 hover:bg-muted"
                                     )}
                                 >
@@ -291,27 +291,27 @@ export default function AlertHistoryPage() {
                                         type="checkbox"
                                         checked={selected.has(alert.id)}
                                         onChange={() => toggleSelect(alert.id)}
-                                        className="h-4 w-4 rounded border-border/50 bg-muted/10 text-violet-500 focus:ring-violet-500/30"
+                                        className="h-4 w-4 rounded border-border/50 bg-muted/10 text-primary focus:ring-primary/30"
                                     />
 
-                                    <div className={cn("flex h-9 w-9 items-center justify-center rounded-xl flex-shrink-0", alert.triggered ? "bg-emerald-500/10" : "bg-muted")}>
-                                        <Icon size={16} className={alert.triggered ? "text-emerald-400" : typeInfo.color} />
+                                    <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0", alert.triggered ? "bg-positive/10" : "bg-muted")}>
+                                        <Icon size={16} className={alert.triggered ? "text-positive" : typeInfo.color} />
                                     </div>
 
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 flex-wrap">
-                                            <span className="font-mono text-sm font-bold text-foreground">{alert.symbol}</span>
+                                            <span className="font-numeric text-sm font-bold text-foreground">{alert.symbol}</span>
                                             <span className={cn("text-micro font-medium", typeInfo.color)}>
                                                 {alert.type.replace(/_/g, " ")}
                                             </span>
                                             {alert.source === "tool" && (
-                                                <span className="rounded-md bg-violet-500/10 px-1.5 py-0.5 text-micro font-semibold text-violet-400">Tool</span>
+                                                <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-micro font-semibold text-primary">Tool</span>
                                             )}
                                             {alert.source === "manual" && (
-                                                <span className="rounded-md bg-blue-500/10 px-1.5 py-0.5 text-micro font-semibold text-blue-400">Manual</span>
+                                                <span className="rounded-md bg-info/10 px-1.5 py-0.5 text-micro font-semibold text-info">Manual</span>
                                             )}
                                             {alert.targetPrice && (
-                                                <span className="font-mono text-micro text-muted-foreground">@ {alert.targetPrice}</span>
+                                                <span className="font-numeric text-micro text-muted-foreground">@ {alert.targetPrice}</span>
                                             )}
                                             <span className="rounded-md bg-muted px-1.5 py-0.5 text-micro text-muted-foreground">{alert.timeframe}</span>
                                         </div>
@@ -321,11 +321,11 @@ export default function AlertHistoryPage() {
                                     <div className="text-right flex-shrink-0">
                                         {alert.triggered ? (
                                             <div>
-                                                <span className="flex items-center gap-1 text-micro text-emerald-400">
+                                                <span className="flex items-center gap-1 text-micro text-positive">
                                                     <CheckCircle size={10} /> Triggered
                                                 </span>
                                                 {alert.triggeredPrice && (
-                                                    <p className="font-mono text-micro text-muted-foreground">@ {alert.triggeredPrice}</p>
+                                                    <p className="font-numeric text-micro text-muted-foreground">@ {alert.triggeredPrice}</p>
                                                 )}
                                                 {alert.triggeredAt && (
                                                     <p className="text-micro text-muted-foreground">{new Date(alert.triggeredAt).toLocaleString()}</p>
@@ -333,7 +333,7 @@ export default function AlertHistoryPage() {
                                             </div>
                                         ) : (
                                             <div>
-                                                <span className="flex items-center gap-1 text-micro text-amber-400">
+                                                <span className="flex items-center gap-1 text-micro text-warning">
                                                     <Clock size={10} /> Waiting
                                                 </span>
                                                 <p className="text-micro text-muted-foreground">Created {new Date(alert.createdAt).toLocaleDateString()}</p>
@@ -344,7 +344,7 @@ export default function AlertHistoryPage() {
                                     <button
                                         type="button"
                                         onClick={() => deleteAlert(alert)}
-                                        className="rounded-lg p-1.5 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-rose-400 hover:bg-rose-500/10 transition-all flex-shrink-0"
+                                        className="rounded-lg p-1.5 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-negative hover:bg-negative/10 transition-all flex-shrink-0"
                                         title="Delete alert"
                                     >
                                         <Trash2 size={13} />

@@ -43,17 +43,17 @@ function GoalCard({ goal, onUpdate, onDelete }: { goal: TradingGoal; onUpdate: (
         <div className={cn(
             "group relative rounded-lg border p-6 transition-all duration-200",
             goal.achieved
-                ? "border-emerald-500/20 bg-gradient-to-br from-emerald-500/[0.06] to-emerald-500/[0.02] shadow-lg shadow-emerald-500/5"
+                ? "border-positive/20 bg-positive-muted shadow-lg "
                 : "border-border/30 bg-muted/50 hover:border-border/20 hover:bg-muted"
         )}>
             {/* Header */}
             <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                     <div className={cn(
-                        "flex h-10 w-10 items-center justify-center rounded-xl",
-                        goal.achieved ? "bg-emerald-500/20" : "bg-violet-500/10"
+                      "flex h-10 w-10 items-center justify-center rounded-lg",
+                        goal.achieved ? "bg-positive/20" : "bg-primary/10"
                     )}>
-                        {goal.achieved ? <CheckCircle size={20} className="text-emerald-400" /> : <TypeIcon size={20} className="text-violet-400" />}
+                        {goal.achieved ? <CheckCircle size={20} className="text-positive" /> : <TypeIcon size={20} className="text-primary" />}
                     </div>
                     <div>
                         <h3 className="text-sm font-semibold text-foreground">{goal.title}</h3>
@@ -63,7 +63,7 @@ function GoalCard({ goal, onUpdate, onDelete }: { goal: TradingGoal; onUpdate: (
                 <button
                     type="button"
                     onClick={() => onDelete(goal.id)}
-                    className="rounded-lg p-1.5 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
+                    className="rounded-lg p-1.5 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-negative hover:bg-negative/10 transition-all"
                 >
                     <Trash2 size={14} />
                 </button>
@@ -79,11 +79,11 @@ function GoalCard({ goal, onUpdate, onDelete }: { goal: TradingGoal; onUpdate: (
                             stroke="currentColor" strokeWidth="4" strokeLinecap="round"
                             strokeDasharray={circumference}
                             strokeDashoffset={strokeDashoffset}
-                            className={cn("transition-all duration-500", goal.achieved ? "text-emerald-400" : progress >= 50 ? "text-amber-400" : "text-violet-400")}
+                            className={cn("transition-all duration-500", goal.achieved ? "text-positive" : progress >= 50 ? "text-warning" : "text-primary")}
                         />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className={cn("text-lg font-bold font-mono leading-none", goal.achieved ? "text-emerald-400" : "text-foreground")}>
+                        <span className={cn("text-lg font-bold font-numeric leading-none", goal.achieved ? "text-positive" : "text-foreground")}>
                             {progress.toFixed(0)}%
                         </span>
                     </div>
@@ -92,13 +92,13 @@ function GoalCard({ goal, onUpdate, onDelete }: { goal: TradingGoal; onUpdate: (
                 <div className="flex-1 space-y-2">
                     <div className="flex items-center justify-between">
                         <span className="text-micro text-muted-foreground">Progress</span>
-                        <span className="font-mono text-xs text-muted-foreground">
+                        <span className="font-numeric text-xs text-muted-foreground">
                             {goal.current.toLocaleString()} / {goal.target.toLocaleString()} {goal.unit}
                         </span>
                     </div>
                     <div className="h-1.5 overflow-hidden rounded-full bg-muted/30">
                         <div
-                            className={cn("h-full rounded-full transition-all duration-500", goal.achieved ? "bg-emerald-500" : progress >= 50 ? "bg-amber-500" : "bg-violet-500")}
+                            className={cn("h-full rounded-full transition-all duration-500", goal.achieved ? "bg-positive" : progress >= 50 ? "bg-warning" : "bg-primary")}
                             style={{ width: `${progress}%` }}
                         />
                     </div>
@@ -108,7 +108,7 @@ function GoalCard({ goal, onUpdate, onDelete }: { goal: TradingGoal; onUpdate: (
                             {daysLeft === 0 ? "Due today" : `${daysLeft}d remaining`}
                         </span>
                         {goal.achieved && (
-                            <span className="flex items-center gap-1 text-micro text-emerald-400">
+                            <span className="flex items-center gap-1 text-micro text-positive">
                                 <CheckCircle size={10} /> Achieved
                             </span>
                         )}
@@ -129,14 +129,14 @@ function GoalCard({ goal, onUpdate, onDelete }: { goal: TradingGoal; onUpdate: (
                             onChange={(e) => setEditValue(e.target.value)}
                             onKeyDown={(e) => { if (e.key === "Enter" && editValue) { onUpdate(goal.id, Number(editValue)); setEditValue(""); } }}
                             placeholder="Update value..."
-                            className="w-full rounded-xl border border-border/40 bg-muted pl-8 pr-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/50 focus:border-violet-500 focus:outline-none transition"
+                            className="w-full rounded-lg border border-border/40 bg-muted pl-8 pr-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition"
                         />
                     </div>
                     <button
                         type="button"
                         onClick={() => { if (editValue) { onUpdate(goal.id, Number(editValue)); setEditValue(""); } }}
                         disabled={!editValue}
-                        className="rounded-xl bg-violet-600 px-4 py-2 text-xs font-semibold text-foreground hover:bg-violet-500 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-foreground hover:bg-primary transition disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                         Update
                     </button>
@@ -225,7 +225,7 @@ export default function GoalsPage() {
         return (
             <div className="flex min-h-screen flex-col bg-background">
                 <div className="flex flex-1 items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
             </div>
         );
@@ -237,7 +237,7 @@ export default function GoalsPage() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                     <Shield size={40} className="text-muted-foreground" />
                     <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
-                    <Link href="/login" className="rounded-xl bg-violet-600 px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-violet-500 transition">
+                    <Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-primary transition">
                         Sign In
                     </Link>
                 </div>
@@ -252,10 +252,10 @@ export default function GoalsPage() {
         : 0;
 
     return (
-        <div className="min-h-screen bg-background text-foreground selection:bg-amber-500/30">
+        <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px]" />
-                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-blue-500/10 blur-[120px]" />
+                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 hidden" />
+                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
             <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
                 {/* Header */}
@@ -265,13 +265,13 @@ export default function GoalsPage() {
                     </Link>
                     <div className="flex items-center justify-between" data-guide="page-header">
                         <div>
-                            <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Trading Goals</h1>
+                            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Trading Goals</h1>
                             <p className="mt-1.5 text-sm text-muted-foreground">Set targets, track progress, and achieve consistency</p>
                         </div>
                         <button
                             type="button"
                             onClick={() => setShowCreate(true)}
-                            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 px-5 py-2.5 text-sm font-semibold text-foreground shadow-lg shadow-violet-500/20 hover:from-violet-500 hover:to-blue-500 transition-all"
+                            className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-foreground shadow-lg  hover:from-primary hover:to-info transition-all"
                         >
                             <Plus size={16} /> New Goal
                         </button>
@@ -282,39 +282,39 @@ export default function GoalsPage() {
                 <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4" data-guide="stats">
                     <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
                         <div className="flex items-center gap-2 mb-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10">
-                                <Target size={14} className="text-violet-400" />
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                                <Target size={14} className="text-primary" />
                             </div>
                             <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Total</span>
                         </div>
-                        <p className="text-2xl font-bold font-mono text-foreground">{goals.length}</p>
+                        <p className="text-2xl font-bold font-numeric text-foreground">{goals.length}</p>
                     </div>
-                    <div className="rounded-lg border border-emerald-500/10 bg-emerald-500/[0.03] p-4">
+                    <div className="rounded-lg border border-positive/10 bg-positive/[0.03] p-4">
                         <div className="flex items-center gap-2 mb-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10">
-                                <CheckCircle size={14} className="text-emerald-400" />
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-positive/10">
+                                <CheckCircle size={14} className="text-positive" />
                             </div>
-                            <span className="text-micro font-semibold uppercase tracking-wider text-emerald-500/60">Achieved</span>
+                            <span className="text-micro font-semibold uppercase tracking-wider text-positive/60">Achieved</span>
                         </div>
-                        <p className="text-2xl font-bold font-mono text-emerald-400">{achievedCount}</p>
+                        <p className="text-2xl font-bold font-numeric text-positive">{achievedCount}</p>
                     </div>
-                    <div className="rounded-lg border border-amber-500/10 bg-amber-500/[0.03] p-4">
+                    <div className="rounded-lg border border-warning/10 bg-warning/[0.03] p-4">
                         <div className="flex items-center gap-2 mb-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10">
-                                <Flame size={14} className="text-amber-400" />
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-warning/10">
+                                <Flame size={14} className="text-warning" />
                             </div>
-                            <span className="text-micro font-semibold uppercase tracking-wider text-amber-500/60">In Progress</span>
+                            <span className="text-micro font-semibold uppercase tracking-wider text-warning/60">In Progress</span>
                         </div>
-                        <p className="text-2xl font-bold font-mono text-amber-400">{inProgressCount}</p>
+                        <p className="text-2xl font-bold font-numeric text-warning">{inProgressCount}</p>
                     </div>
                     <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
                         <div className="flex items-center gap-2 mb-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
-                                <TrendingUp size={14} className="text-blue-400" />
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-info/10">
+                                <TrendingUp size={14} className="text-info" />
                             </div>
                             <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Avg Progress</span>
                         </div>
-                        <p className="text-2xl font-bold font-mono text-foreground">{avgProgress.toFixed(0)}%</p>
+                        <p className="text-2xl font-bold font-numeric text-foreground">{avgProgress.toFixed(0)}%</p>
                     </div>
                 </div>
 
@@ -340,9 +340,9 @@ export default function GoalsPage() {
                                                     type="button"
                                                     onClick={() => { setFormType(gt.value); setFormUnit(gt.unit); }}
                                                     className={cn(
-                                                        "flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-xs transition-all",
+                                                      "flex items-center gap-2 rounded-lg border px-3 py-2.5 text-left text-xs transition-all",
                                                         formType === gt.value
-                                                            ? "border-violet-500/40 bg-violet-500/10 text-violet-400"
+                                                            ? "border-primary/40 bg-primary/10 text-primary"
                                                             : "border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted hover:text-muted-foreground"
                                                     )}
                                                 >
@@ -359,7 +359,7 @@ export default function GoalsPage() {
                                         value={formTitle}
                                         onChange={(e) => setFormTitle(e.target.value)}
                                         placeholder="e.g. Reach $5,000 profit this month"
-                                        className="w-full rounded-xl border border-border/40 bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-violet-500 focus:outline-none transition"
+                                        className="w-full rounded-lg border border-border/40 bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition"
                                     />
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
@@ -371,7 +371,7 @@ export default function GoalsPage() {
                                             value={formTarget}
                                             onChange={(e) => setFormTarget(e.target.value)}
                                             placeholder="e.g. 500"
-                                            className="w-full rounded-xl border border-border/40 bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-violet-500 focus:outline-none transition"
+                                            className="w-full rounded-lg border border-border/40 bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition"
                                         />
                                     </div>
                                     <div>
@@ -380,7 +380,7 @@ export default function GoalsPage() {
                                             type="date"
                                             value={formDeadline}
                                             onChange={(e) => setFormDeadline(e.target.value)}
-                                            className="w-full rounded-xl border border-border/40 bg-muted px-4 py-3 text-sm text-foreground focus:border-violet-500 focus:outline-none transition"
+                                            className="w-full rounded-lg border border-border/40 bg-muted px-4 py-3 text-sm text-foreground focus:border-primary focus:outline-none transition"
                                         />
                                     </div>
                                 </div>
@@ -388,7 +388,7 @@ export default function GoalsPage() {
                                     type="button"
                                     onClick={createGoal}
                                     disabled={creating || !formTitle || !formTarget}
-                                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 py-3 text-sm font-semibold text-foreground hover:from-violet-500 hover:to-blue-500 transition-all disabled:opacity-50"
+                                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-semibold text-foreground hover:from-primary hover:to-info transition-all disabled:opacity-50"
                                 >
                                     {creating ? <Loader2 size={15} className="animate-spin" /> : <Target size={15} />} Create Goal
                                 </button>
@@ -400,12 +400,12 @@ export default function GoalsPage() {
                 {/* Goals Grid */}
                 {loading ? (
                     <div className="flex h-64 items-center justify-center">
-                        <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
                 ) : goals.length === 0 ? (
                     <div className="rounded-lg border border-dashed border-border/40 p-16 text-center">
-                        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-violet-500/10">
-                            <Target size={28} className="text-violet-400" />
+                        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-primary/10">
+                            <Target size={28} className="text-primary" />
                         </div>
                         <h3 className="mt-4 text-base font-semibold text-foreground">No goals yet</h3>
                         <p className="mt-1.5 text-sm text-muted-foreground max-w-sm mx-auto">
@@ -414,7 +414,7 @@ export default function GoalsPage() {
                         <button
                             type="button"
                             onClick={() => setShowCreate(true)}
-                            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-violet-500 transition"
+                            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-primary transition"
                         >
                             <Plus size={14} /> Create First Goal
                         </button>

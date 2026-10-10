@@ -305,7 +305,7 @@ export default function AdminAIAgentsPage() {
         <AdminShell title="AI Agents" subtitle="Agent Factory — identity, behavior, tools, testing and versioning">
             <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
                 {/* ── Agent list ─────────────────────────────────────── */}
-                <aside className="rounded-xl border border-border/60 bg-card p-3">
+                <aside className="rounded-lg border border-border/60 bg-card p-3">
                     <SectionHeader
                         title="Registry"
                         icon={<Boxes className="size-4" />}
@@ -357,7 +357,7 @@ export default function AdminAIAgentsPage() {
                 </aside>
 
                 {/* ── Editor ─────────────────────────────────────────── */}
-                <section className="rounded-xl border border-border/60 bg-card p-4">
+                <section className="rounded-lg border border-border/60 bg-card p-4">
                     {!draft ? (
                         <EmptyState
                             icon={<Sparkles className="size-5" />}
@@ -549,7 +549,7 @@ export default function AdminAIAgentsPage() {
                                                     /* live JSON typing — ignore partial documents */
                                                 }
                                             }}
-                                            className="w-full rounded-md border border-border bg-background px-2.5 py-2 font-mono text-xs outline-none focus:border-ring"
+                                            className="w-full rounded-md border border-border bg-background px-2.5 py-2 font-numeric text-xs outline-none focus:border-ring"
                                         />
                                     </div>
                                 ) : section === "activation" ? (

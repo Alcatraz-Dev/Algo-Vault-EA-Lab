@@ -19,7 +19,7 @@ import { candelApi, candelErrorMessage } from "@/lib/candel/client";
 import { selectableCandelRoles } from "@/lib/candel/roles";
 import type { CandelInstance, CandelTemplate } from "@/lib/candel/types";
 
-const AVATAR_PICKS = ["🧠", "📈", "🛡️", "🧪", "📓", "🚀", "🤖", "🎯", "💡", "🦅"];
+const AVATAR_PICKS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
 
 interface FormState {
   templateId: string;
@@ -349,7 +349,7 @@ export function CandelFormDialog({
                         onChange={() => toggleTool(tool)}
                         className="size-3.5 accent-primary"
                       />
-                      <span className="font-mono text-xs text-foreground">{tool}</span>
+                      <span className="font-numeric text-xs text-foreground">{tool}</span>
                     </label>
                   );
                 })}

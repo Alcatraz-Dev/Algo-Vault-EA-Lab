@@ -151,7 +151,7 @@ export default function MobileSignalsPage() {
           <h1 className="text-lg font-semibold">AI Signals</h1>
         </header>
         <div className="flex-1 p-4 space-y-4">
-          {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
+          {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-24 rounded-lg" />)}
         </div>
       </div>
     );
@@ -192,15 +192,15 @@ export default function MobileSignalsPage() {
         <div className="px-3 py-2 border-b border-border bg-muted/30">
           <div className="grid grid-cols-3 gap-2 text-center">
             <div>
-              <p className="font-mono font-bold text-lg text-positive">{winRate}%</p>
+              <p className="font-numeric font-bold text-lg text-positive">{winRate}%</p>
               <p className="text-micro text-muted-foreground">Win Rate</p>
             </div>
             <div>
-              <p className="font-mono font-bold text-lg">{readyCount + activeCount}</p>
+              <p className="font-numeric font-bold text-lg">{readyCount + activeCount}</p>
               <p className="text-micro text-muted-foreground">Open</p>
             </div>
             <div>
-              <p className="font-mono font-bold text-lg">{completedCount}</p>
+              <p className="font-numeric font-bold text-lg">{completedCount}</p>
               <p className="text-micro text-muted-foreground">Closed</p>
             </div>
           </div>
@@ -231,7 +231,7 @@ export default function MobileSignalsPage() {
       <div className="flex-1 overflow-auto p-3 pb-20">
         {loading ? (
           <div className="space-y-3">
-            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
+            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-28 rounded-lg" />)}
           </div>
         ) : filteredSignals.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">
@@ -251,7 +251,7 @@ export default function MobileSignalsPage() {
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono font-semibold truncate">{signal.symbol}</span>
+                          <span className="font-numeric font-semibold truncate">{signal.symbol}</span>
                           <Badge variant="outline" className={cn(
                             signal.tier === "PRO" && "border-chart-3/30 text-chart-3",
                             signal.tier === "FREE" && "border-positive/30 text-positive"
@@ -273,19 +273,19 @@ export default function MobileSignalsPage() {
 
                   <div className="mt-3 pt-3 border-t border-border/30 grid grid-cols-4 gap-3 text-center">
                     <div>
-                      <p className="font-mono text-sm font-semibold">{formatPrice(signal.symbol, signal.entry)}</p>
+                      <p className="font-numeric text-sm font-semibold">{formatPrice(signal.symbol, signal.entry)}</p>
                       <p className="text-micro text-muted-foreground">Entry</p>
                     </div>
                     <div>
-                      <p className="font-mono text-sm font-semibold text-negative">{formatPrice(signal.symbol, signal.stopLoss)}</p>
+                      <p className="font-numeric text-sm font-semibold text-negative">{formatPrice(signal.symbol, signal.stopLoss)}</p>
                       <p className="text-micro text-muted-foreground">SL</p>
                     </div>
                     <div>
-                      <p className="font-mono text-sm font-semibold text-positive">{signal.tp1 ? formatPrice(signal.symbol, signal.tp1) : "—"}</p>
+                      <p className="font-numeric text-sm font-semibold text-positive">{signal.tp1 ? formatPrice(signal.symbol, signal.tp1) : "—"}</p>
                       <p className="text-micro text-muted-foreground">TP1</p>
                     </div>
                     <div>
-                      <p className="font-mono text-sm font-semibold">{signal.riskReward.toFixed(1)}R</p>
+                      <p className="font-numeric text-sm font-semibold">{signal.riskReward.toFixed(1)}R</p>
                       <p className="text-micro text-muted-foreground">R:R</p>
                     </div>
                   </div>

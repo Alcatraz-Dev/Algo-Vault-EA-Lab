@@ -132,7 +132,7 @@ function PineNode({ data, selected }: { data: any; selected?: boolean }) {
     const hint = nodeHint(kind);
 
     return (
-        <div className={`relative rounded-xl border-2 ${selected ? "border-warning ring-2 ring-warning/50 shadow-lg scale-102 z-10" : "border-border/60"} bg-card text-card-foreground shadow-sm min-w-[168px] max-w-[208px] select-none transition-all duration-150 ${!isNodeEnabled ? "opacity-60" : ""}`}>
+        <div className={`relative rounded-lg border-2 ${selected ? "border-warning ring-2 ring-warning/50 shadow-lg scale-102 z-10" : "border-border/60"} bg-card text-card-foreground shadow-sm min-w-[168px] max-w-[208px] select-none transition-all duration-150 ${!isNodeEnabled ? "opacity-60" : ""}`}>
             {/* Top Target Handle */}
             <div className="absolute -top-2 left-1/2 -translate-x-1/2 flex flex-col items-center z-20">
                 <Handle
@@ -899,7 +899,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
             {/* Left Sidebar Dock with Library, Saved Workspaces, and Node Inspector */}
             <aside data-guide="palette" className="self-start rounded-lg border border-border bg-card p-3.5 space-y-3 shadow-xs">
                 {/* Navigation Tabs Header */}
-                <div className="flex items-center gap-1 p-1 bg-muted/60 rounded-xl border border-border text-xs font-semibold">
+                <div className="flex items-center gap-1 p-1 bg-muted/60 rounded-lg border border-border text-xs font-semibold">
                     <button
                         type="button"
                         onClick={() => setSidebarTab("library")}
@@ -944,7 +944,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                                 value={librarySearch}
                                 onChange={(e) => setLibrarySearch(e.target.value)}
                                 placeholder="Search nodes..."
-                                className="h-8 text-xs pl-8 bg-background border-border rounded-xl"
+                                className="h-8 text-xs pl-8 bg-background border-border rounded-lg"
                             />
                         </div>
                         <div className="space-y-1.5 max-h-[440px] overflow-y-auto pr-0.5 font-sans">
@@ -955,7 +955,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                                             draggable
                                             onDragStart={(event) => event.dataTransfer.setData("text/plain", `palette:${kind}`)}
                                             onClick={() => addNode(kind)}
-                                            className="w-full text-left px-2.5 py-1.5 rounded-xl text-xs bg-muted/30 hover:bg-warning/10 border border-transparent hover:border-warning/20 text-foreground transition flex items-center gap-2 group"
+                                            className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs bg-muted/30 hover:bg-warning/10 border border-transparent hover:border-warning/20 text-foreground transition flex items-center gap-2 group"
                                         >
                                             <Plus size={13} className="text-warning shrink-0 group-hover:scale-110 transition-transform" />
                                             <span className="truncate font-medium flex-1">{nodeTypes[kind].label}</span>
@@ -969,7 +969,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                             <TooltipTrigger render={
                                 <button
                                     onClick={() => { setNodes([]); setEdges([]); selectNode(null); }}
-                                    className="w-full mt-2 inline-flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-destructive transition py-1.5 rounded-xl border border-dashed border-border/80 hover:border-destructive/30"
+                                    className="w-full mt-2 inline-flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-destructive transition py-1.5 rounded-lg border border-dashed border-border/80 hover:border-destructive/30"
                                 >
                                     <Trash2 size={13} />Clear canvas
                                 </button>
@@ -988,14 +988,14 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                                 value={workspaceSearch}
                                 onChange={(e) => setWorkspaceSearch(e.target.value)}
                                 placeholder="Search saved..."
-                                className="h-8 text-xs pl-8 bg-background border-border rounded-xl"
+                                className="h-8 text-xs pl-8 bg-background border-border rounded-lg"
                             />
                         </div>
                         <div className="space-y-2 max-h-[440px] overflow-y-auto pr-0.5 font-sans">
                             {loadingWorkspaces ? (
                                 <p className="text-xs text-muted-foreground text-center py-4">Loading workspaces...</p>
                             ) : filteredWorkspaces.length === 0 ? (
-                                <div className="text-center py-6 px-2 rounded-xl border border-dashed border-border">
+                                <div className="text-center py-6 px-2 rounded-lg border border-dashed border-border">
                                     <FolderOpen size={20} className="mx-auto text-muted-foreground/60 mb-1.5" />
                                     <p className="text-xs text-muted-foreground font-medium">No saved workspaces found</p>
                                     <p className="text-micro text-muted-foreground/70 mt-0.5">Build a strategy and click Save</p>
@@ -1004,7 +1004,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                                 filteredWorkspaces.map((workspace) => (
                                     <div
                                         key={workspace.id}
-                                        className="flex flex-col gap-1.5 rounded-xl border border-border bg-background p-2.5 transition hover:border-warning/30 hover:bg-muted/40 shadow-xs"
+                                        className="flex flex-col gap-1.5 rounded-lg border border-border bg-background p-2.5 transition hover:border-warning/30 hover:bg-muted/40 shadow-xs"
                                     >
                                         <div className="flex items-center justify-between gap-1.5 min-w-0">
                                             <p className="truncate text-xs font-semibold text-foreground flex-1">{workspace.name}</p>
@@ -1012,7 +1012,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                                                 {workspace.type}
                                             </span>
                                         </div>
-                                        <p className="text-micro text-muted-foreground font-mono">
+                                        <p className="text-micro text-muted-foreground font-numeric">
                                             Saved: {new Date(workspace.createdAt).toLocaleDateString()}
                                         </p>
                                         <div className="flex items-center justify-end gap-1.5 pt-1 border-t border-border/50">
@@ -1045,7 +1045,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                         {selectedNode ? (
                             <div className="space-y-3 font-sans">
                                 {/* Header */}
-                                <div className="rounded-xl border border-border bg-muted/40 p-3 space-y-2">
+                                <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-2">
                                     <div className="flex items-center justify-between gap-2">
                                         <Input
                                             value={selectedNode.label || nodeTypes[selectedNode.kind].label}
@@ -1073,7 +1073,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                                 </div>
 
                                 {/* Node Status Toggle */}
-                                <div className="rounded-xl border border-border bg-background p-3 space-y-1.5">
+                                <div className="rounded-lg border border-border bg-background p-3 space-y-1.5">
                                     <div className="flex items-center justify-between">
                                         <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                                             <Layers size={13} className="text-muted-foreground" /> Node Status
@@ -1092,7 +1092,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
 
                                 {/* Node Specific Parameters */}
                                 {(selectedNode.kind === "moving_average" || selectedNode.kind === "hma" || selectedNode.kind === "rsi" || selectedNode.kind === "macd" || selectedNode.kind === "bollinger" || selectedNode.kind === "keltner" || selectedNode.kind === "donchian" || selectedNode.kind === "supertrend" || selectedNode.kind === "stochastic" || selectedNode.kind === "adx" || selectedNode.kind === "atr" || selectedNode.kind === "cci" || selectedNode.kind === "mfi" || selectedNode.kind === "williams_r" || selectedNode.kind === "roc" || selectedNode.kind === "stddev" || selectedNode.kind === "risk_manager" || selectedNode.kind.includes("oversold") || selectedNode.kind.includes("overbought")) && (
-                                    <div className="rounded-xl border border-border bg-background p-3 space-y-2.5">
+                                    <div className="rounded-lg border border-border bg-background p-3 space-y-2.5">
                                         <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                                             <Sliders size={13} className="text-muted-foreground" /> Parameters
                                         </span>
@@ -1213,7 +1213,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                                 </div>
                             </div>
                         ) : (
-                            <div className="text-center py-8 px-2 rounded-xl border border-dashed border-border font-sans">
+                            <div className="text-center py-8 px-2 rounded-lg border border-dashed border-border font-sans">
                                 <Settings2 size={24} className="mx-auto text-muted-foreground/60 mb-2" />
                                 <p className="text-xs font-semibold text-foreground">No Node Selected</p>
                                 <p className="text-micro text-muted-foreground/70 mt-1 max-w-[180px] mx-auto">
@@ -1230,20 +1230,20 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <Input value={name} onChange={(event) => setName(event.target.value)} className="w-full font-semibold text-sm h-9 bg-background sm:w-72" aria-label="Pine script name" title="Name for this Pine workspace" />
                         <div className="flex flex-wrap items-center gap-2">
-                            <div className="flex flex-wrap gap-1 bg-muted p-1 rounded-xl border border-border" data-guide="modes">
+                            <div className="flex flex-wrap gap-1 bg-muted p-1 rounded-lg border border-border" data-guide="modes">
                                 <button onClick={() => setMode("visual")} className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${mode === "visual" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}>Visual</button>
                                 <button onClick={() => setMode("code")} className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${mode === "code" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}>Code</button>
                                 <button onClick={() => setMode("replay")} className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${mode === "replay" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}>Replay</button>
                             </div>
                             <div className="h-4 w-px bg-border hidden sm:block" />
                             <div className="flex flex-wrap gap-1.5" data-guide="actions">
-                                <Button size="sm" className="bg-warning hover:bg-warning text-white" onClick={saveWorkspace} disabled={saving}><Save size={14} className="mr-1" />{saving ? "Saving" : "Save"}</Button>
+                                <Button size="sm" className="bg-warning hover:bg-warning text-background" onClick={saveWorkspace} disabled={saving}><Save size={14} className="mr-1" />{saving ? "Saving" : "Save"}</Button>
                                 <Button size="sm" variant="outline" onClick={downloadWorkspace}><Download size={14} className="mr-1" />Download</Button>
                             </div>
                         </div>
                     </div>
                     {mode === "visual" && (
-                        <div className="rounded-xl border border-warning/20 bg-gradient-to-br from-warning/5 to-warning/10 p-4" data-guide="ai-builder">
+                        <div className="rounded-lg border border-warning/20 bg-warning-muted p-4" data-guide="ai-builder">
                             <div className="flex items-center gap-2">
                                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-warning/10">
                                     <Brain size={14} className="text-warning" />
@@ -1264,14 +1264,14 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                                 <Button
                                     onClick={handleAiBuildStrategy}
                                     disabled={isAiBuilding || !aiDescription.trim()}
-                                    className="bg-warning hover:bg-warning text-white font-semibold text-xs h-9 px-4"
+                                    className="bg-warning hover:bg-warning text-background font-semibold text-xs h-9 px-4"
                                 >
                                     {isAiBuilding ? <Loader2 size={14} className="animate-spin mr-1" /> : <Wand2 size={14} className="mr-1" />}
                                     {isAiBuilding ? "Building..." : "Build"}
                                 </Button>
                             </div>
                             {aiStrategyDescription && (
-                                <div className="mt-3 rounded-xl border border-border bg-background/80 p-2.5">
+                                <div className="mt-3 rounded-lg border border-border bg-background/80 p-2.5">
                                     <p className="text-micro leading-relaxed text-muted-foreground">{aiStrategyDescription}</p>
                                 </div>
                             )}
@@ -1343,7 +1343,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                                 )}
                             </div>
                             <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-micro font-mono text-muted-foreground">v6</span>
+                                <span className="text-micro font-numeric text-muted-foreground">v6</span>
                                 <Tooltip>
                                     <TooltipTrigger render={
                                         <Button
@@ -1362,7 +1362,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                                     <TooltipTrigger render={
                                         <Button
                                             size="sm"
-                                            className="bg-warning hover:bg-warning text-white font-medium"
+                                            className="bg-warning hover:bg-warning text-background font-medium"
                                             onClick={applyToChart}
                                         >
                                             <Play size={13} className="mr-1" />
@@ -1421,7 +1421,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                             value={source}
                             onChange={(event) => setSource(event.target.value)}
                             spellCheck={false}
-                            className="h-[480px] w-full resize-y rounded-lg border border-border bg-background p-4 font-mono text-xs leading-relaxed outline-none transition focus:border-warning/50 focus:ring-2 focus:ring-warning/20 shadow-xs"
+                            className="h-[480px] w-full resize-y rounded-lg border border-border bg-background p-4 font-numeric text-xs leading-relaxed outline-none transition focus:border-warning/50 focus:ring-2 focus:ring-warning/20 shadow-xs"
                             aria-label="Pine Script editor"
                             placeholder="// Write your Pine Script v6 code here...&#10;// Click Analyze to check compatibility&#10;// Click Apply to Chart to visualize&#10;&#10;//@version=6&#10;indicator(&#10;    &quot;My Indicator&quot;,&#10;    overlay=true&#10;)&#10;&#10;ema20 = ta.ema(close, 20)&#10;plot(ema20, color=color.blue)"
                         />
@@ -1453,7 +1453,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                                         <p className="text-xs font-semibold text-negative">Pine Runtime Errors</p>
                                         <div className="mt-1 space-y-1">
                                             {pineResult.errors.map((err, i) => (
-                                                <p key={i} className="text-micro leading-relaxed text-muted-foreground font-mono">{err}</p>
+                                                <p key={i} className="text-micro leading-relaxed text-muted-foreground font-numeric">{err}</p>
                                             ))}
                                         </div>
                                     </div>
@@ -1487,7 +1487,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                         <select
                             value={chartSymbol}
                             onChange={(e) => setChartSymbol(e.target.value as SupportedSymbol)}
-                            className="rounded-md border border-border bg-background px-1.5 py-1 font-mono text-xs outline-none focus:border-primary/50"
+                            className="rounded-md border border-border bg-background px-1.5 py-1 font-numeric text-xs outline-none focus:border-primary/50"
                             aria-label="Chart symbol"
                         >
                             {SUPPORTED_SYMBOLS.map((s) => (
@@ -1501,7 +1501,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                                     type="button"
                                     onClick={() => setChartTimeframe(t)}
                                     aria-pressed={chartTimeframe === t}
-                                    className={`rounded px-1.5 py-0.5 font-mono text-micro transition ${chartTimeframe === t ? "bg-primary/10 font-bold text-primary" : "text-muted-foreground hover:bg-muted"}`}
+                                    className={`rounded px-1.5 py-0.5 font-numeric text-micro transition ${chartTimeframe === t ? "bg-primary/10 font-bold text-primary" : "text-muted-foreground hover:bg-muted"}`}
                                 >
                                     {t}
                                 </button>
@@ -1552,7 +1552,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                             <Copy size={13} />{copied ? "Copied" : "Copy Pine source"}
                         </Button>
                     </div>
-                    <pre className="max-h-48 overflow-auto rounded-xl border border-border/60 bg-background p-3.5 font-mono text-xs leading-relaxed text-foreground">{generatedSource}</pre>
+                    <pre className="max-h-48 overflow-auto rounded-lg border border-border/60 bg-background p-3.5 font-numeric text-xs leading-relaxed text-foreground">{generatedSource}</pre>
                 </div>
                 {studyOverlay && studyOverlay.errors.length > 0 && (
                     <div className="rounded-lg border border-negative/20 bg-negative/5 p-4 shadow-xs">
@@ -1562,7 +1562,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                                 <p className="text-xs font-semibold text-negative">Pine chart overlay errors</p>
                                 <div className="mt-1 space-y-1">
                                     {studyOverlay.errors.map((err, i) => (
-                                        <p key={i} className="text-micro leading-relaxed text-muted-foreground font-mono">{err}</p>
+                                        <p key={i} className="text-micro leading-relaxed text-muted-foreground font-numeric">{err}</p>
                                     ))}
                                 </div>
                             </div>
@@ -1570,7 +1570,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                     </div>
                 )}
                 {notice && (
-                    <div className="mt-3 rounded-xl border border-border bg-muted/30 px-3.5 py-2 text-xs text-muted-foreground flex items-center justify-between">
+                    <div className="mt-3 rounded-lg border border-border bg-muted/30 px-3.5 py-2 text-xs text-muted-foreground flex items-center justify-between">
                         <span>{notice}</span>
                         <button onClick={() => setNotice("")} className="text-muted-foreground hover:text-foreground text-xs font-medium ml-2">Dismiss</button>
                     </div>

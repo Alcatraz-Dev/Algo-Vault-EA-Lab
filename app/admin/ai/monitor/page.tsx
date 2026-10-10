@@ -122,7 +122,7 @@ export default function AdminAIMonitorPage() {
                     <p className="text-sm font-medium text-foreground">Admin sign-in required</p>
                     <a
                         href="/login?redirect=/admin/ai/monitor"
-                        className="rounded-xl bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition hover:opacity-90"
+                        className="rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition hover:opacity-90"
                     >
                         Sign In
                     </a>
@@ -163,10 +163,10 @@ export default function AdminAIMonitorPage() {
                                         <td className="px-3 py-2 text-muted-foreground">{p.type}</td>
                                         <td className="px-3 py-2 text-muted-foreground">{p.costClass}</td>
                                         <td className="px-3 py-2">{p.health ? <StateBadge value={p.health.circuitState} /> : <span className="text-muted-foreground">idle</span>}</td>
-                                        <td className="px-3 py-2 font-mono tabular-nums text-muted-foreground">{p.health?.avgLatencyMs != null ? `${p.health.avgLatencyMs} ms` : "—"}</td>
-                                        <td className="px-3 py-2 font-mono tabular-nums text-muted-foreground">{p.health?.successRate != null ? `${Math.round(p.health.successRate * 100)}%` : "—"}</td>
-                                        <td className="px-3 py-2 font-mono tabular-nums text-muted-foreground">{p.health?.failures ?? 0}</td>
-                                        <td className="px-3 py-2 font-mono tabular-nums text-muted-foreground">{p.health?.rateLimitErrors ?? 0}</td>
+                                        <td className="px-3 py-2 font-numeric tabular-nums text-muted-foreground">{p.health?.avgLatencyMs != null ? `${p.health.avgLatencyMs} ms` : "—"}</td>
+                                        <td className="px-3 py-2 font-numeric tabular-nums text-muted-foreground">{p.health?.successRate != null ? `${Math.round(p.health.successRate * 100)}%` : "—"}</td>
+                                        <td className="px-3 py-2 font-numeric tabular-nums text-muted-foreground">{p.health?.failures ?? 0}</td>
+                                        <td className="px-3 py-2 font-numeric tabular-nums text-muted-foreground">{p.health?.rateLimitErrors ?? 0}</td>
                                         <td className="px-3 py-2 text-muted-foreground">{fmtTime(p.health?.lastSuccessAt ?? p.health?.lastErrorAt ?? null)}</td>
                                         <td className="px-3 py-2">
                                             {!p.enabled ? (
@@ -212,14 +212,14 @@ export default function AdminAIMonitorPage() {
                             <tbody className="divide-y divide-border/60">
                                 {(decisions ?? []).map((d) => (
                                     <tr key={d.requestId}>
-                                        <td className="px-3 py-2 font-mono tabular-nums text-muted-foreground">{fmtTime(d.timestamp)}</td>
+                                        <td className="px-3 py-2 font-numeric tabular-nums text-muted-foreground">{fmtTime(d.timestamp)}</td>
                                         <td className="px-3 py-2 font-medium text-foreground">{d.symbol} {d.timeframe}</td>
                                         <td className="px-3 py-2 text-foreground">{d.direction}</td>
                                         <td className="px-3 py-2 text-muted-foreground">{d.jev ? `${d.jev.decision} ${d.jev.confidence}%` : "—"}</td>
                                         <td className="px-3 py-2 text-muted-foreground">{d.llm ? d.llm.provider : "—"}</td>
                                         <td className="px-3 py-2">{d.risk ? (d.risk.approved ? <StateBadge value="APPROVED" /> : <StateBadge value="BLOCKED" />) : <span className="text-muted-foreground">—</span>}</td>
                                         <td className="px-3 py-2"><StateBadge value={d.state} /></td>
-                                        <td className="px-3 py-2 font-mono tabular-nums text-muted-foreground">{d.confidence}%</td>
+                                        <td className="px-3 py-2 font-numeric tabular-nums text-muted-foreground">{d.confidence}%</td>
                                         <td className="max-w-[280px] truncate px-3 py-2 text-muted-foreground" title={d.rationale}>{d.rationale}</td>
                                     </tr>
                                 ))}

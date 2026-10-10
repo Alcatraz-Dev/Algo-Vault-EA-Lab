@@ -93,7 +93,7 @@ export function LimitBar({
         <div className="space-y-1">
             <div className="flex items-baseline justify-between gap-2 text-xs">
                 <span className="text-muted-foreground">{label}</span>
-                <span className="font-mono tabular-nums text-foreground">
+                <span className="font-numeric tabular-nums text-foreground">
                     {invert ? `${usedPct.toFixed(1)}%` : `${usedPct.toFixed(0)}%`}
                 </span>
             </div>
@@ -140,7 +140,7 @@ export function KV({ label, value, mono = true }: { label: ReactNode; value: Rea
     return (
         <div className="flex items-center justify-between gap-3 py-1 text-xs">
             <span className="text-muted-foreground">{label}</span>
-            <span className={cn("text-foreground", mono && "font-mono tabular-nums")}>{value}</span>
+            <span className={cn("text-foreground", mono && "font-numeric tabular-nums")}>{value}</span>
         </div>
     );
 }
@@ -171,12 +171,12 @@ export function RuleEventList({ events }: { events: Array<{ id?: string; eventId
                             <span className={cn(critical ? "text-destructive" : warning ? "text-warning" : "text-foreground")}>
                                 {event.message}
                             </span>
-                            <span className="shrink-0 font-mono text-micro text-muted-foreground">
+                            <span className="shrink-0 font-numeric text-micro text-muted-foreground">
                                 {new Date(event.timestamp).toLocaleTimeString()}
                             </span>
                         </div>
                         {event.type ? (
-                            <span className="mt-1 inline-block font-mono text-micro text-muted-foreground">{event.type}</span>
+                            <span className="mt-1 inline-block font-numeric text-micro text-muted-foreground">{event.type}</span>
                         ) : null}
                     </li>
                 );
@@ -200,7 +200,7 @@ export function Money({ cents, className, signed = false }: { cents: number; cla
     const text = formatCents(cents);
     const display = signed && cents > 0 ? `+${text}` : text;
     return (
-        <span className={cn("font-mono tabular-nums", cents < 0 && "text-negative", cents > 0 && signed && "text-positive", className)}>
+        <span className={cn("font-numeric tabular-nums", cents < 0 && "text-negative", cents > 0 && signed && "text-positive", className)}>
             {display}
         </span>
     );

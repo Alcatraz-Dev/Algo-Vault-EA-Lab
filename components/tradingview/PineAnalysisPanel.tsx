@@ -157,9 +157,9 @@ export default function PineAnalysisPanel({ source, onApply, onBacktest, onRepla
   const analysis = useMemo(() => analyzePineScript(source), [source]);
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5">
+    <div className="rounded-lg border border-border bg-card p-5">
       <div className="flex items-start gap-3">
-        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${analysis.canRun ? "bg-positive/10" : "bg-warning/10"}`}>
+        <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${analysis.canRun ? "bg-positive/10" : "bg-warning/10"}`}>
           {analysis.canRun ? <Check size={18} className="text-positive" /> : <AlertTriangle size={18} className="text-warning" />}
         </div>
         <div className="flex-1">
@@ -183,7 +183,7 @@ export default function PineAnalysisPanel({ source, onApply, onBacktest, onRepla
       </div>
 
       {backtestResult && (
-        <div className="mt-4 rounded-xl border border-border bg-background/50 p-4">
+        <div className="mt-4 rounded-lg border border-border bg-background/50 p-4">
           <div className="mb-2 flex items-center justify-between">
             <h4 className="text-xs font-semibold text-foreground">Backtest Results</h4>
             <span className="text-micro text-muted-foreground">{backtestResult.timeframe} · {backtestResult.symbol}</span>
@@ -238,7 +238,7 @@ export default function PineAnalysisPanel({ source, onApply, onBacktest, onRepla
       )}
 
       <div className="mt-4 flex flex-wrap gap-2" data-guide="alerts">
-        <Button size="sm" onClick={onApply} className="bg-warning hover:bg-warning text-white font-medium">
+        <Button size="sm" onClick={onApply} className="bg-warning hover:bg-warning text-background font-medium">
           <Check size={14} className="mr-1" /> Apply to Chart
         </Button>
         {analysis.scriptType === "Strategy" && onBacktest && (

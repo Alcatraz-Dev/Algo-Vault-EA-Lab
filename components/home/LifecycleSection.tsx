@@ -75,19 +75,19 @@ export default function LifecycleSection() {
  <div className="mt-6 rounded-lg border border-border/80 bg-card/80 p-6 md:p-8 ">
  <div className="grid grid-cols-1 gap-6 md:grid-cols-12 md:items-center">
  <div className="md:col-span-7 space-y-4">
- <div className="inline-flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-1 text-xs font-mono font-bold text-primary">
+ <div className="inline-flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-1 text-xs font-numeric font-bold text-primary">
  STAGE {selectedStage + 1} OF {STAGES.length}
  </div>
  <h3 className="text-2xl font-bold text-foreground">{active.name.split(". ")[1]} Phase</h3>
  <p className="text-sm leading-relaxed text-muted-foreground">{active.desc}</p>
 
- <div className="pt-2 flex items-center gap-4 text-xs font-mono text-muted-foreground">
+ <div className="pt-2 flex items-center gap-4 text-xs font-numeric text-muted-foreground">
  <span className="flex items-center gap-1.5 text-positive font-semibold">✓ Standardized Pipeline</span>
  <span className="flex items-center gap-1.5 text-info font-semibold">✓ Automated Telemetry</span>
  </div>
  </div>
 
- <div className="md:col-span-5 rounded-xl border border-border/60 bg-background/80 p-5 font-mono text-xs space-y-3">
+ <div className="md:col-span-5 rounded-xl border border-border/60 bg-background/80 p-5 font-numeric text-xs space-y-3">
  <div className="flex justify-between border-b border-border/40 pb-2 text-muted-foreground">
  <span>Lifecycle Node</span>
  <span className="text-primary">{active.id.toUpperCase()}</span>

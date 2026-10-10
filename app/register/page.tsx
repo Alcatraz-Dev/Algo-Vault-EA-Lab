@@ -211,7 +211,7 @@ function RegisterForm() {
                             </span>
                         </Link>
 
-                        <h1 className="mt-8 text-2xl font-semibold tracking-tight">
+                        <h1 className="text-2xl font-semibold tracking-tight mt-8">
                             Create your account
                         </h1>
 
@@ -231,7 +231,7 @@ function RegisterForm() {
                         </div>
                     )}
 
-                    <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
+                    <div className="rounded-lg border border-border bg-card p-6 sm:p-8">
                         <form
                             onSubmit={handleRegister}
                             className="space-y-5"
@@ -410,7 +410,7 @@ function RegisterForm() {
                                             setReferralCode(e.target.value.toUpperCase())
                                         }
                                         placeholder="ALGV-XXXXXX"
-                                        className="h-11 pl-9 font-mono"
+                                        className="h-11 pl-9 font-numeric"
                                     />
                                 </div>
                             </div>

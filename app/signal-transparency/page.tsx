@@ -89,7 +89,7 @@ export default function SignalTransparencyPage() {
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <span className={`rounded-full border px-2 py-0.5 text-xs font-bold ${signal.direction === "BUY" ? "border-positive/30 bg-positive/10 text-positive-foreground" : "border-negative/30 bg-negative/10 text-negative-foreground"}`}>{signal.direction}</span>
-                                    <span className="font-mono text-sm font-bold text-foreground">{signal.symbol}</span>
+                                    <span className="font-numeric text-sm font-bold text-foreground">{signal.symbol}</span>
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <span className="text-xs text-muted-foreground">Confidence: {signal.confidence}%</span>

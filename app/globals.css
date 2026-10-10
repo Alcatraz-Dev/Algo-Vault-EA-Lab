@@ -162,7 +162,7 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-numeric: var(--font-geist-mono);
   --font-heading: var(--font-geist-sans);
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
@@ -298,7 +298,7 @@ body {
   }
 
   .font-numeric {
-    font-family: var(--font-mono, "Geist Mono", monospace);
+    font-family: var(--font-numeric, "Geist Mono", monospace);
     font-variant-numeric: tabular-nums;
   }
   .num-right {

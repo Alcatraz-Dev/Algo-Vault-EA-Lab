@@ -9,7 +9,7 @@
  *
  * Rules encoded here:
  *   • every response carries freshness; the hook surfaces it so the UI can show
- *     "updated Ns ago" and render STALE_DATA instead of pretending to be live;
+  * "updated Ns ago" and render STALE_DATA instead of pretending to be live;
  *   • a Pro-gated endpoint returns 403 and the hook exposes `proRequired` so the
  *     UI can render an upgrade prompt rather than a broken panel;
  *   • no client-side computation of equity, PnL, exposure or risk. Ever.

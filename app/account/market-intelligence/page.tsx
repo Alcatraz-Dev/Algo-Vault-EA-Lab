@@ -168,7 +168,7 @@ export default function AccountMarketIntelligencePage() {
       <AccountShell title="Market Intelligence — Command Center" subtitle="Analyze → Detect → Validate → Research → Build">
       <div className="flex flex-col gap-4 px-4 py-6">
         {/* Global Context Bar */}
-        <div className="rounded-xl border border-border/30 bg-card/60 p-3 backdrop-blur-xl flex flex-wrap items-center gap-3 text-micro font-mono">
+        <div className="rounded-lg border border-border/30 bg-card/60 p-3 flex flex-wrap items-center gap-3 text-micro font-numeric">
           <div className="font-black text-sm">COMMAND CENTER</div>
           <select value={symbol} onChange={(e) => setSymbol(e.target.value as SupportedSymbol)} className="rounded bg-muted/30 px-2 py-0.5 text-xs outline-none">
             {["XAUUSD", "EURUSD", "GBPUSD", "USDJPY"].map((s) => <option key={s} value={s}>{s}</option>)}
@@ -186,27 +186,27 @@ export default function AccountMarketIntelligencePage() {
 
         <div className="grid lg:grid-cols-[1fr_320px] gap-4">
           {/* Main Chart / Workspace */}
-          <div className="rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
-            <div className="flex items-center justify-between mb-3 text-xs font-mono uppercase tracking-wider text-muted-foreground">
+          <div className="rounded-lg border border-border/30 bg-card/60 p-4">
+            <div className="flex items-center justify-between mb-3 text-xs font-numeric uppercase tracking-wider text-muted-foreground">
               <span>Market Workspace</span>
               <span>Overlay adapter · Smart Money · Sessions · Indicators</span>
             </div>
-            <div className="h-115 w-full rounded-xl border border-border/20 bg-background/30 relative overflow-hidden p-4">
+            <div className="h-115 w-full rounded-lg border border-border/20 bg-background/30 relative overflow-hidden p-4">
               <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)", backgroundSize: "24px 24px" }} />
               <div className="relative z-10 h-full flex flex-col gap-3">
                 <div className="flex items-center justify-between">
-                  <div className="font-mono text-2xl font-black tracking-tight">{symbol}</div>
+                  <div className="font-numeric text-2xl font-black tracking-tight">{symbol}</div>
                   <div className="text-xs text-muted-foreground">{timeframe} · {data ? "Live analytics" : "Loading..."}</div>
                 </div>
                 <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Regime</div><div className="font-mono font-semibold truncate">{data?.regime?.regime ?? "—"}</div></div>
-                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Score</div><div className="font-mono font-semibold">{data?.score && typeof data.score === "object" ? (data.score.total ?? "—") : (data?.score ?? "—")}</div></div>
-                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Structure</div><div className="font-mono font-semibold">{report.structure?.length ?? 0}</div></div>
-                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Liquidity</div><div className="font-mono font-semibold">{report.liquidity?.length ?? 0}</div></div>
-                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Volume</div><div className="font-mono font-semibold">{data?.volume && typeof data.volume === "object" ? (data.volume.volume?.toLocaleString() ?? data.volume.averageVolume?.toLocaleString() ?? "—") : (data?.volume ?? "—")}</div></div>
-                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Volatility</div><div className="font-mono font-semibold">{data?.volatility && typeof data.volatility === "object" ? (data.volatility.daily ? `${data.volatility.daily}%` : data.volatility.atr ? `${data.volatility.atr}` : "—") : (data?.volatility ?? "—")}</div></div>
-                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Session</div><div className="font-mono font-semibold truncate">{data?.session ? data.session.name : "—"}</div></div>
-                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">VWAP</div><div className="font-mono font-semibold truncate">{data?.vwap && typeof data.vwap === "object" ? (data.vwap.value ?? data.vwap.mean ?? "—") : (data?.vwap ?? "—")}</div></div>
+                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Regime</div><div className="font-numeric font-semibold truncate">{data?.regime?.regime ?? "—"}</div></div>
+                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Score</div><div className="font-numeric font-semibold">{data?.score && typeof data.score === "object" ? (data.score.total ?? "—") : (data?.score ?? "—")}</div></div>
+                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Structure</div><div className="font-numeric font-semibold">{report.structure?.length ?? 0}</div></div>
+                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Liquidity</div><div className="font-numeric font-semibold">{report.liquidity?.length ?? 0}</div></div>
+                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Volume</div><div className="font-numeric font-semibold">{data?.volume && typeof data.volume === "object" ? (data.volume.volume?.toLocaleString() ?? data.volume.averageVolume?.toLocaleString() ?? "—") : (data?.volume ?? "—")}</div></div>
+                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Volatility</div><div className="font-numeric font-semibold">{data?.volatility && typeof data.volatility === "object" ? (data.volatility.daily ? `${data.volatility.daily}%` : data.volatility.atr ? `${data.volatility.atr}` : "—") : (data?.volatility ?? "—")}</div></div>
+                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">Session</div><div className="font-numeric font-semibold truncate">{data?.session ? data.session.name : "—"}</div></div>
+                  <div className="rounded bg-muted/40 p-2"><div className="text-micro text-muted-foreground">VWAP</div><div className="font-numeric font-semibold truncate">{data?.vwap && typeof data.vwap === "object" ? (data.vwap.value ?? data.vwap.mean ?? "—") : (data?.vwap ?? "—")}</div></div>
                 </div>
                 {ohlc?.candles && (
                   <div className="rounded bg-muted/30 p-3 flex-1 min-h-30">
@@ -242,7 +242,7 @@ export default function AccountMarketIntelligencePage() {
 
           {/* Intelligence / Evidence */}
           <div className="flex flex-col gap-4">
-            <div className="rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+            <div className="rounded-lg border border-border/30 bg-card/60 p-4">
               <h3 className="font-bold text-sm mb-2 flex items-center gap-2"><Zap size={14} /> Intelligence Layer</h3>
               <div className="text-xs space-y-2 text-muted-foreground">
                 <div><strong>Facts</strong> — {data ? "Engine loaded from /api/analysis/intelligence" : "Waiting for engine state"}</div>
@@ -255,11 +255,11 @@ export default function AccountMarketIntelligencePage() {
                 <span className="rounded border border-border/30 px-1.5 py-0.5">Replay-safe</span>
               </div>
               {report.regime && (
-                <div className="mt-3 rounded bg-muted/40 p-2 text-xs font-mono">Regime: <span className={report.regime.regime?.includes("bullish") ? "text-positive" : report.regime.regime?.includes("bearish") ? "text-negative" : "text-warning"}>{report.regime.regime ?? "—"}</span></div>
+                <div className="mt-3 rounded bg-muted/40 p-2 text-xs font-numeric">Regime: <span className={report.regime.regime?.includes("bullish") ? "text-positive" : report.regime.regime?.includes("bearish") ? "text-negative" : "text-warning"}>{report.regime.regime ?? "—"}</span></div>
               )}
             </div>
 
-            <div className="rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+            <div className="rounded-lg border border-border/30 bg-card/60 p-4">
               <h3 className="font-bold text-sm mb-2 flex items-center gap-2"><Activity size={14} /> Smart Money Summary</h3>
               <div className="text-xs text-muted-foreground space-y-1">
                 <div><strong>Structure</strong> — {report.structure?.length ? `${report.structure.length} events` : "Loading..."}</div>
@@ -276,8 +276,8 @@ export default function AccountMarketIntelligencePage() {
         {/* Bottom: Replay / Evidence / Quick Actions / Live Monitor / Watchlist / Setups */}
         <div className="grid lg:grid-cols-3 gap-4">
           {/* Engine Status */}
-          <div className="rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
-            <div className="flex items-center justify-between mb-3 text-xs font-mono uppercase">
+          <div className="rounded-lg border border-border/30 bg-card/60 p-4">
+            <div className="flex items-center justify-between mb-3 text-xs font-numeric uppercase">
               <span>Engine Status</span>
               <span>Real-time feed</span>
             </div>
@@ -287,11 +287,11 @@ export default function AccountMarketIntelligencePage() {
               <div className="flex justify-between"><span className="text-muted-foreground">Accounts</span><span className={accounts.length ? "text-positive" : "text-muted-foreground"}>{accounts.length ? `${accounts.length} connected` : "None"}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Positions</span><span className={positions.length ? "text-warning" : "text-muted-foreground"}>{positions.length ? `${positions.length} open` : "None"}</span></div>
             </div>
-            <div className="mt-3 rounded-xl border border-border/20 bg-background/20 p-3 text-micro text-muted-foreground">Engine feeds are real: analytics APIs, MT5 accounts, and live positions. No replay or mock timers.</div>
+            <div className="mt-3 rounded-lg border border-border/20 bg-background/20 p-3 text-micro text-muted-foreground">Engine feeds are real: analytics APIs, MT5 accounts, and live positions. No replay or mock timers.</div>
           </div>
 
           {/* Evidence Chain */}
-          <div className="rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+          <div className="rounded-lg border border-border/30 bg-card/60 p-4">
             <h3 className="font-bold text-sm mb-2 flex items-center gap-2"><Layers size={14} /> Evidence Chain</h3>
             <div className="text-xs text-muted-foreground space-y-1 mb-2">
               <div>Market Event → Smart Money → Trade → Backtest → Research</div>
@@ -300,7 +300,7 @@ export default function AccountMarketIntelligencePage() {
             <ul className="text-micro space-y-1">
               {evidence.map((e: EvidenceItem) => (
                 <li key={e.id} className="flex items-center gap-2 rounded bg-muted/40 px-2 py-1">
-                  <span className="font-mono text-micro text-primary">{e.id}</span>
+                  <span className="font-numeric text-micro text-primary">{e.id}</span>
                   <span className="truncate">{e.type}</span>
                   <span className="text-muted-foreground">{e.source}</span>
                 </li>
@@ -309,7 +309,7 @@ export default function AccountMarketIntelligencePage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+          <div className="rounded-lg border border-border/30 bg-card/60 p-4">
             <h3 className="font-bold text-sm mb-2">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <a href="/advanced-analysis" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20">Advanced Analysis</a>
@@ -322,22 +322,22 @@ export default function AccountMarketIntelligencePage() {
 
         <div className="grid lg:grid-cols-3 gap-4">
           {/* Live Monitor */}
-          <div className="rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
-            <div className="flex items-center justify-between mb-3 text-xs font-mono uppercase tracking-wider text-muted-foreground">
+          <div className="rounded-lg border border-border/30 bg-card/60 p-4">
+            <div className="flex items-center justify-between mb-3 text-xs font-numeric uppercase tracking-wider text-muted-foreground">
               <span>Live Monitor</span>
               <span>Existing data + Smart Money + Indicators + MTF</span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded bg-muted/50 p-2"><div className="text-micro text-muted-foreground">Market Score</div><div className="font-mono font-semibold">{data?.score && typeof data.score === "object" ? (data.score.total ?? "—") : (data?.score ?? "—")}</div></div>
-              <div className="rounded bg-muted/50 p-2"><div className="text-micro text-muted-foreground">Regime</div><div className="font-mono font-semibold truncate">{data?.regime?.regime ?? "—"}</div></div>
-              <div className="rounded bg-muted/50 p-2"><div className="text-micro text-muted-foreground">Volatility</div><div className="font-mono font-semibold">{data?.volatility && typeof data.volatility === "object" ? (data.volatility.daily ? `${data.volatility.daily}%` : data.volatility.atr ? `${data.volatility.atr}` : "—") : (data?.volatility ?? "—")}</div></div>
-              <div className="rounded bg-muted/50 p-2"><div className="text-micro text-muted-foreground">Volume</div><div className="font-mono font-semibold">{data?.volume && typeof data.volume === "object" ? (data.volume.volume?.toLocaleString() ?? data.volume.averageVolume?.toLocaleString() ?? "—") : (data?.volume ?? "—")}</div></div>
+              <div className="rounded bg-muted/50 p-2"><div className="text-micro text-muted-foreground">Market Score</div><div className="font-numeric font-semibold">{data?.score && typeof data.score === "object" ? (data.score.total ?? "—") : (data?.score ?? "—")}</div></div>
+              <div className="rounded bg-muted/50 p-2"><div className="text-micro text-muted-foreground">Regime</div><div className="font-numeric font-semibold truncate">{data?.regime?.regime ?? "—"}</div></div>
+              <div className="rounded bg-muted/50 p-2"><div className="text-micro text-muted-foreground">Volatility</div><div className="font-numeric font-semibold">{data?.volatility && typeof data.volatility === "object" ? (data.volatility.daily ? `${data.volatility.daily}%` : data.volatility.atr ? `${data.volatility.atr}` : "—") : (data?.volatility ?? "—")}</div></div>
+              <div className="rounded bg-muted/50 p-2"><div className="text-micro text-muted-foreground">Volume</div><div className="font-numeric font-semibold">{data?.volume && typeof data.volume === "object" ? (data.volume.volume?.toLocaleString() ?? data.volume.averageVolume?.toLocaleString() ?? "—") : (data?.volume ?? "—")}</div></div>
             </div>
-            <div className="mt-2 rounded-xl border border-border/20 bg-background/20 p-3 text-xs text-muted-foreground">Monitoring uses existing analytics APIs (/api/analytics/market, regime, liquidity, volume). No replacement engine.</div>
+            <div className="mt-2 rounded-lg border border-border/20 bg-background/20 p-3 text-xs text-muted-foreground">Monitoring uses existing analytics APIs (/api/analytics/market, regime, liquidity, volume). No replacement engine.</div>
           </div>
 
           {/* Watchlist */}
-          <div className="rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+          <div className="rounded-lg border border-border/30 bg-card/60 p-4">
             <h3 className="font-bold text-sm mb-2">Watchlist (Live)</h3>
             <table className="w-full text-micro text-left border-collapse">
               <thead className="text-micro uppercase tracking-wider text-muted-foreground border-b border-border/20"><tr><th>Symbol</th><th>TF</th><th>Data</th><th>Setup</th></tr></thead>
@@ -350,7 +350,7 @@ export default function AccountMarketIntelligencePage() {
           </div>
 
           {/* Active Setups + Setup Memory */}
-          <div className="rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+          <div className="rounded-lg border border-border/30 bg-card/60 p-4">
             <h3 className="font-bold text-sm mb-2">Active Setups</h3>
             <div className="text-xs text-muted-foreground mb-2">{setups.length ? setups.map((s) => <div key={s.id} className="flex items-center gap-2"><span className={cn("h-1.5 w-1.5 rounded-full", s.status === "Active" ? "bg-positive" : "bg-warning")} /><span>{s.symbol} {s.tf}</span><span className="text-muted-foreground">score {s.score}</span></div>) : "No setups configured. Create from existing conditions."}</div>
             <h3 className="font-bold text-sm mb-2 mt-3">Setup Memory</h3>
@@ -358,7 +358,7 @@ export default function AccountMarketIntelligencePage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-border/20 bg-background/30 p-4 text-xs text-muted-foreground">
+        <div className="rounded-lg border border-border/20 bg-background/30 p-4 text-xs text-muted-foreground">
           <strong>Market Intelligence Command Center — Live Monitor</strong> — continuous monitoring uses real analytics APIs (/api/analytics/*), Smart Money outputs, session/indicator data, and live account/position feeds. No fabricated predictions or scores.
         </div>
       </div>

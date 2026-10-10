@@ -20,7 +20,7 @@ export function EvidencePanel({ items }: { items: EvidenceItem[] }) {
         <ul className="text-xs space-y-1 text-muted-foreground">
           {items.map((it, i) => (
             <li key={i} className="flex gap-2">
-              <span className="font-mono">{it.id || it.reference || it.label}</span>
+              <span className="font-numeric">{it.id || it.reference || it.label}</span>
               <span>—</span>
               <span>{it.label}</span>
               {it.timestamp && <span className="ml-auto text-micro">t={it.timestamp}</span>}

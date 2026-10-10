@@ -93,7 +93,7 @@ export function ChallengeCard({ item, onJoined }: { item: CatalogItem; onJoined?
                     <p className="mt-1 text-xs text-muted-foreground">{definition.summary}</p>
                 </div>
                 <div className="text-right">
-                    <p className="font-mono text-lg font-semibold tabular-nums">{capital}</p>
+                    <p className="font-numeric text-lg font-semibold tabular-nums">{capital}</p>
                     <p className="text-micro text-muted-foreground">virtual capital</p>
                 </div>
             </div>

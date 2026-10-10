@@ -61,7 +61,7 @@ export default function ExtensionDetailsPage() {
  if (!user) {
  router.push(`/login?redirect=/marketplace/extensions/${extension.slug || extension.id}`);
  return;
- }
+  }
  const token = await user.getIdToken();
  const res = await fetch("/api/extensions/install", {
  method: "POST",
@@ -74,8 +74,8 @@ export default function ExtensionDetailsPage() {
  } catch (err) {
  setActionError(err instanceof Error ? err.message : "Unable to install the extension.");
  setBusy(false);
- }
- }
+    }
+      }
 
  if (loading) {
  return (
@@ -89,20 +89,20 @@ export default function ExtensionDetailsPage() {
  </div>
  </main>
  );
- }
+        }
 
  if (!extension) {
  return (
  <main className="flex min-h-screen items-center justify-center bg-background px-6 text-foreground">
  <div className="text-center">
  <Puzzle size={45} className="mx-auto text-muted-foreground" />
- <h1 className="mt-5 text-2xl font-semibold">Extension not found</h1>
+ <h1 className="text-2xl font-semibold tracking-tight mt-5">Extension not found</h1>
  <p className="mt-2 text-sm text-muted-foreground">
  This extension may have been removed or is no longer published.
  </p>
  <Link
  href="/marketplace/extensions"
- className="mt-6 inline-flex items-center gap-2 rounded-xl bg-background px-5 py-3 text-sm font-medium text-foreground"
+          className="mt-6 inline-flex items-center gap-2 rounded-lg bg-background px-5 py-3 text-sm font-medium text-foreground"
  >
  <ArrowLeft size={16} />
  Back to Extensions
@@ -110,7 +110,7 @@ export default function ExtensionDetailsPage() {
  </div>
  </main>
  );
- }
+            }
 
  const typed = extension as PluginRecord & { extensionType?: string };
  const extType = typed.extensionType || "browser";
@@ -137,10 +137,10 @@ export default function ExtensionDetailsPage() {
 
  <div className="mx-auto max-w-7xl px-6 py-10">
  <div className="overflow-hidden rounded-lg border border-border/30 bg-muted/50">
- <div className="relative h-52 overflow-hidden bg-gradient-to-br from-positive/15 via-background to-foreground md:h-60">
- <div className="absolute left-20 top-10 h-48 w-48 rounded-full bg-muted/10 blur-3xl" />
- <div className="absolute right-20 bottom-0 h-56 w-56 rounded-full bg-positive/10 blur-3xl" />
- <div className="absolute inset-0 bg-gradient-to-t from-muted via-transparent to-transparent" />
+ <div className="relative h-52 overflow-hidden bg-positive-muted md:h-60">
+ <div className="absolute left-20 top-10 h-48 w-48 rounded-full bg-muted/10 hidden" />
+ <div className="absolute right-20 bottom-0 h-56 w-56 rounded-full hidden bg-positive/10" />
+ <div className="absolute inset-0 bg-background/70" />
  <div className="absolute inset-x-0 bottom-0">
  <div className="p-6 md:p-9">
  <div className="flex items-end gap-5">
@@ -156,7 +156,7 @@ export default function ExtensionDetailsPage() {
  {CATEGORY_LABELS[extension.category]}
  </span>
  </div>
- <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground drop- md:text-4xl">
+ <h1 className="text-2xl font-semibold tracking-tight mt-2 text-foreground drop-">
  {extension.displayName}
  </h1>
  <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
@@ -183,7 +183,7 @@ export default function ExtensionDetailsPage() {
  <h2 className="text-sm font-medium">Capabilities</h2>
  <div className="mt-3 grid gap-2 sm:grid-cols-2">
  {(extension.capabilities || []).map((cap) => (
- <div key={cap} className="flex items-center gap-3 rounded-xl border border-border/30 bg-muted/20 p-3">
+              <div key={cap} className="flex items-center gap-3 rounded-lg border border-border/30 bg-muted/20 p-3">
  <CheckCircle2 size={15} className="shrink-0 text-positive" />
  <span className="text-sm text-muted-foreground">{cap}</span>
  </div>
@@ -197,7 +197,7 @@ export default function ExtensionDetailsPage() {
  <h2 className="text-sm font-medium">Permissions</h2>
  <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
  {perms.map((permission) => (
- <div key={permission} className="rounded-xl border border-border/30 bg-muted/20 p-4">
+                <div key={permission} className="rounded-lg border border-border/30 bg-muted/20 p-4">
  <p className="text-sm font-medium">{permissionLabel(permission)}</p>
  <p className="mt-1 text-xs leading-5 text-muted-foreground">{permissionDescription(permission)}</p>
  </div>
@@ -217,14 +217,14 @@ export default function ExtensionDetailsPage() {
  {line.replace(/^##\s+/, "")}
  </h3>
  );
- }
+                  }
  if (line.startsWith("- ")) {
  return (
  <p key={i} className="mt-1 text-xs leading-6 text-muted-foreground">
  • {line.replace(/^-\s+/, "")}
  </p>
  );
- }
+                    }
  if (!line.trim()) return <div key={i} className="h-2" />;
  return (
  <p key={i} className="mt-1 text-xs leading-6 text-muted-foreground">
@@ -241,7 +241,7 @@ export default function ExtensionDetailsPage() {
  <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
  <section className="rounded-lg border border-border/30 bg-muted/50 p-7 md:p-9">
  <div className="flex items-center gap-3">
- <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
  <Settings2 size={18} />
  </div>
  <div>
@@ -291,7 +291,7 @@ export default function ExtensionDetailsPage() {
  type="button"
  onClick={handleInstall}
  disabled={busy}
- className="mt-10 flex w-full items-center justify-center gap-2 rounded-xl bg-background px-5 py-3.5 text-sm font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                        className="mt-10 flex w-full items-center justify-center gap-2 rounded-lg bg-background px-5 py-3.5 text-sm font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
  >
  <Download size={17} />
  {busy ? "Installing..." : "Install Extension"}

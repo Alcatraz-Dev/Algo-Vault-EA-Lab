@@ -57,7 +57,7 @@ export default function CorrelationPage() {
         void Promise.resolve().then(() => fetchData());
     }, [authLoading, user, fetchData]);
 
-    if (authLoading) return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Correlation & Exposure"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div></AccountShell></div>);
+    if (authLoading) return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Correlation & Exposure"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></AccountShell></div>);
     if (!user) return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Correlation & Exposure"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1></div></AccountShell></div>);
 
     return (
@@ -69,27 +69,27 @@ export default function CorrelationPage() {
                             <Activity size={16} />
                             {data?.positions?.length || 0} open positions
                         </div>
-                        <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-xl border border-border/30 bg-muted px-4 py-2 text-xs text-muted-foreground hover:bg-muted/30 transition disabled:opacity-50">
+                        <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2 text-xs text-muted-foreground hover:bg-muted/30 transition disabled:opacity-50">
                             <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                         </button>
                     </div>
 
                     {data?.warning && (
-                        <div className="rounded-xl border border-rose-500/20 bg-rose-500/[0.03] p-4">
-                            <div className="flex items-center gap-2 text-sm font-semibold text-rose-400"><AlertTriangle size={16} /> High Correlation Warning</div>
+                        <div className="rounded-lg border border-negative/20 bg-negative/[0.03] p-4">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-negative"><AlertTriangle size={16} /> High Correlation Warning</div>
                             <p className="mt-1 text-xs text-muted-foreground">Your portfolio has concentrated exposure. Consider diversifying across uncorrelated assets.</p>
                         </div>
                     )}
 
                     {data?.correlations && data.correlations.length > 0 && (
-                        <div className="rounded-xl border border-border/30 bg-muted/50 p-5">
-                            <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><TrendingUp size={16} className="text-violet-400" />Correlated Groups</h3>
+                        <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                            <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><TrendingUp size={16} className="text-primary" />Correlated Groups</h3>
                             <div className="space-y-3">
                                 {data.correlations.map((c, i) => (
-                                    <div key={i} className={cn("rounded-lg border p-3", c.concentration > 70 ? "border-rose-500/20 bg-rose-500/[0.03]" : c.concentration > 40 ? "border-amber-500/20 bg-amber-500/[0.03]" : "border-emerald-500/20 bg-emerald-500/[0.03]")}>
+                                    <div key={i} className={cn("rounded-lg border p-3", c.concentration > 70 ? "border-negative/20 bg-negative/[0.03]" : c.concentration > 40 ? "border-warning/20 bg-warning/[0.03]" : "border-positive/20 bg-positive/[0.03]")}>
                                         <div className="flex items-center justify-between">
-                                            <span className="font-mono text-sm font-bold text-foreground">{c.group.replace(/_/g, " ").toUpperCase()}</span>
-                                            <span className={cn("rounded px-2 py-0.5 text-micro font-medium", c.concentration > 70 ? "bg-rose-500/10 text-rose-400" : c.concentration > 40 ? "bg-amber-500/10 text-amber-400" : "bg-emerald-500/10 text-emerald-400")}>
+                                            <span className="font-numeric text-sm font-bold text-foreground">{c.group.replace(/_/g, " ").toUpperCase()}</span>
+                                            <span className={cn("rounded px-2 py-0.5 text-micro font-medium", c.concentration > 70 ? "bg-negative/10 text-negative" : c.concentration > 40 ? "bg-warning/10 text-warning" : "bg-positive/10 text-positive")}>
                                                 {c.concentration}% concentration
                                             </span>
                                         </div>
@@ -105,8 +105,8 @@ export default function CorrelationPage() {
                     )}
 
                     {data?.positions && data.positions.length > 0 && (
-                        <div className="rounded-xl border border-border/30 bg-muted/50 p-5">
-                            <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><Activity size={16} className="text-violet-400" />Open Positions</h3>
+                        <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                            <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><Activity size={16} className="text-primary" />Open Positions</h3>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-xs">
                                     <thead>
@@ -121,11 +121,11 @@ export default function CorrelationPage() {
                                     <tbody>
                                         {data.positions.map((p, i) => (
                                             <tr key={i} className="border-b border-border/10">
-                                                <td className="px-4 py-2.5 font-mono font-medium text-foreground">{p.symbol}</td>
-                                                <td className={cn("px-4 py-2.5 font-medium", p.type === "BUY" ? "text-emerald-400" : "text-rose-400")}>{p.type}</td>
-                                                <td className="px-4 py-2.5 text-right font-mono text-muted-foreground">{p.volume?.toFixed(2)}</td>
-                                                <td className={cn("px-4 py-2.5 text-right font-mono", p.profit >= 0 ? "text-emerald-400" : "text-rose-400")}>${p.profit?.toFixed(2)}</td>
-                                                <td className="px-4 py-2.5 text-right font-mono text-muted-foreground">${p.risk?.toFixed(2)}</td>
+                                                <td className="px-4 py-2.5 font-numeric font-medium text-foreground">{p.symbol}</td>
+                                                <td className={cn("px-4 py-2.5 font-medium", p.type === "BUY" ? "text-positive" : "text-negative")}>{p.type}</td>
+                                                <td className="px-4 py-2.5 text-right font-numeric text-muted-foreground">{p.volume?.toFixed(2)}</td>
+                                                <td className={cn("px-4 py-2.5 text-right font-numeric", p.profit >= 0 ? "text-positive" : "text-negative")}>${p.profit?.toFixed(2)}</td>
+                                                <td className="px-4 py-2.5 text-right font-numeric text-muted-foreground">${p.risk?.toFixed(2)}</td>
                                             </tr>
                                         ))}
                                     </tbody>

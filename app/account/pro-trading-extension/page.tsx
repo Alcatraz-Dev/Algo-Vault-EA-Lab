@@ -234,7 +234,7 @@ export default function ProTradingExtensionPage() {
                     className={cn(
                         "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-micro font-semibold uppercase tracking-wider",
                         isPro
-                            ? "border-brand-500/30 bg-brand-500/10 text-brand-300"
+                            ? "border-primary/30 bg-primary/10 text-brand-300"
                             : "border-edge bg-card text-ink-mute"
                     )}
                 >
@@ -250,18 +250,18 @@ export default function ProTradingExtensionPage() {
                     <section
                         className={cn(
                             "relative overflow-hidden rounded-lg border border-edge p-8",
-                            "bg-gradient-to-br from-brand-500/10 via-surface to-surface",
+                            "bg-primary/10",
                             "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]"
                         )}
                     >
-                        <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-brand-500/15 blur-3xl" aria-hidden />
-                        <div className="absolute -left-32 -bottom-32 h-72 w-72 rounded-full bg-brand-500/10 blur-3xl" aria-hidden />
+                        <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-primary/15 hidden" aria-hidden />
+                        <div className="absolute -left-32 -bottom-32 h-72 w-72 rounded-full bg-primary/10 hidden" aria-hidden />
                         <div className="relative">
                             <div className="flex items-center gap-2 text-brand-300">
                                 <Sparkles size={16} />
                                 <span className="text-xs font-semibold uppercase tracking-widest">AlgoVault Pro</span>
                             </div>
-                            <h1 className="mt-3 text-3xl font-bold tracking-tight">AlgoVault Pro Trading Intelligence</h1>
+                            <h1 className="text-2xl font-semibold tracking-tight mt-3">AlgoVault Pro Trading Intelligence</h1>
                             <p className="mt-3 max-w-2xl text-sm text-ink-mute">
                                 TradingView + TradingView MCP + AlgoVault Market Intelligence + AI — one professional Pro trading
                                 intelligence environment that lives directly beside your chart.
@@ -274,14 +274,14 @@ export default function ProTradingExtensionPage() {
                                                 href={CHROME_WEB_STORE_SEARCH}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold  text-ink shadow-[0_8px_24px_-12px_rgba(255,77,0,0.6)] transition hover:bg-brand-400"
+                                                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold  text-ink  transition hover:bg-primary/80"
                                             >
                                                 <Download size={14} /> Get the Extension
                                                 <ExternalLink size={11} className="opacity-80" />
                                             </a>
                                             <Link
                                                 href="/strategy-lab"
-                                                className="inline-flex items-center gap-2 rounded-lg border border-edge bg-card px-4 py-2 text-xs font-medium text-ink transition hover:border-brand-500/40"
+                                                className="inline-flex items-center gap-2 rounded-lg border border-edge bg-card px-4 py-2 text-xs font-medium text-ink transition hover:border-primary/40"
                                             >
                                                 <ChartLine size={14} /> Open Strategy Lab
                                             </Link>
@@ -290,14 +290,14 @@ export default function ProTradingExtensionPage() {
                                     <>
                                         <Link
                                             href="/pricing"
-                                            className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white shadow-[0_8px_24px_-12px_rgba(255,77,0,0.6)] transition hover:bg-brand-400"
+                                            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-background  transition hover:bg-primary/80"
                                         >
                                             <Star size={14} /> Upgrade to Pro
                                             <ArrowRight size={11} className="opacity-80" />
                                         </Link>
                                         <Link
                                             href="/ai-copilot"
-                                            className="inline-flex items-center gap-2 rounded-lg border border-edge bg-card px-4 py-2 text-xs font-medium text-ink transition hover:border-brand-500/40"
+                                            className="inline-flex items-center gap-2 rounded-lg border border-edge bg-card px-4 py-2 text-xs font-medium text-ink transition hover:border-primary/40"
                                         >
                                             <Eye size={14} /> Preview the AI Copilot
                                         </Link>
@@ -323,18 +323,18 @@ export default function ProTradingExtensionPage() {
                                     <article
                                         key={f.id}
                                         className={cn(
-                                            "group relative overflow-hidden rounded-xl border border-edge bg-card p-4 transition-all",
-                                            "hover:border-brand-500/30 hover:bg-card/80",
-                                            live && "ring-1 ring-brand-500/10"
+                                          "group relative overflow-hidden rounded-lg border border-edge bg-card p-4 transition-all",
+                                            "hover:border-primary/30 hover:bg-card/80",
+                                            live && "ring-1 ring-primary/10"
                                         )}
                                     >
                                         <div className="flex items-start justify-between">
-                                            <div className="flex h-9 w-11 items-center justify-center rounded-lg bg-brand-500/10 text-brand-300">
+                                            <div className="flex h-9 w-11 items-center justify-center rounded-lg bg-primary/10 text-brand-300">
                                                 <Icon size={18} />
                                             </div>
                                             <span
                                                 className={cn(
-                                                    "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wider",
+                                                  "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wider",
                                                     live
                                                         ? "border-positive/30 bg-positive/10 text-positive"
                                                         : "border-edge bg-raised text-ink-faint"
@@ -353,7 +353,7 @@ export default function ProTradingExtensionPage() {
                     </section>
 
                     {/* How it works */}
-                    <section className="rounded-xl border border-edge bg-card p-6">
+                    <section className="rounded-lg border border-edge bg-card p-6">
                         <h2 className="text-base font-semibold tracking-tight">How it works</h2>
                         <p className="mt-1 text-xs text-ink-mute">
                             The extension connects your TradingView context to the AlgoVault intelligence stack. Nothing is invented —
@@ -367,7 +367,7 @@ export default function ProTradingExtensionPage() {
                                 { icon: Sparkles, title: "AI layer", body: "Structured analysis with explicit evidence and conflicting signals — never a black box." },
                             ].map((step, idx) => (
                                 <li key={step.title} className="flex gap-3 rounded-lg border border-edge bg-base/60 p-3">
-                                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand-500/10 text-micro font-semibold text-brand-300">
+                                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-micro font-semibold text-brand-300">
                                         {idx + 1}
                                     </span>
                                     <div>
@@ -386,7 +386,7 @@ export default function ProTradingExtensionPage() {
                 {/* sidebar */}
                 <aside className="space-y-4">
                     {/* entitlement card */}
-                    <section className="rounded-xl border border-edge bg-card p-5">
+                    <section className="rounded-lg border border-edge bg-card p-5">
                         <header className="flex items-center justify-between">
                             <h3 className="text-sm font-semibold">Entitlement</h3>
                             <button
@@ -408,7 +408,7 @@ export default function ProTradingExtensionPage() {
                                 <p className="text-xs text-ink-mute">Sign in to view your Pro entitlement.</p>
                                 <Link
                                     href="/login"
-                                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-edge bg-base px-3 py-2 text-xs font-medium transition hover:border-brand-500/40"
+                                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-edge bg-base px-3 py-2 text-xs font-medium transition hover:border-primary/40"
                                 >
                                     Sign in
                                 </Link>
@@ -424,11 +424,11 @@ export default function ProTradingExtensionPage() {
                                     className={cn(
                                         "flex items-start gap-3 rounded-lg border p-3",
                                         isPro && !isExpired
-                                            ? "border-brand-500/30 bg-brand-500/5"
+                                            ? "border-primary/30 bg-primary/5"
                                             : "border-edge bg-raised"
                                     )}
                                 >
-                                    <div className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", isPro && !isExpired ? "bg-brand-500/20 text-brand-300" : "bg-raised text-ink-mute")}>
+                                    <div className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", isPro && !isExpired ? "bg-primary/20 text-brand-300" : "bg-raised text-ink-mute")}>
                                         {isPro && !isExpired ? <ShieldCheck size={14} /> : <Lock size={14} />}
                                     </div>
                                     <div className="min-w-0 flex-1">
@@ -457,7 +457,7 @@ export default function ProTradingExtensionPage() {
                                 {!isPro || isExpired ? (
                                     <Link
                                         href="/pricing"
-                                        className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-400"
+                                        className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-background transition hover:bg-primary/80"
                                     >
                                         {isExpired ? "Renew Pro" : "Upgrade to Pro"}
                                         <ArrowRight size={11} />
@@ -472,12 +472,12 @@ export default function ProTradingExtensionPage() {
                     </section>
 
                     {/* extension install card */}
-                    <section className="rounded-xl border border-edge bg-card p-5">
+                    <section className="rounded-lg border border-edge bg-card p-5">
                         <header className="flex items-center justify-between">
                             <h3 className="text-sm font-semibold">Browser extension</h3>
                             <span
                                 className={cn(
-                                    "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wider",
+                                  "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wider",
                                     extensionConnected
                                         ? "border-positive/30 bg-positive/10 text-positive"
                                         : "border-edge bg-raised text-ink-faint"
@@ -497,7 +497,7 @@ export default function ProTradingExtensionPage() {
                                 href={CHROME_WEB_STORE_SEARCH}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-edge bg-base px-3 py-2 text-xs font-medium transition hover:border-brand-500/40"
+                                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-edge bg-base px-3 py-2 text-xs font-medium transition hover:border-primary/40"
                             >
                                 <Download size={12} /> Open in Chrome Web Store
                                 <ExternalLink size={10} className="opacity-60" />
@@ -514,7 +514,7 @@ export default function ProTradingExtensionPage() {
                     </section>
 
                     {/* usage card */}
-                    <section className="rounded-xl border border-edge bg-card p-5">
+                    <section className="rounded-lg border border-edge bg-card p-5">
                         <h3 className="text-sm font-semibold">Extension requirements</h3>
                         <ul className="mt-3 space-y-2 text-xs text-ink-mute">
                             <li className="flex items-center gap-2">

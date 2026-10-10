@@ -99,7 +99,7 @@ export default function FibonacciCalculator() {
                                 <div className="flex items-center gap-3">
                                     <span
                                         className={cn(
-                                            "w-16 text-center font-mono text-xs font-bold rounded-lg px-2 py-1",
+                                            "w-16 text-center font-numeric text-xs font-bold rounded-lg px-2 py-1",
                                             isKey ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
                                         )}
                                     >
@@ -109,7 +109,7 @@ export default function FibonacciCalculator() {
                                     {level.level === 0.618 && <span className="text-micro font-semibold uppercase text-primary/70">GOLDEN</span>}
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <span className="font-mono text-sm font-bold text-foreground">{level.price}</span>
+                                    <span className="font-numeric text-sm font-bold text-foreground">{level.price}</span>
                                     {copied === idx ? (
                                         <Check size={13} className="text-positive" />
                                     ) : (

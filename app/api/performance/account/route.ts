@@ -257,7 +257,7 @@ export async function GET(
                 {
                     status: 200,
                     headers: {
-                        "Cache-Control": "no-store",
+                      "Cache-Control": "no-store",
                     },
                 }
             );
@@ -291,7 +291,7 @@ export async function GET(
                 {
                     status: 200,
                     headers: {
-                        "Cache-Control": "no-store",
+                      "Cache-Control": "no-store",
                     },
                 }
             );
@@ -497,7 +497,7 @@ export async function GET(
             {
                 status: 200,
                 headers: {
-                    "Cache-Control": "no-store",
+                  "Cache-Control": "no-store",
                 },
             }
         );

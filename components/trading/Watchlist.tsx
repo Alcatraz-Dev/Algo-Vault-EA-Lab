@@ -141,13 +141,13 @@ export default function Watchlist({
     );
 
     return (
-        <div className="flex flex-col rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+        <div className="flex flex-col rounded-lg border border-border bg-card shadow-sm overflow-hidden">
             {/* Pro Terminal Panel Header */}
             <div className="flex items-center justify-between border-b border-border px-3 py-2 bg-card">
                 <div className="flex items-center gap-2">
                     <Eye className="size-3.5 text-muted-foreground" />
                     <h2 className="text-xs font-semibold uppercase tracking-wide text-foreground">Watchlist</h2>
-                    <span className="text-xs text-muted-foreground font-mono">({symbols.length})</span>
+                    <span className="text-xs text-muted-foreground font-numeric">({symbols.length})</span>
                 </div>
                 <div className="flex items-center gap-1">
                     <button
@@ -187,7 +187,7 @@ export default function Watchlist({
                             placeholder="Search market symbol..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full rounded-md border border-border bg-background pl-7 pr-6 py-1 text-xs font-mono outline-none placeholder:text-muted-foreground/60 focus:border-primary/50"
+                            className="w-full rounded-md border border-border bg-background pl-7 pr-6 py-1 text-xs font-numeric outline-none placeholder:text-muted-foreground/60 focus:border-primary/50"
                             autoFocus
                         />
                         {searchQuery && (
@@ -207,7 +207,7 @@ export default function Watchlist({
                                     key={sym}
                                     type="button"
                                     onClick={() => handleAddSymbol(sym)}
-                                    className="flex w-full items-center justify-between rounded px-2 py-1 text-left font-mono text-xs text-foreground/80 transition hover:bg-muted hover:text-foreground"
+                                    className="flex w-full items-center justify-between rounded px-2 py-1 text-left font-numeric text-xs text-foreground/80 transition hover:bg-muted hover:text-foreground"
                                 >
                                     <span>{sym}</span>
                                     <Plus className="size-3 text-primary" />
@@ -252,7 +252,7 @@ export default function Watchlist({
                                 >
                                     <td className="px-3 py-2">
                                         <span className={cn(
-                                            "font-mono text-xs font-bold",
+                                            "font-numeric text-xs font-bold",
                                             isSelected ? "text-primary" : "text-foreground"
                                         )}>
                                             {symbol}
@@ -260,32 +260,32 @@ export default function Watchlist({
                                     </td>
                                     <td className="px-2 py-2 text-right">
                                         {quote ? (
-                                            <span className="font-mono text-xs font-semibold tabular-nums text-foreground">
+                                            <span className="font-numeric text-xs font-semibold tabular-nums text-foreground">
                                                 {quote.bid.toFixed(quote.bid >= 100 ? 2 : quote.bid >= 1 ? 4 : 5)}
                                             </span>
                                         ) : (
-                                            <span className="font-mono text-xs text-muted-foreground">—</span>
+                                            <span className="font-numeric text-xs text-muted-foreground">—</span>
                                         )}
                                     </td>
                                     <td className="px-2 py-2 text-right">
                                         {chg !== null ? (
                                             <span className={cn(
-                                                "font-mono text-xs font-medium tabular-nums",
+                                                "font-numeric text-xs font-medium tabular-nums",
                                                 isPositive ? "text-positive" : "text-negative"
                                             )}>
                                                 {isPositive ? "+" : ""}{chg.toFixed(2)}%
                                             </span>
                                         ) : (
-                                            <span className="font-mono text-xs text-muted-foreground">—</span>
+                                            <span className="font-numeric text-xs text-muted-foreground">—</span>
                                         )}
                                     </td>
                                     <td className="px-2 py-2 text-right">
                                         {quote && quote.spread > 0 ? (
-                                            <span className="font-mono text-micro text-muted-foreground tabular-nums">
+                                            <span className="font-numeric text-micro text-muted-foreground tabular-nums">
                                                 {quote.spread.toFixed(quote.spread >= 1 ? 2 : 4)}
                                             </span>
                                         ) : (
-                                            <span className="font-mono text-xs text-muted-foreground">—</span>
+                                            <span className="font-numeric text-xs text-muted-foreground">—</span>
                                         )}
                                     </td>
                                     <td className="px-1 py-2 text-center">

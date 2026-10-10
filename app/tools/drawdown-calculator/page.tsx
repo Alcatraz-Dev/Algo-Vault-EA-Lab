@@ -104,19 +104,19 @@ export default function DrawdownCalculator() {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <p className="text-micro uppercase text-muted-foreground">Final Balance</p>
-                                        <p className="mt-1 font-mono text-xl font-bold text-foreground">${calc.finalBalance.toLocaleString()}</p>
+                                        <p className="mt-1 font-numeric text-xl font-bold text-foreground">${calc.finalBalance.toLocaleString()}</p>
                                     </div>
                                     <div>
                                         <p className="text-micro uppercase text-muted-foreground">Total Drawdown</p>
-                                        <p className="mt-1 font-mono text-xl font-bold text-negative">-{calc.drawdownPct}%</p>
+                                        <p className="mt-1 font-numeric text-xl font-bold text-negative">-{calc.drawdownPct}%</p>
                                     </div>
                                     <div>
                                         <p className="text-micro uppercase text-muted-foreground">Amount Lost</p>
-                                        <p className="font-mono text-sm font-bold text-negative">${calc.totalDrawdown.toLocaleString()}</p>
+                                        <p className="font-numeric text-sm font-bold text-negative">${calc.totalDrawdown.toLocaleString()}</p>
                                     </div>
                                     <div>
                                         <p className="text-micro uppercase text-muted-foreground">Risk Per Trade</p>
-                                        <p className="font-mono text-sm font-bold text-muted-foreground">${calc.riskPerTrade.toLocaleString()}</p>
+                                        <p className="font-numeric text-sm font-bold text-muted-foreground">${calc.riskPerTrade.toLocaleString()}</p>
                                     </div>
                                 </div>
                             </div>
@@ -130,7 +130,7 @@ export default function DrawdownCalculator() {
                                         const isLast = i === calc.curve.length - 1;
                                         return (
                                             <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                                                <span className="text-[8px] font-mono text-muted-foreground">${val >= 1000 ? `${(val / 1000).toFixed(1)}k` : val}</span>
+                                                <span className="text-[8px] font-numeric text-muted-foreground">${val >= 1000 ? `${(val / 1000).toFixed(1)}k` : val}</span>
                                                 <div className={cn("w-full rounded-t transition-all", isLast ? "bg-positive" : "bg-negative/60")} style={{ height: `${height}%` }} />
                                                 <span className="text-[8px] text-muted-foreground">#{i}</span>
                                             </div>

@@ -21,7 +21,7 @@ export default function GlobalActivity({ clusters }: { clusters: CountryCluster[
   const totalPct = rows.reduce((s, r) => s + r.pct, 0) || 1;
 
   return (
-    <div className="bg-muted/30 border-border rounded-xl p-5 h-full min-h-[220px] flex flex-col">
+    <div className="bg-muted/30 border-border rounded-lg p-5 h-full min-h-[220px] flex flex-col">
       <h3 className="text-sm font-bold text-foreground tracking-tight mb-4">GLOBAL ACTIVITY</h3>
       <div className="flex-1 space-y-2.5">
         {rows.map((r) => (
@@ -30,11 +30,11 @@ export default function GlobalActivity({ clusters }: { clusters: CountryCluster[
             <div className="w-24 text-xs font-medium text-muted-foreground truncate">{r.country}</div>
             <div className="flex-1 h-1.5 bg-muted/60 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-info to-info rounded-full transition-[width] duration-700"
+                className="h-full bg-info rounded-full transition-[width] duration-700"
                 style={{ width: `${(r.pct / totalPct) * 100}%` }}
               />
             </div>
-            <div className="w-10 text-right text-xs font-mono text-foreground">{r.pct}%</div>
+            <div className="w-10 text-right text-xs font-numeric text-foreground">{r.pct}%</div>
           </div>
         ))}
         {rows.length === 0 && (

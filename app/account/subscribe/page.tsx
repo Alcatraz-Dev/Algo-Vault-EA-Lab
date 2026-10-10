@@ -165,13 +165,13 @@ export default function SubscribePage() {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center">
         <Crown className="h-16 w-16 text-muted-foreground" />
-        <h1 className="mt-6 text-3xl font-bold">Sign in to manage your subscription</h1>
+        <h1 className="text-2xl font-semibold tracking-tight mt-6">Sign in to manage your subscription</h1>
         <p className="mt-3 max-w-md text-sm text-muted-foreground">
           You need to be signed in to view and manage your subscription.
         </p>
         <Link
           href="/login?redirect=/account/subscribe"
-          className="mt-8 inline-flex items-center gap-2 rounded-xl bg-foreground px-6 py-3 text-sm font-semibold text-background transition hover:opacity-90"
+          className="mt-8 inline-flex items-center gap-2 rounded-lg bg-foreground px-6 py-3 text-sm font-semibold text-background transition hover:opacity-90"
         >
           Sign In
         </Link>
@@ -195,7 +195,7 @@ export default function SubscribePage() {
             <Sparkles size={13} />
             Subscription Management
           </div>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight md:text-4xl">
+          <h1 className="text-2xl font-semibold tracking-tight mt-4">
             Your Subscription
           </h1>
           <p className="mt-2 max-w-xl text-sm leading-7 text-muted-foreground">
@@ -236,7 +236,7 @@ export default function SubscribePage() {
                   <button
                     onClick={() => handleUpgrade("pro")}
                     disabled={actionLoading}
-                    className="flex items-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-sm font-semibold text-background transition hover:opacity-90 disabled:opacity-40"
+                    className="flex items-center gap-2 rounded-lg bg-foreground px-4 py-2.5 text-sm font-semibold text-background transition hover:opacity-90 disabled:opacity-40"
                   >
                     {actionLoading ? <Loader2 size={15} className="animate-spin" /> : <Zap size={15} />}
                     Upgrade to Pro
@@ -244,7 +244,7 @@ export default function SubscribePage() {
                   <button
                     onClick={() => handleUpgrade("enterprise")}
                     disabled={actionLoading}
-                    className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium transition hover:bg-muted"
+                    className="flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium transition hover:bg-muted"
                   >
                     <Crown size={15} />
                     Enterprise
@@ -254,7 +254,7 @@ export default function SubscribePage() {
                 <>
                   <button
                     onClick={handleManageBilling}
-                    className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium transition hover:bg-muted"
+                    className="flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium transition hover:bg-muted"
                   >
                     <CreditCard size={15} />
                     Manage Billing
@@ -263,7 +263,7 @@ export default function SubscribePage() {
                     <button
                       onClick={handleCancel}
                       disabled={actionLoading}
-                      className="flex items-center gap-2 rounded-xl border border-destructive/20 px-4 py-2.5 text-sm font-medium text-destructive transition hover:bg-destructive/10 disabled:opacity-40"
+                      className="flex items-center gap-2 rounded-lg border border-destructive/20 px-4 py-2.5 text-sm font-medium text-destructive transition hover:bg-destructive/10 disabled:opacity-40"
                     >
                       {actionLoading ? <Loader2 size={15} className="animate-spin" /> : <LogOut size={15} />}
                       Cancel
@@ -367,7 +367,7 @@ export default function SubscribePage() {
               </div>
               )}
               <div className="flex items-center gap-3">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${tier.highlighted ? "bg-foreground text-background" : "bg-muted"}`}>
+                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${tier.highlighted ? "bg-foreground text-background" : "bg-muted"}`}>
                   <tier.icon size={20} />
                 </div>
                 <div>
@@ -395,7 +395,7 @@ export default function SubscribePage() {
 
         {/* TradingView Benefits */}
         {subscription.plan !== "free" && (
-          <div className="mt-8 rounded-lg border border-chart-3/30 bg-gradient-to-br from-chart-3/10 to-chart-4/5 p-6">
+          <div className="mt-8 rounded-lg border border-chart-3/30 bg-chart-3/10 p-6">
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <Sparkles size={20} className="text-primary" />
               TradingView Pro Charts
@@ -444,21 +444,21 @@ export default function SubscribePage() {
 
         {/* Trust signals */}
         <div className="mt-10 grid gap-4 sm:grid-cols-3">
-          <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-4">
+          <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-4">
             <ShieldCheck size={18} className="text-positive shrink-0" />
             <div>
               <p className="text-sm font-medium">Secure Payment</p>
               <p className="text-xs text-muted-foreground">Powered by Stripe</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-4">
+          <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-4">
             <RefreshCw size={18} className="text-info shrink-0" />
             <div>
               <p className="text-sm font-medium">Cancel Anytime</p>
               <p className="text-xs text-muted-foreground">No long-term commitment</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-4">
+          <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-4">
             <Gift size={18} className="text-primary shrink-0" />
             <div>
               <p className="text-sm font-medium">14-Day Refund</p>

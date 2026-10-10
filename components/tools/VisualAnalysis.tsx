@@ -128,7 +128,7 @@ export default function VisualAnalysis() {
     const tp = overallSignal === "bullish" ? h + (h - l) * 0.5 : l - (h - l) * 0.5;
     const sl = overallSignal === "bullish" ? l - (h - l) * 0.2 : h + (h - l) * 0.2;
 
-    const inputClass = "w-full rounded-xl border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-violet-500 focus:outline-none";
+    const inputClass = "w-full rounded-lg border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none";
 
     return (
         <div className="space-y-6">
@@ -136,7 +136,7 @@ export default function VisualAnalysis() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h2 className="flex items-center gap-2 text-lg font-semibold">
-                        <Eye size={20} className="text-violet-400" />
+                        <Eye size={20} className="text-primary" />
                         Visual Analysis
                     </h2>
                     <p className="mt-1 text-sm text-muted-foreground">
@@ -144,8 +144,8 @@ export default function VisualAnalysis() {
                     </p>
                 </div>
                 <div className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${
-                    overallSignal === "bullish" ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400" :
-                    overallSignal === "bearish" ? "border border-rose-500/30 bg-rose-500/10 text-rose-400" :
+                    overallSignal === "bullish" ? "border border-positive/30 bg-positive/10 text-positive" :
+                    overallSignal === "bearish" ? "border border-negative/30 bg-negative/10 text-negative" :
                     "border border-border bg-muted text-muted-foreground"
                 }`}>
                     {overallSignal === "bullish" ? <TrendingUp size={16} /> : overallSignal === "bearish" ? <TrendingDown size={16} /> : <Minus size={16} />}
@@ -200,8 +200,8 @@ export default function VisualAnalysis() {
                         <input type="number" step="0.01" value={prevClose} onChange={(e) => setPrevClose(e.target.value)} className={inputClass} />
                     </div>
                     <div className="flex items-end">
-                        <div className={`w-full rounded-xl p-3 text-center text-sm font-semibold ${
-                            c > pc ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400" : "border border-rose-500/30 bg-rose-500/10 text-rose-400"
+                        <div className={`w-full rounded-lg p-3 text-center text-sm font-semibold ${
+                            c > pc ? "border border-positive/30 bg-positive/10 text-positive" : "border border-negative/30 bg-negative/10 text-negative"
                         }`}>
                             {c > pc ? "+" : ""}{((c - pc) / pc * 100).toFixed(3)}%
                         </div>
@@ -213,20 +213,20 @@ export default function VisualAnalysis() {
                 {/* Indicators */}
                 <div className="lg:col-span-2 rounded-lg border border-border bg-card p-5">
                     <h3 className="flex items-center gap-2 font-semibold">
-                        <Activity size={16} className="text-violet-400" /> Indicators
+                        <Activity size={16} className="text-primary" /> Indicators
                     </h3>
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
                         {indicators.map((ind) => (
-                            <div key={ind.name} className={`rounded-xl border p-4 ${
-                                ind.signal === "bullish" ? "border-emerald-500/20 bg-emerald-500/5" :
-                                ind.signal === "bearish" ? "border-rose-500/20 bg-rose-500/5" :
+                            <div key={ind.name} className={`rounded-lg border p-4 ${
+                                ind.signal === "bullish" ? "border-positive/20 bg-positive/5" :
+                                ind.signal === "bearish" ? "border-negative/20 bg-negative/5" :
                                 "border-border bg-muted/30"
                             }`}>
                                 <div className="flex items-center justify-between">
                                     <span className="text-xs font-medium text-muted-foreground">{ind.name}</span>
                                     <span className={`text-xs font-semibold ${
-                                        ind.signal === "bullish" ? "text-emerald-400" :
-                                        ind.signal === "bearish" ? "text-rose-400" :
+                                        ind.signal === "bullish" ? "text-positive" :
+                                        ind.signal === "bearish" ? "text-negative" :
                                         "text-muted-foreground"
                                     }`}>
                                         {ind.signal === "bullish" ? "BULL" : ind.signal === "bearish" ? "BEAR" : "NEUTRAL"}
@@ -239,22 +239,22 @@ export default function VisualAnalysis() {
                     </div>
 
                     {/* Signal Summary */}
-                    <div className="mt-4 flex items-center gap-4 rounded-xl border border-border bg-muted/30 p-4">
+                    <div className="mt-4 flex items-center gap-4 rounded-lg border border-border bg-muted/30 p-4">
                         <div className="flex items-center gap-2">
-                            <ArrowUpRight size={14} className="text-emerald-400" />
+                            <ArrowUpRight size={14} className="text-positive" />
                             <span className="text-sm font-medium">{bullishCount} Bullish</span>
                         </div>
                         <div className="flex-1">
                             <div className="h-2 overflow-hidden rounded-full bg-muted">
                                 <div
-                                    className="h-full rounded-full bg-emerald-500 transition-all"
+                                    className="h-full rounded-full bg-positive transition-all"
                                     style={{ width: `${(bullishCount / indicators.length) * 100}%` }}
                                 />
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
                             <span className="text-sm font-medium">{bearishCount} Bearish</span>
-                            <ArrowDownRight size={14} className="text-rose-400" />
+                            <ArrowDownRight size={14} className="text-negative" />
                         </div>
                     </div>
                 </div>
@@ -262,13 +262,13 @@ export default function VisualAnalysis() {
                 {/* Key Levels */}
                 <div className="rounded-lg border border-border bg-card p-5">
                     <h3 className="flex items-center gap-2 font-semibold">
-                        <Layers size={16} className="text-violet-400" /> Key Levels
+                        <Layers size={16} className="text-primary" /> Key Levels
                     </h3>
                     <div className="mt-4 space-y-2">
                         {levels.map((level, i) => (
-                            <div key={i} className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 px-4 py-3">
+                            <div key={i} className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-3">
                                 <div className={`h-8 w-1 rounded-full ${
-                                    level.type === "support" ? "bg-emerald-500" : "bg-rose-500"
+                                    level.type === "support" ? "bg-positive" : "bg-negative"
                                 }`} />
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between">
@@ -279,10 +279,10 @@ export default function VisualAnalysis() {
                                             {level.strength}
                                         </span>
                                     </div>
-                                    <p className="text-sm font-mono font-bold">{level.price.toFixed(2)}</p>
+                                    <p className="text-sm font-numeric font-bold">{level.price.toFixed(2)}</p>
                                 </div>
                                 <span className={`text-micro font-semibold uppercase ${
-                                    level.type === "support" ? "text-emerald-400" : "text-rose-400"
+                                    level.type === "support" ? "text-positive" : "text-negative"
                                 }`}>
                                     {level.type === "support" ? "SUP" : "RES"}
                                 </span>
@@ -291,7 +291,7 @@ export default function VisualAnalysis() {
                     </div>
 
                     {/* Price Position */}
-                    <div className="mt-4 rounded-xl border border-border bg-muted/30 p-4">
+                    <div className="mt-4 rounded-lg border border-border bg-muted/30 p-4">
                         <p className="text-micro font-semibold uppercase text-muted-foreground">Price Position</p>
                         <div className="mt-2 relative h-40 w-full">
                             <div className="absolute inset-0 flex flex-col justify-between">
@@ -302,11 +302,11 @@ export default function VisualAnalysis() {
                                         <div
                                             key={i}
                                             className={`absolute w-full border-t border-dashed ${
-                                                level.type === "support" ? "border-emerald-500/40" : "border-rose-500/40"
+                                                level.type === "support" ? "border-positive/40" : "border-negative/40"
                                             }`}
                                             style={{ bottom: `${pct}%` }}
                                         >
-                                            <span className="absolute -top-3 right-0 text-micro font-mono text-muted-foreground">
+                                            <span className="absolute -top-3 right-0 text-micro font-numeric text-muted-foreground">
                                                 {level.price.toFixed(2)}
                                             </span>
                                         </div>
@@ -332,30 +332,30 @@ export default function VisualAnalysis() {
             {/* Trade Plan */}
             <div className="rounded-lg border border-border bg-card p-5">
                 <h3 className="flex items-center gap-2 font-semibold">
-                    <Target size={16} className="text-violet-400" /> Suggested Trade Plan
+                    <Target size={16} className="text-primary" /> Suggested Trade Plan
                 </h3>
                 <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                    <div className="rounded-xl border border-border bg-muted/30 p-4">
+                    <div className="rounded-lg border border-border bg-muted/30 p-4">
                         <p className="text-micro font-semibold uppercase text-muted-foreground">Entry Zone</p>
-                        <p className="mt-1 text-lg font-bold font-mono">
+                        <p className="mt-1 text-lg font-bold font-numeric">
                             {c.toFixed(2)}
                         </p>
                         <p className="mt-0.5 text-micro text-muted-foreground">
                             Current close price
                         </p>
                     </div>
-                    <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
-                        <p className="text-micro font-semibold uppercase text-emerald-400">Take Profit</p>
-                        <p className="mt-1 text-lg font-bold font-mono text-emerald-400">
+                    <div className="rounded-lg border border-positive/20 bg-positive/5 p-4">
+                        <p className="text-micro font-semibold uppercase text-positive">Take Profit</p>
+                        <p className="mt-1 text-lg font-bold font-numeric text-positive">
                             {tp > 0 ? tp.toFixed(2) : "\u2014"}
                         </p>
                         <p className="mt-0.5 text-micro text-muted-foreground">
                             {((Math.abs(tp - c) / c) * 100).toFixed(2)}% target
                         </p>
                     </div>
-                    <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-4">
-                        <p className="text-micro font-semibold uppercase text-rose-400">Stop Loss</p>
-                        <p className="mt-1 text-lg font-bold font-mono text-rose-400">
+                    <div className="rounded-lg border border-negative/20 bg-negative/5 p-4">
+                        <p className="text-micro font-semibold uppercase text-negative">Stop Loss</p>
+                        <p className="mt-1 text-lg font-bold font-numeric text-negative">
                             {sl > 0 ? sl.toFixed(2) : "\u2014"}
                         </p>
                         <p className="mt-0.5 text-micro text-muted-foreground">
@@ -363,7 +363,7 @@ export default function VisualAnalysis() {
                         </p>
                     </div>
                 </div>
-                <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-400">
+                <div className="mt-4 rounded-lg border border-warning/20 bg-warning/5 p-3 text-xs text-warning">
                     This is a basic technical analysis tool. Always verify with additional analysis and your own risk management before placing trades.
                 </div>
             </div>

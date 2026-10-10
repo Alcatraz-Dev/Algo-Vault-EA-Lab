@@ -32,7 +32,7 @@ export function ToolUpgradeCTA({
 
     if (variant === "card") {
         return (
-            <div className="relative rounded-lg border border-primary/25 bg-gradient-to-br from-primary/[0.07] via-primary/[0.03] to-transparent p-5">
+            <div className="relative rounded-lg border border-primary/25 bg-primary/10 p-5">
                 <div className="flex items-start gap-3">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
                         <Lock className="size-4" />
@@ -77,8 +77,8 @@ export function ToolUpgradeCTA({
     }
 
     return (
-        <div className="relative overflow-hidden rounded-lg border border-primary/25 bg-gradient-to-br from-primary/[0.08] via-card to-primary/[0.04]">
-            <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
+        <div className="relative overflow-hidden rounded-lg border border-primary/25 bg-primary/[0.06]">
+            <div className="pointer-events-none absolute hidden -right-16 -top-16 h-48 w-48 rounded-full bg-primary/10" />
             <div className="relative flex flex-col gap-4 p-6 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">

@@ -84,7 +84,7 @@ export function GuardianPanel({
                             <div className="mb-1 flex items-center justify-between gap-2">
                                 <Badge variant="outline">{KIND_LABEL[insight.kind]}</Badge>
                                 {insight.utilizationPct !== null ? (
-                                    <span className="font-mono tabular-nums text-muted-foreground">
+                                    <span className="font-numeric tabular-nums text-muted-foreground">
                                         {insight.utilizationPct.toFixed(0)}%
                                     </span>
                                 ) : null}
@@ -101,7 +101,7 @@ export function GuardianPanel({
                 <div className="border-t border-border p-4 text-xs">
                     <div className="mb-3 flex items-center justify-between">
                         <p className="text-sm font-semibold">AI analysis</p>
-                        <span className="font-mono text-micro text-muted-foreground">
+                        <span className="font-numeric text-micro text-muted-foreground">
                             {analysis.provider} / {analysis.model} · {analysis.creditsCharged} credit(s)
                         </span>
                     </div>
@@ -125,7 +125,7 @@ function Section({ title, tone, items, icon }: { title: string; tone: string; it
     if (items.length === 0) return null;
     return (
         <div>
-            <p className={`mb-1 font-mono text-micro uppercase tracking-wide ${tone}`}>
+            <p className={`mb-1 font-numeric text-micro uppercase tracking-wide ${tone}`}>
                 {icon ? <span className="mr-1 inline-flex align-[-2px]">{icon}</span> : null}
                 {title}
             </p>

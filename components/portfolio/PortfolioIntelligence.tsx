@@ -49,7 +49,7 @@ function Card({
     className?: string;
 }) {
     return (
-        <section className={cn("rounded-xl border border-border bg-card", className)}>
+        <section className={cn("rounded-lg border border-border bg-card", className)}>
             <header className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
                 <h2 className="flex items-center gap-1.5 text-micro font-semibold uppercase tracking-wide text-foreground">
                     {Icon ? <Icon className="size-3 text-primary" /> : null}
@@ -68,7 +68,7 @@ function Stat({ label, value, hint, tone }: { label: string; value: string; hint
             <div className="text-micro uppercase tracking-wide text-muted-foreground">{label}</div>
             <div
                 className={cn(
-                    "font-mono text-sm tabular-nums",
+                  "font-numeric text-sm tabular-nums",
                     tone === "good" ? "text-positive" : tone === "warn" ? "text-warning" : tone === "bad" ? "text-negative" : "text-foreground"
                 )}
             >
@@ -134,7 +134,7 @@ function CorrelationMatrixPanel({ snapshot }: { snapshot: PortfolioSnapshotPaylo
                         <tr>
                             <th className="sticky left-0 bg-card" />
                             {matrix.symbols.map((s) => (
-                                <th key={s} className="px-1.5 py-1 text-left font-mono font-semibold text-muted-foreground">
+                                <th key={s} className="px-1.5 py-1 text-left font-numeric font-semibold text-muted-foreground">
                                     {s}
                                 </th>
                             ))}
@@ -143,7 +143,7 @@ function CorrelationMatrixPanel({ snapshot }: { snapshot: PortfolioSnapshotPaylo
                     <tbody>
                         {matrix.symbols.map((rowSymbol, i) => (
                             <tr key={rowSymbol}>
-                                <th className="sticky left-0 bg-card px-1.5 py-1 text-right font-mono font-semibold text-muted-foreground">
+                                <th className="sticky left-0 bg-card px-1.5 py-1 text-right font-numeric font-semibold text-muted-foreground">
                                     {rowSymbol}
                                 </th>
                                 {matrix.symbols.map((colSymbol, j) => {
@@ -151,7 +151,7 @@ function CorrelationMatrixPanel({ snapshot }: { snapshot: PortfolioSnapshotPaylo
                                     return (
                                         <td
                                             key={colSymbol}
-                                            className="rounded px-1.5 py-1 text-center font-mono tabular-nums"
+                                            className="rounded px-1.5 py-1 text-center font-numeric tabular-nums"
                                             style={{ backgroundColor: c.bg === "bg-muted/30" ? undefined : c.bg }}
                                             title={`${rowSymbol} vs ${colSymbol}: ${c.text}`}
                                         >
@@ -279,7 +279,7 @@ function AllocationPanel() {
                         <tbody className="divide-y divide-border/50">
                             {result.recommendations.map((r) => (
                                 <tr key={r.strategyId} title={r.rationale.join(" ")}>
-                                    <td className="px-2 py-1.5 font-mono text-foreground">{r.strategyId}</td>
+                                    <td className="px-2 py-1.5 font-numeric text-foreground">{r.strategyId}</td>
                                     <td className="px-2 py-1.5">
                                         <span
                                             className={cn(
@@ -296,9 +296,9 @@ function AllocationPanel() {
                                             {r.action}
                                         </span>
                                     </td>
-                                    <td className="px-2 py-1.5 text-right font-mono tabular-nums text-muted-foreground">{fmtPct(r.currentWeight)}</td>
-                                    <td className="px-2 py-1.5 text-right font-mono tabular-nums text-foreground">{fmtPct(r.targetWeight)}</td>
-                                    <td className="px-2 py-1.5 text-right font-mono tabular-nums text-muted-foreground">{(r.confidence * 100).toFixed(0)}%</td>
+                                    <td className="px-2 py-1.5 text-right font-numeric tabular-nums text-muted-foreground">{fmtPct(r.currentWeight)}</td>
+                                    <td className="px-2 py-1.5 text-right font-numeric tabular-nums text-foreground">{fmtPct(r.targetWeight)}</td>
+                                    <td className="px-2 py-1.5 text-right font-numeric tabular-nums text-muted-foreground">{(r.confidence * 100).toFixed(0)}%</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -359,7 +359,7 @@ function StressPanel({ snapshot }: { snapshot: PortfolioSnapshotPayload }) {
                                 <span className="text-xs font-semibold text-foreground">{s.scenario.name}</span>
                                 <span
                                     className={cn(
-                                        "rounded border px-1.5 py-0.5 text-micro font-bold tracking-wide",
+                                      "rounded border px-1.5 py-0.5 text-micro font-bold tracking-wide",
                                         s.scenario.basis === "HISTORICAL"
                                             ? "border-positive/40 text-positive"
                                             : "border-warning/40 text-warning"
@@ -372,13 +372,13 @@ function StressPanel({ snapshot }: { snapshot: PortfolioSnapshotPayload }) {
                             <div className="mt-1 flex items-baseline gap-2">
                                 <span
                                     className={cn(
-                                        "font-mono text-sm tabular-nums",
+                                      "font-numeric text-sm tabular-nums",
                                         s.pnlImpact < 0 ? "text-negative" : "text-positive"
                                     )}
                                 >
                                     {fmtMoney(s.pnlImpact)}
                                 </span>
-                                <span className="font-mono text-micro text-muted-foreground">{s.pnlImpactPercent.toFixed(2)}% of equity</span>
+                                <span className="font-numeric text-micro text-muted-foreground">{s.pnlImpactPercent.toFixed(2)}% of equity</span>
                             </div>
                             {s.breaches.length > 0 ? (
                                 <ul className="mt-1 space-y-0.5">
@@ -421,7 +421,7 @@ export function PortfolioIntelligence({ portfolioId }: { portfolioId?: string })
     if (error) {
         return (
             <div className="space-y-3">
-                <div className="rounded-xl border border-warning/30 bg-warning/[0.04] p-4">
+                <div className="rounded-lg border border-warning/30 bg-warning/[0.04] p-4">
                     <div className="flex items-center gap-2 text-sm font-semibold text-warning">
                         <TriangleAlert className="size-4" /> Portfolio intelligence unavailable
                     </div>
@@ -449,13 +449,13 @@ export function PortfolioIntelligence({ portfolioId }: { portfolioId?: string })
     return (
         <div className="space-y-3">
             {/* ── Header ─────────────────────────────────────────────────── */}
-            <header className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card px-3 py-2.5">
+            <header className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2.5">
                 <div className="flex items-center gap-2">
                     <Boxes className="size-4 text-primary" />
                     <h1 className="text-sm font-semibold text-foreground">Portfolio Intelligence</h1>
                     <span
                         className={cn(
-                            "rounded border px-1.5 py-0.5 text-micro font-bold tracking-wide",
+                          "rounded border px-1.5 py-0.5 text-micro font-bold tracking-wide",
                             freshness?.freshness === "FRESH"
                                 ? "border-positive/40 text-positive"
                                 : freshness?.freshness === "STALE"
@@ -467,8 +467,8 @@ export function PortfolioIntelligence({ portfolioId }: { portfolioId?: string })
                     </span>
                 </div>
                 <div className="flex items-center gap-3">
-                    <span className="font-mono text-micro text-muted-foreground">Updated {fmtAge(freshness)}</span>
-                    <span className="rounded border border-border px-1.5 py-0.5 font-mono text-micro text-muted-foreground">
+                    <span className="font-numeric text-micro text-muted-foreground">Updated {fmtAge(freshness)}</span>
+                    <span className="rounded border border-border px-1.5 py-0.5 font-numeric text-micro text-muted-foreground">
                         Regime {data.regime} · {(data.regimeState.confidence * 100).toFixed(0)}%
                     </span>
                     <button
@@ -548,7 +548,7 @@ export function PortfolioIntelligence({ portfolioId }: { portfolioId?: string })
                                     {w.severity}
                                 </span>
                                 <div className="min-w-0">
-                                    <div className="font-mono text-micro uppercase tracking-wide text-muted-foreground">{w.code}</div>
+                                    <div className="font-numeric text-micro uppercase tracking-wide text-muted-foreground">{w.code}</div>
                                     <p className="text-xs text-foreground">{w.message}</p>
                                     {w.detail ? <p className="mt-0.5 text-micro leading-4 text-muted-foreground">{w.detail}</p> : null}
                                 </div>

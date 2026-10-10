@@ -257,7 +257,7 @@ function TeamWorkspaceView(props: WorkspaceProps & { uid: string | null }) {
     return (
         <div className="flex flex-col gap-3">
             {/* ── Team header ─────────────────────────────────────────── */}
-            <div className="rounded-xl border border-border/60 bg-card/60 p-4">
+            <div className="rounded-lg border border-border/60 bg-card/60 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
@@ -268,7 +268,7 @@ function TeamWorkspaceView(props: WorkspaceProps & { uid: string | null }) {
                                 <ArrowLeft className="size-3.5" /> Teams
                             </Link>
                             <span className="text-muted-foreground/50">/</span>
-                            <h1 className="text-lg font-bold tracking-tight">{team.name}</h1>
+                            <h1 className="text-2xl font-semibold tracking-tight">{team.name}</h1>
                             {run ? <StatusBadge tone={runStatusTone as never} label={run.status} dot pulse={isRunning} /> : null}
                         </div>
                         <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-micro">
@@ -371,7 +371,7 @@ function TeamWorkspaceView(props: WorkspaceProps & { uid: string | null }) {
             <div className="grid gap-3 lg:grid-cols-12">
                 {/* ── LEFT: team members ──────────────────────────────── */}
                 <aside className={cn("lg:col-span-3", mobileTab !== "team" && "hidden md:block")}>
-                    <div className="rounded-xl border border-border/60 bg-card/60 p-3">
+                    <div className="rounded-lg border border-border/60 bg-card/60 p-3">
                         <SectionHeader
                             title="Agents"
                             meta={<span className="text-micro text-muted-foreground">{agents.length} members</span>}
@@ -424,7 +424,7 @@ function TeamWorkspaceView(props: WorkspaceProps & { uid: string | null }) {
 
                 {/* ── CENTER: command center graph ────────────────────── */}
                 <section className={cn("lg:col-span-6", mobileTab !== "team" && "hidden md:block")}>
-                    <div className="rounded-xl border border-border/60 bg-card/40 p-3 sm:p-4">
+                    <div className="rounded-lg border border-border/60 bg-card/40 p-3 sm:p-4">
                         <SectionHeader
                             title="AI command center"
                             description={
@@ -473,7 +473,7 @@ function TeamWorkspaceView(props: WorkspaceProps & { uid: string | null }) {
                     </div>
 
                     {/* Run history */}
-                    <div className="mt-3 rounded-xl border border-border/60 bg-card/40 p-3">
+                    <div className="mt-3 rounded-lg border border-border/60 bg-card/40 p-3">
                         <SectionHeader title="Team runs" icon={<History className="size-4" />} />
                         {history.length === 0 ? (
                             <p className="mt-2 text-xs text-muted-foreground">No runs yet for this team.</p>
@@ -510,7 +510,7 @@ function TeamWorkspaceView(props: WorkspaceProps & { uid: string | null }) {
                 <aside className={cn("lg:col-span-3", mobileTab !== "evidence" && "hidden md:block")}>
                     <div className="flex flex-col gap-3">
                         {run?.synthesis ? (
-                            <div className="rounded-xl border border-primary/30 bg-card/70 p-3">
+                            <div className="rounded-lg border border-primary/30 bg-card/70 p-3">
                                 <SectionHeader
                                     title="Chief Analyst brief"
                                     icon={<Sparkles className="size-4 text-primary" />}
@@ -521,7 +521,7 @@ function TeamWorkspaceView(props: WorkspaceProps & { uid: string | null }) {
                             </div>
                         ) : null}
 
-                        <div className="rounded-xl border border-border/60 bg-card/60 p-3">
+                        <div className="rounded-lg border border-border/60 bg-card/60 p-3">
                             <SectionHeader
                                 title="Live evidence"
                                 description="Classified observations with sources"
@@ -556,7 +556,7 @@ function TeamWorkspaceView(props: WorkspaceProps & { uid: string | null }) {
 
                 {/* ── BOTTOM: execution timeline ───────────────────────── */}
                 <div className="lg:col-span-12">
-                    <div className="rounded-xl border border-border/60 bg-card/60 p-3">
+                    <div className="rounded-lg border border-border/60 bg-card/60 p-3">
                         <SectionHeader
                             title="Team timeline"
                             description="Execution order, completions and failures"

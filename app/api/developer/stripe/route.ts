@@ -112,11 +112,11 @@ async function authenticateDeveloper(request: NextRequest) {
 
 /**
  * GET
- *
+  *
  * Returns the current Stripe Connect status (from Stripe, the source of
  * truth) and refreshes the local cache using the shared helpers in
  * `lib/stripe-connect-utils.ts`.
- */
+    */
 export async function GET(request: NextRequest) {
     try {
         const auth = await authenticateDeveloper(request);
@@ -196,11 +196,11 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST
- *
+  *
  * Creates (or reuses) the developer's V2 Stripe Connect account and generates
  * the onboarding link. Idempotent: an existing `stripeConnect.accountId` is
  * always reused, never duplicated.
- */
+    */
 export async function POST(request: NextRequest) {
     try {
         const auth = await authenticateDeveloper(request);

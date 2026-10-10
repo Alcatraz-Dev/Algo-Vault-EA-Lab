@@ -147,7 +147,7 @@ export default function AccountTraderProfilePage() {
                       {data.recentRewards.map((entry) => (
                         <TableRow key={entry.rewardId}>
                           <TableCell className="text-xs">{entry.rewardType.replace(/_/g, " ")}</TableCell>
-                          <TableCell className={`text-right font-mono text-xs ${entry.amount < 0 ? "text-negative" : ""}`}>
+                          <TableCell className={`text-right font-numeric text-xs ${entry.amount < 0 ? "text-negative" : ""}`}>
                             {entry.amount > 0 ? "+" : ""}
                             {entry.amount} <span className="text-muted-foreground">{entry.unit}</span>
                           </TableCell>
@@ -188,19 +188,19 @@ export default function AccountTraderProfilePage() {
                   {profile.history.map((item) => (
                     <TableRow key={item.attemptId}>
                       <TableCell>
-                        <Link href={`/account/performance-arena/attempts/${item.attemptId}`} className="font-mono text-xs text-primary hover:underline">
+                        <Link href={`/account/performance-arena/attempts/${item.attemptId}`} className="font-numeric text-xs text-primary hover:underline">
                           {item.definitionKey}
                         </Link>
                       </TableCell>
                       <TableCell><ChallengeStatusBadge status={item.status} /></TableCell>
-                      <TableCell className={`text-right font-mono text-xs ${item.totalReturnPct >= 0 ? "text-positive" : "text-negative"}`}>
+                      <TableCell className={`text-right font-numeric text-xs ${item.totalReturnPct >= 0 ? "text-positive" : "text-negative"}`}>
                         {item.totalReturnPct >= 0 ? "+" : ""}
                         {item.totalReturnPct.toFixed(2)}%
                       </TableCell>
-                      <TableCell className="text-right font-mono text-xs">{item.maxDrawdownPct.toFixed(2)}%</TableCell>
-                      <TableCell className="text-right font-mono text-xs">{item.tradingDays}</TableCell>
-                      <TableCell className="text-right font-mono text-xs">{item.tradeCount}</TableCell>
-                      <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                      <TableCell className="text-right font-numeric text-xs">{item.maxDrawdownPct.toFixed(2)}%</TableCell>
+                      <TableCell className="text-right font-numeric text-xs">{item.tradingDays}</TableCell>
+                      <TableCell className="text-right font-numeric text-xs">{item.tradeCount}</TableCell>
+                      <TableCell className="text-right font-numeric text-xs text-muted-foreground">
                         {new Date(item.startedAt).toLocaleDateString()}
                       </TableCell>
                     </TableRow>

@@ -247,7 +247,7 @@ export default function AccountPluginDetailPage() {
                     title="Plugin not found"
                     description="This plugin is no longer available in the catalog."
                     action={
-                        <Link href="/account/plugins" className="inline-flex items-center gap-2 rounded-xl bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
+                        <Link href="/account/plugins" className="inline-flex items-center gap-2 rounded-lg bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
                             Back to My Plugins
                         </Link>
                     }
@@ -264,7 +264,7 @@ export default function AccountPluginDetailPage() {
                     title={`${plugin.displayName} is not installed`}
                     description="Install this plugin first, then configure and activate it."
                     action={
-                        <Link href={`/marketplace/plugins/${plugin.slug || plugin.id}`} className="inline-flex items-center gap-2 rounded-xl bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
+                        <Link href={`/marketplace/plugins/${plugin.slug || plugin.id}`} className="inline-flex items-center gap-2 rounded-lg bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
                             View in Marketplace
                         </Link>
                     }
@@ -279,7 +279,7 @@ export default function AccountPluginDetailPage() {
             <div className="mb-5 rounded-lg border border-border/30 bg-muted/50 p-5">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex items-start gap-4">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
                             <Plug size={22} className="text-primary" />
                         </div>
                         <div>
@@ -344,7 +344,7 @@ export default function AccountPluginDetailPage() {
                         key={key}
                         type="button"
                         onClick={() => setTab(key)}
-                        className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-medium transition ${
+                        className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-medium transition ${
                             tab === key ? "border-border/50 bg-background text-foreground" : "border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/5"
                         }`}
                     >
@@ -362,7 +362,7 @@ export default function AccountPluginDetailPage() {
                     </p>
 
                     {manifestInterval === "manual" && config?.interval === "manual" && (
-                        <div className="mt-4 rounded-xl border border-warning/30 bg-warning/10 p-3 text-xs text-warning">
+                        <div className="mt-4 rounded-lg border border-warning/30 bg-warning/10 p-3 text-xs text-warning">
                             This plugin is designed for on-demand analysis — set an interval below if you want it to run in the background.
                         </div>
                     )}
@@ -373,7 +373,7 @@ export default function AccountPluginDetailPage() {
                                 value={symbols}
                                 onChange={(e) => setSymbols(e.target.value)}
                                 placeholder="EURUSD, XAUUSD, US30"
-                                className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                                className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                             />
                         </Field>
 
@@ -381,7 +381,7 @@ export default function AccountPluginDetailPage() {
                             <select
                                 value={interval}
                                 onChange={(e) => setInterval(e.target.value)}
-                                className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
+                                className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
                             >
                                 {usableIntervals.map((i) => (
                                     <option key={i} value={i}>
@@ -437,7 +437,7 @@ export default function AccountPluginDetailPage() {
                                 value={quietStart}
                                 onChange={(e) => setQuietStart(e.target.value)}
                                 placeholder="e.g. 22:00"
-                                className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                                className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                             />
                         </Field>
                         <Field label="Quiet hours end (HH:MM)">
@@ -445,7 +445,7 @@ export default function AccountPluginDetailPage() {
                                 value={quietEnd}
                                 onChange={(e) => setQuietEnd(e.target.value)}
                                 placeholder="e.g. 07:00"
-                                className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                                className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                             />
                         </Field>
 
@@ -456,7 +456,7 @@ export default function AccountPluginDetailPage() {
                                 max={1440}
                                 value={cooldown}
                                 onChange={(e) => setCooldown(e.target.value)}
-                                className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
+                                className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
                             />
                         </Field>
                         <Field label={`Max alerts per day — currently ${maxAlerts}`}>
@@ -466,7 +466,7 @@ export default function AccountPluginDetailPage() {
                                 max={200}
                                 value={maxAlerts}
                                 onChange={(e) => setMaxAlerts(e.target.value)}
-                                className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
+                                className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
                             />
                         </Field>
 
@@ -494,7 +494,7 @@ export default function AccountPluginDetailPage() {
                         <button
                             type="button"
                             onClick={() => load()}
-                            className="inline-flex items-center gap-2 rounded-xl border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+                            className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
                         >
                             <RefreshCw size={13} />
                             Reset form
@@ -503,7 +503,7 @@ export default function AccountPluginDetailPage() {
                             type="button"
                             onClick={saveConfig}
                             disabled={saving}
-                            className="inline-flex items-center gap-2 rounded-xl bg-background px-5 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex items-center gap-2 rounded-lg bg-background px-5 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {saving ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
                             Save Configuration
@@ -527,7 +527,7 @@ export default function AccountPluginDetailPage() {
                             <Row label="Installed" value={installation.installedAt ? formatDate(installation.installedAt) : "—"} />
                             <Row label="Version" value={installation.installedVersion || plugin.version} />
                         </dl>
-                        <div className="mt-5 rounded-xl border border-border/30 bg-muted/20 p-4">
+                        <div className="mt-5 rounded-lg border border-border/30 bg-muted/20 p-4">
                             <p className="text-xs leading-6 text-muted-foreground">
                                 {isActive
                                     ? "This plugin is active — the server-side scheduler runs it on the configured interval. Runs happen server-side; nothing executes in your browser."
@@ -545,7 +545,7 @@ export default function AccountPluginDetailPage() {
                             type="button"
                             onClick={() => runAction("execute")}
                             disabled={busy === "execute"}
-                            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {busy === "execute" ? <Loader2 size={14} className="animate-spin" /> : <PlayCircle size={14} />}
                             Run plugin now
@@ -688,7 +688,7 @@ function ActionButton({
             type="button"
             onClick={onClick}
             disabled={busy}
-            className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${tone}`}
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${tone}`}
         >
             {busy ? <Loader2 size={13} className="animate-spin" /> : icon}
             {busy ? "Working..." : label}

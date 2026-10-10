@@ -36,10 +36,10 @@ type ResultFilter = "ALL" | Outcome;
 type SortOrder = "oldest" | "newest";
 
 const OUTCOME_STYLES: Record<Outcome, { bar: string; badge: string; label: string; text: string }> = {
-    WIN: { bar: "bg-emerald-500", badge: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30", label: "WIN", text: "text-emerald-400" },
-    LOSS: { bar: "bg-rose-500", badge: "bg-rose-500/15 text-rose-400 border-rose-500/30", label: "LOSS", text: "text-rose-400" },
-    BREAKEVEN: { bar: "bg-slate-400", badge: "bg-slate-400/15 text-slate-300 border-slate-400/30", label: "BE", text: "text-slate-300" },
-    OTHER: { bar: "bg-amber-500/70", badge: "bg-amber-500/15 text-amber-400 border-amber-500/30", label: "VOID", text: "text-amber-400" },
+    WIN: { bar: "bg-positive", badge: "bg-positive/15 text-positive border-positive/30", label: "WIN", text: "text-positive" },
+    LOSS: { bar: "bg-negative", badge: "bg-negative/15 text-negative border-negative/30", label: "LOSS", text: "text-negative" },
+    BREAKEVEN: { bar: "bg-muted", badge: "bg-muted/15 text-muted-foreground border-border/30", label: "BE", text: "text-muted-foreground" },
+    OTHER: { bar: "bg-warning/70", badge: "bg-warning/15 text-warning border-warning/30", label: "VOID", text: "text-warning" },
 };
 
 function outcomeOf(signal: AISignal): Outcome {
@@ -177,8 +177,8 @@ export default function TradeReplayPage() {
             <div className="flex min-h-screen flex-col bg-background text-foreground">
                 <AccountShell title="Trade Replay Studio">
                     <div className="flex min-h-[420px] flex-col items-center justify-center gap-3">
-                        <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
-                        <span className="font-mono text-xs text-muted-foreground">Booting replay engine…</span>
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <span className="font-numeric text-xs text-muted-foreground">Booting replay engine…</span>
                     </div>
                 </AccountShell>
             </div>
@@ -201,7 +201,7 @@ export default function TradeReplayPage() {
                         </div>
                         <Link
                             href="/login"
-                            className="rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-violet-500"
+                            className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm transition hover:bg-primary"
                         >
                             Sign in
                         </Link>
@@ -224,9 +224,9 @@ export default function TradeReplayPage() {
                             type="button"
                             onClick={() => setActiveTab("terminal")}
                             className={cn(
-                                "flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold shadow-sm transition",
+                              "flex items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-bold shadow-sm transition",
                                 activeTab === "terminal"
-                                    ? "bg-violet-600 text-white shadow-violet-600/25"
+                                    ? "bg-primary text-primary-foreground "
                                     : "bg-muted/50 text-muted-foreground hover:text-foreground"
                             )}
                         >
@@ -236,17 +236,17 @@ export default function TradeReplayPage() {
                             type="button"
                             onClick={() => setActiveTab("signals")}
                             className={cn(
-                                "flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold shadow-sm transition",
+                              "flex items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-bold shadow-sm transition",
                                 activeTab === "signals"
-                                    ? "bg-violet-600 text-white shadow-violet-600/25"
+                                    ? "bg-primary text-primary-foreground "
                                     : "bg-muted/50 text-muted-foreground hover:text-foreground"
                             )}
                         >
                             <Sparkles size={15} /> AI Signal Replay
                             <span
                                 className={cn(
-                                    "rounded-md px-1.5 py-0.5 font-mono text-micro",
-                                    activeTab === "signals" ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
+                                    "rounded-md px-1.5 py-0.5 font-numeric text-micro",
+                                    activeTab === "signals" ? "bg-primary/25 text-foreground" : "bg-muted text-muted-foreground"
                                 )}
                             >
                                 {signals.length}
@@ -276,33 +276,33 @@ export default function TradeReplayPage() {
                                         value: `${stats.total}`,
                                         sub: `${stats.resolved} resolved`,
                                         icon: BarChart3,
-                                        tone: "text-violet-400",
+                                        tone: "text-primary",
                                     },
                                     {
                                         label: "Win Rate",
                                         value: stats.resolved > 0 ? `${stats.winRate.toFixed(1)}%` : "—",
                                         sub: `${stats.wins}W / ${stats.losses}L`,
                                         icon: Percent,
-                                        tone: stats.resolved > 0 ? "text-emerald-400" : "text-muted-foreground",
+                                        tone: stats.resolved > 0 ? "text-positive" : "text-muted-foreground",
                                     },
                                     {
                                         label: "Avg R",
                                         value: stats.resolved > 0 ? formatSignedR(stats.avgR) : "—",
                                         sub: "per resolved signal",
                                         icon: Target,
-                                        tone: stats.resolved === 0 ? "text-muted-foreground" : stats.avgR >= 0 ? "text-emerald-400" : "text-rose-400",
+                                        tone: stats.resolved === 0 ? "text-muted-foreground" : stats.avgR >= 0 ? "text-positive" : "text-negative",
                                     },
                                     {
                                         label: "Net R",
                                         value: stats.resolved > 0 ? formatSignedR(stats.netR) : "—",
                                         sub: "cumulative return",
                                         icon: Award,
-                                        tone: stats.resolved === 0 ? "text-muted-foreground" : stats.netR >= 0 ? "text-emerald-400" : "text-rose-400",
+                                        tone: stats.resolved === 0 ? "text-muted-foreground" : stats.netR >= 0 ? "text-positive" : "text-negative",
                                     },
                                 ].map((card) => (
                                     <div
                                         key={card.label}
-                                        className="rounded-lg border border-border/80 bg-card/80 p-4 shadow-xs backdrop-blur-sm"
+                                        className="rounded-lg border border-border/80 bg-card/80 p-4"
                                     >
                                         <div className="flex items-center justify-between">
                                             <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">
@@ -310,14 +310,14 @@ export default function TradeReplayPage() {
                                             </span>
                                             <card.icon size={14} className={card.tone} />
                                         </div>
-                                        <div className={cn("mt-2 font-mono text-xl font-extrabold", card.tone)}>{card.value}</div>
+                                        <div className={cn("mt-2 font-numeric text-xl font-extrabold", card.tone)}>{card.value}</div>
                                         <div className="mt-0.5 text-micro text-muted-foreground">{card.sub}</div>
                                     </div>
                                 ))}
                             </div>
 
                             {/* Filters Bar */}
-                            <div className="flex flex-col gap-3 rounded-lg border border-border/80 bg-card/80 p-3.5 backdrop-blur-xl lg:flex-row lg:items-center">
+                            <div className="flex flex-col gap-3 rounded-lg border border-border/80 bg-card/80 p-3.5 lg:flex-row lg:items-center">
                                 <div className="relative flex flex-1 items-center">
                                     <Search size={15} className="absolute left-3 text-muted-foreground" />
                                     <input
@@ -328,7 +328,7 @@ export default function TradeReplayPage() {
                                             setSearchQuery(e.target.value);
                                             setCurrentIndex(0);
                                         }}
-                                        className="w-full rounded-xl border border-border bg-background py-1.5 pl-9 pr-3 font-mono text-xs outline-none transition focus:border-violet-500"
+                                        className="w-full rounded-lg border border-border bg-background py-1.5 pl-9 pr-3 font-numeric text-xs outline-none transition focus:border-primary"
                                     />
                                 </div>
 
@@ -349,9 +349,9 @@ export default function TradeReplayPage() {
                                                     setCurrentIndex(0);
                                                 }}
                                                 className={cn(
-                                                    "rounded-xl px-3 py-1.5 text-xs font-bold transition",
+                                                  "rounded-lg px-3 py-1.5 text-xs font-bold transition",
                                                     active
-                                                        ? "border border-violet-500/30 bg-violet-500/20 text-violet-300"
+                                                        ? "border border-primary/30 bg-primary/20 text-primary"
                                                         : "bg-muted/40 text-muted-foreground hover:text-foreground"
                                                 )}
                                             >
@@ -366,7 +366,7 @@ export default function TradeReplayPage() {
                                             setTimeframeFilter(e.target.value);
                                             setCurrentIndex(0);
                                         }}
-                                        className="h-8 rounded-xl border border-border bg-background px-2.5 font-mono text-xs text-muted-foreground outline-none transition"
+                                        className="h-8 rounded-lg border border-border bg-background px-2.5 font-numeric text-xs text-muted-foreground outline-none transition"
                                     >
                                         <option value="ALL">All TFs</option>
                                         {timeframes.map((tf) => (
@@ -380,7 +380,7 @@ export default function TradeReplayPage() {
                                             setSortOrder(e.target.value as SortOrder);
                                             setCurrentIndex(0);
                                         }}
-                                        className="h-8 rounded-xl border border-border bg-background px-2.5 font-mono text-xs text-muted-foreground outline-none transition"
+                                        className="h-8 rounded-lg border border-border bg-background px-2.5 font-numeric text-xs text-muted-foreground outline-none transition"
                                     >
                                         <option value="oldest">Oldest first</option>
                                         <option value="newest">Newest first</option>
@@ -390,7 +390,7 @@ export default function TradeReplayPage() {
                                         type="button"
                                         onClick={() => user && void loadSignals(user)}
                                         disabled={loading}
-                                        className="flex h-8 items-center gap-1.5 rounded-xl border border-border bg-background px-2.5 text-xs text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                                        className="flex h-8 items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 text-xs text-muted-foreground transition hover:text-foreground disabled:opacity-50"
                                         title="Reload signal history"
                                     >
                                         <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
@@ -399,12 +399,12 @@ export default function TradeReplayPage() {
                             </div>
 
                             {error && (
-                                <div className="flex items-center justify-between gap-3 rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-300">
+                                <div className="flex items-center justify-between gap-3 rounded-lg border border-negative/30 bg-negative/10 px-4 py-3 text-xs text-negative">
                                     <span>{error}</span>
                                     <button
                                         type="button"
                                         onClick={() => user && void loadSignals(user)}
-                                        className="flex items-center gap-1.5 rounded-lg bg-rose-500/20 px-3 py-1.5 font-bold text-rose-200 transition hover:bg-rose-500/30"
+                                        className="flex items-center gap-1.5 rounded-lg bg-negative/20 px-3 py-1.5 font-bold text-negative transition hover:bg-negative/30"
                                     >
                                         <RefreshCw size={12} /> Retry
                                     </button>
@@ -414,7 +414,7 @@ export default function TradeReplayPage() {
                             {loading && signals.length === 0 ? (
                                 <div className="space-y-3 rounded-lg border border-border/60 bg-card/40 p-6">
                                     <div className="h-8 w-1/3 animate-pulse rounded-lg bg-muted/60" />
-                                    <div className="h-24 animate-pulse rounded-xl bg-muted/40" />
+                                    <div className="h-24 animate-pulse rounded-lg bg-muted/40" />
                                     <div className="h-5 animate-pulse rounded-lg bg-muted/60" />
                                     <div className="h-[420px] animate-pulse rounded-lg bg-muted/30" />
                                 </div>
@@ -429,28 +429,28 @@ export default function TradeReplayPage() {
                                                     className={cn(
                                                         "flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border text-xl font-bold shadow-sm",
                                                         currentSignal.direction === "BUY"
-                                                            ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-400"
-                                                            : "border-rose-500/30 bg-rose-500/15 text-rose-400"
+                                                            ? "border-positive/30 bg-positive/15 text-positive"
+                                                            : "border-negative/30 bg-negative/15 text-negative"
                                                     )}
                                                 >
                                                     {currentSignal.direction === "BUY" ? <TrendingUp size={22} /> : <TrendingDown size={22} />}
                                                 </div>
                                                 <div>
                                                     <div className="flex flex-wrap items-center gap-2">
-                                                        <span className="font-mono text-2xl font-extrabold text-foreground">
+                                                        <span className="font-numeric text-2xl font-extrabold text-foreground">
                                                             {currentSignal.symbol}
                                                         </span>
                                                         <span
                                                             className={cn(
                                                                 "rounded-lg border px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider",
                                                                 currentSignal.direction === "BUY"
-                                                                    ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
-                                                                    : "border-rose-500/20 bg-rose-500/10 text-rose-400"
+                                                                    ? "border-positive/20 bg-positive/10 text-positive"
+                                                                    : "border-negative/20 bg-negative/10 text-negative"
                                                             )}
                                                         >
                                                             {currentSignal.direction}
                                                         </span>
-                                                        <span className="rounded-lg bg-muted px-2.5 py-0.5 font-mono text-xs text-muted-foreground">
+                                                        <span className="rounded-lg bg-muted px-2.5 py-0.5 font-numeric text-xs text-muted-foreground">
                                                             {currentSignal.timeframe}
                                                         </span>
                                                         <span
@@ -462,16 +462,16 @@ export default function TradeReplayPage() {
                                                             {OUTCOME_STYLES[currentOutcome].label} {formatSignedR(currentSignal.resultR)}
                                                         </span>
                                                     </div>
-                                                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-xs text-muted-foreground">
+                                                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-numeric text-xs text-muted-foreground">
                                                         <span>Entry <strong className="text-foreground">{formatPrice(currentSignal.entry)}</strong></span>
-                                                        <span>SL <strong className="text-rose-400">{formatPrice(currentSignal.stopLoss)}</strong></span>
-                                                        <span>TP1 <strong className="text-emerald-400">{formatPrice(currentSignal.tp1)}</strong></span>
-                                                        <span>Confidence <strong className="text-violet-400">{Math.round(currentSignal.confidence)}%</strong></span>
+                                                        <span>SL <strong className="text-negative">{formatPrice(currentSignal.stopLoss)}</strong></span>
+                                                        <span>TP1 <strong className="text-positive">{formatPrice(currentSignal.tp1)}</strong></span>
+                                                        <span>Confidence <strong className="text-primary">{Math.round(currentSignal.confidence)}%</strong></span>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div className="text-left font-mono text-xs text-muted-foreground md:text-right">
+                                            <div className="text-left font-numeric text-xs text-muted-foreground md:text-right">
                                                 <span>
                                                     Signal #{Math.min(currentIndex, filteredSignals.length - 1) + 1} of {filteredSignals.length}
                                                 </span>
@@ -480,7 +480,7 @@ export default function TradeReplayPage() {
                                                 </div>
                                                 <Link
                                                     href={`/signals/${currentSignal.id}`}
-                                                    className="mt-2 inline-flex items-center gap-1 rounded-lg border border-border bg-background px-2.5 py-1 text-micro font-semibold text-foreground transition hover:border-violet-500/40 hover:text-violet-300"
+                                                    className="mt-2 inline-flex items-center gap-1 rounded-lg border border-border bg-background px-2.5 py-1 text-micro font-semibold text-foreground transition hover:border-primary/40 hover:text-primary"
                                                 >
                                                     <ExternalLink size={11} /> Open full dossier
                                                 </Link>
@@ -499,35 +499,35 @@ export default function TradeReplayPage() {
                                                         key: "entry",
                                                         label: "Entry",
                                                         value: currentSignal.entry,
-                                                        tone: "border-violet-500/20 bg-violet-500/5",
+                                                        tone: "border-primary/20 bg-primary/5",
                                                         hit: null as boolean | null,
                                                     },
                                                     {
                                                         key: "sl",
                                                         label: "Stop Loss",
                                                         value: currentSignal.stopLoss,
-                                                        tone: "border-rose-500/20 bg-rose-500/5",
+                                                        tone: "border-negative/20 bg-negative/5",
                                                         hit: currentOutcome === "LOSS" ? true : null,
                                                     },
                                                     {
                                                         key: "tp1",
                                                         label: "TP1",
                                                         value: currentSignal.tp1,
-                                                        tone: "border-emerald-500/20 bg-emerald-500/5",
+                                                        tone: "border-positive/20 bg-positive/5",
                                                         hit: currentSignal.tp1Hit ? true : null,
                                                     },
                                                     {
                                                         key: "tp2",
                                                         label: "TP2",
                                                         value: currentSignal.tp2,
-                                                        tone: "border-emerald-500/20 bg-emerald-500/5",
+                                                        tone: "border-positive/20 bg-positive/5",
                                                         hit: currentSignal.tp2Hit ? true : null,
                                                     },
                                                     {
                                                         key: "tp3",
                                                         label: "TP3",
                                                         value: currentSignal.tp3,
-                                                        tone: "border-emerald-500/20 bg-emerald-500/5",
+                                                        tone: "border-positive/20 bg-positive/5",
                                                         hit: currentSignal.tp3Hit ? true : null,
                                                     },
                                                 ]
@@ -536,13 +536,13 @@ export default function TradeReplayPage() {
                                                         <div
                                                             key={level.key}
                                                             className={cn(
-                                                                "flex items-center justify-between rounded-xl border px-3 py-2 font-mono text-xs",
+                                                              "flex items-center justify-between rounded-lg border px-3 py-2 font-numeric text-xs",
                                                                 level.tone
                                                             )}
                                                         >
                                                             <span className="flex items-center gap-2 text-muted-foreground">
                                                                 {level.hit === true ? (
-                                                                    <CheckCircle2 size={13} className="text-emerald-400" />
+                                                                    <CheckCircle2 size={13} className="text-positive" />
                                                                 ) : level.hit === false ? (
                                                                     <XCircle size={13} className="text-muted-foreground/40" />
                                                                 ) : (
@@ -572,16 +572,16 @@ export default function TradeReplayPage() {
 
                                             {/* Confidence + reasoning */}
                                             <div className="space-y-3 lg:col-span-3">
-                                                <div className="rounded-xl border border-border/60 bg-background/50 p-4">
+                                                <div className="rounded-lg border border-border/60 bg-background/50 p-4">
                                                     <div className="flex items-center justify-between text-micro font-bold uppercase tracking-wider text-muted-foreground">
                                                         <span className="flex items-center gap-1.5">
-                                                            <Sparkles size={12} className="text-violet-400" /> Engine confidence
+                                                            <Sparkles size={12} className="text-primary" /> Engine confidence
                                                         </span>
-                                                        <span className="font-mono text-violet-300">{Math.round(currentSignal.confidence)}%</span>
+                                                        <span className="font-numeric text-primary">{Math.round(currentSignal.confidence)}%</span>
                                                     </div>
                                                     <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
                                                         <div
-                                                            className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-400 transition-all"
+                                                            className="h-full rounded-full bg-primary transition-all"
                                                             style={{ width: `${Math.min(100, Math.max(0, currentSignal.confidence))}%` }}
                                                         />
                                                     </div>
@@ -589,7 +589,7 @@ export default function TradeReplayPage() {
                                                         {currentSignal.reasoning || "No engine reasoning recorded for this signal."}
                                                     </p>
                                                 </div>
-                                                <div className="flex items-center gap-2 font-mono text-micro text-muted-foreground">
+                                                <div className="flex items-center gap-2 font-numeric text-micro text-muted-foreground">
                                                     <Keyboard size={13} />
                                                     Use ← / → to step through the replay timeline
                                                 </div>
@@ -598,7 +598,7 @@ export default function TradeReplayPage() {
 
                                         {/* Timeline scrubber */}
                                         <div className="space-y-2">
-                                            <div className="flex items-center justify-between font-mono text-xs text-muted-foreground">
+                                            <div className="flex items-center justify-between font-numeric text-xs text-muted-foreground">
                                                 <span className="flex items-center gap-3">
                                                     Signal timeline
                                                     <span className="flex items-center gap-2 text-micro">
@@ -612,7 +612,7 @@ export default function TradeReplayPage() {
                                                 </span>
                                                 <span>Select a bar to load its replay context</span>
                                             </div>
-                                            <div className="flex h-5 items-center gap-[3px] overflow-x-auto rounded-xl bg-muted/60 p-1">
+                                            <div className="flex h-5 items-center gap-[3px] overflow-x-auto rounded-lg bg-muted/60 p-1">
                                                 {filteredSignals.map((s, i) => {
                                                     const outcome = outcomeOf(s);
                                                     const active = i === Math.min(currentIndex, filteredSignals.length - 1);
@@ -623,7 +623,7 @@ export default function TradeReplayPage() {
                                                             className={cn(
                                                                 "h-full min-w-[5px] flex-1 cursor-pointer rounded-md transition-all",
                                                                 OUTCOME_STYLES[outcome].bar,
-                                                                active ? "z-10 scale-110 ring-2 ring-violet-500" : "opacity-80 hover:opacity-100"
+                                                                active ? "z-10 scale-110 ring-2 ring-primary" : "opacity-80 hover:opacity-100"
                                                             )}
                                                             style={{ flex: 1 }}
                                                             onClick={() => setCurrentIndex(i)}
@@ -665,7 +665,7 @@ export default function TradeReplayPage() {
                             ) : (
                                 <div className="flex flex-col items-center gap-3 rounded-lg border border-border/60 bg-card/40 p-10 text-center">
                                     <CircleSlash size={28} className="text-muted-foreground/60" />
-                                    <p className="font-mono text-xs text-muted-foreground">
+                                    <p className="font-numeric text-xs text-muted-foreground">
                                         {signals.length === 0
                                             ? "No completed historical signals yet — resolved signals will appear here once the engine closes them out."
                                             : "No signals match the current filters. Try clearing the search or switching outcome."}

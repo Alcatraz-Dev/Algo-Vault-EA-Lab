@@ -122,7 +122,7 @@ export default function AccountChallengeDetailPage() {
                 <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{detail.definition.summary}</p>
               </div>
               <div className="text-right">
-                <p className="font-mono text-2xl font-semibold">
+                <p className="font-numeric text-2xl font-semibold">
                   ${(detail.definition.policy.startingBalanceCents / 100).toLocaleString("en-US")}
                 </p>
                 <p className="text-xs text-muted-foreground">virtual starting capital</p>

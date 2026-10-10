@@ -311,14 +311,14 @@ export function OrderTicket({
                 <div className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-muted/40 px-3 py-2 text-xs">
                     <span className="text-muted-foreground">{symbol} live quote</span>
                     {quote && quoteIsFresh
-                        ? <span className="font-mono font-medium text-foreground">{quote.price.toLocaleString(undefined, { maximumFractionDigits: 6 })} <span className="text-micro text-muted-foreground">{new Date(quote.timestamp).toLocaleTimeString()} · live</span></span>
+                        ? <span className="font-numeric font-medium text-foreground">{quote.price.toLocaleString(undefined, { maximumFractionDigits: 6 })} <span className="text-micro text-muted-foreground">{new Date(quote.timestamp).toLocaleTimeString()} · live</span></span>
                         : <span className="text-warning">{quote ? "Quote stale" : "Quote unavailable"}</span>}
                 </div>
 
                 {orderType !== "market" ? (
                     <label className="block text-xs text-muted-foreground">
                         Pending entry price
-                        <input type="number" inputMode="decimal" step="any" min="0" value={entryPrice} onChange={(event) => setEntryPrice(event.target.value)} disabled={disabled} placeholder="Price" className="mt-1 w-full rounded-md border border-border bg-background px-2 py-2 font-mono text-sm text-foreground" />
+                        <input type="number" inputMode="decimal" step="any" min="0" value={entryPrice} onChange={(event) => setEntryPrice(event.target.value)} disabled={disabled} placeholder="Price" className="mt-1 w-full rounded-md border border-border bg-background px-2 py-2 font-numeric text-sm text-foreground" />
                     </label>
                 ) : null}
 
@@ -328,7 +328,7 @@ export function OrderTicket({
                         variant={side === "long" ? "default" : "outline"}
                         disabled={disabled}
                         onClick={() => setSide("long")}
-                        className={side === "long" ? "bg-positive text-white" : ""}
+                        className={side === "long" ? "bg-positive text-background" : ""}
                     >
                         <ArrowUpRight className="h-3.5 w-3.5" /> Long
                     </Button>
@@ -337,7 +337,7 @@ export function OrderTicket({
                         variant={side === "short" ? "default" : "outline"}
                         disabled={disabled}
                         onClick={() => setSide("short")}
-                        className={side === "short" ? "bg-negative text-white" : ""}
+                        className={side === "short" ? "bg-negative text-background" : ""}
                     >
                         <ArrowDownRight className="h-3.5 w-3.5" /> Short
                     </Button>
@@ -353,7 +353,7 @@ export function OrderTicket({
                             onChange={(e) => setStopLoss(e.target.value)}
                             disabled={disabled}
                             placeholder="price"
-                            className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 font-mono text-sm text-foreground"
+                            className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 font-numeric text-sm text-foreground"
                         />
                     </label>
                     <label className="text-xs text-muted-foreground">
@@ -365,7 +365,7 @@ export function OrderTicket({
                             onChange={(e) => setTakeProfit(e.target.value)}
                             disabled={disabled}
                             placeholder="price"
-                            className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 font-mono text-sm text-foreground"
+                            className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 font-numeric text-sm text-foreground"
                         />
                     </label>
                 </div>
@@ -414,7 +414,7 @@ export function OrderTicket({
                                     value={riskPctInput}
                                     onChange={(e) => setRiskPctInput(e.target.value)}
                                     disabled={disabled}
-                                    className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 font-mono text-sm text-foreground"
+                                    className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 font-numeric text-sm text-foreground"
                                 />
                             </label>
                             {/* The solved size is DERIVED, not stored: showing it here
@@ -423,7 +423,7 @@ export function OrderTicket({
                                 trader is shown and the number that gets submitted. */}
                             <div className="flex items-baseline justify-between gap-3 text-xs">
                                 <span className="text-muted-foreground">= {roundLots(effectiveLotsNumber)} lots</span>
-                                <span className="font-mono tabular-nums text-muted-foreground">
+                                <span className="font-numeric tabular-nums text-muted-foreground">
                                     {stopMicros === null ? "needs a stop-loss" : "solved from stop distance"}
                                 </span>
                             </div>
@@ -444,7 +444,7 @@ export function OrderTicket({
                                 value={lotsInput}
                                 onChange={(e) => setLotsInput(e.target.value)}
                                 disabled={disabled}
-                                className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 font-mono text-sm text-foreground"
+                                className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 font-numeric text-sm text-foreground"
                             />
                         </label>
                     )}
@@ -458,7 +458,7 @@ export function OrderTicket({
                                 disabled={disabled || !quoteIsFresh}
                                 onClick={() => { setSizingMode("risk"); setRiskPctInput(String(pct)); }}
                                 title={`Risk ${pct}% of equity`}
-                                className="rounded border border-border bg-card px-2 py-0.5 font-mono text-micro text-muted-foreground transition hover:border-primary/40 hover:text-foreground disabled:opacity-40"
+                                className="rounded border border-border bg-card px-2 py-0.5 font-numeric text-micro text-muted-foreground transition hover:border-primary/40 hover:text-foreground disabled:opacity-40"
                             >
                                 {pct}%
                             </button>
@@ -471,7 +471,7 @@ export function OrderTicket({
                                 setLotsInput(String(roundLots(centiLotsToLots(ceilingSolve?.ceilings.maxCentiLots ?? 0))));
                             }}
                             title={`Largest legal size right now (${ceilingSolve?.ceilings.bindingGate ?? "n/a"} limit)`}
-                            className="ml-auto rounded border border-border bg-card px-2 py-0.5 font-mono text-micro text-muted-foreground transition hover:border-primary/40 hover:text-foreground disabled:opacity-40"
+                            className="ml-auto rounded border border-border bg-card px-2 py-0.5 font-numeric text-micro text-muted-foreground transition hover:border-primary/40 hover:text-foreground disabled:opacity-40"
                         >
                             Max
                         </button>
@@ -502,7 +502,7 @@ export function OrderTicket({
                 ) : null}
 
                 <Button
-                    className={cn("w-full", side === "long" ? "bg-positive text-white" : "bg-negative text-white")}
+                    className={cn("w-full", side === "long" ? "bg-positive text-background" : "bg-negative text-background")}
                     disabled={!canSubmit}
                     onClick={() => void submit()}
                 >
@@ -553,7 +553,7 @@ function roundLots(value: number): string {
 /**
  * Idempotency key for one submission. Built at submit time (an event handler,
  * not render) so the component stays a pure function of its props and state.
- */
+  */
 function newClientRequestId(attemptId: string): string {
     return `${attemptId}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -573,7 +573,7 @@ function gateLabel(gate: string | undefined): string {
  * The numbers a trader checks before clicking Buy. Reads like a deal ticket:
  * what it costs, what it risks, what it could make, and — critically — which
  * ceiling is currently the binding constraint on size.
- */
+  */
 function SizingPreviewPanel({
     preview,
     symbol,
@@ -618,7 +618,7 @@ function SizingPreviewPanel({
         <div className="space-y-1.5 rounded-md border border-border bg-background/60 p-3">
             <div className="flex items-center justify-between gap-2">
                 <p className="text-xs font-medium text-muted-foreground">Sizing preview</p>
-                <span className="rounded border border-border px-1.5 py-0.5 font-mono text-micro text-muted-foreground">
+                <span className="rounded border border-border px-1.5 py-0.5 font-numeric text-micro text-muted-foreground">
                     limit: {gateLabel(preview.ceilings.bindingGate)}
                 </span>
             </div>
@@ -626,7 +626,7 @@ function SizingPreviewPanel({
                 {rows.map(([label, value]) => (
                     <div key={label} className="flex items-baseline justify-between gap-3 text-micro">
                         <dt className="text-muted-foreground">{label}</dt>
-                        <dd className="text-right font-mono tabular-nums text-foreground">{value}</dd>
+                        <dd className="text-right font-numeric tabular-nums text-foreground">{value}</dd>
                     </div>
                 ))}
             </dl>

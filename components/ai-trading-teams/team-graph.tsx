@@ -216,7 +216,7 @@ export const TeamGraph = memo(function TeamGraph({
                     conflict={false}
                 />
             ) : null}
-            <div className="mx-auto flex w-full max-w-[420px] items-center justify-center gap-2 rounded-xl border border-dashed border-border/70 bg-background/60 px-4 py-3 text-center">
+            <div className="mx-auto flex w-full max-w-[420px] items-center justify-center gap-2 rounded-lg border border-dashed border-border/70 bg-background/60 px-4 py-3 text-center">
                 <span className="h-1.5 w-1.5 rounded-full bg-primary/70" aria-hidden="true" />
                 <span className="text-xs font-medium text-muted-foreground">{substrateLabel}</span>
                 <span className="h-1.5 w-1.5 rounded-full bg-primary/70" aria-hidden="true" />

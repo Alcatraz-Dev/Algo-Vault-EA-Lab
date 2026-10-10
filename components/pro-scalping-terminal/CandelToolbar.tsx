@@ -49,7 +49,7 @@ export function CandelToolbarButton({
     >
       <Sparkles className="h-3.5 w-3.5 transition group-hover:text-primary" />
       <span>Candel</span>
-      <span className="hidden sm:inline text-micro font-mono text-muted-foreground">
+      <span className="hidden sm:inline text-micro font-numeric text-muted-foreground">
         {symbol} {timeframe}
       </span>
       <kbd className="hidden sm:inline-flex h-4 w-4 select-none items-center justify-center rounded border border-border/50 bg-muted px-0.5 text-micro font-medium text-muted-foreground">
@@ -78,7 +78,7 @@ export function CandelContextHeader({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2 border-b border-border/60 px-3 py-2">
-      <span className="font-mono text-sm font-semibold text-foreground">
+      <span className="font-numeric text-sm font-semibold text-foreground">
         {symbol} {timeframe}
       </span>
       {accountLabel ? (

@@ -322,8 +322,8 @@ export default function ProSignalsPage() {
     return (
         <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 blur-[120px]" />
-                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 blur-[120px]" />
+                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 hidden" />
+                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
 
             <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -341,7 +341,7 @@ export default function ProSignalsPage() {
                             <Sparkles size={16} />
                             Institutional signal intelligence
                         </div>
-                        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">AlgoVault Pro Signals</h1>
+                        <h1 className="text-2xl font-semibold tracking-tight mt-2">AlgoVault Pro Signals</h1>
                         <p className="mt-2 text-sm leading-6 text-muted-foreground">
                             Monitor live setups, review exact levels, follow the signals that matter, and send approved orders to MT5.
                         </p>
@@ -352,7 +352,7 @@ export default function ProSignalsPage() {
                             type="button"
                             onClick={handleScan}
                             disabled={scanning}
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
+                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-lg border border-border/30 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
                         >
                             {scanning ? (
                                 <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
@@ -364,7 +364,7 @@ export default function ProSignalsPage() {
 
                         <Link
                             href="/signals/history"
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
+                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-lg border border-border/30 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
                         >
                             <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-positive" />
                             <span>History</span>
@@ -405,7 +405,7 @@ export default function ProSignalsPage() {
                     <ConflictBanner conflicts={conflicts} />
                 </div>
 
-                <div className="mt-6 flex items-center gap-1.5 overflow-x-auto rounded-xl border border-border/30 bg-background p-1 scrollbar-none">
+                <div className="mt-6 flex items-center gap-1.5 overflow-x-auto rounded-lg border border-border/30 bg-background p-1 scrollbar-none">
                     <button
                         type="button"
                         onClick={() => setActiveTab("live")}

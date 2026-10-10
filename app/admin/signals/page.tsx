@@ -175,8 +175,8 @@ export default function AdminSignalsPage() {
         return (
             <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
                 <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                    <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 blur-[120px]" />
-                    <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 blur-[120px]" />
+                    <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 hidden" />
+                    <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
                 </div>
                 <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 flex items-center justify-center min-h-screen">
                     <RefreshCw className="h-8 w-8 animate-spin text-warning" />
@@ -189,12 +189,12 @@ export default function AdminSignalsPage() {
         return (
             <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
                 <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                    <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 blur-[120px]" />
-                    <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 blur-[120px]" />
+                    <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 hidden" />
+                    <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
                 </div>
                 <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-screen gap-4">
                     <AlertCircle className="h-12 w-12 text-negative" />
-                    <h1 className="text-2xl font-bold">Access Denied</h1>
+                    <h1 className="text-2xl font-semibold tracking-tight">Access Denied</h1>
                     <p className="text-muted-foreground">You do not have admin privileges.</p>
                     <Link href="/admin" className="text-warning hover:underline text-sm">Return to Admin</Link>
                 </div>
@@ -209,14 +209,14 @@ export default function AdminSignalsPage() {
         <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
             {/* BACKGROUND GRADIENT GLOWS */}
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 blur-[120px]" />
-                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 blur-[120px]" />
+                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 hidden" />
+                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
 
             {/* TOAST */}
             {toast && (
                 <div className="fixed top-4 right-4 z-50 animate-in fade-in slide-in-from-top-4">
-                    <div className={`flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium shadow-2xl backdrop-blur-xl ${
+                    <div className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium shadow-2xl backdrop-blur-xl ${
                         toast.type === "success"
                             ? "border-positive/30 bg-positive/10 text-positive"
                             : "border-negative/30 bg-negative/10 text-negative"
@@ -244,7 +244,7 @@ export default function AdminSignalsPage() {
                             AI Signal Engine Configuration
                         </div>
 
-                        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
+                        <h1 className="text-2xl font-semibold tracking-tight mt-2">
                             AI Signal Configuration
                         </h1>
 
@@ -257,7 +257,7 @@ export default function AdminSignalsPage() {
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="inline-flex items-center gap-2 rounded-xl border border-warning/20 bg-warning/10 px-5 py-2.5 text-sm font-medium text-warning transition-colors hover:bg-warning/20 disabled:opacity-50"
+                            className="inline-flex items-center gap-2 rounded-lg border border-warning/20 bg-warning/10 px-5 py-2.5 text-sm font-medium text-warning transition-colors hover:bg-warning/20 disabled:opacity-50"
                         >
                             {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                             {saving ? "Saving..." : "Save Configuration"}
@@ -477,7 +477,7 @@ function Card({
     children: React.ReactNode;
 }) {
     return (
-        <div className="rounded-lg border border-border/30 bg-gradient-to-br from-background/80 via-background/40 to-background/80 p-6 backdrop-blur-xl">
+        <div className="rounded-lg border border-border/30 bg-background p-6">
             <div className="mb-4">
                 <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                     {icon}

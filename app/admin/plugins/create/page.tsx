@@ -147,7 +147,7 @@ export default function AdminCreatePluginPage() {
             </div>
 
             {error && (
-                <div className="mb-5 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">{error}</div>
+                <div className="mb-5 rounded-lg border border-negative/30 bg-negative/10 p-4 text-sm text-negative">{error}</div>
             )}
 
             <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
@@ -158,7 +158,7 @@ export default function AdminCreatePluginPage() {
                             value={id}
                             onChange={(e) => setId(e.target.value)}
                             placeholder="e.g. momentum-guard"
-                            className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                            className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                         />
                     </Field>
                     <Field label="Display name">
@@ -166,7 +166,7 @@ export default function AdminCreatePluginPage() {
                             value={displayName}
                             onChange={(e) => setDisplayName(e.target.value)}
                             placeholder="e.g. Momentum Guard"
-                            className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                            className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                         />
                     </Field>
                     <div className="lg:col-span-2">
@@ -176,7 +176,7 @@ export default function AdminCreatePluginPage() {
                                 onChange={(e) => setDescription(e.target.value)}
                                 rows={3}
                                 placeholder="What does this plugin analyze?"
-                                className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                                className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                             />
                         </Field>
                     </div>
@@ -206,7 +206,7 @@ export default function AdminCreatePluginPage() {
                         <select
                             value={category}
                             onChange={(e) => setCategory(e.target.value as PluginCategory)}
-                            className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
+                            className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
                         >
                             {CATEGORIES.map((c) => (
                                 <option key={c.id} value={c.id}>
@@ -261,14 +261,14 @@ export default function AdminCreatePluginPage() {
                                     min={0}
                                     value={price}
                                     onChange={(e) => setPrice(e.target.value)}
-                                    className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
+                                    className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
                                 />
                             </Field>
                             <Field label="Currency">
                                 <input
                                     value={currency}
                                     onChange={(e) => setCurrency(e.target.value)}
-                                    className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
+                                    className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
                                 />
                             </Field>
                         </div>
@@ -283,7 +283,7 @@ export default function AdminCreatePluginPage() {
                         <select
                             value={interval}
                             onChange={(e) => setInterval(e.target.value as PluginInterval)}
-                            className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
+                            className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
                         >
                             {INTERVALS.map((i) => (
                                 <option key={i} value={i}>
@@ -299,7 +299,7 @@ export default function AdminCreatePluginPage() {
                             max={120000}
                             value={timeoutMs}
                             onChange={(e) => setTimeoutMs(e.target.value)}
-                            className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
+                            className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
                         />
                     </Field>
                     <Field label="Handler (optional — registered analyzer name; leave empty for declarative conditions)">
@@ -307,7 +307,7 @@ export default function AdminCreatePluginPage() {
                             value={handler}
                             onChange={(e) => setHandler(e.target.value)}
                             placeholder="e.g. risk_guardian"
-                            className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                            className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                         />
                     </Field>
                     <Field label="Status">
@@ -342,13 +342,13 @@ export default function AdminCreatePluginPage() {
                                 key={permission}
                                 type="button"
                                 onClick={() => togglePermission(permission)}
-                                className={`rounded-xl border p-4 text-left transition ${
-                                    enabled ? "border-violet-500/40 bg-violet-500/10" : "border-border/30 bg-muted/20 hover:border-border/50"
+                                className={`rounded-lg border p-4 text-left transition ${
+                                    enabled ? "border-primary/40 bg-primary/10" : "border-border/30 bg-muted/20 hover:border-border/50"
                                 }`}
                             >
                                 <div className="flex items-center justify-between gap-2">
                                     <p className="text-sm font-medium">{permissionLabel(permission)}</p>
-                                    {enabled && <CheckCircle2 size={14} className="text-violet-300" />}
+                                    {enabled && <CheckCircle2 size={14} className="text-primary" />}
                                 </div>
                                 <p className="mt-1 text-micro leading-5 text-muted-foreground">{permissionDescription(permission)}</p>
                             </button>
@@ -365,21 +365,21 @@ export default function AdminCreatePluginPage() {
                             value={capabilities}
                             onChange={(e) => setCapabilities(e.target.value)}
                             placeholder="e.g. Momentum detection, Regime filter, Alert throttling"
-                            className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                            className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                         />
                     </Field>
                 </div>
             </div>
 
             <div className="mt-6 flex items-center justify-end gap-3">
-                <Link href="/admin/plugins" className="rounded-xl border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground">
+                <Link href="/admin/plugins" className="rounded-lg border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground">
                     Cancel
                 </Link>
                 <button
                     type="button"
                     onClick={handleSubmit}
                     disabled={saving}
-                    className="inline-flex items-center gap-2 rounded-xl bg-background px-5 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-lg bg-background px-5 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                     {saving ? "Creating..." : "Create Plugin"}

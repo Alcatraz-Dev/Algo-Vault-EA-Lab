@@ -145,7 +145,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Write y
                             setCursorPosition({ start: target.selectionStart, end: target.selectionEnd });
                         }}
                         placeholder={placeholder}
-                        className="w-full h-full resize-none border-none bg-transparent p-4 text-sm font-mono text-foreground placeholder:text-muted-foreground focus:outline-none"
+                        className="w-full h-full resize-none border-none bg-transparent p-4 text-sm font-numeric text-foreground placeholder:text-muted-foreground focus:outline-none"
                         spellCheck={false}
                         readOnly={readOnly}
                     />

@@ -210,7 +210,7 @@ export function CommandCenter() {
                                     <MarketRow market={market} timeframe={data.timeframe} />
                                 ) : (
                                     <div className="flex items-center justify-between px-3 py-2.5">
-                                        <span className="font-mono text-sm font-medium">{market.symbol}</span>
+                                        <span className="font-numeric text-sm font-medium">{market.symbol}</span>
                                         <span className="text-xs text-muted-foreground">Unavailable</span>
                                     </div>
                                 )}
@@ -246,7 +246,7 @@ export function CommandCenter() {
                                 >
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center gap-2">
-                                            <span className="font-mono text-sm font-medium">
+                                            <span className="font-numeric text-sm font-medium">
                                                 {setup.symbol ?? "—"}
                                             </span>
                                             <span className="text-micro text-muted-foreground">
@@ -346,7 +346,7 @@ function MarketRow({
         >
             <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm font-medium">{market.symbol}</span>
+                    <span className="font-numeric text-sm font-medium">{market.symbol}</span>
                     <TrendPill trend={market.trend} />
                 </div>
                 <p className="truncate text-micro text-muted-foreground">
@@ -356,7 +356,7 @@ function MarketRow({
                 </p>
             </div>
             <div className="text-right">
-                <p className="font-mono text-sm tabular-nums">{formatPrice(market.symbol, market.price)}</p>
+                <p className="font-numeric text-sm tabular-nums">{formatPrice(market.symbol, market.price)}</p>
                 <FreshnessBadge descriptor={descriptor} compact showAge />
             </div>
         </Link>
@@ -419,7 +419,7 @@ function Metric({ label, value, kind }: { label: string; value: number; kind: "c
     return (
         <div>
             <dt className="text-muted-foreground">{label}</dt>
-            <dd className="font-mono text-sm tabular-nums">
+            <dd className="font-numeric text-sm tabular-nums">
                 {kind === "currency"
                     ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(value)
                     : value}

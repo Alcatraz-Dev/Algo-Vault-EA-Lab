@@ -242,7 +242,7 @@ export function ProScalpingTerminal() {
                                 PRO
                             </span>
                         </div>
-                        <div className="mt-0.5 flex items-center gap-1.5 font-mono text-micro text-muted-foreground">
+                        <div className="mt-0.5 flex items-center gap-1.5 font-numeric text-micro text-muted-foreground">
                             <span>{symbol}</span>
                             <span className="text-border">·</span>
                             <span>{timeframe}</span>
@@ -254,12 +254,12 @@ export function ProScalpingTerminal() {
 
                 {lastPrice !== null ? (
                     <div className="flex items-baseline gap-1.5 px-1">
-                        <span className="font-mono text-lg font-semibold tabular-nums text-foreground">
+                        <span className="font-numeric text-lg font-semibold tabular-nums text-foreground">
                             {lastPrice >= 100 ? lastPrice.toFixed(2) : lastPrice.toFixed(5)}
                         </span>
                         <span
                             className={cn(
-                                "font-mono text-xs tabular-nums",
+                                "font-numeric text-xs tabular-nums",
                                 (changePercent ?? 0) >= 0 ? "text-positive" : "text-negative"
                             )}
                         >
@@ -389,7 +389,7 @@ export function ProScalpingTerminal() {
                             >
                                 <Layers className="size-3.5" />
                                 Overlays
-                                <span className="font-mono text-micro text-muted-foreground">
+                                <span className="font-numeric text-micro text-muted-foreground">
                                     {Object.values(layers).filter(Boolean).length}
                                 </span>
                             </button>
@@ -466,7 +466,7 @@ export function ProScalpingTerminal() {
                                     onClick={() => setTimeframe(t)}
                                     aria-pressed={timeframe === t}
                                     className={cn(
-                                        "rounded-md px-2 py-1 font-mono text-xs transition",
+                                        "rounded-md px-2 py-1 font-numeric text-xs transition",
                                         timeframe === t ? "bg-primary/10 font-bold text-primary" : "text-muted-foreground hover:bg-muted"
                                     )}
                                 >
@@ -530,7 +530,7 @@ export function ProScalpingTerminal() {
                             {pollMs === 0 ? <WifiOff className="size-3 text-warning" /> : <Wifi className="size-3 text-positive" />}
                             Data status
                         </h3>
-                        <ul className="mt-1.5 space-y-1 font-mono text-micro text-muted-foreground">
+                        <ul className="mt-1.5 space-y-1 font-numeric text-micro text-muted-foreground">
                             <li>quotes · {quotes.lastUpdated ? fmtTime(quotes.lastUpdated) : "—"}</li>
                             <li>radar · {radar.lastUpdated ? fmtTime(radar.lastUpdated) : "—"}</li>
                             <li>analysis · {analysis.lastUpdated ? fmtTime(analysis.lastUpdated) : "—"}</li>
@@ -596,7 +596,7 @@ function RiskCalculator({
                     value={balance}
                     onChange={(e) => setBalance(e.target.value)}
                     inputMode="decimal"
-                    className="w-24 rounded-md border border-border bg-card px-2 py-1 font-mono tabular-nums outline-none focus:border-primary/50"
+                    className="w-24 rounded-md border border-border bg-card px-2 py-1 font-numeric tabular-nums outline-none focus:border-primary/50"
                 />
             </label>
             <label className="flex flex-col gap-0.5">
@@ -605,21 +605,21 @@ function RiskCalculator({
                     value={riskPct}
                     onChange={(e) => setRiskPct(e.target.value)}
                     inputMode="decimal"
-                    className="w-16 rounded-md border border-border bg-card px-2 py-1 font-mono tabular-nums outline-none focus:border-primary/50"
+                    className="w-16 rounded-md border border-border bg-card px-2 py-1 font-numeric tabular-nums outline-none focus:border-primary/50"
                 />
             </label>
             <div className="flex flex-col gap-0.5">
                 <span className="text-micro uppercase tracking-wide text-muted-foreground">Entry (live)</span>
-                <span className="font-mono tabular-nums text-foreground">{price !== null ? price.toFixed(price >= 100 ? 2 : 5) : "—"}</span>
+                <span className="font-numeric tabular-nums text-foreground">{price !== null ? price.toFixed(price >= 100 ? 2 : 5) : "—"}</span>
             </div>
             <div className="flex flex-col gap-0.5">
                 <span className="text-micro uppercase tracking-wide text-muted-foreground">Stop (nearest S)</span>
-                <span className="font-mono tabular-nums text-foreground">{stop !== null ? stop.toFixed(stop >= 100 ? 2 : 5) : "—"}</span>
+                <span className="font-numeric tabular-nums text-foreground">{stop !== null ? stop.toFixed(stop >= 100 ? 2 : 5) : "—"}</span>
             </div>
             {sizing ? (
                 <div className="flex flex-col gap-0.5">
                     <span className="text-micro uppercase tracking-wide text-muted-foreground">Suggested size</span>
-                    <span className="font-mono font-semibold tabular-nums text-foreground">
+                    <span className="font-numeric font-semibold tabular-nums text-foreground">
                         {sizing.lots < 0.01 ? `${(sizing.lots * 100).toFixed(2)} mini-lots` : `${sizing.lots.toFixed(2)} lots`}
                     </span>
                     <span className="text-micro text-muted-foreground">

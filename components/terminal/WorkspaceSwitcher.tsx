@@ -45,7 +45,7 @@ export function WorkspaceSwitcher({ isPro }: { isPro: boolean }) {
                     />
                     <ul
                         role="listbox"
-                        className="absolute left-0 z-40 mt-1 max-h-[70vh] w-72 overflow-y-auto rounded-xl border border-border bg-card p-1 shadow-xl"
+                        className="absolute left-0 z-40 mt-1 max-h-[70vh] w-72 overflow-y-auto rounded-lg border border-border bg-card p-1 shadow-xl"
                     >
                         {WORKSPACE_PRESETS.map((p) => {
                             const selected = p.id === state.workspace;
@@ -94,7 +94,7 @@ export function WorkspaceSwitcher({ isPro }: { isPro: boolean }) {
                                         <span className="mt-0.5 block text-micro leading-4 text-muted-foreground">
                                             {p.description}
                                         </span>
-                                        <span className="mt-1 block font-mono text-micro text-muted-foreground/80">
+                                        <span className="mt-1 block font-numeric text-micro text-muted-foreground/80">
                                             {p.defaultTimeframe} · {p.defaultIntelligenceMode} ·{" "}
                                             {Object.values(p.panels).filter((x) => x.visible).length} panels
                                         </span>
@@ -104,7 +104,7 @@ export function WorkspaceSwitcher({ isPro }: { isPro: boolean }) {
                         })}
                     </ul>
                     {upsell ? (
-                        <div className="absolute left-0 z-40 mt-1 w-72 rounded-xl border border-primary/40 bg-card p-2.5 shadow-xl">
+                        <div className="absolute left-0 z-40 mt-1 w-72 rounded-lg border border-primary/40 bg-card p-2.5 shadow-xl">
                             <p className="text-micro leading-4 text-foreground">
                                 <span className="font-semibold">{upsell}</span> is a Pro workspace.
                             </p>

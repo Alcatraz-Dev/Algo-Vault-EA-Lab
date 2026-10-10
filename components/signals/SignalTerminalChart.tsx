@@ -84,7 +84,7 @@ export default function SignalTerminalChart({ signal, height = 460 }: SignalTerm
                     <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                         Price Chart
                     </h3>
-                    <span className="text-micro text-muted-foreground/50 font-mono">
+                    <span className="text-micro text-muted-foreground/50 font-numeric">
                         {signal.symbol} · {timeframe}
                     </span>
                     {symbol !== signal.symbol.toUpperCase().replace(/[\s_/-]/g, "") && (

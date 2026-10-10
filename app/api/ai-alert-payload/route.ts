@@ -132,7 +132,7 @@ function buildTemplatePayload(ctx: AlertContext, format: AlertPayloadFormat): st
                     { key: "time", raw: JSON.stringify("{{time}}") },
                 ];
 
-    return `{\n${fields.map((f) => `  "${f.key}": ${f.raw}`).join(",\n")}\n}`;
+    return `{\n${fields.map((f) => ` "${f.key}": ${f.raw}`).join(",\n")}\n}`;
 }
 
 /**

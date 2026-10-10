@@ -36,7 +36,7 @@ export default function MarketRegimePanel({ regime }: Props) {
             <div className="rounded-lg bg-foreground/4 p-2.5">
                 <div className="flex items-center justify-between">
                     <p className="text-micro font-semibold uppercase text-foreground/50">Confidence</p>
-                    <p className={cn("font-mono text-xs font-medium", config.color)}>{regime.confidence}%</p>
+                    <p className={cn("font-numeric text-xs font-medium", config.color)}>{regime.confidence}%</p>
                 </div>
                 <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-foreground/10">
                     <div

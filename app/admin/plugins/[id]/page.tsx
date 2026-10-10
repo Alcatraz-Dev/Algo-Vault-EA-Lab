@@ -291,7 +291,7 @@ export default function AdminPluginDetailPage() {
                     title="Plugin record not found"
                     description="No catalog record exists at this id."
                     action={
-                        <Link href="/admin/plugins" className="inline-flex items-center gap-2 rounded-xl bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
+                        <Link href="/admin/plugins" className="inline-flex items-center gap-2 rounded-lg bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
                             <ArrowLeft size={14} /> Back to Plugins
                         </Link>
                     }
@@ -314,7 +314,7 @@ export default function AdminPluginDetailPage() {
             {notice && (
                 <div
                     className={`mb-5 flex items-start gap-3 rounded-lg border p-4 ${
-                        noticeTone === "error" ? "border-red-500/30 bg-red-500/10 text-red-300" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-100"
+                        noticeTone === "error" ? "border-negative/30 bg-negative/10 text-negative" : "border-positive/30 bg-positive/10 text-positive"
                     }`}
                 >
                     <AlertCircle size={16} className="mt-0.5 shrink-0" />
@@ -326,8 +326,8 @@ export default function AdminPluginDetailPage() {
             <div className="mb-5 rounded-lg border border-border/30 bg-muted/50 p-5">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex items-start gap-4">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
-                            {isExtension ? <Plug size={22} className="text-emerald-300" /> : <Sparkles size={22} className="text-violet-300" />}
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
+                            {isExtension ? <Plug size={22} className="text-positive" /> : <Sparkles size={22} className="text-primary" />}
                         </div>
                         <div>
                             <div className="flex flex-wrap items-center gap-2">
@@ -358,7 +358,7 @@ export default function AdminPluginDetailPage() {
                         href={isExtension ? `/marketplace/extensions/${record.slug || record.id}` : `/marketplace/plugins/${record.slug || record.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 rounded-xl bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted"
+                        className="inline-flex items-center gap-2 rounded-lg bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted"
                     >
                         <ExternalLink size={14} /> View in marketplace
                     </Link>
@@ -367,7 +367,7 @@ export default function AdminPluginDetailPage() {
                     type="button"
                     disabled={busy === "delete"}
                     onClick={() => deleteRecord()}
-                    className="inline-flex items-center gap-2 rounded-xl border border-red-500/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-red-300 transition hover:bg-red-500/10 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-lg border border-negative/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-negative transition hover:bg-negative/10 disabled:opacity-50"
                 >
                     {busy === "delete" ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                     Delete plugin
@@ -388,7 +388,7 @@ export default function AdminPluginDetailPage() {
                         key={key}
                         type="button"
                         onClick={() => setTab(key)}
-                        className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-medium transition ${
+                        className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-medium transition ${
                             tab === key ? "border-border/50 bg-background text-foreground" : "border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/5"
                         }`}
                     >
@@ -415,7 +415,7 @@ export default function AdminPluginDetailPage() {
                                     type="button"
                                     onClick={() => setStatus(status)}
                                     disabled={busy.startsWith("status") || status === record.status}
-                                    className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                                    className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
                                         status === record.status
                                             ? "border-border/50 bg-background text-foreground"
                                             : "border-border/30 bg-muted/5 text-muted-foreground hover:text-foreground"
@@ -426,7 +426,7 @@ export default function AdminPluginDetailPage() {
                                 </button>
                             ))}
                         </div>
-                        <div className="mt-5 rounded-xl border border-border/30 bg-muted/20 p-4">
+                        <div className="mt-5 rounded-lg border border-border/30 bg-muted/20 p-4">
                             <p className="text-xs leading-6 text-muted-foreground">
                                 {record.status === "published"
                                     ? "Published — visible in the marketplace. Users can install and activate it; the scheduler runs active installations server-side."
@@ -442,7 +442,7 @@ export default function AdminPluginDetailPage() {
                                 <input
                                     value={version}
                                     onChange={(e) => setVersion(e.target.value)}
-                                    className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
+                                    className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
                                 />
                             </Field>
                             <Field label="Changelog note">
@@ -450,14 +450,14 @@ export default function AdminPluginDetailPage() {
                                     value={changelog}
                                     onChange={(e) => setChangelog(e.target.value)}
                                     rows={2}
-                                    className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
+                                    className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
                                 />
                             </Field>
                             <button
                                 type="button"
                                 onClick={bumpVersion}
                                 disabled={busy === "version"}
-                                className="inline-flex items-center gap-2 rounded-xl bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                                className="inline-flex items-center gap-2 rounded-lg bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {busy === "version" ? <Loader2 size={14} className="animate-spin" /> : <Tag size={14} />}
                                 Bump version
@@ -520,16 +520,16 @@ export default function AdminPluginDetailPage() {
 
                     <div className="mt-6 grid gap-6 lg:grid-cols-2">
                         <Field label="Display name">
-                            <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
+                            <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
                         </Field>
                         <div className="lg:col-span-2">
                             <Field label="Description">
-                                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
+                                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
                             </Field>
                         </div>
                         <div className="lg:col-span-2">
                             <Field label="Documentation (markdown-ish)">
-                                <textarea value={documentation} onChange={(e) => setDocumentation(e.target.value)} rows={6} className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 font-mono text-xs outline-none focus:border-border/50" />
+                                <textarea value={documentation} onChange={(e) => setDocumentation(e.target.value)} rows={6} className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 font-numeric text-xs outline-none focus:border-border/50" />
                             </Field>
                         </div>
                         <Field label="Pricing type">
@@ -551,18 +551,18 @@ export default function AdminPluginDetailPage() {
                         {pricingType !== "free" && (
                             <div className="grid grid-cols-2 gap-3">
                                 <Field label="Price">
-                                    <input type="number" min={0} value={price} onChange={(e) => setPrice(e.target.value)} className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
+                                    <input type="number" min={0} value={price} onChange={(e) => setPrice(e.target.value)} className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
                                 </Field>
                                 <Field label="Currency">
-                                    <input value={currency} onChange={(e) => setCurrency(e.target.value)} className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
+                                    <input value={currency} onChange={(e) => setCurrency(e.target.value)} className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
                                 </Field>
                             </div>
                         )}
                         <Field label="Capabilities (comma separated)">
-                            <input value={capabilities} onChange={(e) => setCapabilities(e.target.value)} className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
+                            <input value={capabilities} onChange={(e) => setCapabilities(e.target.value)} className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
                         </Field>
                         <Field label="Supported markets (comma separated)">
-                            <input value={supportedMarkets} onChange={(e) => setSupportedMarkets(e.target.value)} className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
+                            <input value={supportedMarkets} onChange={(e) => setSupportedMarkets(e.target.value)} className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
                         </Field>
                     </div>
 
@@ -576,13 +576,13 @@ export default function AdminPluginDetailPage() {
                                     key={permission}
                                     type="button"
                                     onClick={() => togglePermission(permission)}
-                                    className={`rounded-xl border p-4 text-left transition ${
-                                        enabled ? "border-violet-500/40 bg-violet-500/10" : "border-border/30 bg-muted/20 hover:border-border/50"
+                                    className={`rounded-lg border p-4 text-left transition ${
+                                        enabled ? "border-primary/40 bg-primary/10" : "border-border/30 bg-muted/20 hover:border-border/50"
                                     }`}
                                 >
                                     <div className="flex items-center justify-between gap-2">
                                         <p className="text-sm font-medium">{permissionLabel(permission)}</p>
-                                        {enabled && <CheckCircle2 size={14} className="text-violet-300" />}
+                                        {enabled && <CheckCircle2 size={14} className="text-primary" />}
                                     </div>
                                     <p className="mt-1 text-micro leading-5 text-muted-foreground">{permissionDescription(permission)}</p>
                                 </button>
@@ -594,7 +594,7 @@ export default function AdminPluginDetailPage() {
                         <button
                             type="button"
                             onClick={load}
-                            className="inline-flex items-center gap-2 rounded-xl border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+                            className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
                         >
                             <RefreshCw size={13} />
                             Discard changes
@@ -603,7 +603,7 @@ export default function AdminPluginDetailPage() {
                             type="button"
                             onClick={saveMetadata}
                             disabled={saving}
-                            className="inline-flex items-center gap-2 rounded-xl bg-background px-5 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex items-center gap-2 rounded-lg bg-background px-5 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                             Save metadata
@@ -626,14 +626,14 @@ export default function AdminPluginDetailPage() {
                                 value={testSymbols}
                                 onChange={(e) => setTestSymbols(e.target.value)}
                                 placeholder="EURUSD, XAUUSD"
-                                className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                                className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                             />
                         </Field>
                         <button
                             type="button"
                             onClick={runSandboxTest}
                             disabled={busy === "sandbox"}
-                            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-background px-5 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-background px-5 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {busy === "sandbox" ? <Loader2 size={14} className="animate-spin" /> : <PlayCircle size={14} />}
                             Run sandbox test
@@ -646,7 +646,7 @@ export default function AdminPluginDetailPage() {
                                     <span className="text-xs text-muted-foreground">{testResult.durationMs}ms · trigger: {testResult.trigger}</span>
                                 </div>
                                 {testResult.summary && <p className="mt-2 text-xs leading-5 text-muted-foreground">{testResult.summary}</p>}
-                                {testResult.error && <p className="mt-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">{testResult.error}</p>}
+                                {testResult.error && <p className="mt-2 rounded-lg border border-negative/30 bg-negative/10 p-3 text-xs text-negative">{testResult.error}</p>}
                                 {testResult.findings && testResult.findings.length > 0 && (
                                     <div className="mt-3 space-y-2">
                                         {testResult.findings.map((f, i) => (
@@ -666,10 +666,10 @@ export default function AdminPluginDetailPage() {
                             <FlaskConical size={14} /> What a test checks
                         </h3>
                         <ul className="mt-4 space-y-3 text-xs leading-6 text-muted-foreground">
-                            <li className="flex gap-2"><CheckCircle2 size={14} className="mt-0.5 shrink-0 text-emerald-400" /> Conditions evaluate against the current market snapshot for the requested symbols.</li>
-                            <li className="flex gap-2"><CheckCircle2 size={14} className="mt-0.5 shrink-0 text-emerald-400" /> Findings and alerts are produced but NOT delivered — test mode suppresses the notification hub.</li>
-                            <li className="flex gap-2"><CheckCircle2 size={14} className="mt-0.5 shrink-0 text-emerald-400" /> Execution outcome is recorded in the audit log under <span className="text-foreground">plugin.sandbox.tested</span>.</li>
-                            <li className="flex gap-2"><Shield size={14} className="mt-0.5 shrink-0 text-violet-400" /> Permission-gated data access is enforced exactly like production runs.</li>
+                            <li className="flex gap-2"><CheckCircle2 size={14} className="mt-0.5 shrink-0 text-positive" /> Conditions evaluate against the current market snapshot for the requested symbols.</li>
+                            <li className="flex gap-2"><CheckCircle2 size={14} className="mt-0.5 shrink-0 text-positive" /> Findings and alerts are produced but NOT delivered — test mode suppresses the notification hub.</li>
+                            <li className="flex gap-2"><CheckCircle2 size={14} className="mt-0.5 shrink-0 text-positive" /> Execution outcome is recorded in the audit log under <span className="text-foreground">plugin.sandbox.tested</span>.</li>
+                            <li className="flex gap-2"><Shield size={14} className="mt-0.5 shrink-0 text-primary" /> Permission-gated data access is enforced exactly like production runs.</li>
                         </ul>
                     </div>
                 </div>
@@ -689,7 +689,7 @@ export default function AdminPluginDetailPage() {
                     {audit.length === 0 ? (
                         <EmptyState compact icon={<Terminal size={18} />} title="No audit events yet" description="Status changes, version bumps, edits, sandbox tests and publishes are recorded here." />
                     ) : (
-                        <div className="mt-4 overflow-hidden rounded-xl border border-border/30 bg-muted/20">
+                        <div className="mt-4 overflow-hidden rounded-lg border border-border/30 bg-muted/20">
                             {audit.map((entry) => (
                                 <div key={entry.id} className="flex flex-col gap-1 border-b border-border/30 p-3 last:border-0 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="min-w-0">

@@ -32,7 +32,7 @@ export default function LiquidityMap({ levels, sweeps, currentPrice }: Props) {
                         <div key={sweep.id} className="flex items-center gap-2 rounded-lg bg-warning/[0.06] px-2.5 py-1.5 text-xs">
                             <AlertTriangle size={12} className="text-warning" />
                             <span className="font-medium text-warning">{sweep.side === "buy_side" ? "Buy Sweep" : "Sell Sweep"}</span>
-                            <span className="font-mono text-muted-foreground">{sweep.level.toFixed(sweep.level >= 100 ? 2 : 5)}</span>
+                            <span className="font-numeric text-muted-foreground">{sweep.level.toFixed(sweep.level >= 100 ? 2 : 5)}</span>
                             <span className="text-foreground/50">→ {sweep.sweepPrice.toFixed(sweep.sweepPrice >= 100 ? 2 : 5)}</span>
                             {sweep.confirmed && <span className="rounded bg-warning/20 px-1 py-0.5 text-micro text-warning">Confirmed</span>}
                         </div>
@@ -54,8 +54,8 @@ export default function LiquidityMap({ levels, sweeps, currentPrice }: Props) {
                         <div key={level.id} className="flex items-center gap-2 rounded-lg bg-foreground/4 px-2.5 py-1.5 text-xs">
                             {isAbove ? <TrendingUp size={11} className="text-foreground/70" /> : <TrendingDown size={11} className="text-foreground/70" />}
                             <span className="flex-1 text-muted-foreground">{formatLevelType(level.type)}</span>
-                            <span className="font-mono text-foreground/70">{level.price.toFixed(level.price >= 100 ? 2 : 5)}</span>
-                            <span className={cn("font-mono text-micro", getStrengthColor(level.strength))}>{level.strength}</span>
+                            <span className="font-numeric text-foreground/70">{level.price.toFixed(level.price >= 100 ? 2 : 5)}</span>
+                            <span className={cn("font-numeric text-micro", getStrengthColor(level.strength))}>{level.strength}</span>
                             <span className="text-micro text-foreground/50">{distancePercent.toFixed(2)}%</span>
                         </div>
                     );

@@ -278,12 +278,12 @@ export default function AdminReviewsPage() {
                         </Link>
 
                         <div className="flex items-center gap-3">
-                            <div className="rounded-xl border border-border bg-muted/50 p-3">
+                            <div className="rounded-lg border border-border bg-muted/50 p-3">
                                 <MessageSquare className="h-6 w-6" />
                             </div>
 
                             <div>
-                                <h1 className="text-3xl font-bold">
+                                <h1 className="text-2xl font-semibold tracking-tight">
                                     Reviews
                                 </h1>
                                 <p className="text-sm text-muted-foreground">
@@ -295,14 +295,14 @@ export default function AdminReviewsPage() {
 
                     <button
                         onClick={loadReviews}
-                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-muted/50 px-4 py-2.5 text-sm font-medium hover:bg-muted"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-muted/50 px-4 py-2.5 text-sm font-medium hover:bg-muted"
                     >
                         Refresh
                     </button>
                 </div>
 
                 {error && (
-                    <div className="mb-6 rounded-xl border border-negative/20 bg-negative/10 px-4 py-3 text-sm text-negative">
+                    <div className="mb-6 rounded-lg border border-negative/20 bg-negative/10 px-4 py-3 text-sm text-negative">
                         {error}
                     </div>
                 )}
@@ -353,11 +353,11 @@ export default function AdminReviewsPage() {
                                 )
                             }
                             placeholder="Search product, customer, title or review..."
-                            className="w-full rounded-xl border border-border bg-muted/50 py-3 pl-10 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-border"
+                            className="w-full rounded-lg border border-border bg-muted/50 py-3 pl-10 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-border"
                         />
                     </div>
 
-                    <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/50 px-3">
+                    <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3">
                         <Filter className="h-4 w-4 text-muted-foreground" />
 
                         <select
@@ -611,7 +611,7 @@ export default function AdminReviewsPage() {
                     </div>
                 </div>
 
-                <div className="mt-6 rounded-xl border border-warning/10 bg-warning/5 px-4 py-3 text-xs leading-5 text-muted-foreground">
+                <div className="mt-6 rounded-lg border border-warning/10 bg-warning/5 px-4 py-3 text-xs leading-5 text-muted-foreground">
                     Reviews should be moderated before being treated as
                     public marketplace content. Verified Purchase is calculated
                     server-side and should never be trusted from the client.

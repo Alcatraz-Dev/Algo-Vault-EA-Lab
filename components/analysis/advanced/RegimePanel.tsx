@@ -102,7 +102,7 @@ export function RegimePanel({
                         <StatRow
                             label="Bias flip"
                             value={
-                                <span className="font-mono">
+                                <span className="font-numeric">
                                     {reversal.priorBias} → {reversal.currentBias}
                                 </span>
                             }
@@ -110,14 +110,14 @@ export function RegimePanel({
                         <StatRow
                             label="Break"
                             value={
-                                <span className="font-mono tabular-nums">
+                                <span className="font-numeric tabular-nums">
                                     {formatPrice(reversal.breakPrice)} · {relativeTime(reversal.breakTimestamp, now)}
                                 </span>
                             }
                         />
                         <StatRow
                             label="Bars since"
-                            value={<span className="font-mono tabular-nums">{reversal.barsSince}</span>}
+                            value={<span className="font-numeric tabular-nums">{reversal.barsSince}</span>}
                         />
                     </>
                 ) : (
@@ -134,7 +134,7 @@ export function RegimePanel({
                     { label: "Source", value: <span>{regime.regime.source.label}</span> },
                     {
                         label: "Evidence items",
-                        value: <span className="font-mono tabular-nums">{regime.evidence.length}</span>,
+                        value: <span className="font-numeric tabular-nums">{regime.evidence.length}</span>,
                     },
                 ]}
             />

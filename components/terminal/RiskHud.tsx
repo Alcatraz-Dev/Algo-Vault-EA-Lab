@@ -37,7 +37,7 @@ export function RiskHud() {
     const { risk, riskError, riskLoading } = useTerminalData();
 
     return (
-        <section className="rounded-xl border border-border bg-card p-3" aria-label="Risk">
+        <section className="rounded-lg border border-border bg-card p-3" aria-label="Risk">
             <PanelErrorBoundary name="Risk" compact>
                 <div className="flex items-start justify-between gap-2">
                     <h2 className="flex items-center gap-1.5 text-micro font-semibold uppercase tracking-wide text-foreground">
@@ -139,7 +139,7 @@ function Cell({ label, value }: { label: string; value: string }) {
             <div className="text-micro uppercase tracking-wide text-muted-foreground">{label}</div>
             <div
                 className={cn(
-                    "font-mono text-micro font-medium tabular-nums",
+                    "font-numeric text-micro font-medium tabular-nums",
                     unavailable ? "italic text-muted-foreground/70" : "text-foreground"
                 )}
             >

@@ -138,7 +138,7 @@ export default function ScannerPage() {
         <AccountShell title="Professional Market Scanner" subtitle="Multi-asset market scanner with real-time signals" onBack={() => router.push("/account")}>
             <div className="space-y-4" data-guide="scanner">
                 <div className="flex flex-wrap items-center gap-3" data-guide="controls">
-                    <button type="button" onClick={scan} disabled={loading} className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-primary transition disabled:opacity-50">
+                    <button type="button" onClick={scan} disabled={loading} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-primary transition disabled:opacity-50">
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />} Scan Markets
                     </button>
                     <span className="text-xs text-muted-foreground">{filteredResults.length} symbols scanned</span>
@@ -146,7 +146,7 @@ export default function ScannerPage() {
                 </div>
 
                 {isPro && (
-                    <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-4" data-guide="image-scan">
+                    <div className="rounded-lg border border-primary/20 bg-primary/[0.03] p-4" data-guide="image-scan">
                         <div className="flex items-center gap-3 mb-3">
                             <Upload className="h-5 w-5 text-primary" />
                             <span className="text-sm font-semibold text-foreground">Chart Image Scanner (Pro)</span>
@@ -166,14 +166,14 @@ export default function ScannerPage() {
                                     type="button"
                                     onClick={() => fileInputRef.current?.click()}
                                     disabled={imageUploading}
-                                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-primary/30 bg-primary/5 px-4 py-3 text-sm text-primary hover:bg-primary/10 transition disabled:opacity-50"
+                                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-4 py-3 text-sm text-primary hover:bg-primary/10 transition disabled:opacity-50"
                                 >
                                     {imageUploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
                                     {imageUploading ? "Analyzing..." : "Upload Chart Image"}
                                 </button>
                             </div>
                             {imagePreview && (
-                                <div className="rounded-xl border border-border/30 bg-muted/50 overflow-hidden">
+                                <div className="rounded-lg border border-border/30 bg-muted/50 overflow-hidden">
                                     <img src={imagePreview} alt="Chart preview" className="h-32 w-full object-contain" />
                                 </div>
                             )}
@@ -189,12 +189,12 @@ export default function ScannerPage() {
                 )}
 
                 {!isPro && (
-                    <div className="rounded-xl border border-warning/20 bg-warning/[0.03] p-3 text-xs text-warning/60">
+                    <div className="rounded-lg border border-warning/20 bg-warning/[0.03] p-3 text-xs text-warning/60">
                         <Lock size={14} className="inline mr-1" /> Chart image scanning requires a Pro subscription. Upgrade at <a href="/pricing" className="underline">/pricing</a>
                     </div>
                 )}
 
-                <div className="overflow-x-auto rounded-xl border border-border/30 bg-muted/50" data-guide="results">
+                <div className="overflow-x-auto rounded-lg border border-border/30 bg-muted/50" data-guide="results">
                     <table className="w-full text-xs">
                         <thead>
                             <tr className="border-b border-border/20 text-micro uppercase text-muted-foreground">
@@ -216,14 +216,14 @@ export default function ScannerPage() {
                             ) : (
                                 filteredResults.map((r) => (
                                     <tr key={r.symbol} className="border-b border-border/50 hover:bg-muted/50">
-                                        <td className="px-4 py-3 font-mono font-bold text-foreground">{r.symbol}</td>
+                                        <td className="px-4 py-3 font-numeric font-bold text-foreground">{r.symbol}</td>
                                         <td className={cn("px-4 py-3 font-medium", r.direction === "BUY" ? "text-positive" : r.direction === "SELL" ? "text-negative" : "text-muted-foreground")}>
                                             {r.direction}
                                             {(r.strength ?? 0) >= 80 && <span className="ml-1 text-micro text-warning">●</span>}
                                         </td>
-                                        <td className="px-4 py-3 text-right font-mono font-bold" style={{ color: (r.strength ?? 0) >= 80 ? "#10b981" : (r.strength ?? 0) >= 60 ? "#f59e0b" : "#ef4444" }}>{r.strength}</td>
+                                        <td className="px-4 py-3 text-right font-numeric font-bold" style={{ color: (r.strength ?? 0) >= 80 ? "#10b981" : (r.strength ?? 0) >= 60 ? "#f59e0b" : "#ef4444" }}>{r.strength}</td>
                                         <td className="px-4 py-3 text-right text-muted-foreground">{r.trend}</td>
-                                        <td className="px-4 py-3 text-right font-mono text-muted-foreground">{r.momentum}</td>
+                                        <td className="px-4 py-3 text-right font-numeric text-muted-foreground">{r.momentum}</td>
                                         <td className="px-4 py-3 text-left"><span className={cn("rounded px-1.5 py-0.5 text-micro", r.volatility === "high" ? "bg-negative/10 text-negative" : r.volatility === "low" ? "bg-positive/10 text-positive" : "bg-muted/10 text-muted-foreground")}>{r.volatility}</span></td>
                                         <td className="px-4 py-3 text-left text-muted-foreground">{r.regime}</td>
                                         <td className="px-4 py-3 text-left text-muted-foreground">{r.liquidity}</td>
@@ -234,7 +234,7 @@ export default function ScannerPage() {
                     </table>
                 </div>
 
-                <div className="rounded-xl border border-warning/10 bg-warning/[0.03] p-3 text-micro text-warning/60">
+                <div className="rounded-lg border border-warning/10 bg-warning/[0.03] p-3 text-micro text-warning/60">
                     Market Scanner uses real-time data from connected market sources. Pro subscribers can upload chart screenshots for AI-powered analysis combined with real market data. Strength scores reflect current market conditions based on trend, structure, liquidity, momentum, and volume analysis. Not financial advice.
                 </div>
             </div>

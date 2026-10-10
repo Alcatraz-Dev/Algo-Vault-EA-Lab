@@ -66,9 +66,9 @@ export default function AdvancedAnalysisPage() {
           <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
             <span>Market Intelligence</span>
             <span>·</span>
-            <span className="font-mono text-foreground">XAUUSD</span>
+            <span className="font-numeric text-foreground">XAUUSD</span>
             <span>·</span>
-            <span className="font-mono text-foreground">M5</span>
+            <span className="font-numeric text-foreground">M5</span>
           </div>
           <div className="flex gap-1 text-xs">
             <span className="rounded-md border border-border/30 px-2 py-0.5">Market Structure: <strong>Unknown</strong></span>

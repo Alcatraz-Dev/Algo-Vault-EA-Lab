@@ -43,19 +43,19 @@ export default function MarketplaceSection({ featured = [] }: { featured: HomePr
  <h3 className="font-bold text-foreground group-hover:text-primary transition text-base">
  {product.name}
  </h3>
- <p className="mt-1 text-xs text-muted-foreground font-mono">
+ <p className="mt-1 text-xs text-muted-foreground font-numeric">
  {product.symbol || "Multi-Symbol"} · {product.timeframe || "M15"}
  </p>
  </div>
  {product.pricing?.price !== undefined && (
- <span className="rounded-xl bg-primary/10 px-3 py-1 text-xs font-extrabold text-primary border border-primary/20 font-mono">
+ <span className="rounded-xl bg-primary/10 px-3 py-1 text-xs font-extrabold text-primary border border-primary/20 font-numeric">
  ${product.pricing.price}
  </span>
  )}
  </div>
 
  {product.performance && (
- <div className="mt-5 grid grid-cols-3 gap-2 rounded-xl bg-background/80 p-3 text-center font-mono border border-border/40">
+ <div className="mt-5 grid grid-cols-3 gap-2 rounded-xl bg-background/80 p-3 text-center font-numeric border border-border/40">
  <div>
  <p className="text-micro text-muted-foreground">Return</p>
  <p className="text-xs font-bold text-positive">{product.performance.profit ? `+${product.performance.profit}%` : "—"}</p>
@@ -72,7 +72,7 @@ export default function MarketplaceSection({ featured = [] }: { featured: HomePr
  )}
  </div>
 
- <div className="mt-5 pt-3 border-t border-border/40 flex items-center justify-between text-xs font-mono text-muted-foreground">
+ <div className="mt-5 pt-3 border-t border-border/40 flex items-center justify-between text-xs font-numeric text-muted-foreground">
  <span className="flex items-center gap-1 text-positive font-bold"><ShieldCheck size={13} /> License Protected</span>
  <span className="group-hover:translate-x-1 transition text-primary font-bold flex items-center gap-1">View Details <ArrowRight size={13} /></span>
  </div>
@@ -96,13 +96,13 @@ export default function MarketplaceSection({ featured = [] }: { featured: HomePr
  <h3 className="font-bold text-foreground group-hover:text-primary transition text-base">
  {item.title}
  </h3>
- <p className="mt-1 text-xs text-muted-foreground font-mono">{item.symbol}</p>
+ <p className="mt-1 text-xs text-muted-foreground font-numeric">{item.symbol}</p>
  </div>
- <span className="rounded-xl bg-primary/10 px-3 py-1 text-xs font-extrabold text-primary border border-primary/20 font-mono">
+ <span className="rounded-xl bg-primary/10 px-3 py-1 text-xs font-extrabold text-primary border border-primary/20 font-numeric">
  {item.price}
  </span>
  </div>
- <div className="mt-5 grid grid-cols-2 gap-2 rounded-xl bg-background/80 p-3 text-center font-mono border border-border/40">
+ <div className="mt-5 grid grid-cols-2 gap-2 rounded-xl bg-background/80 p-3 text-center font-numeric border border-border/40">
  <div>
  <p className="text-micro text-muted-foreground">Historical Return</p>
  <p className="text-xs font-bold text-positive">{item.return}</p>
@@ -113,7 +113,7 @@ export default function MarketplaceSection({ featured = [] }: { featured: HomePr
  </div>
  </div>
  </div>
- <div className="mt-5 pt-3 border-t border-border/40 flex items-center justify-between text-xs font-mono text-muted-foreground">
+ <div className="mt-5 pt-3 border-t border-border/40 flex items-center justify-between text-xs font-numeric text-muted-foreground">
  <span className="flex items-center gap-1 text-positive font-bold"><ShieldCheck size={13} /> License Key Required</span>
  <span className="group-hover:translate-x-1 transition text-primary font-bold flex items-center gap-1">Explore <ArrowRight size={13} /></span>
  </div>

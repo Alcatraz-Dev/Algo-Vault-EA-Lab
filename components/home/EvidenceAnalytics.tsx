@@ -177,7 +177,7 @@ export default function EvidenceAnalytics({
                     <>
                         <div className="mt-10 grid gap-6 lg:grid-cols-2">
                             <Reveal delay={120}>
-                                <div className="group rounded-lg border border-border bg-card transition-all duration-300 hover:border-primary/40 hover:shadow-[0_0_28px_-10px_color-mix(in_oklch,var(--primary)_45%,transparent)]">
+                                <div className="group rounded-lg border border-border bg-card transition-all duration-300 hover:border-primary/40 hover:">
                                     <div className="border-b border-border px-5 py-4">
                                         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Equity curve</p>
                                         <h3 className="mt-2 text-xl font-semibold text-foreground">Recent recorded backtests</h3>
@@ -208,7 +208,7 @@ export default function EvidenceAnalytics({
                             </Reveal>
 
                             <Reveal delay={180}>
-                                <div className="group rounded-lg border border-border bg-card transition-all duration-300 hover:border-primary/40 hover:shadow-[0_0_28px_-10px_color-mix(in_oklch,var(--primary)_45%,transparent)]">
+                                <div className="group rounded-lg border border-border bg-card transition-all duration-300 hover:border-primary/40 hover:">
                                     <div className="border-b border-border px-5 py-4">
                                         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Quality profile</p>
                                         <h3 className="mt-2 text-xl font-semibold text-foreground">Win rate vs drawdown per run</h3>

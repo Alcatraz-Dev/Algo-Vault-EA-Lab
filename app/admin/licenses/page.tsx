@@ -250,7 +250,7 @@ export default function AdminLicensesPage() {
                             <tbody className="divide-y divide-border">
                                 {filtered.map((item) => (
                                     <tr key={item.id} className="hover:bg-muted/40">
-                                        <td className="px-6 py-4 font-mono font-bold text-foreground">
+                                        <td className="px-6 py-4 font-numeric font-bold text-foreground">
                                             <div className="flex items-center gap-2">
                                                 <span>{item.licenseKey}</span>
                                                 <button

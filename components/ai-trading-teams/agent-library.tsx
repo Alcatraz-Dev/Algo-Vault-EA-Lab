@@ -78,7 +78,7 @@ export function AgentLibrary({
             />
 
             {creating ? (
-                <div className="rounded-xl border border-border/60 bg-card/60 p-4">
+                <div className="rounded-lg border border-border/60 bg-card/60 p-4">
                     <p className="text-xs text-muted-foreground">
                         Custom agents run inside strict capability boundaries: server-side auth, tool allow-list,
                         output validation and the shared evidence protocol. Prompts cannot grant extra permissions.
@@ -167,7 +167,7 @@ export function AgentLibrary({
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {agents.map((agent) => (
-                    <article key={agent.id} className="flex gap-3 rounded-xl border border-border/60 bg-card/60 p-3.5">
+                    <article key={agent.id} className="flex gap-3 rounded-lg border border-border/60 bg-card/60 p-3.5">
                         <AgentAvatar visualType={agent.visualType} state="idle" size={52} />
                         <div className="min-w-0 flex-1">
                             <div className="flex items-start justify-between gap-2">

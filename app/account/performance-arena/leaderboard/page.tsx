@@ -107,20 +107,20 @@ export default function AccountLeaderboardPage() {
               <TableBody>
                 {snapshot.entries.slice(0, 50).map((entry, index) => (
                   <TableRow key={entry.attemptId}>
-                    <TableCell className="font-mono text-xs">
+                    <TableCell className="font-numeric text-xs">
                       {index < 3 ? <Medal className={`h-3.5 w-3.5 ${index === 0 ? "text-warning" : index === 1 ? "text-muted-foreground" : "text-warning"}`} /> : index + 1}
                     </TableCell>
-                    <TableCell className="font-mono text-xs">{entry.displayLabel}</TableCell>
+                    <TableCell className="font-numeric text-xs">{entry.displayLabel}</TableCell>
                     <TableCell><Badge variant="outline">{entry.tier}</Badge></TableCell>
                     <TableCell><Badge variant={entry.status === "PASSED" ? "success" : "secondary"}>{entry.status}</Badge></TableCell>
-                    <TableCell className={`text-right font-mono text-xs ${entry.totalReturnPct >= 0 ? "text-positive" : "text-negative"}`}>
+                    <TableCell className={`text-right font-numeric text-xs ${entry.totalReturnPct >= 0 ? "text-positive" : "text-negative"}`}>
                       {entry.totalReturnPct >= 0 ? "+" : ""}
                       {entry.totalReturnPct.toFixed(2)}%
                     </TableCell>
-                    <TableCell className="text-right font-mono text-xs">{entry.maxDrawdownPct.toFixed(2)}%</TableCell>
-                    <TableCell className="text-right font-mono text-xs">{entry.tradingDays}</TableCell>
-                    <TableCell className="text-right font-mono text-xs">{entry.consistencyScore.toFixed(0)}</TableCell>
-                    <TableCell className="text-right font-mono text-sm font-semibold">{entry.score.toFixed(1)}</TableCell>
+                    <TableCell className="text-right font-numeric text-xs">{entry.maxDrawdownPct.toFixed(2)}%</TableCell>
+                    <TableCell className="text-right font-numeric text-xs">{entry.tradingDays}</TableCell>
+                    <TableCell className="text-right font-numeric text-xs">{entry.consistencyScore.toFixed(0)}</TableCell>
+                    <TableCell className="text-right font-numeric text-sm font-semibold">{entry.score.toFixed(1)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

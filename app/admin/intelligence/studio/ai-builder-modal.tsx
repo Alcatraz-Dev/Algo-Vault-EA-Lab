@@ -102,7 +102,7 @@ export function AiBuilderModal({ open, onOpenChange, onApplyGeneratedWorkflow }:
       <DialogContent className="w-full max-h-[90vh] flex flex-col p-0 overflow-hidden sm:max-w-5xl lg:max-w-6xl">
         <DialogHeader className="px-6 pt-5 pb-3 border-b">
           <DialogTitle className="flex items-center gap-2 text-lg font-bold">
-            <Sparkles className="w-5 h-5 text-blue-500" />
+            <Sparkles className="w-5 h-5 text-info" />
             Build Workflow with AI
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
@@ -120,7 +120,7 @@ export function AiBuilderModal({ open, onOpenChange, onApplyGeneratedWorkflow }:
                 onChange={(e) => setPrompt(e.target.value)}
                 rows={3}
                 placeholder="e.g. Monitor XAUUSD on M5. Confirm the trend on H1. If RSI is below 30 and the higher timeframe trend is bullish, generate a signal and send me a Telegram alert."
-                className="w-full text-xs p-3 rounded-lg border bg-background resize-none focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full text-xs p-3 rounded-lg border bg-background resize-none focus:ring-2 focus:ring-info outline-none"
               />
             </div>
 
@@ -179,7 +179,7 @@ export function AiBuilderModal({ open, onOpenChange, onApplyGeneratedWorkflow }:
           </div>
 
           {genError && (
-            <div className="rounded-lg border border-red-300 bg-red-50 dark:bg-red-950/30 p-3 text-xs text-red-600 dark:text-red-400 flex items-start gap-2">
+            <div className="rounded-lg border border-negative bg-negative dark:bg-negative/30 p-3 text-xs text-negative dark:text-negative flex items-start gap-2">
               <XCircle className="w-4 h-4 mt-0.5 shrink-0" />
               <div>
                 <div className="font-semibold">Generation Error</div>
@@ -190,7 +190,7 @@ export function AiBuilderModal({ open, onOpenChange, onApplyGeneratedWorkflow }:
 
           {/* Generated Result Preview */}
           {result && result.draft?.workflow && (
-            <div className="border rounded-xl p-4 bg-muted/20 space-y-4">
+            <div className="border rounded-lg p-4 bg-muted/20 space-y-4">
               <div className="flex items-center justify-between border-b pb-2">
                 <span className="font-bold text-xs uppercase text-muted-foreground tracking-wider">
                   AI Generation Preview
@@ -223,17 +223,17 @@ export function AiBuilderModal({ open, onOpenChange, onApplyGeneratedWorkflow }:
               {validation && (
                 <div className="space-y-1 text-xs">
                   {validation.errors?.map((err: string, i: number) => (
-                    <div key={i} className="flex items-center gap-1.5 text-red-600 dark:text-red-400 font-medium">
+                    <div key={i} className="flex items-center gap-1.5 text-negative dark:text-negative font-medium">
                       <XCircle className="w-3.5 h-3.5 shrink-0" /> {err}
                     </div>
                   ))}
                   {validation.warnings?.map((warn: string, i: number) => (
-                    <div key={i} className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
+                    <div key={i} className="flex items-center gap-1.5 text-warning dark:text-warning">
                       <AlertTriangle className="w-3.5 h-3.5 shrink-0" /> {warn}
                     </div>
                   ))}
                   {validation.valid && validation.errors?.length === 0 && (
-                    <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+                    <div className="flex items-center gap-1.5 text-positive dark:text-positive font-medium">
                       <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Workflow passed server-side validation.
                     </div>
                   )}
@@ -248,7 +248,7 @@ export function AiBuilderModal({ open, onOpenChange, onApplyGeneratedWorkflow }:
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[160px] overflow-y-auto p-1">
                   {result.draft.workflow.nodes?.map((node: any) => (
                     <div key={node.id} className="p-2 rounded border bg-card text-xs flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                      <span className="w-2 h-2 rounded-full bg-info shrink-0" />
                       <div className="truncate flex-1">
                         <div className="font-semibold truncate">{node.label || node.id}</div>
                         <div className="text-micro text-muted-foreground truncate">{node.type}</div>

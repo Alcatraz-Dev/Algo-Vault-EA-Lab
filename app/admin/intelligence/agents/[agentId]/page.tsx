@@ -94,7 +94,7 @@ export default function AgentDetailPage() {
                     <Bot size={28} className="mx-auto text-muted-foreground mb-3" />
                     <h3 className="text-sm font-medium">Agent not found</h3>
                     <p className="mt-1 text-micro text-muted-foreground">No contract or execution record matches <code className="text-micro bg-muted px-1 rounded">{agentId}</code>.</p>
-                    <Link href="/admin/intelligence/agents" className="mt-4 inline-block text-xs text-violet-400 hover:underline">Back to agents</Link>
+                    <Link href="/admin/intelligence/agents" className="mt-4 inline-block text-xs text-primary hover:underline">Back to agents</Link>
                 </div>
             </AdminShell>
         );
@@ -111,17 +111,17 @@ export default function AgentDetailPage() {
 
                 <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
                     <div className="flex items-start gap-4">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
-                            <Bot size={24} className="text-violet-300" />
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
+                            <Bot size={24} className="text-primary" />
                         </div>
                         <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
                                 <h2 className="text-base font-semibold">{agent.name}</h2>
                                 <StatusBadge tone={agent.status === "active" ? "positive" : agent.status === "draft" ? "info" : agent.status === "testing" ? "warning" : agent.status === "deprecated" ? "expired" : "negative"} label={agent.status} />
-                                <span className="text-micro font-medium text-violet-400 uppercase tracking-wide">v{agent.version}</span>
+                                <span className="text-micro font-medium text-primary uppercase tracking-wide">v{agent.version}</span>
                             </div>
                             <p className="mt-1 text-micro text-muted-foreground">{agent.description}</p>
-                            <p className="mt-1 text-micro text-muted-foreground">Agent ID: <span className="font-mono">{agent.id}</span></p>
+                            <p className="mt-1 text-micro text-muted-foreground">Agent ID: <span className="font-numeric">{agent.id}</span></p>
                         </div>
                     </div>
                 </div>
@@ -141,7 +141,7 @@ export default function AgentDetailPage() {
                         {agent.outputs && (agent.outputs || []).length > 0 ? (
                             <ul className="space-y-1 text-micro">
                                 {(agent.outputs || []).map((o) => (
-                                    <li key={o} className="flex items-center gap-1.5 text-muted-foreground"><CheckCircle2 size={10} className="text-emerald-400 shrink-0" />{o}</li>
+                                    <li key={o} className="flex items-center gap-1.5 text-muted-foreground"><CheckCircle2 size={10} className="text-positive shrink-0" />{o}</li>
                                 ))}
                             </ul>
                         ) : (
@@ -155,14 +155,14 @@ export default function AgentDetailPage() {
                     <div className="flex flex-wrap gap-2">
                         <button
                             onClick={() => alert(`Sandbox test for agent: ${agent.id}`)}
-                            className="inline-flex items-center gap-1.5 rounded-xl border border-border/30 bg-muted px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground"
                         >
                             <ShieldCheck size={12} /> Sandbox Test
                         </button>
-                        <Link href="/admin/plugins/ai-studio" className="inline-flex items-center gap-1.5 rounded-xl border border-border/30 bg-muted px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground">
+                        <Link href="/admin/plugins/ai-studio" className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground">
                             <Edit size={12} /> Edit Plugin
                         </Link>
-                        <Link href="/api/agents" className="inline-flex items-center gap-1.5 rounded-xl border border-border/30 bg-muted px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground">
+                        <Link href="/api/agents" className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground">
                             <Terminal size={12} /> View API
                         </Link>
                     </div>

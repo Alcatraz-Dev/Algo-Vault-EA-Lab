@@ -42,7 +42,7 @@ export function ConfigField({ field, value, onChange }: ConfigFieldProps) {
         <div className="relative">
           <input type="checkbox" checked={!!value} onChange={(e) => onChange(e.target.checked)}
             className="sr-only peer" />
-          <div className="w-9 h-5 rounded-full bg-muted peer-checked:bg-emerald-500 transition-colors" />
+          <div className="w-9 h-5 rounded-full bg-muted peer-checked:bg-positive transition-colors" />
           <div className="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-4" />
         </div>
         <span className="text-xs text-muted-foreground">{value ? "On" : "Off"}</span>
@@ -85,7 +85,7 @@ export function ConfigField({ field, value, onChange }: ConfigFieldProps) {
   if (field.type === "secret") {
     return (
       <Input
-        className="h-8 text-xs bg-background border-border font-mono"
+        className="h-8 text-xs bg-background border-border font-numeric"
         type="password"
         value={String(value ?? "")}
         placeholder="••••••••"
@@ -99,7 +99,7 @@ export function ConfigField({ field, value, onChange }: ConfigFieldProps) {
       : (() => { try { return JSON.stringify(value ?? {}, null, 2); } catch { return String(value ?? ""); } })();
     return (
       <textarea
-        className="w-full text-xs rounded-lg border border-border bg-background font-mono px-2.5 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-[72px] resize-y placeholder:text-muted-foreground/60"
+        className="w-full text-xs rounded-lg border border-border bg-background font-numeric px-2.5 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-[72px] resize-y placeholder:text-muted-foreground/60"
         value={display}
         placeholder={field.placeholder || '{ "key": "value" }'}
         spellCheck={false}
@@ -233,7 +233,7 @@ export function Inspector({ selectedNode, selectedDef, nodes, setNodes, setSelec
         </div>
         {selectedDef?.description && (
           <p className="text-micro text-muted-foreground leading-relaxed flex items-start gap-1.5">
-            <Info size={10} className="shrink-0 mt-0.5 text-blue-500" />
+            <Info size={10} className="shrink-0 mt-0.5 text-info" />
             {selectedDef.description}
           </p>
         )}
@@ -252,13 +252,13 @@ export function Inspector({ selectedNode, selectedDef, nodes, setNodes, setSelec
             <div className="relative">
               <input type="checkbox" checked={isEnabled} onChange={(e) => updateEnabled(e.target.checked)}
                 className="sr-only peer" />
-              <div className="w-9 h-5 rounded-full bg-muted peer-checked:bg-emerald-500 transition-colors" />
+              <div className="w-9 h-5 rounded-full bg-muted peer-checked:bg-positive transition-colors" />
               <div className="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-4" />
             </div>
           </label>
         </div>
         <div className="flex items-center gap-2 text-micro text-muted-foreground">
-          {isEnabled ? <Power size={10} className="text-emerald-500" /> : <PowerOff size={10} className="text-red-500" />}
+          {isEnabled ? <Power size={10} className="text-positive" /> : <PowerOff size={10} className="text-negative" />}
           <span>Status: {isEnabled ? "Active" : "Disabled"}</span>
         </div>
       </Section>
@@ -271,7 +271,7 @@ export function Inspector({ selectedNode, selectedDef, nodes, setNodes, setSelec
               <div key={field.key} className="space-y-1">
                 <label className="flex items-center gap-1.5 text-micro font-medium text-foreground">
                   {field.label}
-                  {field.required && <span className="text-red-500 text-micro">*</span>}
+                  {field.required && <span className="text-negative text-micro">*</span>}
                 </label>
                 {field.description && (
                   <p className="text-micro text-muted-foreground mb-1">{field.description}</p>
@@ -292,15 +292,15 @@ export function Inspector({ selectedNode, selectedDef, nodes, setNodes, setSelec
         <div className="space-y-2">
           <div className="flex justify-between text-micro">
             <span className="text-muted-foreground">Node ID</span>
-            <span className="text-foreground font-mono">{selectedId}</span>
+            <span className="text-foreground font-numeric">{selectedId}</span>
           </div>
           <div className="flex justify-between text-micro">
             <span className="text-muted-foreground">Type</span>
-            <span className="text-foreground font-mono">{nodeData?.type}</span>
+            <span className="text-foreground font-numeric">{nodeData?.type}</span>
           </div>
           <div className="flex justify-between text-micro">
             <span className="text-muted-foreground">Position</span>
-            <span className="text-foreground font-mono">
+            <span className="text-foreground font-numeric">
               {Math.round(selectedNode.position?.x ?? 0)}, {Math.round(selectedNode.position?.y ?? 0)}
             </span>
           </div>

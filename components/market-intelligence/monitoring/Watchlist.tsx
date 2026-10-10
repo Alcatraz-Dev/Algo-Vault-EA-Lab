@@ -13,7 +13,7 @@ export function Watchlist({ items }: { items: WatchItem[] }) {
             <tr key={w.symbol || Math.random()}>
               <td>{w.symbol || "—"}</td>
               <td>{w.timeframe || "—"}</td>
-              <td className="font-mono">{w.dataStatus || "—"}</td>
+              <td className="font-numeric">{w.dataStatus || "—"}</td>
               <td>{w.recentEvent || "—"}</td>
               <td>{w.setupActive ? "Active" : "—"}</td>
             </tr>

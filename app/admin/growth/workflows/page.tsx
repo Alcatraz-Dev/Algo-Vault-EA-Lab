@@ -182,7 +182,7 @@ export default function GrowthWorkflows() {
                     </Button>
                     {runResult?.executionId && (
                         <span className="text-xs text-muted-foreground">
-                            Latest: <span className="font-mono">{runResult.executionId}</span>
+                            Latest: <span className="font-numeric">{runResult.executionId}</span>
                         </span>
                     )}
                 </div>
@@ -240,7 +240,7 @@ export default function GrowthWorkflows() {
                                 <TableRow key={w.id}>
                                     <TableCell className="max-w-56">
                                         <p className="truncate font-medium text-foreground">{w.name || w.workflowId || w.id}</p>
-                                        <p className="font-mono text-xs text-muted-foreground">{w.id}</p>
+                                        <p className="font-numeric text-xs text-muted-foreground">{w.id}</p>
                                     </TableCell>
                                     <TableCell>
                                         <WorkflowStatus status={w.status} />

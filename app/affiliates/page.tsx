@@ -148,7 +148,7 @@ export default function AffiliatesPage() {
                         href="/"
                         className="flex items-center gap-3"
                     >
-                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-background text-foreground">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background text-foreground">
                             <ArrowUpRight className="h-5 w-5" />
                         </div>
 
@@ -218,7 +218,7 @@ export default function AffiliatesPage() {
                         Recommended Partners
                     </div>
 
-                    <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
+                    <h1 className="text-2xl font-semibold tracking-tight">
                         Recommended Trading
                         Partners
                     </h1>
@@ -241,7 +241,7 @@ export default function AffiliatesPage() {
                                 setSearch(event.target.value)
                             }
                             placeholder="Search partners..."
-                            className="h-12 w-full rounded-xl border border-border/30 bg-muted pl-11 pr-4 text-sm outline-none placeholder:text-foreground/25 focus:border-border/50"
+                            className="h-12 w-full rounded-lg border border-border/30 bg-muted pl-11 pr-4 text-sm outline-none placeholder:text-foreground/25 focus:border-border/50"
                         />
                     </div>
                 </div>
@@ -392,7 +392,7 @@ function AffiliateCard({
             <div className="p-6">
                 <div className="flex items-start gap-4">
                     {/* Broker Logo */}
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/30 bg-muted/5 p-2.5">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/30 bg-muted/5 p-2.5">
                         {!logoError ? (
                             <img
                                 key={logoUrl}

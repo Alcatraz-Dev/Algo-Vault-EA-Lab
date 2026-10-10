@@ -159,7 +159,7 @@ export async function GET(
                 if (
                     !userOrders ||
                     typeof userOrders !==
-                    "object"
+                      "object"
                 ) {
                     return;
                 }
@@ -177,7 +177,7 @@ export async function GET(
                         if (
                             !rawOrder ||
                             typeof rawOrder !==
-                            "object"
+                              "object"
                         ) {
                             return;
                         }
@@ -197,10 +197,10 @@ export async function GET(
 
                         const amount =
                             typeof order.amount ===
-                                "number"
+                              "number"
                                 ? order.amount
                                 : typeof order.price ===
-                                    "number"
+                                  "number"
                                     ? order.price
                                     : 0;
 
@@ -373,10 +373,10 @@ export async function GET(
 
                         amount:
                             typeof order.amount ===
-                                "number"
+                              "number"
                                 ? order.amount
                                 : typeof order.price ===
-                                    "number"
+                                  "number"
                                     ? order.price
                                     : 0,
 

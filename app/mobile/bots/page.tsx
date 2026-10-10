@@ -125,7 +125,7 @@ export default function MobileBotsPage() {
           <h1 className="text-lg font-semibold">My Bots</h1>
         </header>
         <div className="flex-1 p-4 space-y-4">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
+          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-lg" />)}
         </div>
       </div>
     );
@@ -161,19 +161,19 @@ export default function MobileBotsPage() {
         {/* Stats Bar */}
         <div className="px-3 py-3 border-b border-border bg-muted/30 grid grid-cols-4 gap-2 text-center">
           <div>
-            <p className="font-mono font-bold text-lg text-positive">{activeBots}</p>
+            <p className="font-numeric font-bold text-lg text-positive">{activeBots}</p>
             <p className="text-micro text-muted-foreground">Active</p>
           </div>
           <div>
-            <p className="font-mono font-bold text-lg text-warning">{pausedBots}</p>
+            <p className="font-numeric font-bold text-lg text-warning">{pausedBots}</p>
             <p className="text-micro text-muted-foreground">Paused</p>
           </div>
           <div>
-            <p className="font-mono font-bold text-lg text-negative">{disconnectedBots + warningBots}</p>
+            <p className="font-numeric font-bold text-lg text-negative">{disconnectedBots + warningBots}</p>
             <p className="text-micro text-muted-foreground">Issues</p>
           </div>
           <div>
-            <p className={cn("font-mono font-bold text-lg", totalPnl >= 0 ? "text-positive" : "text-negative")}>{totalPnl >= 0 ? "+" : ""}{formatCurrency(totalPnl)}</p>
+            <p className={cn("font-numeric font-bold text-lg", totalPnl >= 0 ? "text-positive" : "text-negative")}>{totalPnl >= 0 ? "+" : ""}{formatCurrency(totalPnl)}</p>
             <p className="text-micro text-muted-foreground">Total P&L</p>
           </div>
         </div>
@@ -183,7 +183,7 @@ export default function MobileBotsPage() {
       <div className="flex-1 overflow-auto p-3 pb-20">
         {loading ? (
           <div className="space-y-3">
-            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
+            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-lg" />)}
           </div>
         ) : bots.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground p-4">
@@ -223,7 +223,7 @@ export default function MobileBotsPage() {
                             {bot.type === "custom" && <Badge variant="outline" className="text-micro">Custom</Badge>}
                           </div>
                           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                            <span className="font-mono">{bot.symbol || "Multi"}</span>
+                            <span className="font-numeric">{bot.symbol || "Multi"}</span>
                             <span>•</span>
                             <span>{bot.timeframe || "Multi"}</span>
                             <span>•</span>
@@ -240,7 +240,7 @@ export default function MobileBotsPage() {
                         </div>
                       </div>
                       <div className="text-right min-w-[80px]">
-                        <p className={cn("font-mono font-semibold text-sm", (bot.currentPnl || 0) >= 0 ? "text-positive" : "text-negative")}>
+                        <p className={cn("font-numeric font-semibold text-sm", (bot.currentPnl || 0) >= 0 ? "text-positive" : "text-negative")}>
                           {bot.currentPnl && bot.currentPnl >= 0 ? "+" : ""}{bot.currentPnl ? formatCurrency(bot.currentPnl) : "—"}
                         </p>
                         <p className="text-micro text-muted-foreground">DD: {bot.maxDrawdown ? bot.maxDrawdown.toFixed(1) : "—"}%</p>

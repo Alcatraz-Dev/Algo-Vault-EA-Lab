@@ -166,7 +166,7 @@ export default function AdminAITradingTeamsPage() {
                             </div>
 
                             <div className="grid gap-3 lg:grid-cols-3">
-                                <div className="rounded-xl border border-border/60 bg-card p-4 lg:col-span-2">
+                                <div className="rounded-lg border border-border/60 bg-card p-4 lg:col-span-2">
                                     <SectionHeader title="Agent usage" icon={<Bot className="size-4" />} />
                                     {snapshot.agents.length === 0 ? (
                                         <p className="mt-2 text-xs text-muted-foreground">No agent executions recorded yet.</p>
@@ -208,7 +208,7 @@ export default function AdminAITradingTeamsPage() {
                                 </div>
 
                                 <div className="space-y-3">
-                                    <div className="rounded-xl border border-border/60 bg-card p-4">
+                                    <div className="rounded-lg border border-border/60 bg-card p-4">
                                         <SectionHeader title="Data modes" />
                                         <ul className="mt-2 space-y-1 text-xs">
                                             {Object.entries(snapshot.dataModes).map(([mode, count]) => (
@@ -222,7 +222,7 @@ export default function AdminAITradingTeamsPage() {
                                             ) : null}
                                         </ul>
                                     </div>
-                                    <div className="rounded-xl border border-border/60 bg-card p-4">
+                                    <div className="rounded-lg border border-border/60 bg-card p-4">
                                         <SectionHeader title="Product events" />
                                         <ul className="mt-2 space-y-1 text-xs">
                                             {snapshot.events.slice(0, 8).map((event) => (
@@ -239,7 +239,7 @@ export default function AdminAITradingTeamsPage() {
                                 </div>
                             </div>
 
-                            <div className="rounded-xl border border-border/60 bg-card p-4">
+                            <div className="rounded-lg border border-border/60 bg-card p-4">
                                 <SectionHeader title="Recent failures" icon={<AlertTriangle className="size-4" />} />
                                 {snapshot.recentFailures.length === 0 ? (
                                     <p className="mt-2 text-xs text-muted-foreground">No failed or partial runs in the sampled window.</p>
@@ -281,7 +281,7 @@ export default function AdminAITradingTeamsPage() {
                     />
 
                     {showTemplateForm ? (
-                        <div className="mt-3 rounded-xl border border-border/60 bg-card p-4">
+                        <div className="mt-3 rounded-lg border border-border/60 bg-card p-4">
                             <div className="grid gap-3 sm:grid-cols-3">
                                 <Field label="Name">
                                     <input
@@ -370,7 +370,7 @@ export default function AdminAITradingTeamsPage() {
                     ) : (
                         <ul className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                             {templates.map((template) => (
-                                <li key={template.id} className="rounded-xl border border-border/60 bg-card p-4">
+                                <li key={template.id} className="rounded-lg border border-border/60 bg-card p-4">
                                     <div className="flex items-start justify-between gap-2">
                                         <div>
                                             <p className="text-sm font-semibold">{template.name}</p>
@@ -418,7 +418,7 @@ function MetricCard({
     sub?: string;
 }) {
     return (
-        <div className="rounded-xl border border-border/60 bg-card p-4">
+        <div className="rounded-lg border border-border/60 bg-card p-4">
             <div className="flex items-center justify-between">
                 <span className="text-micro text-muted-foreground">{label}</span>
                 {icon}

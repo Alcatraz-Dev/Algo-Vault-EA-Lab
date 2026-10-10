@@ -206,7 +206,7 @@ export default function OpportunitiesPage() {
                                     <ul className="space-y-0.5">
                                         {(o.evidence || []).map((e, i) => (
                                             <li key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                                <span className="rounded border border-border bg-muted/40 px-1.5 py-0.5 font-mono text-xs">{e.metric}</span>
+                                                <span className="rounded border border-border bg-muted/40 px-1.5 py-0.5 font-numeric text-xs">{e.metric}</span>
                                                 <span className="font-medium text-foreground">{String(e.value)}</span>
                                                 <span className="truncate text-xs">({e.source})</span>
                                             </li>

@@ -55,7 +55,7 @@ export default function TradingAccessCard({
     return (
       <Card>
         <CardContent className="flex flex-col items-center gap-4 py-8 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
             <Shield size={24} className="text-muted-foreground" />
           </div>
           <div>
@@ -77,7 +77,7 @@ export default function TradingAccessCard({
     return (
       <Card className="border-warning/30">
         <CardContent className="flex flex-col items-center gap-4 py-8 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-warning/10">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-warning/10">
             <AlertTriangle size={24} className="text-warning dark:text-warning" />
           </div>
           <div>
@@ -105,7 +105,7 @@ export default function TradingAccessCard({
       <CardContent className="py-6">
         <div className="flex flex-wrap items-center gap-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-positive/10">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-positive/10">
               <Shield size={20} className="text-positive dark:text-positive" />
             </div>
             <div>
@@ -118,19 +118,19 @@ export default function TradingAccessCard({
 
           <div className="flex flex-col gap-0.5">
             <span className="text-micro text-muted-foreground">Started</span>
-            <span className="text-sm font-mono tabular-nums">{formatDate(license.startedAt)}</span>
+            <span className="text-sm font-numeric tabular-nums">{formatDate(license.startedAt)}</span>
           </div>
 
           <div className="flex flex-col gap-0.5">
             <span className="text-micro text-muted-foreground">Expires</span>
-            <span className="text-sm font-mono tabular-nums">{formatDate(license.expiresAt)}</span>
+            <span className="text-sm font-numeric tabular-nums">{formatDate(license.expiresAt)}</span>
           </div>
 
           <div className="flex flex-col gap-0.5">
             <span className="text-micro text-muted-foreground">Days Left</span>
             <span
               className={cn(
-                "text-sm font-mono font-semibold tabular-nums",
+                "text-sm font-numeric font-semibold tabular-nums",
                 daysLeft <= 7 ? "text-warning dark:text-warning" : "text-foreground"
               )}
             >
@@ -140,7 +140,7 @@ export default function TradingAccessCard({
 
           <div className="flex flex-col gap-0.5">
             <span className="text-micro text-muted-foreground">Max Accounts</span>
-            <span className="text-sm font-mono tabular-nums">{license.maxAccounts}</span>
+            <span className="text-sm font-numeric tabular-nums">{license.maxAccounts}</span>
           </div>
         </div>
       </CardContent>

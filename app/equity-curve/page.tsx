@@ -68,7 +68,7 @@ export default function EquityCurvePage() {
 
                 <div className="mb-6 flex items-center justify-between" data-guide="page-header">
                     <div>
-                        <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Equity Curve</h1>
+                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Equity Curve</h1>
                         <p className="mt-1.5 text-sm text-muted-foreground">Track your account equity and balance over time</p>
                     </div>
                     {curves.length > 0 && (

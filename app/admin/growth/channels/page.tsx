@@ -260,7 +260,7 @@ export default function AdminGrowthChannelsPage() {
                                 ) : (
                                     <ul className="space-y-1">
                                         {CHANNEL_SETUP[configureFor.type]?.env.map((v) => (
-                                            <li key={v} className="rounded border border-border bg-muted/40 px-3 py-1.5 font-mono text-xs text-foreground">
+                                            <li key={v} className="rounded border border-border bg-muted/40 px-3 py-1.5 font-numeric text-xs text-foreground">
                                                 {v}
                                             </li>
                                         ))}

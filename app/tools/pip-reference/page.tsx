@@ -97,14 +97,14 @@ export default function PipReferencePage() {
                                         i % 2 === 0 ? "bg-muted/10" : "",
                                     )}
                                 >
-                                    <td className="px-4 py-3 font-mono text-sm font-bold text-foreground">{inst.symbol}</td>
+                                    <td className="px-4 py-3 font-numeric text-sm font-bold text-foreground">{inst.symbol}</td>
                                     <td className="px-4 py-3 text-micro text-muted-foreground">{inst.category}</td>
-                                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{inst.pipSize}</td>
+                                    <td className="px-4 py-3 font-numeric text-xs text-muted-foreground">{inst.pipSize}</td>
                                     <td className="px-4 py-3">
-                                        <span className="font-mono text-sm font-bold text-positive">${inst.pipValue}</span>
+                                        <span className="font-numeric text-sm font-bold text-positive">${inst.pipValue}</span>
                                     </td>
-                                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{inst.contractSize}</td>
-                                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{inst.digits}</td>
+                                    <td className="px-4 py-3 font-numeric text-xs text-muted-foreground">{inst.contractSize}</td>
+                                    <td className="px-4 py-3 font-numeric text-xs text-muted-foreground">{inst.digits}</td>
                                     <td className="px-4 py-3">
                                         <button
                                             type="button"
@@ -123,7 +123,7 @@ export default function PipReferencePage() {
 
             <div className="rounded-lg border border-border bg-card p-4">
                 <h3 className="mb-2 text-xs font-semibold text-foreground">Formula</h3>
-                <p className="font-mono text-micro text-muted-foreground">
+                <p className="font-numeric text-micro text-muted-foreground">
                     Pip Value = Contract Size × Pip Size × Lots
                 </p>
                 <p className="mt-1 text-micro text-muted-foreground">

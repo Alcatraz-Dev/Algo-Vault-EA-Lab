@@ -32,7 +32,7 @@ export default function CopyTradingSection() {
  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
 
  {/* Master -> Follower Stream Visual */}
- <div className="lg:col-span-6 space-y-4 font-mono text-xs">
+ <div className="lg:col-span-6 space-y-4 font-numeric text-xs">
  <div className="rounded-lg border border-positive/30 bg-positive/5 p-4 space-y-2">
  <div className="flex justify-between items-center text-positive font-bold">
  <span>Master Strategy · Gold SMC Scalper</span>
@@ -69,7 +69,7 @@ export default function CopyTradingSection() {
  </div>
 
  {/* Right Key Features */}
- <div className="lg:col-span-6 space-y-4 text-xs font-mono">
+ <div className="lg:col-span-6 space-y-4 text-xs font-numeric">
  <div className="rounded-xl border border-border/60 bg-background/80 p-4 space-y-1">
  <span className="font-bold text-foreground flex items-center gap-1.5"><Copy size={14} className="text-primary" /> Sub-Second Execution Latency</span>
  <p className="text-muted-foreground text-micro leading-relaxed">

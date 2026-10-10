@@ -87,7 +87,7 @@ export default function PluginsMarketplacePage() {
                                 <Sparkles size={14} />
                                 Plugins &amp; Extensions Ecosystem
                             </div>
-                            <h1 className="mt-3 text-4xl font-semibold tracking-tight md:text-5xl">
+                            <h1 className="text-2xl font-semibold tracking-tight mt-3">
                                 Intelligence plugins that
                                 <br />
                                 run with your trading.
@@ -123,7 +123,7 @@ export default function PluginsMarketplacePage() {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Search plugins, capabilities..."
-                            className="w-full rounded-xl border border-border/30 bg-muted py-3 pl-11 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                            className="w-full rounded-lg border border-border/30 bg-muted py-3 pl-11 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                         />
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -135,7 +135,7 @@ export default function PluginsMarketplacePage() {
                 <div className="mb-8 flex gap-2 overflow-x-auto pb-2">
                     <button
                         onClick={() => setActiveCategory("all")}
-                        className={`whitespace-nowrap rounded-xl border px-4 py-2.5 text-xs transition ${
+                        className={`whitespace-nowrap rounded-lg border px-4 py-2.5 text-xs transition ${
                             activeCategory === "all"
                                 ? "border-border/50 bg-background text-foreground"
                                 : "border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/5"
@@ -147,7 +147,7 @@ export default function PluginsMarketplacePage() {
                         <button
                             key={cat.id}
                             onClick={() => setActiveCategory(cat.id)}
-                            className={`whitespace-nowrap rounded-xl border px-4 py-2.5 text-xs transition ${
+                            className={`whitespace-nowrap rounded-lg border px-4 py-2.5 text-xs transition ${
                                 activeCategory === cat.id
                                     ? "border-border/50 bg-background text-foreground"
                                     : "border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/5"
@@ -176,7 +176,7 @@ export default function PluginsMarketplacePage() {
                         </p>
                         <Link
                             href="/marketplace/extensions"
-                            className="mt-5 inline-flex items-center gap-2 rounded-xl border border-border/30 bg-muted px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+                            className="mt-5 inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
                         >
                             <Puzzle size={14} />
                             Browse Extensions instead
@@ -243,7 +243,7 @@ function PluginCard({ plugin }: { plugin: PluginRecord }) {
     return (
         <article className="group flex flex-col overflow-hidden rounded-lg border border-border/30 bg-card transition hover:border-border/60">
             <div className="relative h-44 overflow-hidden border-b border-border/30 bg-muted">
-                <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
+                <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-primary/10 hidden" />
                 <div className="relative z-10 flex h-full flex-col justify-between p-5">
                     <div className="flex items-start justify-between gap-3">
                         <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-border/50 bg-background">
@@ -318,7 +318,7 @@ function PluginCard({ plugin }: { plugin: PluginRecord }) {
 
 function MiniStat({ icon, value, label }: { icon: React.ReactNode; value: number; label: string }) {
     return (
-        <div className="min-w-[90px] rounded-xl border border-border/30 bg-muted/50 p-3">
+        <div className="min-w-[90px] rounded-lg border border-border/30 bg-muted/50 p-3">
             <div className="flex items-center gap-2 text-muted-foreground">
                 {icon}
                 <span className="text-xs">{label}</span>

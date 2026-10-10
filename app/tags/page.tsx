@@ -69,18 +69,18 @@ export default function TradeTagsPage() {
     };
 
     if (authLoading) {
-        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></div>);
     }
 
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-xl bg-violet-600 px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-violet-500 transition">Sign In</Link></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-primary transition">Sign In</Link></div></div>);
     }
 
     return (
-        <div className="min-h-screen bg-background text-foreground selection:bg-amber-500/30">
+        <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px]" />
-                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-blue-500/10 blur-[120px]" />
+                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 hidden" />
+                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-muted-foreground transition">
@@ -89,20 +89,20 @@ export default function TradeTagsPage() {
 
                 <div className="mb-6 flex items-center justify-between" data-guide="page-header">
                     <div>
-                        <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Trade Tags</h1>
+                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Trade Tags</h1>
                         <p className="mt-1.5 text-sm text-muted-foreground">Create custom tags to organize and filter your trades</p>
                     </div>
                     <button
                         type="button"
                         onClick={() => setShowForm(!showForm)}
-                        className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-violet-500 transition"
+                        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-primary transition"
                     >
                         {showForm ? <X size={13} /> : <Plus size={13} />} {showForm ? "Cancel" : "New Tag"}
                     </button>
                 </div>
 
                 {showForm && (
-                    <div className="mb-6 rounded-lg border border-violet-500/20 bg-violet-500/[0.04] p-5">
+                    <div className="mb-6 rounded-lg border border-primary/20 bg-primary/[0.04] p-5">
                         <h3 className="mb-3 text-sm font-semibold text-foreground">Create Tag</h3>
                         <div className="space-y-3">
                             <input
@@ -110,7 +110,7 @@ export default function TradeTagsPage() {
                                 value={newName}
                                 onChange={(e) => setNewName(e.target.value)}
                                 placeholder="Tag name (e.g., Trend Follow, Scalp, Breakout)"
-                                className="w-full rounded-xl border border-border/40 bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-violet-500 focus:outline-none"
+                                className="w-full rounded-lg border border-border/40 bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none"
                                 onKeyDown={(e) => e.key === "Enter" && createTag()}
                             />
                             <div>
@@ -134,7 +134,7 @@ export default function TradeTagsPage() {
                                 type="button"
                                 onClick={createTag}
                                 disabled={!newName.trim() || creating}
-                                className="rounded-xl bg-violet-600 px-6 py-2.5 text-xs font-semibold text-foreground hover:bg-violet-500 transition disabled:opacity-50"
+                                className="rounded-lg bg-primary px-6 py-2.5 text-xs font-semibold text-foreground hover:bg-primary transition disabled:opacity-50"
                             >
                                 {creating ? "Creating..." : "Create Tag"}
                             </button>
@@ -143,7 +143,7 @@ export default function TradeTagsPage() {
                 )}
 
                 {loading ? (
-                    <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div>
+                    <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
                 ) : tags.length === 0 ? (
                     <div className="rounded-lg border border-dashed border-border/40 p-16 text-center">
                         <Tag size={32} className="mx-auto text-muted-foreground" />
@@ -165,7 +165,7 @@ export default function TradeTagsPage() {
                                     <button
                                         type="button"
                                         onClick={() => deleteTag(tag.id)}
-                                        className="rounded-lg p-1.5 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
+                                        className="rounded-lg p-1.5 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-negative hover:bg-negative/10 transition-all"
                                     >
                                         <Trash2 size={13} />
                                     </button>

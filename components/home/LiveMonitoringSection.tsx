@@ -23,7 +23,7 @@ export default function LiveMonitoringSection() {
  <div className="space-y-6">
 
  {/* Top Summary Bar */}
- <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 font-mono text-xs">
+ <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 font-numeric text-xs">
  <div className="rounded-lg bg-background/80 p-4 border border-border/40">
  <div className="text-micro text-muted-foreground">Combined Balance</div>
  <div className="text-lg font-bold text-foreground mt-0.5">$24,500.00</div>
@@ -47,7 +47,7 @@ export default function LiveMonitoringSection() {
  </div>
 
  {/* Open Positions Table Preview */}
- <div className="overflow-x-auto rounded-lg border border-border/60 bg-background/80 p-4 font-mono text-xs">
+ <div className="overflow-x-auto rounded-lg border border-border/60 bg-background/80 p-4 font-numeric text-xs">
  <div className="flex items-center justify-between border-b border-border/40 pb-3 text-muted-foreground">
  <span className="font-bold text-foreground">Live Positions Monitor (Sample Preview)</span>
  <span className="text-positive font-bold flex items-center gap-1"><ShieldCheck size={14} /> Gateway Stream Live</span>

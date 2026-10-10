@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
  */
 export function WhatAreAITeams({ compact = false }: { compact?: boolean }) {
     return (
-        <section className="rounded-xl border border-border/60 bg-card/60 p-4">
+        <section className="rounded-lg border border-border/60 bg-card/60 p-4">
             <h2 className="flex items-center gap-2 text-sm font-semibold">
                 <BookOpen className="size-4 text-primary" /> What are AI Trading Teams?
             </h2>

@@ -73,7 +73,7 @@ function CalculatorGrid() {
     const pipValue = useMemo(() => num(pipValuePerLot) * positionSize, [pipValuePerLot, positionSize]);
     const riskMoney = useMemo(() => num(accountBalance) * (num(riskPercent) / 100), [accountBalance, riskPercent]);
 
-    const inputClass = "w-full rounded-xl border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none";
+    const inputClass = "w-full rounded-lg border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none";
 
     return (
         <div className="grid gap-4 lg:grid-cols-3">
@@ -106,20 +106,20 @@ function CalculatorGrid() {
             <div className="rounded-lg border border-chart-3/20 bg-chart-3/4 p-5 lg:col-span-2">
                 <h3 className="font-semibold">Results</h3>
                 <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-xl border border-border bg-muted p-4 text-center">
+                    <div className="rounded-lg border border-border bg-muted p-4 text-center">
                         <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Risk Amount</p>
                         <p className="mt-2 text-2xl font-bold text-foreground">${riskMoney.toFixed(2)}</p>
                     </div>
-                    <div className="rounded-xl border border-chart-3/25 bg-chart-3/10 p-4 text-center">
+                    <div className="rounded-lg border border-chart-3/25 bg-chart-3/10 p-4 text-center">
                         <p className="text-micro uppercase tracking-wider text-chart-3 font-semibold">Position Size</p>
                         <p className="mt-2 text-2xl font-bold text-chart-3">{positionSize.toFixed(2)} lots</p>
                     </div>
-                    <div className="rounded-xl border border-border bg-muted p-4 text-center">
+                    <div className="rounded-lg border border-border bg-muted p-4 text-center">
                         <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Pip Value</p>
                         <p className="mt-2 text-2xl font-bold text-foreground">${pipValue.toFixed(2)}/pip</p>
                     </div>
                 </div>
-                <div className="mt-5 rounded-xl border border-border bg-muted/50 p-4 text-xs leading-6 text-muted-foreground">
+                <div className="mt-5 rounded-lg border border-border bg-muted/50 p-4 text-xs leading-6 text-muted-foreground">
                     <p><span className="font-semibold text-foreground">Formula:</span> Position size = (Balance &times; Risk%) &divide; (Stop loss pips &times; Pip value per lot)</p>
                 </div>
             </div>
@@ -154,7 +154,7 @@ function ProfitSplitCalculator() {
         return (num(managerAmount) / total) * 100;
     }, [investorAmount, managerAmount]);
 
-    const inputClass = "w-full rounded-xl border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none";
+    const inputClass = "w-full rounded-lg border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none";
 
     return (
         <div className="rounded-lg border border-border bg-card p-5">
@@ -176,19 +176,19 @@ function ProfitSplitCalculator() {
                 </div>
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-4">
-                <div className="rounded-xl border border-border bg-muted p-3 text-center">
+                <div className="rounded-lg border border-border bg-muted p-3 text-center">
                     <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Investor %</p>
                     <p className="mt-1 text-lg font-bold text-foreground">{investorPct.toFixed(1)}%</p>
                 </div>
-                <div className="rounded-xl border border-border bg-muted p-3 text-center">
+                <div className="rounded-lg border border-border bg-muted p-3 text-center">
                     <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Manager %</p>
                     <p className="mt-1 text-lg font-bold text-foreground">{managerPct.toFixed(1)}%</p>
                 </div>
-                <div className="rounded-xl border border-chart-3/25 bg-chart-3/10 p-3 text-center">
+                <div className="rounded-lg border border-chart-3/25 bg-chart-3/10 p-3 text-center">
                     <p className="text-micro uppercase tracking-wider text-chart-3 font-semibold">Investor Share</p>
                     <p className="mt-1 text-lg font-bold text-chart-3">${investorShare.toFixed(2)}</p>
                 </div>
-                <div className="rounded-xl border border-chart-3/25 bg-chart-3/10 p-3 text-center">
+                <div className="rounded-lg border border-chart-3/25 bg-chart-3/10 p-3 text-center">
                     <p className="text-micro uppercase tracking-wider text-chart-3 font-semibold">Manager Share</p>
                     <p className="mt-1 text-lg font-bold text-chart-3">${managerShare.toFixed(2)}</p>
                 </div>
@@ -209,7 +209,7 @@ function SwapCalculator() {
     const swapBuy = useMemo(() => Math.abs(num(swapRateBuy)) * num(positionSize) * num(pipValue) * num(days), [positionSize, pipValue, swapRateBuy, days]);
     const swapSell = useMemo(() => Math.abs(num(swapRateSell)) * num(positionSize) * num(pipValue) * num(days), [positionSize, pipValue, swapRateSell, days]);
 
-    const inputClass = "w-full rounded-xl border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none";
+    const inputClass = "w-full rounded-lg border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none";
 
     return (
         <div className="rounded-lg border border-border bg-card p-5">
@@ -239,11 +239,11 @@ function SwapCalculator() {
                 </div>
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-warning/25 bg-warning/10 p-4 text-center">
+                <div className="rounded-lg border border-warning/25 bg-warning/10 p-4 text-center">
                     <p className="text-micro uppercase tracking-wider text-warning font-semibold">Buy Swap Cost</p>
                     <p className="mt-1 text-xl font-bold text-warning">${swapBuy.toFixed(2)}</p>
                 </div>
-                <div className="rounded-xl border border-info/25 bg-info/10 p-4 text-center">
+                <div className="rounded-lg border border-info/25 bg-info/10 p-4 text-center">
                     <p className="text-micro uppercase tracking-wider text-info font-semibold">Sell Swap Cost</p>
                     <p className="mt-1 text-xl font-bold text-info">${swapSell.toFixed(2)}</p>
                 </div>
@@ -267,7 +267,7 @@ function SpreadAnalyzer() {
         return (spreadPips / (avg * 10000)) * 100;
     }, [askPrice, bidPrice, spreadPips]);
 
-    const inputClass = "w-full rounded-xl border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none";
+    const inputClass = "w-full rounded-lg border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none";
 
     return (
         <div className="rounded-lg border border-border bg-card p-5">
@@ -293,15 +293,15 @@ function SpreadAnalyzer() {
                 </div>
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-xl border border-border bg-muted p-4 text-center">
+                <div className="rounded-lg border border-border bg-muted p-4 text-center">
                     <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Spread (pips)</p>
                     <p className="mt-1 text-xl font-bold text-foreground">{spreadPips.toFixed(1)}</p>
                 </div>
-                <div className="rounded-xl border border-warning/25 bg-warning/10 p-4 text-center">
+                <div className="rounded-lg border border-warning/25 bg-warning/10 p-4 text-center">
                     <p className="text-micro uppercase tracking-wider text-warning font-semibold">Spread Cost</p>
                     <p className="mt-1 text-xl font-bold text-warning">${spreadCost.toFixed(2)}</p>
                 </div>
-                <div className="rounded-xl border border-chart-3/25 bg-chart-3/10 p-4 text-center">
+                <div className="rounded-lg border border-chart-3/25 bg-chart-3/10 p-4 text-center">
                     <p className="text-micro uppercase tracking-wider text-chart-3 font-semibold">Spread %</p>
                     <p className="mt-1 text-xl font-bold text-chart-3">{spreadPercent.toFixed(4)}%</p>
                 </div>
@@ -383,11 +383,11 @@ function NotebookView() {
         return <div className="flex min-h-[50vh] items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
     }
 
-    const inputClass = "w-full rounded-xl border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none";
+    const inputClass = "w-full rounded-lg border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none";
 
     return (
         <div className="mx-auto max-w-5xl">
-            <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-1.5 w-fit">
+            <div className="flex items-center gap-2 rounded-lg border border-border bg-card p-1.5 w-fit">
                 <button type="button" onClick={() => setTab("entries")}
                     className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${tab === "entries" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}>
                     <BookOpen size={15} /> Entries
@@ -415,7 +415,7 @@ function NotebookView() {
                             </div>
                             <div><label className="mb-1 block text-xs font-medium text-muted-foreground">Notes (Markdown supported)</label>
                                 <RichTextEditor value={body} onChange={setBody} placeholder="Write your trade idea, analysis, or lessons learned..." className="min-h-50" /></div>
-                            <button type="submit" disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-primary disabled:opacity-50">
+                            <button type="submit" disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-primary disabled:opacity-50">
                                 {saving ? <Loader2 size={15} className="animate-spin" /> : <StickyNote size={15} />} Save Entry
                             </button>
                         </form>
@@ -425,16 +425,16 @@ function NotebookView() {
                         {notesLoading ? (
                             <div className="flex items-center gap-3 py-10 text-sm text-muted-foreground"><Loader2 size={16} className="animate-spin" /> Loading your notebook...</div>
                         ) : notes.length === 0 ? (
-                            <div className="rounded-xl border border-dashed border-border py-12 text-center"><BookOpen className="mx-auto h-8 w-8 text-muted-foreground" /><p className="mt-3 text-sm text-muted-foreground">No entries yet.</p></div>
+                            <div className="rounded-lg border border-dashed border-border py-12 text-center"><BookOpen className="mx-auto h-8 w-8 text-muted-foreground" /><p className="mt-3 text-sm text-muted-foreground">No entries yet.</p></div>
                         ) : (
                             <div className="mt-4 max-h-140 space-y-3 overflow-y-auto pr-1">
                                 {notes.map((note) => (
-                                    <div key={note.id} className="rounded-xl border border-border bg-muted/40 p-4">
+                                    <div key={note.id} className="rounded-lg border border-border bg-muted/40 p-4">
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="min-w-0">
                                                 <p className="font-medium text-foreground">{note.title}</p>
                                                 <div className="mt-1 flex flex-wrap items-center gap-2">
-                                                    {note.symbol && <span className="rounded-full border border-chart-3/25 bg-chart-3/10 px-2 py-0.5 text-micro font-mono text-chart-3">{note.symbol}</span>}
+                                                    {note.symbol && <span className="rounded-full border border-chart-3/25 bg-chart-3/10 px-2 py-0.5 text-micro font-numeric text-chart-3">{note.symbol}</span>}
                                                     {note.tradeOutcome && <span className={`rounded-full px-2 py-0.5 text-micro font-medium ${note.tradeOutcome === "win" ? "bg-positive/10 text-positive" : note.tradeOutcome === "loss" ? "bg-negative/10 text-negative" : "bg-warning/10 text-warning"}`}>{note.tradeOutcome === "win" ? "Win" : note.tradeOutcome === "loss" ? "Loss" : "Breakeven"}</span>}
                                                     {note.pnl !== null && note.pnl !== undefined && <span className={`rounded-full px-2 py-0.5 text-micro font-medium ${note.pnl >= 0 ? "bg-positive/10 text-positive" : "bg-negative/10 text-negative"}`}>{note.pnl >= 0 ? "+" : ""}${note.pnl.toFixed(2)}</span>}
                                                     {note.tags?.map((tag) => <span key={tag} className="rounded-full border border-border bg-muted px-2 py-0.5 text-micro text-muted-foreground">{tag}</span>)}
@@ -474,14 +474,14 @@ function JournalView({ notes }: { notes: JournalEntry[] }) {
     return (
         <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-4">
-                <div className="rounded-xl border border-positive/20 bg-positive/10 p-4 text-center"><p className="text-micro uppercase tracking-wider text-positive font-semibold">Wins</p><p className="mt-1 text-2xl font-bold text-positive">{wins}</p></div>
-                <div className="rounded-xl border border-negative/20 bg-negative/10 p-4 text-center"><p className="text-micro uppercase tracking-wider text-negative font-semibold">Losses</p><p className="mt-1 text-2xl font-bold text-negative">{losses}</p></div>
-                <div className="rounded-xl border border-border bg-muted/30 p-4 text-center"><p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Win Rate</p><p className="mt-1 text-2xl font-bold text-foreground">{wins + losses > 0 ? `${((wins / (wins + losses)) * 100).toFixed(0)}%` : "\u2014"}</p></div>
-                <div className={`rounded-xl border p-4 text-center ${totalPnl >= 0 ? "border-positive/20 bg-positive/10" : "border-negative/20 bg-negative/10"}`}><p className="text-micro uppercase tracking-wider font-semibold">Total P&amp;L</p><p className={`mt-1 text-2xl font-bold ${totalPnl >= 0 ? "text-positive" : "text-negative"}`}>{totalPnl >= 0 ? "+" : ""}${totalPnl.toFixed(2)}</p></div>
+                <div className="rounded-lg border border-positive/20 bg-positive/10 p-4 text-center"><p className="text-micro uppercase tracking-wider text-positive font-semibold">Wins</p><p className="mt-1 text-2xl font-bold text-positive">{wins}</p></div>
+                <div className="rounded-lg border border-negative/20 bg-negative/10 p-4 text-center"><p className="text-micro uppercase tracking-wider text-negative font-semibold">Losses</p><p className="mt-1 text-2xl font-bold text-negative">{losses}</p></div>
+                <div className="rounded-lg border border-border bg-muted/30 p-4 text-center"><p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Win Rate</p><p className="mt-1 text-2xl font-bold text-foreground">{wins + losses > 0 ? `${((wins / (wins + losses)) * 100).toFixed(0)}%` : "\u2014"}</p></div>
+                <div className={`rounded-lg border p-4 text-center ${totalPnl >= 0 ? "border-positive/20 bg-positive/10" : "border-negative/20 bg-negative/10"}`}><p className="text-micro uppercase tracking-wider font-semibold">Total P&amp;L</p><p className={`mt-1 text-2xl font-bold ${totalPnl >= 0 ? "text-positive" : "text-negative"}`}>{totalPnl >= 0 ? "+" : ""}${totalPnl.toFixed(2)}</p></div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {notes.map((note) => (
-                    <div key={note.id} className={`rounded-xl border p-4 ${outcomeColor(note.tradeOutcome)}`}>
+                    <div key={note.id} className={`rounded-lg border p-4 ${outcomeColor(note.tradeOutcome)}`}>
                         <div className="flex items-center justify-between"><span className="text-xs font-medium text-muted-foreground">{note.symbol || "\u2014"}</span><span className="text-lg font-bold">{outcomeIcon(note.tradeOutcome)}</span></div>
                         <h4 className="mt-2 font-semibold text-sm">{note.title || "Untitled"}</h4>
                         <div className="mt-2 flex flex-wrap gap-1.5">{note.tags?.map((tag) => <span key={tag} className="rounded-full border border-border bg-background px-2 py-0.5 text-micro text-muted-foreground">{tag}</span>)}</div>
@@ -571,7 +571,7 @@ export default function ToolsPage() {
                                     key={t.key}
                                     type="button"
                                     onClick={() => setTab(t.key)}
-                                    className={`flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${
+                                    className={`flex w-full items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition ${
                                         isActive
                                             ? "bg-foreground text-background"
                                             : "text-muted-foreground hover:bg-muted hover:text-foreground"

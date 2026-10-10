@@ -45,7 +45,7 @@ export default function TradeJournalPage() {
     };
 
     if (authLoading) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Trade Journal"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div></AccountShell></div>);
+        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Trade Journal"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></AccountShell></div>);
     }
     if (!user) {
         return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Trade Journal"><div className="flex flex-1 flex-col items-center justify-center gap-4"><BookOpen size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1></div></AccountShell></div>);
@@ -60,13 +60,13 @@ export default function TradeJournalPage() {
                             <Activity size={16} />
                             {journal.length} trades recorded
                         </div>
-                        <button type="button" onClick={fetchJournal} disabled={loading} className="flex items-center gap-2 rounded-xl border border-border/30 bg-muted px-4 py-2 text-xs text-muted-foreground hover:bg-muted/30 transition disabled:opacity-50">
+                        <button type="button" onClick={fetchJournal} disabled={loading} className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2 text-xs text-muted-foreground hover:bg-muted/30 transition disabled:opacity-50">
                             <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                         </button>
                     </div>
 
                     {loading ? (
-                        <div className="flex h-32 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div>
+                        <div className="flex h-32 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
                     ) : journal.length === 0 ? (
                         <div className="rounded-lg border border-dashed border-border/30 p-16 text-center">
                             <BookOpen size={32} className="mx-auto text-muted-foreground" />
@@ -75,7 +75,7 @@ export default function TradeJournalPage() {
                         </div>
                     ) : (
                         <>
-                            <div className="overflow-x-auto rounded-xl border border-border/30 bg-muted/50">
+                            <div className="overflow-x-auto rounded-lg border border-border/30 bg-muted/50">
                                 <table className="w-full text-xs">
                                     <thead>
                                         <tr className="border-b border-border/20 text-micro uppercase text-muted-foreground">
@@ -93,18 +93,18 @@ export default function TradeJournalPage() {
                                     <tbody>
                                         {journal.map((s, i) => (
                                             <tr key={s.id || i} className="border-b border-border/10 hover:bg-muted/50">
-                                                <td className="px-4 py-2.5 font-mono font-medium text-foreground">{s.symbol}</td>
-                                                <td className={cn("px-4 py-2.5 font-medium", s.direction === "BUY" ? "text-emerald-400" : "text-rose-400")}>{s.direction}</td>
-                                                <td className="px-4 py-2.5 text-right font-mono text-muted-foreground">{s.entry?.toFixed(s.symbol?.includes("JPY") ? 3 : s.symbol?.includes("XAU") || s.symbol?.includes("BTC") ? 2 : 2)}</td>
-                                                <td className="px-4 py-2.5 text-right font-mono text-muted-foreground">{s.stopLoss?.toFixed(2)}</td>
-                                                <td className={cn("px-4 py-2.5 font-medium", s.result === "WIN" ? "text-emerald-400" : s.result === "LOSS" ? "text-rose-400" : "text-muted-foreground")}>
+                                                <td className="px-4 py-2.5 font-numeric font-medium text-foreground">{s.symbol}</td>
+                                                <td className={cn("px-4 py-2.5 font-medium", s.direction === "BUY" ? "text-positive" : "text-negative")}>{s.direction}</td>
+                                                <td className="px-4 py-2.5 text-right font-numeric text-muted-foreground">{s.entry?.toFixed(s.symbol?.includes("JPY") ? 3 : s.symbol?.includes("XAU") || s.symbol?.includes("BTC") ? 2 : 2)}</td>
+                                                <td className="px-4 py-2.5 text-right font-numeric text-muted-foreground">{s.stopLoss?.toFixed(2)}</td>
+                                                <td className={cn("px-4 py-2.5 font-medium", s.result === "WIN" ? "text-positive" : s.result === "LOSS" ? "text-negative" : "text-muted-foreground")}>
                                                     {s.result === "WIN" ? <TrendingUp size={12} className="inline mr-1" /> : s.result === "LOSS" ? <TrendingDown size={12} className="inline mr-1" /> : <Target size={12} className="inline mr-1" />}
                                                     {s.result}
                                                 </td>
-                                                <td className={cn("px-4 py-2.5 text-right font-mono font-bold", (s.resultR || 0) >= 0 ? "text-emerald-400" : "text-rose-400")}>{formatR(s.resultR)}</td>
+                                                <td className={cn("px-4 py-2.5 text-right font-numeric font-bold", (s.resultR || 0) >= 0 ? "text-positive" : "text-negative")}>{formatR(s.resultR)}</td>
                                                 <td className="px-4 py-2.5 text-left text-muted-foreground">{s.marketRegime?.replace(/_/g, " ") || "—"}</td>
                                                 <td className="px-4 py-2.5 text-left text-muted-foreground">{s.timeframe}</td>
-                                                <td className="px-4 py-2.5 text-right font-mono text-muted-foreground">{s.confidence}%</td>
+                                                <td className="px-4 py-2.5 text-right font-numeric text-muted-foreground">{s.confidence}%</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -113,14 +113,14 @@ export default function TradeJournalPage() {
 
                             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4" data-guide="stats">
                                 {[
-                                    { label: "Win Rate", value: `${journal.filter((s: any) => s.result === "WIN").length / Math.max(journal.length, 1) * 100}%`, color: "text-emerald-400" },
-                                    { label: "Avg R", value: `${(journal.reduce((s: number, j: any) => s + (j.resultR || 0), 0) / Math.max(journal.length, 1)).toFixed(2)}R`, color: "text-violet-400" },
+                                    { label: "Win Rate", value: `${journal.filter((s: any) => s.result === "WIN").length / Math.max(journal.length, 1) * 100}%`, color: "text-positive" },
+                                    { label: "Avg R", value: `${(journal.reduce((s: number, j: any) => s + (j.resultR || 0), 0) / Math.max(journal.length, 1)).toFixed(2)}R`, color: "text-primary" },
                                     { label: "Total Trades", value: String(journal.length), color: "text-foreground" },
-                                    { label: "Winners", value: String(journal.filter((s: any) => s.result === "WIN").length), color: "text-emerald-400" },
+                                    { label: "Winners", value: String(journal.filter((s: any) => s.result === "WIN").length), color: "text-positive" },
                                 ].map((m) => (
-                                    <div key={m.label} className="rounded-xl border border-border/30 bg-muted/50 p-4">
+                                    <div key={m.label} className="rounded-lg border border-border/30 bg-muted/50 p-4">
                                         <span className="text-micro font-semibold uppercase text-muted-foreground">{m.label}</span>
-                                        <p className={cn("mt-1 font-mono text-lg font-bold", m.color)}>{m.value}</p>
+                                        <p className={cn("mt-1 font-numeric text-lg font-bold", m.color)}>{m.value}</p>
                                     </div>
                                 ))}
                             </div>

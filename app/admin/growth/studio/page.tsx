@@ -57,7 +57,7 @@ export default function MarketingStudioPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Marketing Studio</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Marketing Studio</h1>
           <p className="text-sm text-muted-foreground">Campaigns → Concepts → Scripts → Video</p>
         </div>
         <div className="flex gap-2">
@@ -179,7 +179,7 @@ export default function MarketingStudioPage() {
               }}><Film size={14} /> Generate Video</Button>
               <span className="text-micro text-muted-foreground">Automatic / Market Visual / TTS / FFmpeg</span>
             </div>
-            <div className="rounded-xl overflow-hidden bg-black relative aspect-video">
+            <div className="rounded-lg overflow-hidden bg-black relative aspect-video">
               <video controls className="w-full h-full" poster="/marketing-video/assets/01-market-hero.png" src="" />
               <div className="absolute bottom-3 left-3 bg-black/70 text-white text-xs px-2 py-0.5 rounded">Marketing Studio — preview only</div>
             </div>

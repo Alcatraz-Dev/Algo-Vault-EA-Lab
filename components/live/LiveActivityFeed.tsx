@@ -50,14 +50,14 @@ export default function LiveActivityFeed({
   const newestId = rows[0]?.id;
 
   return (
-    <div className="rounded-xl border border-border bg-muted/30 p-5 h-full min-h-[320px] flex flex-col">
+    <div className="rounded-lg border border-border bg-muted/30 p-5 h-full min-h-[320px] flex flex-col">
       <div className="flex items-center gap-2 mb-4">
         <span className="relative flex h-2 w-2">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-75" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-positive" />
         </span>
         <h3 className="text-sm font-bold text-foreground tracking-tight">LIVE ACTIVITY</h3>
-        <span className="ml-auto text-micro font-mono text-muted-foreground">{activities.length} events</span>
+        <span className="ml-auto text-micro font-numeric text-muted-foreground">{activities.length} events</span>
       </div>
       <div className="flex-1 overflow-y-auto space-y-1 pr-1" aria-live="polite">
         {rows.map((item) => {

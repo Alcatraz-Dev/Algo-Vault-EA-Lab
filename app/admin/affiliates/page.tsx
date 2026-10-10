@@ -357,7 +357,7 @@ export default function AdminAffiliatesPage() {
         return () => {
             if (
                 logoPreview?.startsWith(
-                    "blob:"
+                  "blob:"
                 )
             ) {
                 URL.revokeObjectURL(
@@ -447,7 +447,7 @@ export default function AdminAffiliatesPage() {
 
         if (fileInputRef.current) {
             fileInputRef.current.value =
-                "";
+              "";
         }
 
         setShowModal(true);
@@ -476,7 +476,7 @@ export default function AdminAffiliatesPage() {
                 offer.affiliateUrl || "",
             category:
                 offer.category ||
-                "Other",
+                  "Other",
             status:
                 offer.status ||
                 "active",
@@ -486,7 +486,7 @@ export default function AdminAffiliatesPage() {
             commissionValue:
                 String(
                     offer.commissionValue ??
-                    ""
+                      ""
                 ),
             currency:
                 offer.currency || "USD",
@@ -502,7 +502,7 @@ export default function AdminAffiliatesPage() {
 
         if (fileInputRef.current) {
             fileInputRef.current.value =
-                "";
+              "";
         }
 
         setError("");
@@ -550,7 +550,7 @@ export default function AdminAffiliatesPage() {
 
         if (fileInputRef.current) {
             fileInputRef.current.value =
-                "";
+              "";
         }
     };
 
@@ -618,7 +618,7 @@ export default function AdminAffiliatesPage() {
                 fileInputRef.current
             ) {
                 fileInputRef.current.value =
-                    "";
+                  "";
             }
 
             return;
@@ -636,7 +636,7 @@ export default function AdminAffiliatesPage() {
                 fileInputRef.current
             ) {
                 fileInputRef.current.value =
-                    "";
+                  "";
             }
 
             return;
@@ -644,7 +644,7 @@ export default function AdminAffiliatesPage() {
 
         if (
             logoPreview?.startsWith(
-                "blob:"
+              "blob:"
             )
         ) {
             URL.revokeObjectURL(
@@ -666,7 +666,7 @@ export default function AdminAffiliatesPage() {
     const removeSelectedLogo = () => {
         if (
             logoPreview?.startsWith(
-                "blob:"
+              "blob:"
             )
         ) {
             URL.revokeObjectURL(
@@ -680,7 +680,7 @@ export default function AdminAffiliatesPage() {
 
         if (fileInputRef.current) {
             fileInputRef.current.value =
-                "";
+              "";
         }
     };
 
@@ -752,7 +752,7 @@ export default function AdminAffiliatesPage() {
 
                     if (
                         oldUrl?.startsWith(
-                            "blob:"
+                          "blob:"
                         )
                     ) {
                         URL.revokeObjectURL(
@@ -862,7 +862,7 @@ export default function AdminAffiliatesPage() {
                     form.affiliateUrl.trim(),
                 category:
                     form.category.trim() ||
-                    "Other",
+                      "Other",
                 status: form.status,
                 commissionType:
                     form.commissionType,
@@ -889,7 +889,7 @@ export default function AdminAffiliatesPage() {
                     method,
                     headers: {
                         Authorization: `Bearer ${token}`,
-                        "Content-Type":
+                          "Content-Type":
                             "application/json",
                     },
                     body: JSON.stringify(
@@ -944,7 +944,7 @@ export default function AdminAffiliatesPage() {
 
             if (
                 logoPreview?.startsWith(
-                    "blob:"
+                  "blob:"
                 )
             ) {
                 URL.revokeObjectURL(
@@ -965,7 +965,7 @@ export default function AdminAffiliatesPage() {
                 fileInputRef.current
             ) {
                 fileInputRef.current.value =
-                    "";
+                  "";
             }
         } catch (err) {
             console.error(err);
@@ -1041,7 +1041,7 @@ export default function AdminAffiliatesPage() {
 
                     if (
                         oldUrl?.startsWith(
-                            "blob:"
+                          "blob:"
                         )
                     ) {
                         URL.revokeObjectURL(
@@ -1091,7 +1091,7 @@ export default function AdminAffiliatesPage() {
 
             const newStatus =
                 offer.status ===
-                    "active"
+                  "active"
                     ? "inactive"
                     : "active";
 
@@ -1102,7 +1102,7 @@ export default function AdminAffiliatesPage() {
                         method: "PATCH",
                         headers: {
                             Authorization: `Bearer ${token}`,
-                            "Content-Type":
+                              "Content-Type":
                                 "application/json",
                         },
                         body: JSON.stringify(
@@ -1141,7 +1141,7 @@ export default function AdminAffiliatesPage() {
 
             setSuccess(
                 newStatus ===
-                    "active"
+                  "active"
                     ? "Affiliate activated."
                     : "Affiliate deactivated."
             );
@@ -1162,7 +1162,7 @@ export default function AdminAffiliatesPage() {
                 <button
                     onClick={loadOffers}
                     disabled={loading}
-                    className="inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-muted/50 px-4 text-sm font-medium transition hover:bg-muted disabled:opacity-50"
+                    className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-muted/50 px-4 text-sm font-medium transition hover:bg-muted disabled:opacity-50"
                 >
                     <RefreshCw
                         className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
@@ -1172,7 +1172,7 @@ export default function AdminAffiliatesPage() {
 
                 <button
                     onClick={openCreateModal}
-                    className="inline-flex h-10 items-center gap-2 rounded-xl bg-positive px-4 text-sm font-semibold text-background transition hover:bg-positive"
+                    className="inline-flex h-10 items-center gap-2 rounded-lg bg-positive px-4 text-sm font-semibold text-background transition hover:bg-positive"
                 >
                     <Plus className="h-4 w-4" />
                     Add Affiliate
@@ -1181,7 +1181,7 @@ export default function AdminAffiliatesPage() {
 
             {/* Alerts */}
             {error && (
-                <div className="mb-5 flex items-start justify-between gap-4 rounded-xl border border-negative/20 bg-negative/10 px-4 py-3 text-sm text-negative">
+                <div className="mb-5 flex items-start justify-between gap-4 rounded-lg border border-negative/20 bg-negative/10 px-4 py-3 text-sm text-negative">
                     <span>
                         {error}
                     </span>
@@ -1189,7 +1189,7 @@ export default function AdminAffiliatesPage() {
                     <button
                         onClick={() =>
                             setError(
-                                ""
+                              ""
                             )
                         }
                         className="text-negative/60 hover:text-negative"
@@ -1200,7 +1200,7 @@ export default function AdminAffiliatesPage() {
             )}
 
             {success && (
-                <div className="mb-5 flex items-start justify-between gap-4 rounded-xl border border-positive/20 bg-positive/10 px-4 py-3 text-sm text-positive">
+                <div className="mb-5 flex items-start justify-between gap-4 rounded-lg border border-positive/20 bg-positive/10 px-4 py-3 text-sm text-positive">
                     <span>
                         {success}
                     </span>
@@ -1208,7 +1208,7 @@ export default function AdminAffiliatesPage() {
                     <button
                         onClick={() =>
                             setSuccess(
-                                ""
+                              ""
                             )
                         }
                         className="text-positive/60 hover:text-positive"
@@ -1258,7 +1258,7 @@ export default function AdminAffiliatesPage() {
             </div>
 
             {/* Filters */}
-            <div className="mb-5 flex flex-col gap-3 rounded-xl border border-border bg-foreground/[0.025] p-3 md:flex-row md:items-center">
+            <div className="mb-5 flex flex-col gap-3 rounded-lg border border-border bg-foreground/[0.025] p-3 md:flex-row md:items-center">
                 <div className="relative flex-1">
                     <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/50" />
 
@@ -1430,10 +1430,10 @@ export default function AdminAffiliatesPage() {
                                                                 ]
                                                             }
                                                             alt={`${offer.name} logo`}
-                                                            className="h-11 w-11 shrink-0 rounded-xl border border-border bg-foreground object-contain p-1.5"
+                                                            className="h-11 w-11 shrink-0 rounded-lg border border-border bg-foreground object-contain p-1.5"
                                                         />
                                                     ) : (
-                                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/50">
+                                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/50">
                                                             <ExternalLink className="h-5 w-5 text-foreground/50" />
                                                         </div>
                                                     )}
@@ -1510,7 +1510,7 @@ export default function AdminAffiliatesPage() {
                                                 >
                                                     <span
                                                         className={`h-2 w-2 rounded-full ${offer.status ===
-                                                            "active"
+                                                          "active"
                                                             ? "bg-positive"
                                                             : "bg-foreground/25"
                                                             }`}
@@ -1518,13 +1518,13 @@ export default function AdminAffiliatesPage() {
 
                                                     <span
                                                         className={`text-xs font-medium ${offer.status ===
-                                                            "active"
+                                                          "active"
                                                             ? "text-positive"
                                                             : "text-foreground/50"
                                                             }`}
                                                     >
                                                         {offer.status ===
-                                                            "active"
+                                                          "active"
                                                             ? "Active"
                                                             : "Inactive"}
                                                     </span>
@@ -1615,7 +1615,7 @@ export default function AdminAffiliatesPage() {
             </div>
 
             {/* Bottom note */}
-            <div className="mt-5 rounded-xl border border-border bg-muted/30 p-4">
+            <div className="mt-5 rounded-lg border border-border bg-muted/30 p-4">
                 <div className="flex gap-3">
                     <div className="mt-0.5 shrink-0">
                         <Link2 className="h-4 w-4 text-foreground/50" />
@@ -1682,7 +1682,7 @@ export default function AdminAffiliatesPage() {
 
                         {/* Logo */}
                         <Field label="Broker Logo">
-                            <div className="rounded-xl border border-border bg-muted/30 p-4">
+                            <div className="rounded-lg border border-border bg-muted/30 p-4">
                                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                                     <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted/50">
                                         {logoPreview ? (

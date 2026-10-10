@@ -72,12 +72,12 @@ export function EvidencePanel({
                                 {c.value === null ? (
                                     <span className="text-muted-foreground italic">unavailable</span>
                                 ) : (
-                                    <span className="font-mono tabular-nums text-foreground">
+                                    <span className="font-numeric tabular-nums text-foreground">
                                         {c.value.toFixed(1)}
                                     </span>
                                 )}
                                 <span className="text-muted-foreground/80">× {c.weight}</span>
-                                <span className="ml-auto font-mono tabular-nums text-muted-foreground">
+                                <span className="ml-auto font-numeric tabular-nums text-muted-foreground">
                                     ={" "}
                                     {c.contribution === null ? (
                                         <span className="italic">unavailable</span>
@@ -91,7 +91,7 @@ export function EvidencePanel({
                     <p className="mt-1.5 text-xs text-muted-foreground">
                         Each component is scaled to 0–100 (value × 10), multiplied by its weight, and
                         summed. Weights are exported as{" "}
-                        <span className="font-mono">FINAL_INTELLIGENCE_WEIGHTS</span> and sum to 1. If any
+                        <span className="font-numeric">FINAL_INTELLIGENCE_WEIGHTS</span> and sum to 1. If any
                         component is missing the whole confidence is reported as unavailable rather than
                         computed from the remainder.
                     </p>
@@ -124,7 +124,7 @@ function EvidenceRow({ section }: { section: EvidenceSection }) {
                         Data unavailable
                     </span>
                 ) : (
-                    <span className="font-mono text-xs font-semibold tabular-nums text-foreground">
+                    <span className="font-numeric text-xs font-semibold tabular-nums text-foreground">
                         {(score * 100).toFixed(0)}
                     </span>
                 )}
@@ -167,7 +167,7 @@ function EvidenceRow({ section }: { section: EvidenceSection }) {
                             {m.value === null ? (
                                 <span className="text-muted-foreground italic">unavailable</span>
                             ) : (
-                                <span className="font-mono tabular-nums text-foreground">
+                                <span className="font-numeric tabular-nums text-foreground">
                                     {m.value}
                                     {m.unit}
                                 </span>

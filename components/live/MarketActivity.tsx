@@ -22,19 +22,19 @@ export default function MarketActivity({ activities }: { activities: LiveActivit
   }, [activities]);
 
   return (
-    <div className="bg-muted/30 border-border rounded-xl p-5 h-full min-h-[220px] flex flex-col">
+    <div className="bg-muted/30 border-border rounded-lg p-5 h-full min-h-[220px] flex flex-col">
       <h3 className="text-sm font-bold text-foreground tracking-tight mb-4">MARKET ACTIVITY</h3>
       <div className="flex-1 space-y-3">
         {shares.map((m) => (
           <div key={m.market} className="flex items-center gap-3">
-            <div className="w-16 text-xs font-mono font-bold text-foreground">{m.market}</div>
+            <div className="w-16 text-xs font-numeric font-bold text-foreground">{m.market}</div>
             <div className="flex-1 h-1.5 bg-muted/60 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-warning to-warning rounded-full transition-[width] duration-700"
+                className="h-full bg-warning rounded-full transition-[width] duration-700"
                 style={{ width: `${m.share}%` }}
               />
             </div>
-            <div className="w-10 text-right text-xs font-mono text-muted-foreground">{m.share}%</div>
+            <div className="w-10 text-right text-xs font-numeric text-muted-foreground">{m.share}%</div>
           </div>
         ))}
         {shares.length === 0 && <p className="text-xs text-muted-foreground">No activity yet.</p>}

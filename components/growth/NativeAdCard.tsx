@@ -38,7 +38,7 @@ export function NativeAdCard({ title, summary, url, placementKey, premiumMode, c
     return (
         <a
             href={url}
-            className={`block rounded-xl border border-positive bg-gradient-to-br from-positive/60 to-info/40 p-4 shadow-sm hover:shadow transition ${
+            className={`block rounded-lg border border-positive bg-positive-muted p-4 shadow-sm hover:shadow transition ${
                 premiumMode === "REDUCED" ? "opacity-70" : ""
             }`}
         >

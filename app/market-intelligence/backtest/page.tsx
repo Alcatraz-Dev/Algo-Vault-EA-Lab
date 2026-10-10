@@ -16,8 +16,8 @@ export default function MarketIntelligenceBacktestPage() {
             <Badge variant="outline">Phase 7.1</Badge>
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>Symbol</span><span className="font-mono font-bold">XAUUSD</span>
-            <span>·</span><span>Timeframe</span><span className="font-mono font-bold">M5</span>
+            <span>Symbol</span><span className="font-numeric font-bold">XAUUSD</span>
+            <span>·</span><span>Timeframe</span><span className="font-numeric font-bold">M5</span>
           </div>
         </div>
 
@@ -49,7 +49,7 @@ export default function MarketIntelligenceBacktestPage() {
             <h3 className="font-bold text-sm mb-3">Data Quality</h3>
             <div className="text-xs text-muted-foreground space-y-2">
               <div className="flex justify-between"><span>Source</span><span className="font-semibold">Dataset</span></div>
-              <div className="flex justify-between"><span>Period</span><span className="font-mono">2024-01 → 2024-12</span></div>
+              <div className="flex justify-between"><span>Period</span><span className="font-numeric">2024-01 → 2024-12</span></div>
               <div className="flex justify-between"><span>Candles</span><span>—</span></div>
               <div className="flex justify-between"><span>Gaps</span><span>—</span></div>
               <div className="flex justify-between"><span>Volume</span><span>Not available</span></div>

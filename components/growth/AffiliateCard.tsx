@@ -32,7 +32,7 @@ export function AffiliateCard({ offer, placementKey, premiumMode, onTrackClick }
             target="_blank"
             rel="sponsor noopener noreferrer"
             onClick={() => onTrackClick?.(offer.id || "")}
-            className={`block rounded-xl border border-positive/60 bg-gradient-to-br from-positive/40 to-info/30 p-4 shadow-sm hover:shadow transition ${
+            className={`block rounded-lg border border-positive/60 bg-positive-muted p-4 shadow-sm hover:shadow transition ${
                 premiumMode === "REDUCED" ? "opacity-70" : ""
             }`}
         >

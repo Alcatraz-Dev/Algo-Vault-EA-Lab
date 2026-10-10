@@ -7,7 +7,7 @@ import { EquityPoint, TradeRecord, useUserTradingData } from "@/components/tools
 function Sparkline({ series }: { series: EquityPoint[] }) {
     if (series.length < 2) {
         return (
-            <div className="flex h-32 items-center justify-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">
+            <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground">
                 Not enough equity history yet.
             </div>
         );
@@ -31,7 +31,7 @@ function Sparkline({ series }: { series: EquityPoint[] }) {
     const area = `0,${H} ${points} ${W},${H}`;
 
     return (
-        <div className="rounded-xl border border-border bg-muted/30 p-3">
+        <div className="rounded-lg border border-border bg-muted/30 p-3">
             <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-32 w-full">
                 <defs>
                     <linearGradient id="equityFill" x1="0" y1="0" x2="0" y2="1">
@@ -80,7 +80,7 @@ function StatCard({
             </div>
             <p
                 className={`mt-2 text-2xl font-bold ${
-                    positive === undefined ? "text-foreground" : positive ? "text-emerald-400" : "text-rose-400"
+                    positive === undefined ? "text-foreground" : positive ? "text-positive" : "text-negative"
                 }`}
             >
                 {value}
@@ -127,7 +127,7 @@ export default function AdvancedAnalysis({ userId }: { userId: string }) {
     if (loading) {
         return (
             <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-10 text-sm text-muted-foreground">
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-violet-500" />
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-primary" />
                 Analyzing your accounts & trades...
             </div>
         );
@@ -135,7 +135,7 @@ export default function AdvancedAnalysis({ userId }: { userId: string }) {
 
     if (error) {
         return (
-            <div className="rounded-lg border border-rose-500/20 bg-rose-500/[0.05] p-8 text-sm text-rose-400">
+            <div className="rounded-lg border border-negative/20 bg-negative/[0.05] p-8 text-sm text-negative">
                 {error}
             </div>
         );
@@ -146,7 +146,7 @@ export default function AdvancedAnalysis({ userId }: { userId: string }) {
             <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
                 <Crosshair className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                 No connected MT5 accounts yet. Add one in{" "}
-                <a href="/account/settings?tab=mt5" className="font-semibold text-violet-400 underline underline-offset-2 hover:text-violet-300">
+                <a href="/account/settings?tab=mt5" className="font-semibold text-primary underline underline-offset-2 hover:text-primary">
                     Settings → MT5 Accounts
                 </a>{" "}
                 so your accounts appear here.
@@ -157,12 +157,12 @@ export default function AdvancedAnalysis({ userId }: { userId: string }) {
     return (
         <div className="space-y-4">
             {liveAccounts.length === 0 && (
-                <div className="flex items-start gap-3 rounded-lg border border-amber-500/20 bg-amber-500/[0.06] p-4 text-xs text-amber-200/90">
+                <div className="flex items-start gap-3 rounded-lg border border-warning/20 bg-warning/[0.06] p-4 text-xs text-warning/90">
                     <div>
-                        <p className="font-semibold text-amber-300">
+                        <p className="font-semibold text-warning">
                             Connected account{accounts.length === 1 ? "" : "s"} found — waiting for live telemetry.
                         </p>
-                        <p className="mt-1 leading-relaxed text-amber-200/70">
+                        <p className="mt-1 leading-relaxed text-warning/70">
                             Run the Expert Advisor on these account numbers:
                             {accounts.map((a) => ` #${a.mt5Account ?? a.accountId}`).join(",")}
                             . Once it sends its first heartbeat, equity curves and trade analysis populate here automatically.
@@ -173,25 +173,25 @@ export default function AdvancedAnalysis({ userId }: { userId: string }) {
             {/* Stat cards */}
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard
-                    icon={<TrendingUp size={13} className="text-emerald-400" />}
+                    icon={<TrendingUp size={13} className="text-positive" />}
                     label="Net Profit"
                     value={`$${stats.net.toFixed(2)}`}
                     positive={stats.net >= 0}
                 />
                 <StatCard
-                    icon={<Percent size={13} className="text-violet-400" />}
+                    icon={<Percent size={13} className="text-primary" />}
                     label="Win Rate"
                     value={`${stats.winRate.toFixed(1)}%`}
                     positive={stats.winRate >= 50}
                 />
                 <StatCard
-                    icon={<Award size={13} className="text-amber-400" />}
+                    icon={<Award size={13} className="text-warning" />}
                     label="Profit Factor"
                     value={!isFinite(stats.profitFactor) ? "∞" : stats.profitFactor.toFixed(2)}
                     positive={stats.profitFactor >= 1}
                 />
                 <StatCard
-                    icon={<TrendingDown size={13} className="text-rose-400" />}
+                    icon={<TrendingDown size={13} className="text-negative" />}
                     label="Max Drawdown"
                     value={`${stats.maxDrawdown.toFixed(2)}%`}
                 />
@@ -201,7 +201,7 @@ export default function AdvancedAnalysis({ userId }: { userId: string }) {
                 {/* Equity curve */}
                 <div className="rounded-lg border border-border bg-card p-5 lg:col-span-2">
                     <h3 className="flex items-center gap-2 text-sm font-semibold">
-                        <LineChart size={15} className="text-violet-400" /> Equity Curve
+                        <LineChart size={15} className="text-primary" /> Equity Curve
                     </h3>
                     <p className="text-xs text-muted-foreground mt-1">
                         Combined balance across your {accounts.length} connected account{accounts.length === 1 ? "" : "s"}.
@@ -218,11 +218,11 @@ export default function AdvancedAnalysis({ userId }: { userId: string }) {
                         <div>
                             <div className="flex items-center justify-between text-xs text-muted-foreground">
                                 <span>Buy</span>
-                                <span className="font-semibold text-emerald-400">{stats.buyCount}</span>
+                                <span className="font-semibold text-positive">{stats.buyCount}</span>
                             </div>
                             <div className="mt-1 h-2 overflow-hidden rounded-full bg-muted">
                                 <div
-                                    className="h-full rounded-full bg-emerald-500"
+                                    className="h-full rounded-full bg-positive"
                                     style={{
                                         width: `${stats.buyCount + stats.sellCount > 0 ? (stats.buyCount / (stats.buyCount + stats.sellCount)) * 100 : 0}%`,
                                     }}
@@ -232,11 +232,11 @@ export default function AdvancedAnalysis({ userId }: { userId: string }) {
                         <div>
                             <div className="flex items-center justify-between text-xs text-muted-foreground">
                                 <span>Sell</span>
-                                <span className="font-semibold text-rose-400">{stats.sellCount}</span>
+                                <span className="font-semibold text-negative">{stats.sellCount}</span>
                             </div>
                             <div className="mt-1 h-2 overflow-hidden rounded-full bg-muted">
                                 <div
-                                    className="h-full rounded-full bg-rose-500"
+                                    className="h-full rounded-full bg-negative"
                                     style={{
                                         width: `${stats.buyCount + stats.sellCount > 0 ? (stats.sellCount / (stats.buyCount + stats.sellCount)) * 100 : 0}%`,
                                     }}
@@ -245,12 +245,12 @@ export default function AdvancedAnalysis({ userId }: { userId: string }) {
                         </div>
 
                         <div className="grid grid-cols-2 gap-2 border-t border-border pt-3 text-center">
-                            <div className="rounded-xl bg-muted/50 py-2">
-                                <p className="text-micro text-emerald-400">Avg Win</p>
+                            <div className="rounded-lg bg-muted/50 py-2">
+                                <p className="text-micro text-positive">Avg Win</p>
                                 <p className="text-sm font-bold text-foreground">${stats.avgWin.toFixed(2)}</p>
                             </div>
-                            <div className="rounded-xl bg-muted/50 py-2">
-                                <p className="text-micro text-rose-400">Avg Loss</p>
+                            <div className="rounded-lg bg-muted/50 py-2">
+                                <p className="text-micro text-negative">Avg Loss</p>
                                 <p className="text-sm font-bold text-foreground">-${stats.avgLoss.toFixed(2)}</p>
                             </div>
                         </div>
@@ -287,12 +287,12 @@ export default function AdvancedAnalysis({ userId }: { userId: string }) {
                                 const worst = Math.min(0, ...list.map((t) => Number(t.profit ?? 0)));
                                 return (
                                     <tr key={symbol} className="border-b border-border/60 last:border-0">
-                                        <td className="py-2.5 pr-4 font-mono font-medium text-foreground">{symbol}</td>
+                                        <td className="py-2.5 pr-4 font-numeric font-medium text-foreground">{symbol}</td>
                                         <td className="py-2.5 pr-4 text-muted-foreground">{list.length}</td>
                                         <td className="py-2.5 pr-4 text-muted-foreground">
                                             {list.length ? ((wins.length / list.length) * 100).toFixed(0) : 0}%
                                         </td>
-                                        <td className={`py-2.5 pr-4 font-semibold ${net >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                                        <td className={`py-2.5 pr-4 font-semibold ${net >= 0 ? "text-positive" : "text-negative"}`}>
                                             {net >= 0 ? "+" : ""}${net.toFixed(2)}
                                         </td>
                                         <td className="py-2.5 text-muted-foreground">

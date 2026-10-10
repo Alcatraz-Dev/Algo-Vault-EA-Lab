@@ -23,8 +23,8 @@ import { WORKFLOW_TEMPLATES } from "@/lib/workflows/templates";
 /* ─ tiny toast ─ */
 function Toast({ msg, kind, onClose }: { msg: string; kind: "ok" | "err" | "info"; onClose: () => void }) {
   return (
-    <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-sm font-medium animate-in slide-in-from-bottom-2
-      ${kind === "err" ? "bg-negative text-white" : kind === "info" ? "bg-info text-white" : "bg-positive text-white"}`}>
+    <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-lg shadow-lg text-sm font-medium animate-in slide-in-from-bottom-2
+      ${kind === "err" ? "bg-negative text-background" : kind === "info" ? "bg-info text-background" : "bg-positive text-background"}`}>
       {kind === "err" ? <AlertCircle size={14} /> : kind === "info" ? <Info size={14} /> : <CheckCircle2 size={14} />}
       <span>{msg}</span>
       <button onClick={onClose}><X size={13} className="opacity-70 hover:opacity-100" /></button>
@@ -73,7 +73,7 @@ function CreateWorkflowDialog({ open, onClose, onCreate, creating }: CreateDialo
 /* ─ stat card ─ */
 function Stat({ label, value, sub }: { label: string; value: number; sub?: string }) {
   return (
-    <div className="rounded-xl border border-border bg-card px-4 py-3 flex flex-col gap-0.5">
+    <div className="rounded-lg border border-border bg-card px-4 py-3 flex flex-col gap-0.5">
       <span className="text-2xl font-bold text-foreground">{value}</span>
       <span className="text-xs font-medium text-foreground">{label}</span>
       {sub && <span className="text-micro text-muted-foreground">{sub}</span>}
@@ -219,7 +219,7 @@ export default function AccountWorkflowsPage() {
         {/* Header */}
         <div className="flex items-start justify-between flex-wrap gap-4 border-b border-border pb-5" data-guide="page-header">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Workflow Automation</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Workflow Automation</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Create, monitor, and manage your automated trading workflows.
             </p>
@@ -252,7 +252,7 @@ export default function AccountWorkflowsPage() {
 
         {/* Pro upgrade callout */}
         {!loading && !pro && (
-          <div className="rounded-xl border border-border bg-card p-8 text-center space-y-4">
+          <div className="rounded-lg border border-border bg-card p-8 text-center space-y-4">
             <div className="w-14 h-14 rounded-full bg-info/10 flex items-center justify-center mx-auto">
               <Shield size={26} className="text-info" />
             </div>
@@ -304,13 +304,13 @@ export default function AccountWorkflowsPage() {
         {/* Loading skeleton */}
         {loading && pro && (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map(i => <div key={i} className="h-48 rounded-xl border border-border animate-pulse bg-muted/30" />)}
+            {[1, 2, 3].map(i => <div key={i} className="h-48 rounded-lg border border-border animate-pulse bg-muted/30" />)}
           </div>
         )}
 
         {/* Empty state */}
         {!loading && pro && workflows.length === 0 && (
-          <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center space-y-6">
+          <div className="rounded-lg border border-dashed border-border bg-card p-12 text-center space-y-6">
             <div className="w-16 h-16 rounded-full bg-info/10 flex items-center justify-center mx-auto">
               <GitBranch size={28} className="text-info" />
             </div>
@@ -334,7 +334,7 @@ export default function AccountWorkflowsPage() {
 
         {/* No search results */}
         {!loading && pro && workflows.length > 0 && filtered.length === 0 && (
-          <div className="rounded-xl border border-border bg-card px-6 py-10 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg border border-border bg-card px-6 py-10 text-center text-sm text-muted-foreground">
             No workflows match your search or filter.
           </div>
         )}
@@ -344,7 +344,7 @@ export default function AccountWorkflowsPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-guide="workflows-grid">
             {filtered.map(wf => (
               <div key={wf.id}
-                className="group flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5">
+                className="group flex flex-col gap-3 rounded-lg border border-border bg-card p-5 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5">
                 {/* Top */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">

@@ -417,7 +417,7 @@ export default function StrategyResearchClient() {
     const selected = missions.find((m) => m.id === selectedId) ?? null;
 
     const lockedView = (reason: string) => (
-        <div className="rounded-lg border border-border/30 bg-card/40 p-10 backdrop-blur-xl">
+        <div className="rounded-lg border border-border/30 bg-card/40 p-10">
             <EmptyState
                 icon={<Lock className="h-5 w-5" />}
                 title="Strategy Research is a Pro feature"
@@ -446,7 +446,7 @@ export default function StrategyResearchClient() {
             <div className="space-y-6">
                 {notice ? (
                     <div
-                        className={`rounded-xl border px-4 py-3 text-sm ${
+                        className={`rounded-lg border px-4 py-3 text-sm ${
                             notice.level === "error"
                                 ? "border-destructive/40 bg-destructive/10 text-destructive"
                                 : "border-border bg-card text-foreground"
@@ -479,7 +479,7 @@ export default function StrategyResearchClient() {
                         <CompatibilityPanel />
 
                         {/* ── A. Research Mission Builder ─────────────────────── */}
-                        <section className="rounded-lg border border-border/30 bg-card/40 backdrop-blur-xl">
+                        <section className="rounded-lg border border-border/30 bg-card/40">
                             <div className="flex items-center justify-between px-5 py-4">
                                 <div className="flex items-center gap-2">
                                     <Beaker className="h-4 w-4 text-primary" />
@@ -705,7 +705,7 @@ export default function StrategyResearchClient() {
                         </section>
 
                         {/* ── B. Research Command Center ─────────────────────── */}
-                        <section className="rounded-lg border border-border/30 bg-card/40 backdrop-blur-xl">
+                        <section className="rounded-lg border border-border/30 bg-card/40">
                             <div className="flex items-center justify-between px-5 py-4">
                                 <div className="flex items-center gap-2">
                                     <Activity className="h-4 w-4 text-primary" />
@@ -732,7 +732,7 @@ export default function StrategyResearchClient() {
                                         return (
                                             <div
                                                 key={mission.id}
-                                                className={`rounded-xl border p-4 transition-colors ${
+                                                className={`rounded-lg border p-4 transition-colors ${
                                                     selectedId === mission.id
                                                         ? "border-primary/50 bg-primary/5"
                                                         : "border-border/40 bg-background"
@@ -874,7 +874,7 @@ export default function StrategyResearchClient() {
 
                         {/* ── C. Candidate Explorer + E. Research Logs ──────── */}
                         <div className="grid gap-6 lg:grid-cols-5">
-                            <section className="rounded-lg border border-border/30 bg-card/40 backdrop-blur-xl lg:col-span-3">
+                            <section className="rounded-lg border border-border/30 bg-card/40 lg:col-span-3">
                                 <div className="flex items-center justify-between px-5 py-4">
                                     <div className="flex items-center gap-2">
                                         <FlaskConical className="h-4 w-4 text-primary" />
@@ -1027,7 +1027,7 @@ export default function StrategyResearchClient() {
                             </section>
 
                             {/* ── E. Research Logs ───────────────────────────── */}
-                            <section className="rounded-lg border border-border/30 bg-card/40 backdrop-blur-xl lg:col-span-2">
+                            <section className="rounded-lg border border-border/30 bg-card/40 lg:col-span-2">
                                 <div className="flex items-center gap-2 px-5 py-4">
                                     <ScrollText className="h-4 w-4 text-primary" />
                                     <h2 className="text-sm font-semibold">Research Logs</h2>

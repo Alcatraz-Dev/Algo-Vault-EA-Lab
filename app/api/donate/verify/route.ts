@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
 
             if (decodedToken.uid !== uid) {
                 return jsonError(
-                    "Donation ownership verification failed.",
+                  "Donation ownership verification failed.",
                     403
                 );
             }
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
             (donation.userId || "guest") !== uid
         ) {
             return jsonError(
-                "Donation ownership verification failed.",
+              "Donation ownership verification failed.",
                 403
             );
         }

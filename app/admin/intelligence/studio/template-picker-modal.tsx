@@ -53,8 +53,8 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
         <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4 border-b border-border shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0">
-                <Sparkles size={20} className="text-blue-500" />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-info/10 flex items-center justify-center shrink-0">
+                <Sparkles size={20} className="text-info" />
               </div>
               <div>
                 <h2 className="text-base sm:text-lg font-bold text-foreground">Workflow Templates</h2>
@@ -115,9 +115,9 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
                       setSelectedTemplateId(tpl.id);
                       setSymbolOverride(tpl.defaultSymbol ?? "");
                     }}
-                    className={`p-3 sm:p-4 rounded-xl border cursor-pointer transition-all ${
+                    className={`p-3 sm:p-4 rounded-lg border cursor-pointer transition-all ${
                       isSelected
-                        ? "border-blue-500/50 bg-blue-500/10 ring-1 ring-blue-500/30 shadow-sm"
+                        ? "border-info/50 bg-info/10 ring-1 ring-info/30 shadow-sm"
                         : "border-border hover:bg-muted/30 hover:border-muted-foreground/20"
                     }`}
                   >
@@ -130,11 +130,11 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
                     <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{tpl.description}</p>
                     <div className="flex items-center gap-3 text-micro text-muted-foreground">
                       <span className="flex items-center gap-1">
-                        <Layers size={12} className="text-blue-500" /> {tpl.nodeCount} nodes
+                        <Layers size={12} className="text-info" /> {tpl.nodeCount} nodes
                       </span>
                       {tpl.defaultSymbol && (
                         <span className="flex items-center gap-1">
-                          <Zap size={12} className="text-amber-500" /> {tpl.defaultSymbol}
+                          <Zap size={12} className="text-warning" /> {tpl.defaultSymbol}
                         </span>
                       )}
                     </div>
@@ -158,9 +158,9 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
                 </div>
 
                 {/* Required inputs */}
-                <div className="rounded-xl border border-border p-3.5 sm:p-4 bg-card space-y-3">
+                <div className="rounded-lg border border-border p-3.5 sm:p-4 bg-card space-y-3">
                   <div className="text-xs sm:text-sm font-semibold flex items-center gap-2 text-foreground">
-                    <CheckCircle2 size={15} className="text-emerald-500" /> Required Inputs
+                    <CheckCircle2 size={15} className="text-positive" /> Required Inputs
                   </div>
                   <ul className="text-xs space-y-1 list-disc list-inside text-muted-foreground">
                     {activeTemplate.requiredInputs.map((req, idx) => (
@@ -184,8 +184,8 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
                   <div className="space-y-2">
                     {activeTemplate.nodes.map((node, i) => (
                       <div key={node.id}
-                        className="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-xl border border-border bg-card">
-                        <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-blue-500/10 text-blue-500 font-bold text-xs flex items-center justify-center shrink-0">
+                        className="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-lg border border-border bg-card">
+                        <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-info/10 text-info font-bold text-xs flex items-center justify-center shrink-0">
                           {i + 1}
                         </span>
                         <div className="flex-1 min-w-0">

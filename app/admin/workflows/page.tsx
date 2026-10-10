@@ -293,10 +293,10 @@ export default function AdminWorkflowsPage() {
       {/* Toast Notification */}
       {toastMessage && (
         <div
-          className={`fixed bottom-6 right-6 z-50 rounded-xl px-4 py-3 shadow-2xl text-xs font-semibold flex items-center gap-2 border animate-in fade-in slide-in-from-bottom-2 ${
+          className={`fixed bottom-6 right-6 z-50 rounded-lg px-4 py-3 shadow-2xl text-xs font-semibold flex items-center gap-2 border animate-in fade-in slide-in-from-bottom-2 ${
             toastMessage.isError
-              ? "bg-negative text-white border-negative"
-              : "bg-secondary text-white dark:bg-muted dark:text-foreground border-border"
+              ? "bg-negative text-background border-negative"
+              : "bg-secondary text-secondary-foreground border-border"
           }`}
         >
           {toastMessage.isError ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} className="text-positive" />}
@@ -335,7 +335,7 @@ export default function AdminWorkflowsPage() {
       </div>
 
       {summary?.killSwitchReason && (
-        <div className="mb-5 rounded-xl border border-negative/30 bg-negative/10 px-4 py-3 text-xs sm:text-sm text-negative dark:text-negative font-semibold flex items-center gap-2">
+        <div className="mb-5 rounded-lg border border-negative/30 bg-negative/10 px-4 py-3 text-xs sm:text-sm text-negative dark:text-negative font-semibold flex items-center gap-2">
           <AlertTriangle size={18} className="shrink-0 text-negative" />
           <span>{summary.killSwitchReason}</span>
         </div>
@@ -399,7 +399,7 @@ export default function AdminWorkflowsPage() {
         {loading ? (
           <div className="p-8 space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 rounded-xl border border-border bg-muted/30 animate-pulse" />
+              <div key={i} className="h-16 rounded-lg border border-border bg-muted/30 animate-pulse" />
             ))}
           </div>
         ) : filteredWorkflows.length === 0 ? (
@@ -522,7 +522,7 @@ export default function AdminWorkflowsPage() {
         </p>
 
         {summary?.recentFailures && summary.recentFailures.length > 0 ? (
-          <div className="divide-y divide-border border rounded-xl overflow-hidden">
+          <div className="divide-y divide-border border rounded-lg overflow-hidden">
             {summary.recentFailures.map((run) => (
               <div key={run.id} className="p-3 text-xs flex items-center justify-between gap-3 bg-muted/10">
                 <div className="min-w-0 flex-1">
@@ -530,7 +530,7 @@ export default function AdminWorkflowsPage() {
                     <span className="font-semibold text-foreground">{run.workflowName || run.workflowId}</span>
                     <StatusBadge tone="negative" label={run.status} />
                   </div>
-                  {run.error && <p className="text-negative font-mono text-micro mt-0.5 truncate">{run.error}</p>}
+                  {run.error && <p className="text-negative font-numeric text-micro mt-0.5 truncate">{run.error}</p>}
                 </div>
                 <span className="text-micro text-muted-foreground shrink-0">
                   {new Date(run.startedAt).toLocaleTimeString()}
@@ -539,7 +539,7 @@ export default function AdminWorkflowsPage() {
             ))}
           </div>
         ) : (
-          <div className="p-4 rounded-xl border border-dashed text-center text-xs text-muted-foreground">
+          <div className="p-4 rounded-lg border border-dashed text-center text-xs text-muted-foreground">
             No recent failures detected. All automated systems operating within nominal parameters.
           </div>
         )}
@@ -550,7 +550,7 @@ export default function AdminWorkflowsPage() {
 
 function StatCard({ icon, label, value }: { icon: ReactNode; label: string; value: string | number }) {
   return (
-    <div className="rounded-xl border border-border bg-card px-4 py-2.5 flex items-center gap-3 min-w-[140px]">
+    <div className="rounded-lg border border-border bg-card px-4 py-2.5 flex items-center gap-3 min-w-[140px]">
       <div className="p-2 rounded-lg bg-muted/40 shrink-0">{icon}</div>
       <div className="min-w-0">
         <div className="text-sm font-semibold text-foreground truncate">{value}</div>
@@ -562,7 +562,7 @@ function StatCard({ icon, label, value }: { icon: ReactNode; label: string; valu
 
 function MiniStat({ icon, label, value }: { icon: ReactNode; label: string; value: number | string }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/20 px-3.5 py-2.5">
+    <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 px-3.5 py-2.5">
       {icon}
       <div>
         <p className="text-micro text-muted-foreground">{label}</p>

@@ -244,7 +244,7 @@ export default function NewBotPage() {
             );
 
             formData.append(
-                "version",
+              "version",
                 form.version.trim() ||
                 "1.0.0"
             );
@@ -545,7 +545,7 @@ export default function NewBotPage() {
              */
             if (
                 status ===
-                "published"
+                  "published"
             ) {
                 if (!selectedFile) {
                     throw new Error(
@@ -616,7 +616,7 @@ export default function NewBotPage() {
 
                     <Link
                         href="/admin"
-                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-border hover:bg-muted/70"
+                        className="flex h-10 w-10 items-center justify-center rounded-lg border border-border hover:bg-muted/70"
                     >
                         <ArrowLeft size={18} />
                     </Link>
@@ -626,7 +626,7 @@ export default function NewBotPage() {
                             ADMIN / PRODUCTS
                         </p>
 
-                        <h1 className="mt-1 text-3xl font-semibold">
+                        <h1 className="text-2xl font-semibold tracking-tight mt-1">
                             Add New Product
                         </h1>
                     </div>
@@ -668,7 +668,7 @@ export default function NewBotPage() {
                                             generateSlug(name)
                                         );
                                     }}
-                                    className="w-full rounded-xl border border-border bg-muted px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-foreground/40"
+                                    className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-foreground/40"
                                 />
                             </div>
                             <div>
@@ -681,7 +681,7 @@ export default function NewBotPage() {
                                         value={form.slug}
                                         placeholder="gold-scalper"
                                         readOnly
-                                        className="flex-1 rounded-xl border border-border bg-muted px-4 py-3 text-sm text-muted-foreground outline-none"
+                                        className="flex-1 rounded-lg border border-border bg-muted px-4 py-3 text-sm text-muted-foreground outline-none"
                                     />
 
                                     <button
@@ -697,7 +697,7 @@ export default function NewBotPage() {
                                             }));
                                         }}
                                         title="Regenerate slug"
-                                        className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-xl border border-border bg-muted text-muted-foreground transition hover:border-muted-foreground/60 hover:bg-muted hover:text-foreground"
+                                        className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-lg border border-border bg-muted text-muted-foreground transition hover:border-muted-foreground/60 hover:bg-muted hover:text-foreground"
                                     >
                                         <Wand2 size={18} />
                                     </button>
@@ -730,7 +730,7 @@ export default function NewBotPage() {
                                 }
                                 onChange={(value) =>
                                     updateField(
-                                        "version",
+                                      "version",
                                         value
                                     )
                                 }
@@ -756,7 +756,7 @@ export default function NewBotPage() {
                                 }
                                 placeholder="Describe the strategy..."
                                 rows={5}
-                                className="w-full rounded-xl border border-border bg-muted px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-foreground/40"
+                                className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-foreground/40"
                             />
 
                         </div>
@@ -1011,13 +1011,13 @@ export default function NewBotPage() {
                             <Choice
                                 selected={
                                     pricing ===
-                                    "free"
+                                      "free"
                                 }
                                 title="Free"
                                 description="No payment required"
                                 onClick={() =>
                                     setPricing(
-                                        "free"
+                                      "free"
                                     )
                                 }
                             />
@@ -1025,13 +1025,13 @@ export default function NewBotPage() {
                             <Choice
                                 selected={
                                     pricing ===
-                                    "one_time"
+                                      "one_time"
                                 }
                                 title="One-time"
                                 description="Single purchase"
                                 onClick={() =>
                                     setPricing(
-                                        "one_time"
+                                      "one_time"
                                     )
                                 }
                             />
@@ -1039,13 +1039,13 @@ export default function NewBotPage() {
                             <Choice
                                 selected={
                                     pricing ===
-                                    "subscription"
+                                      "subscription"
                                 }
                                 title="Subscription"
                                 description="Recurring payment"
                                 onClick={() =>
                                     setPricing(
-                                        "subscription"
+                                      "subscription"
                                     )
                                 }
                             />
@@ -1264,7 +1264,7 @@ export default function NewBotPage() {
                         description={`Upload the ${productFileRule.description} that customers will receive after purchase.`}
                     >
 
-                        <div className="rounded-xl border border-dashed border-border bg-muted p-8">
+                        <div className="rounded-lg border border-dashed border-border bg-muted p-8">
 
                             {!selectedFile &&
                                 !uploadedFile && (
@@ -1285,7 +1285,7 @@ export default function NewBotPage() {
                                             Only {productFileExtensions} files • Maximum 50 MB
                                         </p>
 
-                                        <label className="mt-5 inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm hover:bg-muted/70">
+                                        <label className="mt-5 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm hover:bg-muted/70">
 
                                             <Upload
                                                 size={
@@ -1310,7 +1310,7 @@ export default function NewBotPage() {
                                 )}
 
                             {selectedFile && (
-                                <div className="flex items-center justify-between rounded-xl border border-border bg-muted/40 p-4">
+                                <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 p-4">
 
                                     <div className="flex items-center gap-3">
 
@@ -1368,7 +1368,7 @@ export default function NewBotPage() {
                             )}
 
                             {uploadedFile && (
-                                <div className="mt-4 rounded-xl border border-positive/20 bg-positive/5 p-4">
+                                <div className="mt-4 rounded-lg border border-positive/20 bg-positive/5 p-4">
 
                                     <div className="flex items-center gap-3">
 
@@ -1424,13 +1424,13 @@ export default function NewBotPage() {
                             <Choice
                                 selected={
                                     status ===
-                                    "draft"
+                                      "draft"
                                 }
                                 title="Draft"
                                 description="Only visible to admins"
                                 onClick={() =>
                                     setStatus(
-                                        "draft"
+                                      "draft"
                                     )
                                 }
                             />
@@ -1438,13 +1438,13 @@ export default function NewBotPage() {
                             <Choice
                                 selected={
                                     status ===
-                                    "published"
+                                      "published"
                                 }
                                 title="Published"
                                 description="Visible in marketplace"
                                 onClick={() =>
                                     setStatus(
-                                        "published"
+                                      "published"
                                     )
                                 }
                             />
@@ -1452,13 +1452,13 @@ export default function NewBotPage() {
                             <Choice
                                 selected={
                                     status ===
-                                    "private"
+                                      "private"
                                 }
                                 title="Private"
                                 description="Hidden from marketplace"
                                 onClick={() =>
                                     setStatus(
-                                        "private"
+                                      "private"
                                     )
                                 }
                             />
@@ -1468,7 +1468,7 @@ export default function NewBotPage() {
                         {status ===
                             "published" &&
                             !selectedFile && (
-                                <div className="mt-4 rounded-xl border border-warning/20 bg-warning/5 p-4 text-xs text-warning">
+                                <div className="mt-4 rounded-lg border border-warning/20 bg-warning/5 p-4 text-xs text-warning">
                                     Upload a {productFileRule.label} before publishing this product.
                                 </div>
                             )}
@@ -1480,7 +1480,7 @@ export default function NewBotPage() {
 
                         <Link
                             href="/admin"
-                            className="rounded-xl border border-border px-5 py-3 text-sm hover:bg-muted/70"
+                            className="rounded-lg border border-border px-5 py-3 text-sm hover:bg-muted/70"
                         >
                             Cancel
                         </Link>
@@ -1493,7 +1493,7 @@ export default function NewBotPage() {
                                 saving ||
                                 uploadingFile
                             }
-                            className="flex items-center gap-2 rounded-xl bg-foreground px-6 py-3 text-sm font-medium text-background hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex items-center gap-2 rounded-lg bg-foreground px-6 py-3 text-sm font-medium text-background hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                         >
 
                             <Save
@@ -1560,7 +1560,7 @@ function Section({
 
             <div className="mb-6 flex items-start gap-3">
 
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/50">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/50">
                     {icon}
                 </div>
 
@@ -1610,7 +1610,7 @@ function Field({
                         e.target.value
                     )
                 }
-                className="w-full rounded-xl border border-border bg-muted px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-foreground/40"
+                className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-foreground/40"
             />
 
         </div>
@@ -1644,7 +1644,7 @@ function SelectField({
                         e.target.value
                     )
                 }
-                className="w-full rounded-xl border border-border bg-muted px-4 py-3 text-sm outline-none"
+                className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-sm outline-none"
             >
 
                 {options.map(
@@ -1691,7 +1691,7 @@ function Choice({
         <button
             type="button"
             onClick={onClick}
-            className={`rounded-xl border p-4 text-left transition ${selected
+            className={`rounded-lg border p-4 text-left transition ${selected
                 ? "border-foreground/30 bg-muted"
                 : "border-border bg-foreground/10 hover:bg-muted/70"
                 }`}

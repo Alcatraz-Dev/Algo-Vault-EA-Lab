@@ -109,7 +109,7 @@ export default function AccountLiveMapPage() {
         {/* Header row */}
         <div className="rounded-lg border border-border bg-muted/30 p-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground leading-tight">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground leading-tight">
               AlgoVault <span className="text-[#2563eb]">Live Map</span>
             </h1>
             <p className="text-sm text-muted-foreground mt-1.5 max-w-2xl">
@@ -119,7 +119,7 @@ export default function AccountLiveMapPage() {
           </div>
           <div className="shrink-0 flex items-center gap-2">
             <span className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs font-medium text-muted-foreground">
-              <Globe className="w-3.5 h-3.5 text-[#ff4d00]" />
+              <Globe className="w-3.5 h-3.5 text-primary" />
               {lastTick && now ? `Updated ${Math.max(0, Math.round((now - lastTick) / 1000))}s ago` : "Connecting…"}
             </span>
             <button
@@ -147,7 +147,7 @@ export default function AccountLiveMapPage() {
                   <p className="mt-2 text-xl font-bold text-foreground tabular-nums">{value}</p>
                   {sub && <p className="mt-1 text-micro text-muted-foreground">{sub}</p>}
                 </div>
-                <div className="rounded-xl border border-border bg-muted/50 p-2.5">
+                <div className="rounded-lg border border-border bg-muted/50 p-2.5">
                   <Icon className="h-5 w-5 text-foreground" />
                 </div>
               </div>
@@ -185,9 +185,9 @@ export default function AccountLiveMapPage() {
               onMouseLeave={() => setHoveredCountry(undefined)}
               onFocus={() => setHoveredCountry(c.country)}
               onBlur={() => setHoveredCountry(undefined)}
-              className={`text-left rounded-xl border p-4 transition ${
+              className={`text-left rounded-lg border p-4 transition ${
                 hoveredCountry === c.country
-                  ? "border-[#ff4d00]/50 bg-[#ff4d00]/5"
+                  ? "border-primary/50 bg-primary/5"
                   : "border-border bg-card/60 hover:bg-muted/40"
               }`}
             >

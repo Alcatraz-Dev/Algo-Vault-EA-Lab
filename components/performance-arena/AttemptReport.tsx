@@ -22,7 +22,7 @@ export function AttemptReport({ report }: { report: PerformanceReport }) {
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
                 <div>
                     <p className="text-xs text-muted-foreground">Performance report · {report.definitionName}</p>
-                    <p className="font-mono text-lg font-semibold">
+                    <p className="font-numeric text-lg font-semibold">
                         {fmt(report.startingBalanceCents)} → {fmt(report.endingEquityCents)}
                     </p>
                 </div>
@@ -60,7 +60,7 @@ export function AttemptReport({ report }: { report: PerformanceReport }) {
                             <span
                                 key={day.dayKey}
                                 title={`${day.dayKey}: ${fmt(day.pnlCents)}`}
-                                className={`rounded px-1.5 py-0.5 font-mono text-micro tabular-nums ${
+                                className={`rounded px-1.5 py-0.5 font-numeric text-micro tabular-nums ${
                                     day.pnlCents >= 0 ? "bg-positive/10 text-positive" : "bg-negative/10 text-negative"
                                 }`}
                             >

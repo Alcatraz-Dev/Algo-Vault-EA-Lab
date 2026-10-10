@@ -123,7 +123,7 @@ export default function MobileMarketContextPage() {
                             type="button"
                             onClick={() => setSymbol(s)}
                             className={cn(
-                                "whitespace-nowrap rounded-full border px-2.5 py-1 font-mono text-micro",
+                                "whitespace-nowrap rounded-full border px-2.5 py-1 font-numeric text-micro",
                                 symbol === s
                                     ? "border-primary bg-primary/15 text-primary"
                                     : "border-border text-muted-foreground"
@@ -174,7 +174,7 @@ export default function MobileMarketContextPage() {
                                 ))}
                             </div>
                             {ctx.regime ? (
-                                <p className="mt-1.5 font-mono text-micro text-muted-foreground">
+                                <p className="mt-1.5 font-numeric text-micro text-muted-foreground">
                                     {Object.entries(ctx.regime.states)
                                         .map(([axis, state]) => `${axis}: ${state}`)
                                         .join(" · ")}
@@ -195,11 +195,11 @@ export default function MobileMarketContextPage() {
                                 <ul className="mt-1.5 divide-y divide-border/60">
                                     {ctx.relationships.map((r) => (
                                         <li key={r.symbol} className="flex items-center justify-between gap-2 py-1.5">
-                                            <span className="font-mono text-xs text-foreground">{r.symbol}</span>
+                                            <span className="font-numeric text-xs text-foreground">{r.symbol}</span>
                                             <span className="flex items-center gap-2">
                                                 <span
                                                     className={cn(
-                                                        "font-mono text-xs",
+                                                        "font-numeric text-xs",
                                                         (r.coefficient ?? 0) >= 0 ? "text-positive" : "text-negative"
                                                     )}
                                                 >
@@ -241,7 +241,7 @@ export default function MobileMarketContextPage() {
                                 <ul className="mt-1.5 space-y-1.5">
                                     {ctx.signals.slice(0, 5).map((s) => (
                                         <li key={s.id} className="text-micro leading-4 text-muted-foreground">
-                                            <span className="font-mono text-micro text-foreground">
+                                            <span className="font-numeric text-micro text-foreground">
                                                 {s.type.replace(/_/g, " ")} [{s.status}]
                                             </span>{" "}
                                             {s.summary}
@@ -262,7 +262,7 @@ export default function MobileMarketContextPage() {
                                 </p>
                             ) : (
                                 <div className="mt-1.5 space-y-1">
-                                    <p className="font-mono text-sm text-foreground">
+                                    <p className="font-numeric text-sm text-foreground">
                                         {(ctx.portfolioImpact.relatedExposureWeight * 100).toFixed(1)}% of gross exposure
                                     </p>
                                     <p className="text-micro text-muted-foreground">
@@ -288,7 +288,7 @@ export default function MobileMarketContextPage() {
                                     <li key={n.text.slice(0, 40)} className="text-micro leading-4 text-muted-foreground">
                                         <span
                                             className={cn(
-                                                "mr-1 rounded px-1 py-0.5 font-mono text-micro",
+                                                "mr-1 rounded px-1 py-0.5 font-numeric text-micro",
                                                 n.kind === "OBSERVED" && "bg-positive/15 text-positive",
                                                 n.kind === "CALCULATED" && "bg-info/15 text-info",
                                                 n.kind === "INFERENCE" && "bg-chart-3/15 text-chart-3",

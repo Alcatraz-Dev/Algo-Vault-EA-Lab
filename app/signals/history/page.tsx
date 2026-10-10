@@ -467,7 +467,7 @@ export default function SignalHistoryPage() {
                             <Calendar className="h-4 w-4" />
                             Signal History
                         </div>
-                        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+                        <h1 className="text-2xl font-semibold tracking-tight mt-2">
                             History &amp; Results
                         </h1>
                         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
@@ -604,7 +604,7 @@ export default function SignalHistoryPage() {
                 {statsLoading && !stats ? (
                     <div className="mt-6 grid gap-3 sm:grid-cols-6">
                         {Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="h-24 animate-pulse rounded-xl border border-border/20 bg-card/40" />
+                            <div key={i} className="h-24 animate-pulse rounded-lg border border-border/20 bg-card/40" />
                         ))}
                     </div>
                 ) : stats ? (
@@ -679,7 +679,7 @@ export default function SignalHistoryPage() {
                             { label: "TP2 Hit Rate", rate: stats.tp2HitRate, color: "bg-info" },
                             { label: "TP3 Hit Rate", rate: stats.tp3HitRate, color: "bg-chart-3" },
                         ].map(({ label, rate, color }) => (
-                            <div key={label} className="rounded-xl border border-border/30 bg-card/60 px-4 py-3 backdrop-blur-xl">
+                            <div key={label} className="rounded-lg border border-border/30 bg-card/60 px-4 py-3">
                                 <div className="mb-1.5 flex items-center justify-between">
                                     <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
                                     <span className="text-xs font-bold text-foreground">{rate.toFixed(1)}%</span>
@@ -694,7 +694,7 @@ export default function SignalHistoryPage() {
 
                 {/* ── Equity Curve ── */}
                 {filtered.filter((s) => s.result === "WIN" || s.result === "LOSS" || s.result === "BREAKEVEN").length >= 2 && (
-                    <div className="mt-6 rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
+                    <div className="mt-6 rounded-lg border border-border/30 bg-card/60 p-4">
                         <div className="mb-3 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <BarChart3 size={14} className="text-warning" />
@@ -708,14 +708,14 @@ export default function SignalHistoryPage() {
                                 </p>
                             )}
                         </div>
-                        <div className="h-36 w-full overflow-hidden rounded-xl">
+                        <div className="h-36 w-full overflow-hidden rounded-lg">
                             <EquityCurveChart signals={filtered} />
                         </div>
                     </div>
                 )}
 
                 {/* ── Signal Table ── */}
-                <div className="mt-6 overflow-hidden rounded-lg border border-border/30 bg-card/60 backdrop-blur-xl">
+                <div className="mt-6 overflow-hidden rounded-lg border border-border/30 bg-card/60">
                     {/* table header */}
                     <div className="flex items-center justify-between border-b border-border/20 px-4 py-3">
                         <div className="flex items-center gap-2">
@@ -793,7 +793,7 @@ export default function SignalHistoryPage() {
                                                 </td>
 
                                                 {/* Timeframe */}
-                                                <td className="px-4 py-3 font-mono text-muted-foreground">
+                                                <td className="px-4 py-3 font-numeric text-muted-foreground">
                                                     {signal.timeframe}
                                                 </td>
 
@@ -808,13 +808,13 @@ export default function SignalHistoryPage() {
                                                 </td>
 
                                                 {/* Entry */}
-                                                <td className="px-4 py-3 text-right font-mono text-foreground">
+                                                <td className="px-4 py-3 text-right font-numeric text-foreground">
                                                     {formatPrice(signal.entry)}
                                                 </td>
 
                                                 {/* SL pill */}
                                                 <td className="px-4 py-3 text-right">
-                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-negative/20 bg-negative/10 px-2 py-0.5 font-mono text-micro font-semibold text-negative">
+                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-negative/20 bg-negative/10 px-2 py-0.5 font-numeric text-micro font-semibold text-negative">
                                                         <Shield size={8} className="opacity-60" />
                                                         {formatPrice(signal.stopLoss)}
                                                     </span>
@@ -823,7 +823,7 @@ export default function SignalHistoryPage() {
                                                 {/* TP1 pill */}
                                                 <td className="px-4 py-3 text-right">
                                                     {signal.tp1 ? (
-                                                        <span className={`inline-flex items-center gap-0.5 rounded-full border px-2 py-0.5 font-mono text-micro font-semibold ${
+                                                        <span className={`inline-flex items-center gap-0.5 rounded-full border px-2 py-0.5 font-numeric text-micro font-semibold ${
                                                             signal.tp1Hit
                                                                 ? "border-positive/40 bg-positive/15 text-positive"
                                                                 : "border-positive/20 bg-positive/10 text-positive"
@@ -855,7 +855,7 @@ export default function SignalHistoryPage() {
                                                 </td>
 
                                                 {/* R value */}
-                                                <td className={`px-4 py-3 text-right font-mono font-bold ${
+                                                <td className={`px-4 py-3 text-right font-numeric font-bold ${
                                                     isWin ? "text-positive" : isLoss ? "text-negative" : "text-muted-foreground"
                                                 }`}>
                                                     {signal.result === "PENDING"
@@ -895,7 +895,7 @@ export default function SignalHistoryPage() {
                 <BySymbolBreakdown signals={filtered} />
 
                 {/* ── Disclaimer ── */}
-                <div className="mt-8 flex items-start gap-2 rounded-xl border border-warning/10 bg-warning/[0.03] p-3">
+                <div className="mt-8 flex items-start gap-2 rounded-lg border border-warning/10 bg-warning/[0.03] p-3">
                     <AlertTriangle size={13} className="mt-0.5 shrink-0 text-warning/50" />
                     <p className="text-micro leading-relaxed text-warning/50">
                         AI trading signals are analytical tools and are not guaranteed to be profitable. Past performance does not guarantee future results. Trading involves substantial risk of loss.

@@ -334,8 +334,8 @@ function localFixCode(source: string, errors?: string[]): string {
   for (let i = 0; i < openBrackets - closeBrackets; i++) fixed += "]";
 
   // 3. Missing newline after if/for blocks
-  fixed = fixed.replace(/(if\s*\([^)]+\)\s*)(?!\n)(?!\{)/g, "$1\n    ");
-  fixed = fixed.replace(/(for\s*\([^)]+\)\s*)(?!\n)(?!\{)/g, "$1\n    ");
+  fixed = fixed.replace(/(if\s*\([^)]+\)\s*)(?!\n)(?!\{)/g, "$1\n ");
+  fixed = fixed.replace(/(for\s*\([^)]+\)\s*)(?!\n)(?!\{)/g, "$1\n ");
 
   // 4. Fix strategy.exit without strategy.entry
   if (fixed.includes("strategy.exit") && !fixed.includes("strategy.entry")) {

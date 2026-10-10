@@ -1042,7 +1042,7 @@ function RiskWidget({ user, refreshKey, accountId }: WidgetProps) {
                     <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                         <div
                             className={cn(
-                                "h-full rounded-full",
+                              "h-full rounded-full",
                                 utilisationTone === "negative" && "bg-negative",
                                 utilisationTone === "warning" && "bg-warning",
                                 utilisationTone === "positive" && "bg-positive"
@@ -1137,7 +1137,7 @@ function PositionsWidget({ user, refreshKey, accountId }: WidgetProps) {
                                     </td>
                                     <td
                                         className={cn(
-                                            "num-right px-1 py-2 font-medium",
+                                          "num-right px-1 py-2 font-medium",
                                             pnlTone(pnl) === "positive" && "text-positive",
                                             pnlTone(pnl) === "negative" && "text-negative",
                                             pnlTone(pnl) === "muted" && "text-muted-foreground"
@@ -1321,7 +1321,7 @@ function WatchlistWidget({ user, refreshKey, config }: WidgetProps) {
                             <td className="num-right px-1 py-2 text-muted-foreground">{formatPrice(quote.ask)}</td>
                             <td
                                 className={cn(
-                                    "num-right px-1 py-2 font-medium",
+                                  "num-right px-1 py-2 font-medium",
                                     pnlTone(quote.changePercent) === "positive" && "text-positive",
                                     pnlTone(quote.changePercent) === "negative" && "text-negative",
                                     pnlTone(quote.changePercent) === "muted" && "text-muted-foreground"
@@ -1487,7 +1487,7 @@ function MarketRegimeWidget({ user, refreshKey, config, isPro }: WidgetProps) {
             <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                 <div
                     className={cn(
-                        "h-full rounded-full",
+                      "h-full rounded-full",
                         bullish && "bg-positive",
                         bearish && "bg-negative",
                         !directional && "bg-muted-foreground/50"
@@ -1670,7 +1670,7 @@ function VolumeAnalysisWidget({ user, refreshKey, config, isPro }: WidgetProps) 
                 <div className="h-2 overflow-hidden rounded-full bg-muted">
                     <div
                         className={cn(
-                            "h-full rounded-full",
+                          "h-full rounded-full",
                             vol.relativeVolume >= 1.5
                                 ? "bg-warning"
                                 : vol.relativeVolume <= 0.7
@@ -2254,7 +2254,7 @@ function MarketBreadthWidget({ user, refreshKey, config, isPro }: WidgetProps) {
                             <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                                 <div
                                     className={cn(
-                                        "h-full rounded-full",
+                                      "h-full rounded-full",
                                         tone === "positive" && "bg-positive",
                                         tone === "negative" && "bg-negative",
                                         tone === "muted" && "bg-muted-foreground/40"

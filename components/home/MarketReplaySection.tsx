@@ -152,7 +152,7 @@ export default function MarketReplaySection() {
  {/* Header */}
  <div className="flex flex-col md:flex-row md:items-end md:justify-between">
  <div>
- <p className="font-mono text-xs font-semibold uppercase tracking-widest text-primary">
+ <p className="font-numeric text-xs font-semibold uppercase tracking-widest text-primary">
  Market Replay
  </p>
  <h2 className="mt-3 font-display text-4xl font-normal leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-6xl">
@@ -199,7 +199,7 @@ export default function MarketReplaySection() {
  <div className="space-y-4">
  {/* Toolbar */}
  <div className="flex flex-col gap-4 border-b border-border pb-4 lg:flex-row lg:items-center lg:justify-between">
- <div className="flex items-center gap-3 font-mono text-sm">
+ <div className="flex items-center gap-3 font-numeric text-sm">
  <span className="rounded-md border border-primary/30 bg-primary/10 px-3 py-1.5 font-bold text-primary">
  {symbol} · {timeframe}
  </span>
@@ -251,7 +251,7 @@ export default function MarketReplaySection() {
  <select
  value={speed}
  onChange={(e) => setSpeed(Number(e.target.value))}
- className="rounded-md border border-border bg-background px-2.5 py-1.5 font-mono text-xs text-foreground outline-none focus:border-primary"
+ className="rounded-md border border-border bg-background px-2.5 py-1.5 font-numeric text-xs text-foreground outline-none focus:border-primary"
  aria-label="Replay speed"
  >
  {[1, 2, 5, 10].map((s) => (
@@ -294,7 +294,7 @@ export default function MarketReplaySection() {
  </div>
 
  {/* Scrubber */}
- <div className="space-y-1.5 font-mono text-sm">
+ <div className="space-y-1.5 font-numeric text-sm">
  <div className="flex items-center justify-between text-xs text-muted-foreground">
  <span>
  Bars visible: {visible.bars.length} · Edge at {cursor} of {total}
@@ -319,7 +319,7 @@ export default function MarketReplaySection() {
 
  {/* Chart */}
  <div className="relative h-64 overflow-hidden rounded-lg border border-border bg-background/95 p-3">
- <div className="flex items-center justify-between border-b border-border/40 pb-2 font-mono text-micro text-muted-foreground">
+ <div className="flex items-center justify-between border-b border-border/40 pb-2 font-numeric text-micro text-muted-foreground">
  <span>No look-ahead — future bars hidden</span>
  <span className="font-semibold text-primary">
  {playing ? "ADVANCING" : "PAUSED"}
@@ -365,7 +365,7 @@ export default function MarketReplaySection() {
  </div>
 
  {/* Scorecard */}
- <div className="flex flex-col gap-2 border-t border-border pt-3 font-mono text-xs sm:flex-row sm:items-center sm:justify-between">
+ <div className="flex flex-col gap-2 border-t border-border pt-3 font-numeric text-xs sm:flex-row sm:items-center sm:justify-between">
  <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-muted-foreground">
  <span>
  Paper P/L:{" "}
@@ -402,7 +402,7 @@ export default function MarketReplaySection() {
  )}
  </div>
 
- <p className="mt-3 flex items-center gap-1.5 font-mono text-micro text-muted-foreground">
+ <p className="mt-3 flex items-center gap-1.5 font-numeric text-micro text-muted-foreground">
  <span className="h-1.5 w-1.5 rounded-full bg-positive" />
  Paper simulation on real historical candles · Source: /api/analytics/ohlc
  </p>

@@ -198,7 +198,7 @@ function SuccessContent() {
                         <p className="mt-2 text-xs text-muted-foreground">Verifying payment with Stripe. This takes a few seconds.</p>
                     </div>
                 ) : error ? (
-                    <div className="mx-auto max-w-md rounded-xl border border-warning/20 bg-warning/[0.07] p-8">
+                    <div className="mx-auto max-w-md rounded-lg border border-warning/20 bg-warning/[0.07] p-8">
                         <AlertTriangle className="mx-auto h-9 w-9 text-warning" />
                         <h1 className="mt-4 text-xl font-bold">Still Confirming</h1>
                         <p className="mt-2 text-sm text-muted-foreground leading-6">{error}</p>
@@ -210,14 +210,14 @@ function SuccessContent() {
                                         setLoading(true);
                                         setTries((t) => t + 1);
                                     }}
-                                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-border/30 bg-muted/5 px-5 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-muted/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+                                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-5 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-muted/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
                                 >
                                     <RefreshCw size={14} />
                                     Check Again
                                 </button>
                                 <Link
                                     href="/donate"
-                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-background px-5 py-2.5 text-sm font-bold text-foreground transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+                                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-background px-5 py-2.5 text-sm font-bold text-foreground transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
                                 >
                                     Back to Donate
                                     <ArrowRight size={14} />
@@ -271,7 +271,7 @@ function SuccessContent() {
 
                         {/* Rewards */}
                         {rewardIds.length > 0 && user ? (
-                            <div className="mt-10 rounded-xl border border-border/30 bg-muted p-6 text-left">
+                            <div className="mt-10 rounded-lg border border-border/30 bg-muted p-6 text-left">
                                 <div className="flex items-center gap-2 mb-5">
                                     <Gift size={16} className="text-primary" />
                                     <h2 className="font-bold text-foreground">Your Free Rewards</h2>
@@ -289,9 +289,9 @@ function SuccessContent() {
                                         return (
                                             <div
                                                 key={rewardId}
-                                                className={`flex items-center gap-4 rounded-xl border ${resource.border} bg-muted p-4`}
+                                                className={`flex items-center gap-4 rounded-lg border ${resource.border} bg-muted p-4`}
                                             >
-                                                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${resource.bg}`}>
+                                                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${resource.bg}`}>
                                                     <ResourceIcon size={18} className={resource.color} />
                                                 </div>
 
@@ -308,7 +308,7 @@ function SuccessContent() {
                                                     type="button"
                                                     onClick={() => handleDownloadReward(rewardId)}
                                                     disabled={downloadingId === rewardId}
-                                                    className={`flex shrink-0 items-center gap-2 rounded-xl border ${resource.border} ${resource.bg} px-4 py-2 text-xs font-semibold ${resource.color} transition hover:opacity-80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none`}
+                                                    className={`flex shrink-0 items-center gap-2 rounded-lg border ${resource.border} ${resource.bg} px-4 py-2 text-xs font-semibold ${resource.color} transition hover:opacity-80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none`}
                                                 >
                                                     {downloadingId === rewardId ? (
                                                         <Loader2 size={13} className="animate-spin" />
@@ -327,7 +327,7 @@ function SuccessContent() {
                                 </p>
                             </div>
                         ) : rewardIds.length > 0 && !user ? (
-                            <div className="mt-10 rounded-xl border border-warning/20 bg-warning/[0.07] p-6 text-center">
+                            <div className="mt-10 rounded-lg border border-warning/20 bg-warning/[0.07] p-6 text-center">
                                 <Gift size={24} className="mx-auto mb-3 text-warning" />
                                 <h3 className="font-bold text-foreground">Rewards Waiting!</h3>
                                 <p className="mt-2 text-sm text-muted-foreground">
@@ -335,14 +335,14 @@ function SuccessContent() {
                                 </p>
                                 <Link
                                     href="/login"
-                                    className="mt-4 inline-flex items-center gap-2 rounded-xl bg-warning px-5 py-2.5 text-sm font-bold text-background transition hover:bg-warning/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+                                    className="mt-4 inline-flex items-center gap-2 rounded-lg bg-warning px-5 py-2.5 text-sm font-bold text-background transition hover:bg-warning/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
                                 >
                                     Sign In to Claim
                                     <ArrowRight size={14} />
                                 </Link>
                             </div>
                         ) : (
-                            <div className="mt-10 rounded-xl border border-border/30 bg-muted p-6 text-center">
+                            <div className="mt-10 rounded-lg border border-border/30 bg-muted p-6 text-center">
                                 <p className="text-muted-foreground text-sm">
                                     Thank you for your kind donation! Every contribution helps.
                                 </p>
@@ -353,14 +353,14 @@ function SuccessContent() {
                         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
                                 <Link
                                     href="/marketplace"
-                                    className="inline-flex items-center gap-2 rounded-xl border border-border/30 bg-muted/5 px-5 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-muted/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+                                    className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-5 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-muted/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
                                 >
                                     <Bot size={16} />
                                     Browse All EAs
                                 </Link>
                                 <Link
                                     href="/account"
-                                    className="inline-flex items-center gap-2 rounded-xl bg-background px-5 py-2.5 text-sm font-bold text-foreground transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+                                    className="inline-flex items-center gap-2 rounded-lg bg-background px-5 py-2.5 text-sm font-bold text-foreground transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
                                 >
                                 Go to Dashboard
                                 <ArrowRight size={14} />

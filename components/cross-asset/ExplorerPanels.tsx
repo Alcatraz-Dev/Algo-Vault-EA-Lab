@@ -91,11 +91,11 @@ export function RelationshipList({
                                     selectedPair === key && "bg-primary/10"
                                 )}
                             >
-                                <td className="py-1.5 font-mono text-foreground">{other}</td>
-                                <td className={cn("font-mono", (r.coefficient ?? 0) >= 0 ? "text-positive" : "text-negative")}>
+                                <td className="py-1.5 font-numeric text-foreground">{other}</td>
+                                <td className={cn("font-numeric", (r.coefficient ?? 0) >= 0 ? "text-positive" : "text-negative")}>
                                     {r.coefficient?.toFixed(2)}
                                 </td>
-                                <td className="font-mono text-muted-foreground">
+                                <td className="font-numeric text-muted-foreground">
                                     {r.delta === null ? "—" : `${r.delta >= 0 ? "+" : ""}${r.delta.toFixed(2)}`}
                                 </td>
                                 <td>
@@ -104,7 +104,7 @@ export function RelationshipList({
                                     </span>
                                 </td>
                                 <td className="text-muted-foreground">{r.term.replace("_TERM", "").toLowerCase()}</td>
-                                <td className="font-mono text-muted-foreground">{r.sampleSize}</td>
+                                <td className="font-numeric text-muted-foreground">{r.sampleSize}</td>
                                 <td className="text-micro text-muted-foreground">{r.dataQuality.status}</td>
                             </tr>
                         );
@@ -157,7 +157,7 @@ export function CorrelationMatrix({
 
     return (
         <div className="overflow-x-auto">
-            <table className="font-mono text-micro">
+            <table className="font-numeric text-micro">
                 <thead>
                     <tr>
                         <th className="p-1 text-left text-muted-foreground" />
@@ -375,10 +375,10 @@ export function ClustersPanel({ clusters }: { clusters?: GraphCluster[] }) {
                     <p className="text-xs font-medium text-foreground">
                         {cluster.label}
                         {cluster.meanCorrelation !== null ? (
-                            <span className="ml-2 font-mono text-micro text-muted-foreground">mean ρ {cluster.meanCorrelation.toFixed(2)}</span>
+                            <span className="ml-2 font-numeric text-micro text-muted-foreground">mean ρ {cluster.meanCorrelation.toFixed(2)}</span>
                         ) : null}
                     </p>
-                    <p className="mt-0.5 font-mono text-micro text-muted-foreground">
+                    <p className="mt-0.5 font-numeric text-micro text-muted-foreground">
                         {cluster.memberNodeIds.map((id) => id.replace(/^instrument:/, "")).join(" · ")}
                     </p>
                     <p className="mt-1 text-micro text-muted-foreground">{cluster.evidence[0]?.text}</p>
@@ -398,7 +398,7 @@ export function FactorsPanel({ factors }: { factors?: GraphFactor[] }) {
             {factors.map((f) => (
                 <li key={f.id} className="rounded border border-border/70 p-2">
                     <div className="flex items-center justify-between gap-2">
-                        <p className="font-mono text-xs font-semibold text-foreground">{f.name.replace("factor:", "")}</p>
+                        <p className="font-numeric text-xs font-semibold text-foreground">{f.name.replace("factor:", "")}</p>
                         <span
                             className={cn(
                                 "rounded px-1.5 py-0.5 text-micro font-semibold",
@@ -409,10 +409,10 @@ export function FactorsPanel({ factors }: { factors?: GraphFactor[] }) {
                         </span>
                     </div>
                     <p className="mt-0.5 text-micro text-muted-foreground">{f.definition}</p>
-                    <p className="mt-0.5 font-mono text-micro text-chart-3/90">
+                    <p className="mt-0.5 font-numeric text-micro text-chart-3/90">
                         [{f.kind}] {f.formula}
                     </p>
-                    <p className="mt-0.5 font-mono text-micro text-muted-foreground">
+                    <p className="mt-0.5 font-numeric text-micro text-muted-foreground">
                         inputs: {f.inputs.filter((i) => i.used).map((i) => `${i.symbol}(${i.weight})`).join(", ") || "none"}
                         {" · confidence "}
                         {f.confidence.toFixed(2)}
@@ -436,7 +436,7 @@ export function EventsPanel({ signals }: { signals?: GraphSignal[] }) {
             {signals.slice(0, 12).map((s) => (
                 <li key={s.id} className="rounded border border-border/70 p-2">
                     <div className="flex items-center justify-between gap-2">
-                        <span className="font-mono text-micro font-semibold text-foreground">{s.type.replace(/_/g, " ")}</span>
+                        <span className="font-numeric text-micro font-semibold text-foreground">{s.type.replace(/_/g, " ")}</span>
                         <span
                             className={cn(
                                 "rounded px-1.5 py-0.5 text-micro font-semibold",
@@ -451,7 +451,7 @@ export function EventsPanel({ signals }: { signals?: GraphSignal[] }) {
                         </span>
                     </div>
                     <p className="mt-0.5 text-micro leading-4 text-muted-foreground">{s.summary}</p>
-                    <p className="mt-0.5 font-mono text-micro text-muted-foreground/80">
+                    <p className="mt-0.5 font-numeric text-micro text-muted-foreground/80">
                         observed {new Date(s.dataTimestamp).toISOString().slice(0, 16).replace("T", " ")} · confidence{" "}
                         {s.confidence.toFixed(2)} · context, not a signal (§18)
                     </p>

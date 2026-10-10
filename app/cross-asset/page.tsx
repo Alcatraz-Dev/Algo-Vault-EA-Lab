@@ -89,7 +89,7 @@ export default function CrossAssetExplorerPage() {
 
     return (
         <div className="min-h-screen bg-background text-foreground">
-            <div className="mx-auto max-w-7xl px-4 py-6">
+            <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                 {/* header */}
                 <header className="flex flex-wrap items-center justify-between gap-3">
                     <div>
@@ -107,7 +107,7 @@ export default function CrossAssetExplorerPage() {
                             <span
                                 className={cn(
                                     "rounded px-2 py-1 text-micro font-semibold uppercase tracking-wide",
-                                    data.tier === "PRO" ? "bg-emerald-500/15 text-emerald-300" : "bg-zinc-500/20 text-zinc-300"
+                                    data.tier === "PRO" ? "bg-positive/15 text-positive" : "bg-muted/20 text-muted-foreground"
                                 )}
                             >
                                 {data.tier} tier
@@ -140,7 +140,7 @@ export default function CrossAssetExplorerPage() {
                                         setSelectedPair(null);
                                     }
                                 }}
-                                className="w-32 rounded-md border border-border bg-background px-2 py-1 font-mono text-xs text-foreground outline-none focus:border-primary"
+                                className="w-32 rounded-md border border-border bg-background px-2 py-1 font-numeric text-xs text-foreground outline-none focus:border-primary"
                                 aria-label="Search symbol"
                             />
                         </span>
@@ -194,7 +194,7 @@ export default function CrossAssetExplorerPage() {
 
                 {/* status banners */}
                 {error ? (
-                    <div role="alert" className="mt-3 flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                    <div role="alert" className="mt-3 flex items-center gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning">
                         <TriangleAlert className="size-4 shrink-0" />
                         {error}
                     </div>
@@ -205,7 +205,7 @@ export default function CrossAssetExplorerPage() {
                     </p>
                 ) : null}
                 {data && data.upgrade ? (
-                    <div className="mt-3 flex items-start gap-2 rounded-lg border border-violet-500/30 bg-violet-500/10 px-3 py-2 text-xs text-violet-200">
+                    <div className="mt-3 flex items-start gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-xs text-primary">
                         <Sparkles className="mt-0.5 size-3.5 shrink-0" />
                         <span>
                             Free tier: top relationships + basic market context. Pro unlocks {data.upgrade.join(", ")} (§51).
@@ -255,7 +255,7 @@ export default function CrossAssetExplorerPage() {
                             <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">
                                 Correlation timeline
                             </h3>
-                            <span className="font-mono text-micro text-muted-foreground">
+                            <span className="font-numeric text-micro text-muted-foreground">
                                 {timelinePair ? `${timelinePair.a} ↔ ${timelinePair.b}` : "select a relationship"}
                             </span>
                         </header>
@@ -332,7 +332,7 @@ export default function CrossAssetExplorerPage() {
                             ) : (
                                 (data?.leadLag ?? []).map((l) => (
                                     <div key={`${l.leader}-${l.follower}`} className="rounded border border-border/70 p-2 text-micro">
-                                        <p className="font-mono text-xs text-foreground">
+                                        <p className="font-numeric text-xs text-foreground">
                                             {l.leader} → {l.follower} @ {l.lag} bar(s) · ρ {l.coefficient.toFixed(2)} · p{" "}
                                             {l.pValue === null ? "n/a" : l.pValue.toFixed(3)} · n {l.sampleSize}
                                         </p>
@@ -348,7 +348,7 @@ export default function CrossAssetExplorerPage() {
                 {/* provenance */}
                 {data ? (
                     <footer className="mt-4 rounded-lg border border-border bg-card/60 p-3 text-micro leading-4 text-muted-foreground">
-                        <p className="font-mono">
+                        <p className="font-numeric">
                             snapshot {data.snapshot.snapshotId} · data ts{" "}
                             {data.snapshot.dataTimestamp ? new Date(data.snapshot.dataTimestamp).toISOString() : "—"} ·
                             engines {Object.entries(data.snapshot.engineVersions).map(([k, v]) => `${k}=${v}`).join(" ")}

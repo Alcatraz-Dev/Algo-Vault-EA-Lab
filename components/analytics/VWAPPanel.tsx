@@ -23,27 +23,27 @@ export default function VWAPPanel({ vwap, currentPrice }: Props) {
             <div className="grid grid-cols-2 gap-2">
                 <div className="col-span-2 rounded-lg bg-chart-3/[0.06] p-3">
                     <p className="text-micro font-semibold uppercase text-chart-3/60">VWAP Level</p>
-                    <p className="mt-1 font-mono text-lg font-bold text-chart-3">{vwap.vwap.toFixed(vwap.vwap >= 100 ? 2 : 5)}</p>
+                    <p className="mt-1 font-numeric text-lg font-bold text-chart-3">{vwap.vwap.toFixed(vwap.vwap >= 100 ? 2 : 5)}</p>
                 </div>
                 <div className="rounded-lg bg-foreground/4 p-2.5">
                     <p className="text-micro font-semibold uppercase text-foreground/50">Distance</p>
-                    <p className={cn("mt-1 font-mono text-sm font-medium", position === "above" ? "text-positive" : position === "below" ? "text-negative" : "text-muted-foreground")}>
+                    <p className={cn("mt-1 font-numeric text-sm font-medium", position === "above" ? "text-positive" : position === "below" ? "text-negative" : "text-muted-foreground")}>
                         {vwap.distance >= 0 ? "+" : ""}{vwap.distance.toFixed(vwap.distance >= 100 ? 2 : 5)}
                     </p>
                 </div>
                 <div className="rounded-lg bg-foreground/4 p-2.5">
                     <p className="text-micro font-semibold uppercase text-foreground/50">Distance %</p>
-                    <p className={cn("mt-1 font-mono text-sm font-medium", position === "above" ? "text-positive" : position === "below" ? "text-negative" : "text-muted-foreground")}>
+                    <p className={cn("mt-1 font-numeric text-sm font-medium", position === "above" ? "text-positive" : position === "below" ? "text-negative" : "text-muted-foreground")}>
                         {vwap.distancePercent >= 0 ? "+" : ""}{vwap.distancePercent.toFixed(3)}%
                     </p>
                 </div>
                 <div className="rounded-lg bg-foreground/4 p-2.5">
                     <p className="text-micro font-semibold uppercase text-foreground/50">Upper Band</p>
-                    <p className="mt-1 font-mono text-xs text-muted-foreground">{vwap.upperBand1.toFixed(vwap.upperBand1 >= 100 ? 2 : 5)}</p>
+                    <p className="mt-1 font-numeric text-xs text-muted-foreground">{vwap.upperBand1.toFixed(vwap.upperBand1 >= 100 ? 2 : 5)}</p>
                 </div>
                 <div className="rounded-lg bg-foreground/4 p-2.5">
                     <p className="text-micro font-semibold uppercase text-foreground/50">Lower Band</p>
-                    <p className="mt-1 font-mono text-xs text-muted-foreground">{vwap.lowerBand1.toFixed(vwap.lowerBand1 >= 100 ? 2 : 5)}</p>
+                    <p className="mt-1 font-numeric text-xs text-muted-foreground">{vwap.lowerBand1.toFixed(vwap.lowerBand1 >= 100 ? 2 : 5)}</p>
                 </div>
             </div>
 

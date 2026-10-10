@@ -95,7 +95,7 @@ export async function DeepLinkPage({
                 {resolved.rows.map(([label, value]) => (
                     <div key={label} className="flex items-start justify-between gap-4 px-3 py-2.5">
                         <dt className="shrink-0 text-xs text-muted-foreground">{label}</dt>
-                        <dd className="text-right font-mono text-xs tabular-nums">{value}</dd>
+                        <dd className="text-right font-numeric text-xs tabular-nums">{value}</dd>
                     </div>
                 ))}
             </dl>

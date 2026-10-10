@@ -161,7 +161,7 @@ export default function AdminAIUsagePage() {
             subtitle="Token and cost accounting for the multi-provider AI gateway, with pre-flight budget enforcement."
         >
             <div className="mb-6 flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2 rounded-xl border border-border/30 bg-muted/50 px-4 py-2.5">
+                <div className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted/50 px-4 py-2.5">
                     <Gauge size={14} className="text-muted-foreground" />
                     <span className="text-xs font-medium">
                         {usage?.month ?? budgets?.month ?? "—"}
@@ -171,7 +171,7 @@ export default function AdminAIUsagePage() {
                 <button
                     onClick={() => void load()}
                     disabled={loading}
-                    className="inline-flex items-center gap-2 rounded-xl border border-border/30 bg-muted/50 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/50 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
                 >
                     <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
                     Refresh
@@ -318,7 +318,7 @@ export default function AdminAIUsagePage() {
                                 {usage.providers.map((p) => (
                                     <div
                                         key={p.provider}
-                                        className="rounded-xl border border-border/30 bg-muted/5 p-4"
+                                        className="rounded-lg border border-border/30 bg-muted/5 p-4"
                                     >
                                         <div className="flex flex-wrap items-baseline justify-between gap-2">
                                             <p className="text-xs font-medium">{p.provider}</p>
@@ -335,7 +335,7 @@ export default function AdminAIUsagePage() {
                                                         key={m.model}
                                                         className="flex flex-wrap items-baseline justify-between gap-2 text-xs text-muted-foreground"
                                                     >
-                                                        <span className="font-mono text-micro">
+                                                        <span className="font-numeric text-micro">
                                                             {m.model}
                                                         </span>
                                                         <span>
@@ -444,7 +444,7 @@ function BudgetRow({
     const showBar = status.tokenUtilization !== null || status.costUtilization !== null;
 
     return (
-        <div className="rounded-xl border border-border/30 bg-muted/5 p-4">
+        <div className="rounded-lg border border-border/30 bg-muted/5 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                     <p className="text-xs font-medium capitalize">{label}</p>
@@ -537,12 +537,12 @@ function LimitInput({
                         setDraft(e.target.value);
                         setDirty(true);
                     }}
-                    className="w-full rounded-xl border border-border/30 bg-background px-3 py-2 text-xs outline-none focus:border-border/60"
+                    className="w-full rounded-lg border border-border/30 bg-background px-3 py-2 text-xs outline-none focus:border-border/60"
                 />
                 <button
                     onClick={() => onSave?.(draft)}
                     disabled={disabled || !dirty}
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-border/30 bg-muted px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-40"
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border/30 bg-muted px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-40"
                 >
                     <Save size={12} />
                     Save
@@ -554,7 +554,7 @@ function LimitInput({
 
 function Empty({ children }: { children: React.ReactNode }) {
     return (
-        <div className="rounded-xl border border-border/30 bg-muted/5 p-6 text-center text-xs text-muted-foreground">
+        <div className="rounded-lg border border-border/30 bg-muted/5 p-6 text-center text-xs text-muted-foreground">
             {children}
         </div>
     );

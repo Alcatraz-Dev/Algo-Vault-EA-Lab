@@ -218,8 +218,8 @@ export default function PerformanceArenaAdminPage() {
                                 <ul className="space-y-1 text-xs">
                                     {Object.entries(analytics.failureReasons).map(([reason, count]) => (
                                         <li key={reason} className="flex justify-between">
-                                            <span className="font-mono text-muted-foreground">{reason}</span>
-                                            <span className="font-mono">{count}</span>
+                                            <span className="font-numeric text-muted-foreground">{reason}</span>
+                                            <span className="font-numeric">{count}</span>
                                         </li>
                                     ))}
                                 </ul>
@@ -230,7 +230,7 @@ export default function PerformanceArenaAdminPage() {
                             <ul className="space-y-1 text-xs">
                                 {analytics.definitions.map((def) => (
                                     <li key={def.id} className="flex justify-between gap-2">
-                                        <span className="font-mono">{def.name}</span>
+                                        <span className="font-numeric">{def.name}</span>
                                         <span className="text-muted-foreground">
                                             {def.access} · {def.status} · {def.enabled ? "enabled" : "disabled"}
                                         </span>
@@ -262,11 +262,11 @@ export default function PerformanceArenaAdminPage() {
                             {definitions.map((def) => (
                                 <TableRow key={def.id}>
                                     <TableCell className="text-xs font-medium">{def.name}</TableCell>
-                                    <TableCell className="font-mono text-xs">{def.key}</TableCell>
-                                    <TableCell className="text-right font-mono text-xs">${(def.policy.startingBalanceCents / 100).toLocaleString()}</TableCell>
-                                    <TableCell className="text-right font-mono text-xs">{def.policy.profitTargetPct}%</TableCell>
-                                    <TableCell className="text-right font-mono text-xs">{def.policy.maxDrawdownPct}%</TableCell>
-                                    <TableCell className="text-right font-mono text-xs">{def.policy.dailyLossLimitPct}%</TableCell>
+                                    <TableCell className="font-numeric text-xs">{def.key}</TableCell>
+                                    <TableCell className="text-right font-numeric text-xs">${(def.policy.startingBalanceCents / 100).toLocaleString()}</TableCell>
+                                    <TableCell className="text-right font-numeric text-xs">{def.policy.profitTargetPct}%</TableCell>
+                                    <TableCell className="text-right font-numeric text-xs">{def.policy.maxDrawdownPct}%</TableCell>
+                                    <TableCell className="text-right font-numeric text-xs">{def.policy.dailyLossLimitPct}%</TableCell>
                                     <TableCell><Badge variant="outline">{def.access.model}</Badge></TableCell>
                                     <TableCell>
                                         <Badge variant={def.status === "AVAILABLE" ? "success" : "secondary"}>{def.status}</Badge>
@@ -315,7 +315,7 @@ export default function PerformanceArenaAdminPage() {
                             <div key={policy.id} className="mb-3 rounded-md border border-border p-3">
                                 <div className="mb-1 flex items-center gap-2 text-xs">
                                     <span className="font-medium">{policy.name}</span>
-                                    <span className="font-mono text-muted-foreground">{policy.id} v{policy.version}</span>
+                                    <span className="font-numeric text-muted-foreground">{policy.id} v{policy.version}</span>
                                     <Badge variant={policy.enabled ? "success" : "secondary"}>{policy.enabled ? "enabled" : "disabled"}</Badge>
                                 </div>
                                 <Table>
@@ -330,9 +330,9 @@ export default function PerformanceArenaAdminPage() {
                                     <TableBody>
                                         {policy.grants.map((grant, index) => (
                                             <TableRow key={`${grant.when}-${grant.type}-${index}`}>
-                                                <TableCell className="font-mono text-xs">{grant.when}</TableCell>
+                                                <TableCell className="font-numeric text-xs">{grant.when}</TableCell>
                                                 <TableCell className="text-xs">{grant.type}</TableCell>
-                                                <TableCell className="text-right font-mono text-xs">{grant.amount}</TableCell>
+                                                <TableCell className="text-right font-numeric text-xs">{grant.amount}</TableCell>
                                                 <TableCell className="text-xs text-muted-foreground">{grant.unit ?? "—"}</TableCell>
                                             </TableRow>
                                         ))}
@@ -359,16 +359,16 @@ export default function PerformanceArenaAdminPage() {
                                 <TableBody>
                                     {rewards.ledger.slice(0, 100).map((entry) => (
                                         <TableRow key={entry.rewardId}>
-                                            <TableCell className="font-mono text-xs">{entry.userId.slice(-8)}</TableCell>
-                                            <TableCell className="font-mono text-micro text-muted-foreground">{entry.sourceId.slice(0, 18)}</TableCell>
+                                            <TableCell className="font-numeric text-xs">{entry.userId.slice(-8)}</TableCell>
+                                            <TableCell className="font-numeric text-micro text-muted-foreground">{entry.sourceId.slice(0, 18)}</TableCell>
                                             <TableCell className="text-xs">{entry.rewardType}</TableCell>
-                                            <TableCell className="text-right font-mono text-xs">{entry.amount}</TableCell>
+                                            <TableCell className="text-right font-numeric text-xs">{entry.amount}</TableCell>
                                             <TableCell>
                                                 <Badge variant={entry.status === "GRANTED" ? "success" : entry.status === "REVOKED" ? "destructive" : "secondary"}>
                                                     {entry.status}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell className="font-mono text-micro text-muted-foreground">
+                                            <TableCell className="font-numeric text-micro text-muted-foreground">
                                                 {new Date(entry.createdAt).toLocaleString()}
                                             </TableCell>
                                         </TableRow>
@@ -403,13 +403,13 @@ export default function PerformanceArenaAdminPage() {
                             <TableBody>
                                 {flags.map((flag) => (
                                     <TableRow key={flag.flagId}>
-                                        <TableCell className="font-mono text-xs">{flag.type}</TableCell>
+                                        <TableCell className="font-numeric text-xs">{flag.type}</TableCell>
                                         <TableCell>
                                             <Badge variant={flag.severity === "high" ? "destructive" : flag.severity === "medium" ? "warning" : "secondary"}>
                                                 {flag.severity}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell className="font-mono text-xs">{flag.userId.slice(-8)}</TableCell>
+                                        <TableCell className="font-numeric text-xs">{flag.userId.slice(-8)}</TableCell>
                                         <TableCell className="max-w-md text-xs text-muted-foreground">{flag.detail}</TableCell>
                                         <TableCell><Badge variant="outline">{flag.status}</Badge></TableCell>
                                         <TableCell className="text-right">
@@ -441,7 +441,7 @@ function Stat({ label, value, sub }: { label: string; value: string | number; su
     return (
         <div className="rounded-lg border border-border bg-card p-3">
             <p className="text-micro text-muted-foreground">{label}</p>
-            <p className="font-mono text-lg font-semibold tabular-nums">{value}</p>
+            <p className="font-numeric text-lg font-semibold tabular-nums">{value}</p>
             {sub ? <p className="text-micro text-muted-foreground">{sub}</p> : null}
         </div>
     );

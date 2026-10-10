@@ -1095,7 +1095,7 @@ export default function AccountSettingsPage() {
                                     </div>
                                     <div className="flex justify-between py-1">
                                         <span className="text-muted-foreground">User ID</span>
-                                        <span className="font-mono text-muted-foreground text-micro truncate max-w-[140px]">
+                                        <span className="font-numeric text-muted-foreground text-micro truncate max-w-[140px]">
                                             {user?.uid}
                                         </span>
                                     </div>
@@ -1642,7 +1642,7 @@ export default function AccountSettingsPage() {
                                                     href={discordBotInviteUrl}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="flex w-full items-center justify-center gap-2 rounded-md border border-[#5865F2]/30 bg-[#5865F2]/10 px-4 py-2.5 text-xs font-semibold text-[#8b94ff] transition hover:bg-[#5865F2]/20"
+                                                    className="flex w-full items-center justify-center gap-2 rounded-md border border-[#5865F2]/30 bg-info/10 px-4 py-2.5 text-xs font-semibold text-[#8b94ff] transition hover:bg-info/20"
                                                 >
                                                     <ExternalLink size={13} />
                                                     Step 1 — Add AlgoVault Bot to your server
@@ -1652,7 +1652,7 @@ export default function AccountSettingsPage() {
                                                 type="button"
                                                 onClick={handleConnectDiscord}
                                                 disabled={discordConnecting}
-                                                className="flex w-full items-center justify-center gap-2 rounded-md bg-[#5865F2] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-[#4752c4] disabled:opacity-50"
+                                                className="flex w-full items-center justify-center gap-2 rounded-md bg-info px-4 py-2.5 text-xs font-semibold text-background transition hover:bg-info/80 disabled:opacity-50"
                                             >
                                                 {discordConnecting ? (
                                                     <Loader2 size={13} className="animate-spin" />
@@ -1720,7 +1720,7 @@ export default function AccountSettingsPage() {
                                                 href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME}?start=connect`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex w-full items-center justify-center gap-2 rounded-md bg-[#229ED9] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-[#1b83b5]"
+                                                className="flex w-full items-center justify-center gap-2 rounded-md bg-info px-4 py-2.5 text-xs font-semibold text-background transition hover:bg-info/80"
                                             >
                                                 <ExternalLink size={13} />
                                                 {telegramUsername.trim() || telegramChatId.trim()
@@ -2015,7 +2015,7 @@ export default function AccountSettingsPage() {
                                         type="button"
                                         onClick={handleCreateDiscordWebhook}
                                         disabled={!selectedChannelId || creatingWebhook}
-                                        className="inline-flex items-center justify-center gap-2 rounded-md bg-[#5865F2] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-[#4752c4] disabled:opacity-50"
+                                        className="inline-flex items-center justify-center gap-2 rounded-md bg-info px-4 py-2.5 text-xs font-semibold text-background transition hover:bg-info/80 disabled:opacity-50"
                                     >
                                         {creatingWebhook ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
                                         Create webhook

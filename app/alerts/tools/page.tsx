@@ -49,9 +49,9 @@ function currentTimestamp(): number {
 }
 
 const DIRECTION_COLORS: Record<string, string> = {
-    long: "text-emerald-400 bg-emerald-500/10",
-    short: "text-rose-400 bg-rose-500/10",
-    neutral: "text-blue-400 bg-blue-500/10",
+    long: "text-positive bg-positive/10",
+    short: "text-negative bg-negative/10",
+    neutral: "text-info bg-info/10",
 };
 
 export default function ToolAlertsPage() {
@@ -159,7 +159,7 @@ export default function ToolAlertsPage() {
         return (
             <div className="flex min-h-screen flex-col bg-background">
                 <div className="flex flex-1 items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
             </div>
         );
@@ -171,7 +171,7 @@ export default function ToolAlertsPage() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                     <Shield size={40} className="text-muted-foreground" />
                     <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
-                    <Link href="/login" className="rounded-xl bg-violet-600 px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-violet-500 transition">
+                    <Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-primary transition">
                         Sign In
                     </Link>
                 </div>
@@ -186,10 +186,10 @@ export default function ToolAlertsPage() {
     });
 
     return (
-        <div className="min-h-screen bg-background text-foreground selection:bg-amber-500/30">
+        <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px]" />
-                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-blue-500/10 blur-[120px]" />
+                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 hidden" />
+                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
             <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
                 <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-muted-foreground transition">
@@ -198,7 +198,7 @@ export default function ToolAlertsPage() {
 
                 <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between" data-guide="page-header">
                     <div>
-                        <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Tool Alerts</h1>
+                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Tool Alerts</h1>
                         <p className="mt-1.5 text-sm text-muted-foreground">Manage Pine Script and strategy alert definitions</p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -207,7 +207,7 @@ export default function ToolAlertsPage() {
                                 type="button"
                                 onClick={bulkDelete}
                                 disabled={deleting}
-                                className="flex items-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-2.5 text-xs font-semibold text-rose-400 hover:bg-rose-500/20 transition disabled:opacity-50"
+                                className="flex items-center gap-2 rounded-lg border border-negative/20 bg-negative/10 px-4 py-2.5 text-xs font-semibold text-negative hover:bg-negative/20 transition disabled:opacity-50"
                             >
                                 {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
                                 Delete ({selected.size})
@@ -217,7 +217,7 @@ export default function ToolAlertsPage() {
                             <button
                                 type="button"
                                 onClick={clearAll}
-                                className="flex items-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-2.5 text-xs font-semibold text-rose-400 hover:bg-rose-500/20 transition"
+                                className="flex items-center gap-2 rounded-lg border border-negative/20 bg-negative/10 px-4 py-2.5 text-xs font-semibold text-negative hover:bg-negative/20 transition"
                             >
                                 <Trash2 size={13} /> Clear all
                             </button>
@@ -229,24 +229,24 @@ export default function ToolAlertsPage() {
                 <div className="mb-6 grid grid-cols-3 gap-4" data-guide="stats">
                     <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
                         <div className="flex items-center gap-2 mb-1">
-                            <Bell size={13} className="text-violet-400" />
+                            <Bell size={13} className="text-primary" />
                             <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Total</span>
                         </div>
-                        <p className="text-xl font-bold font-mono text-foreground">{stats.total}</p>
+                        <p className="text-xl font-bold font-numeric text-foreground">{stats.total}</p>
                     </div>
-                    <div className="rounded-lg border border-emerald-500/10 bg-emerald-500/[0.03] p-4">
+                    <div className="rounded-lg border border-positive/10 bg-positive/[0.03] p-4">
                         <div className="flex items-center gap-2 mb-1">
-                            <CheckCircle size={13} className="text-emerald-400" />
-                            <span className="text-micro font-semibold uppercase tracking-wider text-emerald-500/60">Active</span>
+                            <CheckCircle size={13} className="text-positive" />
+                            <span className="text-micro font-semibold uppercase tracking-wider text-positive/60">Active</span>
                         </div>
-                        <p className="text-xl font-bold font-mono text-emerald-400">{stats.active}</p>
+                        <p className="text-xl font-bold font-numeric text-positive">{stats.active}</p>
                     </div>
-                    <div className="rounded-lg border border-rose-500/10 bg-rose-500/[0.03] p-4">
+                    <div className="rounded-lg border border-negative/10 bg-negative/[0.03] p-4">
                         <div className="flex items-center gap-2 mb-1">
-                            <AlertTriangle size={13} className="text-rose-400" />
-                            <span className="text-micro font-semibold uppercase tracking-wider text-rose-500/60">Expired</span>
+                            <AlertTriangle size={13} className="text-negative" />
+                            <span className="text-micro font-semibold uppercase tracking-wider text-negative/60">Expired</span>
                         </div>
-                        <p className="text-xl font-bold font-mono text-rose-400">{stats.expired}</p>
+                        <p className="text-xl font-bold font-numeric text-negative">{stats.expired}</p>
                     </div>
                 </div>
 
@@ -259,9 +259,9 @@ export default function ToolAlertsPage() {
                                 type="button"
                                 onClick={() => { setFilter(f); setSelected(new Set()); }}
                                 className={cn(
-                                    "rounded-xl px-4 py-2 text-xs font-medium transition-all",
+                                  "rounded-lg px-4 py-2 text-xs font-medium transition-all",
                                     filter === f
-                                        ? f === "active" ? "bg-emerald-500/20 text-emerald-400" : f === "expired" ? "bg-rose-500/20 text-rose-400" : "bg-violet-600 text-foreground"
+                                        ? f === "active" ? "bg-positive/20 text-positive" : f === "expired" ? "bg-negative/20 text-negative" : "bg-primary text-foreground"
                                         : "text-muted-foreground hover:text-muted-foreground hover:bg-muted"
                                 )}
                             >
@@ -282,7 +282,7 @@ export default function ToolAlertsPage() {
 
                 {loading ? (
                     <div className="flex h-64 items-center justify-center">
-                        <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
                 ) : filtered.length === 0 ? (
                     <div className="rounded-lg border border-dashed border-border/40 p-16 text-center">
@@ -304,7 +304,7 @@ export default function ToolAlertsPage() {
                                     className={cn(
                                         "group flex items-center gap-4 rounded-lg border p-4 transition-all",
                                         expired
-                                            ? "border-rose-500/10 bg-rose-500/[0.02] opacity-60"
+                                            ? "border-negative/10 bg-negative/[0.02] opacity-60"
                                             : "border-border/30 bg-muted/50 hover:bg-muted"
                                     )}
                                 >
@@ -313,24 +313,24 @@ export default function ToolAlertsPage() {
                                         type="checkbox"
                                         checked={selected.has(def.id)}
                                         onChange={() => toggleSelect(def.id)}
-                                        className="h-4 w-4 rounded border-border/50 bg-muted/10 text-violet-500 focus:ring-violet-500/30"
+                                        className="h-4 w-4 rounded border-border/50 bg-muted/10 text-primary focus:ring-primary/30"
                                     />
 
                                     {/* Status icon */}
                                     <div className={cn(
-                                        "flex h-9 w-9 items-center justify-center rounded-xl flex-shrink-0",
-                                        expired ? "bg-rose-500/10" : "bg-emerald-500/10"
+                                      "flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0",
+                                        expired ? "bg-negative/10" : "bg-positive/10"
                                     )}>
                                         {expired
-                                            ? <PowerOff size={16} className="text-rose-400" />
-                                            : <Power size={16} className="text-emerald-400" />
+                                            ? <PowerOff size={16} className="text-negative" />
+                                            : <Power size={16} className="text-positive" />
                                         }
                                     </div>
 
                                     {/* Content */}
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 flex-wrap">
-                                            <span className="font-mono text-sm font-bold text-foreground">{def.symbol}</span>
+                                            <span className="font-numeric text-sm font-bold text-foreground">{def.symbol}</span>
                                             <span className="text-xs text-muted-foreground">{def.alertTitle || def.scriptName}</span>
                                             {def.direction && def.direction !== "neutral" && (
                                                 <span className={cn("rounded-md px-1.5 py-0.5 text-micro font-medium", DIRECTION_COLORS[def.direction] || "text-muted-foreground bg-muted")}>
@@ -338,7 +338,7 @@ export default function ToolAlertsPage() {
                                                 </span>
                                             )}
                                             {def.price && (
-                                                <span className="font-mono text-micro text-muted-foreground">@ {def.price}</span>
+                                                <span className="font-numeric text-micro text-muted-foreground">@ {def.price}</span>
                                             )}
                                             <span className="rounded-md bg-muted px-1.5 py-0.5 text-micro text-muted-foreground">{def.timeframe}</span>
                                             <span className="rounded-md bg-muted px-1.5 py-0.5 text-micro text-muted-foreground">
@@ -372,7 +372,7 @@ export default function ToolAlertsPage() {
                                     <button
                                         type="button"
                                         onClick={() => deleteDefinition(def)}
-                                        className="rounded-lg p-1.5 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-rose-400 hover:bg-rose-500/10 transition-all flex-shrink-0"
+                                        className="rounded-lg p-1.5 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-negative hover:bg-negative/10 transition-all flex-shrink-0"
                                         title="Delete alert"
                                     >
                                         <Trash2 size={13} />

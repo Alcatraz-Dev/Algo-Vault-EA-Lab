@@ -140,11 +140,11 @@ export const CrossAssetPanel = memo(function CrossAssetPanel({
                         <ul className="space-y-1">
                             {ctx.relationships.slice(0, 7).map((r) => (
                                 <li key={r.symbol} className="flex items-center justify-between gap-2 text-micro">
-                                    <span className="font-mono text-foreground">{r.symbol}</span>
+                                    <span className="font-numeric text-foreground">{r.symbol}</span>
                                     <span className="flex items-center gap-1.5">
                                         <span
                                             className={cn(
-                                                "font-mono",
+                                                "font-numeric",
                                                 (r.coefficient ?? 0) >= 0 ? "text-positive" : "text-negative"
                                             )}
                                         >
@@ -181,7 +181,7 @@ export const CrossAssetPanel = memo(function CrossAssetPanel({
                         </p>
                     ) : null}
 
-                    <p className="font-mono text-micro text-muted-foreground/80">
+                    <p className="font-numeric text-micro text-muted-foreground/80">
                         window {ctx.window.bars} {ctx.window.timeframe} · data{" "}
                         {ctx.dataTimestamp ? new Date(ctx.dataTimestamp).toISOString().slice(11, 16) : "—"} UTC ·
                         association, not prediction

@@ -62,7 +62,7 @@ export default function TradingSessionsPage() {
                         </div>
                         <div>
                             <p className="text-micro uppercase tracking-wider text-muted-foreground">Current UTC Time</p>
-                            <p className="font-mono text-xl font-bold text-foreground">
+                            <p className="font-numeric text-xl font-bold text-foreground">
                                 {String(Math.floor(currentUTC)).padStart(2, "0")}:{String(Math.floor((currentUTC % 1) * 60)).padStart(2, "0")}
                             </p>
                         </div>
@@ -91,7 +91,7 @@ export default function TradingSessionsPage() {
                     <div className="w-24 shrink-0" />
                     <div className="flex flex-1">
                         {HOURS.map((h) => (
-                            <div key={h} className={cn("flex-1 text-center text-micro font-mono", h === currentHour ? "text-primary font-bold" : "text-muted-foreground")}>
+                            <div key={h} className={cn("flex-1 text-center text-micro font-numeric", h === currentHour ? "text-primary font-bold" : "text-muted-foreground")}>
                                 {String(h).padStart(2, "0")}
                             </div>
                         ))}
@@ -164,15 +164,15 @@ export default function TradingSessionsPage() {
                     <div className="mt-3 space-y-2">
                         <div className="flex items-center justify-between text-xs">
                             <span className="text-muted-foreground">London/New York Overlap</span>
-                            <span className="font-mono font-bold text-positive">12:00–16:00 UTC</span>
+                            <span className="font-numeric font-bold text-positive">12:00–16:00 UTC</span>
                         </div>
                         <div className="flex items-center justify-between text-xs">
                             <span className="text-muted-foreground">London Session Open</span>
-                            <span className="font-mono font-bold text-positive">07:00–09:00 UTC</span>
+                            <span className="font-numeric font-bold text-positive">07:00–09:00 UTC</span>
                         </div>
                         <div className="flex items-center justify-between text-xs">
                             <span className="text-muted-foreground">NY Session Open</span>
-                            <span className="font-mono font-bold text-positive">12:00–14:00 UTC</span>
+                            <span className="font-numeric font-bold text-positive">12:00–14:00 UTC</span>
                         </div>
                     </div>
                 </div>
@@ -183,15 +183,15 @@ export default function TradingSessionsPage() {
                     <div className="mt-3 space-y-2">
                         <div className="flex items-center justify-between text-xs">
                             <span className="text-muted-foreground">Session Gaps</span>
-                            <span className="font-mono font-bold text-negative">21:00–22:00 UTC</span>
+                            <span className="font-numeric font-bold text-negative">21:00–22:00 UTC</span>
                         </div>
                         <div className="flex items-center justify-between text-xs">
                             <span className="text-muted-foreground">Asian Lunch</span>
-                            <span className="font-mono font-bold text-negative">04:00–06:00 UTC</span>
+                            <span className="font-numeric font-bold text-negative">04:00–06:00 UTC</span>
                         </div>
                         <div className="flex items-center justify-between text-xs">
                             <span className="text-muted-foreground">Sunday Open</span>
-                            <span className="font-mono font-bold text-negative">22:00–00:00 UTC</span>
+                            <span className="font-numeric font-bold text-negative">22:00–00:00 UTC</span>
                         </div>
                     </div>
                 </div>

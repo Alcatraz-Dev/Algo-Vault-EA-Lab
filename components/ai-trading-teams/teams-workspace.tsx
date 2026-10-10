@@ -173,13 +173,13 @@ export function AITeamsWorkspace({
     return (
         <div className="space-y-4">
             {!flags.aiTeamsEnabled ? (
-                <div className="rounded-xl border border-warning/40 bg-warning/5 p-4 text-sm text-warning">
+                <div className="rounded-lg border border-warning/40 bg-warning/5 p-4 text-sm text-warning">
                     AI Trading Teams is currently disabled by feature flag (AI_TRADING_TEAMS_ENABLED).
                 </div>
             ) : null}
 
             {!isPro && !authLoading ? (
-                <div className="rounded-lg border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-6">
+                <div className="rounded-lg border border-primary/30 bg-primary/10 p-6">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <div className="max-w-2xl">
                             <h2 className="flex items-center gap-2 text-lg font-bold">
@@ -198,7 +198,7 @@ export function AITeamsWorkspace({
                             <p className="mb-1 text-center text-micro font-semibold tracking-widest text-muted-foreground uppercase">
                                 Example team
                             </p>
-                            <div className="rounded-xl border border-border/60 bg-background/60 p-3">
+                            <div className="rounded-lg border border-border/60 bg-background/60 p-3">
                                 <TeamGraph
                                     agents={BUILTIN_TEAM_AGENTS}
                                     states={exampleStates}
@@ -347,7 +347,7 @@ export function AITeamsWorkspace({
 
             {tab === "settings" ? (
                 <div className="space-y-4">
-                    <section className="rounded-xl border border-border/60 bg-card/60 p-4">
+                    <section className="rounded-lg border border-border/60 bg-card/60 p-4">
                         <h2 className="text-sm font-semibold">Feature flags & entitlement</h2>
                         <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
                             <li className="flex items-center gap-2">
@@ -368,7 +368,7 @@ export function AITeamsWorkspace({
                         </p>
                     </section>
 
-                    <section className="rounded-xl border border-border/60 bg-card/60 p-4">
+                    <section className="rounded-lg border border-border/60 bg-card/60 p-4">
                         <h2 className="text-sm font-semibold">Team memory</h2>
                         <p className="mt-1 text-xs text-muted-foreground">
                             Structured memory is stored per team. Pick a team to review or edit it.
@@ -389,7 +389,7 @@ export function AITeamsWorkspace({
                         )}
                     </section>
 
-                    <section className="rounded-xl border border-border/60 bg-card/60 p-4 text-xs leading-relaxed text-muted-foreground">
+                    <section className="rounded-lg border border-border/60 bg-card/60 p-4 text-xs leading-relaxed text-muted-foreground">
                         <h2 className="mb-1 text-sm font-semibold text-foreground">Disclaimer</h2>
                         AlgoVault AI Trading Teams provide analytical and research assistance only. Outputs are
                         research observations based on the data available at the run timestamp — not financial

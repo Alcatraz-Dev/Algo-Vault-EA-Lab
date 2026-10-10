@@ -14,7 +14,7 @@
  *   • `removeDrawingById` / `undoLastDrawing` / `updateDrawingLabel` /
  *     `updateDrawingColor` — immutable list operations used by the delete
  *     key, undo (Ctrl+Z), the text editor and the selection toolbar.
- */
+  */
 
 import type { Time, UTCTimestamp } from "lightweight-charts";
 import type { DrawingItem, DrawingPoint, DrawingTool } from "./ProTerminalChart";
@@ -86,7 +86,7 @@ export function resolvePriceY(price: number | undefined | null, series: MarketPr
  * coordinates resolve — the caller must then skip rendering, hit-testing and
  * selection for the object while leaving its market data untouched. Once the
  * same point becomes resolvable again the object renders automatically.
- */
+  */
 export function resolveMarketPointToPixel(
     point: Pick<DrawingPoint, "time" | "price"> | null | undefined,
     chart: MarketTimeTransform | null | undefined,
@@ -103,7 +103,7 @@ export function resolveMarketPointToPixel(
  * Magnet snap: return the candle component nearest to the raw price.
  * Returns null when there is no candle (caller keeps the raw price) — the
  * magnet never invents a price.
- */
+  */
 export function snapToOHLC(candle: OhlcCandle | undefined | null, price: number): number | null {
     if (!candle || !Number.isFinite(price)) return null;
     const candidates = [candle.open, candle.high, candle.low, candle.close];
@@ -151,7 +151,7 @@ export interface DrawingGeom {
  * may ever create a drawing. Placement tools need a real drag (> 4px), except
  * the click-placed tools (horizontal / text) which commit on pointer-up
  * regardless of movement.
- */
+  */
 export function toolCommitsDrawing(tool: DrawingTool, dragDistance: number): boolean {
     if (tool === "select" || tool === "hand") return false;
     if (tool === "horizontal" || tool === "text") return true;
@@ -163,7 +163,7 @@ export function toolCommitsDrawing(tool: DrawingTool, dragDistance: number): boo
  * boundary — the ray's direction comes ONLY from the two market points, and
  * the extension is recomputed every render so it follows candles through pan
  * and zoom. Returns null for a degenerate direction (both points equal).
- */
+  */
 export function extendRayToBounds(
     x1: number,
     y1: number,
@@ -193,7 +193,7 @@ export function extendRayToBounds(
  * The third point is derived from MARKET coordinates every render (never
  * stored, never screen pixels), so it survives persistence, timeframe
  * switches and pan/zoom exactly like the two stored points do.
- */
+  */
 export function triangleVertices(
     x1: number,
     y1: number,
@@ -209,7 +209,7 @@ export function triangleVertices(
  * ever stored), then the user's configured tool levels, then the documented
  * defaults. Invalid arrays (< 2 finite numbers) fall through instead of
  * rendering a broken retracement.
- */
+  */
 export function resolvedFiboLevels(
     drawing: { fiboLevels?: readonly number[] } | null | undefined,
     configured?: readonly number[] | null,
@@ -240,7 +240,7 @@ function distToSegment(px: number, py: number, x1: number, y1: number, x2: numbe
  *     chart panning;
  *   • horizontal/vertical lines test across the whole container;
  *   • text uses an estimated glyph box anchored at its placement point.
- */
+  */
 export function hitTestDrawing(
     type: DrawingTool,
     g: DrawingGeom,
@@ -326,7 +326,7 @@ export function removeDrawingById(list: DrawingItem[], id: string): DrawingItem[
  * Translate a drawing in market coordinates. Pointer pixels never become
  * stored state: the caller resolves the pointer's start/end through the
  * chart's time/price transforms and passes those market-coordinate deltas.
- */
+  */
 export function translateDrawingByMarketDelta(
     drawing: DrawingItem,
     deltaTimeMs: number,

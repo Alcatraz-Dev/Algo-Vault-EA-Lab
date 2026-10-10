@@ -65,13 +65,13 @@ export default function EconomicCalendarPage() {
             
             {/* Background Ambient Blur */}
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute left-1/2 top-[-250px] h-[550px] w-[550px] -translate-x-1/2 rounded-full bg-red-600/10 blur-[130px]" />
-                <div className="absolute bottom-[-200px] right-[-100px] h-[450px] w-[450px] rounded-full bg-amber-600/10 blur-[130px]" />
+                <div className="absolute left-1/2 top-[-250px] h-[550px] w-[550px] -translate-x-1/2 rounded-full bg-negative/10 hidden" />
+                <div className="absolute bottom-[-200px] right-[-100px] h-[450px] w-[450px] rounded-full bg-warning/10 hidden" />
             </div>
 
             {/* Header Section */}
             <section className="border-b border-border/30" data-guide="page-header">
-                <div className="mx-auto max-w-7xl px-6 py-10">
+                <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                     
                     {/* Back Button matching Purchases page style */}
                     <Link
@@ -89,7 +89,7 @@ export default function EconomicCalendarPage() {
                                 Economic Impact & News Telemetry
                             </div>
 
-                            <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
+                            <h1 className="text-2xl font-semibold tracking-tight mt-4">
                                 Economic Calendar & EA News Filter
                             </h1>
 
@@ -104,7 +104,7 @@ export default function EconomicCalendarPage() {
                                 type="button"
                                 onClick={() => loadCalendar(true)}
                                 disabled={refreshing}
-                                className="inline-flex items-center gap-2 rounded-xl border border-border/30 bg-muted px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:bg-muted/10 hover:text-foreground disabled:opacity-50"
+                                className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:bg-muted/10 hover:text-foreground disabled:opacity-50"
                             >
                                 <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
                                 <span>{refreshing ? "Updating..." : "Refresh Calendar"}</span>
@@ -121,7 +121,7 @@ export default function EconomicCalendarPage() {
                                     key={imp}
                                     type="button"
                                     onClick={() => setSelectedImpact(imp)}
-                                    className={`rounded-xl border px-3.5 py-1.5 text-xs font-medium transition ${
+                                    className={`rounded-lg border px-3.5 py-1.5 text-xs font-medium transition ${
                                         selectedImpact === imp
                                             ? "border-border bg-muted/10 text-foreground font-semibold shadow-md"
                                             : "border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/5"
@@ -137,7 +137,7 @@ export default function EconomicCalendarPage() {
                             <select
                                 value={selectedCurrency}
                                 onChange={(e) => setSelectedCurrency(e.target.value)}
-                                className="rounded-xl border border-border/30 bg-card px-3 py-1.5 text-xs text-foreground focus:outline-none"
+                                className="rounded-lg border border-border/30 bg-card px-3 py-1.5 text-xs text-foreground focus:outline-none"
                             >
                                 <option value="All">All Currencies</option>
                                 <option value="USD">USD (US Dollar)</option>
@@ -153,14 +153,14 @@ export default function EconomicCalendarPage() {
             </section>
 
             {/* Main Table Content */}
-            <div className="mx-auto max-w-7xl px-6 py-10">
+            <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 <section className="mb-8 border border-border/30 bg-muted/50 p-4">
                     <div className="mb-4 flex items-center justify-between gap-4">
                         <div>
                             <p className="text-sm font-semibold text-foreground">Live TradingView economic calendar</p>
                             <p className="mt-1 text-xs text-muted-foreground">Live releases and market-moving events powered by TradingView.</p>
                         </div>
-                        <a href="https://www.tradingview.com/economic-calendar/" target="_blank" rel="noreferrer" className="text-xs text-cyan-300 hover:text-cyan-100">Open TradingView</a>
+                        <a href="https://www.tradingview.com/economic-calendar/" target="_blank" rel="noreferrer" className="text-xs text-info hover:text-info">Open TradingView</a>
                     </div>
                     <TradingViewEconomicCalendar />
                 </section>
@@ -170,7 +170,7 @@ export default function EconomicCalendarPage() {
                         <p className="text-sm text-muted-foreground">Loading economic releases...</p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto rounded-lg border border-border/30 bg-muted/50 backdrop-blur-xl">
+                    <div className="overflow-x-auto rounded-lg border border-border/30 bg-muted/50">
                         <table className="w-full text-left text-xs text-muted-foreground">
                             <thead className="border-b border-border/30 bg-muted/5 font-semibold text-foreground">
                                 <tr>
@@ -187,7 +187,7 @@ export default function EconomicCalendarPage() {
                             <tbody className="divide-y divide-white/5">
                                 {filteredEvents.map((evt) => (
                                     <tr key={evt.id} className="hover:bg-muted transition">
-                                        <td className="p-4 font-mono text-muted-foreground font-medium">
+                                        <td className="p-4 font-numeric text-muted-foreground font-medium">
                                             {evt.timeUtc}
                                         </td>
                                         <td className="p-4">
@@ -203,29 +203,29 @@ export default function EconomicCalendarPage() {
                                             <span
                                                 className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap shrink-0 ${
                                                     evt.impact === "High"
-                                                        ? "border border-red-500/30 bg-red-500/10 text-red-400"
-                                                        : "border border-amber-500/30 bg-amber-500/10 text-amber-400"
+                                                        ? "border border-negative/30 bg-negative/10 text-negative"
+                                                        : "border border-warning/30 bg-warning/10 text-warning"
                                                 }`}
                                             >
                                                 <span
                                                     className={`h-1.5 w-1.5 rounded-full ${
-                                                        evt.impact === "High" ? "bg-red-400 animate-pulse" : "bg-amber-400"
+                                                        evt.impact === "High" ? "bg-negative animate-pulse" : "bg-warning"
                                                     }`}
                                                 />
                                                 {evt.impact}
                                             </span>
                                         </td>
-                                        <td className="p-4 font-mono text-muted-foreground">{evt.forecast}</td>
-                                        <td className="p-4 font-mono text-muted-foreground">{evt.previous}</td>
-                                        <td className="p-4 font-mono text-emerald-400 font-bold">
+                                        <td className="p-4 font-numeric text-muted-foreground">{evt.forecast}</td>
+                                        <td className="p-4 font-numeric text-muted-foreground">{evt.previous}</td>
+                                        <td className="p-4 font-numeric text-positive font-bold">
                                             {evt.actual || "Pending"}
                                         </td>
                                         <td className="p-4 text-right">
                                             <span
-                                                className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1 text-xs font-bold whitespace-nowrap shrink-0 ${
+                                                className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1 text-xs font-bold whitespace-nowrap shrink-0 ${
                                                     evt.eaActionAdvice === "PAUSE EA"
-                                                        ? "border-red-500/40 bg-red-500/20 text-red-300"
-                                                        : "border-amber-500/40 bg-amber-500/20 text-amber-300"
+                                                        ? "border-negative/40 bg-negative/20 text-negative"
+                                                        : "border-warning/40 bg-warning/20 text-warning"
                                                 }`}
                                             >
                                                 <AlertTriangle size={13} />

@@ -686,7 +686,7 @@ function PurchasesContent() {
                             size={42}
                         />
 
-                        <h1 className="text-2xl font-semibold">
+                        <h1 className="text-2xl font-semibold tracking-tight">
                             Sign in to view your purchases
                         </h1>
 
@@ -714,7 +714,7 @@ function PurchasesContent() {
 
     return (
         <AccountShell title="My Purchases" subtitle="Access your purchased trading products, licenses and EX5 files">
-            <div className="mx-auto max-w-5xl">
+            <div className="mx-auto max-w-5xl space-y-6">
 
                 {/* Toolbar */}
 

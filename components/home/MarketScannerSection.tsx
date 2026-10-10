@@ -76,7 +76,7 @@ export default function MarketScannerSection() {
 
  {/* Scanner Data Table Terminal */}
  <div className="mt-6 overflow-x-auto rounded-lg border border-border/80 bg-card/80 ">
- <table className="w-full text-left font-mono text-xs">
+ <table className="w-full text-left font-numeric text-xs">
  <thead>
  <tr className="border-b border-border bg-surface-muted text-text-muted uppercase tracking-wider text-xs">
  <th className="p-4">Symbol</th>
@@ -122,7 +122,7 @@ export default function MarketScannerSection() {
  </table>
  </div>
 
- <div className="mt-4 flex items-center justify-between text-xs font-mono text-muted-foreground">
+ <div className="mt-4 flex items-center justify-between text-xs font-numeric text-muted-foreground">
  <span className="flex items-center gap-1.5"><Database size={13} className="text-info" /> Provider OHLC engine · Twelve Data & Biquote</span>
  <span>Live candle normalizer active</span>
  </div>

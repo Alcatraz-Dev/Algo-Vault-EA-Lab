@@ -148,7 +148,7 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
     return (
         <span className="inline-flex items-baseline gap-1.5 text-xs" title={hint}>
             <span className="text-muted-foreground">{label}</span>
-            <span className="font-mono font-semibold tabular-nums text-foreground">{value}</span>
+            <span className="font-numeric font-semibold tabular-nums text-foreground">{value}</span>
         </span>
     );
 }

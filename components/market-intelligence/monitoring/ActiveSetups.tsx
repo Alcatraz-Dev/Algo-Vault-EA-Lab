@@ -10,7 +10,7 @@ export function ActiveSetups({ setups }: { setups: SetupItem[] }) {
         <ul className="text-xs space-y-1 text-muted-foreground divide-y divide-border/50">
           {setups.map((s) => (
             <li key={s.id || s.symbol} className="flex gap-2 py-0.5">
-              <span className="font-mono">{s.id || s.symbol}</span>
+              <span className="font-numeric">{s.id || s.symbol}</span>
               <span>—</span>
               <span>{s.timeframe || "—"}</span>
               <span>—</span>

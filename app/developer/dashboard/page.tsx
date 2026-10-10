@@ -65,7 +65,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  if (req?.message) setRequestNote(req.message);
  } catch {
  if (!cancelled) setRequestState("none");
- }
+  }
  })();
  return () => { cancelled = true; };
  }, [user]);
@@ -84,7 +84,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  });
  if (res.ok) setRequestState("pending");
  } catch {} finally { setSubmitting(false); }
- }
+    }
 
  return (
  <div className="min-h-screen bg-background text-foreground">
@@ -116,14 +116,14 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  placeholder="Describe your use case or any details for the admin..."
  value={requestMessage}
  onChange={(e) => setRequestMessage(e.target.value)}
- className="w-full rounded-xl border border-border/40 bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none resize-none"
+      className="w-full rounded-lg border border-border/40 bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none resize-none"
  />
  </div>
  <button
  type="button"
  onClick={submitRequest}
  disabled={submitting}
- className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary transition disabled:opacity-50"
+        className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary transition disabled:opacity-50"
  >
  {submitting ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
  {submitting ? "Submitting..." : "Request Developer Access"}
@@ -132,7 +132,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  )}
 
  {requestState === "pending" && (
- <div className="mt-6 rounded-xl border border-warning/20 bg-warning/[0.06] p-5 text-left">
+          <div className="mt-6 rounded-lg border border-warning/20 bg-warning/[0.06] p-5 text-left">
  <div className="flex items-center gap-3">
  <Clock size={18} className="text-warning shrink-0" />
  <div>
@@ -147,7 +147,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  )}
 
  {requestState === "approved" && (
- <div className="mt-6 rounded-xl border border-positive/20 bg-positive/[0.06] p-5 text-left">
+            <div className="mt-6 rounded-lg border border-positive/20 bg-positive/[0.06] p-5 text-left">
  <div className="flex items-center gap-3">
  <CheckCircle2 size={18} className="text-positive shrink-0" />
  <div>
@@ -158,7 +158,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  <button
  type="button"
  onClick={() => window.location.reload()}
- className="mt-4 rounded-xl bg-positive px-4 py-2 text-xs font-semibold text-background hover:bg-positive transition"
+              className="mt-4 rounded-lg bg-positive px-4 py-2 text-xs font-semibold text-background hover:bg-positive transition"
  >
  Refresh Page
  </button>
@@ -166,7 +166,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  )}
 
  {requestState === "rejected" && (
- <div className="mt-6 rounded-xl border border-negative/20 bg-negative/[0.06] p-5 text-left">
+                <div className="mt-6 rounded-lg border border-negative/20 bg-negative/[0.06] p-5 text-left">
  <div className="flex items-center gap-3">
  <XCircle size={18} className="text-negative shrink-0" />
  <div>
@@ -177,7 +177,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  <button
  type="button"
  onClick={() => setRequestState("none")}
- className="mt-4 rounded-xl border border-border/30 bg-muted px-4 py-2 text-xs font-semibold text-muted-foreground bg-muted/10 transition"
+                  className="mt-4 rounded-lg border border-border/30 bg-muted px-4 py-2 text-xs font-semibold text-muted-foreground bg-muted/10 transition"
  >
  Submit New Request
  </button>
@@ -192,7 +192,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  </div>
  </div>
  );
- }
+                    }
 
  export default function DeveloperDashboard() {
  const [user, setUser] = useState<User | null>(null);
@@ -280,7 +280,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  if (json.stripeCode) lines.push(`\nStripe code: ${json.stripeCode}`);
  if (json.requestId) lines.push(`\nRequest ID: ${json.requestId}`);
  alert(lines.join(""));
- }
+                      }
  } catch {} finally { setOnboarding(false); }
  };
 
@@ -307,7 +307,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  fetchAll();
  } else if (json.error) {
  alert(json.error);
- }
+                        }
  } catch {} finally { setCreating(false); }
  };
 
@@ -324,23 +324,23 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
 
  if (authLoading) {
  return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></div>);
- }
+                          }
 
  if (!user) {
- return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary transition">Sign In</Link></div></div>);
- }
+                            return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary transition">Sign In</Link></div></div>);
+                              }
 
  if (role && role !== "developer" && role !== "admin") {
  return (
  <DeveloperRequestGate user={user} />
  );
- }
+                                }
 
  return (
  <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
  <div className="pointer-events-none fixed inset-0 overflow-hidden">
- <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 blur-[120px]" />
- <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 blur-[120px]" />
+ <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 hidden" />
+ <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
  </div>
  <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
  <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-muted-foreground transition">
@@ -349,10 +349,10 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
 
  <div className="mb-6 flex items-center justify-between">
  <div>
- <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Developer Dashboard</h1>
+ <h1 className="text-2xl font-semibold tracking-tight text-foreground">Developer Dashboard</h1>
  <p className="mt-1.5 text-sm text-muted-foreground">Manage your products, Stripe Connect, and earnings</p>
  </div>
- <Link href="/developer/subscription" className="rounded-xl border border-primary/20 bg-primary/10 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-primary/20 transition">
+                                  <Link href="/developer/subscription" className="rounded-lg border border-primary/20 bg-primary/10 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-primary/20 transition">
  Developer Plan
  </Link>
  </div>
@@ -362,7 +362,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  <div className="mb-6 rounded-lg border border-warning/20 bg-warning/[0.04] p-5">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-4">
- <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-warning/10">
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-warning/10">
  <DollarSign size={20} className="text-warning" />
  </div>
  <div>
@@ -374,7 +374,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  type="button"
  onClick={startOnboarding}
  disabled={onboarding}
- className="flex items-center gap-2 rounded-xl bg-warning px-4 py-2.5 text-xs font-semibold text-background hover:bg-warning transition disabled:opacity-50"
+                                      className="flex items-center gap-2 rounded-lg bg-warning px-4 py-2.5 text-xs font-semibold text-background hover:bg-warning transition disabled:opacity-50"
  >
  {onboarding ? <Loader2 size={13} className="animate-spin" /> : <ExternalLink size={13} />}
  {onboarding ? "Connecting..." : "Connect Stripe"}
@@ -387,7 +387,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  <div className="mb-6 rounded-lg border border-negative/20 bg-negative/[0.04] p-5">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-4">
- <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-negative/10">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-negative/10">
  <XCircle size={20} className="text-negative" />
  </div>
  <div>
@@ -399,7 +399,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  type="button"
  onClick={startOnboarding}
  disabled={onboarding}
- className="flex items-center gap-2 rounded-xl bg-negative/80 px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-negative transition disabled:opacity-50"
+                                          className="flex items-center gap-2 rounded-lg bg-negative/80 px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-negative transition disabled:opacity-50"
  >
  {onboarding ? <Loader2 size={13} className="animate-spin" /> : <ExternalLink size={13} />}
  Resume Onboarding
@@ -412,7 +412,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  <div className="mb-6 rounded-lg border border-warning/20 bg-warning/[0.04] p-5">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-4">
- <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-warning/10">
+                                            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-warning/10">
  <AlertTriangle size={20} className="text-warning" />
  </div>
  <div>
@@ -432,7 +432,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  <button
  type="button"
  onClick={fetchAll}
- className="flex items-center gap-2 rounded-xl border border-warning/30 px-3 py-2.5 text-xs font-semibold text-warning hover:bg-warning/10 transition"
+                                              className="flex items-center gap-2 rounded-lg border border-warning/30 px-3 py-2.5 text-xs font-semibold text-warning hover:bg-warning/10 transition"
  >
  <RefreshCw size={12} /> Refresh
  </button>
@@ -440,7 +440,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  type="button"
  onClick={startOnboarding}
  disabled={onboarding}
- className="flex items-center gap-2 rounded-xl bg-warning px-4 py-2.5 text-xs font-semibold text-background hover:bg-warning transition disabled:opacity-50"
+                                                className="flex items-center gap-2 rounded-lg bg-warning px-4 py-2.5 text-xs font-semibold text-background hover:bg-warning transition disabled:opacity-50"
  >
  {onboarding ? <Loader2 size={13} className="animate-spin" /> : <ExternalLink size={13} />}
  Resume Onboarding
@@ -466,7 +466,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  <button
  type="button"
  onClick={fetchAll}
- className="flex items-center gap-2 rounded-xl border border-primary/30 px-3 py-2.5 text-xs font-semibold text-primary hover:bg-primary/10 transition"
+                                                  className="flex items-center gap-2 rounded-lg border border-primary/30 px-3 py-2.5 text-xs font-semibold text-primary hover:bg-primary/10 transition"
  >
  <RefreshCw size={12} /> Refresh
  </button>
@@ -478,7 +478,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  <div className="mb-6 rounded-lg border border-positive/20 bg-positive/[0.04] p-5">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-4">
- <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-positive/10">
+                                                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-positive/10">
  <CheckCircle2 size={20} className="text-positive" />
  </div>
  <div>
@@ -490,7 +490,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  {stripe.accountId && (
  <Link
  href={`/store/${encodeURIComponent(stripe.accountId)}`}
- className="flex items-center gap-2 rounded-xl border border-positive/30 px-3 py-2.5 text-xs font-semibold text-positive hover:bg-positive/10 transition"
+                                                      className="flex items-center gap-2 rounded-lg border border-positive/30 px-3 py-2.5 text-xs font-semibold text-positive hover:bg-positive/10 transition"
  >
  <Store size={12} /> View Storefront
  </Link>
@@ -498,7 +498,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  <button
  type="button"
  onClick={fetchAll}
- className="flex items-center gap-2 rounded-xl border border-positive/30 px-3 py-2.5 text-xs font-semibold text-positive hover:bg-positive/10 transition"
+                                                        className="flex items-center gap-2 rounded-lg border border-positive/30 px-3 py-2.5 text-xs font-semibold text-positive hover:bg-positive/10 transition"
  >
  <RefreshCw size={12} /> Refresh
  </button>
@@ -512,7 +512,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  <div className="mb-6 rounded-lg border border-border/30 bg-muted/50 p-5">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-4">
- <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                                                          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
  <Crown size={20} className="text-primary" />
  </div>
  <div>
@@ -526,7 +526,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  </div>
  <Link
  href="/developer/subscription"
- className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/10 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-primary/20 transition"
+                                                            className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-primary/20 transition"
  >
  <ExternalLink size={12} />
  {devSub.hasSubscription && devSub.status === "active" && devSub.plan !== "dev_starter"
@@ -538,7 +538,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  )}
 
  {/* Tabs */}
- <div className="mb-6 flex gap-2 rounded-xl border border-border/30 bg-muted/50 p-1">
+                                                              <div className="mb-6 flex gap-2 rounded-lg border border-border/30 bg-muted/50 p-1">
  {(["overview", "products", "create"] as const).map((t) => (
  <button
  key={t}
@@ -566,15 +566,15 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  <div className="grid grid-cols-3 gap-4">
  <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
  <div className="flex items-center gap-2 mb-1"><DollarSign size={13} className="text-positive" /><span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Total Revenue</span></div>
- <p className="text-2xl font-bold font-mono text-positive">${earnings?.stats.totalRevenue || 0}</p>
+ <p className="text-2xl font-bold font-numeric text-positive">${earnings?.stats.totalRevenue || 0}</p>
  </div>
  <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
  <div className="flex items-center gap-2 mb-1"><Package size={13} className="text-primary" /><span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Products</span></div>
- <p className="text-2xl font-bold font-mono text-foreground">{products.length}</p>
+ <p className="text-2xl font-bold font-numeric text-foreground">{products.length}</p>
  </div>
  <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
  <div className="flex items-center gap-2 mb-1"><TrendingUp size={13} className="text-warning" /><span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Total Sales</span></div>
- <p className="text-2xl font-bold font-mono text-foreground">{earnings?.stats.totalSales || 0}</p>
+ <p className="text-2xl font-bold font-numeric text-foreground">{earnings?.stats.totalSales || 0}</p>
  </div>
  </div>
 
@@ -583,13 +583,13 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  <h3 className="mb-4 text-sm font-semibold text-foreground">Recent Sales</h3>
  <div className="space-y-2">
  {earnings.recentSales.map((sale) => (
- <div key={sale.id} className="flex items-center justify-between rounded-xl border border-border/20 bg-muted/50 px-4 py-3">
+                                                                <div key={sale.id} className="flex items-center justify-between rounded-lg border border-border/20 bg-muted/50 px-4 py-3">
  <div>
  <span className="text-sm font-medium text-foreground">{sale.product}</span>
  <span className="ml-2 text-micro text-muted-foreground">{sale.buyer}</span>
  </div>
  <div className="text-right">
- <span className="font-mono text-sm font-bold text-positive">+${sale.amount}</span>
+ <span className="font-numeric text-sm font-bold text-positive">+${sale.amount}</span>
  <p className="text-micro text-muted-foreground">{new Date(sale.date).toLocaleDateString()}</p>
  </div>
  </div>
@@ -612,7 +612,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  <div key={p.id} className="group rounded-lg border border-border/30 bg-muted/50 p-5 transition-all hover:bg-muted">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-4">
- <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-sm font-bold text-primary">
+                                                                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary">
  {p.name.charAt(0)}
  </div>
  <div>
@@ -624,7 +624,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  <div className="flex items-center gap-3 mt-1 text-micro text-muted-foreground">
  <span>{p.productType.toUpperCase()}</span>
  <span>{String(p.symbol || "")}</span>
- <span className="font-mono font-bold text-positive">{p.pricing?.type === "free" ? "Free" : `$${p.pricing?.price}`}</span>
+ <span className="font-numeric font-bold text-positive">{p.pricing?.type === "free" ? "Free" : `$${p.pricing?.price}`}</span>
  <span>{p.downloads || 0} downloads</span>
  {p.rating?.average > 0 && <span className="flex items-center gap-0.5"><Star size={9} className="text-warning" /> {p.rating.average}</span>}
  </div>
@@ -650,16 +650,16 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  <div className="space-y-4">
  <div>
  <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Product Name</label>
- <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="e.g. Trend scalper EA" className="w-full rounded-xl border border-border/40 bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" />
+                                                                    <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="e.g. Trend scalper EA" className="w-full rounded-lg border border-border/40 bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" />
  </div>
  <div>
  <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Description</label>
- <textarea value={formDesc} onChange={(e) => setFormDesc(e.target.value)} rows={3} placeholder="Describe your product..." className="w-full rounded-xl border border-border/40 bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none resize-none" />
+                                                                      <textarea value={formDesc} onChange={(e) => setFormDesc(e.target.value)} rows={3} placeholder="Describe your product..." className="w-full rounded-lg border border-border/40 bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none resize-none" />
  </div>
  <div className="grid grid-cols-2 gap-4">
  <div>
  <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Type</label>
- <select value={formType} onChange={(e) => setFormType(e.target.value)} className="w-full rounded-xl border border-border/40 bg-muted px-4 py-3 text-sm text-foreground focus:border-primary focus:outline-none">
+                                                                        <select value={formType} onChange={(e) => setFormType(e.target.value)} className="w-full rounded-lg border border-border/40 bg-muted px-4 py-3 text-sm text-foreground focus:border-primary focus:outline-none">
  <option value="ea">Expert Advisor</option>
  <option value="indicator">Indicator</option>
  <option value="setfile">Set File</option>
@@ -668,19 +668,19 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  </div>
  <div>
  <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Price (USD)</label>
- <input type="number" step="0.01" min="0" value={formPrice} onChange={(e) => setFormPrice(e.target.value)} placeholder="0 = Free" className="w-full rounded-xl border border-border/40 bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" />
+                                                                          <input type="number" step="0.01" min="0" value={formPrice} onChange={(e) => setFormPrice(e.target.value)} placeholder="0 = Free" className="w-full rounded-lg border border-border/40 bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" />
  </div>
  </div>
  <div className="grid grid-cols-2 gap-4">
  <div>
  <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Symbol</label>
- <select value={formSymbol} onChange={(e) => setFormSymbol(e.target.value)} className="w-full rounded-xl border border-border/40 bg-muted px-4 py-3 text-sm text-foreground focus:border-primary focus:outline-none">
+                                                                            <select value={formSymbol} onChange={(e) => setFormSymbol(e.target.value)} className="w-full rounded-lg border border-border/40 bg-muted px-4 py-3 text-sm text-foreground focus:border-primary focus:outline-none">
  {["EURUSD", "GBPUSD", "USDJPY", "XAUUSD", "BTCUSD", "US30", "NAS100"].map((s) => <option key={s} value={s}>{s}</option>)}
  </select>
  </div>
  <div>
  <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Timeframe</label>
- <select value={formTimeframe} onChange={(e) => setFormTimeframe(e.target.value)} className="w-full rounded-xl border border-border/40 bg-muted px-4 py-3 text-sm text-foreground focus:border-primary focus:outline-none">
+                                                                              <select value={formTimeframe} onChange={(e) => setFormTimeframe(e.target.value)} className="w-full rounded-lg border border-border/40 bg-muted px-4 py-3 text-sm text-foreground focus:border-primary focus:outline-none">
  {["M5", "M15", "M30", "H1", "H4", "D1"].map((tf) => <option key={tf} value={tf}>{tf}</option>)}
  </select>
  </div>
@@ -694,7 +694,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  onImagesChange={(imgs) => setFormImages(imgs.join("\n"))}
  />
  {!stripe?.chargesEnabled && (
- <div className="rounded-xl border border-warning/20 bg-warning/[0.04] p-3 text-micro text-warning/80">
+                                                                                <div className="rounded-lg border border-warning/20 bg-warning/[0.04] p-3 text-micro text-warning/80">
  <AlertTriangle size={12} className="mr-1 inline" />
  Connect your Stripe account first to sell paid products.
  </div>
@@ -703,7 +703,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  type="button"
  onClick={createProduct}
  disabled={!formName.trim() || creating}
- className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary transition disabled:opacity-50"
+                                                                                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary transition disabled:opacity-50"
  >
  {creating ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />} Create Product
  </button>

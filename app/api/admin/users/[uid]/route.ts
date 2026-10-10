@@ -193,10 +193,10 @@ export async function GET(
                 ) => {
                     const amount =
                         typeof order.amount ===
-                            "number"
+                          "number"
                             ? order.amount
                             : typeof order.price ===
-                                "number"
+                              "number"
                                 ? order.price
                                 : 0;
 
@@ -255,7 +255,7 @@ export async function GET(
 
                     role:
                         user.role ||
-                        "customer",
+                          "customer",
 
                     photoURL:
                         user.photoURL ||
@@ -420,7 +420,7 @@ export async function PATCH(
             body?.role;
 
         const allowedRoles = [
-            "customer",
+          "customer",
             "developer",
             "admin",
         ];

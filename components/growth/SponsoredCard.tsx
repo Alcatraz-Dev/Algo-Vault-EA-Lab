@@ -21,7 +21,7 @@ export function SponsoredCard(props: SponsoredCardProps) {
         <a
             href={props.targetUrl}
             rel="sponsor"
-            className={`block rounded-xl border border-warning/40 bg-gradient-to-br from-warning/80 to-warning/60 p-4 shadow-sm hover:shadow transition ${
+            className={`block rounded-lg border border-warning/40 bg-warning-muted p-4 shadow-sm hover:shadow transition ${
                 props.premiumMode === "REDUCED" ? "opacity-70" : ""
             }`}
         >

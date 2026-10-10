@@ -111,7 +111,7 @@ export default function AdminUsersPage() {
 
             if (!user) {
                 throw new Error(
-                    "You must be logged in."
+                  "You must be logged in."
                 );
             }
 
@@ -166,7 +166,7 @@ export default function AdminUsersPage() {
                     if (!user) {
                         setLoading(false);
                         setError(
-                            "You must be logged in."
+                          "You must be logged in."
                         );
                         return;
                     }
@@ -469,7 +469,7 @@ export default function AdminUsersPage() {
                                                                         }
                                                                     </p>
 
-                                                                    <p className="mt-1 font-mono text-micro text-muted-foreground">
+                                                                    <p className="mt-1 font-numeric text-micro text-muted-foreground">
                                                                         {
                                                                             user.id
                                                                         }

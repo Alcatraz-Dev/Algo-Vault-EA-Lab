@@ -120,9 +120,9 @@ export default function MobileAccountPage() {
           <h1 className="text-lg font-semibold">Account</h1>
         </header>
         <div className="flex-1 p-4 space-y-4">
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-20 rounded-xl" />
-          <Skeleton className="h-20 rounded-xl" />
+          <Skeleton className="h-24 rounded-lg" />
+          <Skeleton className="h-20 rounded-lg" />
+          <Skeleton className="h-20 rounded-lg" />
         </div>
       </div>
     );
@@ -151,7 +151,7 @@ export default function MobileAccountPage() {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-4">
-            <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center">
+            <div className="h-14 w-14 rounded-lg bg-primary/10 flex items-center justify-center">
               <User className="h-7 w-7 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
@@ -174,21 +174,21 @@ export default function MobileAccountPage() {
         <CardContent className="p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2"><Wallet className="h-5 w-5" /> Trading Accounts</h3>
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl bg-muted/50 p-3">
+            <div className="rounded-lg bg-muted/50 p-3">
               <p className="text-micro font-medium uppercase text-muted-foreground">Total Balance</p>
-              <p className="font-mono text-xl font-bold mt-1">{formatCurrency(totalBalance)}</p>
+              <p className="font-numeric text-xl font-bold mt-1">{formatCurrency(totalBalance)}</p>
             </div>
-            <div className="rounded-xl bg-muted/50 p-3">
+            <div className="rounded-lg bg-muted/50 p-3">
               <p className="text-micro font-medium uppercase text-muted-foreground">Equity</p>
-              <p className={cn("font-mono text-xl font-bold mt-1", floatingPnl >= 0 ? "text-positive" : "text-negative")}>{formatCurrency(totalEquity)}</p>
+              <p className={cn("font-numeric text-xl font-bold mt-1", floatingPnl >= 0 ? "text-positive" : "text-negative")}>{formatCurrency(totalEquity)}</p>
             </div>
-            <div className="rounded-xl bg-muted/50 p-3">
+            <div className="rounded-lg bg-muted/50 p-3">
               <p className="text-micro font-medium uppercase text-muted-foreground">Floating P&L</p>
-              <p className={cn("font-mono text-xl font-bold mt-1", floatingPnl >= 0 ? "text-positive" : "text-negative")}>{floatingPnl >= 0 ? "+" : ""}{formatCurrency(floatingPnl)}</p>
+              <p className={cn("font-numeric text-xl font-bold mt-1", floatingPnl >= 0 ? "text-positive" : "text-negative")}>{floatingPnl >= 0 ? "+" : ""}{formatCurrency(floatingPnl)}</p>
             </div>
-            <div className="rounded-xl bg-muted/50 p-3">
+            <div className="rounded-lg bg-muted/50 p-3">
               <p className="text-micro font-medium uppercase text-muted-foreground">Online</p>
-              <p className="font-mono text-xl font-bold mt-1 text-positive">{onlineAccounts} / {accounts.length}</p>
+              <p className="font-numeric text-xl font-bold mt-1 text-positive">{onlineAccounts} / {accounts.length}</p>
             </div>
           </div>
           {accounts.length > 0 && (
@@ -257,18 +257,18 @@ export default function MobileAccountPage() {
                     </div>
                     <div>
                       <p className="font-semibold truncate">{acc.broker}</p>
-                      <p className="text-xs text-muted-foreground font-mono">{acc.mt5Account}</p>
+                      <p className="text-xs text-muted-foreground font-numeric">{acc.mt5Account}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-mono font-semibold">{formatCurrency(acc.balance)}</p>
-                    <p className={cn("text-xs font-mono", acc.equity >= acc.balance ? "text-positive" : "text-negative")}>{formatCurrency(acc.equity)}</p>
+                    <p className="font-numeric font-semibold">{formatCurrency(acc.balance)}</p>
+                    <p className={cn("text-xs font-numeric", acc.equity >= acc.balance ? "text-positive" : "text-negative")}>{formatCurrency(acc.equity)}</p>
                   </div>
                 </div>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center text-micro text-muted-foreground">
-                  <div><p className="font-mono font-medium">{acc.marginLevel.toFixed(1)}%</p><p>Margin Level</p></div>
-                  <div><p className="font-mono font-medium">{formatCurrency(acc.freeMargin)}</p><p>Free Margin</p></div>
-                  <div><p className="font-mono font-medium">{formatCurrency(acc.margin)}</p><p>Used Margin</p></div>
+                  <div><p className="font-numeric font-medium">{acc.marginLevel.toFixed(1)}%</p><p>Margin Level</p></div>
+                  <div><p className="font-numeric font-medium">{formatCurrency(acc.freeMargin)}</p><p>Free Margin</p></div>
+                  <div><p className="font-numeric font-medium">{formatCurrency(acc.margin)}</p><p>Used Margin</p></div>
                 </div>
               </Card>
             </Link>
@@ -301,7 +301,7 @@ export default function MobileAccountPage() {
             <h3 className="font-semibold flex items-center gap-2"><CreditCard className="h-5 w-5" /> Subscription</h3>
             <Link href="/pricing"><Button variant="ghost" size="sm">Upgrade</Button></Link>
           </div>
-          <div className="rounded-xl bg-muted/50 p-4">
+          <div className="rounded-lg bg-muted/50 p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-semibold">{isPro ? "Pro Plan" : "Free Plan"}</p>
@@ -411,9 +411,9 @@ export default function MobileAccountPage() {
       <div className="flex-1 overflow-auto">
         {loading ? (
           <div className="p-4 space-y-4">
-            <Skeleton className="h-24 rounded-xl" />
-            <Skeleton className="h-20 rounded-xl" />
-            <Skeleton className="h-20 rounded-xl" />
+            <Skeleton className="h-24 rounded-lg" />
+            <Skeleton className="h-20 rounded-lg" />
+            <Skeleton className="h-20 rounded-lg" />
           </div>
         ) : (
           tabContent[activeTab]()

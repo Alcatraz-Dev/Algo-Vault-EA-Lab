@@ -188,9 +188,9 @@ export function TradingViewIntegrationCard({ user, showToast }: TradingViewInteg
     }
 
     return (
-        <div className="rounded-lg border border-border bg-foreground/[0.035] p-6 backdrop-blur-xl">
+        <div className="rounded-lg border border-border bg-foreground/[0.035] p-6">
             <div className="mb-4 flex flex-wrap items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-info/15">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-info/15">
                     <PlugZap size={16} className="text-info" />
                 </div>
                 <div className="min-w-0">
@@ -206,14 +206,14 @@ export function TradingViewIntegrationCard({ user, showToast }: TradingViewInteg
             </div>
 
             {status?.message ? (
-                <div className="mb-4 flex items-start gap-2 rounded-xl border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+                <div className="mb-4 flex items-start gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
                     <Info size={13} className="mt-0.5 shrink-0" />
                     <span>{status.message}</span>
                 </div>
             ) : null}
 
             {flags && !flags.master ? (
-                <div className="mb-4 flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning">
+                <div className="mb-4 flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning">
                     <AlertCircle size={13} className="mt-0.5 shrink-0" />
                     <span>
                         The TradingView MCP integration is currently disabled by the platform. All AlgoVault features work
@@ -268,7 +268,7 @@ export function TradingViewIntegrationCard({ user, showToast }: TradingViewInteg
                         type="button"
                         onClick={handleDisconnect}
                         disabled={disconnecting}
-                        className="inline-flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm font-medium text-destructive transition hover:bg-destructive/20 disabled:opacity-50"
+                        className="inline-flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm font-medium text-destructive transition hover:bg-destructive/20 disabled:opacity-50"
                     >
                         {disconnecting ? <Loader2 size={14} className="animate-spin" /> : <Unplug size={14} />}
                         Disconnect
@@ -279,7 +279,7 @@ export function TradingViewIntegrationCard({ user, showToast }: TradingViewInteg
                         type="button"
                         onClick={handleConnect}
                         disabled={connecting}
-                        className="inline-flex items-center gap-2 rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background transition hover:opacity-90 disabled:opacity-50"
+                        className="inline-flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-sm font-semibold text-background transition hover:opacity-90 disabled:opacity-50"
                     >
                         {connecting ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
                         Reconnect TradingView
@@ -290,7 +290,7 @@ export function TradingViewIntegrationCard({ user, showToast }: TradingViewInteg
                         type="button"
                         onClick={handleConnect}
                         disabled={connecting}
-                        className="inline-flex items-center gap-2 rounded-xl bg-foreground px-4 py-2 text-sm font-semibold text-background transition hover:opacity-90 disabled:opacity-50"
+                        className="inline-flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-sm font-semibold text-background transition hover:opacity-90 disabled:opacity-50"
                     >
                         {connecting ? <Loader2 size={14} className="animate-spin" /> : <Plug size={14} />}
                         Connect TradingView

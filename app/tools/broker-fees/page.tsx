@@ -154,24 +154,24 @@ export default function BrokerFeeCalcPage() {
                             <div className="flex flex-wrap items-center gap-6">
                                 <div className="text-right">
                                     <p className="text-micro uppercase text-muted-foreground">Spread</p>
-                                    <p className="font-mono text-sm font-bold text-muted-foreground">${r.spreadCost}</p>
+                                    <p className="font-numeric text-sm font-bold text-muted-foreground">${r.spreadCost}</p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-micro uppercase text-muted-foreground">Commission</p>
-                                    <p className="font-mono text-sm font-bold text-muted-foreground">${r.commission}</p>
+                                    <p className="font-numeric text-sm font-bold text-muted-foreground">${r.commission}</p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-micro uppercase text-muted-foreground">Swap ({daysHeld}d)</p>
-                                    <p className="font-mono text-sm font-bold text-muted-foreground">${r.swapCost}</p>
+                                    <p className="font-numeric text-sm font-bold text-muted-foreground">${r.swapCost}</p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-micro uppercase text-muted-foreground">Total</p>
-                                    <p className={cn("font-mono text-lg font-bold", i === 0 ? "text-positive" : "text-foreground")}>${r.total}</p>
+                                    <p className={cn("font-numeric text-lg font-bold", i === 0 ? "text-positive" : "text-foreground")}>${r.total}</p>
                                 </div>
                                 {cheapest > 0 && r.total > cheapest && (
                                     <div className="text-right">
                                         <p className="text-micro uppercase text-muted-foreground">Extra</p>
-                                        <p className="font-mono text-sm font-bold text-negative">+${(r.total - cheapest).toFixed(2)}</p>
+                                        <p className="font-numeric text-sm font-bold text-negative">+${(r.total - cheapest).toFixed(2)}</p>
                                     </div>
                                 )}
                             </div>

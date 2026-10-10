@@ -14,7 +14,7 @@
  * Renders with lightweight-charts (already a dependency) directly, so the
  * terminal controls the full overlay set without touching the shared
  * TradingChart component.
- */
+  */
 
 import { useEffect, useMemo, useRef, useState, useCallback, useSyncExternalStore } from "react";
 import {
@@ -115,7 +115,7 @@ export type DrawingTool =
  * lightweight-charts types `lineWidth` as the literal union 1–4 while the
  * settings model stores a plain number, so narrow/clamp at the boundary
  * instead of casting through `any`.
- */
+  */
 function toLineWidth(value: number): LineWidth {
     if (value <= 1) return 1;
     if (value >= 4) return 4;
@@ -126,7 +126,7 @@ function toLineWidth(value: number): LineWidth {
  * Owner metadata attached to a trade price line so the SVG pointer gesture can
  * tell an entry/SL/TP/pending line apart from a stale reference. Declared once
  * as a named type so both the line builder and the hit-test share one shape.
- */
+  */
 export type TradeLineOwner = {
     ticket: string;
     side?: "BUY" | "SELL";
@@ -182,7 +182,7 @@ export type AiOverlaySignal = {
  * an AI engine from the SAME candles the chart renders. The chart only draws
  * it — series as lines, signals as entry/SL/TP markers, plus a HUD chip —
  * and never fabricates values it was not given.
- */
+  */
 export type AiOverlay = {
     kind: "indicator" | "strategy";
     id: string;
@@ -237,7 +237,7 @@ function indexAtTimestamp(candles: readonly Candle[], timestamp: number): number
  * Memoized Smart Money detection for the current candle snapshot. One
  * detection serves every zone/level layer in this component, and the result
  * dies with the snapshot it was computed from.
- */
+  */
 const detectionCache = new WeakMap<readonly Candle[], SmartMoneyDetection>();
 function chartDetection(candles: readonly Candle[]): SmartMoneyDetection {
     const cached = detectionCache.get(candles);
@@ -291,7 +291,7 @@ function computeVwap(candles: Candle[]): Array<{ time: UTCTimestamp; value: numb
 /**
  * EMA over a raw value array through the core EMA kernel (SMA-seeded,
  * null until the seed window fills — identical to the platform's `ema`).
- */
+  */
 function ema(values: number[], period: number): Array<number | null> {
     const runtime = indicatorPrimitives.emaRuntime(period);
     const state = runtime.initialState();
@@ -304,7 +304,7 @@ function ema(values: number[], period: number): Array<number | null> {
  * Confirmed swing pivots from the core structure detector (fractal rule,
  * `lookback` bars each side). Only CONFIRMED pivots are returned so the
  * plotted levels never repaint on the forming candle.
- */
+  */
 function computeSwings(candles: Candle[], leftRight = 2) {
     const pivots = detectPivots(candles, leftRight, tfMsOf(candles));
     const highs: Array<{ index: number; price: number }> = [];
@@ -355,7 +355,7 @@ function computeSrLevels(candles: Candle[]): Array<{ price: number; touches: num
 /**
  * Fair value gaps from the core FVG detector (3-candle imbalance with a
  * documented lifecycle). Only zones that are not invalidated are drawn.
- */
+  */
 function computeFvgs(candles: Candle[]): Array<{ top: number; bottom: number; startIdx: number; bullish: boolean }> {
     const out: Array<{ top: number; bottom: number; startIdx: number; bullish: boolean }> = [];
     for (const z of chartDetection(candles).fvgs) {
@@ -384,7 +384,7 @@ function computeOrderBlocks(candles: Candle[]): Array<{ top: number; bottom: num
 /**
  * Equal highs/lows from the core liquidity detector (confirmed swing
  * clusters within the documented relative tolerance).
- */
+  */
 function computeEqualLevels(candles: Candle[]): Array<{ price: number; kind: "eqh" | "eql"; count: number }> {
     const out: Array<{ price: number; kind: "eqh" | "eql"; count: number }> = [];
     for (const pool of chartDetection(candles).pools) {
@@ -409,7 +409,7 @@ const PINE_PANE_STRETCH = 0.35;
  * intentionally absent: it is fed by the chart's existing `ema20Ref` series.
  * Kept at module scope so the create/remove effect and the data-feed effect
  * share one definition of "what renders for this layer".
- */
+  */
 const MA_LAYER_SERIES: Record<
     string,
     { core: "ema" | "sma"; period: number; color: string }
@@ -446,7 +446,7 @@ const HISTORY_LOAD_THRESHOLD_BARS = 6;
  * How long the in-chart market open/close notice stays on screen. Kept short:
  * the notice announces a phase *transition* (it must be caught and then get
  * out of the way), it does not park over the candles for a quarter minute.
- */
+  */
 const MARKET_NOTICE_MS = 4_000;
 
 /**
@@ -456,7 +456,7 @@ const MARKET_NOTICE_MS = 4_000;
  * stalls the chart for a beat (the visible "delay → pause → back live"
  * stutter). Calendar closes are clock facts and still apply immediately; a
  * feed that recovers resumes immediately too.
- */
+  */
 const FEED_PAUSE_GRACE_MS = 10_000;
 
 /** UTC weekday label for the market-hours tooltip (0 = Sunday). */
@@ -486,7 +486,7 @@ let clockTimer: number | null = null;
  * re-renders whenever they differ, so the snapshot MUST be stable between
  * notifications — the interval owns the clock, `getSnapshot` only reads it.
  * (Returning a fresh `Date.now()` from getSnapshot is an infinite render loop.)
- */
+  */
 let clockSnapshot = 0;
 
 function subscribeClock(onStoreChange: () => void): () => void {
@@ -516,7 +516,7 @@ const getServerClockSnapshot = () => 0;
 /**
  * Classic floor-trader daily pivots from the previous UTC day, computed on
  * the displayed candles (last day with data = the day pivots are held for).
- */
+  */
 function computeDailyPivotLines(candles: Candle[]): Array<{ price: number; label: string; color: string }> {
     if (candles.length < 3) return [];
     const lastDay = new Date(candles[candles.length - 1].timestamp).toISOString().slice(0, 10);
@@ -545,7 +545,7 @@ function computeDailyPivotLines(candles: Candle[]): Array<{ price: number; label
  * luminance. Non-hex values (the rgba() strings presets may hold for lines)
  * fall back to white, which is correct for every preset's saturated side
  * colours.
- */
+  */
 function contrastText(hex: string): string {
     const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
     if (!m) return "#ffffff";
@@ -3395,8 +3395,8 @@ export function ProTerminalChart({
         <div className="relative min-w-0 overflow-hidden rounded-lg border border-border bg-card" data-chart-container>
             {/* HUD */}
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border px-3 py-1.5 text-micro">
-                <span className="font-mono font-semibold text-foreground">{symbol}</span>
-                <span className="rounded border border-primary/30 bg-primary/10 px-1 py-0.5 font-mono text-micro font-bold text-primary">
+                <span className="font-numeric font-semibold text-foreground">{symbol}</span>
+                <span className="rounded border border-primary/30 bg-primary/10 px-1 py-0.5 font-numeric text-micro font-bold text-primary">
                     {timeframe}
                 </span>
                 {/* Market session chip — OPEN / CLOSED (plus why). Always
@@ -3407,7 +3407,7 @@ export function ProTerminalChart({
                     price-axis tag on the chart itself. */}
                 <span
                     className={cn(
-                        "inline-flex items-center gap-1.5 rounded-full border px-1.5 py-0.5 font-mono text-micro font-semibold",
+                        "inline-flex items-center gap-1.5 rounded-full border px-1.5 py-0.5 font-numeric text-micro font-semibold",
                         !sessionOpen
                             ? "border-border/40 bg-muted/10 text-muted-foreground"
                             : marketCount.closingSoon
@@ -3435,18 +3435,18 @@ export function ProTerminalChart({
                     {sessionOpen ? "OPEN" : pauseReason === "feed-quiet" ? "NO TICKETS" : pauseReason === "feed-gap" ? "NO DATA" : "CLOSED"}
                 </span>
                 {hover ? (
-                    <span className="font-mono tabular-nums text-muted-foreground">
+                    <span className="font-numeric tabular-nums text-muted-foreground">
                         O <span className="text-foreground">{fmtPrice(hover.o, symbol)}</span>{" "}
                         H <span className="text-positive">{fmtPrice(hover.h, symbol)}</span>{" "}
                         L <span className="text-negative">{fmtPrice(hover.l, symbol)}</span>{" "}
                         C <span className={cn(hover.c >= hover.o ? "text-positive" : "text-negative")}>{fmtPrice(hover.c, symbol)}</span>
                     </span>
                 ) : candles.length > 0 ? (
-                    <span className="font-mono tabular-nums text-muted-foreground">
+                    <span className="font-numeric tabular-nums text-muted-foreground">
                         last <span className="text-foreground">{fmtPrice(candles[candles.length - 1].close, symbol)}</span>
                     </span>
                 ) : null}
-                <span className="ml-auto flex items-center gap-1.5 font-mono text-micro text-muted-foreground">
+                <span className="ml-auto flex items-center gap-1.5 font-numeric text-micro text-muted-foreground">
                     {loading ? (
                         "loading…"
                     ) : (
@@ -3482,20 +3482,20 @@ export function ProTerminalChart({
             {/* AI draw readout (Pro) — plan derived from this chart's own candles. */}
             {aiDraw ? (
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border bg-primary/4 px-3 py-1.5 text-micro">
-                    <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 font-mono text-micro font-bold text-primary">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 font-numeric text-micro font-bold text-primary">
                         ✦ AI DRAW
                     </span>
                     {aiPlan ? (
                         <>
                             <span
                                 className={cn(
-                                    "font-mono text-micro font-bold",
+                                    "font-numeric text-micro font-bold",
                                     aiPlan.direction === "long" ? "text-positive" : "text-negative"
                                 )}
                             >
                                 {aiPlan.direction === "long" ? "LONG" : "SHORT"}
                             </span>
-                            <span className="font-mono text-muted-foreground">
+                            <span className="font-numeric text-muted-foreground">
                                 ENTRY <span className="text-foreground">{fmtPrice(aiPlan.entry, symbol)}</span>
                                 {" · "}SL <span className="text-negative">{fmtPrice(aiPlan.sl, symbol)}</span>
                                 {" · "}TP1 <span className="text-positive">{fmtPrice(aiPlan.tp1, symbol)}</span>
@@ -3529,7 +3529,7 @@ export function ProTerminalChart({
             {/* AI overlay readout — mirrors what the AI engine handed to the chart. */}
             {aiOverlay ? (
                 <div className="flex flex-wrap items-center gap-1.5 border-b border-border px-3 py-1.5 text-micro">
-                    <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 font-mono text-micro font-bold text-primary">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 font-numeric text-micro font-bold text-primary">
                         ✦ AI {aiOverlay.kind === "strategy" ? "strategy" : "indicator"}
                     </span>
                     <span className="font-medium text-foreground">{aiOverlay.name}</span>
@@ -3540,13 +3540,13 @@ export function ProTerminalChart({
                     ) : (
                         <>
                             {(aiOverlay.series ?? []).map((s) => (
-                                <span key={s.id} className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-1.5 py-0.5 font-mono text-micro text-muted-foreground">
+                                <span key={s.id} className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-1.5 py-0.5 font-numeric text-micro text-muted-foreground">
                                     <span className="h-1.5 w-1.5 rounded-full" style={{ background: s.color }} />
                                     {s.label}
                                 </span>
                             ))}
                             {(aiOverlay.signals ?? []).length > 0 ? (
-                                <span className="rounded-full border border-border bg-background px-1.5 py-0.5 font-mono text-micro text-muted-foreground">
+                                <span className="rounded-full border border-border bg-background px-1.5 py-0.5 font-numeric text-micro text-muted-foreground">
                                     {aiOverlay.signals!.length} signal{(aiOverlay.signals ?? []).length !== 1 ? "s" : ""}
                                 </span>
                             ) : null}
@@ -3560,23 +3560,23 @@ export function ProTerminalChart({
                 <div className="flex flex-wrap items-center gap-1.5 border-b border-border px-3 py-1.5 text-micro">
                     <span className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">Pine study</span>
                     {studyOverlay.lines.map((l) => (
-                        <span key={l.id} className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-1.5 py-0.5 font-mono text-micro text-muted-foreground">
+                        <span key={l.id} className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-1.5 py-0.5 font-numeric text-micro text-muted-foreground">
                             <span className="h-1.5 w-1.5 rounded-full" style={{ background: l.color }} />
                             {l.title}
                         </span>
                     ))}
                     {studyOverlay.shapes.length > 0 ? (
-                        <span className="rounded-full border border-border bg-background px-1.5 py-0.5 font-mono text-micro text-muted-foreground">
+                        <span className="rounded-full border border-border bg-background px-1.5 py-0.5 font-numeric text-micro text-muted-foreground">
                             {studyOverlay.shapes.length} marker{studyOverlay.shapes.length !== 1 ? "s" : ""}
                         </span>
                     ) : null}
                     {studyOverlay.levels.length > 0 ? (
-                        <span className="rounded-full border border-border bg-background px-1.5 py-0.5 font-mono text-micro text-muted-foreground">
+                        <span className="rounded-full border border-border bg-background px-1.5 py-0.5 font-numeric text-micro text-muted-foreground">
                             {studyOverlay.levels.length} hline{studyOverlay.levels.length !== 1 ? "s" : ""}
                         </span>
                     ) : null}
                     {!studyOverlay.overlay ? (
-                        <span className="rounded-full border border-border bg-background px-1.5 py-0.5 font-mono text-micro text-muted-foreground">
+                        <span className="rounded-full border border-border bg-background px-1.5 py-0.5 font-numeric text-micro text-muted-foreground">
                             separate pane
                         </span>
                     ) : null}
@@ -3705,7 +3705,7 @@ export function ProTerminalChart({
                                 }
                             }}
                             placeholder="Label — Enter saves, Esc cancels"
-                            className="w-52 rounded-md border border-primary/60 bg-background/95 px-2 py-1 font-mono text-xs text-foreground shadow-lg outline-none ring-1 ring-primary/40 backdrop-blur"
+                            className="w-52 rounded-md border border-primary/60 bg-background/95 px-2 py-1 font-numeric text-xs text-foreground shadow-lg outline-none ring-1 ring-primary/40 backdrop-blur"
                         />
                     </div>
                 ) : null}
@@ -3764,14 +3764,14 @@ export function ProTerminalChart({
 
                 {/* Active-tool hint — what to do next, and how to get out */}
                 {activeDrawingTool !== "select" && !textEdit ? (
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-primary/40 bg-background/90 px-2.5 py-1 font-mono text-micro font-semibold text-primary backdrop-blur-sm">
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-primary/40 bg-background/90 px-2.5 py-1 font-numeric text-micro font-semibold text-primary">
                         {DRAWING_TOOL_HINTS[activeDrawingTool]} · Esc to exit
                     </div>
                 ) : null}
 
                 {/* Progressive-history status — left edge (Phase 3) */}
                 {olderLoading ? (
-                    <div className="pointer-events-none absolute bottom-3 left-3 z-20 inline-flex items-center gap-1.5 rounded-full border border-border/40 bg-background/90 px-2 py-0.5 text-micro font-medium text-muted-foreground backdrop-blur-sm">
+                    <div className="pointer-events-none absolute bottom-3 left-3 z-20 inline-flex items-center gap-1.5 rounded-full border border-border/40 bg-background/90 px-2 py-0.5 text-micro font-medium text-muted-foreground">
                         <span className="inline-block h-1 w-1 animate-pulse rounded-full bg-primary" aria-hidden />
                         Loading older history…
                     </div>
@@ -3782,7 +3782,7 @@ export function ProTerminalChart({
                     <button
                         type="button"
                         onClick={handleGoLive}
-                        className="absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/90 px-3 py-1 text-micro font-semibold text-primary shadow-sm backdrop-blur-sm transition hover:bg-primary/10"
+                        className="absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/90 px-3 py-1 text-micro font-semibold text-primary shadow-sm transition hover:bg-primary/10"
                     >
                         <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-pulse" aria-hidden />
                         Go to Live →
@@ -3791,7 +3791,7 @@ export function ProTerminalChart({
 
                 {/* Data-quality badge (Phase 20): never presents stale data as live */}
                 {!loading || candles.length > 0 ? (
-                    <div className="absolute left-3 top-2 z-10 flex items-center gap-1.5 rounded-full border border-border/50 bg-background/85 px-2 py-0.5 text-micro font-medium text-muted-foreground backdrop-blur-sm">
+                    <div className="absolute left-3 top-2 z-10 flex items-center gap-1.5 rounded-full border border-border/50 bg-background/85 px-2 py-0.5 text-micro font-medium text-muted-foreground">
                         {!sessionOpen ? (
                             <>
                                 {/* Session state wins over the connection state:
@@ -3880,7 +3880,7 @@ export function ProTerminalChart({
                         }
                         className="pointer-events-none absolute inset-x-0 top-1/2 z-20 flex justify-center"
                     >
-                        <div className="flex flex-col items-center gap-0.5 rounded-lg border border-border/50 bg-background/85 px-4 py-2 text-center backdrop-blur-sm">
+                        <div className="flex flex-col items-center gap-0.5 rounded-lg border border-border/50 bg-background/85 px-4 py-2 text-center">
                             <span className="text-micro font-bold uppercase tracking-wide text-muted-foreground">
                                 {pauseReason === "feed-quiet"
                                     ? "Market closed — no tickets"
@@ -3890,7 +3890,7 @@ export function ProTerminalChart({
                             </span>
                             <span className="text-micro text-muted-foreground">
                                 Chart paused at{" "}
-                                <span className="font-mono tabular-nums">{displayCaption} {displayClock}</span>
+                                <span className="font-numeric tabular-nums">{displayCaption} {displayClock}</span>
                             </span>
                         </div>
                     </div>
@@ -3899,7 +3899,7 @@ export function ProTerminalChart({
                 {/* Order Flow: data-quality + capability chip */}
                 {orderFlow.enabled && orderFlow.context ? (
                     <div
-                        className="absolute right-3 top-2 z-10 rounded-full border border-border/50 bg-background/85 px-2 py-0.5 text-micro font-medium uppercase tracking-wide text-muted-foreground backdrop-blur-sm"
+                        className="absolute right-3 top-2 z-10 rounded-full border border-border/50 bg-background/85 px-2 py-0.5 text-micro font-medium uppercase tracking-wide text-muted-foreground"
                         title={`Order Flow data quality: ${orderFlow.context.dataQuality}. ${orderFlow.context.limitations[0] ?? ""}`}
                     >
                         OF · {orderFlow.context.dataQuality}
@@ -3910,7 +3910,7 @@ export function ProTerminalChart({
                     candle-direction proxy layers (never bid/ask delta) */}
                 {(layers.delta || layers.cumulativeDelta) && orderFlow.estimatedDelta ? (
                     <div
-                        className="absolute left-3 top-8 z-10 rounded-full border border-warning/40 bg-background/85 px-2 py-0.5 text-micro font-semibold uppercase tracking-wide text-warning backdrop-blur-sm"
+                        className="absolute left-3 top-8 z-10 rounded-full border border-warning/40 bg-background/85 px-2 py-0.5 text-micro font-semibold uppercase tracking-wide text-warning"
                         title={`ESTIMATED — ${orderFlow.estimatedDelta.method}: candle volume signed by bar direction. NOT bid/ask delta; upgrades only with a trade-classified feed.`}
                     >
                         Δ ESTIMATED · {orderFlow.estimatedDelta.method}
@@ -3938,7 +3938,7 @@ export function ProTerminalChart({
                 simulated. */}
             {symbolPositions.length > 0 || symbolOrders.length > 0 ? (
                 <div className="border-t border-border px-3 py-2 text-micro">
-                    <div className="flex items-center gap-2 pb-1.5 font-mono text-micro uppercase tracking-wide text-muted-foreground">
+                    <div className="flex items-center gap-2 pb-1.5 font-numeric text-micro uppercase tracking-wide text-muted-foreground">
                         <span className="font-bold text-foreground">Trade</span>
                         <span>{symbolPositions.length} open</span>
                         <span aria-hidden>·</span>
@@ -3958,7 +3958,7 @@ export function ProTerminalChart({
                             >
                                 <span
                                     className={cn(
-                                        "rounded px-1.5 py-0.5 font-mono text-micro font-bold",
+                                        "rounded px-1.5 py-0.5 font-numeric text-micro font-bold",
                                         p.side === "BUY"
                                             ? "bg-positive/15 text-positive"
                                             : "bg-negative/15 text-negative"
@@ -3966,23 +3966,23 @@ export function ProTerminalChart({
                                 >
                                     {p.side} {p.volume.toFixed(2)}
                                 </span>
-                                <span className="font-mono text-muted-foreground">
+                                <span className="font-numeric text-muted-foreground">
                                     @ <span className="text-foreground">{fmtPrice(p.entry, symbol)}</span>
                                 </span>
                                 {p.sl != null && Number.isFinite(p.sl) && p.sl > 0 ? (
-                                    <span className="font-mono text-muted-foreground">
+                                    <span className="font-numeric text-muted-foreground">
                                         SL <span className="text-negative">{fmtPrice(p.sl, symbol)}</span>
                                     </span>
                                 ) : null}
                                 {p.tp != null && Number.isFinite(p.tp) && p.tp > 0 ? (
-                                    <span className="font-mono text-muted-foreground">
+                                    <span className="font-numeric text-muted-foreground">
                                         TP <span className="text-positive">{fmtPrice(p.tp, symbol)}</span>
                                     </span>
                                 ) : null}
                                 {typeof p.profit === "number" && Number.isFinite(p.profit) ? (
                                     <span
                                         className={cn(
-                                            "font-mono font-semibold",
+                                            "font-numeric font-semibold",
                                             p.profit >= 0 ? "text-positive" : "text-negative"
                                         )}
                                     >
@@ -3997,7 +3997,7 @@ export function ProTerminalChart({
                                                 key={pct}
                                                 type="button"
                                                 onClick={() => onClosePosition(p.ticket, pct)}
-                                                className="rounded border border-border bg-card px-1.5 py-0.5 font-mono text-micro text-muted-foreground transition hover:border-warning/40 hover:text-foreground"
+                                                className="rounded border border-border bg-card px-1.5 py-0.5 font-numeric text-micro text-muted-foreground transition hover:border-warning/40 hover:text-foreground"
                                                 title={`Close ${pct}% of the position VOLUME (${(p.volume * pct) / 100 >= 0.01 ? ((p.volume * pct) / 100).toFixed(2) : "0.01 min"} lot of ${p.volume.toFixed(2)}). This is volume, not profit.`}
                                             >
                                                 {pct}% vol
@@ -4006,7 +4006,7 @@ export function ProTerminalChart({
                                         <button
                                             type="button"
                                             onClick={() => onClosePosition(p.ticket, 100)}
-                                            className="rounded border border-negative/40 bg-negative/10 px-1.5 py-0.5 font-mono text-micro font-semibold text-negative transition hover:bg-negative/20"
+                                            className="rounded border border-negative/40 bg-negative/10 px-1.5 py-0.5 font-numeric text-micro font-semibold text-negative transition hover:bg-negative/20"
                                             title="Close the entire position"
                                         >
                                             Close
@@ -4020,19 +4020,19 @@ export function ProTerminalChart({
                                 key={o.ticket}
                                 className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-dashed border-primary/30 bg-primary/4 px-2 py-1"
                             >
-                                <span className="rounded bg-primary/15 px-1.5 py-0.5 font-mono text-micro font-bold text-primary">
+                                <span className="rounded bg-primary/15 px-1.5 py-0.5 font-numeric text-micro font-bold text-primary">
                                     {o.type.replace("_", " ")} {o.volume.toFixed(2)}
                                 </span>
-                                <span className="font-mono text-muted-foreground">
+                                <span className="font-numeric text-muted-foreground">
                                     @ <span className="text-foreground">{fmtPrice(o.price, symbol)}</span>
                                 </span>
                                 {o.sl != null && Number.isFinite(o.sl) && o.sl > 0 ? (
-                                    <span className="font-mono text-muted-foreground">
+                                    <span className="font-numeric text-muted-foreground">
                                         SL <span className="text-negative">{fmtPrice(o.sl, symbol)}</span>
                                     </span>
                                 ) : null}
                                 {o.tp != null && Number.isFinite(o.tp) && o.tp > 0 ? (
-                                    <span className="font-mono text-muted-foreground">
+                                    <span className="font-numeric text-muted-foreground">
                                         TP <span className="text-positive">{fmtPrice(o.tp, symbol)}</span>
                                     </span>
                                 ) : null}
@@ -4040,7 +4040,7 @@ export function ProTerminalChart({
                                     <button
                                         type="button"
                                         onClick={() => onCancelOrder(o.ticket)}
-                                        className="ml-auto rounded border border-border bg-card px-1.5 py-0.5 font-mono text-micro text-muted-foreground transition hover:border-negative/40 hover:text-negative"
+                                        className="ml-auto rounded border border-border bg-card px-1.5 py-0.5 font-numeric text-micro text-muted-foreground transition hover:border-negative/40 hover:text-negative"
                                         title="Cancel this pending order"
                                     >
                                         Cancel

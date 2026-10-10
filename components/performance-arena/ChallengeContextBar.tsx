@@ -81,7 +81,7 @@ export function ChallengeContextBar() {
                 <div className="flex items-center gap-2 text-xs">
                     <Trophy className="h-3.5 w-3.5 text-primary" />
                     <span className="font-medium">Active challenge</span>
-                    <span className="font-mono text-muted-foreground">{state.definitionKey}</span>
+                    <span className="font-numeric text-muted-foreground">{state.definitionKey}</span>
                     <ChallengeStatusBadge status={state.status} />
                 </div>
                 <a href={`/account/performance-arena/attempts/${state.attemptId}`} className="text-xs text-primary hover:underline">
@@ -92,7 +92,7 @@ export function ChallengeContextBar() {
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 <div className="rounded-md border border-border bg-muted/30 p-2">
                     <p className="text-micro text-muted-foreground">Daily loss</p>
-                    <p className="font-mono text-sm font-medium">
+                    <p className="font-numeric text-sm font-medium">
                         <Money cents={Math.min(0, metrics.dailyPnLCcents)} signed />
                         <span className="ml-1 text-micro text-muted-foreground">
                             {metrics.dailyLossUsedPct.toFixed(0)}% used
@@ -101,7 +101,7 @@ export function ChallengeContextBar() {
                 </div>
                 <div className="rounded-md border border-border bg-muted/30 p-2">
                     <p className="text-micro text-muted-foreground">Drawdown</p>
-                    <p className="font-mono text-sm font-medium">
+                    <p className="font-numeric text-sm font-medium">
                         {metrics.currentDrawdownPct.toFixed(2)}%
                         <span className="ml-1 text-micro text-muted-foreground">
                             {metrics.drawdownUsedPct.toFixed(0)}% of limit
@@ -110,11 +110,11 @@ export function ChallengeContextBar() {
                 </div>
                 <div className="rounded-md border border-border bg-muted/30 p-2">
                     <p className="text-micro text-muted-foreground">Risk remaining today</p>
-                    <p className="font-mono text-sm font-medium text-positive">{riskRemainingPct.toFixed(0)}%</p>
+                    <p className="font-numeric text-sm font-medium text-positive">{riskRemainingPct.toFixed(0)}%</p>
                 </div>
                 <div className="rounded-md border border-border bg-muted/30 p-2">
                     <p className="text-micro text-muted-foreground">Target progress</p>
-                    <p className="font-mono text-sm font-medium">{metrics.targetProgressPct.toFixed(0)}%</p>
+                    <p className="font-numeric text-sm font-medium">{metrics.targetProgressPct.toFixed(0)}%</p>
                 </div>
             </div>
 

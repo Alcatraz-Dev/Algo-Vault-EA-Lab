@@ -171,19 +171,19 @@ export const ProTerminalJournal = memo(function ProTerminalJournal({
                                                 <td className="max-w-[140px] truncate px-2 py-1" title={b.key}>
                                                     {b.key}
                                                 </td>
-                                                <td className="px-2 py-1 text-right font-mono tabular-nums">{b.n}</td>
-                                                <td className="px-2 py-1 text-right font-mono tabular-nums">
+                                                <td className="px-2 py-1 text-right font-numeric tabular-nums">{b.n}</td>
+                                                <td className="px-2 py-1 text-right font-numeric tabular-nums">
                                                     {b.n > 0 ? `${((b.wins / b.n) * 100).toFixed(0)}%` : "—"}
                                                 </td>
                                                 <td
                                                     className={cn(
-                                                        "px-2 py-1 text-right font-mono tabular-nums",
+                                                        "px-2 py-1 text-right font-numeric tabular-nums",
                                                         b.netR >= 0 ? "text-positive" : "text-negative"
                                                     )}
                                                 >
                                                     {fmtSignedR(b.netR)}
                                                 </td>
-                                                <td className="px-2 py-1 text-right font-mono tabular-nums text-muted-foreground">
+                                                <td className="px-2 py-1 text-right font-numeric tabular-nums text-muted-foreground">
                                                     {fmtSignedR(b.avgR)}
                                                 </td>
                                             </tr>
@@ -201,7 +201,7 @@ export const ProTerminalJournal = memo(function ProTerminalJournal({
                                 const age = t.createdAt ? Math.round((now - t.createdAt) / 86400000) : null;
                                 return (
                                     <li key={t.id} className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-1.5 text-xs">
-                                        <span className="font-mono font-semibold text-foreground">{t.symbol ?? "—"}</span>
+                                        <span className="font-numeric font-semibold text-foreground">{t.symbol ?? "—"}</span>
                                         <span
                                             className={cn(
                                                 "w-14 shrink-0 rounded px-1 py-0.5 text-center text-micro font-bold uppercase tracking-wide",
@@ -224,18 +224,18 @@ export const ProTerminalJournal = memo(function ProTerminalJournal({
                                             <span className="min-w-0 flex-1" />
                                         )}
                                         {t.session ? (
-                                            <span className="hidden shrink-0 font-mono text-micro text-muted-foreground sm:inline">
+                                            <span className="hidden shrink-0 font-numeric text-micro text-muted-foreground sm:inline">
                                                 {t.session}
                                             </span>
                                         ) : null}
                                         {t.timeframe ? (
-                                            <span className="shrink-0 font-mono text-micro text-muted-foreground">
+                                            <span className="shrink-0 font-numeric text-micro text-muted-foreground">
                                                 {t.timeframe}
                                             </span>
                                         ) : null}
                                         <span
                                             className={cn(
-                                                "w-14 shrink-0 text-right font-mono tabular-nums",
+                                                "w-14 shrink-0 text-right font-numeric tabular-nums",
                                                 t.r === null
                                                     ? "text-muted-foreground"
                                                     : t.r >= 0
@@ -245,7 +245,7 @@ export const ProTerminalJournal = memo(function ProTerminalJournal({
                                         >
                                             {t.r !== null ? fmtSignedR(t.r) : "—"}
                                         </span>
-                                        <span className="hidden w-24 shrink-0 text-right font-mono text-micro text-muted-foreground sm:inline">
+                                        <span className="hidden w-24 shrink-0 text-right font-numeric text-micro text-muted-foreground sm:inline">
                                             {t.createdAt ? (age !== null && age < 1 ? "today" : fmtDate(t.createdAt)) : "—"}
                                         </span>
                                     </li>
@@ -300,7 +300,7 @@ function Stat({
             <div className="text-micro uppercase tracking-wide text-muted-foreground">{label}</div>
             <div
                 className={cn(
-                    "font-mono text-xs font-semibold tabular-nums",
+                    "font-numeric text-xs font-semibold tabular-nums",
                     tone === "positive" && "text-positive",
                     tone === "negative" && "text-negative",
                     !tone && "text-foreground"

@@ -64,7 +64,7 @@ export function PerformancePanel({
                 <div className="rounded-lg border border-border bg-card p-4 lg:col-span-2">
                     <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
                         <h3 className="text-sm font-semibold">Equity curve</h3>
-                        <span className="font-mono text-xs text-muted-foreground">
+                        <span className="font-numeric text-xs text-muted-foreground">
                             {formatCents(metrics.equityCents)} now · {metrics.totalReturnPct >= 0 ? "+" : ""}
                             {metrics.totalReturnPct.toFixed(2)}% · peak {formatCents(metrics.peakEquityCents)}
                         </span>
@@ -124,7 +124,7 @@ export function PerformancePanel({
                 <div className="rounded-lg border border-border bg-card p-4">
                     <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
                         <h3 className="text-sm font-semibold">Daily P&amp;L</h3>
-                        <span className="font-mono text-xs text-muted-foreground">
+                        <span className="font-numeric text-xs text-muted-foreground">
                             {metrics.dailyLossUsedPct > 0
                                 ? `${metrics.dailyLossUsedPct.toFixed(0)}% of daily loss limit used`
                                 : "no daily loss yet"}
@@ -321,7 +321,7 @@ function EquityTooltip({ active, payload, label }: { active?: boolean; payload?:
     if (!active || !payload?.length) return null;
     return (
         <div className="rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs shadow-md">
-            <p className="font-mono tabular-nums text-foreground">{formatCents(Number(payload[0].value ?? 0))}</p>
+            <p className="font-numeric tabular-nums text-foreground">{formatCents(Number(payload[0].value ?? 0))}</p>
             {label ? <p className="text-micro text-muted-foreground">{new Date(Number(label)).toLocaleString()}</p> : null}
         </div>
     );
@@ -332,7 +332,7 @@ function DailyTooltip({ active, payload, label }: { active?: boolean; payload?: 
     const value = Number(payload[0].value ?? 0);
     return (
         <div className="rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs shadow-md">
-            <p className={value >= 0 ? "font-mono tabular-nums text-positive" : "font-mono tabular-nums text-negative"}>
+            <p className={value >= 0 ? "font-numeric tabular-nums text-positive" : "font-numeric tabular-nums text-negative"}>
                 {value > 0 ? "+" : ""}
                 {formatCents(value)}
             </p>

@@ -23,7 +23,7 @@ export default function RiskEngineSection() {
  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
 
  {/* Risk Metrics Cards */}
- <div className="lg:col-span-6 space-y-3 font-mono text-xs">
+ <div className="lg:col-span-6 space-y-3 font-numeric text-xs">
  <div className="flex items-center justify-between rounded-xl bg-background/80 p-3.5 border border-border/40">
  <div>
  <div className="font-bold text-foreground">Risk Per Trade</div>
@@ -58,7 +58,7 @@ export default function RiskEngineSection() {
  </div>
 
  {/* Right Protection Features */}
- <div className="lg:col-span-6 space-y-4 text-xs font-mono">
+ <div className="lg:col-span-6 space-y-4 text-xs font-numeric">
  <div className="rounded-lg border border-positive/30 bg-positive/5 p-5 space-y-2">
  <div className="flex items-center gap-2 font-bold text-positive">
  <CheckCircle2 size={16} />

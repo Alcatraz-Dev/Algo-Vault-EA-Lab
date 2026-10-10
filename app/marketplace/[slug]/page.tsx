@@ -436,7 +436,7 @@ export default function ProductDetailsPage() {
                         className="mx-auto text-muted-foreground"
                     />
 
-                    <h1 className="mt-5 text-2xl font-semibold">
+                    <h1 className="text-2xl font-semibold tracking-tight mt-5">
                         Product not found
                     </h1>
 
@@ -526,19 +526,19 @@ export default function ProductDetailsPage() {
                                 />
 
                                 {/* Banner overlay */}
-                                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/30 to-foreground/10" />
+                                <div className="pointer-events-none absolute inset-0 bg-background/70" />
                             </>
                         ) : (
                             <>
                                 <div className="absolute inset-0">
 
-                                    <div className="absolute left-20 top-10 h-48 w-48 rounded-full bg-muted/10 blur-3xl" />
+                                    <div className="absolute left-20 top-10 h-48 w-48 rounded-full bg-muted/10 hidden" />
 
-                                    <div className="absolute right-20 bottom-0 h-56 w-56 rounded-full bg-muted/10 blur-3xl" />
+                                    <div className="absolute right-20 bottom-0 h-56 w-56 rounded-full bg-muted/10 hidden" />
 
                                 </div>
 
-                                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+                                <div className="absolute inset-0 bg-background/70" />
                             </>
                         )}
 
@@ -592,7 +592,7 @@ export default function ProductDetailsPage() {
 
                                         </div>
 
-                                        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+                                        <h1 className="text-2xl font-semibold tracking-tight mt-2 text-foreground">
                                             {
                                                 product.name
                                             }
@@ -655,7 +655,7 @@ export default function ProductDetailsPage() {
                                 label="Platform"
                                 value={
                                     product.platform ||
-                                    "—"
+                                      "—"
                                 }
                             />
 
@@ -681,7 +681,7 @@ export default function ProductDetailsPage() {
                                 label="Timeframe"
                                 value={
                                     product.timeframe ||
-                                    "—"
+                                      "—"
                                 }
                             />
 
@@ -707,7 +707,7 @@ export default function ProductDetailsPage() {
                                 label="Version"
                                 value={
                                     product.version ||
-                                    "—"
+                                      "—"
                                 }
                             />
 
@@ -847,7 +847,7 @@ export default function ProductDetailsPage() {
                                     value={
                                         product.performance
                                             ?.backtestPeriod ||
-                                        "—"
+                                              "—"
                                     }
                                     icon={
                                         <Clock

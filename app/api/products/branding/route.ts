@@ -122,8 +122,8 @@ export async function GET(
          */
         const filePath = path.join(
             process.cwd(),
-            "private-files",
-            "products",
+              "private-files",
+                "products",
             productId,
             "branding",
             fileName
@@ -132,8 +132,8 @@ export async function GET(
         const baseDirectory =
             path.resolve(
                 process.cwd(),
-                "private-files",
-                "products",
+                  "private-files",
+                    "products",
                 productId,
                 "branding"
             );

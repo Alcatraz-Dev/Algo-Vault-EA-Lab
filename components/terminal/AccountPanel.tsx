@@ -11,7 +11,7 @@
  * Paper and live are never blurred: the mode badge comes from the terminal
  * context and execution controls are disabled outright when there is no
  * established account (fail closed, §27).
- */
+  */
 
 import { useState } from "react";
 import { ListOrdered, TrendingUp, Wallet, Loader2, Lock, ExternalLink } from "lucide-react";
@@ -98,7 +98,7 @@ export function AccountPanel() {
     const counts = { positions: data.positions.length, orders: data.orders.length };
 
     return (
-        <section className="flex min-w-0 flex-col rounded-xl border border-border bg-card" aria-label="Account">
+        <section className="flex min-w-0 flex-col rounded-lg border border-border bg-card" aria-label="Account">
             <header className="flex flex-wrap items-center gap-1 border-b border-border px-2 py-1.5">
                 {TABS.map((t) => {
                     const Icon = t.icon;

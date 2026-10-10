@@ -53,7 +53,7 @@ export class PanelErrorBoundary extends Component<Props, State> {
                 className={
                     this.props.compact
                         ? "flex items-center gap-2 rounded-lg border border-warning/40 bg-warning/10 px-2.5 py-2 text-micro text-warning"
-                        : "rounded-xl border border-warning/40 bg-warning/10 p-4"
+                        : "rounded-lg border border-warning/40 bg-warning/10 p-4"
                 }
             >
                 <AlertTriangle className="size-3.5 shrink-0 text-warning" />

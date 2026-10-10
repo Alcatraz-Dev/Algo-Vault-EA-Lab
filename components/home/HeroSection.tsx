@@ -154,7 +154,7 @@ export default function HeroSection({
  <div className="h-3 w-3 rounded-full bg-negative/80" />
  <div className="h-3 w-3 rounded-full bg-warning/80" />
  <div className="h-3 w-3 rounded-full bg-positive/80" />
- <span className="ml-2 font-mono text-micro text-muted-foreground">AlgoVault Terminal v2.4 · Product Preview</span>
+ <span className="ml-2 font-numeric text-micro text-muted-foreground">AlgoVault Terminal v2.4 · Product Preview</span>
  </div>
  <div className="flex items-center gap-1 rounded-lg bg-background/60 p-1 border border-border/40">
  {(["chart", "structure", "ai", "ticket"] as const).map((tab) => (
@@ -180,10 +180,10 @@ export default function HeroSection({
  <div className="space-y-4 animate-in fade-in-0 duration-200">
  <div className="flex items-center justify-between rounded-xl bg-muted/30 p-3 border border-border/40 text-xs">
  <div className="flex items-center gap-3">
- <span className="rounded-lg bg-warning/20 px-2 py-1 font-mono font-bold text-warning">XAUUSD</span>
+ <span className="rounded-lg bg-warning/20 px-2 py-1 font-numeric font-bold text-warning">XAUUSD</span>
  <div>
  <span className="font-bold text-foreground">Gold Spot / US Dollar</span>
- <span className="ml-2 font-mono text-positive">${currentPrice} (+1.42%)</span>
+ <span className="ml-2 font-numeric text-positive">${currentPrice} (+1.42%)</span>
  </div>
  </div>
  <div className="flex items-center gap-2">
@@ -196,7 +196,7 @@ export default function HeroSection({
  <div className="relative h-48 rounded-xl border border-border/40 bg-background/80 p-3 overflow-hidden flex flex-col justify-between">
 
  {/* Liquidity Zone & VWAP Line Overlay */}
- <div className="absolute inset-x-0 top-1/3 h-8 bg-warning/10 border-y border-warning/20 pointer-events-none flex items-center justify-between px-3 text-micro font-mono text-warning/80">
+ <div className="absolute inset-x-0 top-1/3 h-8 bg-warning/10 border-y border-warning/20 pointer-events-none flex items-center justify-between px-3 text-micro font-numeric text-warning/80">
  <span>SSL Liquidity Zone</span>
  <span>Swept @ 2,642.10</span>
  </div>
@@ -213,8 +213,8 @@ export default function HeroSection({
  </svg>
 
  <div className="flex items-center justify-between text-micro text-muted-foreground z-10">
- <span className="flex items-center gap-1 font-mono text-info"><Sliders size={12} /> Institutional VWAP & Zones</span>
- <span className="font-mono text-positive">BOS Confirmed ↑</span>
+ <span className="flex items-center gap-1 font-numeric text-info"><Sliders size={12} /> Institutional VWAP & Zones</span>
+ <span className="font-numeric text-positive">BOS Confirmed ↑</span>
  </div>
 
  {/* Animated Candlestick Bars */}
@@ -242,7 +242,7 @@ export default function HeroSection({
  ))}
  </div>
 
- <div className="flex items-center justify-between text-micro font-mono text-muted-foreground pt-1 border-t border-border/30 z-10">
+ <div className="flex items-center justify-between text-micro font-numeric text-muted-foreground pt-1 border-t border-border/30 z-10">
  <span>SSL Swept @ 2,642.10</span>
  <span>FVG Filled @ 2,648.50</span>
  <span className="text-positive font-bold">TP1 Target @ 2,662.00</span>
@@ -252,11 +252,11 @@ export default function HeroSection({
  <div className="grid grid-cols-2 gap-3 text-xs">
  <div className="rounded-lg border border-positive/20 bg-positive/5 p-2.5">
  <div className="text-micro font-medium text-positive">LONG Setup Confirmed</div>
- <div className="font-mono font-bold text-foreground">Entry: 2,650.10 | SL: 2,642.00</div>
+ <div className="font-numeric font-bold text-foreground">Entry: 2,650.10 | SL: 2,642.00</div>
  </div>
  <div className="rounded-lg border border-primary/20 bg-primary/5 p-2.5">
  <div className="text-micro font-medium text-primary">Risk Allocation</div>
- <div className="font-mono font-bold text-foreground">1.0% ($100) | 1:2.4 R/R</div>
+ <div className="font-numeric font-bold text-foreground">1.0% ($100) | 1:2.4 R/R</div>
  </div>
  </div>
  </div>
@@ -271,19 +271,19 @@ export default function HeroSection({
  <div className="space-y-2">
  <div className="flex items-center justify-between rounded-lg bg-background/80 p-2.5 border border-border/40">
  <span>Macro Trend (H4)</span>
- <span className="font-mono text-positive font-bold">Trending Bullish (+84 Score)</span>
+ <span className="font-numeric text-positive font-bold">Trending Bullish (+84 Score)</span>
  </div>
  <div className="flex items-center justify-between rounded-lg bg-background/80 p-2.5 border border-border/40">
  <span>Liquidity Status</span>
- <span className="font-mono text-info font-bold">Sell-Side Liquidity Swept</span>
+ <span className="font-numeric text-info font-bold">Sell-Side Liquidity Swept</span>
  </div>
  <div className="flex items-center justify-between rounded-lg bg-background/80 p-2.5 border border-border/40">
  <span>Fair Value Gap (FVG)</span>
- <span className="font-mono text-warning font-bold">Active M15 Bullish FVG</span>
+ <span className="font-numeric text-warning font-bold">Active M15 Bullish FVG</span>
  </div>
  <div className="flex items-center justify-between rounded-lg bg-background/80 p-2.5 border border-border/40">
  <span>Order Block Zone</span>
- <span className="font-mono text-primary font-bold">Institutional OB @ 2,648.00</span>
+ <span className="font-numeric text-primary font-bold">Institutional OB @ 2,648.00</span>
  </div>
  </div>
  </div>
@@ -301,15 +301,15 @@ export default function HeroSection({
  </div>
  </div>
  <div className="rounded-xl border border-border/40 bg-background/80 p-3 text-xs space-y-2">
- <div className="flex justify-between font-mono"><span>AI Confidence Score</span><span className="text-positive font-bold">92 / 100</span></div>
- <div className="flex justify-between font-mono"><span>Recommended Action</span><span className="text-info font-bold">Execute via MT5 Gateway</span></div>
+ <div className="flex justify-between font-numeric"><span>AI Confidence Score</span><span className="text-positive font-bold">92 / 100</span></div>
+ <div className="flex justify-between font-numeric"><span>Recommended Action</span><span className="text-info font-bold">Execute via MT5 Gateway</span></div>
  </div>
  </div>
  )}
 
  {activeTab === "ticket" && (
  <div className="space-y-3 animate-in fade-in-0 duration-200 text-xs">
- <div className="p-3 rounded-xl bg-background/80 border border-border/40 space-y-2 font-mono">
+ <div className="p-3 rounded-xl bg-background/80 border border-border/40 space-y-2 font-numeric">
  <div className="flex justify-between"><span>Setup ID</span><span className="text-foreground">Gold SMC · M15</span></div>
  <div className="flex justify-between"><span>Order Type</span><span className="text-positive">BUY MARKET</span></div>
  <div className="flex justify-between"><span>Volume</span><span>0.50 Lots</span></div>

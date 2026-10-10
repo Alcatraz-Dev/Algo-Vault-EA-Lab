@@ -65,9 +65,9 @@ export class MobileErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoun
                   href="/mobile/home"
                   className={cn(
                     "inline-flex items-center justify-center flex-1 h-9 rounded-md px-3 text-sm font-medium",
-                    "border border-border bg-background hover:bg-muted",
-                    "transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50",
-                    "disabled:pointer-events-none disabled:opacity-50"
+                      "border border-border bg-background hover:bg-muted",
+                        "transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50",
+                          "disabled:pointer-events-none disabled:opacity-50"
                   )}
                 >
                   <Home className="h-4 w-4 mr-2" />
@@ -133,9 +133,9 @@ export function MobileErrorFallback({
                 href="/mobile/home"
                 className={cn(
                   "inline-flex items-center justify-center flex-1 h-9 rounded-md px-3 text-sm font-medium",
-                  "border border-border bg-background hover:bg-muted",
-                  "transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50",
-                  "disabled:pointer-events-none disabled:opacity-50"
+                    "border border-border bg-background hover:bg-muted",
+                      "transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50",
+                        "disabled:pointer-events-none disabled:opacity-50"
                 )}
               >
                 <Home className="h-4 w-4 mr-2" />

@@ -178,7 +178,7 @@ export default function MarketplacePage() {
                 case "expert_advisor":
                     return (
                         product.productType ===
-                        "expert_advisor"
+                          "expert_advisor"
                     );
 
                 case "indicator":
@@ -213,13 +213,13 @@ export default function MarketplacePage() {
                 case "free":
                     return (
                         product.pricing?.type ===
-                        "free"
+                          "free"
                     );
 
                 case "paid":
                     return (
                         product.pricing?.type !==
-                        "free"
+                          "free"
                     );
 
                 default:
@@ -294,7 +294,7 @@ export default function MarketplacePage() {
                                 Back to Account
                             </Link>
 
-                            <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
+                            <h1 className="text-2xl font-semibold tracking-tight">
                                 Trading tools built
                                 <br />
                                 for serious traders.
@@ -332,7 +332,7 @@ export default function MarketplacePage() {
                                         (p) =>
                                             p.pricing
                                                 ?.type ===
-                                            "free"
+                                                  "free"
                                     ).length
                                 }
                                 label="Free"
@@ -348,7 +348,7 @@ export default function MarketplacePage() {
                                     products.filter(
                                         (p) =>
                                             p.productType ===
-                                            "expert_advisor"
+                                              "expert_advisor"
                                     ).length
                                 }
                                 label="EAs"
@@ -585,11 +585,11 @@ function ProductCard({
                         />
 
                         {/* Gradient overlay for readability */}
-                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-muted via-muted/40 to-foreground/30" />
+                        <div className="pointer-events-none absolute inset-0 bg-background/70" />
                     </>
                 ) : (
                     <div className="absolute inset-0">
-                        <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
+                        <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-primary/10 hidden" />
                     </div>
                 )}
 

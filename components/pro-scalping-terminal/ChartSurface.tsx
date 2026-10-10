@@ -149,7 +149,7 @@ export function ChartSurface({
             layout: {
                 background: { type: ColorType.Solid, color: t.uiBackground },
                 textColor: t.textColor,
-                fontFamily: "var(--font-sans, Inter), var(--font-mono, monospace), sans-serif",
+                fontFamily: "var(--font-sans, Inter), var(--font-numeric, monospace), sans-serif",
                 fontSize: 11,
                 attributionLogo: false,
             },

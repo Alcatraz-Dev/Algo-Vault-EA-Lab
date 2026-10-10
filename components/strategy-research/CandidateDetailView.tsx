@@ -176,10 +176,10 @@ export default function CandidateDetailView({
                 ) : candidate ? (
                     <>
                         {/* Header */}
-                        <section className="rounded-lg border border-border/30 bg-card/40 p-5 backdrop-blur-xl">
+                        <section className="rounded-lg border border-border/30 bg-card/40 p-5">
                             <div className="flex flex-wrap items-start justify-between gap-3">
                                 <div>
-                                    <h1 className="text-lg font-bold tracking-tight">
+                                    <h1 className="text-2xl font-semibold tracking-tight">
                                         {candidate.strategy?.name ?? "Candidate"}
                                     </h1>
                                     <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -221,7 +221,7 @@ export default function CandidateDetailView({
 
                         <div className="grid gap-6 lg:grid-cols-3">
                             {/* Backtest + OOS metrics */}
-                            <section className="rounded-lg border border-border/30 bg-card/40 p-5 backdrop-blur-xl lg:col-span-2">
+                            <section className="rounded-lg border border-border/30 bg-card/40 p-5 lg:col-span-2">
                                 <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
                                     <ShieldAlert className="h-4 w-4 text-primary" /> Validation Evidence
                                 </h2>
@@ -376,7 +376,7 @@ export default function CandidateDetailView({
                             </section>
 
                             {/* Lineage */}
-                            <section className="rounded-lg border border-border/30 bg-card/40 p-5 backdrop-blur-xl">
+                            <section className="rounded-lg border border-border/30 bg-card/40 p-5">
                                 <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
                                     <GitBranch className="h-4 w-4 text-primary" /> Strategy Lineage
                                 </h2>
@@ -416,7 +416,7 @@ export default function CandidateDetailView({
 
                         {/* Robustness + warnings + score */}
                         <div className="grid gap-6 lg:grid-cols-2">
-                            <section className="rounded-lg border border-border/30 bg-card/40 p-5 backdrop-blur-xl">
+                            <section className="rounded-lg border border-border/30 bg-card/40 p-5">
                                 <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
                                     <ShieldAlert className="h-4 w-4 text-primary" /> Robustness Report
                                 </h2>
@@ -495,7 +495,7 @@ export default function CandidateDetailView({
                                 ) : null}
                             </section>
 
-                            <section className="rounded-lg border border-border/30 bg-card/40 p-5 backdrop-blur-xl">
+                            <section className="rounded-lg border border-border/30 bg-card/40 p-5">
                                 <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
                                     <AlertTriangleIcon /> Research Warnings
                                 </h2>
@@ -562,7 +562,7 @@ export default function CandidateDetailView({
                         </div>
 
                         {/* Candidate-scoped research log */}
-                        <section className="rounded-lg border border-border/30 bg-card/40 p-5 backdrop-blur-xl">
+                        <section className="rounded-lg border border-border/30 bg-card/40 p-5">
                             <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
                                 <Sparkles className="h-4 w-4 text-primary" /> Candidate Research Log
                             </h2>

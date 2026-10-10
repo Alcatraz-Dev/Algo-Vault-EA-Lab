@@ -61,16 +61,16 @@ const STATE_RING: Record<AgentVisualState, string> = {
 };
 
 const STATE_CORE: Record<AgentVisualState, string> = {
-    idle: "from-muted to-card text-muted-foreground",
-    waiting: "from-muted to-card text-muted-foreground",
-    scheduled: "from-primary/20 to-card text-primary",
-    analyzing: "from-primary/30 to-card text-primary av-core-pulse",
-    completed: "from-positive/20 to-card text-positive",
-    warning: "from-warning/25 to-card text-warning",
-    error: "from-destructive/25 to-card text-destructive",
-    disabled: "from-muted to-card text-muted-foreground",
-    skipped: "from-muted to-card text-muted-foreground",
-    blocked: "from-warning/25 to-card text-warning",
+    idle: "bg-muted text-muted-foreground",
+    waiting: "bg-muted text-muted-foreground",
+    scheduled: "bg-primary/20 text-primary",
+    analyzing: "bg-primary/30 text-primary av-core-pulse",
+    completed: "bg-positive/20 text-positive",
+    warning: "bg-warning/25 text-warning",
+    error: "bg-destructive/25 text-destructive",
+    disabled: "bg-muted text-muted-foreground",
+    skipped: "bg-muted text-muted-foreground",
+    blocked: "bg-warning/25 text-warning",
 };
 
 const STATE_DOT: Record<AgentVisualState, string> = {
@@ -216,7 +216,7 @@ export function AgentAvatar({
     return (
         <span
             className={cn(
-                "av-root relative inline-flex shrink-0 items-center justify-center rounded-full border bg-gradient-to-b",
+                "av-root relative inline-flex shrink-0 items-center justify-center rounded-full border bg-card",
                 STATE_RING[state],
                 STATE_CORE[state],
                 className,
@@ -273,7 +273,7 @@ export const AgentNode = memo(function AgentNode({
             aria-label={`${agent.name} — ${state}${conflict ? " — in disagreement" : ""}`}
             aria-pressed={selected}
             className={cn(
-                "group relative flex w-full min-w-0 flex-col items-center gap-1.5 rounded-xl border px-2 py-2.5 text-center transition-colors outline-none",
+              "group relative flex w-full min-w-0 flex-col items-center gap-1.5 rounded-lg border px-2 py-2.5 text-center transition-colors outline-none",
                 "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50",
                 selected ? "border-primary/60 bg-primary/5" : "border-border/60 bg-card/70 hover:border-border hover:bg-card",
                 conflict && "border-warning/50",

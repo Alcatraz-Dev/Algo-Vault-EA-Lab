@@ -104,7 +104,7 @@ export default function PerformanceReports({ userId }: { userId: string }) {
     if (loading) {
         return (
             <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-10 text-sm text-muted-foreground">
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-violet-500" />
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-primary" />
                 Generating your performance report...
             </div>
         );
@@ -112,7 +112,7 @@ export default function PerformanceReports({ userId }: { userId: string }) {
 
     if (error) {
         return (
-            <div className="rounded-lg border border-rose-500/20 bg-rose-500/[0.05] p-8 text-sm text-rose-400">
+            <div className="rounded-lg border border-negative/20 bg-negative/[0.05] p-8 text-sm text-negative">
                 {error}
             </div>
         );
@@ -122,7 +122,7 @@ export default function PerformanceReports({ userId }: { userId: string }) {
         return (
             <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
                 No connected MT5 accounts yet. Add one in{" "}
-                <a href="/account/settings?tab=mt5" className="font-semibold text-violet-400 underline underline-offset-2 hover:text-violet-300">
+                <a href="/account/settings?tab=mt5" className="font-semibold text-primary underline underline-offset-2 hover:text-primary">
                     Settings → MT5 Accounts
                 </a>{" "}
                 to see your performance reports.
@@ -139,47 +139,47 @@ export default function PerformanceReports({ userId }: { userId: string }) {
 
             {/* KPI Grid */}
             <div className="grid gap-4 sm:grid-cols-4">
-                <div className="rounded-xl border border-border bg-card p-5">
+                <div className="rounded-lg border border-border bg-card p-5">
                     <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Total Trades</p>
                     <p className="mt-1 text-2xl font-bold text-foreground">{stats.totalTrades}</p>
                 </div>
-                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-5">
-                    <p className="text-micro uppercase tracking-wider text-emerald-300 font-semibold">Win Rate</p>
-                    <p className="mt-1 text-2xl font-bold text-emerald-400">{stats.winRate.toFixed(1)}%</p>
+                <div className="rounded-lg border border-positive/20 bg-positive/10 p-5">
+                    <p className="text-micro uppercase tracking-wider text-positive font-semibold">Win Rate</p>
+                    <p className="mt-1 text-2xl font-bold text-positive">{stats.winRate.toFixed(1)}%</p>
                 </div>
-                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-5">
-                    <p className="text-micro uppercase tracking-wider text-emerald-300 font-semibold">Net Profit</p>
-                    <p className={`mt-1 text-2xl font-bold ${stats.net >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                <div className="rounded-lg border border-positive/20 bg-positive/10 p-5">
+                    <p className="text-micro uppercase tracking-wider text-positive font-semibold">Net Profit</p>
+                    <p className={`mt-1 text-2xl font-bold ${stats.net >= 0 ? "text-positive" : "text-negative"}`}>
                         {stats.net >= 0 ? "+" : ""}${stats.net.toFixed(2)}
                     </p>
                 </div>
-                <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-5">
-                    <p className="text-micro uppercase tracking-wider text-rose-300 font-semibold">Max Drawdown</p>
-                    <p className="mt-1 text-2xl font-bold text-rose-400">{stats.maxDrawdown.toFixed(2)}%</p>
+                <div className="rounded-lg border border-negative/20 bg-negative/10 p-5">
+                    <p className="text-micro uppercase tracking-wider text-negative font-semibold">Max Drawdown</p>
+                    <p className="mt-1 text-2xl font-bold text-negative">{stats.maxDrawdown.toFixed(2)}%</p>
                 </div>
             </div>
 
             {/* Secondary stats */}
             <div className="grid gap-4 sm:grid-cols-4">
-                <div className="rounded-xl border border-border bg-card p-4">
+                <div className="rounded-lg border border-border bg-card p-4">
                     <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Profit Factor</p>
                     <p className="mt-1 text-xl font-bold text-foreground">
                         {!isFinite(stats.profitFactor) ? "∞" : stats.profitFactor.toFixed(2)}
                     </p>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-4">
+                <div className="rounded-lg border border-border bg-card p-4">
                     <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Avg Trade</p>
                     <p className="mt-1 text-xl font-bold text-foreground">${stats.avgTrade.toFixed(2)}</p>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-4">
+                <div className="rounded-lg border border-border bg-card p-4">
                     <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Best/Worst Day</p>
-                    <p className="mt-1 text-sm font-bold text-emerald-400">+${stats.bestDay.toFixed(0)}</p>
-                    <p className="text-sm font-bold text-rose-400">-${Math.abs(stats.worstDay).toFixed(0)}</p>
+                    <p className="mt-1 text-sm font-bold text-positive">+${stats.bestDay.toFixed(0)}</p>
+                    <p className="text-sm font-bold text-negative">-${Math.abs(stats.worstDay).toFixed(0)}</p>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-4">
+                <div className="rounded-lg border border-border bg-card p-4">
                     <p className="text-micro uppercase tracking-wider text-muted-foreground font-semibold">Consec. Wins/Losses</p>
-                    <p className="mt-1 text-xl font-bold text-emerald-400">{stats.consecutiveWins}W</p>
-                    <p className="text-xl font-bold text-rose-400">{stats.consecutiveLosses}L</p>
+                    <p className="mt-1 text-xl font-bold text-positive">{stats.consecutiveWins}W</p>
+                    <p className="text-xl font-bold text-negative">{stats.consecutiveLosses}L</p>
                 </div>
             </div>
 
@@ -206,13 +206,13 @@ export default function PerformanceReports({ userId }: { userId: string }) {
                             {monthlyData.map((row) => (
                                 <tr key={row.month} className="hover:bg-muted/30">
                                     <td className="py-3 px-5 font-medium">{row.month}</td>
-                                    <td className={`py-3 px-4 font-medium ${row.return >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                                    <td className={`py-3 px-4 font-medium ${row.return >= 0 ? "text-positive" : "text-negative"}`}>
                                         {row.return > 0 ? "+" : ""}${row.return.toFixed(0)}
                                     </td>
                                     <td className="py-3 px-4 text-muted-foreground">{row.trades}</td>
                                     <td className="py-3 px-4 text-muted-foreground">{row.winRate.toFixed(0)}%</td>
                                     <td className="py-3 px-4">
-                                        <span className={`rounded-full px-2 py-0.5 text-micro font-medium ${row.return >= 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
+                                        <span className={`rounded-full px-2 py-0.5 text-micro font-medium ${row.return >= 0 ? "bg-positive/10 text-positive" : "bg-muted text-muted-foreground"}`}>
                                             {row.return >= 0 ? "Profitable" : "Draw"}
                                         </span>
                                     </td>

@@ -179,21 +179,21 @@ export default function AccountPerformanceArenaPage() {
                 className="rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/50"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-sm font-medium">{attempt.definitionKey}</span>
+                  <span className="font-numeric text-sm font-medium">{attempt.definitionKey}</span>
                   <ChallengeStatusBadge status={attempt.status} />
                 </div>
                 {metrics ? (
                   <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
                     <span className="text-muted-foreground">
                       Equity{" "}
-                      <span className="font-mono text-foreground">
+                      <span className="font-numeric text-foreground">
                         ${(metrics.equityCents / 100).toLocaleString()}
                       </span>
                     </span>
                     <span className="text-muted-foreground">
                       Return{" "}
                       <span
-                        className={`font-mono ${metrics.totalReturnPct >= 0 ? "text-positive" : "text-negative"}`}
+                        className={`font-numeric ${metrics.totalReturnPct >= 0 ? "text-positive" : "text-negative"}`}
                       >
                         {metrics.totalReturnPct >= 0 ? "+" : ""}
                         {metrics.totalReturnPct.toFixed(2)}%
@@ -201,13 +201,13 @@ export default function AccountPerformanceArenaPage() {
                     </span>
                     <span className="text-muted-foreground">
                       Drawdown{" "}
-                      <span className="font-mono text-foreground">
+                      <span className="font-numeric text-foreground">
                         {metrics.currentDrawdownPct.toFixed(2)}%
                       </span>
                     </span>
                     <span className="text-muted-foreground">
                       Target{" "}
-                      <span className="font-mono text-foreground">
+                      <span className="font-numeric text-foreground">
                         {metrics.targetProgressPct.toFixed(0)}%
                       </span>
                     </span>

@@ -285,7 +285,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                 </div>
                 <h2 className="text-xl font-semibold text-foreground">Sign in required</h2>
                 <p className="text-sm text-muted-foreground">Sign in to access Market Analysis</p>
-                <a href="/login" className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Sign In</a>
+                <a href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Sign In</a>
             </div>
         );
     }
@@ -316,21 +316,21 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                 <div className="min-w-0 flex-1 space-y-4 p-4 sm:p-6">
                     {loading && !data && (
                         <div className="space-y-4" aria-busy="true">
-                            <div className="h-24 animate-pulse rounded-xl bg-muted/40" />
+                            <div className="h-24 animate-pulse rounded-lg bg-muted/40" />
                             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
                                 {Array.from({ length: 6 }).map((_, i) => (
-                                    <div key={i} className="h-16 animate-pulse rounded-xl bg-muted/40" />
+                                    <div key={i} className="h-16 animate-pulse rounded-lg bg-muted/40" />
                                 ))}
                             </div>
-                            <div className="h-[440px] animate-pulse rounded-xl bg-muted/40" />
+                            <div className="h-[440px] animate-pulse rounded-lg bg-muted/40" />
                         </div>
                     )}
 
                     {error && !data && (
-                        <div className="flex h-80 flex-col items-center justify-center gap-3 rounded-xl border border-destructive/20 bg-destructive/5">
+                        <div className="flex h-80 flex-col items-center justify-center gap-3 rounded-lg border border-destructive/20 bg-destructive/5">
                             <AlertTriangle size={28} className="text-destructive" />
                             <p className="text-sm text-destructive">{error}</p>
-                            <button type="button" onClick={handleRefresh} className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-xs font-medium text-foreground hover:bg-muted transition">
+                            <button type="button" onClick={handleRefresh} className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-xs font-medium text-foreground hover:bg-muted transition">
                                 <RefreshCw size={12} /> Retry
                             </button>
                         </div>
@@ -340,7 +340,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                         <>
                             {/* MT5 account selector + stats */}
                             {accounts.length > 0 && (
-                                <div className="rounded-xl border border-border bg-card p-4 shadow-sm" data-guide="page-header">
+                                <div className="rounded-lg border border-border bg-card p-4 shadow-sm" data-guide="page-header">
                                     <div className="flex flex-wrap items-center justify-between gap-3">
                                         <div className="flex flex-wrap items-center gap-3">
                                             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
@@ -404,7 +404,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
 
                             {/* Multi-timeframe bias */}
                             {data.multiTimeframe && data.multiTimeframe.length > 0 && (
-                                <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+                                <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
                                     <p className="mb-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Multi-Timeframe Bias</p>
                                     <div className="flex flex-wrap gap-2">
                                         {data.multiTimeframe.map((mtf) => (
@@ -419,7 +419,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                                                             : "border-border bg-muted text-muted-foreground"
                                                 )}
                                             >
-                                                <span className="font-mono">{mtf.timeframe}</span>
+                                                <span className="font-numeric">{mtf.timeframe}</span>
                                                 {mtf.bias}
                                             </span>
                                         ))}
@@ -432,7 +432,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                                 <div className="flex flex-wrap items-center gap-1.5">
                                     <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground">
                                         <Layers size={13} />
-                                        <span className="font-mono">{ohlcData?.candleCount ?? 0} candles</span>
+                                        <span className="font-numeric">{ohlcData?.candleCount ?? 0} candles</span>
                                     </span>
                                 </div>
                                 <ProTerminalChartWorkspace
@@ -447,7 +447,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
 
                             {/* Open positions from MT5 */}
                             {selectedAccount && (
-                                <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+                                <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                                     <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
                                         <div className="flex items-center gap-2">
                                             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
@@ -457,7 +457,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                                             <span className="rounded-full bg-muted px-2 py-0.5 text-micro text-muted-foreground">{positions.length}</span>
                                         </div>
                                         {totalFloatingPnl !== 0 && (
-                                            <span className={cn("font-mono text-xs font-bold tabular-nums", totalFloatingPnl >= 0 ? "text-positive" : "text-negative")}>
+                                            <span className={cn("font-numeric text-xs font-bold tabular-nums", totalFloatingPnl >= 0 ? "text-positive" : "text-negative")}>
                                                 {totalFloatingPnl >= 0 ? "+" : ""}${totalFloatingPnl.toFixed(2)}
                                             </span>
                                         )}
@@ -484,28 +484,28 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                                                 <tbody>
                                                     {positions.map((pos) => (
                                                         <tr key={pos.ticket} className="border-b border-border/50 last:border-b-0 transition-colors hover:bg-muted/50">
-                                                            <td className="px-4 py-2.5 font-mono font-semibold text-foreground">{pos.symbol}</td>
+                                                            <td className="px-4 py-2.5 font-numeric font-semibold text-foreground">{pos.symbol}</td>
                                                             <td className={cn("px-4 py-2.5 font-medium", pos.type === "BUY" ? "text-positive" : "text-negative")}>{pos.type}</td>
-                                                            <td className="px-4 py-2.5 text-right font-mono text-muted-foreground tabular-nums">{pos.volume.toFixed(2)}</td>
-                                                            <td className="px-4 py-2.5 text-right font-mono text-muted-foreground tabular-nums">{pos.openPrice.toFixed(pos.openPrice >= 100 ? 2 : 5)}</td>
-                                                            <td className="px-4 py-2.5 text-right font-mono text-muted-foreground tabular-nums">{pos.currentPrice.toFixed(pos.currentPrice >= 100 ? 2 : 5)}</td>
+                                                            <td className="px-4 py-2.5 text-right font-numeric text-muted-foreground tabular-nums">{pos.volume.toFixed(2)}</td>
+                                                            <td className="px-4 py-2.5 text-right font-numeric text-muted-foreground tabular-nums">{pos.openPrice.toFixed(pos.openPrice >= 100 ? 2 : 5)}</td>
+                                                            <td className="px-4 py-2.5 text-right font-numeric text-muted-foreground tabular-nums">{pos.currentPrice.toFixed(pos.currentPrice >= 100 ? 2 : 5)}</td>
                                                             <td className="px-4 py-2.5 text-right">
                                                                 {pos.sl > 0 ? (
-                                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-negative/25 bg-negative/10 px-2 py-0.5 font-mono text-micro font-semibold text-negative">
+                                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-negative/25 bg-negative/10 px-2 py-0.5 font-numeric text-micro font-semibold text-negative">
                                                                         <Shield size={8} className="opacity-60" />
                                                                         {pos.sl.toFixed(pos.sl >= 100 ? 2 : 5)}
                                                                     </span>
-                                                                ) : <span className="font-mono text-muted-foreground">—</span>}
+                                                                ) : <span className="font-numeric text-muted-foreground">—</span>}
                                                             </td>
                                                             <td className="px-4 py-2.5 text-right">
                                                                 {pos.tp > 0 ? (
-                                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-positive/25 bg-positive/10 px-2 py-0.5 font-mono text-micro font-semibold text-positive">
+                                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-positive/25 bg-positive/10 px-2 py-0.5 font-numeric text-micro font-semibold text-positive">
                                                                         <Target size={8} className="opacity-60" />
                                                                         {pos.tp.toFixed(pos.tp >= 100 ? 2 : 5)}
                                                                     </span>
-                                                                ) : <span className="font-mono text-muted-foreground">—</span>}
+                                                                ) : <span className="font-numeric text-muted-foreground">—</span>}
                                                             </td>
-                                                            <td className={cn("px-4 py-2.5 text-right font-mono font-semibold tabular-nums", pos.profit >= 0 ? "text-positive" : "text-negative")}>{pos.profit >= 0 ? "+" : ""}${pos.profit.toFixed(2)}</td>
+                                                            <td className={cn("px-4 py-2.5 text-right font-numeric font-semibold tabular-nums", pos.profit >= 0 ? "text-positive" : "text-negative")}>{pos.profit >= 0 ? "+" : ""}${pos.profit.toFixed(2)}</td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
@@ -516,7 +516,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                             )}
 
                             {/* Risk disclaimer */}
-                            <div className="rounded-xl border border-warning/20 bg-warning/[0.03] p-3 text-micro text-warning/70">
+                            <div className="rounded-lg border border-warning/20 bg-warning/[0.03] p-3 text-micro text-warning/70">
                                 <Shield size={12} className="mr-1 inline" />
                                 Analytical tool — not financial advice. Scores and indicators are model-based estimates. Data from Biquote.io and your connected MT5 account.
                             </div>
@@ -555,9 +555,9 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
 
 function StatCard({ label, value, color }: { label: string; value: string; color?: string }) {
     return (
-        <div className="rounded-xl border border-border bg-card px-3.5 py-3 shadow-sm transition-colors hover:border-primary/30">
+        <div className="rounded-lg border border-border bg-card px-3.5 py-3 shadow-sm transition-colors hover:border-primary/30">
             <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
-            <p className={cn("mt-1 font-mono text-sm font-semibold tabular-nums capitalize", color || "text-foreground")}>{value}</p>
+            <p className={cn("mt-1 font-numeric text-sm font-semibold tabular-nums capitalize", color || "text-foreground")}>{value}</p>
         </div>
     );
 }
@@ -566,7 +566,7 @@ function MiniStat({ label, value, color }: { label: string; value: string; color
     return (
         <div className="rounded-lg bg-muted/60 px-2.5 py-1.5">
             <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
-            <p className={cn("mt-0.5 font-mono text-xs font-medium tabular-nums", color || "text-foreground")}>{value}</p>
+            <p className={cn("mt-0.5 font-numeric text-xs font-medium tabular-nums", color || "text-foreground")}>{value}</p>
         </div>
     );
 }

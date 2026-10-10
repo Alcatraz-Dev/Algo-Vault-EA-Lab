@@ -139,7 +139,7 @@ export default function AdminAdNetworksPage() {
                                     <p className="text-xs font-medium text-foreground">Required environment</p>
                                     <ul className="space-y-1">
                                         {meta.env.map((v) => (
-                                            <li key={v} className="rounded border border-border bg-muted/40 px-2 py-1 font-mono text-xs text-foreground">
+                                            <li key={v} className="rounded border border-border bg-muted/40 px-2 py-1 font-numeric text-xs text-foreground">
                                                 {v}
                                             </li>
                                         ))}

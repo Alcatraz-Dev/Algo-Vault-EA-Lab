@@ -112,7 +112,7 @@ function StructureBlock() {
                                 <span className="flex min-w-0 items-center gap-1.5">
                                     <span
                                         className={cn(
-                                            "rounded border px-1 font-mono text-micro font-bold",
+                                            "rounded border px-1 font-numeric text-micro font-bold",
                                             e.type === "BOS" ? "border-info/40 text-info" : "border-warning/40 text-warning"
                                         )}
                                     >
@@ -121,9 +121,9 @@ function StructureBlock() {
                                     <span className={cn("capitalize", e.direction === "bullish" ? "text-positive" : "text-negative")}>
                                         {e.direction}
                                     </span>
-                                    <span className="font-mono text-micro text-muted-foreground">{e.timeframe}</span>
+                                    <span className="font-numeric text-micro text-muted-foreground">{e.timeframe}</span>
                                 </span>
-                                <span className="shrink-0 font-mono text-micro tabular-nums text-muted-foreground">
+                                <span className="shrink-0 font-numeric text-micro tabular-nums text-muted-foreground">
                                     {new Date(e.timestamp).toISOString().slice(11, 16)} · {e.price}
                                 </span>
                             </li>
@@ -135,7 +135,7 @@ function StructureBlock() {
             <p className="text-micro leading-4 text-muted-foreground">
                 {analysis.multiTimeframe.summary.value ?? analysis.multiTimeframe.summary.reason ?? ""}
             </p>
-            <p className="font-mono text-micro text-muted-foreground/70">
+            <p className="font-numeric text-micro text-muted-foreground/70">
                 Active chart: {state.symbol} {state.timeframe}
             </p>
         </div>
@@ -189,7 +189,7 @@ function SetupCard() {
                         aria-label={`${s.symbol} ${s.timeframe} setup`}
                     >
                         <header className="flex items-center justify-between gap-2">
-                            <span className="font-mono text-micro font-bold text-foreground">
+                            <span className="font-numeric text-micro font-bold text-foreground">
                                 {s.symbol} {s.timeframe}
                             </span>
                             <span
@@ -209,19 +209,19 @@ function SetupCard() {
                         <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-micro">
                             <div className="flex justify-between">
                                 <dt className="text-muted-foreground">Entry</dt>
-                                <dd className="font-mono tabular-nums text-foreground">{s.entry}</dd>
+                                <dd className="font-numeric tabular-nums text-foreground">{s.entry}</dd>
                             </div>
                             <div className="flex justify-between">
                                 <dt className="text-muted-foreground">Invalidation</dt>
-                                <dd className="font-mono tabular-nums text-negative">{s.stop}</dd>
+                                <dd className="font-numeric tabular-nums text-negative">{s.stop}</dd>
                             </div>
                             <div className="flex justify-between">
                                 <dt className="text-muted-foreground">Target</dt>
-                                <dd className="font-mono tabular-nums text-positive">{s.target}</dd>
+                                <dd className="font-numeric tabular-nums text-positive">{s.target}</dd>
                             </div>
                             <div className="flex justify-between">
                                 <dt className="text-muted-foreground">Risk / Reward</dt>
-                                <dd className="font-mono tabular-nums text-foreground">1 : {rr}</dd>
+                                <dd className="font-numeric tabular-nums text-foreground">1 : {rr}</dd>
                             </div>
                             <div className="flex justify-between">
                                 <dt className="text-muted-foreground">HTF bias</dt>
@@ -265,7 +265,7 @@ function SetupCard() {
                                 </span>
                             ))}
                         </div>
-                        <p className="mt-1 font-mono text-micro uppercase tracking-wide text-muted-foreground">
+                        <p className="mt-1 font-numeric text-micro uppercase tracking-wide text-muted-foreground">
                             status: {invalid ? "INVALIDATED" : s.status}
                         </p>
                     </article>
@@ -311,7 +311,7 @@ function RiskSummary() {
                 {rows.map(([k, v]) => (
                     <div key={k} className="flex justify-between gap-2">
                         <dt className="text-muted-foreground">{k}</dt>
-                        <dd className={cn("font-mono tabular-nums", v === "unavailable" || v === "not configured" ? "italic text-muted-foreground" : "text-foreground")}>
+                        <dd className={cn("font-numeric tabular-nums", v === "unavailable" || v === "not configured" ? "italic text-muted-foreground" : "text-foreground")}>
                             {v}
                         </dd>
                     </div>
@@ -357,7 +357,7 @@ export function IntelligenceRail({ now }: { now: number }) {
 
     return (
         <section className="flex min-w-0 flex-col gap-2" aria-label="Intelligence">
-            <div className="rounded-xl border border-border bg-card p-2">
+            <div className="rounded-lg border border-border bg-card p-2">
                 <div className="flex flex-wrap gap-1" role="tablist" aria-label="Intelligence mode">
                     {TABS.map((t) => {
                         const Icon = t.icon;
@@ -383,14 +383,14 @@ export function IntelligenceRail({ now }: { now: number }) {
             </div>
 
             <PanelErrorBoundary name="Intelligence">
-                <div className="rounded-xl border border-border bg-card">
+                <div className="rounded-lg border border-border bg-card">
                     <div className="border-b border-border px-3 py-2">
                         <h2 className="flex items-center justify-between text-micro font-semibold uppercase tracking-wide text-foreground">
                             <span className="flex items-center gap-1.5">
                                 {mode === "ai" ? <Sparkles className="size-3 text-primary" /> : <ListChecks className="size-3 text-primary" />}
                                 {TABS.find((t) => t.id === mode)?.label}
                             </span>
-                            <span className="font-mono text-micro text-muted-foreground">
+                            <span className="font-numeric text-micro text-muted-foreground">
                                 {state.symbol} {state.timeframe}
                             </span>
                         </h2>

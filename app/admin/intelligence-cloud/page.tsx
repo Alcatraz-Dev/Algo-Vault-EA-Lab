@@ -25,7 +25,7 @@ export default function AdminIntelligenceCloud() {
   return (
     <div className="max-w-6xl mx-auto px-6 py-10 space-y-10">
       <header className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-3">
           <ShieldCheck className="w-8 h-8 text-positive" /> Intelligence Cloud — Admin
         </h1>
         <p className="text-muted-foreground">
@@ -47,7 +47,7 @@ export default function AdminIntelligenceCloud() {
 
       <section>
         <h2 className="text-xl font-semibold mb-3">Engine Versions</h2>
-        <div className="border rounded-xl overflow-hidden bg-card">
+        <div className="border rounded-lg overflow-hidden bg-card">
           <table className="w-full text-sm">
             <thead className="bg-muted">
               <tr>
@@ -60,7 +60,7 @@ export default function AdminIntelligenceCloud() {
               {ENGINE_REGISTRY.map((engine) => (
                 <tr key={engine.id} className="border-t">
                   <td className="px-4 py-2 font-medium">{engine.name}</td>
-                  <td className="px-4 py-2 font-mono text-xs">
+                  <td className="px-4 py-2 font-numeric text-xs">
                     {engine.version}
                     {!engine.versioned && (
                       <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-warning-muted text-warning text-xs">
@@ -68,7 +68,7 @@ export default function AdminIntelligenceCloud() {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-2 text-xs text-muted-foreground font-mono">{engine.sourcePath}</td>
+                  <td className="px-4 py-2 text-xs text-muted-foreground font-numeric">{engine.sourcePath}</td>
                 </tr>
               ))}
             </tbody>
@@ -84,7 +84,7 @@ export default function AdminIntelligenceCloud() {
       {unversioned.length > 0 && (
         <section>
           <h2 className="text-xl font-semibold mb-3">Reproducibility Work List</h2>
-          <div className="border rounded-xl p-5 bg-card space-y-2">
+          <div className="border rounded-lg p-5 bg-card space-y-2">
             <p className="text-sm text-muted-foreground">                  These engines publish no version constant, so results they produce cannot yet be pinned to
                   an exact engine build:
             </p>
@@ -101,7 +101,7 @@ export default function AdminIntelligenceCloud() {
 
       <section>
         <h2 className="text-xl font-semibold mb-3">Operational Metrics</h2>
-        <div className="border rounded-xl p-5 bg-card flex items-start gap-3">
+        <div className="border rounded-lg p-5 bg-card flex items-start gap-3">
           <Info className="w-5 h-5 text-warning mt-0.5" />
           <div className="space-y-1 text-sm">
             <p>
@@ -122,7 +122,7 @@ export default function AdminIntelligenceCloud() {
         <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
           <Zap className="w-5 h-5" /> Webhook Delivery Contract
         </h2>
-        <div className="border rounded-xl p-5 bg-card space-y-2 text-sm">
+        <div className="border rounded-lg p-5 bg-card space-y-2 text-sm">
           <p>Every delivery carries these headers:</p>
           <ul className="list-disc pl-6 text-muted-foreground space-y-1">
             <li><code>X-AlgoVault-Event</code> — event type</li>
@@ -140,7 +140,7 @@ export default function AdminIntelligenceCloud() {
 
       <section>
         <h2 className="text-xl font-semibold mb-3">Certification Disclosures</h2>
-        <div className="border rounded-xl p-5 bg-card">
+        <div className="border rounded-lg p-5 bg-card">
           <ul className="list-disc pl-6 text-sm text-muted-foreground space-y-1">
             {REQUIRED_CERTIFICATION_DISCLOSURES.map((line) => (
               <li key={line}>{line}</li>
@@ -164,7 +164,7 @@ function Stat({
   emphasis?: boolean;
 }) {
   return (
-    <div className="rounded-xl border p-5 bg-card space-y-2">
+    <div className="rounded-lg border p-5 bg-card space-y-2">
       <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wide">
         {icon} {label}
       </div>

@@ -9,7 +9,7 @@ export function LiveEventFeed({ events }: { events: any[] }) {
         <ul className="text-xs space-y-1 text-muted-foreground divide-y divide-border/50">
           {events.slice(-6).map((e, i) => (
             <li key={i} className="flex gap-2 py-0.5">
-              <span className="font-mono">{e.eventId || `e-${i}`}</span>
+              <span className="font-numeric">{e.eventId || `e-${i}`}</span>
               <span>—</span>
               <span>{e.eventType || "EVENT"}</span>
               <span className="ml-auto text-micro">t={e.timestamp}</span>

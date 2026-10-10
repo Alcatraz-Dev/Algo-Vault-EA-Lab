@@ -89,7 +89,7 @@ export default function ExtensionsMarketplacePage() {
                                 <Sparkles size={14} />
                                 Plugins &amp; Extensions Ecosystem
                             </div>
-                            <h1 className="mt-3 text-4xl font-semibold tracking-tight md:text-5xl">
+                            <h1 className="text-2xl font-semibold tracking-tight mt-3">
                                 Extensions that connect
                                 <br />
                                 AlgoVault to your workflow.
@@ -123,7 +123,7 @@ export default function ExtensionsMarketplacePage() {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Search extensions..."
-                            className="w-full rounded-xl border border-border/30 bg-muted py-3 pl-11 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                            className="w-full rounded-lg border border-border/30 bg-muted py-3 pl-11 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                         />
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -209,7 +209,7 @@ function ExtensionCard({ extension }: { extension: PluginRecord }) {
     return (
         <article className="group flex flex-col overflow-hidden rounded-lg border border-border/30 bg-card transition hover:border-border/60">
             <div className="relative h-44 overflow-hidden border-b border-border/30 bg-muted">
-                <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
+                <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-primary/10 hidden" />
                 <div className="relative z-10 flex h-full flex-col justify-between p-5">
                     <div className="flex items-start justify-between gap-3">
                         <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-border/50 bg-background">
@@ -276,7 +276,7 @@ function ExtensionCard({ extension }: { extension: PluginRecord }) {
 
 function MiniStat({ icon, value, label }: { icon: React.ReactNode; value: number; label: string }) {
     return (
-        <div className="min-w-[90px] rounded-xl border border-border/30 bg-muted/50 p-3">
+        <div className="min-w-[90px] rounded-lg border border-border/30 bg-muted/50 p-3">
             <div className="flex items-center gap-2 text-muted-foreground">
                 {icon}
                 <span className="text-xs">{label}</span>

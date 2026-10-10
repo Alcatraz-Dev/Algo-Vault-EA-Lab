@@ -239,7 +239,7 @@ export default function AdminApprovalsPage() {
                                 {filteredHistory.slice(0, 20).map((a, i) => (
                                     <li key={a.id || i} className="p-3 hover:bg-muted/30 transition">
                                         <div className="flex items-center justify-between gap-2">
-                                            <span className="font-mono text-xs text-muted-foreground">{a.taskId.slice(0, 12)}…</span>
+                                            <span className="font-numeric text-xs text-muted-foreground">{a.taskId.slice(0, 12)}…</span>
                                             <span
                                                 className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
                                                     a.decision === "APPROVED"

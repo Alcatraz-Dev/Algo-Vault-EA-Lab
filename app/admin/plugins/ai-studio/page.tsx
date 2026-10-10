@@ -173,9 +173,9 @@ export default function AdminAiStudioPage() {
             </div>
 
             {error && (
-                <div className="mb-5 flex items-start gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-4">
-                    <AlertCircle size={16} className="mt-0.5 shrink-0 text-red-300" />
-                    <p className="text-sm text-red-300">{error}</p>
+                <div className="mb-5 flex items-start gap-3 rounded-lg border border-negative/30 bg-negative/10 p-4">
+                    <AlertCircle size={16} className="mt-0.5 shrink-0 text-negative" />
+                    <p className="text-sm text-negative">{error}</p>
                 </div>
             )}
 
@@ -198,7 +198,7 @@ export default function AdminAiStudioPage() {
                                     onChange={(e) => setPrompt(e.target.value)}
                                     rows={5}
                                     placeholder="e.g. A plugin that alerts me when EURUSD intraday volatility spikes above 2.5x its 14-day ATR during the New York session, plus flags correlated exposure over 30%."
-                                    className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                                    className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                                 />
                             </Field>
                             <div className="grid gap-4 sm:grid-cols-2">
@@ -222,7 +222,7 @@ export default function AdminAiStudioPage() {
                                     <select
                                         value={category}
                                         onChange={(e) => setCategory(e.target.value as PluginCategory)}
-                                        className="w-full rounded-xl border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
+                                        className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
                                     >
                                         {CATEGORIES.map((c) => (
                                             <option key={c.id} value={c.id}>
@@ -256,7 +256,7 @@ export default function AdminAiStudioPage() {
                                 type="button"
                                 onClick={generate}
                                 disabled={generating || prompt.trim().length < 10}
-                                className="inline-flex items-center gap-2 rounded-xl bg-background px-5 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                                className="inline-flex items-center gap-2 rounded-lg bg-background px-5 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {generating ? <Loader2 size={14} className="animate-spin" /> : <Bot size={14} />}
                                 {generating ? "Generating..." : "Generate plugin"}
@@ -287,9 +287,9 @@ export default function AdminAiStudioPage() {
                                 {VALIDATION_STEPS.map((step) => {
                                     const ok = validation ? validation[step.key] : false;
                                     return (
-                                        <div key={step.key} className={`rounded-xl border p-3 ${ok ? "border-emerald-500/30 bg-emerald-500/10" : "border-red-500/30 bg-red-500/10"}`}>
+                                        <div key={step.key} className={`rounded-lg border p-3 ${ok ? "border-positive/30 bg-positive/10" : "border-negative/30 bg-negative/10"}`}>
                                             <div className="flex items-center gap-1.5">
-                                                {ok ? <CheckCircle2 size={13} className="text-emerald-300" /> : <XCircle size={13} className="text-red-300" />}
+                                                {ok ? <CheckCircle2 size={13} className="text-positive" /> : <XCircle size={13} className="text-negative" />}
                                                 <p className="text-xs font-medium">{step.label}</p>
                                             </div>
                                             <p className="mt-1 text-micro leading-4 text-muted-foreground">{step.description}</p>
@@ -299,11 +299,11 @@ export default function AdminAiStudioPage() {
                             </div>
 
                             {messages.length > 0 && (
-                                <div className="mt-5 rounded-xl border border-border/30 bg-muted/20 p-4">
+                                <div className="mt-5 rounded-lg border border-border/30 bg-muted/20 p-4">
                                     <h4 className="text-xs font-medium">Validation messages</h4>
                                     <ul className="mt-2 space-y-1.5">
                                         {messages.map((m, i) => (
-                                            <li key={i} className={`flex gap-2 text-micro leading-5 ${m.toLowerCase().includes("unsupported") || m.toLowerCase().includes("fail") || m.toLowerCase().includes("error") ? "text-amber-200" : "text-muted-foreground"}`}>
+                                            <li key={i} className={`flex gap-2 text-micro leading-5 ${m.toLowerCase().includes("unsupported") || m.toLowerCase().includes("fail") || m.toLowerCase().includes("error") ? "text-warning" : "text-muted-foreground"}`}>
                                                 <span className="shrink-0">•</span>
                                                 {m}
                                             </li>
@@ -313,14 +313,14 @@ export default function AdminAiStudioPage() {
                             )}
 
                             {draft.spec?.unsupportedCapabilities && draft.spec.unsupportedCapabilities.length > 0 && (
-                                <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
-                                    <h4 className="flex items-center gap-1.5 text-xs font-medium text-amber-200">
+                                <div className="mt-4 rounded-lg border border-warning/30 bg-warning/10 p-4">
+                                    <h4 className="flex items-center gap-1.5 text-xs font-medium text-warning">
                                         <AlertCircle size={13} /> Unsupported capabilities reported
                                     </h4>
                                     <ul className="mt-2 space-y-2">
                                         {draft.spec.unsupportedCapabilities.map((u, i) => (
-                                            <li key={i} className="text-micro leading-5 text-amber-100/80">
-                                                <span className="font-medium text-amber-200">{u.required}</span> — {u.suggestedImplementation}
+                                            <li key={i} className="text-micro leading-5 text-warning/80">
+                                                <span className="font-medium text-warning">{u.required}</span> — {u.suggestedImplementation}
                                             </li>
                                         ))}
                                     </ul>
@@ -342,7 +342,7 @@ export default function AdminAiStudioPage() {
                                     <h4 className="text-xs font-medium">Permissions</h4>
                                     <div className="mt-2 flex flex-wrap gap-2">
                                         {(Object.keys(draft.permissions || {}) as PluginPermission[]).filter((p) => draft.permissions?.[p]).map((p) => (
-                                            <span key={p} className="rounded-lg bg-violet-500/10 px-2.5 py-1 text-micro text-violet-300">{permissionLabel(p)}</span>
+                                            <span key={p} className="rounded-lg bg-primary/10 px-2.5 py-1 text-micro text-primary">{permissionLabel(p)}</span>
                                         ))}
                                         {(Object.keys(draft.permissions || {}) as PluginPermission[]).filter((p) => draft.permissions?.[p]).length === 0 && (
                                             <span className="text-micro text-muted-foreground">No permissions requested.</span>
@@ -358,9 +358,9 @@ export default function AdminAiStudioPage() {
                                 </button>
                                 {expanded && (
                                     <div className="mt-3 space-y-4">
-                                        <div className="rounded-xl border border-border/30 bg-muted/20 p-4">
+                                        <div className="rounded-lg border border-border/30 bg-muted/20 p-4">
                                             <h4 className="text-xs font-medium">Declarative condition</h4>
-                                            <pre className="mt-2 overflow-x-auto rounded-lg bg-background p-3 font-mono text-micro leading-5 text-muted-foreground">
+                                            <pre className="mt-2 overflow-x-auto rounded-lg bg-background p-3 font-numeric text-micro leading-5 text-muted-foreground">
                                                 {JSON.stringify(draft.spec?.runtime?.condition || draft.spec?.manifest?.runtime?.condition, null, 2)}
                                             </pre>
                                         </div>
@@ -370,7 +370,7 @@ export default function AdminAiStudioPage() {
                                                 <ul className="mt-2 space-y-1.5">
                                                     {draft.spec.testCases.map((tc, i) => (
                                                         <li key={i} className="flex gap-2 text-micro leading-5 text-muted-foreground">
-                                                            <CheckCircle2 size={12} className="mt-0.5 shrink-0 text-emerald-400" />
+                                                            <CheckCircle2 size={12} className="mt-0.5 shrink-0 text-positive" />
                                                             {tc}
                                                         </li>
                                                     ))}
@@ -387,8 +387,8 @@ export default function AdminAiStudioPage() {
                                     type="button"
                                     onClick={() => publish(draft.id, true)}
                                     disabled={!passed || publishing === "now"}
-                                    className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
-                                        passed ? "bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25" : "border border-border/30 bg-muted/5 text-muted-foreground"
+                                    className={`inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                                        passed ? "bg-positive/15 text-positive hover:bg-positive/25" : "border border-border/30 bg-muted/5 text-muted-foreground"
                                     }`}
                                     title={passed ? "Publish to the marketplace immediately" : "Fix the validation failures before publishing"}
                                 >
@@ -399,7 +399,7 @@ export default function AdminAiStudioPage() {
                                     type="button"
                                     onClick={() => publish(draft.id, false)}
                                     disabled={publishing === "draft"}
-                                    className="inline-flex items-center gap-2 rounded-xl bg-background px-5 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="inline-flex items-center gap-2 rounded-lg bg-background px-5 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     {publishing === "draft" ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                                     Save as catalog draft
@@ -436,14 +436,14 @@ export default function AdminAiStudioPage() {
                             {SUPPORTED_API_KEYS.map((key) => {
                                 const api = supportedApis[key];
                                 return (
-                                    <div key={key} className="rounded-xl border border-border/30 bg-muted/20 p-3">
+                                    <div key={key} className="rounded-lg border border-border/30 bg-muted/20 p-3">
                                         <p className="text-xs font-medium text-foreground">{api?.label || key}</p>
                                         <p className="mt-0.5 text-micro leading-5 text-muted-foreground">{api?.description || "Declarative sandbox API."}</p>
                                     </div>
                                 );
                             })}
                         </div>
-                        <div className="mt-4 flex gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-micro leading-5 text-amber-200">
+                        <div className="mt-4 flex gap-2 rounded-lg border border-warning/30 bg-warning/10 p-3 text-micro leading-5 text-warning">
                             <Lock size={13} className="mt-0.5 shrink-0" />
                             Order placement, credentials access, external calls and arbitrary code are never generated.
                         </div>
@@ -462,7 +462,7 @@ export default function AdminAiStudioPage() {
                         {jobsLoading ? (
                             <div className="mt-4 space-y-2">
                                 {[1, 2].map((n) => (
-                                    <div key={n} className="h-14 animate-pulse rounded-xl border border-border/30 bg-muted/20" />
+                                    <div key={n} className="h-14 animate-pulse rounded-lg border border-border/30 bg-muted/20" />
                                 ))}
                             </div>
                         ) : jobs.length === 0 ? (
@@ -470,7 +470,7 @@ export default function AdminAiStudioPage() {
                         ) : (
                             <div className="mt-4 space-y-2">
                                 {jobs.slice(0, 10).map((job) => (
-                                    <div key={job.id} className="rounded-xl border border-border/30 bg-muted/20 p-3">
+                                    <div key={job.id} className="rounded-lg border border-border/30 bg-muted/20 p-3">
                                         <div className="flex items-center justify-between gap-2">
                                             <StatusBadge tone={job.status === "done" ? "positive" : job.status === "failed" ? "error" : "pending"} label={job.status} dot />
                                             <span className="shrink-0 text-micro text-muted-foreground">{timeAgo(job.createdAt)}</span>
@@ -479,9 +479,9 @@ export default function AdminAiStudioPage() {
                                         <p className="mt-1 text-micro text-muted-foreground">
                                             {job.target} · {CATEGORY_LABELS[job.category as PluginCategory] || job.category} · created {formatDate(job.createdAt)}
                                         </p>
-                                        {job.error && <p className="mt-1 text-micro leading-4 text-red-300">{job.error}</p>}
+                                        {job.error && <p className="mt-1 text-micro leading-4 text-negative">{job.error}</p>}
                                         {job.draftId && (
-                                            <p className="mt-1 text-micro text-violet-300">{job.draftId} {job.status === "done" && "· validated"}</p>
+                                            <p className="mt-1 text-micro text-primary">{job.draftId} {job.status === "done" && "· validated"}</p>
                                         )}
                                     </div>
                                 ))}

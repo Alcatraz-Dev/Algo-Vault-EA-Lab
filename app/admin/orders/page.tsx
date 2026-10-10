@@ -815,7 +815,7 @@ export default function AdminOrdersPage() {
  * ============================================================
  * ORDER ROW
  * ============================================================
- */
+  */
 
 function OrderRow({
     order,
@@ -846,7 +846,7 @@ function OrderRow({
 
                 <div>
 
-                    <p className="font-mono text-micro text-foreground">
+                    <p className="font-numeric text-micro text-foreground">
                         {shortId(
                             order.id
                         )}
@@ -883,7 +883,7 @@ function OrderRow({
                         </p>
 
                         {order.userId && (
-                            <p className="mt-1 max-w-[180px] truncate font-mono text-micro text-muted-foreground">
+                            <p className="mt-1 max-w-[180px] truncate font-numeric text-micro text-muted-foreground">
                                 {
                                     order.userId
                                 }
@@ -953,7 +953,7 @@ function OrderRow({
                             order.price ||
                             0,
                             order.currency ||
-                            "USD"
+                              "USD"
                         )}
                     </p>
 
@@ -1074,7 +1074,7 @@ function OrderRow({
  * ============================================================
  * ADMIN STAT
  * ============================================================
- */
+  */
 
 function AdminStat({
     icon,
@@ -1110,7 +1110,7 @@ function AdminStat({
  * ============================================================
  * STATUS
  * ============================================================
- */
+  */
 
 function getOrderStatus(
     order: Order
@@ -1160,7 +1160,7 @@ function getOrderStatus(
  * ============================================================
  * STATUS BADGE
  * ============================================================
- */
+  */
 
 function StatusBadge({
     status,
@@ -1210,7 +1210,7 @@ function StatusBadge({
  * ============================================================
  * MONEY
  * ============================================================
- */
+  */
 
 function formatMoney(
     amount: number,
@@ -1235,7 +1235,7 @@ function formatMoney(
  * ============================================================
  * REVENUE CURRENCY
  * ============================================================
- */
+  */
 
 function getRevenueCurrency(
     orders: Order[]
@@ -1250,7 +1250,7 @@ function getRevenueCurrency(
 
     return (
         paidOrder?.currency ||
-        "USD"
+          "USD"
     );
 }
 
@@ -1258,7 +1258,7 @@ function getRevenueCurrency(
  * ============================================================
  * SHORT ID
  * ============================================================
- */
+  */
 
 function shortId(
     id: string
@@ -1277,7 +1277,7 @@ function shortId(
  * ============================================================
  * DATE
  * ============================================================
- */
+  */
 
 function formatDate(
     timestamp?: number

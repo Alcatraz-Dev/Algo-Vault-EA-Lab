@@ -32,7 +32,7 @@ function GenCard({ report }: { report: GenerationReport }) {
   return (
     <div className="flex min-w-0 flex-col gap-1.5 border-b border-border/60 px-3 py-2 last:border-0">
       <div className="flex items-baseline justify-between gap-2">
-        <span className="font-mono text-xs font-semibold text-foreground">
+        <span className="font-numeric text-xs font-semibold text-foreground">
           GEN {String(report.generation).padStart(2, "0")}
         </span>
         <span className="text-xs text-muted-foreground">
@@ -41,7 +41,7 @@ function GenCard({ report }: { report: GenerationReport }) {
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="w-[104px] shrink-0 font-mono text-xs tabular-nums text-foreground">
+        <span className="w-[104px] shrink-0 font-numeric text-xs tabular-nums text-foreground">
           {candidates.toLocaleString()} candidates
         </span>
         <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted">
@@ -51,7 +51,7 @@ function GenCard({ report }: { report: GenerationReport }) {
             title={`${report.evaluated} evaluated`}
           />
         </div>
-        <span className="w-[92px] shrink-0 text-right font-mono text-xs tabular-nums text-muted-foreground">
+        <span className="w-[92px] shrink-0 text-right font-numeric text-xs tabular-nums text-muted-foreground">
           {report.evaluated.toLocaleString()} evaluated
         </span>
       </div>
@@ -65,7 +65,7 @@ function GenCard({ report }: { report: GenerationReport }) {
             title={`${survivors} survivors`}
           />
         </div>
-        <span className="w-[92px] shrink-0 text-right font-mono text-xs font-semibold tabular-nums text-foreground">
+        <span className="w-[92px] shrink-0 text-right font-numeric text-xs font-semibold tabular-nums text-foreground">
           {survivors.toLocaleString()}
         </span>
       </div>
@@ -73,13 +73,13 @@ function GenCard({ report }: { report: GenerationReport }) {
       <div className="flex flex-wrap items-center gap-x-4 gap-y-0.5 text-xs text-muted-foreground">
         <span>
           mutations{" "}
-          <span className="font-mono tabular-nums text-foreground">
+          <span className="font-numeric tabular-nums text-foreground">
             {report.mutations.toLocaleString()}
           </span>
         </span>
         {report.unevaluated > 0 ? (
           <span className="text-warning">
-            unevaluated <span className="font-mono tabular-nums">{report.unevaluated}</span>
+            unevaluated <span className="font-numeric tabular-nums">{report.unevaluated}</span>
           </span>
         ) : null}
         <span>{(report.durationMs / 1000).toFixed(1)}s</span>
@@ -139,7 +139,7 @@ export function StrategyEvolution({
             <StatRow
               label="Symbol / timeframe"
               value={
-                <span className="font-mono">
+                <span className="font-numeric">
                   {run.symbol} · {run.timeframe}
                 </span>
               }
@@ -148,7 +148,7 @@ export function StrategyEvolution({
               label="Data as of"
               value={
                 run.dataAsOf ? (
-                  <span className="font-mono">{new Date(run.dataAsOf).toISOString().slice(11, 19)}Z</span>
+                  <span className="font-numeric">{new Date(run.dataAsOf).toISOString().slice(11, 19)}Z</span>
                 ) : (
                   <span className="text-muted-foreground">Data unavailable</span>
                 )
@@ -173,7 +173,7 @@ export function StrategyEvolution({
               {
                 label: "Totals",
                 value: (
-                  <span className="font-mono tabular-nums">
+                  <span className="font-numeric tabular-nums">
                     {run.totals.candidates} cand · {run.totals.evaluated} eval ·{" "}
                     {run.totals.survivors} surv
                   </span>
@@ -242,7 +242,7 @@ export function StrategyEvolutionDetail({
               }`}
             >
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <span className="font-mono text-xs font-semibold text-foreground">
+                <span className="font-numeric text-xs font-semibold text-foreground">
                   {c.dna.symbol} {c.dna.timeframe} {c.dna.direction.toUpperCase()}
                 </span>
                 <span
@@ -306,7 +306,7 @@ function MiniStat({ label, value }: { label: string; value: string | null }) {
       {value === null ? (
         <span className="text-muted-foreground/70 italic">n/a</span>
       ) : (
-        <span className="font-mono tabular-nums text-foreground">{value}</span>
+        <span className="font-numeric tabular-nums text-foreground">{value}</span>
       )}
     </span>
   );

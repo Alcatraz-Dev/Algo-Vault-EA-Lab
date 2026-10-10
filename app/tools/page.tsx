@@ -39,7 +39,7 @@ export default function ToolsLandingPage() {
                     <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.04] px-2.5 py-1 text-micro font-semibold uppercase tracking-wider text-primary">
                         <Sparkles className="size-3" /> Tool Library
                     </div>
-                    <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                    <h1 className="text-2xl font-semibold tracking-tight text-foreground">
                         Every trading tool we ship, side by side.
                     </h1>
                     <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
@@ -94,7 +94,7 @@ export default function ToolsLandingPage() {
                     );
                 })}
 
-                <section className="rounded-lg border border-primary/20 bg-gradient-to-br from-primary/[0.06] via-card to-primary/[0.02] p-6 sm:p-8">
+                <section className="rounded-lg border border-primary/20 bg-primary/10 p-6 sm:p-8">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="max-w-2xl">
                             <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground">

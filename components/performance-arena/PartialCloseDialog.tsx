@@ -2,8 +2,8 @@
 
 // Partial close — the two modes are NEVER one ambiguous percentage.
 //
-//   Volume  "close 50% of the position" → close 50% of the size.
-//   Profit  "lock 50% of the profit"    → close the quantity whose ACTUAL
+//   Volume "close 50% of the position" → close 50% of the size.
+//   Profit "lock 50% of the profit"    → close the quantity whose ACTUAL
 //                                         expected net realized P&L equals 50%
 //                                         of the position's current net
 //                                         unrealized P&L, solved against the
@@ -191,7 +191,7 @@ export function PartialCloseDialog({
                             step={1}
                             value={percent}
                             onChange={(event) => setPercent(Math.min(100, Math.max(1, Number(event.target.value) || 0)))}
-                            className="w-20 rounded-md border border-border bg-background px-2 py-1 font-mono text-xs"
+                            className="w-20 rounded-md border border-border bg-background px-2 py-1 font-numeric text-xs"
                         />
                         <span className="text-xs text-muted-foreground">%</span>
                         <div className="ml-auto flex gap-1">
@@ -200,7 +200,7 @@ export function PartialCloseDialog({
                                     key={preset}
                                     type="button"
                                     onClick={() => setPercent(preset)}
-                                    className={`rounded border px-2 py-1 font-mono text-micro ${percent === preset ? "border-primary text-primary" : "border-border text-muted-foreground hover:bg-muted"}`}
+                                    className={`rounded border px-2 py-1 font-numeric text-micro ${percent === preset ? "border-primary text-primary" : "border-border text-muted-foreground hover:bg-muted"}`}
                                 >
                                     {preset}%
                                 </button>

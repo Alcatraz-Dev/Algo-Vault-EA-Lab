@@ -133,7 +133,7 @@ export default function NewsPage() {
                                             {item.symbols.length > 0 && (
                                                 <div className="mt-2 flex flex-wrap gap-1.5">
                                                     {item.symbols.map((sym) => (
-                                                        <span key={sym} className="rounded-md bg-muted px-2 py-0.5 font-mono text-micro text-muted-foreground">{sym}</span>
+                                                        <span key={sym} className="rounded-md bg-muted px-2 py-0.5 font-numeric text-micro text-muted-foreground">{sym}</span>
                                                     ))}
                                                 </div>
                                             )}

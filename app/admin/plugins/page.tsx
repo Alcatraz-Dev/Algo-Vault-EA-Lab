@@ -130,15 +130,15 @@ export default function AdminPluginsPage() {
     return (
         <AdminShell title="Plugins & Extensions" subtitle="Catalog administration, lifecycle and runtime control.">
             {loadError && (
-                <div className="mb-5 flex items-start justify-between gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-4">
-                    <p className="text-sm text-red-300">{loadError}</p>
-                    <button type="button" onClick={load} className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 px-3 py-1.5 text-xs text-red-300 transition hover:bg-red-500/20">
+                <div className="mb-5 flex items-start justify-between gap-3 rounded-lg border border-negative/30 bg-negative/10 p-4">
+                    <p className="text-sm text-negative">{loadError}</p>
+                    <button type="button" onClick={load} className="inline-flex items-center gap-1.5 rounded-lg border border-negative/30 px-3 py-1.5 text-xs text-negative transition hover:bg-negative/20">
                         <RefreshCw size={12} /> Retry
                     </button>
                 </div>
             )}
             {seedNotice && (
-                <div className="mb-5 flex items-start gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-100">
+                <div className="mb-5 flex items-start gap-3 rounded-lg border border-positive/30 bg-positive/10 p-4 text-sm text-positive">
                     <CheckCircle2 size={16} className="mt-0.5 shrink-0" />
                     {seedNotice}
                 </div>
@@ -158,20 +158,20 @@ export default function AdminPluginsPage() {
 
             {/* Actions */}
             <div className="mb-6 flex flex-wrap items-center gap-2">
-                <Link href="/admin/plugins/create" className="inline-flex items-center gap-2 rounded-xl bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
+                <Link href="/admin/plugins/create" className="inline-flex items-center gap-2 rounded-lg bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
                     <Plus size={14} /> Create Plugin
                 </Link>
-                <Link href="/admin/plugins/ai-studio" className="inline-flex items-center gap-2 rounded-xl bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
+                <Link href="/admin/plugins/ai-studio" className="inline-flex items-center gap-2 rounded-lg bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
                     <Sparkles size={14} /> AI Plugin Studio
                 </Link>
-                <Link href="/admin/extensions" className="inline-flex items-center gap-2 rounded-xl bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
+                <Link href="/admin/extensions" className="inline-flex items-center gap-2 rounded-lg bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
                     <Puzzle size={14} /> Extensions
                 </Link>
                 <button
                     type="button"
                     onClick={seedCatalog}
                     disabled={seeding}
-                    className="inline-flex items-center gap-2 rounded-xl border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
                 >
                     {seeding ? <Loader2 size={14} className="animate-spin" /> : <Database size={14} />}
                     {seeding ? "Seeding..." : "Seed built-in catalog"}
@@ -218,9 +218,9 @@ export default function AdminPluginsPage() {
                                             </td>
                                             <td className="px-4 py-3">
                                                 {record.type === "extension" ? (
-                                                    <span className="text-xs text-emerald-300">{EXTENSION_TYPE_LABELS[extType || "browser"]}</span>
+                                                    <span className="text-xs text-positive">{EXTENSION_TYPE_LABELS[extType || "browser"]}</span>
                                                 ) : (
-                                                    <span className="text-xs text-violet-300">{CATEGORY_LABELS[record.category]}</span>
+                                                    <span className="text-xs text-primary">{CATEGORY_LABELS[record.category]}</span>
                                                 )}
                                             </td>
                                             <td className="px-4 py-3">
@@ -249,7 +249,7 @@ export default function AdminPluginsPage() {
                                                         type="button"
                                                         disabled={deletingId === record.id}
                                                         onClick={() => deleteRecord(record)}
-                                                        className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 px-2.5 py-2 text-xs text-red-300 transition hover:bg-red-500/10 disabled:opacity-50"
+                                                        className="inline-flex items-center gap-1.5 rounded-lg border border-negative/30 px-2.5 py-2 text-xs text-negative transition hover:bg-negative/10 disabled:opacity-50"
                                                     >
                                                         {deletingId === record.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
                                                         Delete

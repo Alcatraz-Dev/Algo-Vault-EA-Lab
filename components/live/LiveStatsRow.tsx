@@ -48,7 +48,7 @@ function StatCard({
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-2 text-micro font-medium text-muted-foreground tracking-wide uppercase">
-        <Icon className="w-3.5 h-3.5 text-[#ff4d00]" />
+        <Icon className="w-3.5 h-3.5 text-primary" />
         {label}
       </div>
       <div className="text-2xl md:text-3xl font-extrabold text-foreground leading-none tracking-tight tabular-nums">
@@ -79,7 +79,7 @@ export default function LiveStatsRow({ activities }: { activities: LiveActivity[
   }, [activities]);
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 py-6 border-y border-border bg-muted/30 backdrop-blur-sm rounded-xl px-4 md:px-6">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 py-6 border-y border-border bg-muted/30 rounded-lg px-4 md:px-6">
       <StatCard value={stats.activeUsers} label="Active Traders" icon={Activity} live />
       <StatCard value={stats.activeMarkets} label="Markets Active" icon={TrendingUp} />
       <StatCard value={stats.aiAnalyses} label="AI Analyses" icon={Bot} live />

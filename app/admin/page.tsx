@@ -128,7 +128,7 @@ export default function AdminPage() {
 
             if (!user) {
                 throw new Error(
-                    "You must be logged in."
+                  "You must be logged in."
                 );
             }
 
@@ -184,7 +184,7 @@ export default function AdminPage() {
                     if (!user) {
                         setLoading(false);
                         setError(
-                            "You must be logged in."
+                          "You must be logged in."
                         );
                         return;
                     }

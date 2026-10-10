@@ -210,14 +210,14 @@ export default function LiveWorldMap({
       {/* Hover card */}
       {hovered && (
         <div
-          className={`pointer-events-none absolute top-3 left-3 z-10 w-56 rounded-xl border p-3 backdrop-blur-md shadow-lg ${
+          className={`pointer-events-none absolute top-3 left-3 z-10 w-56 rounded-lg border p-3 backdrop-blur-md shadow-lg ${
             light ? "bg-white/90 border-border" : "bg-[#0b1622]/90 border-border/70"
           }`}
         >
           <div className="flex items-center gap-2">
             <Globe size={16} aria-hidden className="shrink-0 text-primary" />
             <span className="text-sm font-bold text-foreground">{hovered.country}</span>
-            <span className="ml-auto rounded-full bg-muted px-1.5 py-0.5 text-micro font-mono text-muted-foreground">
+            <span className="ml-auto rounded-full bg-muted px-1.5 py-0.5 text-micro font-numeric text-muted-foreground">
               {hovered.countryCode}
             </span>
           </div>
@@ -236,7 +236,7 @@ export default function LiveWorldMap({
             </div>
           </div>
           <div className="mt-2 text-micro text-muted-foreground">
-            Top market <span className="font-mono font-bold text-foreground">{hovered.topMarket}</span>
+            Top market <span className="font-numeric font-bold text-foreground">{hovered.topMarket}</span>
           </div>
         </div>
       )}
@@ -270,7 +270,7 @@ export default function LiveWorldMap({
 
       {/* Privacy note */}
       <div
-        className={`absolute bottom-3 left-3 z-10 text-micro font-mono tracking-wide ${
+        className={`absolute bottom-3 left-3 z-10 text-micro font-numeric tracking-wide ${
           light ? "text-muted-foreground/70" : "text-muted-foreground/60"
         }`}
       >

@@ -156,7 +156,7 @@ const fmtUsd = (n: number | undefined | null) =>
 
 function Stat({ label, value, tone = "text-foreground", sub }: { label: string; value: React.ReactNode; tone?: string; sub?: React.ReactNode }) {
     return (
-        <div className="rounded-xl border border-border/20 bg-background/50 p-4">
+        <div className="rounded-lg border border-border/20 bg-background/50 p-4">
             <div className="text-micro uppercase tracking-widest text-foreground/70">{label}</div>
             <div className={`mt-1 text-xl font-bold ${tone}`}>{value}</div>
             {sub !== undefined && <div className="mt-0.5 text-micro text-muted-foreground">{sub}</div>}
@@ -167,10 +167,10 @@ function Stat({ label, value, tone = "text-foreground", sub }: { label: string; 
 function ErrorBanner({ error, onClose }: { error: string | null; onClose: () => void }) {
     if (!error) return null;
     return (
-        <div className="mb-5 flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
+        <div className="mb-5 flex items-start gap-3 rounded-lg border border-negative/30 bg-negative/10 p-4 text-sm text-negative">
             <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
             <div className="flex-1">{error}</div>
-            <button className="text-red-300 hover:text-foreground" onClick={onClose} aria-label="Dismiss">×</button>
+            <button className="text-negative hover:text-foreground" onClick={onClose} aria-label="Dismiss">×</button>
         </div>
     );
 }
@@ -194,13 +194,13 @@ function Btn({
 }) {
     const base =
         variant === "primary"
-            ? "border-amber-500/50 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
+            ? "border-warning/50 bg-warning/10 text-warning hover:bg-warning/20"
             : variant === "danger"
-                ? "border-red-500/40 bg-red-500/10 text-red-300 hover:bg-red-500/20"
+                ? "border-negative/40 bg-negative/10 text-negative hover:bg-negative/20"
                 : "border-border/20 bg-foreground/10 text-foreground/70 hover:bg-background/20";
     return (
         <button
-            className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${base} ${className}`}
+            className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${base} ${className}`}
             onClick={onClick}
             disabled={busy || disabled}
             title={title}
@@ -212,10 +212,10 @@ function Btn({
 }
 
 const selCls =
-    "rounded-xl border border-border/20 bg-background px-3 py-2 text-sm font-semibold text-foreground outline-none focus:border-amber-500/50";
+  "rounded-lg border border-border/20 bg-background px-3 py-2 text-sm font-semibold text-foreground outline-none focus:border-warning/50";
 
 const inputCls =
-    "rounded-xl border border-border/20 bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-amber-500/50";
+  "rounded-lg border border-border/20 bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-warning/50";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
     return (
@@ -230,7 +230,7 @@ function DirectionBadge({ dir }: { dir: "long" | "short" | "BUY" | "SELL" | "bul
     const isUp = dir === "long" || dir === "BUY" || dir === "bullish";
     return (
         <span className={`inline-flex items-center gap-1 rounded-lg border px-2 py-0.5 text-xs font-semibold ${
-            isUp ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300" : "border-red-500/40 bg-red-500/10 text-red-300"
+            isUp ? "border-positive/40 bg-positive/10 text-positive" : "border-negative/40 bg-negative/10 text-negative"
         }`}>
             {isUp ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
             {isUp ? "Long" : "Short"}
@@ -417,11 +417,11 @@ export function StrategyLabClient() {
             {/* Header */}
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-amber-400">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-warning">
                         <FlaskConical className="h-4 w-4" />
                         AI STRATEGY LAB
                     </div>
-                    <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">Build, test &amp; deploy strategies</h1>
+                    <h1 className="text-2xl font-semibold tracking-tight mt-2">Build, test &amp; deploy strategies</h1>
                     <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
                         Historical analysis, pattern discovery, AI-assisted strategy generation, backtesting, optimization,
                         validation and forward testing — with{" "}
@@ -460,16 +460,16 @@ export function StrategyLabClient() {
                                         key={s}
                                         onClick={() => goTo(s)}
                                         title={meta.hint}
-                                        className={`group inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                                        className={`group inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition ${
                                             active
-                                                ? "border-amber-500/50 bg-amber-500/10 text-amber-300"
+                                                ? "border-warning/50 bg-warning/10 text-warning"
                                                 : done
-                                                    ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-300/90 hover:bg-emerald-500/10"
+                                                    ? "border-positive/30 bg-positive/5 text-positive/90 hover:bg-positive/10"
                                                     : "border-transparent text-muted-foreground hover:bg-background/20 hover:text-foreground"
                                         }`}
                                     >
                                         {done ? (
-                                            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                                            <CheckCircle2 className="h-4 w-4 text-positive" />
                                         ) : active ? (
                                             <Icon className="h-4 w-4" />
                                         ) : (
@@ -511,7 +511,7 @@ export function StrategyLabClient() {
                             ) : (
                                 <button
                                     onClick={() => goTo("strategy")}
-                                    className="w-full rounded-xl border border-dashed border-border/20 px-3 py-2 text-left text-xs text-muted-foreground transition hover:border-amber-500/40 hover:text-foreground"
+                                    className="w-full rounded-lg border border-dashed border-border/20 px-3 py-2 text-left text-xs text-muted-foreground transition hover:border-warning/40 hover:text-foreground"
                                 >
                                     No strategy selected — pick or generate one →
                                 </button>
@@ -622,11 +622,11 @@ export function StrategyLabClient() {
                 {toasts.map((t) => (
                     <div
                         key={t.id}
-                        className={`pointer-events-auto flex items-start gap-2 rounded-xl border p-3 text-sm shadow-lg backdrop-blur ${
+                        className={`pointer-events-auto flex items-start gap-2 rounded-lg border p-3 text-sm shadow-lg backdrop-blur ${
                             t.kind === "success"
-                                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
+                                ? "border-positive/40 bg-positive/10 text-positive"
                                 : t.kind === "error"
-                                    ? "border-red-500/40 bg-red-500/10 text-red-200"
+                                    ? "border-negative/40 bg-negative/10 text-negative"
                                     : "border-border/30 bg-card text-foreground/80"
                         }`}
                     >
@@ -650,11 +650,11 @@ function StrategyPill({ strategy, onOpen, mismatch }: { strategy: Strategy; onOp
     return (
         <button
             onClick={onOpen}
-            className="flex w-full items-center justify-between gap-2 rounded-xl border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-left transition hover:bg-amber-500/10"
+            className="flex w-full items-center justify-between gap-2 rounded-lg border border-warning/40 bg-warning/5 px-3 py-2 text-left transition hover:bg-warning/10"
             title="Open in Strategy step"
         >
             <span className="min-w-0">
-                <span className="block truncate text-sm font-semibold text-amber-300">{strategy.name}</span>
+                <span className="block truncate text-sm font-semibold text-warning">{strategy.name}</span>
                 <span className="block truncate text-micro text-muted-foreground">
                     {strategy.asset} · {strategy.direction} · {strategy.timeframes.setup}
                     {mismatch && (
@@ -664,7 +664,7 @@ function StrategyPill({ strategy, onOpen, mismatch }: { strategy: Strategy; onOp
                     )}
                 </span>
             </span>
-            <ChevronRight className="h-4 w-4 shrink-0 text-amber-400" />
+            <ChevronRight className="h-4 w-4 shrink-0 text-warning" />
         </button>
     );
 }
@@ -720,7 +720,7 @@ function StrategyDetail({
                             {strategy.name}
                             {onRename && (
                                 <button
-                                    className="text-foreground/40 transition hover:text-amber-300"
+                                    className="text-foreground/40 transition hover:text-warning"
                                     onClick={() => { setName(strategy.name); setEditing(true); }}
                                     aria-label="Rename strategy"
                                 >
@@ -786,22 +786,22 @@ function DataCoveragePanel({ coverage, symbol }: { coverage: DataCoverage[]; sym
             </div>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                 {coverage.map((c) => (
-                    <div key={c.timeframe} className="rounded-xl border border-border/10 bg-foreground/10 p-3">
+                    <div key={c.timeframe} className="rounded-lg border border-border/10 bg-foreground/10 p-3">
                         <div className="flex items-center justify-between">
                             <span className="text-sm font-bold text-foreground">{c.timeframe}</span>
                             <span className={`rounded-lg border px-1.5 py-0.5 text-micro font-semibold uppercase ${
                                 c.availableBars === 0
-                                    ? "border-red-500/40 text-red-300"
+                                    ? "border-negative/40 text-negative"
                                     : c.fullyCoversRequest
-                                        ? "border-emerald-500/40 text-emerald-300"
-                                        : "border-amber-500/40 text-amber-300"
+                                        ? "border-positive/40 text-positive"
+                                        : "border-warning/40 text-warning"
                             }`}>
                                 {c.availableBars === 0 ? "no data" : c.fullyCoversRequest ? "full window" : "partial"}
                             </span>
                         </div>
                         <div className="mt-1.5 grid grid-cols-2 gap-1 text-micro text-muted-foreground">
-                            <span>Bars <span className="font-mono text-foreground">{c.availableBars}</span></span>
-                            <span>Span <span className="font-mono text-foreground">{fmt(c.spanDays, 1)}d</span></span>
+                            <span>Bars <span className="font-numeric text-foreground">{c.availableBars}</span></span>
+                            <span>Span <span className="font-numeric text-foreground">{fmt(c.spanDays, 1)}d</span></span>
                             <span className="col-span-2 truncate" title={c.availableFrom ? new Date(c.availableFrom).toLocaleString() : ""}>
                                 {c.availableFrom ? `${new Date(c.availableFrom).toLocaleDateString()} → ${new Date(c.availableTo).toLocaleDateString()}` : "—"}
                             </span>
@@ -821,7 +821,7 @@ function EquityCurve({ equity }: { equity: { time: number; balance: number; equi
     return (
         <div className="rounded-lg border border-border/20 bg-card p-4">
             <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
-                <LineChartIcon className="h-4 w-4 text-amber-400" /> Equity curve
+                <LineChartIcon className="h-4 w-4 text-warning" /> Equity curve
                 <span className="text-xs font-normal text-muted-foreground">— balance vs equity incl. open risk</span>
             </div>
             <div className="h-64">
@@ -921,8 +921,8 @@ function MarketTab({
                 analysis && (
                     <div className="flex flex-col gap-6">
                         {aiSummary && (
-                            <div className="rounded-lg border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-background/40 to-background p-5">
-                                <div className="flex items-center gap-2 text-sm font-semibold text-amber-300">
+                            <div className="rounded-lg border border-warning/20 bg-warning-muted p-5">
+                                <div className="flex items-center gap-2 text-sm font-semibold text-warning">
                                     <Sparkles className="h-4 w-4" /> AI Summary {aiSummary.generatedBy === "openai" ? "(GPT)" : "(local)"}
                                 </div>
                                 <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-foreground/70">{aiSummary.summary}</p>
@@ -948,7 +948,7 @@ function MarketTab({
                             ))}
                         </div>
 
-                        <div className="rounded-xl border border-border/20 bg-card p-4 text-sm text-muted-foreground">
+                        <div className="rounded-lg border border-border/20 bg-card p-4 text-sm text-muted-foreground">
                             <div className="mb-2 text-xs font-semibold uppercase tracking-widest text-foreground/70">Cross-timeframe reads</div>
                             {analysis.relationships?.length ? (
                                 <ul className="flex flex-col gap-2">
@@ -1029,7 +1029,7 @@ function PatternsTab({
                                 onClick={() => setSelectedPattern(selected ? null : p)}
                                 className={`rounded-lg border p-4 text-left transition ${
                                     selected
-                                        ? "border-amber-500/50 bg-amber-500/10 ring-1 ring-amber-500/40"
+                                        ? "border-warning/50 bg-warning/10 ring-1 ring-warning/40"
                                         : "border-border/20 bg-card hover:bg-background/20"
                                 }`}
                             >
@@ -1042,7 +1042,7 @@ function PatternsTab({
                                 </div>
                                 {p.stats ? (
                                     <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-                                        <div><div className="text-micro uppercase text-foreground/70">Win rate</div><div className="font-semibold text-emerald-300">{fmtPct(p.stats.winRate)}</div></div>
+                                        <div><div className="text-micro uppercase text-foreground/70">Win rate</div><div className="font-semibold text-positive">{fmtPct(p.stats.winRate)}</div></div>
                                         <div><div className="text-micro uppercase text-foreground/70">Avg R</div><div className="font-semibold text-foreground">{fmt(p.stats.averageR)}</div></div>
                                         <div><div className="text-micro uppercase text-foreground/70">Profit factor</div><div className="font-semibold text-foreground">{fmt(p.stats.profitFactor)}</div></div>
                                         <div><div className="text-micro uppercase text-foreground/70">Occurrences</div><div className="font-semibold text-foreground/70">{p.stats.occurrences}</div></div>
@@ -1051,7 +1051,7 @@ function PatternsTab({
                                     <div className="mt-3 text-xs text-muted-foreground">{p.matchCount} raw matches — below the statistical threshold.</div>
                                 )}
                                 {selected && (
-                                    <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-2 text-xs text-amber-200">
+                                    <div className="mt-3 rounded-lg border border-warning/30 bg-warning/5 p-2 text-xs text-warning">
                                         Selected — generate a strategy from this pattern in step 3.
                                     </div>
                                 )}
@@ -1062,9 +1062,9 @@ function PatternsTab({
             )}
 
             {selectedPattern && (
-                <div className="flex flex-col gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-3 rounded-lg border border-warning/30 bg-warning/5 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="text-sm text-foreground/70">
-                        <span className="font-semibold text-amber-300">{selectedPattern.name}</span> selected
+                        <span className="font-semibold text-warning">{selectedPattern.name}</span> selected
                         ({selectedPattern.stats?.occurrences ?? selectedPattern.matchCount} occurrences on {selectedPattern.timeframe}).
                         <div className="mt-1 text-xs text-foreground/60">Outcomes are measured on live historical data — always validate before deploying.</div>
                     </div>
@@ -1162,14 +1162,14 @@ function StrategyTab({
                     <div className="mt-4 flex flex-wrap items-center gap-4">
                         <div className="flex gap-2">
                             <button
-                                className={`rounded-lg border px-3 py-1.5 text-sm font-semibold ${direction === "long" ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-300" : "border-border/20 bg-foreground/10 text-muted-foreground"}`}
+                                className={`rounded-lg border px-3 py-1.5 text-sm font-semibold ${direction === "long" ? "border-positive/50 bg-positive/10 text-positive" : "border-border/20 bg-foreground/10 text-muted-foreground"}`}
                                 onClick={() => setDirection("long")}
                                 disabled={!!selectedPattern}
                             >
                                 Long
                             </button>
                             <button
-                                className={`rounded-lg border px-3 py-1.5 text-sm font-semibold ${direction === "short" ? "border-red-500/50 bg-red-500/10 text-red-300" : "border-border/20 bg-foreground/10 text-muted-foreground"}`}
+                                className={`rounded-lg border px-3 py-1.5 text-sm font-semibold ${direction === "short" ? "border-negative/50 bg-negative/10 text-negative" : "border-border/20 bg-foreground/10 text-muted-foreground"}`}
                                 onClick={() => setDirection("short")}
                                 disabled={!!selectedPattern}
                             >
@@ -1206,8 +1206,8 @@ function StrategyTab({
                         strategies.map((s) => (
                             <div
                                 key={s.id}
-                                className={`group rounded-xl border p-3 transition ${
-                                    selectedStrategy?.id === s.id ? "border-amber-500/50 bg-amber-500/10" : "border-border/20 bg-foreground/10 hover:bg-background/20"
+                                className={`group rounded-lg border p-3 transition ${
+                                    selectedStrategy?.id === s.id ? "border-warning/50 bg-warning/10" : "border-border/20 bg-foreground/10 hover:bg-background/20"
                                 }`}
                             >
                                 <div className="flex items-center justify-between gap-2">
@@ -1223,7 +1223,7 @@ function StrategyTab({
                                     <div className="flex shrink-0 items-center gap-1.5">
                                         <DirectionBadge dir={s.direction} />
                                         <button
-                                            className="rounded-lg p-1.5 text-foreground/30 opacity-0 transition hover:bg-red-500/10 hover:text-red-300 group-hover:opacity-100"
+                                            className="rounded-lg p-1.5 text-foreground/30 opacity-0 transition hover:bg-negative/10 hover:text-negative group-hover:opacity-100"
                                             onClick={() => void remove(s)}
                                             aria-label={`Delete ${s.name}`}
                                             title="Delete strategy"
@@ -1348,12 +1348,12 @@ function BacktestTab({
             {backtest && m && (
                 <>
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <Stat label="Net profit" value={fmtUsd(m.netProfit)} tone={m.netProfit >= 0 ? "text-emerald-300" : "text-red-300"} sub={`final ${fmtUsd(m.finalBalance)}`} />
-                        <Stat label="Return" value={fmtPct(m.returnPct)} tone={m.returnPct >= 0 ? "text-emerald-300" : "text-red-300"} sub={`buy & hold ${fmtPct(m.buyHoldReturnPct)} ${beatsBuyHold ? "· beaten ✓" : ""}`} />
+                        <Stat label="Net profit" value={fmtUsd(m.netProfit)} tone={m.netProfit >= 0 ? "text-positive" : "text-negative"} sub={`final ${fmtUsd(m.finalBalance)}`} />
+                        <Stat label="Return" value={fmtPct(m.returnPct)} tone={m.returnPct >= 0 ? "text-positive" : "text-negative"} sub={`buy & hold ${fmtPct(m.buyHoldReturnPct)} ${beatsBuyHold ? "· beaten ✓" : ""}`} />
                         <Stat label="Win rate" value={fmtPct(m.winRate)} sub={`${m.winningTrades}W / ${m.losingTrades}L / ${m.breakevenTrades}BE`} />
-                        <Stat label="Profit factor" value={fmt(m.profitFactor)} tone={m.profitFactor >= 1.3 ? "text-emerald-300" : m.profitFactor >= 1 ? "text-amber-300" : "text-red-300"} />
+                        <Stat label="Profit factor" value={fmt(m.profitFactor)} tone={m.profitFactor >= 1.3 ? "text-positive" : m.profitFactor >= 1 ? "text-warning" : "text-negative"} />
                         <Stat label="Expectancy" value={`${fmt(m.expectancyR)}R`} sub={fmtUsd(m.expectancy)} />
-                        <Stat label="Max drawdown" value={fmtPct(m.maxDrawdownPct)} tone="text-red-300" sub={fmtUsd(-m.maxDrawdownAbs)} />
+                        <Stat label="Max drawdown" value={fmtPct(m.maxDrawdownPct)} tone="text-negative" sub={fmtUsd(-m.maxDrawdownAbs)} />
                         <Stat label="Trades" value={m.totalTrades} sub={`${m.longTrades} long · ${m.shortTrades} short`} />
                         <Stat label="Sharpe-like" value={fmt(m.sharpeLike)} sub={`recovery ${fmt(m.recoveryFactor)}`} />
                     </div>
@@ -1361,8 +1361,8 @@ function BacktestTab({
                     {backtest.equity.length > 1 && <EquityCurve equity={backtest.equity} />}
 
                     {m.totalTrades === 0 && (
-                        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-foreground/70">
-                            <span className="font-semibold text-amber-300">No trades fired.</span>{" "}
+                        <div className="rounded-lg border border-warning/30 bg-warning/5 p-4 text-sm text-foreground/70">
+                            <span className="font-semibold text-warning">No trades fired.</span>{" "}
                             The strategy entries on {backtest.timeframe}, and the feed only provides{" "}
                             {backtest.coverage.availableBars} bars (~{fmt(backtest.coverage.spanDays, 1)} days) for that timeframe.
                             {backtest.diagnostics && backtest.diagnostics.loopBars > 0 && (
@@ -1372,7 +1372,7 @@ function BacktestTab({
                                 </span>
                             )}
                             {backtest.diagnostics && backtest.diagnostics.blockingRuleIds.length > 0 && (
-                                <div className="mt-2 rounded-lg border border-amber-500/20 bg-amber-500/5 p-2">
+                                <div className="mt-2 rounded-lg border border-warning/20 bg-warning/5 p-2">
                                     <span className="font-semibold text-foreground/80">Rules that never fired in this window:</span>
                                     <ul className="mt-1 list-disc pl-5">
                                         {backtest.diagnostics.rules
@@ -1405,7 +1405,7 @@ function BacktestTab({
                         <Btn onClick={exportCsv} variant="ghost"><Download className="h-4 w-4" /> Export CSV</Btn>
                     </div>
 
-                    <div className="max-h-[420px] overflow-auto rounded-xl border border-border/20 bg-card">
+                    <div className="max-h-[420px] overflow-auto rounded-lg border border-border/20 bg-card">
                         <table className="w-full text-left text-xs">
                             <thead className="sticky top-0 border-b border-border/20 bg-card text-micro uppercase tracking-widest text-foreground/70">
                                 <tr>
@@ -1426,8 +1426,8 @@ function BacktestTab({
                                         <td className="px-3 py-2 text-foreground">{fmt(t.entry, 2)}</td>
                                         <td className="px-3 py-2 text-foreground">{fmt(t.exit, 2)}</td>
                                         <td className="px-3 py-2 text-muted-foreground">{t.exitReason}</td>
-                                        <td className={`px-3 py-2 text-foreground ${t.profitR >= 0 ? "text-emerald-300" : "text-red-300"}`}>{fmt(t.profitR)}</td>
-                                        <td className={`px-3 py-2 font-semibold ${t.pnlGross >= 0 ? "text-emerald-300" : "text-red-300"}`}>{fmtUsd(t.pnlGross)}</td>
+                                        <td className={`px-3 py-2 text-foreground ${t.profitR >= 0 ? "text-positive" : "text-negative"}`}>{fmt(t.profitR)}</td>
+                                        <td className={`px-3 py-2 font-semibold ${t.pnlGross >= 0 ? "text-positive" : "text-negative"}`}>{fmtUsd(t.pnlGross)}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -1575,9 +1575,9 @@ function OptimizeTab({
                             const meta = PARAM_META[p];
                             const g = grid[p];
                             return (
-                                <div key={p} className="flex flex-wrap items-center gap-3 rounded-xl border border-border/10 bg-foreground/10 p-3">
+                                <div key={p} className="flex flex-wrap items-center gap-3 rounded-lg border border-border/10 bg-foreground/10 p-3">
                                     <label className="flex w-44 cursor-pointer items-center gap-2 text-sm font-semibold text-foreground">
-                                        <input type="checkbox" className="accent-amber-500" checked={enabled[p]} onChange={(e) => setEnabled({ ...enabled, [p]: e.target.checked })} />
+                                        <input type="checkbox" className="accent-warning" checked={enabled[p]} onChange={(e) => setEnabled({ ...enabled, [p]: e.target.checked })} />
                                         {meta.label}
                                     </label>
                                     <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -1615,18 +1615,18 @@ function OptimizeTab({
                         <Stat label="Combinations tested" value={optimization.results.length} sub={`score σ ${fmt(optimization.stabilityStdDev)}`} />
                         {optimization.best && (
                             <>
-                                <Stat label="Best score" value={fmt(optimization.best.score)} tone="text-amber-300" />
+                                <Stat label="Best score" value={fmt(optimization.best.score)} tone="text-warning" />
                                 <Stat label="Best win rate" value={fmtPct(optimization.best.metrics.winRate)} sub={`PF ${fmt(optimization.best.metrics.profitFactor)}`} />
-                                <Stat label="Best return" value={fmtPct(optimization.best.metrics.returnPct)} tone={optimization.best.metrics.returnPct >= 0 ? "text-emerald-300" : "text-red-300"} sub={`max DD ${fmtPct(optimization.best.metrics.maxDrawdownPct)}`} />
+                                <Stat label="Best return" value={fmtPct(optimization.best.metrics.returnPct)} tone={optimization.best.metrics.returnPct >= 0 ? "text-positive" : "text-negative"} sub={`max DD ${fmtPct(optimization.best.metrics.maxDrawdownPct)}`} />
                             </>
                         )}
                     </div>
 
                     {optimization.best && selectedStrategy && (
-                        <div className="flex flex-col gap-2 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex flex-col gap-2 rounded-lg border border-warning/30 bg-warning/5 p-4 sm:flex-row sm:items-center sm:justify-between">
                             <div className="text-sm text-foreground/70">
                                 Best combo:{" "}
-                                <span className="font-mono font-semibold text-amber-300">
+                                <span className="font-numeric font-semibold text-warning">
                                     {Object.entries(optimization.best.config).map(([k, v]) => `${k}=${String(v)}`).join(" · ")}
                                 </span>
                             </div>
@@ -1636,7 +1636,7 @@ function OptimizeTab({
                         </div>
                     )}
 
-                    <div className="max-h-[460px] overflow-auto rounded-xl border border-border/20 bg-card">
+                    <div className="max-h-[460px] overflow-auto rounded-lg border border-border/20 bg-card">
                         <table className="w-full text-left text-xs">
                             <thead className="sticky top-0 border-b border-border/20 bg-card text-micro uppercase tracking-widest text-foreground/70">
                                 <tr>
@@ -1656,20 +1656,20 @@ function OptimizeTab({
                                 {optimization.results.slice(0, 25).map((r, i) => (
                                     <tr key={i} className="border-b border-border/10">
                                         <td className="px-3 py-2 text-foreground/70">{i + 1}</td>
-                                        <td className="px-3 py-2 font-mono text-micro text-foreground/70">
+                                        <td className="px-3 py-2 font-numeric text-micro text-foreground/70">
                                             {Object.entries(r.config).map(([k, v]) => `${k}=${String(v)}`).join(" ")}
                                         </td>
-                                        <td className="px-3 py-2 font-semibold text-amber-300">{fmt(r.score)}</td>
+                                        <td className="px-3 py-2 font-semibold text-warning">{fmt(r.score)}</td>
                                         <td className="px-3 py-2 text-foreground">{fmtPct(r.metrics.winRate)}</td>
                                         <td className="px-3 py-2 text-foreground">{fmt(r.metrics.profitFactor)}</td>
                                         <td className="px-3 py-2 text-foreground">{fmtPct(r.metrics.returnPct)}</td>
-                                        <td className="px-3 py-2 text-red-300">{fmtPct(r.metrics.maxDrawdownPct)}</td>
+                                        <td className="px-3 py-2 text-negative">{fmtPct(r.metrics.maxDrawdownPct)}</td>
                                         <td className="px-3 py-2 text-foreground">{fmt(r.metrics.expectancyR)}</td>
                                         <td className="px-3 py-2 text-muted-foreground">{r.metrics.totalTrades}</td>
                                         <td className="px-3 py-2 text-right">
                                             {i === 0 && selectedStrategy && (
                                                 <button
-                                                    className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-2 py-1 text-micro font-semibold text-amber-300 transition hover:bg-amber-500/20"
+                                                    className="rounded-lg border border-warning/40 bg-warning/10 px-2 py-1 text-micro font-semibold text-warning transition hover:bg-warning/20"
                                                     onClick={() => void applyBest(r)}
                                                     disabled={applying}
                                                 >
@@ -1722,17 +1722,17 @@ function ValidateTab({
         });
 
     const verdictTone: Record<string, string> = {
-        robust: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
-        marginal: "border-amber-500/40 bg-amber-500/10 text-amber-300",
-        fragile: "border-orange-500/40 bg-orange-500/10 text-orange-300",
+        robust: "border-positive/40 bg-positive/10 text-positive",
+        marginal: "border-warning/40 bg-warning/10 text-warning",
+        fragile: "border-warning/40 bg-warning-muted text-warning",
         inconclusive: "border-border/40 bg-muted/10 text-foreground/70",
     };
 
     const gradeTone = (g: string) =>
-        g === "A" ? "border-emerald-500/40 text-emerald-300"
-        : g === "B" ? "border-amber-500/40 text-amber-300"
-        : g === "C" ? "border-orange-500/40 text-orange-300"
-        : "border-red-500/40 text-red-300";
+        g === "A" ? "border-positive/40 text-positive"
+        : g === "B" ? "border-warning/40 text-warning"
+        : g === "C" ? "border-warning/40 text-warning"
+        : "border-negative/40 text-negative";
 
     return (
         <div className="flex flex-col gap-6">
@@ -1759,12 +1759,12 @@ function ValidateTab({
             ) : (
                 <div className="flex flex-col gap-6">
                     <div className="flex flex-wrap items-center gap-4">
-                        <span className={`rounded-xl border px-4 py-2 text-sm font-bold uppercase tracking-widest ${verdictTone[validation.verdict] ?? verdictTone.inconclusive}`}>
+                        <span className={`rounded-lg border px-4 py-2 text-sm font-bold uppercase tracking-widest ${verdictTone[validation.verdict] ?? verdictTone.inconclusive}`}>
                             {validation.verdict}
                         </span>
                         {robustness && (
                             <div className="flex items-center gap-3">
-                                <div className="rounded-xl border border-border/20 bg-card px-4 py-2 text-sm">
+                                <div className="rounded-lg border border-border/20 bg-card px-4 py-2 text-sm">
                                     <span className="text-foreground/70">Robustness </span>
                                     <span className="font-bold text-foreground">{fmt(robustness.score)}</span>
                                     <span className={`ml-2 rounded-lg border px-2 py-0.5 text-xs font-bold ${gradeTone(robustness.grade)}`}>{robustness.grade}</span>
@@ -1777,10 +1777,10 @@ function ValidateTab({
                     {robustness && (
                         <div className="grid gap-2 rounded-lg border border-border/20 bg-card p-4 sm:grid-cols-4 lg:grid-cols-7">
                             {Object.entries(robustness.factors).map(([k, v]) => (
-                                <div key={k} className="rounded-xl border border-border/10 bg-foreground/10 p-3">
+                                <div key={k} className="rounded-lg border border-border/10 bg-foreground/10 p-3">
                                     <div className="text-micro uppercase tracking-widest text-foreground/70">{k.replace(/([A-Z])/g, " $1").toLowerCase()}</div>
                                     <div className="mt-1 flex items-center gap-2">
-                                        <span className="font-mono text-sm font-bold text-foreground">{fmt(v, 0)}</span>
+                                        <span className="font-numeric text-sm font-bold text-foreground">{fmt(v, 0)}</span>
                                         <span className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
                                             <span className="block h-full rounded-full bg-primary" style={{ width: `${Math.max(0, Math.min(100, v))}%` }} />
                                         </span>
@@ -1792,30 +1792,30 @@ function ValidateTab({
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="rounded-lg border border-border/20 bg-card p-5">
-                            <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-emerald-400">In-sample</div>
+                            <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-positive">In-sample</div>
                             <div className="grid grid-cols-2 gap-3 text-sm">
                                 <div><div className="text-micro uppercase text-foreground/70">Trades</div><div className="font-semibold text-foreground">{validation.inSample.trades}</div></div>
                                 <div><div className="text-micro uppercase text-foreground/70">Win rate</div><div className="font-semibold text-foreground">{fmtPct(validation.inSample.metrics.winRate)}</div></div>
                                 <div><div className="text-micro uppercase text-foreground/70">Profit factor</div><div className="font-semibold text-foreground">{fmt(validation.inSample.metrics.profitFactor)}</div></div>
                                 <div><div className="text-micro uppercase text-foreground/70">Return</div><div className="font-semibold text-foreground">{fmtPct(validation.inSample.metrics.returnPct)}</div></div>
-                                <div><div className="text-micro uppercase text-foreground/70">Max DD</div><div className="font-semibold text-red-300">{fmtPct(validation.inSample.metrics.maxDrawdownPct)}</div></div>
+                                <div><div className="text-micro uppercase text-foreground/70">Max DD</div><div className="font-semibold text-negative">{fmtPct(validation.inSample.metrics.maxDrawdownPct)}</div></div>
                                 <div><div className="text-micro uppercase text-foreground/70">Expectancy R</div><div className="font-semibold text-foreground">{fmt(validation.inSample.metrics.expectancyR)}</div></div>
                             </div>
                         </div>
                         <div className="rounded-lg border border-border/20 bg-card p-5">
-                            <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-blue-400">Out-of-sample</div>
+                            <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-info">Out-of-sample</div>
                             <div className="grid grid-cols-2 gap-3 text-sm">
                                 <div><div className="text-micro uppercase text-foreground/70">Trades</div><div className="font-semibold text-foreground">{validation.outOfSample.trades}</div></div>
                                 <div><div className="text-micro uppercase text-foreground/70">Win rate</div><div className="font-semibold text-foreground">{fmtPct(validation.outOfSample.metrics.winRate)}</div></div>
                                 <div><div className="text-micro uppercase text-foreground/70">Profit factor</div><div className="font-semibold text-foreground">{fmt(validation.outOfSample.metrics.profitFactor)}</div></div>
                                 <div><div className="text-micro uppercase text-foreground/70">Return</div><div className="font-semibold text-foreground">{fmtPct(validation.outOfSample.metrics.returnPct)}</div></div>
-                                <div><div className="text-micro uppercase text-foreground/70">Max DD</div><div className="font-semibold text-red-300">{fmtPct(validation.outOfSample.metrics.maxDrawdownPct)}</div></div>
+                                <div><div className="text-micro uppercase text-foreground/70">Max DD</div><div className="font-semibold text-negative">{fmtPct(validation.outOfSample.metrics.maxDrawdownPct)}</div></div>
                                 <div><div className="text-micro uppercase text-foreground/70">Expectancy R</div><div className="font-semibold text-foreground">{fmt(validation.outOfSample.metrics.expectancyR)}</div></div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="rounded-xl border border-border/20 bg-card p-5">
+                    <div className="rounded-lg border border-border/20 bg-card p-5">
                         <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Degradation (in → out of sample)</div>
                         <div className="grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-5">
                             <div className="text-muted-foreground">Win rate <span className="text-foreground">{fmt(validation.degradation.winRateDiff)}pp</span></div>
@@ -1826,7 +1826,7 @@ function ValidateTab({
                         </div>
                         <div className="mt-3 text-sm text-muted-foreground">
                             Walk-forward windows: <span className="text-foreground">{validation.walkForward.windows.length}</span> · stable:{" "}
-                            <span className={validation.walkForward.stable ? "text-emerald-300" : "text-red-300"}>{validation.walkForward.stable ? "yes" : "no"}</span> · stability score:{" "}
+                            <span className={validation.walkForward.stable ? "text-positive" : "text-negative"}>{validation.walkForward.stable ? "yes" : "no"}</span> · stability score:{" "}
                             <span className="text-foreground">{fmt(validation.walkForward.stabilityScore)}</span>
                         </div>
                     </div>
@@ -1936,11 +1936,11 @@ function DeployTab({
                         {MODES.map((m) => (
                             <label
                                 key={m.key}
-                                className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 transition ${
-                                    mode === m.key ? "border-amber-500/50 bg-amber-500/10" : "border-border/20 bg-foreground/10 hover:bg-background/20"
+                                className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3.5 transition ${
+                                    mode === m.key ? "border-warning/50 bg-warning/10" : "border-border/20 bg-foreground/10 hover:bg-background/20"
                                 }`}
                             >
-                                <input type="radio" name="mode" className="mt-1 accent-amber-500" checked={mode === m.key} onChange={() => setMode(m.key)} />
+                                <input type="radio" name="mode" className="mt-1 accent-warning" checked={mode === m.key} onChange={() => setMode(m.key)} />
                                 <span>
                                     <span className="block text-sm font-semibold text-foreground">{m.label}</span>
                                     <span className="text-xs text-muted-foreground">{m.desc}</span>
@@ -1949,8 +1949,8 @@ function DeployTab({
                         ))}
                     </div>
 
-                    <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-border/20 bg-foreground/10 p-3.5">
-                        <input type="checkbox" className="mt-1 accent-amber-500" checked={terms} onChange={(e) => setTerms(e.target.checked)} />
+                    <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-lg border border-border/20 bg-foreground/10 p-3.5">
+                        <input type="checkbox" className="mt-1 accent-warning" checked={terms} onChange={(e) => setTerms(e.target.checked)} />
                         <span className="text-xs leading-relaxed text-muted-foreground">
                             I understand the Strategy Lab runs on historical market data, live signals involve real risk,
                             that paper/demo/live outcomes differ, and that backtested performance{" "}
@@ -1976,23 +1976,23 @@ function DeployTab({
                 )}
 
                 {forwardTest && (
-                    <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-5">
+                    <div className="rounded-lg border border-positive/30 bg-positive/5 p-5">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                            <div className="flex items-center gap-2 text-sm font-bold text-emerald-300">
+                            <div className="flex items-center gap-2 text-sm font-bold text-positive">
                                 <CheckCircle2 className="h-4 w-4" /> Forward test running
                             </div>
                             <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
-                                <input type="checkbox" className="accent-emerald-500" checked={autoPoll} onChange={(e) => setAutoPoll(e.target.checked)} />
+                                <input type="checkbox" className="accent-positive" checked={autoPoll} onChange={(e) => setAutoPoll(e.target.checked)} />
                                 Auto-refresh (30s)
                             </label>
                         </div>
                         <div className="mt-2 grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
                             <div><span className="text-foreground/70">Mode </span><span className="capitalize text-foreground">{forwardTest.mode.replace("_", " ")}</span></div>
                             <div><span className="text-foreground/70">Signals </span><span className="text-foreground">{forwardTest.signals.length}</span></div>
-                            <div><span className="text-foreground/70">Open </span><span className="text-amber-300">{forwardTest.signals.filter((s) => s.status === "open").length}</span></div>
+                            <div><span className="text-foreground/70">Open </span><span className="text-warning">{forwardTest.signals.filter((s) => s.status === "open").length}</span></div>
                             <div><span className="text-foreground/70">Closed / wins </span><span className="text-foreground">{closedSignals.length} / {forwardTest.tradeCount}</span></div>
                             <div><span className="text-foreground/70">Hit rate </span><span className="text-foreground">{winRate === null ? "–" : fmtPct(winRate)}</span></div>
-                            <div><span className="text-foreground/70">Cumulative R </span><span className={totalR !== null && totalR >= 0 ? "text-emerald-300" : "text-red-300"}>{totalR === null ? "–" : fmt(totalR)}</span></div>
+                            <div><span className="text-foreground/70">Cumulative R </span><span className={totalR !== null && totalR >= 0 ? "text-positive" : "text-negative"}>{totalR === null ? "–" : fmt(totalR)}</span></div>
                         </div>
                         <div className="mt-3">
                             <Btn onClick={() => void poll(true)} busy={pollBusy} variant="ghost">
@@ -2007,13 +2007,13 @@ function DeployTab({
                         <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Active deployments</div>
                         <div className="flex flex-col gap-2">
                             {deployments.map((d) => (
-                                <div key={d.id} className="flex items-center justify-between rounded-xl border border-border/20 bg-foreground/10 p-3 text-sm">
+                                <div key={d.id} className="flex items-center justify-between rounded-lg border border-border/20 bg-foreground/10 p-3 text-sm">
                                     <div className="min-w-0">
                                         <span className="font-semibold text-foreground">{d.strategyName}</span>
                                         <span className="ml-2 text-xs text-foreground/70">{d.symbol} · {d.mode.replace("_", " ")}</span>
                                     </div>
                                     <span className={`rounded-lg border px-2 py-0.5 text-xs font-semibold ${
-                                        d.status === "active" || d.status === "live" ? "border-emerald-500/40 text-emerald-300" : "border-border/40 text-muted-foreground"
+                                        d.status === "active" || d.status === "live" ? "border-positive/40 text-positive" : "border-border/40 text-muted-foreground"
                                     }`}>{d.status}</span>
                                 </div>
                             ))}
@@ -2024,19 +2024,19 @@ function DeployTab({
 
             <div className="flex flex-col gap-4">
                 <div className="rounded-lg border border-border/20 bg-card p-5">
-                    <h3 className="flex items-center gap-2 text-base font-bold text-foreground"><TrendingUp className="h-4 w-4 text-amber-400" /> Forward test signals</h3>
+                    <h3 className="flex items-center gap-2 text-base font-bold text-foreground"><TrendingUp className="h-4 w-4 text-warning" /> Forward test signals</h3>
                     <div className="mt-3 flex max-h-[560px] flex-col gap-2 overflow-y-auto pr-1">
                         {!forwardTest || forwardTest.signals.length === 0 ? (
-                            <div className="rounded-xl border border-dashed border-border/20 p-6 text-center text-sm text-foreground/70">
+                            <div className="rounded-lg border border-dashed border-border/20 p-6 text-center text-sm text-foreground/70">
                                 Signals appear here once the strategy fires on live (polled) data. Enable auto-refresh after deploying.
                             </div>
                         ) : (
                             forwardTest.signals.slice().reverse().map((s) => (
-                                <div key={s.id} className="rounded-xl border border-border/20 bg-foreground/10 p-3 text-sm">
+                                <div key={s.id} className="rounded-lg border border-border/20 bg-foreground/10 p-3 text-sm">
                                     <div className="flex items-center justify-between gap-2">
                                         <span className="font-semibold text-foreground">{s.direction} {s.symbol}</span>
                                         <span className={`rounded-lg border px-2 py-0.5 text-micro font-bold uppercase ${
-                                            s.status === "open" ? "border-amber-500/40 text-amber-300" : "border-emerald-500/40 text-emerald-300"
+                                            s.status === "open" ? "border-warning/40 text-warning" : "border-positive/40 text-positive"
                                         }`}>{s.status}</span>
                                     </div>
                                     <div className="mt-1 text-xs text-muted-foreground">
@@ -2233,13 +2233,13 @@ function EATab({
             <div className="flex flex-col gap-4">
                 <div className="rounded-lg border border-border/20 bg-card p-5">
                     <h3 className="flex items-center gap-2 text-base font-bold text-foreground">
-                        <Wand2 className="h-4 w-4 text-amber-400" /> Describe a strategy (optional)
+                        <Wand2 className="h-4 w-4 text-warning" /> Describe a strategy (optional)
                     </h3>
                     <p className="mt-1 text-xs text-muted-foreground">
                         Natural language → structured draft → saved strategy. Rules you can review before generating the EA.
                     </p>
                     <textarea
-                        className="mt-3 w-full resize-y rounded-xl border border-border/20 bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-amber-500/50"
+                        className="mt-3 w-full resize-y rounded-lg border border-border/20 bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-warning/50"
                         rows={2}
                         placeholder="e.g. Buy XAUUSD on M15 when H4 trend is bullish, on a London/NY session break with a bullish BOS and positive momentum; ATR stop, 1:3 target."
                         value={nlPrompt}
@@ -2264,8 +2264,8 @@ function EATab({
                             ) : undefined
                         }
                     />
-                    <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-border/20 bg-foreground/10 p-3.5">
-                        <input type="checkbox" className="mt-1 accent-amber-500" checked={compileOnGenerate} onChange={(e) => setCompileOnGenerate(e.target.checked)} />
+                    <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-lg border border-border/20 bg-foreground/10 p-3.5">
+                        <input type="checkbox" className="mt-1 accent-warning" checked={compileOnGenerate} onChange={(e) => setCompileOnGenerate(e.target.checked)} />
                         <span className="text-xs leading-relaxed text-muted-foreground">
                             Compile with MetaEditor during generation. When no local compiler exists, a{" "}
                             <span className="font-semibold text-foreground/80">strict static validation</span> is used and labeled as such —
@@ -2297,8 +2297,8 @@ function EATab({
                             </div>
                             <span className={`rounded-lg border px-2 py-0.5 text-xs font-bold uppercase ${
                                 sel.compiled
-                                    ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
-                                    : "border-amber-500/40 bg-amber-500/10 text-amber-300"
+                                    ? "border-positive/40 bg-positive/10 text-positive"
+                                    : "border-warning/40 bg-warning/10 text-warning"
                             }`}>
                                 {sel.compiled ? "Compiled" : "Static checked"}
                             </span>
@@ -2312,7 +2312,7 @@ function EATab({
                                 </div>
                                 <div className="rounded-lg border border-border/10 bg-foreground/10 p-2">
                                     <div className="text-foreground/70">Errors</div>
-                                    <div className={`font-semibold ${sel.compileReport.errors.length ? "text-red-300" : "text-emerald-300"}`}>{sel.compileReport.errors.length}</div>
+                                    <div className={`font-semibold ${sel.compileReport.errors.length ? "text-negative" : "text-positive"}`}>{sel.compileReport.errors.length}</div>
                                 </div>
                                 <div className="rounded-lg border border-border/10 bg-foreground/10 p-2">
                                     <div className="text-foreground/70">Warnings</div>
@@ -2329,16 +2329,16 @@ function EATab({
                         )}
 
                         {sel.gateway && (
-                            <div className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-xs">
-                                <span className="font-semibold text-emerald-300">Gateway </span>
-                                <span className="text-emerald-200/80">bot {sel.gateway.botId} · magic {sel.gateway.magicNumber ?? sel.magicNumber} · monitored by the MT5 Gateway</span>
+                            <div className="mt-3 rounded-lg border border-positive/30 bg-positive/5 p-3 text-xs">
+                                <span className="font-semibold text-positive">Gateway </span>
+                                <span className="text-positive/80">bot {sel.gateway.botId} · magic {sel.gateway.magicNumber ?? sel.magicNumber} · monitored by the MT5 Gateway</span>
                             </div>
                         )}
 
                         {sel.marketplace && (
-                            <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs">
-                                <span className="font-semibold text-amber-300">Marketplace </span>
-                                <span className="text-amber-200/80">{sel.marketplace.productId} · v{sel.marketplace.version} · {sel.marketplace.status}</span>
+                            <div className="mt-3 rounded-lg border border-warning/30 bg-warning/5 p-3 text-xs">
+                                <span className="font-semibold text-warning">Marketplace </span>
+                                <span className="text-warning/80">{sel.marketplace.productId} · v{sel.marketplace.version} · {sel.marketplace.status}</span>
                             </div>
                         )}
 
@@ -2367,7 +2367,7 @@ function EATab({
                             <div className="mt-3 flex items-center gap-2 text-xs text-foreground/70">
                                 <span>MT5 account (optional):</span>
                                 <input
-                                    className="w-40 rounded-lg border border-border/20 bg-background px-2 py-1.5 text-sm text-foreground outline-none focus:border-amber-500/50"
+                                    className="w-40 rounded-lg border border-border/20 bg-background px-2 py-1.5 text-sm text-foreground outline-none focus:border-warning/50"
                                     placeholder="e.g. 50012345"
                                     value={mt5Account}
                                     onChange={(e) => setMt5Account(e.target.value)}
@@ -2376,7 +2376,7 @@ function EATab({
                         )}
 
                         {pubOpen && (
-                            <div className="mt-3 rounded-xl border border-border/20 bg-background/60 p-4">
+                            <div className="mt-3 rounded-lg border border-border/20 bg-background/60 p-4">
                                 <div className="mb-2 text-xs font-semibold uppercase tracking-widest text-foreground/70">Publish to marketplace</div>
                                 <div className="grid gap-3 sm:grid-cols-2">
                                     <Field label="Price (USD)">
@@ -2416,15 +2416,15 @@ function EATab({
                         eas.map((ea) => (
                             <button
                                 key={ea.eaId}
-                                className={`rounded-xl border p-3 text-left transition ${
-                                    selectedEA?.eaId === ea.eaId ? "border-amber-500/50 bg-amber-500/10" : "border-border/20 bg-foreground/10 hover:bg-background/20"
+                                className={`rounded-lg border p-3 text-left transition ${
+                                    selectedEA?.eaId === ea.eaId ? "border-warning/50 bg-warning/10" : "border-border/20 bg-foreground/10 hover:bg-background/20"
                                 }`}
                                 onClick={() => setSelectedEA(ea)}
                             >
                                 <div className="flex items-center justify-between gap-2">
                                     <span className="truncate font-semibold text-foreground">{ea.name}</span>
                                     <span className={`rounded-lg border px-2 py-0.5 text-micro font-bold uppercase ${
-                                        ea.compiled ? "border-emerald-500/40 text-emerald-300" : "border-amber-500/40 text-amber-300"
+                                        ea.compiled ? "border-positive/40 text-positive" : "border-warning/40 text-warning"
                                     }`}>
                                         {ea.compiled ? "OK" : "static"}
                                     </span>
@@ -2433,8 +2433,8 @@ function EATab({
                                     <span>{ea.symbol}</span>
                                     <span>{ea.timeframe}</span>
                                     <span>magic {ea.magicNumber}</span>
-                                    {ea.gateway && <span className="text-emerald-300">deployed</span>}
-                                    {ea.marketplace && <span className="text-amber-300">marketplace</span>}
+                                    {ea.gateway && <span className="text-positive">deployed</span>}
+                                    {ea.marketplace && <span className="text-warning">marketplace</span>}
                                     <span>{new Date(ea.createdAt).toLocaleDateString()}</span>
                                 </div>
                             </button>
@@ -2448,7 +2448,7 @@ function EATab({
                     <div className="flex max-h-[85vh] w-full max-w-4xl flex-col rounded-lg border border-border/30 bg-card" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-between border-b border-border/10 px-5 py-3">
                             <div className="flex items-center gap-2 text-sm font-bold text-foreground">
-                                <FileCode2 className="h-4 w-4 text-amber-400" />
+                                <FileCode2 className="h-4 w-4 text-warning" />
                                 {viewing.name}_{viewing.symbol}.mq5
                                 <span className="rounded-lg border border-border/20 px-2 py-0.5 text-micro font-semibold text-foreground/70">
                                     magic {viewing.magicNumber}
@@ -2592,7 +2592,7 @@ function DnaEvolutionTab({
                         <button
                             onClick={doRun}
                             disabled={busy}
-                            className="inline-flex items-center gap-2 rounded-xl border border-amber-500/50 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-300 transition hover:bg-amber-500/20 disabled:opacity-50"
+                            className="inline-flex items-center gap-2 rounded-lg border border-warning/50 bg-warning/10 px-4 py-2 text-sm font-semibold text-warning transition hover:bg-warning/20 disabled:opacity-50"
                         >
                             <Play className="h-4 w-4" />
                             {busy ? "Evolving…" : "Run evolution"}
@@ -2600,7 +2600,7 @@ function DnaEvolutionTab({
                     </div>
                 </div>
 
-                {localError ? <p className="mt-3 text-xs text-amber-300">{localError}</p> : null}
+                {localError ? <p className="mt-3 text-xs text-warning">{localError}</p> : null}
 
                 {runs.length > 0 ? (
                     <div className="mt-4 border-t border-border/20 pt-3">
@@ -2613,17 +2613,17 @@ function DnaEvolutionTab({
                                     key={r.id}
                                     className="flex flex-wrap items-baseline gap-x-2 text-xs text-muted-foreground"
                                 >
-                                    <span className="font-mono text-foreground">{r.id}</span>
+                                    <span className="font-numeric text-foreground">{r.id}</span>
                                     <span>
                                         {r.symbol} {r.timeframe} · {r.generations} gen
                                     </span>
-                                    <span className="font-mono tabular-nums">
+                                    <span className="font-numeric tabular-nums">
                                         {r.totals.candidates} cand · {r.totals.evaluated} eval ·{" "}
                                         {r.totals.survivors} surv
                                     </span>
                                     <span>{new Date(r.asOf).toLocaleString()}</span>
                                     {r.unavailable ? (
-                                        <span className="text-amber-300">unavailable</span>
+                                        <span className="text-warning">unavailable</span>
                                     ) : null}
                                 </li>
                             ))}

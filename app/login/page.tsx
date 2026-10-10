@@ -209,7 +209,7 @@ function LoginForm() {
                             </span>
                         </Link>
 
-                        <h1 className="mt-8 text-2xl font-semibold tracking-tight">
+                        <h1 className="text-2xl font-semibold tracking-tight mt-8">
                             Welcome back
                         </h1>
 
@@ -219,7 +219,7 @@ function LoginForm() {
                     </div>
 
                     {/* Card */}
-                    <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
+                    <div className="rounded-lg border border-border bg-card p-6 sm:p-8">
                         <form onSubmit={handleLogin} className="space-y-5">
                             {/* Email */}
                             <div className="space-y-1.5">

@@ -279,7 +279,7 @@ export default function AdminTradingLicensesPage() {
                                         <td className="px-6 py-4">
                                             <StatusBadge status={item.status} />
                                         </td>
-                                        <td className="px-6 py-4 text-right font-mono tabular-nums">
+                                        <td className="px-6 py-4 text-right font-numeric tabular-nums">
                                             {item.maxAccounts}
                                         </td>
                                         <td className="px-6 py-4 text-xs text-muted-foreground">

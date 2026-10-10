@@ -6,9 +6,9 @@ import { useUserTradingData } from "@/components/tools/user-data";
 
 function directionIcon(type?: string) {
     return (type ?? "").toUpperCase() === "SELL" ? (
-        <TrendingDown size={13} className="text-rose-400" />
+        <TrendingDown size={13} className="text-negative" />
     ) : (
-        <TrendingUp size={13} className="text-emerald-400" />
+        <TrendingUp size={13} className="text-positive" />
     );
 }
 
@@ -28,7 +28,7 @@ export default function OrderFlow({ userId }: { userId: string }) {
     if (loading) {
         return (
             <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-10 text-sm text-muted-foreground">
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-violet-500" />
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-primary" />
                 Loading your trade history...
             </div>
         );
@@ -36,7 +36,7 @@ export default function OrderFlow({ userId }: { userId: string }) {
 
     if (error) {
         return (
-            <div className="rounded-lg border border-rose-500/20 bg-rose-500/[0.05] p-8 text-sm text-rose-400">
+            <div className="rounded-lg border border-negative/20 bg-negative/[0.05] p-8 text-sm text-negative">
                 {error}
             </div>
         );
@@ -47,7 +47,7 @@ export default function OrderFlow({ userId }: { userId: string }) {
             <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
                 <Activity className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
                 No connected MT5 accounts yet. Add one in{" "}
-                <a href="/account/settings?tab=mt5" className="font-semibold text-violet-400 underline underline-offset-2 hover:text-violet-300">
+                <a href="/account/settings?tab=mt5" className="font-semibold text-primary underline underline-offset-2 hover:text-primary">
                     Settings → MT5 Accounts
                 </a>{" "}
                 so your orders appear here.
@@ -58,7 +58,7 @@ export default function OrderFlow({ userId }: { userId: string }) {
     return (
         <div className="space-y-4">
             {/* Account filter */}
-            <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-2 w-fit">
+            <div className="flex items-center gap-2 rounded-lg border border-border bg-card p-2 w-fit">
                 <Filter size={14} className="ml-2 text-muted-foreground" />
                 <button
                     type="button"
@@ -72,7 +72,7 @@ export default function OrderFlow({ userId }: { userId: string }) {
                         key={account.accountId}
                         type="button"
                         onClick={() => setAccountFilter(account.accountId)}
-                        className={`rounded-lg px-3 py-1.5 text-xs font-mono transition ${accountFilter === account.accountId ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}
+                        className={`rounded-lg px-3 py-1.5 text-xs font-numeric transition ${accountFilter === account.accountId ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}
                     >
                         #{account.mt5Account ?? account.accountId}
                     </button>
@@ -81,29 +81,29 @@ export default function OrderFlow({ userId }: { userId: string }) {
 
             {/* Stat strip */}
             <div className="grid gap-3 sm:grid-cols-4">
-                <div className="rounded-xl border border-border bg-card p-3 text-center">
+                <div className="rounded-lg border border-border bg-card p-3 text-center">
                     <p className="text-micro uppercase tracking-wider text-muted-foreground">Total Trades</p>
                     <p className="mt-1 text-xl font-bold">{filtered.length}</p>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-3 text-center">
+                <div className="rounded-lg border border-border bg-card p-3 text-center">
                     <p className="text-micro uppercase tracking-wider text-muted-foreground">Open</p>
-                    <p className="mt-1 text-xl font-bold text-amber-400">
+                    <p className="mt-1 text-xl font-bold text-warning">
                         {filtered.filter((t) => !t.closedAt).length}
                     </p>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-3 text-center">
+                <div className="rounded-lg border border-border bg-card p-3 text-center">
                     <p className="text-micro uppercase tracking-wider text-muted-foreground">Closed</p>
-                    <p className="mt-1 text-xl font-bold text-emerald-400">
+                    <p className="mt-1 text-xl font-bold text-positive">
                         {filtered.filter((t) => t.closedAt).length}
                     </p>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-3 text-center">
+                <div className="rounded-lg border border-border bg-card p-3 text-center">
                     <p className="text-micro uppercase tracking-wider text-muted-foreground">Realized P/L</p>
                     <p
                         className={`mt-1 text-xl font-bold ${
                             filtered.reduce((s, t) => s + Number(t.profit ?? 0), 0) >= 0
-                                ? "text-emerald-400"
-                                : "text-rose-400"
+                                ? "text-positive"
+                                : "text-negative"
                         }`}
                     >
                         ${filtered.reduce((s, t) => s + Number(t.profit ?? 0), 0).toFixed(2)}
@@ -116,7 +116,7 @@ export default function OrderFlow({ userId }: { userId: string }) {
                 <h3 className="text-sm font-semibold">Order Flow</h3>
                 <div className="mt-3 overflow-x-auto">
                     {filtered.length === 0 ? (
-                        <div className="rounded-xl border border-dashed border-border py-10 text-center text-sm text-muted-foreground">
+                        <div className="rounded-lg border border-dashed border-border py-10 text-center text-sm text-muted-foreground">
                             No trades recorded for this view yet. Run the Expert Advisor on a
                             connected account to stream live orders here.
                         </div>
@@ -144,34 +144,34 @@ export default function OrderFlow({ userId }: { userId: string }) {
                                             key={`${trade.accountId ?? ""}-${trade.ticket ?? ""}`}
                                             className="border-b border-border/60 last:border-0"
                                         >
-                                            <td className="py-2.5 pr-4 font-mono font-medium text-foreground">
+                                            <td className="py-2.5 pr-4 font-numeric font-medium text-foreground">
                                                 {(trade.symbol ?? "?").toUpperCase()}
                                             </td>
                                             <td className="py-2.5 pr-4">
                                                 <span
                                                     className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-micro font-semibold ${
                                                         side === "SELL"
-                                                            ? "bg-rose-500/10 text-rose-400"
-                                                            : "bg-emerald-500/10 text-emerald-400"
+                                                            ? "bg-negative/10 text-negative"
+                                                            : "bg-positive/10 text-positive"
                                                     }`}
                                                 >
                                                     {directionIcon(trade.type)} {side || "?"}
                                                 </span>
                                             </td>
-                                            <td className="py-2.5 pr-4 font-mono text-muted-foreground">
+                                            <td className="py-2.5 pr-4 font-numeric text-muted-foreground">
                                                 {Number(trade.volume ?? 0).toFixed(2)}
                                             </td>
-                                            <td className="py-2.5 pr-4 font-mono text-muted-foreground">
+                                            <td className="py-2.5 pr-4 font-numeric text-muted-foreground">
                                                 {Number(trade.openPrice ?? 0).toFixed(5)}
                                             </td>
-                                            <td className="py-2.5 pr-4 font-mono text-muted-foreground">
+                                            <td className="py-2.5 pr-4 font-numeric text-muted-foreground">
                                                 {trade.closePrice != null
                                                     ? Number(trade.closePrice).toFixed(5)
                                                     : "—"}
                                             </td>
                                             <td
                                                 className={`py-2.5 pr-4 font-semibold ${
-                                                    profit >= 0 ? "text-emerald-400" : "text-rose-400"
+                                                    profit >= 0 ? "text-positive" : "text-negative"
                                                 }`}
                                             >
                                                 {profit >= 0 ? "+" : ""}
@@ -184,7 +184,7 @@ export default function OrderFlow({ userId }: { userId: string }) {
                                                 <span
                                                     className={`rounded-full px-2 py-0.5 text-micro font-semibold ${
                                                         open
-                                                            ? "bg-amber-500/10 text-amber-400"
+                                                            ? "bg-warning/10 text-warning"
                                                             : "bg-muted text-muted-foreground"
                                                     }`}
                                                 >

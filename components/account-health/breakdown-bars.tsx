@@ -73,7 +73,7 @@ export function BreakdownBars({
                                     {row.penalty ? "−" : "+"}
                                 </span>
                             </span>
-                            <span className="font-mono tabular-nums text-muted-foreground">
+                            <span className="font-numeric tabular-nums text-muted-foreground">
                                 {value}<span className="opacity-50">/{row.max}</span>
                             </span>
                         </div>

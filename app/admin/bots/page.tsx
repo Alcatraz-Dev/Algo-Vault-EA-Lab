@@ -233,7 +233,7 @@ export default function AdminBotsPage() {
 
         if (
             pricing.type ===
-            "free"
+              "free"
         ) {
             return "Free";
         }
@@ -244,13 +244,13 @@ export default function AdminBotsPage() {
         ) {
             return `${pricing.price || 0
                 } ${pricing.currency ||
-                "USD"
+                  "USD"
                 } / month`;
         }
 
         return `${pricing.price || 0
             } ${pricing.currency ||
-            "USD"
+              "USD"
             }`;
     }
 
@@ -307,7 +307,7 @@ export default function AdminBotsPage() {
             <div className="mb-6 flex items-center justify-end gap-3">
                 <button
                     onClick={() => window.location.reload()}
-                    className="flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                    className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted/70 hover:text-foreground"
                 >
                     <RefreshCw size={16} />
                     Refresh
@@ -315,7 +315,7 @@ export default function AdminBotsPage() {
 
                 <Link
                     href="/admin/bots/new"
-                    className="flex items-center gap-2 rounded-xl bg-positive px-4 py-2 text-sm font-semibold text-background hover:bg-positive"
+                    className="flex items-center gap-2 rounded-lg bg-positive px-4 py-2 text-sm font-semibold text-background hover:bg-positive"
                 >
                     <Plus size={17} />
                     Add Product
@@ -338,7 +338,7 @@ export default function AdminBotsPage() {
                         bots.filter(
                             (bot) =>
                                 bot.status ===
-                                "published"
+                                  "published"
                         ).length
                     }
                 />
@@ -349,7 +349,7 @@ export default function AdminBotsPage() {
                         bots.filter(
                             (bot) =>
                                 bot.status ===
-                                "draft"
+                                  "draft"
                         ).length
                     }
                 />
@@ -361,7 +361,7 @@ export default function AdminBotsPage() {
                             (bot) =>
                                 bot.pricing
                                     ?.type ===
-                                "free"
+                                      "free"
                         ).length
                     }
                 />
@@ -376,7 +376,7 @@ export default function AdminBotsPage() {
 
                     <div className="flex items-center gap-3">
 
-                        <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-muted/50">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted/50">
                             <Layers3
                                 size={18}
                             />
@@ -425,7 +425,7 @@ export default function AdminBotsPage() {
 
                         <Link
                             href="/admin/bots/new"
-                            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-foreground px-5 py-3 text-sm font-medium text-background"
+                            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-foreground px-5 py-3 text-sm font-medium text-background"
                         >
                             <Plus
                                 size={16}
@@ -557,10 +557,10 @@ export default function AdminBotsPage() {
                                                             )}
 
                                                             {/* OVERLAY */}
-                                                            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-foreground/10" />
+                                                            <div className="absolute inset-0 bg-background/70" />
 
                                                             {/* ICON */}
-                                                            <div className="absolute bottom-2 left-2 flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-foreground/30 bg-background/75 shadow-xl backdrop-blur-xl">
+                                                            <div className="absolute bottom-2 left-2 flex h-11 w-11 items-center justify-center overflow-hidden rounded-lg border border-foreground/30 bg-background/75 shadow-xl">
 
                                                                 {hasIcon &&
                                                                     iconUrl ? (
@@ -584,7 +584,7 @@ export default function AdminBotsPage() {
                                                             </div>
 
                                                             {/* PLATFORM */}
-                                                            <div className="absolute right-2 top-2 rounded-md border border-border bg-foreground/65 px-1.5 py-0.5 text-micro font-medium text-foreground backdrop-blur-md">
+                                                            <div className="absolute right-2 top-2 rounded-md border border-border bg-foreground/65 px-1.5 py-0.5 text-micro font-medium text-foreground">
                                                                 {bot.platform ||
                                                                     "—"}
                                                             </div>
@@ -674,7 +674,7 @@ export default function AdminBotsPage() {
                                                         <span className="rounded-lg border border-border bg-muted/50 px-2.5 py-1 text-xs">
                                                             {
                                                                 bot.platform ||
-                                                                "—"
+                                                                  "—"
                                                             }
                                                         </span>
 
@@ -688,7 +688,7 @@ export default function AdminBotsPage() {
 
                                                                 {
                                                                     bot.timeframe ||
-                                                                    "—"
+                                                                      "—"
                                                                 }
                                                             </p>
                                                         )}
@@ -718,14 +718,14 @@ export default function AdminBotsPage() {
                                                             )
                                                         }
                                                         className={`rounded-lg px-2.5 py-1 text-xs transition ${bot.status ===
-                                                            "published"
+                                                          "published"
                                                             ? "bg-muted text-foreground hover:bg-foreground/15"
                                                             : "bg-card text-muted-foreground hover:bg-border"
                                                             }`}
                                                     >
                                                         {
                                                             bot.status ||
-                                                            "draft"
+                                                              "draft"
                                                         }
                                                     </button>
 

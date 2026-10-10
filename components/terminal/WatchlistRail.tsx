@@ -82,12 +82,12 @@ export function WatchlistRail({ now }: { now: number }) {
 
     return (
         <section className="flex min-w-0 flex-col gap-2" aria-label="Watchlist">
-            <div className="rounded-xl border border-border bg-card p-2.5">
+            <div className="rounded-lg border border-border bg-card p-2.5">
                 <div className="flex items-center justify-between gap-2">
                     <h2 className="flex items-center gap-1.5 text-micro font-semibold uppercase tracking-wide text-foreground">
                         <LayoutGrid className="size-3 text-primary" />
                         Watchlist
-                        <span className="font-mono text-muted-foreground">({state.watchlist.length})</span>
+                        <span className="font-numeric text-muted-foreground">({state.watchlist.length})</span>
                     </h2>
                     <div className="flex items-center gap-1">
                         <button
@@ -111,7 +111,7 @@ export function WatchlistRail({ now }: { now: number }) {
                                 onChange={(e) => setQuery(e.target.value)}
                                 placeholder="Search symbols…"
                                 aria-label="Search symbols to add"
-                                className="w-full bg-transparent font-mono text-xs uppercase text-foreground outline-none placeholder:text-muted-foreground placeholder:normal-case"
+                                className="w-full bg-transparent font-numeric text-xs uppercase text-foreground outline-none placeholder:text-muted-foreground placeholder:normal-case"
                             />
                         </div>
                         {query ? (
@@ -131,7 +131,7 @@ export function WatchlistRail({ now }: { now: number }) {
                                                         setQuery("");
                                                         setAdding(false);
                                                     }}
-                                                    className="flex w-full items-center justify-between rounded px-2 py-1 text-left font-mono text-xs text-foreground transition hover:bg-muted disabled:opacity-50"
+                                                    className="flex w-full items-center justify-between rounded px-2 py-1 text-left font-numeric text-xs text-foreground transition hover:bg-muted disabled:opacity-50"
                                                 >
                                                     {s}
                                                     <span className="text-micro text-muted-foreground">
@@ -208,7 +208,7 @@ export function WatchlistRail({ now }: { now: number }) {
                                         <span className="flex items-center gap-1">
                                             <span
                                                 className={cn(
-                                                    "font-mono text-micro font-semibold",
+                                                    "font-numeric text-micro font-semibold",
                                                     active ? "text-primary" : "text-foreground"
                                                 )}
                                             >
@@ -230,13 +230,13 @@ export function WatchlistRail({ now }: { now: number }) {
                                         </span>
                                     </button>
 
-                                    <span className="text-right font-mono text-micro tabular-nums text-foreground">
+                                    <span className="text-right font-numeric text-micro tabular-nums text-foreground">
                                         {price !== null ? fmtPrice(price) : quotesLoading ? "…" : "—"}
                                     </span>
 
                                     <span
                                         className={cn(
-                                            "w-14 text-right font-mono text-micro tabular-nums",
+                                            "w-14 text-right font-numeric text-micro tabular-nums",
                                             change === null
                                                 ? "text-muted-foreground"
                                                 : change >= 0
@@ -295,7 +295,7 @@ export function WatchlistRail({ now }: { now: number }) {
                         {quotesLoading ? <Loader2 className="size-2.5 animate-spin" /> : quotesError ? <WifiOff className="size-2.5 text-warning" /> : null}
                         {quotesError ? "Quote feed unavailable" : "Quotes · 1h change"}
                     </span>
-                    <span className="font-mono">{SUPPORTED_SYMBOLS.length} supported</span>
+                    <span className="font-numeric">{SUPPORTED_SYMBOLS.length} supported</span>
                 </div>
             </div>
 
@@ -336,10 +336,10 @@ function MarketOverview({ now }: { now: number }) {
     ];
 
     return (
-        <section className="rounded-xl border border-border bg-card p-2.5" aria-label="Market overview">
+        <section className="rounded-lg border border-border bg-card p-2.5" aria-label="Market overview">
             <h2 className="flex items-center justify-between text-micro font-semibold uppercase tracking-wide text-foreground">
                 <span>{state.symbol} overview</span>
-                <span className="font-mono text-micro text-muted-foreground">{state.timeframe}</span>
+                <span className="font-numeric text-micro text-muted-foreground">{state.timeframe}</span>
             </h2>
             <dl className="mt-2 space-y-1">
                 {rows.map((r) => (
@@ -347,7 +347,7 @@ function MarketOverview({ now }: { now: number }) {
                         <dt className="text-muted-foreground">{r.label}</dt>
                         <dd
                             className={cn(
-                                "truncate font-mono tabular-nums",
+                                "truncate font-numeric tabular-nums",
                                 r.tone === "up" && "text-positive",
                                 r.tone === "down" && "text-negative",
                                 r.tone === "muted" && "text-muted-foreground italic",

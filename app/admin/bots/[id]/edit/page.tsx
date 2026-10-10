@@ -250,7 +250,7 @@ export default function EditBotPage() {
                 );
 
                 router.push(
-                    "/admin/bots"
+                  "/admin/bots"
                 );
 
                 return;
@@ -263,7 +263,7 @@ export default function EditBotPage() {
 
             setPricing(
                 data.pricing?.type ||
-                "free"
+                  "free"
             );
 
             setRisk(
@@ -273,7 +273,7 @@ export default function EditBotPage() {
 
             setStatus(
                 data.status ||
-                "draft"
+                  "draft"
             );
 
             setForm({
@@ -298,19 +298,19 @@ export default function EditBotPage() {
 
                 productType:
                     data.productType ||
-                    "expert_advisor",
+                      "expert_advisor",
 
                 platform:
                     data.platform ||
-                    "MT5",
+                      "MT5",
 
                 symbol:
                     data.symbol ||
-                    "XAUUSD",
+                      "XAUUSD",
 
                 timeframe:
                     data.timeframe ||
-                    "M5",
+                      "M5",
 
                 initialDeposit:
                     String(
@@ -557,9 +557,9 @@ export default function EditBotPage() {
             );
 
             formData.append(
-                "version",
+              "version",
                 form.version.trim() ||
-                "1.0.0"
+                  "1.0.0"
             );
 
             const response =
@@ -831,9 +831,9 @@ export default function EditBotPage() {
 
     async function uploadAllBranding() {
         const types: BrandingType[] = [
-            "icon",
+          "icon",
             "logo",
-            "banner",
+              "banner",
         ];
 
         for (const type of types) {
@@ -958,7 +958,7 @@ export default function EditBotPage() {
                     ? product?.version ||
                     product?.file?.version ||
                     form.version.trim() ||
-                    "1.0.0"
+                      "1.0.0"
                     : form.version.trim() ||
                     "1.0.0";
 
@@ -1102,7 +1102,7 @@ export default function EditBotPage() {
             );
 
             router.push(
-                "/admin/bots"
+              "/admin/bots"
             );
         } catch (error) {
             console.error(
@@ -1142,7 +1142,7 @@ export default function EditBotPage() {
 
                     <Link
                         href="/admin/bots"
-                        className="mt-4 inline-block rounded-xl border border-border px-4 py-2 text-sm hover:bg-muted/70"
+                        className="mt-4 inline-block rounded-lg border border-border px-4 py-2 text-sm hover:bg-muted/70"
                     >
                         Back to Products
                     </Link>
@@ -1180,7 +1180,7 @@ export default function EditBotPage() {
 
                         <Link
                             href="/admin/bots"
-                            className="flex h-10 w-10 items-center justify-center rounded-xl border border-border hover:bg-muted/70"
+                            className="flex h-10 w-10 items-center justify-center rounded-lg border border-border hover:bg-muted/70"
                         >
                             <ArrowLeft size={18} />
                         </Link>
@@ -1190,20 +1190,20 @@ export default function EditBotPage() {
                                 ADMIN / PRODUCTS / EDIT
                             </p>
 
-                            <h1 className="mt-1 text-3xl font-semibold">
+                            <h1 className="text-2xl font-semibold tracking-tight mt-1">
                                 Edit Product
                             </h1>
                         </div>
 
                     </div>
 
-                    <div className="hidden rounded-xl border border-border bg-muted/40 px-4 py-2 md:block">
+                    <div className="hidden rounded-lg border border-border bg-muted/40 px-4 py-2 md:block">
 
                         <p className="text-xs text-muted-foreground">
                             Product ID
                         </p>
 
-                        <p className="mt-1 font-mono text-xs text-muted-foreground">
+                        <p className="mt-1 font-numeric text-xs text-muted-foreground">
                             {productId}
                         </p>
 
@@ -1266,7 +1266,7 @@ export default function EditBotPage() {
                                 value={form.version}
                                 onChange={(value) =>
                                     updateField(
-                                        "version",
+                                      "version",
                                         value
                                     )
                                 }
@@ -1291,7 +1291,7 @@ export default function EditBotPage() {
                                     )
                                 }
                                 rows={5}
-                                className="w-full rounded-xl border border-border bg-muted px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-foreground/40"
+                                className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-foreground/40"
                             />
 
                         </div>
@@ -1338,19 +1338,19 @@ export default function EditBotPage() {
                                 }
                                 uploading={
                                     uploadingBranding ===
-                                    "icon"
+                                      "icon"
                                 }
                                 onSelect={(
                                     event
                                 ) =>
                                     handleBrandingSelect(
-                                        "icon",
+                                      "icon",
                                         event
                                     )
                                 }
                                 onRemove={() =>
                                     removeSelectedBranding(
-                                        "icon"
+                                      "icon"
                                     )
                                 }
                             />
@@ -1373,19 +1373,19 @@ export default function EditBotPage() {
                                 }
                                 uploading={
                                     uploadingBranding ===
-                                    "logo"
+                                      "logo"
                                 }
                                 onSelect={(
                                     event
                                 ) =>
                                     handleBrandingSelect(
-                                        "logo",
+                                      "logo",
                                         event
                                     )
                                 }
                                 onRemove={() =>
                                     removeSelectedBranding(
-                                        "logo"
+                                      "logo"
                                     )
                                 }
                             />
@@ -1408,26 +1408,26 @@ export default function EditBotPage() {
                                 }
                                 uploading={
                                     uploadingBranding ===
-                                    "banner"
+                                      "banner"
                                 }
                                 onSelect={(
                                     event
                                 ) =>
                                     handleBrandingSelect(
-                                        "banner",
+                                      "banner",
                                         event
                                     )
                                 }
                                 onRemove={() =>
                                     removeSelectedBranding(
-                                        "banner"
+                                      "banner"
                                     )
                                 }
                             />
 
                         </div>
 
-                        <div className="mt-5 rounded-xl border border-border bg-muted p-4">
+                        <div className="mt-5 rounded-lg border border-border bg-muted p-4">
 
                             <p className="text-xs font-medium text-muted-foreground">
                                 Supported formats
@@ -1458,7 +1458,7 @@ export default function EditBotPage() {
                                     form.productType
                                 }
                                 options={[
-                                    "expert_advisor",
+                                  "expert_advisor",
                                     "indicator",
                                     "pine_indicator",
                                     "pine_strategy",
@@ -1477,7 +1477,7 @@ export default function EditBotPage() {
                                     form.platform
                                 }
                                 options={[
-                                    "MT5",
+                                  "MT5",
                                     "MT4",
                                     "TradingView",
                                 ]}
@@ -1495,7 +1495,7 @@ export default function EditBotPage() {
                                     form.symbol
                                 }
                                 options={[
-                                    "XAUUSD",
+                                  "XAUUSD",
                                     "EURUSD",
                                     "GBPUSD",
                                     "USDJPY",
@@ -1518,7 +1518,7 @@ export default function EditBotPage() {
                                 options={[
                                     "M1",
                                     "M3",
-                                    "M5",
+                                      "M5",
                                     "M15",
                                     "M30",
                                     "H1",
@@ -1678,13 +1678,13 @@ export default function EditBotPage() {
                             <Choice
                                 selected={
                                     pricing ===
-                                    "free"
+                                      "free"
                                 }
                                 title="Free"
                                 description="No payment required"
                                 onClick={() =>
                                     setPricing(
-                                        "free"
+                                      "free"
                                     )
                                 }
                             />
@@ -1692,13 +1692,13 @@ export default function EditBotPage() {
                             <Choice
                                 selected={
                                     pricing ===
-                                    "one_time"
+                                      "one_time"
                                 }
                                 title="One-time"
                                 description="Single purchase"
                                 onClick={() =>
                                     setPricing(
-                                        "one_time"
+                                      "one_time"
                                     )
                                 }
                             />
@@ -1706,13 +1706,13 @@ export default function EditBotPage() {
                             <Choice
                                 selected={
                                     pricing ===
-                                    "subscription"
+                                      "subscription"
                                 }
                                 title="Subscription"
                                 description="Recurring payment"
                                 onClick={() =>
                                     setPricing(
-                                        "subscription"
+                                      "subscription"
                                     )
                                 }
                             />
@@ -1931,9 +1931,9 @@ export default function EditBotPage() {
                         description={`Replace the ${productFileRule.description} without creating a new product.`}
                     >
 
-                        <div className="rounded-xl border border-border bg-muted p-6">
+                        <div className="rounded-lg border border-border bg-muted p-6">
 
-                            <div className="rounded-xl border border-border bg-muted/30 p-4">
+                            <div className="rounded-lg border border-border bg-muted/30 p-4">
 
                                 <p className="text-xs text-muted-foreground">
                                     CURRENT FILE
@@ -2006,7 +2006,7 @@ export default function EditBotPage() {
                                 </p>
 
                                 {!selectedFile ? (
-                                    <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground transition hover:bg-muted/70">
+                                    <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground transition hover:bg-muted/70">
 
                                         <Upload
                                             size={
@@ -2027,7 +2027,7 @@ export default function EditBotPage() {
 
                                     </label>
                                 ) : (
-                                    <div className="flex items-center justify-between rounded-xl border border-border bg-muted/40 p-4">
+                                    <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 p-4">
 
                                         <div className="flex items-center gap-3">
 
@@ -2079,7 +2079,7 @@ export default function EditBotPage() {
                             </div>
 
                             {selectedFile && (
-                                <div className="mt-4 rounded-xl border border-warning/20 bg-warning/5 p-4">
+                                <div className="mt-4 rounded-lg border border-warning/20 bg-warning/5 p-4">
 
                                     <p className="text-xs text-warning">
                                         The new file will replace the current file after you click Save Changes.
@@ -2110,13 +2110,13 @@ export default function EditBotPage() {
                             <Choice
                                 selected={
                                     status ===
-                                    "draft"
+                                      "draft"
                                 }
                                 title="Draft"
                                 description="Only visible to admins"
                                 onClick={() =>
                                     setStatus(
-                                        "draft"
+                                      "draft"
                                     )
                                 }
                             />
@@ -2124,13 +2124,13 @@ export default function EditBotPage() {
                             <Choice
                                 selected={
                                     status ===
-                                    "published"
+                                      "published"
                                 }
                                 title="Published"
                                 description="Visible in marketplace"
                                 onClick={() =>
                                     setStatus(
-                                        "published"
+                                      "published"
                                     )
                                 }
                             />
@@ -2138,13 +2138,13 @@ export default function EditBotPage() {
                             <Choice
                                 selected={
                                     status ===
-                                    "private"
+                                      "private"
                                 }
                                 title="Private"
                                 description="Hidden from marketplace"
                                 onClick={() =>
                                     setStatus(
-                                        "private"
+                                      "private"
                                     )
                                 }
                             />
@@ -2156,7 +2156,7 @@ export default function EditBotPage() {
                             !product.file
                                 ?.fileName &&
                             !selectedFile && (
-                                <div className="mt-4 rounded-xl border border-negative/20 bg-negative/5 p-4 text-xs text-negative">
+                                <div className="mt-4 rounded-lg border border-negative/20 bg-negative/5 p-4 text-xs text-negative">
                                     Upload a {productFileRule.label} before publishing this product.
                                 </div>
                             )}
@@ -2168,7 +2168,7 @@ export default function EditBotPage() {
 
                         <Link
                             href="/admin/bots"
-                            className="rounded-xl border border-border px-5 py-3 text-sm hover:bg-muted/70"
+                            className="rounded-lg border border-border px-5 py-3 text-sm hover:bg-muted/70"
                         >
                             Cancel
                         </Link>
@@ -2184,7 +2184,7 @@ export default function EditBotPage() {
                                 uploadingBranding !==
                                 null
                             }
-                            className="flex items-center gap-2 rounded-xl bg-foreground px-6 py-3 text-sm font-medium text-background hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex items-center gap-2 rounded-lg bg-foreground px-6 py-3 text-sm font-medium text-background hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                         >
 
                             <Save
@@ -2250,7 +2250,7 @@ function BrandingCard({
             </div>
 
             <div
-                className={`mb-4 flex items-center justify-center overflow-hidden rounded-xl border border-border bg-muted/40 ${type === "banner"
+                className={`mb-4 flex items-center justify-center overflow-hidden rounded-lg border border-border bg-muted/40 ${type === "banner"
                     ? "aspect-[16/6]"
                     : "aspect-square"
                     }`}
@@ -2308,7 +2308,7 @@ function BrandingCard({
             )}
 
             <label
-                className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-border px-4 py-3 text-xs text-muted-foreground transition hover:bg-muted/70 hover:text-foreground ${uploading
+                className={`flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-border px-4 py-3 text-xs text-muted-foreground transition hover:bg-muted/70 hover:text-foreground ${uploading
                     ? "pointer-events-none opacity-50"
                     : ""
                     }`}
@@ -2385,7 +2385,7 @@ function Section({
 
             <div className="mb-6 flex items-start gap-3">
 
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/50">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/50">
                     {icon}
                 </div>
 
@@ -2437,7 +2437,7 @@ function Field({
                         e.target.value
                     )
                 }
-                className="w-full rounded-xl border border-border bg-muted px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-foreground/40"
+                className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-foreground/40"
             />
 
         </div>
@@ -2471,7 +2471,7 @@ function SelectField({
                         e.target.value
                     )
                 }
-                className="w-full rounded-xl border border-border bg-muted px-4 py-3 text-sm outline-none"
+                className="w-full rounded-lg border border-border bg-muted px-4 py-3 text-sm outline-none"
             >
 
                 {options.map(
@@ -2518,7 +2518,7 @@ function Choice({
         <button
             type="button"
             onClick={onClick}
-            className={`rounded-xl border p-4 text-left transition ${selected
+            className={`rounded-lg border p-4 text-left transition ${selected
                 ? "border-border/60 bg-muted"
                 : "border-border bg-foreground/10 hover:bg-muted/70"
                 }`}

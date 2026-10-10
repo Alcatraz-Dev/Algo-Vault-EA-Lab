@@ -175,7 +175,7 @@ export function TeamBuilder({
     return (
         <div className="flex flex-col gap-4">
             {/* ── Natural language entry ─────────────────────────────── */}
-            <div className="rounded-xl border border-primary/30 bg-gradient-to-b from-primary/[0.06] to-transparent p-4">
+            <div className="rounded-lg border border-primary/30 bg-primary/10 p-4">
                 <SectionHeader
                     title="Describe your AI Trading Team"
                     icon={<Sparkles className="size-4 text-primary" />}
@@ -213,7 +213,7 @@ export function TeamBuilder({
             </div>
 
             {/* ── Stepper ────────────────────────────────────────────── */}
-            <div className="rounded-xl border border-border/60 bg-card/60 p-4">
+            <div className="rounded-lg border border-border/60 bg-card/60 p-4">
                 <ol className="flex flex-wrap items-center gap-1.5" aria-label="Team builder steps">
                     {STEPS.map((label, index) => (
                         <li key={label} className="flex items-center gap-1.5">

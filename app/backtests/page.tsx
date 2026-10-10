@@ -592,11 +592,11 @@ export default function BacktestsPage() {
     }, [selectedProduct, liveData]);
 
     return (
-        <div className="min-h-screen bg-background text-foreground selection:bg-amber-500/30">
+        <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
             {/* BACKGROUND GRADIENT GLOWS */}
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-amber-500/10 blur-[120px]" />
-                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-blue-500/10 blur-[120px]" />
+                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 hidden" />
+                <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
 
             <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -611,12 +611,12 @@ export default function BacktestsPage() {
                             Back to Account
                         </Link>
 
-                        <div className="flex items-center gap-2 text-sm text-amber-400 font-medium">
+                        <div className="flex items-center gap-2 text-sm text-warning font-medium">
                             <Sparkles className="h-4 w-4" />
                             Verified Strategy Analytics & Backtest Suite
                         </div>
 
-                        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
+                        <h1 className="text-2xl font-semibold tracking-tight mt-2">
                             Backtest Reports
                         </h1>
 
@@ -628,15 +628,15 @@ export default function BacktestsPage() {
                     <div className="flex flex-wrap items-center gap-3">
                         <Link
                             href="/live-performance"
-                            className="inline-flex items-center gap-2 rounded-xl border border-border/30 bg-muted/5 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
+                            className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
                         >
-                            <Activity className="h-4 w-4 text-emerald-400" />
+                            <Activity className="h-4 w-4 text-positive" />
                             <span>Live Performance</span>
                         </Link>
 
                         <Link
                             href="/marketplace"
-                            className="inline-flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-2.5 text-sm font-medium text-amber-400 transition-colors hover:bg-amber-500/20"
+                            className="inline-flex items-center gap-2 rounded-lg border border-warning/20 bg-warning/10 px-4 py-2.5 text-sm font-medium text-warning transition-colors hover:bg-warning/20"
                         >
                             <Bot className="h-4 w-4" />
                             <span>Explore EAs</span>
@@ -645,10 +645,10 @@ export default function BacktestsPage() {
                 </div>
 
                 {/* BOT SELECTOR BAR WITH REAL BOT LOGO */}
-                <div className="mt-8 rounded-lg border border-border/30 bg-gradient-to-br from-background/80 via-background/40 to-background/80 p-5 backdrop-blur-xl" data-guide="bot-selector">
+                <div className="mt-8 rounded-lg border border-border/30 bg-background p-5" data-guide="bot-selector">
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/30 bg-card">
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/30 bg-card">
                                 {botLogo ? (
                                     <img
                                         src={botLogo}
@@ -657,7 +657,7 @@ export default function BacktestsPage() {
                                         onError={() => setBotLogo(null)}
                                     />
                                 ) : (
-                                    <Bot className="h-7 w-7 text-amber-400" />
+                                    <Bot className="h-7 w-7 text-warning" />
                                 )}
                             </div>
 
@@ -669,7 +669,7 @@ export default function BacktestsPage() {
                                     <select
                                         value={selectedProductId}
                                         onChange={(e) => setSelectedProductId(e.target.value)}
-                                        className="rounded-xl border border-border/30 bg-card px-3.5 py-2 text-sm font-bold text-foreground outline-none focus:border-amber-500/50"
+                                        className="rounded-lg border border-border/30 bg-card px-3.5 py-2 text-sm font-bold text-foreground outline-none focus:border-warning/50"
                                     >
                                         {products.map((prod) => (
                                             <option key={prod.id} value={prod.id}>
@@ -685,14 +685,14 @@ export default function BacktestsPage() {
                                     )}
 
                                     {selectedProduct?.symbol && (
-                                        <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400 whitespace-nowrap shrink-0">
+                                        <span className="inline-flex items-center gap-1.5 rounded-full border border-warning/20 bg-warning/10 px-3 py-1 text-xs font-semibold text-warning whitespace-nowrap shrink-0">
                                             {selectedProduct.symbol}
                                         </span>
                                     )}
 
                                     {metrics.isLive && (
-                                        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400 whitespace-nowrap shrink-0">
-                                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                        <span className="inline-flex items-center gap-1.5 rounded-full border border-positive/30 bg-positive/10 px-3 py-1 text-xs font-semibold text-positive whitespace-nowrap shrink-0">
+                                            <span className="h-1.5 w-1.5 rounded-full bg-positive animate-pulse" />
                                             Real MT5 Account Connected
                                         </span>
                                     )}
@@ -701,11 +701,11 @@ export default function BacktestsPage() {
                         </div>
 
                         {/* MODE NAVIGATION TABS */}
-                        <div className="flex items-center gap-2 overflow-x-auto rounded-xl border border-border/30 bg-background p-2 scrollbar-none" data-guide="modes">
+                        <div className="flex items-center gap-2 overflow-x-auto rounded-lg border border-border/30 bg-background p-2 scrollbar-none" data-guide="modes">
                             <button
                                 onClick={() => setViewMode("myfxbook")}
                                 className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-medium transition-all whitespace-nowrap shrink-0 ${viewMode === "myfxbook"
-                                    ? "bg-amber-500 text-foreground shadow-lg shadow-amber-500/20 font-semibold"
+                                    ? "bg-warning text-foreground shadow-lg  font-semibold"
                                     : "text-muted-foreground hover:text-foreground"
                                     }`}
                             >
@@ -716,7 +716,7 @@ export default function BacktestsPage() {
                             <button
                                 onClick={() => setViewMode("mt5")}
                                 className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-medium transition-all whitespace-nowrap shrink-0 ${viewMode === "mt5"
-                                    ? "bg-amber-500 text-foreground shadow-lg shadow-amber-500/20 font-semibold"
+                                    ? "bg-warning text-foreground shadow-lg  font-semibold"
                                     : "text-muted-foreground hover:text-foreground"
                                     }`}
                             >
@@ -727,7 +727,7 @@ export default function BacktestsPage() {
                             <button
                                 onClick={() => setViewMode("trades")}
                                 className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-medium transition-all whitespace-nowrap shrink-0 ${viewMode === "trades"
-                                    ? "bg-amber-500 text-foreground shadow-lg shadow-amber-500/20 font-semibold"
+                                    ? "bg-warning text-foreground shadow-lg  font-semibold"
                                     : "text-muted-foreground hover:text-foreground"
                                     }`}
                             >
@@ -738,7 +738,7 @@ export default function BacktestsPage() {
                             <button
                                 onClick={() => setViewMode("comparison")}
                                 className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-medium transition-all whitespace-nowrap shrink-0 ${viewMode === "comparison"
-                                    ? "bg-amber-500 text-foreground shadow-lg shadow-amber-500/20 font-semibold"
+                                    ? "bg-warning text-foreground shadow-lg  font-semibold"
                                     : "text-muted-foreground hover:text-foreground"
                                     }`}
                             >
@@ -754,12 +754,12 @@ export default function BacktestsPage() {
                     <div className="mt-8 space-y-8">
                         {/* KPI STAT CARDS */}
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-guide="metrics">
-                            <div className="rounded-lg border border-border/30 bg-gradient-to-br from-emerald-500/10 via-background/60 to-background p-5 backdrop-blur-xl">
+                            <div className="rounded-lg border border-border/30 bg-positive-muted p-5">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Total Return</span>
-                                    <TrendingUp className="h-4 w-4 text-emerald-400" />
+                                    <TrendingUp className="h-4 w-4 text-positive" />
                                 </div>
-                                <div className="mt-3 text-2xl font-black text-emerald-400">
+                                <div className="mt-3 text-2xl font-black text-positive">
                                     {metrics.profit != null && metrics.profit !== 0 ? `${metrics.profit > 0 ? "+" : ""}${metrics.profit}%` : "—"}
                                 </div>
                                 <div className="mt-1 text-xs text-muted-foreground">
@@ -767,10 +767,10 @@ export default function BacktestsPage() {
                                 </div>
                             </div>
 
-                            <div className="rounded-lg border border-border/30 bg-gradient-to-br from-amber-500/10 via-background/60 to-background p-5 backdrop-blur-xl">
+                            <div className="rounded-lg border border-border/30 bg-warning-muted p-5">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Win Rate</span>
-                                    <Target className="h-4 w-4 text-amber-400" />
+                                    <Target className="h-4 w-4 text-warning" />
                                 </div>
                                 <div className="mt-3 text-2xl font-black text-foreground">
                                     {metrics.winRate ? `${metrics.winRate}%` : "—"}
@@ -780,10 +780,10 @@ export default function BacktestsPage() {
                                 </div>
                             </div>
 
-                            <div className="rounded-lg border border-border/30 bg-gradient-to-br from-blue-500/10 via-background/60 to-background p-5 backdrop-blur-xl">
+                            <div className="rounded-lg border border-border/30 bg-info-muted p-5">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Profit Factor</span>
-                                    <BarChart3 className="h-4 w-4 text-blue-400" />
+                                    <BarChart3 className="h-4 w-4 text-info" />
                                 </div>
                                 <div className="mt-3 text-2xl font-black text-foreground">
                                     {metrics.profitFactor || "—"}
@@ -793,12 +793,12 @@ export default function BacktestsPage() {
                                 </div>
                             </div>
 
-                            <div className="rounded-lg border border-border/30 bg-gradient-to-br from-red-500/10 via-background/60 to-background p-5 backdrop-blur-xl">
+                            <div className="rounded-lg border border-border/30 bg-negative-muted p-5">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Max Drawdown</span>
-                                    <TrendingDown className="h-4 w-4 text-red-400" />
+                                    <TrendingDown className="h-4 w-4 text-negative" />
                                 </div>
-                                <div className="mt-3 text-2xl font-black text-red-400">
+                                <div className="mt-3 text-2xl font-black text-negative">
                                     {metrics.maxDrawdown ? `-${metrics.maxDrawdown}%` : "—"}
                                 </div>
                                 <div className="mt-1 text-xs text-muted-foreground">
@@ -809,12 +809,12 @@ export default function BacktestsPage() {
 
                         {/* INTERACTIVE CHARTS SECTION - PRO ONLY */}
                         <ProGate>
-<div className="rounded-lg border border-border/30 bg-card/60 p-6 backdrop-blur-xl" data-guide="charts">
+<div className="rounded-lg border border-border/30 bg-card/60 p-6" data-guide="charts">
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
                                     <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                                         <span>Strategy Performance Charts</span>
-                                        <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-micro text-amber-400 font-semibold uppercase">
+                                        <span className="rounded-md border border-warning/30 bg-warning/10 px-2 py-0.5 text-micro text-warning font-semibold uppercase">
                                             {metrics.isLive ? "Real MT5 Data" : "Database Record"}
                                         </span>
                                     </h2>
@@ -823,11 +823,11 @@ export default function BacktestsPage() {
                                     </p>
                                 </div>
 
-                                <div className="flex items-center gap-1.5 overflow-x-auto rounded-xl border border-border/30 bg-background p-1">
+                                <div className="flex items-center gap-1.5 overflow-x-auto rounded-lg border border-border/30 bg-background p-1">
                                     <button
                                         onClick={() => setChartType("equity")}
                                         className={`rounded-lg px-3 py-1 text-xs font-medium transition-all ${chartType === "equity"
-                                            ? "bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold"
+                                            ? "bg-warning/20 text-warning border border-warning/30 font-semibold"
                                             : "text-muted-foreground hover:text-foreground"
                                             }`}
                                     >
@@ -836,7 +836,7 @@ export default function BacktestsPage() {
                                     <button
                                         onClick={() => setChartType("drawdown")}
                                         className={`rounded-lg px-3 py-1 text-xs font-medium transition-all ${chartType === "drawdown"
-                                            ? "bg-red-500/20 text-red-400 border border-red-500/30 font-semibold"
+                                            ? "bg-negative/20 text-negative border border-negative/30 font-semibold"
                                             : "text-muted-foreground hover:text-foreground"
                                             }`}
                                     >
@@ -845,7 +845,7 @@ export default function BacktestsPage() {
                                     <button
                                         onClick={() => setChartType("weekday")}
                                         className={`rounded-lg px-3 py-1 text-xs font-medium transition-all ${chartType === "weekday"
-                                            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold"
+                                            ? "bg-positive/20 text-positive border border-positive/30 font-semibold"
                                             : "text-muted-foreground hover:text-foreground"
                                             }`}
                                     >
@@ -854,7 +854,7 @@ export default function BacktestsPage() {
                                     <button
                                         onClick={() => setChartType("session")}
                                         className={`rounded-lg px-3 py-1 text-xs font-medium transition-all ${chartType === "session"
-                                            ? "bg-blue-500/20 text-blue-400 border border-blue-500/30 font-semibold"
+                                            ? "bg-info/20 text-info border border-info/30 font-semibold"
                                             : "text-muted-foreground hover:text-foreground"
                                             }`}
                                     >
@@ -971,13 +971,13 @@ export default function BacktestsPage() {
                         {/* PRO STATISTICAL & RISK ANALYTICS CARDS */}
                         <div className="grid gap-6 md:grid-cols-3">
                             {/* RISK OF RUIN & DRAWDOWN STATS */}
-                            <div className="rounded-lg border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
+                            <div className="rounded-lg border border-border/30 bg-card/60 p-5">
                                 <div className="flex items-center justify-between border-b border-border/30 pb-3">
                                     <h3 className="font-bold text-foreground flex items-center gap-2">
-                                        <ShieldAlert className="h-4 w-4 text-amber-400" />
+                                        <ShieldAlert className="h-4 w-4 text-warning" />
                                         <span>Risk of Ruin Matrix</span>
                                     </h3>
-                                    <span className="text-micro uppercase tracking-wider font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
+                                    <span className="text-micro uppercase tracking-wider font-semibold text-positive bg-positive/10 border border-positive/20 px-2 py-0.5 rounded">
                                         {metrics.maxDrawdown < 15 ? "Low Risk" : "Moderate Risk"}
                                     </span>
                                 </div>
@@ -985,19 +985,19 @@ export default function BacktestsPage() {
                                 <div className="mt-4 space-y-3.5 text-xs">
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">10% Drawdown Prob:</span>
-                                        <span className="font-semibold text-emerald-400">
+                                        <span className="font-semibold text-positive">
                                             {metrics.maxDrawdown < 10 ? "1.2%" : "3.8%"}
                                         </span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">20% Drawdown Prob:</span>
-                                        <span className="font-semibold text-emerald-400">
+                                        <span className="font-semibold text-positive">
                                             {metrics.maxDrawdown < 20 ? "0.2%" : "2.1%"}
                                         </span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">30% Drawdown Prob:</span>
-                                        <span className="font-semibold text-emerald-400">&lt; 0.01% (Minimal)</span>
+                                        <span className="font-semibold text-positive">&lt; 0.01% (Minimal)</span>
                                     </div>
                                     <div className="flex justify-between pt-2 border-t border-border/10">
                                         <span className="text-muted-foreground">Max Consecutive Wins / Losses:</span>
@@ -1009,13 +1009,13 @@ export default function BacktestsPage() {
                             </div>
 
                             {/* INSTITUTIONAL RATIOS */}
-                            <div className="rounded-lg border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
+                            <div className="rounded-lg border border-border/30 bg-card/60 p-5">
                                 <div className="flex items-center justify-between border-b border-border/30 pb-3">
                                     <h3 className="font-bold text-foreground flex items-center gap-2">
-                                        <Zap className="h-4 w-4 text-blue-400" />
+                                        <Zap className="h-4 w-4 text-info" />
                                         <span>Institutional Ratios</span>
                                     </h3>
-                                    <span className="text-micro uppercase tracking-wider font-semibold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded">
+                                    <span className="text-micro uppercase tracking-wider font-semibold text-info bg-info/10 border border-info/20 px-2 py-0.5 rounded">
                                         Calculated
                                     </span>
                                 </div>
@@ -1035,19 +1035,19 @@ export default function BacktestsPage() {
                                     </div>
                                     <div className="flex justify-between pt-2 border-t border-border/10">
                                         <span className="text-muted-foreground">Value at Risk (95% VaR):</span>
-                                        <span className="font-bold text-amber-400">1.45% / day</span>
+                                        <span className="font-bold text-warning">1.45% / day</span>
                                     </div>
                                 </div>
                             </div>
 
                             {/* TRADE EXECUTION PROFILE */}
-                            <div className="rounded-lg border border-border/30 bg-card/60 p-5 backdrop-blur-xl">
+                            <div className="rounded-lg border border-border/30 bg-card/60 p-5">
                                 <div className="flex items-center justify-between border-b border-border/30 pb-3">
                                     <h3 className="font-bold text-foreground flex items-center gap-2">
-                                        <Clock className="h-4 w-4 text-emerald-400" />
+                                        <Clock className="h-4 w-4 text-positive" />
                                         <span>Trade Execution Profile</span>
                                     </h3>
-                                    <span className="text-micro uppercase tracking-wider font-semibold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded">
+                                    <span className="text-micro uppercase tracking-wider font-semibold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded">
                                         Real Trades
                                     </span>
                                 </div>
@@ -1055,11 +1055,11 @@ export default function BacktestsPage() {
                                 <div className="mt-4 space-y-3.5 text-xs">
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">Avg Winning Holding Time:</span>
-                                        <span className="font-semibold text-emerald-400">{tradeExecutionProfile.avgWinDuration}</span>
+                                        <span className="font-semibold text-positive">{tradeExecutionProfile.avgWinDuration}</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">Avg Losing Holding Time:</span>
-                                        <span className="font-semibold text-red-400">{tradeExecutionProfile.avgLossDuration}</span>
+                                        <span className="font-semibold text-negative">{tradeExecutionProfile.avgLossDuration}</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">Longs Won Win %:</span>
@@ -1074,7 +1074,7 @@ export default function BacktestsPage() {
                         </div>
 
                         {/* MONTHLY RETURNS HEATMAP */}
-                        <div className="rounded-lg border border-border/30 bg-card/60 p-6 backdrop-blur-xl">
+                        <div className="rounded-lg border border-border/30 bg-card/60 p-6">
                             <h2 className="text-lg font-bold text-foreground mb-1">
                                 Monthly Return Breakdown ({metrics.isLive ? "$" : "%"})
                             </h2>
@@ -1089,9 +1089,9 @@ export default function BacktestsPage() {
                                     return (
                                         <div
                                             key={m.month}
-                                            className={`rounded-xl border p-3.5 transition-all hover:scale-105 ${isPositive
-                                                ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
-                                                : "border-red-500/20 bg-red-500/10 text-red-400"
+                                            className={`rounded-lg border p-3.5 transition-all hover:scale-105 ${isPositive
+                                                ? "border-positive/20 bg-positive/10 text-positive"
+                                                : "border-negative/20 bg-negative/10 text-negative"
                                                 }`}
                                         >
                                             <div className="text-xs font-semibold uppercase tracking-wider opacity-70">
@@ -1108,7 +1108,7 @@ export default function BacktestsPage() {
                                 })}
                             </div>
                             ) : (
-                            <div className="rounded-xl border border-dashed border-border/30 p-12 text-center text-sm text-muted-foreground">No monthly return data available. Connect an MT5 account to see monthly breakdowns.</div>
+                            <div className="rounded-lg border border-dashed border-border/30 p-12 text-center text-sm text-muted-foreground">No monthly return data available. Connect an MT5 account to see monthly breakdowns.</div>
                             )}
                             </div>
                         </ProGate>
@@ -1117,10 +1117,10 @@ export default function BacktestsPage() {
 
                 {/* VIEW 2: MT5 OFFICIAL STRATEGY TESTER REPORT */}
                 {viewMode === "mt5" && (
-                    <div className="mt-8 rounded-lg border border-border/30 bg-card/40 p-6 backdrop-blur-xl">
+                    <div className="mt-8 rounded-lg border border-border/30 bg-card/40 p-6">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-border/30 pb-5">
                             <div className="flex items-center gap-4">
-                                <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/30 bg-card">
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/30 bg-card">
                                     {botLogo ? (
                                         <img
                                             src={botLogo}
@@ -1129,12 +1129,12 @@ export default function BacktestsPage() {
                                             onError={() => setBotLogo(null)}
                                         />
                                     ) : (
-                                        <Bot className="h-6 w-6 text-amber-400" />
+                                        <Bot className="h-6 w-6 text-warning" />
                                     )}
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2">
-                                        <span className="rounded border border-amber-500/30 bg-amber-500/20 px-2 py-0.5 text-xs font-bold text-amber-400">
+                                        <span className="rounded border border-warning/30 bg-warning/20 px-2 py-0.5 text-xs font-bold text-warning">
                                             MT5 Official Report
                                         </span>
                                         <h2 className="text-xl font-extrabold text-foreground">
@@ -1149,9 +1149,9 @@ export default function BacktestsPage() {
 
                             <Link
                                 href={`/marketplace/${selectedProduct?.slug || selectedProduct?.id}`}
-                                className="mt-3 sm:mt-0 inline-flex items-center gap-2 rounded-xl border border-border/30 bg-muted/5 px-3.5 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/10 hover:text-foreground"
+                                className="mt-3 sm:mt-0 inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-3.5 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/10 hover:text-foreground"
                             >
-                                <ExternalLink className="h-3.5 w-3.5 text-amber-400" />
+                                <ExternalLink className="h-3.5 w-3.5 text-warning" />
                                 <span>Bot Marketplace Page</span>
                             </Link>
                         </div>
@@ -1159,8 +1159,8 @@ export default function BacktestsPage() {
                         {/* MT5 TABULAR REPORT MATRIX */}
                         <div className="mt-6 space-y-6 text-sm">
                             {/* SECTION 1: SETTINGS & MODEL */}
-                            <div className="rounded-xl border border-border/10 bg-muted/20 p-4">
-                                <h3 className="text-xs uppercase tracking-wider font-bold text-amber-400 mb-3">
+                            <div className="rounded-lg border border-border/10 bg-muted/20 p-4">
+                                <h3 className="text-xs uppercase tracking-wider font-bold text-warning mb-3">
                                     1. Backtest Parameters
                                 </h3>
                                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 text-xs">
@@ -1174,14 +1174,14 @@ export default function BacktestsPage() {
                             </div>
 
                             {/* SECTION 2: RESULTS SUMMARY */}
-                            <div className="rounded-xl border border-border/10 bg-muted/20 p-4">
-                                <h3 className="text-xs uppercase tracking-wider font-bold text-amber-400 mb-3">
+                            <div className="rounded-lg border border-border/10 bg-muted/20 p-4">
+                                <h3 className="text-xs uppercase tracking-wider font-bold text-warning mb-3">
                                     2. Performance Results
                                 </h3>
                                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                     <div className="flex justify-between border-b border-border/10 pb-2 text-xs">
                                         <span className="text-muted-foreground">Total Net Profit:</span>
-                                        <span className="font-bold text-emerald-400">
+                                        <span className="font-bold text-positive">
                                             {metrics.totalProfitVal !== 0 ? `${metrics.totalProfitVal > 0 ? "+" : ""}$${metrics.totalProfitVal.toLocaleString()}` : "—"}
                                         </span>
                                     </div>
@@ -1209,7 +1209,7 @@ export default function BacktestsPage() {
 
                                     <div className="flex justify-between border-b border-border/10 pb-2 text-xs">
                                         <span className="text-muted-foreground">Maximal Drawdown:</span>
-                                        <span className="font-bold text-red-400">{metrics.maxDrawdown ? `${metrics.maxDrawdown}%` : "—"}</span>
+                                        <span className="font-bold text-negative">{metrics.maxDrawdown ? `${metrics.maxDrawdown}%` : "—"}</span>
                                     </div>
                                     <div className="flex justify-between border-b border-border/10 pb-2 text-xs">
                                         <span className="text-muted-foreground">Recovery Factor:</span>
@@ -1223,8 +1223,8 @@ export default function BacktestsPage() {
                             </div>
 
                             {/* SECTION 3: TRADE METRICS */}
-                            <div className="rounded-xl border border-border/10 bg-muted/20 p-4">
-                                <h3 className="text-xs uppercase tracking-wider font-bold text-amber-400 mb-3">
+                            <div className="rounded-lg border border-border/10 bg-muted/20 p-4">
+                                <h3 className="text-xs uppercase tracking-wider font-bold text-warning mb-3">
                                     3. Trades Breakdown
                                 </h3>
                                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -1234,24 +1234,24 @@ export default function BacktestsPage() {
                                     </div>
                                     <div className="flex justify-between border-b border-border/10 pb-2 text-xs">
                                         <span className="text-muted-foreground">Profit Trades (% of total):</span>
-                                        <span className="font-semibold text-emerald-400">{metrics.winningTrades} ({metrics.winRate}%)</span>
+                                        <span className="font-semibold text-positive">{metrics.winningTrades} ({metrics.winRate}%)</span>
                                     </div>
                                     <div className="flex justify-between border-b border-border/10 pb-2 text-xs">
                                         <span className="text-muted-foreground">Loss Trades (% of total):</span>
-                                        <span className="font-semibold text-red-400">{metrics.losingTrades} ({(100 - metrics.winRate).toFixed(1)}%)</span>
+                                        <span className="font-semibold text-negative">{metrics.losingTrades} ({(100 - metrics.winRate).toFixed(1)}%)</span>
                                     </div>
 
                                     <div className="flex justify-between border-b border-border/10 pb-2 text-xs">
                                         <span className="text-muted-foreground">Max Consecutive Wins:</span>
-                                        <span className="font-semibold text-emerald-400">{tradeExecutionProfile.maxConsecutiveWins} trades</span>
+                                        <span className="font-semibold text-positive">{tradeExecutionProfile.maxConsecutiveWins} trades</span>
                                     </div>
                                     <div className="flex justify-between border-b border-border/10 pb-2 text-xs">
                                         <span className="text-muted-foreground">Max Consecutive Losses:</span>
-                                        <span className="font-semibold text-red-400">{tradeExecutionProfile.maxConsecutiveLosses} trades</span>
+                                        <span className="font-semibold text-negative">{tradeExecutionProfile.maxConsecutiveLosses} trades</span>
                                     </div>
                                     <div className="flex justify-between border-b border-border/10 pb-2 text-xs">
                                         <span className="text-muted-foreground">Average Profit Trade:</span>
-                                        <span className="font-semibold text-emerald-400">+${(Number(metrics.expectedPayoff) * 1.5).toFixed(2)}</span>
+                                        <span className="font-semibold text-positive">+${(Number(metrics.expectedPayoff) * 1.5).toFixed(2)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -1261,7 +1261,7 @@ export default function BacktestsPage() {
 
                 {/* VIEW 3: LIVE MT5 CLOSED TRADES LOG */}
                 {viewMode === "trades" && (
-                    <div className="mt-8 rounded-lg border border-border/30 bg-card/40 overflow-hidden backdrop-blur-xl">
+                    <div className="mt-8 rounded-lg border border-border/30 bg-card/40 overflow-hidden">
                         <div className="flex items-center justify-between border-b border-border/30 px-6 py-4">
                             <div>
                                 <h2 className="text-lg font-bold text-foreground">Live MT5 Trade Log</h2>
@@ -1291,17 +1291,17 @@ export default function BacktestsPage() {
                                             const isWin = Number(t.netProfit || t.profit || 0) >= 0;
                                             return (
                                                 <tr key={t.ticket || idx} className="hover:bg-muted/50">
-                                                    <td className="py-3 px-4 font-mono text-xs text-muted-foreground">#{t.ticket}</td>
+                                                    <td className="py-3 px-4 font-numeric text-xs text-muted-foreground">#{t.ticket}</td>
                                                     <td className="py-3 px-4 font-bold text-foreground">{t.symbol}</td>
                                                     <td className="py-3 px-4">
-                                                        <span className={`inline-block rounded px-2 py-0.5 text-xs font-semibold ${t.type?.toLowerCase().includes("buy") ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}`}>
+                                                        <span className={`inline-block rounded px-2 py-0.5 text-xs font-semibold ${t.type?.toLowerCase().includes("buy") ? "bg-positive/20 text-positive" : "bg-negative/20 text-negative"}`}>
                                                             {t.type?.toUpperCase()}
                                                         </span>
                                                     </td>
                                                     <td className="py-3 px-4 text-muted-foreground">{t.volume}</td>
-                                                    <td className="py-3 px-4 font-mono text-xs text-muted-foreground">{t.openPrice}</td>
-                                                    <td className="py-3 px-4 font-mono text-xs text-muted-foreground">{t.closePrice || "—"}</td>
-                                                    <td className={`py-3 px-4 font-bold ${isWin ? "text-emerald-400" : "text-red-400"}`}>
+                                                    <td className="py-3 px-4 font-numeric text-xs text-muted-foreground">{t.openPrice}</td>
+                                                    <td className="py-3 px-4 font-numeric text-xs text-muted-foreground">{t.closePrice || "—"}</td>
+                                                    <td className={`py-3 px-4 font-bold ${isWin ? "text-positive" : "text-negative"}`}>
                                                         {isWin ? "+" : ""}${Number(t.netProfit || t.profit || 0).toFixed(2)}
                                                     </td>
                                                     <td className="py-3 px-4 text-xs text-muted-foreground">
@@ -1324,10 +1324,10 @@ export default function BacktestsPage() {
                 {/* VIEW 4: LIVE VS BACKTEST BENCHMARK COMPARISON */}
                 {viewMode === "comparison" && (
                     <div className="mt-8 space-y-6">
-                        <div className="rounded-lg border border-border/30 bg-card/40 p-6 backdrop-blur-xl">
+                        <div className="rounded-lg border border-border/30 bg-card/40 p-6">
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-border/30 pb-4">
                                 <div className="flex items-center gap-4">
-                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/30 bg-card">
+                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/30 bg-card">
                                         {botLogo ? (
                                             <img
                                                 src={botLogo}
@@ -1336,7 +1336,7 @@ export default function BacktestsPage() {
                                                 onError={() => setBotLogo(null)}
                                             />
                                         ) : (
-                                            <Bot className="h-6 w-6 text-amber-400" />
+                                            <Bot className="h-6 w-6 text-warning" />
                                         )}
                                     </div>
                                     <div>
@@ -1350,8 +1350,8 @@ export default function BacktestsPage() {
                                 </div>
 
                                 {matchingLicense ? (
-                                    <span className="mt-2 sm:mt-0 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                    <span className="mt-2 sm:mt-0 inline-flex items-center gap-1.5 rounded-full border border-positive/30 bg-positive/10 px-3 py-1 text-xs font-semibold text-positive">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-positive animate-pulse" />
                                         MT5 Connected: #{matchingLicense.mt5Account || "Active"}
                                     </span>
                                 ) : (
@@ -1376,10 +1376,10 @@ export default function BacktestsPage() {
                                         <tr>
                                             <td className="py-3.5 px-4 font-medium text-muted-foreground">Win Rate</td>
                                             <td className="py-3.5 px-4 font-bold text-foreground">{selectedProduct?.performance?.winRate ? `${selectedProduct.performance.winRate}%` : "—"}</td>
-                                            <td className="py-3.5 px-4 font-bold text-emerald-400">
+                                            <td className="py-3.5 px-4 font-bold text-positive">
                                                 {liveData?.stats?.winRate != null ? `${liveData.stats.winRate}%` : "—"}
                                             </td>
-                                            <td className="py-3.5 px-4 text-xs font-semibold text-emerald-400">
+                                            <td className="py-3.5 px-4 text-xs font-semibold text-positive">
                                                 {liveData?.stats?.winRate != null && selectedProduct?.performance?.winRate ? `${(liveData.stats.winRate - Number(selectedProduct.performance.winRate)).toFixed(1)}%` : "Awaiting MT5 trades"}
                                             </td>
                                         </tr>
@@ -1390,18 +1390,18 @@ export default function BacktestsPage() {
                                             <td className="py-3.5 px-4 font-bold text-foreground">
                                                 {liveData?.stats?.profitFactor != null ? String(liveData.stats.profitFactor) : "—"}
                                             </td>
-                                            <td className="py-3.5 px-4 text-xs font-semibold text-emerald-400">
+                                            <td className="py-3.5 px-4 text-xs font-semibold text-positive">
                                                 {liveData?.stats?.profitFactor != null ? "Verified Live" : "—"}
                                             </td>
                                         </tr>
 
                                         <tr>
                                             <td className="py-3.5 px-4 font-medium text-muted-foreground">Max Drawdown</td>
-                                            <td className="py-3.5 px-4 font-bold text-red-400">{selectedProduct?.risk?.maxDrawdown ? `${selectedProduct.risk.maxDrawdown}%` : "—"}</td>
-                                            <td className="py-3.5 px-4 font-bold text-red-400">
+                                            <td className="py-3.5 px-4 font-bold text-negative">{selectedProduct?.risk?.maxDrawdown ? `${selectedProduct.risk.maxDrawdown}%` : "—"}</td>
+                                            <td className="py-3.5 px-4 font-bold text-negative">
                                                 {liveData?.account?.drawdown != null ? `${liveData.account.drawdown}%` : "—"}
                                             </td>
-                                            <td className="py-3.5 px-4 text-xs font-semibold text-emerald-400">
+                                            <td className="py-3.5 px-4 text-xs font-semibold text-positive">
                                                 {liveData?.account?.drawdown != null && selectedProduct?.risk?.maxDrawdown ? (Number(liveData.account.drawdown) <= Number(selectedProduct.risk.maxDrawdown) ? "Within Risk Limits" : "Higher Risk") : "—"}
                                             </td>
                                         </tr>

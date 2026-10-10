@@ -50,7 +50,7 @@ const SignalRow = memo(function SignalRow({
     return (
         <article className="border-b border-border/60 last:border-0">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-2">
-                <span className="font-mono text-xs font-semibold text-foreground">
+                <span className="font-numeric text-xs font-semibold text-foreground">
                     {signal.symbol}
                 </span>
                 <StatusBadge
@@ -59,26 +59,26 @@ const SignalRow = memo(function SignalRow({
                 />
                 <StatusBadge tone="neutral" label={signal.timeframe} />
 
-                <span className="font-mono text-xs tabular-nums text-muted-foreground">
+                <span className="font-numeric text-xs tabular-nums text-muted-foreground">
                     <span className="text-muted-foreground/70">entry</span>{" "}
                     <span className="text-foreground">{formatPrice(signal.entry)}</span>
                 </span>
-                <span className="font-mono text-xs tabular-nums text-muted-foreground">
+                <span className="font-numeric text-xs tabular-nums text-muted-foreground">
                     <span className="text-muted-foreground/70">SL</span>{" "}
                     <span className="text-negative">{formatPrice(signal.stop)}</span>
                 </span>
-                <span className="font-mono text-xs tabular-nums text-muted-foreground">
+                <span className="font-numeric text-xs tabular-nums text-muted-foreground">
                     <span className="text-muted-foreground/70">TP1</span>{" "}
                     <span className="text-positive">{formatPrice(signal.target)}</span>
                 </span>
                 <span
-                    className="font-mono text-xs font-semibold tabular-nums text-foreground"
+                    className="font-numeric text-xs font-semibold tabular-nums text-foreground"
                     title="Risk/reward re-derived from the signal's own entry, stop and target prices."
                 >
                     R:R {signal.riskReward.toFixed(2)}
                 </span>
 
-                <span className="ml-auto font-mono text-xs text-muted-foreground">
+                <span className="ml-auto font-numeric text-xs text-muted-foreground">
                     {relativeTime(signal.createdAt, now)}
                 </span>
 
@@ -114,14 +114,14 @@ const SignalRow = memo(function SignalRow({
                                             Data unavailable
                                         </span>
                                     ) : (
-                                        <span className="font-mono">{signal.regime}</span>
+                                        <span className="font-numeric">{signal.regime}</span>
                                     )
                                 }
                             />
-                            <StatRow label="Status" value={<span className="font-mono">{signal.status}</span>} />
+                            <StatRow label="Status" value={<span className="font-numeric">{signal.status}</span>} />
                             <StatRow
                                 label="Risk (price)"
-                                value={<span className="font-mono tabular-nums">{formatPrice(signal.risk)}</span>}
+                                value={<span className="font-numeric tabular-nums">{formatPrice(signal.risk)}</span>}
                                 hint="Absolute distance between entry and stop."
                             />
                         </div>
@@ -214,28 +214,28 @@ export function LiveSignalsPanel({
                 <div className="border-t border-border/60 px-3 py-2">
                     <SourceFooter
                         items={[
-                            { label: "mode", value: <span className="font-mono">{payload.engine.mode}</span> },
+                            { label: "mode", value: <span className="font-numeric">{payload.engine.mode}</span> },
                             {
                                 label: "scanner",
                                 value: (
-                                    <span className="font-mono">
+                                    <span className="font-numeric">
                                         {payload.engine.scanner ?? "ai-signals scanSymbol"}
                                     </span>
                                 ),
                             },
                             payload.engine.configVersion
-                                ? { label: "config", value: <span className="font-mono">{payload.engine.configVersion}</span> }
+                                ? { label: "config", value: <span className="font-numeric">{payload.engine.configVersion}</span> }
                                 : { label: "config", value: <span className="text-muted-foreground italic">not reported</span> },
                             payload.engine.minConfidence !== undefined
                                 ? {
                                       label: "min conf",
-                                      value: <span className="font-mono tabular-nums">{payload.engine.minConfidence}</span>,
+                                      value: <span className="font-numeric tabular-nums">{payload.engine.minConfidence}</span>,
                                   }
                                 : { label: "min conf", value: <span className="text-muted-foreground italic">not reported</span> },
                             payload.engine.minRiskReward !== undefined
                                 ? {
                                       label: "min R:R",
-                                      value: <span className="font-mono tabular-nums">{payload.engine.minRiskReward}</span>,
+                                      value: <span className="font-numeric tabular-nums">{payload.engine.minRiskReward}</span>,
                                   }
                                 : { label: "min R:R", value: <span className="text-muted-foreground italic">not reported</span> },
                         ]}
@@ -257,7 +257,7 @@ function RejectionList({ rejected }: { rejected: Array<{ symbol: string; reason:
             <ul className="mt-2 space-y-1.5">
                 {rejected.map((r) => (
                     <li key={r.symbol} className="flex flex-wrap items-baseline gap-x-2 text-xs">
-                        <span className="inline-flex items-center gap-1 font-mono font-medium text-foreground">
+                        <span className="inline-flex items-center gap-1 font-numeric font-medium text-foreground">
                             <Radar className="size-3 text-muted-foreground" />
                             {r.symbol}
                         </span>

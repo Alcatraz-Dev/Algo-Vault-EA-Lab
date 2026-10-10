@@ -17,26 +17,26 @@ export default function BusinessEventsAdmin() {
   return (
     <AdminShell title="Business Events" subtitle="Canonical event layer — provider-agnostic">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="rounded-xl border bg-card p-4 shadow-sm">
+        <div className="rounded-lg border bg-card p-4 shadow-sm">
           <div className="text-xs text-muted-foreground">Layer Status</div>
           <div className="font-semibold text-positive">Active</div>
           <div className="text-xs text-muted-foreground mt-1">Version 1</div>
         </div>
-        <div className="rounded-xl border bg-card p-4 shadow-sm">
+        <div className="rounded-lg border bg-card p-4 shadow-sm">
           <div className="text-xs text-muted-foreground">Pending Events</div>
           <div className="font-semibold">{status.pendingEvents}</div>
         </div>
-        <div className="rounded-xl border bg-card p-4 shadow-sm">
+        <div className="rounded-lg border bg-card p-4 shadow-sm">
           <div className="text-xs text-muted-foreground">Failed Events</div>
           <div className={`font-semibold ${status.failedEvents > 0 ? "text-negative" : "text-positive"}`}>{status.failedEvents}</div>
         </div>
-        <div className="rounded-xl border bg-card p-4 shadow-sm">
+        <div className="rounded-lg border bg-card p-4 shadow-sm">
           <div className="text-xs text-muted-foreground">Last Sync</div>
           <div className="font-semibold">{status.lastSyncAt ? new Date(status.lastSyncAt).toLocaleString() : "—"}</div>
         </div>
       </div>
 
-      <div className="rounded-xl border bg-card p-6 shadow-sm">
+      <div className="rounded-lg border bg-card p-6 shadow-sm">
         <h3 className="font-semibold mb-2">Event Types</h3>
         <div className="flex flex-wrap gap-2">
           {["customer.created", "order.paid", "payment.succeeded", "license.activated", "subscription.created", "commission.created"].map((t) => (

@@ -158,7 +158,7 @@ export function TradingChat({ now }: { now: number }) {
 
 
     return (
-        <section className="flex min-h-0 flex-col rounded-xl border border-border bg-card" aria-label="Trading chat">
+        <section className="flex min-h-0 flex-col rounded-lg border border-border bg-card" aria-label="Trading chat">
             <PanelErrorBoundary name="Trading Chat">
                 <header className="flex items-center gap-2 border-b border-border px-3 py-2">
                     <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 text-primary">
@@ -173,7 +173,7 @@ export function TradingChat({ now }: { now: number }) {
                                 CONTEXT-AWARE
                             </span>
                         </div>
-                        <p className="mt-0.5 font-mono text-micro text-muted-foreground">
+                        <p className="mt-0.5 font-numeric text-micro text-muted-foreground">
                             {state.symbol} {state.timeframe} · {state.accountMode}
                         </p>
                     </div>
@@ -285,7 +285,7 @@ export function TradingChat({ now }: { now: number }) {
                                                     </span>
                                                 </span>
                                             ) : null}
-                                            <div className="[&_a]:text-primary [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:font-mono [&_code]:text-micro [&_h1]:text-xs [&_h1]:font-semibold [&_h1]:uppercase [&_h1]:tracking-wide [&_h2]:text-xs [&_h2]:font-semibold [&_h2]:mt-2 [&_h3]:text-micro [&_h3]:font-semibold [&_li]:text-[12px] [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-1 [&_p]:leading-5 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-muted [&_pre]:p-2 [&_pre]:text-micro [&_strong]:font-semibold [&_table]:w-full [&_table]:text-micro [&_td]:border [&_td]:border-border [&_td]:px-1 [&_th]:border [&_th]:border-border [&_th]:px-1 [&_th]:text-left [&_ul]:list-disc [&_ul]:pl-4">
+                                            <div className="[&_a]:text-primary [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:font-numeric [&_code]:text-micro [&_h1]:text-xs [&_h1]:font-semibold [&_h1]:uppercase [&_h1]:tracking-wide [&_h2]:text-xs [&_h2]:font-semibold [&_h2]:mt-2 [&_h3]:text-micro [&_h3]:font-semibold [&_li]:text-[12px] [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-1 [&_p]:leading-5 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-muted [&_pre]:p-2 [&_pre]:text-micro [&_strong]:font-semibold [&_table]:w-full [&_table]:text-micro [&_td]:border [&_td]:border-border [&_td]:px-1 [&_th]:border [&_th]:border-border [&_th]:px-1 [&_th]:text-left [&_ul]:list-disc [&_ul]:pl-4">
                                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{t.content}</ReactMarkdown>
                                             </div>
                                         </>

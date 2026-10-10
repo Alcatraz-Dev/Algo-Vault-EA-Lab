@@ -34,7 +34,7 @@ export default function StrategyIntelligenceSection() {
  <div className="mt-12 rounded-lg border border-border/80 bg-card/80 p-6 md:p-8 ">
 
  {/* Top Flow Pipeline Diagram */}
- <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 pb-8 border-b border-border/40 font-mono text-center text-xs">
+ <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 pb-8 border-b border-border/40 font-numeric text-center text-xs">
  {[
  { name: "Market Data", label: "Twelve Data / Biquote" },
  { name: "Pattern Scan", label: "2,000+ Bars" },
@@ -55,7 +55,7 @@ export default function StrategyIntelligenceSection() {
  {/* Interactive Pattern Selector */}
  <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
  <div className="lg:col-span-5 space-y-3">
- <h3 className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Select Pattern Edge:</h3>
+ <h3 className="text-xs font-numeric uppercase tracking-wider text-muted-foreground">Select Pattern Edge:</h3>
 
  <button
  type="button"
@@ -68,7 +68,7 @@ export default function StrategyIntelligenceSection() {
  >
  <div className="flex items-center justify-between">
  <span className="font-bold text-sm text-foreground">Liquidity Sweep Reversal</span>
- <span className="text-xs font-mono text-positive font-bold">68.4% Win Rate</span>
+ <span className="text-xs font-numeric text-positive font-bold">68.4% Win Rate</span>
  </div>
  <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
  Triggers when sell-side or buy-side liquidity is swept beyond key swing highs/lows prior to a structural CHOCH shift.
@@ -86,7 +86,7 @@ export default function StrategyIntelligenceSection() {
  >
  <div className="flex items-center justify-between">
  <span className="font-bold text-sm text-foreground">Fair Value Gap (FVG) Reaction</span>
- <span className="text-xs font-mono text-info font-bold">71.2% Win Rate</span>
+ <span className="text-xs font-numeric text-info font-bold">71.2% Win Rate</span>
  </div>
  <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
  Detects 3-bar displacement imbalances where price returns to rebalance liquidity prior to continuation.
@@ -104,7 +104,7 @@ export default function StrategyIntelligenceSection() {
  >
  <div className="flex items-center justify-between">
  <span className="font-bold text-sm text-foreground">Institutional Order Block</span>
- <span className="text-xs font-mono text-warning font-bold">64.8% Win Rate</span>
+ <span className="text-xs font-numeric text-warning font-bold">64.8% Win Rate</span>
  </div>
  <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
  Identifies the last opposing candle prior to a high-volume displacement push.
@@ -113,7 +113,7 @@ export default function StrategyIntelligenceSection() {
  </div>
 
  {/* Interactive Visual Canvas Output */}
- <div className="lg:col-span-7 rounded-lg border border-border/60 bg-background/80 p-6 space-y-4 font-mono text-xs">
+ <div className="lg:col-span-7 rounded-lg border border-border/60 bg-background/80 p-6 space-y-4 font-numeric text-xs">
  <div className="flex items-center justify-between border-b border-border/40 pb-3">
  <span className="font-bold text-foreground">Rule Engine Strategy Preview</span>
  <span className="text-primary">Timeframe: M15 Setup / H4 Macro</span>

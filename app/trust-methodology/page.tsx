@@ -10,7 +10,7 @@ export default function TrustMethodologyPage() {
         <p className="text-muted-foreground">Transparent methodology — no guaranteed performance claims.</p>
       </header>
 
-      <section className="border rounded-xl p-6 bg-card space-y-4">
+      <section className="border rounded-lg p-6 bg-card space-y-4">
         <h2 className="text-xl font-semibold flex items-center gap-2"><BookOpen className="w-5 h-5" /> Certification Levels</h2>
         <div className="grid md:grid-cols-2 gap-4">
           {[
@@ -28,7 +28,7 @@ export default function TrustMethodologyPage() {
         </div>
       </section>
 
-      <section className="border rounded-xl p-6 bg-card space-y-4">
+      <section className="border rounded-lg p-6 bg-card space-y-4">
         <h2 className="text-xl font-semibold flex items-center gap-2"><Shield className="w-5 h-5" /> What Certification Does NOT Mean</h2>
         <ul className="list-disc pl-6 text-sm text-muted-foreground space-y-1">
           <li>Certification is methodology-based, not a guarantee of future profitability.</li>
@@ -39,7 +39,7 @@ export default function TrustMethodologyPage() {
         </ul>
       </section>
 
-      <section className="border rounded-xl p-6 bg-card space-y-4">
+      <section className="border rounded-lg p-6 bg-card space-y-4">
         <h2 className="text-xl font-semibold flex items-center gap-2"><AlertTriangle className="w-5 h-5" /> Monitoring & Expiry</h2>
         <p className="text-sm text-muted-foreground">Certification includes an expiration/review date. After certification, live or paper performance is monitored. If serious degradation occurs, certification moves to <strong>REVIEW_REQUIRED</strong>. Historical certification records are preserved — they are not deleted silently.</p>
       </section>

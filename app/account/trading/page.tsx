@@ -248,7 +248,7 @@ export default function AccountTradingPage() {
                                     ticket,
                                     symbol:
                                         (raw.symbol as string | undefined) ||
-                                        "XAUUSD",
+                                          "XAUUSD",
                                     type:
                                         raw.type === "SELL"
                                             ? "SELL"
@@ -315,7 +315,7 @@ export default function AccountTradingPage() {
                                     ticket,
                                     symbol:
                                         (raw.symbol as string | undefined) ||
-                                        "XAUUSD",
+                                          "XAUUSD",
                                     type: (raw.type as string | undefined) ||
                                         "BUY_LIMIT",
                                     volume:
@@ -373,7 +373,7 @@ export default function AccountTradingPage() {
                                             "ORDER",
                                         symbol:
                                             (raw.symbol as string | undefined) ||
-                                            "XAUUSD",
+                                              "XAUUSD",
                                         volume:
                                             raw.volume === undefined
                                                 ? 0.01
@@ -857,7 +857,7 @@ export default function AccountTradingPage() {
                 {/* Account & Connection Bar */}
                 <div className="grid gap-4 lg:grid-cols-4">
                     <div className="lg:col-span-3">
-                        <div className="rounded-xl border border-border bg-card p-4">
+                        <div className="rounded-lg border border-border bg-card p-4">
                             <div className="mb-4 flex items-center justify-between">
                                 <span className="text-xs font-medium text-muted-foreground">
                                     Active Account
@@ -886,7 +886,7 @@ export default function AccountTradingPage() {
                             />
                         </div>
                     </div>
-                    <div className="flex flex-col justify-between rounded-xl border border-border bg-card p-4">
+                    <div className="flex flex-col justify-between rounded-lg border border-border bg-card p-4">
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-medium text-muted-foreground">
                                 Gateway Sync
@@ -1030,13 +1030,13 @@ export default function AccountTradingPage() {
                         <div className="space-y-1 border-t border-border pt-2 text-xs text-muted-foreground">
                             <div className="flex justify-between">
                                 <span>Gateway</span>
-                                <span className="font-mono">
+                                <span className="font-numeric">
                                     {selectedAccount?.gatewayVersion ?? "—"}
                                 </span>
                             </div>
                             <div className="flex justify-between">
                                 <span>Connection</span>
-                                <span className="font-mono capitalize">
+                                <span className="font-numeric capitalize">
                                     {selectedAccount?.status ?? "unknown"}
                                 </span>
                             </div>
@@ -1058,7 +1058,7 @@ export default function AccountTradingPage() {
                                 <span>Net realized P/L</span>
                                 <span
                                     className={cn(
-                                        "font-mono font-semibold",
+                                        "font-numeric font-semibold",
                                         historyStats.net >= 0
                                             ? "text-positive"
                                             : "text-negative"
@@ -1069,7 +1069,7 @@ export default function AccountTradingPage() {
                             </div>
                             <div className="flex justify-between">
                                 <span>Avg close %</span>
-                                <span className="font-mono">
+                                <span className="font-numeric">
                                     {historyStats.avgClosePct !== null
                                         ? fmtSignedPct(historyStats.avgClosePct)
                                         : "—"}
@@ -1085,7 +1085,7 @@ export default function AccountTradingPage() {
                         <div className="space-y-1 text-xs text-muted-foreground">
                             <div className="flex justify-between">
                                 <span>Total lots</span>
-                                <span className="font-mono">
+                                <span className="font-numeric">
                                     {fmtNumber(openBook.totalLots)}
                                 </span>
                             </div>
@@ -1093,7 +1093,7 @@ export default function AccountTradingPage() {
                                 <span>Floating P/L</span>
                                 <span
                                     className={cn(
-                                        "font-mono font-semibold",
+                                        "font-numeric font-semibold",
                                         openBook.floating >= 0
                                             ? "text-positive"
                                             : "text-negative"
@@ -1104,7 +1104,7 @@ export default function AccountTradingPage() {
                             </div>
                             <div className="flex justify-between">
                                 <span>Top winner</span>
-                                <span className="font-mono">
+                                <span className="font-numeric">
                                     {openBook.best && openBook.best.profit > 0
                                         ? `${openBook.best.symbol} ${fmtSignedMoney(openBook.best.profit)}`
                                         : "—"}
@@ -1112,7 +1112,7 @@ export default function AccountTradingPage() {
                             </div>
                             <div className="flex justify-between">
                                 <span>Top loser</span>
-                                <span className="font-mono">
+                                <span className="font-numeric">
                                     {openBook.worst && openBook.worst.profit < 0
                                         ? `${openBook.worst.symbol} ${fmtSignedMoney(openBook.worst.profit)}`
                                         : "—"}
@@ -1395,7 +1395,7 @@ function AccountSwitcher({
                         onClick={() => setOpen(false)}
                     />
                     <div
-                        className="absolute left-0 right-0 z-20 mt-1 overflow-auto rounded-xl border border-border bg-card p-2 shadow-xl"
+                        className="absolute left-0 right-0 z-20 mt-1 overflow-auto rounded-lg border border-border bg-card p-2 shadow-xl"
                         role="listbox"
                     >
                         {accounts.map((acc) => (

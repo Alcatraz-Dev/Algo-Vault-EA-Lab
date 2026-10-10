@@ -142,7 +142,7 @@ export function ImportExportModal({
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base font-bold">
-            <FileText className="w-5 h-5 text-blue-500" />
+            <FileText className="w-5 h-5 text-info" />
             Import / Export Workflow
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
@@ -193,7 +193,7 @@ export function ImportExportModal({
                   onChange={(e) => handleValidateImport(e.target.value)}
                   rows={6}
                   placeholder="Paste JSON content here..."
-                  className="w-full text-xs font-mono p-3 rounded-lg border bg-background resize-none focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full text-xs font-numeric p-3 rounded-lg border bg-background resize-none focus:ring-2 focus:ring-info outline-none"
                 />
               </div>
 
@@ -201,8 +201,8 @@ export function ImportExportModal({
                 <div
                   className={`rounded-lg border p-3 text-xs ${
                     importValidation.valid
-                      ? "border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300"
-                      : "border-red-300 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300"
+                      ? "border-positive bg-positive dark:bg-positive/30 text-positive dark:text-positive"
+                      : "border-negative bg-negative dark:bg-negative/30 text-negative dark:text-negative"
                   }`}
                 >
                   {importValidation.valid ? (

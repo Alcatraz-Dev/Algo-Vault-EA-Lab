@@ -343,7 +343,7 @@ export default function TradingAccessPage() {
                 />
 
                 {activating && (
-                    <div className="rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+                    <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
                         Activating trading access...
                     </div>
                 )}
@@ -391,7 +391,7 @@ export default function TradingAccessPage() {
                     )}
 
                         {accounts.length === 0 ? (
-                            <div className="mt-6 flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-10 text-center">
+                            <div className="mt-6 flex flex-col items-center gap-3 rounded-lg border border-dashed border-border py-10 text-center">
                                 <WifiOff
                                     size={24}
                                     className="text-muted-foreground"
@@ -423,7 +423,7 @@ export default function TradingAccessPage() {
                                 {accounts.map((acc) => (
                                     <div
                                         key={acc.accountId}
-                                        className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-card p-4"
+                                        className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4"
                                     >
                                         <StatusDot status={acc.status} />
                                         <div className="min-w-0">
@@ -439,7 +439,7 @@ export default function TradingAccessPage() {
                                                 <p className="text-micro text-muted-foreground">
                                                     Balance
                                                 </p>
-                                                <p className="font-mono text-sm tabular-nums">
+                                                <p className="font-numeric text-sm tabular-nums">
                                                     ${formatCurrency(acc.balance)}
                                                 </p>
                                             </div>
@@ -447,7 +447,7 @@ export default function TradingAccessPage() {
                                                 <p className="text-micro text-muted-foreground">
                                                     Equity
                                                 </p>
-                                                <p className="font-mono text-sm tabular-nums">
+                                                <p className="font-numeric text-sm tabular-nums">
                                                     ${formatCurrency(acc.equity)}
                                                 </p>
                                             </div>
@@ -492,7 +492,7 @@ export default function TradingAccessPage() {
                 {license?.status === "active" && (
                     <div className="rounded-lg border border-border bg-muted/30 p-6">
                         <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-positive/10">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-positive/10">
                                 <Download
                                     size={20}
                                     className="text-positive"
@@ -509,7 +509,7 @@ export default function TradingAccessPage() {
                         </div>
 
                         <div className="mt-5 space-y-4">
-                            <div className="rounded-xl border border-border bg-card p-4">
+                            <div className="rounded-lg border border-border bg-card p-4">
                                 <h3 className="text-sm font-semibold">
                                     Step 1: Download the Gateway EA
                                 </h3>
@@ -529,18 +529,18 @@ export default function TradingAccessPage() {
                                 </a>
                             </div>
 
-                            <div className="rounded-xl border border-border bg-card p-4">
+                            <div className="rounded-lg border border-border bg-card p-4">
                                 <h3 className="text-sm font-semibold">
                                     Step 2: Install on MT5
                                 </h3>
                                 <ol className="mt-2 space-y-1.5 text-xs text-muted-foreground">
                                     <li>
                                         1. Copy{" "}
-                                        <code className="rounded bg-muted px-1 py-0.5 font-mono text-foreground">
+                                        <code className="rounded bg-muted px-1 py-0.5 font-numeric text-foreground">
                                             AlgoVaultGateway.ex5
                                         </code>{" "}
                                         to your MT5{" "}
-                                        <code className="rounded bg-muted px-1 py-0.5 font-mono text-foreground">
+                                        <code className="rounded bg-muted px-1 py-0.5 font-numeric text-foreground">
                                             Experts/Indicators
                                         </code>{" "}
                                         folder.
@@ -553,13 +553,13 @@ export default function TradingAccessPage() {
                                 </ol>
                             </div>
 
-                            <div className="rounded-xl border border-border bg-card p-4">
+                            <div className="rounded-lg border border-border bg-card p-4">
                                 <h3 className="text-sm font-semibold">
                                     Step 3: Connect
                                 </h3>
                                 <p className="mt-1 text-xs text-muted-foreground">
                                     The Gateway EA needs a token to authenticate. Generate one below, then paste it into the EA&apos;s{" "}
-                                    <code className="rounded bg-muted px-1 py-0.5 font-mono text-foreground">
+                                    <code className="rounded bg-muted px-1 py-0.5 font-numeric text-foreground">
                                         GatewayToken
                                     </code>{" "}
                                     input field.
@@ -579,7 +579,7 @@ export default function TradingAccessPage() {
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <code className="flex-1 overflow-x-auto rounded-lg border border-border bg-muted px-3 py-2 font-mono text-xs text-foreground">
+                                            <code className="flex-1 overflow-x-auto rounded-lg border border-border bg-muted px-3 py-2 font-numeric text-xs text-foreground">
                                                 {gatewayToken}
                                             </code>
                                             <button
@@ -621,7 +621,7 @@ export default function TradingAccessPage() {
                 )}
 
                 {/* Info Section */}
-                <div className="rounded-xl border border-warning/10 bg-warning/[0.03] p-5">
+                <div className="rounded-lg border border-warning/10 bg-warning/[0.03] p-5">
                     <div className="flex items-start gap-3">
                         <Shield
                             size={18}

@@ -34,11 +34,11 @@ export default function IntelligenceBar() {
  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-positive opacity-75" />
  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-positive" />
  </span>
- <span className="font-mono text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+ <span className="font-numeric text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
  <Radio size={14} className="text-positive" />
  Market Intelligence Status
  </span>
- <span className="text-micro rounded bg-muted px-1.5 py-0.5 text-muted-foreground font-mono">
+ <span className="text-micro rounded bg-muted px-1.5 py-0.5 text-muted-foreground font-numeric">
  Preview
  </span>
  </div>
@@ -48,7 +48,7 @@ export default function IntelligenceBar() {
  {DEFAULT_ITEMS.map((item) => (
  <div
  key={item.symbol}
- className="flex items-center gap-3 shrink-0 rounded-xl border border-border/50 bg-background/60 px-3.5 py-1.5 font-mono hover:border-primary/40 transition"
+ className="flex items-center gap-3 shrink-0 rounded-xl border border-border/50 bg-background/60 px-3.5 py-1.5 font-numeric hover:border-primary/40 transition"
  >
  <span className="font-bold text-foreground">{item.symbol}</span>
  <span className={item.status === "bullish" ? "text-positive" : item.status === "bearish" ? "text-negative" : "text-muted-foreground"}>
@@ -65,7 +65,7 @@ export default function IntelligenceBar() {
  </div>
 
  {/* Right Gateway Indicator */}
- <div className="hidden xl:flex items-center gap-2 text-xs font-mono shrink-0 border-l border-border/40 pl-4 text-muted-foreground">
+ <div className="hidden xl:flex items-center gap-2 text-xs font-numeric shrink-0 border-l border-border/40 pl-4 text-muted-foreground">
  <ShieldCheck size={14} className="text-positive" />
  <span>MT5 Gateway Status:</span>
  <span className="text-positive font-bold">READY</span>

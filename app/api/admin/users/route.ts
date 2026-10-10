@@ -145,7 +145,7 @@ export async function GET(request: NextRequest) {
                     if (
                         !rawUserOrders ||
                         typeof rawUserOrders !==
-                        "object"
+                          "object"
                     ) {
                         return;
                     }
@@ -164,7 +164,7 @@ export async function GET(request: NextRequest) {
                             if (
                                 !rawOrder ||
                                 typeof rawOrder !==
-                                "object"
+                                  "object"
                             ) {
                                 return;
                             }
@@ -188,10 +188,10 @@ export async function GET(request: NextRequest) {
 
                             const amount =
                                 typeof order.amount ===
-                                    "number"
+                                  "number"
                                     ? order.amount
                                     : typeof order.price ===
-                                        "number"
+                                      "number"
                                         ? order.price
                                         : 0;
 
@@ -226,13 +226,13 @@ export async function GET(request: NextRequest) {
                         rawUser as UserRecord;
 
                     let authEmail =
-                        "";
+                      "";
 
                     let authDisplayName =
-                        "";
+                      "";
 
                     let authPhotoURL =
-                        "";
+                      "";
 
                     try {
                         const firebaseUser =
@@ -242,15 +242,15 @@ export async function GET(request: NextRequest) {
 
                         authEmail =
                             firebaseUser.email ||
-                            "";
+                              "";
 
                         authDisplayName =
                             firebaseUser.displayName ||
-                            "";
+                              "";
 
                         authPhotoURL =
                             firebaseUser.photoURL ||
-                            "";
+                              "";
                     } catch {
                         // RTDB user can exist even
                         // if Auth lookup fails.

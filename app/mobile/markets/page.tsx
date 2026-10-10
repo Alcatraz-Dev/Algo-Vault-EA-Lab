@@ -198,7 +198,7 @@ export default function MobileMarketsPage() {
           <h1 className="text-lg font-semibold">Markets</h1>
         </header>
         <div className="flex-1 p-4 space-y-4">
-          {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
+          {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-20 rounded-lg" />)}
         </div>
       </div>
     );
@@ -286,7 +286,7 @@ export default function MobileMarketsPage() {
         {loading ? (
           <div className="space-y-3">
             {[...Array(6)].map((_, i) => (
-              <Skeleton key={i} className="h-20 rounded-xl" />
+              <Skeleton key={i} className="h-20 rounded-lg" />
             ))}
           </div>
         ) : filteredQuotes.length === 0 ? (
@@ -303,7 +303,7 @@ export default function MobileMarketsPage() {
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono font-semibold text-sm truncate max-w-[100px]">{sym.symbol}</span>
+                        <span className="font-numeric font-semibold text-sm truncate max-w-[100px]">{sym.symbol}</span>
                         <span className="text-micro text-muted-foreground hidden sm:inline">{SYMBOL_NAMES[sym.symbol]}</span>
                       </div>
                       <button
@@ -317,11 +317,11 @@ export default function MobileMarketsPage() {
                     </div>
                     <div className="text-right min-w-[80px]">
                       {sym.error ? (
-                        <p className="font-mono font-semibold text-sm text-negative">{sym.error}</p>
+                        <p className="font-numeric font-semibold text-sm text-negative">{sym.error}</p>
                       ) : (
                         <>
-                          <p className="font-mono font-semibold text-sm">{formatPrice(sym.symbol, sym.bid)}</p>
-                          <p className={cn("font-mono text-micro", (sym.changePct ?? 0) >= 0 ? "text-positive" : "text-negative")}>
+                          <p className="font-numeric font-semibold text-sm">{formatPrice(sym.symbol, sym.bid)}</p>
+                          <p className={cn("font-numeric text-micro", (sym.changePct ?? 0) >= 0 ? "text-positive" : "text-negative")}>
                             {formatChangePct(sym.changePct ?? 0)}
                           </p>
                         </>

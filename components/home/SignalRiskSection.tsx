@@ -115,7 +115,7 @@ export default function SignalRiskSection() {
  {/* Header */}
  <div className="flex flex-col md:flex-row md:items-end md:justify-between">
  <div>
- <p className="font-mono text-xs font-semibold uppercase tracking-widest text-primary">
+ <p className="font-numeric text-xs font-semibold uppercase tracking-widest text-primary">
  Execution Pipeline
  </p>
  <h2 className="mt-3 font-display text-4xl font-normal leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-6xl">
@@ -140,7 +140,7 @@ export default function SignalRiskSection() {
 
  {/* Pipeline */}
  <div className="mt-10 rounded-lg border border-border bg-card p-6 md:p-8">
- <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-muted-foreground">
+ <div className="flex items-center gap-2 text-xs font-numeric uppercase tracking-widest text-muted-foreground">
  <Route size={14} className="text-primary" />
  Seven-node pipeline — nothing reaches MT5 outside this path
  </div>
@@ -150,7 +150,7 @@ export default function SignalRiskSection() {
  key={node.number}
  className="flex flex-col gap-1 rounded-md border border-border bg-background/60 p-3.5"
  >
- <span className="font-mono text-micro font-bold text-primary">{node.number}</span>
+ <span className="font-numeric text-micro font-bold text-primary">{node.number}</span>
  <span className="text-sm font-semibold text-foreground">{node.name}</span>
  <span className="text-xs leading-relaxed text-muted-foreground">
  {node.desc}
@@ -171,7 +171,7 @@ export default function SignalRiskSection() {
  </p>
  <div className="mt-5 space-y-4">
  <div>
- <p className="font-mono text-xs font-semibold uppercase tracking-widest text-positive">
+ <p className="font-numeric text-xs font-semibold uppercase tracking-widest text-positive">
  Active path
  </p>
  <div className="mt-2 flex flex-wrap gap-1.5">
@@ -189,7 +189,7 @@ export default function SignalRiskSection() {
  </div>
  </div>
  <div>
- <p className="font-mono text-xs font-semibold uppercase tracking-widest text-negative">
+ <p className="font-numeric text-xs font-semibold uppercase tracking-widest text-negative">
  Terminal states
  </p>
  <div className="mt-2 flex flex-wrap gap-1.5">
@@ -237,7 +237,7 @@ export default function SignalRiskSection() {
  </li>
  ))}
  </ul>
- <p className="mt-5 flex items-center gap-1.5 text-xs font-mono text-warning">
+ <p className="mt-5 flex items-center gap-1.5 text-xs font-numeric text-warning">
  <AlertOctagon size={13} />
  Rejected intents carry a decision code — surfaced, not hidden
  </p>

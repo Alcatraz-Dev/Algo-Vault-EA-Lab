@@ -8,7 +8,7 @@
  *
  * Leaf module on purpose: the terminal imports this constant list, and the
  * only import is a market-data type, so nothing heavy joins the bundle.
- */
+  */
 
 import type { Timeframe } from "@/lib/market-data/types";
 
@@ -138,7 +138,7 @@ export const CHART_LAYERS: ChartLayerDef[] = [
  * Structured explanation for degraded/unavailable layers — surfaced inline in
  * the layer picker (no hover dependency) so users can see WHY a layer is off
  * and exactly WHICH data source would unlock it.
- */
+  */
 export interface LayerUnlockInfo {
     /** Why the layer is degraded or unavailable on the current feed. */
     reason: string;
@@ -158,7 +158,7 @@ export interface LayerUnlockInfo {
  * Explanations per layer. Present for unavailable layers (picker shows them
  * inline on click) and for estimated layers (picker shows them as the chip
  * tooltip so provenance stays visible).
- */
+  */
 export const LAYER_REQUIREMENTS: Partial<Record<ChartLayerId, LayerUnlockInfo>> = {
     delta: {
         reason: "Estimated only: candle volume signed by bar direction (body-direction proxy). The current feed carries no per-trade aggressor side, so this is directional pressure — not bid/ask delta.",
@@ -244,7 +244,7 @@ export function layerCapability(id: ChartLayerId): LayerCapability {
  * Layers whose availability is resolved per-symbol at render time (data
  * source is wired, but only for certain symbols). The picker intersects this
  * with the per-symbol availability map.
- */
+  */
 export const PER_SYMBOL_LAYERS: Partial<Record<ChartLayerId, (symbol: string) => boolean>> = {
     gex: (symbol) => GEX_SYMBOLS.has(symbol.toUpperCase()),
 };
@@ -266,7 +266,7 @@ export function defaultLayerState(): Record<ChartLayerId, boolean> {
  * `true` renders. Missing keys (older persisted state written before a layer
  * existed) resolve to OFF — a hidden layer may never draw, and an unknown key
  * may never silently enable one.
- */
+  */
 export function isLayerOn(
     layers: Partial<Record<ChartLayerId, boolean>> | null | undefined,
     id: ChartLayerId,

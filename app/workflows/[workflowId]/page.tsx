@@ -90,6 +90,7 @@ export default function WorkflowEditorPage() {
       navGroups={navGroups}
       title={wf.name || "Workflow"}
       subtitle={wf.status ? `Status: ${wf.status}` : ""}
+      onBack={() => router.push("/workflows")}
       headerActions={
         <div className="flex gap-2">
           <Button size="sm" className="gap-1" onClick={() => workflowId && triggerRun(workflowId)} disabled={running || !workflowId}><Play size={14} /> {running ? "Running…" : "Run"}</Button>
@@ -122,7 +123,7 @@ export default function WorkflowEditorPage() {
         </div>
 
         {/* Canvas */}
-        <div className="border rounded-lg bg-gradient-to-br from-muted/60 to-muted/30 dark:from-secondary/60 dark:to-secondary/30 p-6 relative overflow-auto min-h-[600px]">
+        <div className="border rounded-lg bg-card p-6 relative overflow-auto min-h-[600px]">
           <div className="absolute top-3 left-3 text-xs text-muted-foreground">Canvas — drag nodes here</div>
           <CanvasArea nodes={wf.nodes || []} edges={wf.edges || []} />
         </div>
@@ -158,7 +159,7 @@ function CanvasArea({ nodes, edges }: { nodes: WorkflowNode[]; edges: WorkflowEd
       {nodes.map((node) => (
         <div
           key={node.id}
-          className="absolute rounded-xl border bg-card shadow-sm px-4 py-3 w-40 text-xs transition hover:shadow-md hover:-translate-y-0.5"
+          className="absolute rounded-lg border bg-card shadow-sm px-4 py-3 w-40 text-xs transition hover:shadow-md hover:-translate-y-0.5"
           style={{ top: (node.position?.y ?? 0) + 60, left: (node.position?.x ?? 0) + 20 }}
         >
           <div className="font-semibold truncate">{node.label || node.id}</div>

@@ -145,7 +145,7 @@ function AccountPluginsContent() {
                     <button
                         type="button"
                         onClick={() => setTab("plugins")}
-                        className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-medium transition ${
+                        className={`flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-medium transition ${
                             tab === "plugins" ? "border-border/50 bg-background text-foreground" : "border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/5"
                         }`}
                     >
@@ -155,7 +155,7 @@ function AccountPluginsContent() {
                     <button
                         type="button"
                         onClick={() => setTab("extensions")}
-                        className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-medium transition ${
+                        className={`flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-medium transition ${
                             tab === "extensions" ? "border-border/50 bg-background text-foreground" : "border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/5"
                         }`}
                     >
@@ -165,7 +165,7 @@ function AccountPluginsContent() {
                 </div>
                 <Link
                     href="/marketplace/plugins"
-                    className="inline-flex items-center gap-2 self-start rounded-xl bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted"
+                    className="inline-flex items-center gap-2 self-start rounded-lg bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted"
                 >
                     Browse Plugins <ArrowRight size={14} />
                 </Link>
@@ -185,7 +185,7 @@ function AccountPluginsContent() {
                             title="No plugins installed yet"
                             description="Plugins run as background intelligence agents on your trading data — install one from the marketplace to begin."
                             action={
-                                <Link href="/marketplace/plugins" className="inline-flex items-center gap-2 rounded-xl bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
+                                <Link href="/marketplace/plugins" className="inline-flex items-center gap-2 rounded-lg bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
                                     Explore the Plugin Marketplace <ArrowRight size={14} />
                                 </Link>
                             }
@@ -202,7 +202,7 @@ function AccountPluginsContent() {
                                         <div key={installation.pluginId} className="rounded-lg border border-border/30 bg-muted/50 p-5">
                                             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                                 <div className="flex items-start gap-4">
-                                                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
+                                                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
                                                         <Plug size={20} className="text-primary" />
                                                     </div>
                                                     <div>
@@ -233,7 +233,7 @@ function AccountPluginsContent() {
                                                             type="button"
                                                             onClick={() => setState(installation.pluginId, "pause")}
                                                             disabled={busyId === `${installation.pluginId}:pause`}
-                                                            className="inline-flex items-center gap-1.5 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                                                            className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/5 px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
                                                         >
                                                             {busyId === `${installation.pluginId}:pause` ? <Loader2 size={13} className="animate-spin" /> : <Pause size={13} />}
                                                             Pause
@@ -243,7 +243,7 @@ function AccountPluginsContent() {
                                                             type="button"
                                                             onClick={() => setState(installation.pluginId, installation.status === "disabled" ? "activate" : "resume")}
                                                             disabled={busyId === `${installation.pluginId}:resume`}
-                                                            className="inline-flex items-center gap-1.5 rounded-xl border border-positive/30 bg-positive/10 px-3 py-2 text-xs font-medium text-positive transition hover:bg-positive/20 disabled:opacity-50"
+                                                            className="inline-flex items-center gap-1.5 rounded-lg border border-positive/30 bg-positive/10 px-3 py-2 text-xs font-medium text-positive transition hover:bg-positive/20 disabled:opacity-50"
                                                         >
                                                             {busyId === `${installation.pluginId}:resume` ? <Loader2 size={13} className="animate-spin" /> : <Play size={13} />}
                                                             {installation.status === "disabled" ? "Activate" : "Resume"}
@@ -253,13 +253,13 @@ function AccountPluginsContent() {
                                                         type="button"
                                                         onClick={() => setState(installation.pluginId, "disable")}
                                                         disabled={busyId === `${installation.pluginId}:disable`}
-                                                        className="inline-flex items-center gap-1.5 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                                                        className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/5 px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
                                                     >
                                                         Disable
                                                     </button>
                                                     <Link
                                                         href={`/account/plugins/${installation.pluginId}`}
-                                                        className="inline-flex items-center gap-1.5 rounded-xl bg-background px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
+                                                        className="inline-flex items-center gap-1.5 rounded-lg bg-background px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
                                                     >
                                                         <Settings2 size={13} />
                                                         Manage
@@ -288,7 +288,7 @@ function AccountPluginsContent() {
                             title="No extensions installed"
                             description="Extensions deliver plugin intelligence to the tools you already use — webhooks, Telegram, Discord, browser and TradingView."
                             action={
-                                <Link href="/marketplace/extensions" className="inline-flex items-center gap-2 rounded-xl bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
+                                <Link href="/marketplace/extensions" className="inline-flex items-center gap-2 rounded-lg bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
                                     Explore Extensions <ArrowRight size={14} />
                                 </Link>
                             }
@@ -302,7 +302,7 @@ function AccountPluginsContent() {
                                     <div key={install.extensionId} className="rounded-lg border border-border/30 bg-muted/50 p-5">
                                         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                             <div className="flex items-start gap-4">
-                                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
+                                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
                                                     <Cable size={20} className="text-positive" />
                                                 </div>
                                                 <div>
@@ -329,7 +329,7 @@ function AccountPluginsContent() {
                                                 type="button"
                                                 onClick={() => uninstallExtension(install.extensionId)}
                                                 disabled={busyId === `ext:${install.extensionId}`}
-                                                className="inline-flex items-center gap-1.5 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-destructive disabled:opacity-50"
+                                                className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/5 px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-destructive disabled:opacity-50"
                                             >
                                                 {busyId === `ext:${install.extensionId}` ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
                                                 Uninstall
@@ -347,7 +347,7 @@ function AccountPluginsContent() {
                 <button
                     type="button"
                     onClick={load}
-                    className="inline-flex items-center gap-2 rounded-xl border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+                    className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
                 >
                     <RefreshCw size={13} />
                     Refresh

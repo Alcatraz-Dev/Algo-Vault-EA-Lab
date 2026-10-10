@@ -177,12 +177,12 @@ export default function AdminBacktestsPage() {
                         placeholder="Search by title, pair, or bot..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full rounded-xl border border-border bg-muted pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-positive focus:outline-none"
+                        className="w-full rounded-lg border border-border bg-muted pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-positive focus:outline-none"
                     />
                 </div>
                 <button
                     onClick={() => setShowModal(true)}
-                    className="flex items-center gap-2 rounded-xl bg-positive px-4 py-2 text-sm font-semibold text-background transition hover:bg-positive"
+                    className="flex items-center gap-2 rounded-lg bg-positive px-4 py-2 text-sm font-semibold text-background transition hover:bg-positive"
                 >
                     <Plus size={16} /> Add Backtest Report
                 </button>
@@ -200,7 +200,7 @@ export default function AdminBacktestsPage() {
                     <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">{loadError}</p>
                     <button
                         onClick={() => fetchBacktests()}
-                        className="mt-5 inline-flex items-center gap-2 rounded-xl bg-positive px-4 py-2 text-sm font-semibold text-background hover:bg-positive transition"
+                        className="mt-5 inline-flex items-center gap-2 rounded-lg bg-positive px-4 py-2 text-sm font-semibold text-background hover:bg-positive transition"
                     >
                         <RefreshCw size={15} /> Retry
                     </button>
@@ -214,7 +214,7 @@ export default function AdminBacktestsPage() {
                     </p>
                     <button
                         onClick={() => setShowModal(true)}
-                        className="mt-5 inline-flex items-center gap-2 rounded-xl bg-muted px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted transition"
+                        className="mt-5 inline-flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted transition"
                     >
                         <Plus size={16} /> Add First Backtest
                     </button>
@@ -229,7 +229,7 @@ export default function AdminBacktestsPage() {
                             <div>
                                 <div className="flex items-start justify-between">
                                     <div>
-                                        <span className="rounded-md bg-muted px-2 py-0.5 text-micro font-semibold text-foreground font-mono">
+                                        <span className="rounded-md bg-muted px-2 py-0.5 text-micro font-semibold text-foreground font-numeric">
                                             {item.pair} • {item.timeframe}
                                         </span>
                                         <h4 className="font-bold text-foreground text-base mt-2">{item.title}</h4>
@@ -244,7 +244,7 @@ export default function AdminBacktestsPage() {
                                     </button>
                                 </div>
 
-                                <div className="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-muted p-3 text-center border border-border/60">
+                                <div className="mt-4 grid grid-cols-3 gap-2 rounded-lg bg-muted p-3 text-center border border-border/60">
                                     <div>
                                         <p className="text-micro uppercase text-muted-foreground font-semibold">Net Profit</p>
                                         <p className="text-sm font-bold text-positive mt-0.5">
@@ -298,7 +298,7 @@ export default function AdminBacktestsPage() {
                                     placeholder="e.g. 5-Year Tick Data Backtest (99.9% Quality)"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
-                                    className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
+                                    className="w-full rounded-lg border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                 />
                             </div>
 
@@ -311,7 +311,7 @@ export default function AdminBacktestsPage() {
                                         placeholder="XAUUSD"
                                         value={pair}
                                         onChange={(e) => setPair(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
+                                        className="w-full rounded-lg border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     />
                                 </div>
                                 <div>
@@ -322,7 +322,7 @@ export default function AdminBacktestsPage() {
                                         placeholder="M15"
                                         value={timeframe}
                                         onChange={(e) => setTimeframe(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
+                                        className="w-full rounded-lg border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     />
                                 </div>
                             </div>
@@ -336,7 +336,7 @@ export default function AdminBacktestsPage() {
                                         placeholder="e.g. 14500"
                                         value={netProfit}
                                         onChange={(e) => setNetProfit(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
+                                        className="w-full rounded-lg border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     />
                                 </div>
                                 <div>
@@ -348,7 +348,7 @@ export default function AdminBacktestsPage() {
                                         placeholder="e.g. 78.5"
                                         value={winRate}
                                         onChange={(e) => setWinRate(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
+                                        className="w-full rounded-lg border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     />
                                 </div>
                                 <div>
@@ -360,7 +360,7 @@ export default function AdminBacktestsPage() {
                                         placeholder="e.g. 6.2"
                                         value={maxDrawdown}
                                         onChange={(e) => setMaxDrawdown(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
+                                        className="w-full rounded-lg border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     />
                                 </div>
                             </div>
@@ -372,7 +372,7 @@ export default function AdminBacktestsPage() {
                                         required
                                         value={selectedBotId}
                                         onChange={(e) => setSelectedBotId(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
+                                        className="w-full rounded-lg border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     >
                                         <option value="">Select a product...</option>
                                         {bots.map((bot) => (
@@ -391,7 +391,7 @@ export default function AdminBacktestsPage() {
                                         placeholder="e.g. 10000"
                                         value={initialBalance}
                                         onChange={(e) => setInitialBalance(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
+                                        className="w-full rounded-lg border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     />
                                 </div>
                             </div>
@@ -403,13 +403,13 @@ export default function AdminBacktestsPage() {
                                     value={period}
                                     onChange={(e) => setPeriod(e.target.value)}
                                     placeholder="e.g. 2021 - 2026 (5 Years)"
-                                    className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
+                                    className="w-full rounded-lg border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                 />
                             </div>
 
                             <div>
                                 <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">HTML Report File</label>
-                                <label className="flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted p-6 transition hover:border-positive/50 hover:bg-card">
+                                <label className="flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted p-6 transition hover:border-positive/50 hover:bg-card">
                                     <Upload size={20} className="text-muted-foreground" />
                                     <span className="text-xs text-muted-foreground">
                                         {file ? (
@@ -432,14 +432,14 @@ export default function AdminBacktestsPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="rounded-xl px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
+                                    className="rounded-lg px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="rounded-xl bg-positive px-5 py-2.5 text-sm font-semibold text-background hover:bg-positive disabled:opacity-50"
+                                    className="rounded-lg bg-positive px-5 py-2.5 text-sm font-semibold text-background hover:bg-positive disabled:opacity-50"
                                 >
                                     {saving ? "Uploading..." : "Publish Backtest"}
                                 </button>

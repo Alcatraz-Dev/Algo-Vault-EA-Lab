@@ -300,7 +300,7 @@ export default function ProductReviews({
             if (!response.ok) {
                 throw new Error(
                     data?.error ||
-                    "Unable to save review."
+                      "Unable to save review."
                 );
             }
 
@@ -315,7 +315,7 @@ export default function ProductReviews({
 
             setError(
                 err?.message ||
-                "Unable to save review."
+                  "Unable to save review."
             );
         } finally {
             setSubmitting(false);
@@ -367,7 +367,7 @@ export default function ProductReviews({
             if (!response.ok) {
                 throw new Error(
                     data?.error ||
-                    "Unable to delete review."
+                      "Unable to delete review."
                 );
             }
 
@@ -380,7 +380,7 @@ export default function ProductReviews({
 
             setError(
                 err?.message ||
-                "Unable to delete review."
+                  "Unable to delete review."
             );
         } finally {
             setDeletingId("");
@@ -424,7 +424,7 @@ export default function ProductReviews({
             {/* Header */}
             <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/20 bg-foreground/10">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border/20 bg-foreground/10">
                         <MessageSquare
                             size={18}
                         />
@@ -450,7 +450,7 @@ export default function ProductReviews({
                             );
                             setError("");
                         }}
-                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-background px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-muted"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-background px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-muted"
                     >
                         <Star
                             size={15}
@@ -518,7 +518,7 @@ export default function ProductReviews({
 
             {/* Error */}
             {error && (
-                <div className="mt-5 rounded-xl border border-negative/20 bg-negative/5 px-4 py-3 text-sm text-negative">
+                <div className="mt-5 rounded-lg border border-negative/20 bg-negative/5 px-4 py-3 text-sm text-negative">
                     {error}
                 </div>
             )}
@@ -582,7 +582,7 @@ export default function ProductReviews({
                             }
                             maxLength={120}
                             placeholder="Summarize your experience"
-                            className="mt-2 w-full rounded-xl border border-border/20 bg-foreground/6 px-4 py-3 text-sm text-foreground outline-none placeholder:text-foreground/50 focus:border-border/40"
+                            className="mt-2 w-full rounded-lg border border-border/20 bg-foreground/6 px-4 py-3 text-sm text-foreground outline-none placeholder:text-foreground/50 focus:border-border/40"
                         />
                     </div>
 
@@ -607,7 +607,7 @@ export default function ProductReviews({
                             maxLength={2000}
                             rows={5}
                             placeholder="Tell other traders about your experience..."
-                            className="mt-2 w-full resize-none rounded-xl border border-border/20 bg-foreground/6 px-4 py-3 text-sm leading-6 text-foreground outline-none placeholder:text-foreground/50 focus:border-border/40"
+                            className="mt-2 w-full resize-none rounded-lg border border-border/20 bg-foreground/6 px-4 py-3 text-sm leading-6 text-foreground outline-none placeholder:text-foreground/50 focus:border-border/40"
                         />
 
                         <div className="mt-1 text-right text-micro text-foreground/50">
@@ -626,7 +626,7 @@ export default function ProductReviews({
                         disabled={
                             submitting
                         }
-                        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-background px-5 py-3 text-sm font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                        className="mt-4 inline-flex items-center gap-2 rounded-lg bg-background px-5 py-3 text-sm font-medium text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <Send
                             size={15}

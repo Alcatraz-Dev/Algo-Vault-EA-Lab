@@ -23,12 +23,12 @@ export function AITeamsEntryCard({
         <Link
             href="/account/ai-trading-teams"
             className={cn(
-                "group relative block overflow-hidden rounded-xl border border-primary/30 bg-gradient-to-br from-primary/[0.08] via-card to-card p-4 transition-colors hover:border-primary/60",
+              "group relative block overflow-hidden rounded-lg border border-primary/30 bg-primary/10 p-4 transition-colors hover:border-primary/60",
                 className,
             )}
         >
             <span
-                className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent"
+                className="absolute inset-x-0 top-0 h-px bg-primary/40"
                 aria-hidden="true"
             />
             <div className="flex items-start justify-between gap-3">

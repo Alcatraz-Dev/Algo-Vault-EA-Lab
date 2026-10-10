@@ -1,9 +1,11 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
  * PageHeader — canonical page title block.
- * eyebrow → title → subtitle, with optional action cluster.
+  * eyebrow → title → subtitle, with optional action cluster + optional back button.
  */
 export function PageHeader({
   title,
@@ -12,6 +14,7 @@ export function PageHeader({
   actions,
   className,
   titleClassName,
+  backHref,
 }: {
   title: ReactNode;
   subtitle?: ReactNode;
@@ -19,6 +22,7 @@ export function PageHeader({
   actions?: ReactNode;
   className?: string;
   titleClassName?: string;
+  backHref?: string;
 }) {
   return (
     <div
@@ -29,6 +33,11 @@ export function PageHeader({
     >
       {/* No data-guide here: AppShell/AdminShell topbars own the page-header anchor. */}
       <div className="min-w-0">
+        {backHref ? (
+          <Link href={backHref} className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground hover:text-foreground transition-colors mb-2">
+            <ArrowLeft size={14} /> Back
+          </Link>
+        ) : null}
         {eyebrow ? (
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             {eyebrow}

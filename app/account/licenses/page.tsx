@@ -622,7 +622,7 @@ export default function LicensesPage() {
  * ============================================================
  * LICENSE CARD
  * ============================================================
- */
+  */
 
 function LicenseCard({
     license,
@@ -894,7 +894,7 @@ function LicenseCard({
                         </div>
 
                         {state ===
-                            "active" && (
+                          "active" && (
                                 <div className="text-right">
 
                                     <p className="text-micro text-muted-foreground">
@@ -980,7 +980,7 @@ function LicenseCard({
 
                 {/* Protection note */}
                 {state ===
-                    "active" && (
+                  "active" && (
                         <p className="mt-4 text-micro leading-5 text-muted-foreground">
                             This license is linked to your
                             account and may be bound to an MT5
@@ -999,7 +999,7 @@ function LicenseCard({
  * ============================================================
  * SUMMARY CARD
  * ============================================================
- */
+  */
 
 function SummaryCard({
     icon,
@@ -1035,7 +1035,7 @@ function SummaryCard({
  * ============================================================
  * DETAIL
  * ============================================================
- */
+  */
 
 function Detail({
     label,
@@ -1063,7 +1063,7 @@ function Detail({
  * ============================================================
  * LICENSE STATE
  * ============================================================
- */
+  */
 
 function getLicenseState(
     license: License
@@ -1100,7 +1100,7 @@ function getLicenseState(
  * ============================================================
  * STATE CONFIG
  * ============================================================
- */
+  */
 
 function getStateConfig(
     state: LicenseState
@@ -1160,7 +1160,7 @@ function getStateConfig(
  * ============================================================
  * DATE
  * ============================================================
- */
+  */
 
 function formatDate(
     timestamp?: number
@@ -1189,7 +1189,7 @@ function formatDate(
  * ============================================================
  * DAYS REMAINING
  * ============================================================
- */
+  */
 
 function getDaysRemaining(
     expiresAt?: number

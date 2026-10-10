@@ -28,7 +28,7 @@ export default function AccountScalpingTerminalLitePage() {
                     <p className="text-sm font-medium text-foreground">Sign in to open the Lite terminal</p>
                     <a
                         href="/login?redirect=/account/scalping-terminal-lite"
-                        className="rounded-xl bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition hover:opacity-90"
+                        className="rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition hover:opacity-90"
                     >
                         Sign In
                     </a>
@@ -56,7 +56,7 @@ export default function AccountScalpingTerminalLitePage() {
                 </p>
                 <a
                     href="/scalping-terminal"
-                    className="mt-3 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+                    className="mt-3 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
                 >
                     Open Lite Terminal
                 </a>

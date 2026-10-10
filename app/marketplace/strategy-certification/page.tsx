@@ -10,11 +10,11 @@ export default function StrategyCertificationPage() {
   return (
     <div className="max-w-5xl mx-auto px-6 py-10 space-y-10">
       <header className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Strategy Certification</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Strategy Certification</h1>
         <p className="text-muted-foreground">Transparent, methodology-based verification — not a profit guarantee.</p>
       </header>
 
-      <section className="border rounded-xl p-6 bg-card space-y-6">
+      <section className="border rounded-lg p-6 bg-card space-y-6">
         <div className="flex items-center gap-3">
           <div className="px-3 py-1 rounded-full bg-warning text-warning text-xs font-bold">CERTIFIED</div>
           <span className="text-xs text-muted-foreground">Verified by AlgoVault — 2026-01-15 — Expires 2026-04-15</span>
@@ -64,7 +64,7 @@ export default function StrategyCertificationPage() {
 function Score({ label, score }: { label: string; score: number }) {
   return (
     <div className="space-y-1">
-      <div className="flex justify-between text-xs"><span className="font-medium">{label}</span><span className="font-mono">{score}</span></div>
+      <div className="flex justify-between text-xs"><span className="font-medium">{label}</span><span className="font-numeric">{score}</span></div>
       <div className="w-full h-2 bg-muted rounded-full overflow-hidden"><div className="h-full bg-positive rounded-full" style={{ width: `${score}%` }} /></div>
     </div>
   );

@@ -31,7 +31,7 @@ function Row({ label, value, tone }: { label: string; value: string; tone?: "bul
             <span className="text-micro uppercase tracking-wide text-muted-foreground">{label}</span>
             <span
                 className={cn(
-                    "font-mono text-micro tabular-nums",
+                    "font-numeric text-micro tabular-nums",
                     tone === "bull" && "text-positive",
                     tone === "bear" && "text-negative",
                     (!tone || tone === "muted") && "text-foreground",
@@ -195,17 +195,17 @@ export function OrderFlowPanel({ orderFlow, symbol }: { orderFlow: UseOrderFlowR
             {/* Events + confluence */}
             <div className="mt-2 grid grid-cols-3 gap-1.5 text-center">
                 <div className="rounded-md border border-border/60 bg-background/50 p-1.5">
-                    <p className="font-mono text-sm font-semibold tabular-nums text-foreground">{orderFlow.absorptionEvents.length}</p>
+                    <p className="font-numeric text-sm font-semibold tabular-nums text-foreground">{orderFlow.absorptionEvents.length}</p>
                     <p className="text-micro uppercase tracking-wide text-muted-foreground">Absorption</p>
                 </div>
                 <div className="rounded-md border border-border/60 bg-background/50 p-1.5">
-                    <p className="font-mono text-sm font-semibold tabular-nums text-foreground">{orderFlow.exhaustionEvents.length}</p>
+                    <p className="font-numeric text-sm font-semibold tabular-nums text-foreground">{orderFlow.exhaustionEvents.length}</p>
                     <p className="text-micro uppercase tracking-wide text-muted-foreground">Exhaustion</p>
                 </div>
                 <div className="rounded-md border border-border/60 bg-background/50 p-1.5">
                     <p
                         className={cn(
-                            "font-mono text-sm font-semibold tabular-nums",
+                            "font-numeric text-sm font-semibold tabular-nums",
                             confl?.direction === "bullish" ? "text-positive" : confl?.direction === "bearish" ? "text-negative" : "text-foreground",
                         )}
                     >

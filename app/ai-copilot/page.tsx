@@ -146,7 +146,7 @@ export default function AICopilotPage() {
                                     {Object.entries(marketData).map(([sym, data]: [string, any]) => (
                                         <div key={sym} className="rounded-lg bg-muted/50 p-3">
                                             <div className="flex items-center justify-between">
-                                                <span className="font-mono text-sm font-bold text-foreground">{sym}</span>
+                                                <span className="font-numeric text-sm font-bold text-foreground">{sym}</span>
                                                 <span className={cn("rounded-full px-2 py-0.5 text-micro font-medium", data.error ? "bg-negative/10 text-negative" : data.bias === "bullish" ? "bg-positive/10 text-positive" : "bg-negative/10 text-negative")}>{data.error ? "N/A" : data.bias}</span>
                                             </div>
                                             {data.error ? (

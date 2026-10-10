@@ -42,7 +42,7 @@ export default function PublicDocsPage() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-warning/10 text-warning border border-warning/20 mb-4">
             Official Knowledge Hub
           </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             AlgoVault Documentation & Methodologies
           </h1>
           <p className="mt-4 text-lg text-muted-foreground max-w-3xl">
@@ -64,7 +64,7 @@ export default function PublicDocsPage() {
                   <Link
                     key={doc.slug}
                     href={`/docs/${doc.slug}`}
-                    className="group block p-6 bg-card/60 hover:bg-card rounded-xl border border-muted hover:border-warning/50 transition-all duration-200"
+                    className="group block p-6 bg-card/60 hover:bg-card rounded-lg border border-muted hover:border-warning/50 transition-all duration-200"
                   >
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="text-xl font-semibold text-foreground group-hover:text-warning transition-colors">
@@ -85,7 +85,7 @@ export default function PublicDocsPage() {
         })}
 
         {/* AI & Machine Readable Notice */}
-        <section className="bg-card/40 border border-muted rounded-xl p-6 mt-12">
+        <section className="bg-card/40 border border-muted rounded-lg p-6 mt-12">
           <h3 className="text-lg font-bold text-foreground mb-2">AI Search & Agent Access</h3>
           <p className="text-sm text-muted-foreground">
             AI search engines, answer bots, and automated systems can fetch machine-readable summaries at{" "}

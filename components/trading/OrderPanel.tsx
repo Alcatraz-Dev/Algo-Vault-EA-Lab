@@ -218,37 +218,37 @@ export default function OrderPanel({
       <div className="space-y-1.5 rounded-none border border-border bg-muted/40 px-3 py-2 text-micro leading-4">
         <div className="flex justify-between gap-2">
           <span className="text-muted-foreground">Symbol</span>
-          <span className="font-mono font-medium">{r.executionType === "PLACE_ORDER" ? symbol.toUpperCase() : "—"}</span>
+          <span className="font-numeric font-medium">{r.executionType === "PLACE_ORDER" ? symbol.toUpperCase() : "—"}</span>
         </div>
         <div className="flex justify-between gap-2">
           <span className="text-muted-foreground">Side / Type</span>
-          <span className="font-mono font-medium">
+          <span className="font-numeric font-medium">
             {side} · {r.executionType}
           </span>
         </div>
         <div className="flex justify-between gap-2">
           <span className="text-muted-foreground">Volume</span>
-          <span className="font-mono font-medium">
+          <span className="font-numeric font-medium">
             {r.filledVolume !== null ? `${r.filledVolume} lots` : `${parsedVolume} lots (requested)`}
           </span>
         </div>
         <div className="flex justify-between gap-2">
           <span className="text-muted-foreground">Ticket</span>
-          <span className="font-mono font-medium">{r.providerRef ?? "pending sync"}</span>
+          <span className="font-numeric font-medium">{r.providerRef ?? "pending sync"}</span>
         </div>
         <div className="flex justify-between gap-2">
           <span className="text-muted-foreground">Exec. price</span>
-          <span className="font-mono font-medium">{formatPrice(r.filledPrice)}</span>
+          <span className="font-numeric font-medium">{formatPrice(r.filledPrice)}</span>
         </div>
         <div className="flex justify-between gap-2">
           <span className="text-muted-foreground">Provider / Account</span>
-          <span className="font-mono font-medium">
+          <span className="font-numeric font-medium">
             {r.provider} · {account?.mt5Account ?? r.accountId}
           </span>
         </div>
         <div className="flex justify-between gap-2">
           <span className="text-muted-foreground">Time</span>
-          <span className="font-mono font-medium">
+          <span className="font-numeric font-medium">
             {formatTime(r.completedAt ?? r.createdAt)}
           </span>
         </div>
@@ -405,7 +405,7 @@ export default function OrderPanel({
             <Shield size={12} />
             <span>
               Est. Risk:{" "}
-              <span className="font-mono font-semibold text-foreground">
+              <span className="font-numeric font-semibold text-foreground">
                 ${formatCurrency(estimatedRisk)}
               </span>
             </span>
@@ -414,7 +414,7 @@ export default function OrderPanel({
             <AlertTriangle size={12} />
             <span>
               Est. Margin:{" "}
-              <span className="font-mono font-semibold text-foreground">
+              <span className="font-numeric font-semibold text-foreground">
                 ${formatCurrency(estimatedMargin)}
               </span>
             </span>

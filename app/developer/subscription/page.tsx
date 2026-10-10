@@ -111,13 +111,13 @@ export default function DeveloperSubscription() {
  if (devPlan) {
  setCurrentPlan(devPlan);
  setSubscription((prev) => ({ ...(prev || { plan: devPlan, status: "none" }), plan: devPlan }));
- }
- }
+  }
+    }
  } catch (err) {
  console.error("Failed to load developer subscription:", err);
  } finally {
  setSubLoading(false);
- }
+      }
  }, [user]);
 
  useEffect(() => {
@@ -128,12 +128,12 @@ export default function DeveloperSubscription() {
  setRole(snap.val() || "");
  } catch {
  setRole("");
- }
- };
+        }
+          };
  const init = async () => {
  await loadRole();
  await fetchSubscription();
- };
+            };
  init();
  }, [user, fetchSubscription]);
 
@@ -164,9 +164,9 @@ export default function DeveloperSubscription() {
  console.error("Failed to set free plan:", err);
  } finally {
  setSubscribing(null);
- }
+              }
  return;
- }
+                }
 
  setSubscribing(planId);
  try {
@@ -180,13 +180,13 @@ export default function DeveloperSubscription() {
  const json = await res.json();
  if (json.checkoutUrl) {
  window.location.assign(json.checkoutUrl);
- }
+                  }
  } catch (err) {
  console.error("Subscribe failed:", err);
  } finally {
  setSubscribing(null);
- }
- };
+                    }
+                      };
 
  const handleManageBilling = async () => {
  if (!user) return;
@@ -199,13 +199,13 @@ export default function DeveloperSubscription() {
  const data = await res.json();
  if (data.url) {
  window.location.assign(data.url);
- }
+                        }
  } catch (err) {
  console.error("Billing portal failed:", err);
  } finally {
  setActionLoading(false);
- }
- };
+                          }
+                            };
 
  const handleCancel = async () => {
  if (!user || !subscription?.stripeSubscriptionId) return;
@@ -223,16 +223,16 @@ export default function DeveloperSubscription() {
  console.error("Cancel failed:", err);
  } finally {
  setActionLoading(false);
- }
- };
+                              }
+                                };
 
  if (authLoading) {
  return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></div>);
- }
+                                  }
 
  if (!user) {
- return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary transition">Sign In</Link></div></div>);
- }
+                                    return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary transition">Sign In</Link></div></div>);
+                                      }
 
  if (role && role !== "developer" && role !== "admin") {
  return (
@@ -256,15 +256,15 @@ export default function DeveloperSubscription() {
  </div>
  </div>
  );
- }
+                                        }
 
  const isCurrentActive = (planId: string) => currentPlan === planId && subscription?.status === "active";
 
  return (
  <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
  <div className="pointer-events-none fixed inset-0 overflow-hidden">
- <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 blur-[120px]" />
- <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 blur-[120px]" />
+ <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 hidden" />
+ <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
  </div>
  <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
  <Link href="/developer/dashboard" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-muted-foreground transition">
@@ -276,7 +276,7 @@ export default function DeveloperSubscription() {
  <div className="mb-6 rounded-lg border border-border/30 bg-muted/50 p-5">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-4">
- <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
  <Crown size={20} className="text-primary" />
  </div>
  <div>
@@ -296,7 +296,7 @@ export default function DeveloperSubscription() {
  type="button"
  onClick={handleManageBilling}
  disabled={actionLoading}
- className="flex items-center gap-2 rounded-xl border border-border/30 bg-muted/5 px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/10"
+                                            className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/10"
  >
  <CreditCard size={12} /> Manage Billing
  </button>
@@ -304,7 +304,7 @@ export default function DeveloperSubscription() {
  type="button"
  onClick={handleCancel}
  disabled={actionLoading}
- className="flex items-center gap-2 rounded-xl border border-negative/20 px-4 py-2 text-xs font-medium text-negative hover:bg-negative/10"
+                                              className="flex items-center gap-2 rounded-lg border border-negative/20 px-4 py-2 text-xs font-medium text-negative hover:bg-negative/10"
  >
  <LogOut size={12} /> Cancel
  </button>
@@ -315,7 +315,7 @@ export default function DeveloperSubscription() {
  )}
 
  <div className="mb-8 text-center">
- <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Developer Plans</h1>
+ <h1 className="text-2xl font-semibold tracking-tight text-foreground">Developer Plans</h1>
  <p className="mt-2 text-sm text-muted-foreground">Choose the right plan for your selling needs</p>
  </div>
 
@@ -366,7 +366,7 @@ export default function DeveloperSubscription() {
  onClick={() => subscribe(plan.id)}
  disabled={isActive || subscribing === plan.id || (subLoading)}
  className={cn(
- "flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition disabled:opacity-50",
+                                                "flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition disabled:opacity-50",
  plan.highlighted
  ? "bg-primary text-primary-foreground hover:bg-primary"
  : "bg-muted/30 text-foreground hover:bg-muted/20"

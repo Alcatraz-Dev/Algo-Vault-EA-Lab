@@ -216,10 +216,10 @@ export default function AccountPage() {
 
     return (
         <AccountShell
-            title="Dashboard"
+            title="Account Dashboard"
             subtitle={`Welcome back, ${displayName}`}
         >
-            <div className="space-y-8">
+            <div className="space-y-8 px-1">
                 {/* Stats */}
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <StatCard

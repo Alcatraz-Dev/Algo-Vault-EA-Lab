@@ -153,7 +153,7 @@ export default function SiteNavbar() {
                     Pro
                   </span>
                 ) : null}
-                {badge && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
+                {badge && <span className="w-1.5 h-1.5 rounded-full bg-positive animate-pulse" />}
               </span>
             </Link>
           ))}

@@ -85,7 +85,7 @@ export function SourcedValue({
     );
   }
   return (
-    <span className={cn("font-mono tabular-nums", className)}>
+    <span className={cn("font-numeric tabular-nums", className)}>
       {format ? format(metric.value) : metric.value}
     </span>
   );
@@ -133,7 +133,7 @@ export function SourcedLoose({
     );
   }
   return (
-    <span className={cn("font-mono tabular-nums", className)}>
+    <span className={cn("font-numeric tabular-nums", className)}>
       {format ? format(metric.value) : String(metric.value)}
     </span>
   );
@@ -226,7 +226,7 @@ export function ConfidenceMeter({
             />
           </div>
           <div className="mt-1 flex items-center justify-between gap-2">
-            <span className="font-mono text-xs font-semibold tabular-nums text-foreground">
+            <span className="font-numeric text-xs font-semibold tabular-nums text-foreground">
               {pct.toFixed(1)}
             </span>
             {weightNote ? (

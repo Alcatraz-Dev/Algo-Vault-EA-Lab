@@ -96,7 +96,7 @@ function Val({
         );
     }
     return (
-        <span className={cn("font-mono tabular-nums", className)} title={title}>
+        <span className={cn("font-numeric tabular-nums", className)} title={title}>
             {format ? format(value) : value}
         </span>
     );
@@ -127,7 +127,7 @@ function ConfidenceBar({ value }: { value: number | null }) {
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                 <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
             </div>
-            <span className="font-mono text-micro tabular-nums text-muted-foreground">{pct.toFixed(0)}</span>
+            <span className="font-numeric text-micro tabular-nums text-muted-foreground">{pct.toFixed(0)}</span>
         </div>
     );
 }
@@ -217,7 +217,7 @@ export const WatchlistPanel = memo(function WatchlistPanel({
                                         onAdd(s);
                                         setQuery("");
                                     }}
-                                    className="block w-full rounded px-1.5 py-1 text-left font-mono text-xs text-foreground/80 transition hover:bg-muted hover:text-foreground"
+                                    className="block w-full rounded px-1.5 py-1 text-left font-numeric text-xs text-foreground/80 transition hover:bg-muted hover:text-foreground"
                                 >
                                     {s}
                                 </button>
@@ -259,7 +259,7 @@ export const WatchlistPanel = memo(function WatchlistPanel({
                                         <td className="px-3 py-1.5">
                                             <span
                                                 className={cn(
-                                                    "font-mono text-xs font-semibold",
+                                                    "font-numeric text-xs font-semibold",
                                                     isActive ? "text-primary" : "text-foreground"
                                                 )}
                                             >
@@ -275,7 +275,7 @@ export const WatchlistPanel = memo(function WatchlistPanel({
                                         </td>
                                         <td
                                             className={cn(
-                                                "px-2 py-1.5 text-right font-mono tabular-nums",
+                                                "px-2 py-1.5 text-right font-numeric tabular-nums",
                                                 chg === null
                                                     ? "text-muted-foreground"
                                                     : chg >= 0
@@ -326,7 +326,7 @@ export const SessionsPanel = memo(function SessionsPanel({ now }: { now: number 
                 meta={st.activeLabel}
                 right={
                     st.nextEventLabel ? (
-                        <span className="rounded-full border border-border px-1.5 py-0.5 font-mono text-micro text-muted-foreground">
+                        <span className="rounded-full border border-border px-1.5 py-0.5 font-numeric text-micro text-muted-foreground">
                             {st.nextEventLabel} in {fmtCountdown(st.nextEventInMin)}
                         </span>
                     ) : null
@@ -338,7 +338,7 @@ export const SessionsPanel = memo(function SessionsPanel({ now }: { now: number 
                         <div className="flex items-baseline justify-between gap-2 text-xs">
                             <span className={cn("font-medium", s.active ? "text-foreground" : "text-muted-foreground")}>
                                 {s.name}
-                                <span className="ml-1.5 font-mono text-micro text-muted-foreground/70">
+                                <span className="ml-1.5 font-numeric text-micro text-muted-foreground/70">
                                     {String(Math.floor(s.startMin / 60)).padStart(2, "0")}:
                                     {String(s.startMin % 60).padStart(2, "0")}–
                                     {String(Math.floor(s.endMin / 60)).padStart(2, "0")}:
@@ -429,7 +429,7 @@ export const MtfPanel = memo(function MtfPanel({
                         <tbody>
                             {rows.map((r: TfRow) => (
                                 <tr key={r.timeframe} className="border-b border-border/50 last:border-0">
-                                    <td className="px-3 py-1.5 font-mono font-semibold text-foreground">
+                                    <td className="px-3 py-1.5 font-numeric font-semibold text-foreground">
                                         {r.timeframe}
                                     </td>
                                     <td className="px-2 py-1.5 text-right">
@@ -550,7 +550,7 @@ export const LiquidityPanel = memo(function LiquidityPanel({
                                     <li key={l.id} className="flex items-center justify-between gap-2 px-2 py-1 text-xs">
                                         <span className="min-w-0 truncate text-muted-foreground">
                                             {humaniseKey(l.type)}
-                                            <span className="ml-1 font-mono text-micro text-muted-foreground/60">
+                                            <span className="ml-1 font-numeric text-micro text-muted-foreground/60">
                                                 {l.timeframe}
                                             </span>
                                         </span>
@@ -577,7 +577,7 @@ export const LiquidityPanel = memo(function LiquidityPanel({
                                             <span className="min-w-0 truncate text-muted-foreground">
                                                 {humaniseKey(zone.type)} · {zone.direction}
                                             </span>
-                                            <span className="font-mono tabular-nums text-foreground">
+                                            <span className="font-numeric tabular-nums text-foreground">
                                                 {fmtPrice(zone.low, a.symbol)}–{fmtPrice(zone.high, a.symbol)}
                                             </span>
                                         </div>
@@ -628,7 +628,7 @@ export const RegimeStrip = memo(function RegimeStrip({
                 <Activity className="size-3.5 text-muted-foreground" />
                 <span className="text-muted-foreground">Regime</span>
                 {regime ? (
-                    <span className="font-mono font-semibold capitalize text-foreground">{regime.replace(/_/g, " ")}</span>
+                    <span className="font-numeric font-semibold capitalize text-foreground">{regime.replace(/_/g, " ")}</span>
                 ) : (
                     <span className="italic text-muted-foreground">{loading ? "measuring…" : "Data unavailable"}</span>
                 )}
@@ -688,7 +688,7 @@ export const RadarMiniPanel = memo(function RadarMiniPanel({
                         <ul className="mt-2 space-y-1">
                             {radar.failed.map((f) => (
                                 <li key={f.symbol} className="text-micro text-muted-foreground">
-                                    <span className="font-mono">{f.symbol}</span> — {f.reason}
+                                    <span className="font-numeric">{f.symbol}</span> — {f.reason}
                                 </li>
                             ))}
                         </ul>
@@ -721,7 +721,7 @@ export const RadarMiniPanel = memo(function RadarMiniPanel({
                                         )}
                                         onClick={onSelectSymbol ? () => onSelectSymbol(r.symbol) : undefined}
                                     >
-                                        <td className="px-3 py-1.5 font-mono font-semibold text-foreground">
+                                        <td className="px-3 py-1.5 font-numeric font-semibold text-foreground">
                                             {r.symbol}
                                             {r.stale ? <span className="ml-1 text-micro text-warning">stale</span> : null}
                                         </td>
@@ -730,7 +730,7 @@ export const RadarMiniPanel = memo(function RadarMiniPanel({
                                         </td>
                                         <td
                                             className={cn(
-                                                "px-2 py-1.5 text-right font-mono tabular-nums",
+                                                "px-2 py-1.5 text-right font-numeric tabular-nums",
                                                 chg === null ? "text-muted-foreground" : chg >= 0 ? "text-positive" : "text-negative"
                                             )}
                                         >
@@ -805,7 +805,7 @@ export const SignalsMiniPanel = memo(function SignalsMiniPanel({
                         return (
                             <li key={s.id} className="px-3 py-2">
                                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                                    <span className="font-mono text-xs font-semibold text-foreground">{s.symbol}</span>
+                                    <span className="font-numeric text-xs font-semibold text-foreground">{s.symbol}</span>
                                     <span
                                         className={cn(
                                             "rounded-full border px-1.5 py-0.5 text-micro font-bold tracking-wide",
@@ -816,14 +816,14 @@ export const SignalsMiniPanel = memo(function SignalsMiniPanel({
                                     >
                                         {isLong ? "LONG" : "SHORT"}
                                     </span>
-                                    <span className="rounded-full border border-border px-1.5 py-0.5 font-mono text-micro text-muted-foreground">
+                                    <span className="rounded-full border border-border px-1.5 py-0.5 font-numeric text-micro text-muted-foreground">
                                         {s.timeframe}
                                     </span>
-                                    <span className="ml-auto font-mono text-micro text-muted-foreground">
+                                    <span className="ml-auto font-numeric text-micro text-muted-foreground">
                                         {ageMin < 1 ? "just now" : `${ageMin}m ago`}
                                     </span>
                                 </div>
-                                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-micro tabular-nums">
+                                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-numeric text-micro tabular-nums">
                                     <span className="text-muted-foreground">
                                         E <span className="text-foreground">{fmtPrice(s.entry, s.symbol)}</span>
                                     </span>
@@ -871,7 +871,7 @@ export const SignalsMiniPanel = memo(function SignalsMiniPanel({
                         <ul className="mt-1.5 space-y-1">
                             {rejected.map((r) => (
                                 <li key={r.symbol} className="text-micro leading-4 text-muted-foreground">
-                                    <span className="font-mono text-foreground/80">{r.symbol}</span> — {r.reason}
+                                    <span className="font-numeric text-foreground/80">{r.symbol}</span> — {r.reason}
                                 </li>
                             ))}
                         </ul>
@@ -957,10 +957,10 @@ export function CalendarPanel({
                                     relevantEvent && !past && "bg-primary/[0.04]"
                                 )}
                             >
-                                <span className="w-14 shrink-0 font-mono text-micro text-muted-foreground">
+                                <span className="w-14 shrink-0 font-numeric text-micro text-muted-foreground">
                                     {e.timeUtc || "—"}
                                 </span>
-                                <span className="w-9 shrink-0 font-mono text-micro text-muted-foreground">
+                                <span className="w-9 shrink-0 font-numeric text-micro text-muted-foreground">
                                     {e.currency}
                                 </span>
                                 <span
@@ -974,7 +974,7 @@ export function CalendarPanel({
                                 <span className="min-w-0 flex-1 truncate" title={e.title}>
                                     {e.title}
                                 </span>
-                                <span className="hidden shrink-0 gap-2 font-mono text-micro tabular-nums text-muted-foreground sm:flex">
+                                <span className="hidden shrink-0 gap-2 font-numeric text-micro tabular-nums text-muted-foreground sm:flex">
                                     <span title="Forecast">F {e.forecast}</span>
                                     <span title="Previous">P {e.previous}</span>
                                     {e.actual ? <span title="Actual" className="text-foreground">A {e.actual}</span> : null}

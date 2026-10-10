@@ -60,7 +60,7 @@ export default function MarketStructurePanel({ events }: Props) {
                         <span className={cn("font-medium", event.direction === "bullish" ? "text-positive" : "text-negative")}>
                             {event.type}
                         </span>
-                        <span className="font-mono text-foreground/70">{event.price.toFixed(event.price >= 100 ? 2 : 5)}</span>
+                        <span className="font-numeric text-foreground/70">{event.price.toFixed(event.price >= 100 ? 2 : 5)}</span>
                         {event.brokenLevel && (
                             <span className="text-foreground/50">broke {event.brokenLevel.toFixed(event.brokenLevel >= 100 ? 2 : 5)}</span>
                         )}

@@ -27,13 +27,13 @@ export default function AdminSandboxPage() {
                     <div className="flex items-center gap-3">
                         <a
                             href="/admin/plugins/ai-studio"
-                            className="inline-flex items-center gap-2 rounded-xl border border-border/30 bg-muted px-4 py-2.5 text-xs font-medium transition hover:text-foreground"
+                            className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs font-medium transition hover:text-foreground"
                         >
                             <FlaskConical size={14} /> Plugin Sandbox
                         </a>
                         <a
                             href="/api/agents"
-                            className="inline-flex items-center gap-2 rounded-xl border border-border/30 bg-muted px-4 py-2.5 text-xs font-medium transition hover:text-foreground"
+                            className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs font-medium transition hover:text-foreground"
                         >
                             <Terminal size={14} /> Agents API
                         </a>
@@ -51,19 +51,19 @@ export default function AdminSandboxPage() {
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-muted-foreground">Schema check</span>
-                            <span className="font-mono text-emerald-400">PASS</span>
+                            <span className="font-numeric text-positive">PASS</span>
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-muted-foreground">Permissions</span>
-                            <span className="font-mono text-emerald-400">PASS</span>
+                            <span className="font-numeric text-positive">PASS</span>
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-muted-foreground">Security</span>
-                            <span className="font-mono text-emerald-400">PASS</span>
+                            <span className="font-numeric text-positive">PASS</span>
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-muted-foreground">Workflow</span>
-                            <span className="font-mono text-amber-400">PENDING</span>
+                            <span className="font-numeric text-warning">PENDING</span>
                         </div>
                     </div>
                 </div>
@@ -83,9 +83,9 @@ export default function AdminSandboxPage() {
                         ].map((a) => (
                             <tr key={a.name}>
                                 <td className="py-2 font-medium">{a.name}</td>
-                                <td className="py-2 text-emerald-400">{a.schema}</td>
-                                <td className="py-2 text-emerald-400">{a.sec}</td>
-                                <td className="py-2 text-amber-400">{a.wf}</td>
+                                <td className="py-2 text-positive">{a.schema}</td>
+                                <td className="py-2 text-positive">{a.sec}</td>
+                                <td className="py-2 text-warning">{a.wf}</td>
                             </tr>
                         ))}
                     </tbody>

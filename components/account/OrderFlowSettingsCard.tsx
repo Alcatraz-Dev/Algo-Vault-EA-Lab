@@ -44,7 +44,7 @@ function NumField({
                     const n = Number(e.target.value);
                     if (Number.isFinite(n)) onChange(n);
                 }}
-                className="w-full rounded-xl border border-border bg-muted/50 px-3 py-2 text-sm tabular-nums text-foreground focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-border/50"
+                className="w-full rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm tabular-nums text-foreground focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-border/50"
             />
             {hint ? <span className="text-micro leading-4 text-muted-foreground">{hint}</span> : null}
         </label>
@@ -61,7 +61,7 @@ export function OrderFlowSettingsCard() {
     };
 
     return (
-        <div className="rounded-lg border border-border bg-foreground/[0.035] p-6 backdrop-blur-xl">
+        <div className="rounded-lg border border-border bg-foreground/[0.035] p-6">
             <div className="mb-1 flex items-center justify-between gap-2">
                 <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
                     <Activity className="size-4 text-primary" />
@@ -192,7 +192,7 @@ export function OrderFlowSettingsCard() {
                 <button
                     type="button"
                     onClick={reset}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-border px-3 py-1.5 text-xs text-muted-foreground transition hover:bg-muted"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs text-muted-foreground transition hover:bg-muted"
                 >
                     <RotateCcw className="size-3" />
                     Reset to defaults

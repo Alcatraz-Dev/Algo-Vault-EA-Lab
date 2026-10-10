@@ -80,14 +80,14 @@ export default function AdminExecutionsPage() {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Search executions..."
-                        className="w-full rounded-xl border border-border/30 bg-muted py-3 pl-11 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                        className="w-full rounded-lg border border-border/30 bg-muted py-3 pl-11 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                     />
                 </div>
                 <div className="flex items-center gap-2">
                     <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
-                        className="rounded-xl border border-border/30 bg-muted px-4 py-2.5 text-xs outline-none"
+                        className="rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs outline-none"
                     >
                         <option value="all">All Statuses</option>
                         {(["running", "success", "failed", "aborted", "partial"] as ExecutionOutcome[]).map((s) => (
@@ -142,20 +142,20 @@ function ExecutionRow({
             <div className="p-5">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-4 flex-1">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
-                            <Play size={20} className={execution.status === "success" ? "text-emerald-300" : execution.status === "failed" ? "text-red-300" : "text-violet-300"} />
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
+                            <Play size={20} className={execution.status === "success" ? "text-positive" : execution.status === "failed" ? "text-negative" : "text-primary"} />
                         </div>
                         <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
                                 <Link
                                     href={`/admin/intelligence/executions/${execution.id}`}
-                                    className="text-sm font-mono text-foreground transition hover:text-violet-300 truncate"
+                                    className="text-sm font-numeric text-foreground transition hover:text-primary truncate"
                                 >
                                     {execution.id}
                                 </Link>
                                 <StatusBadge tone={OUTCOME_TONES[execution.status]} label={execution.status} />
                                 {execution.testOnly && (
-                                    <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-micro font-medium text-amber-300">
+                                    <span className="rounded-full bg-warning/10 px-2 py-0.5 text-micro font-medium text-warning">
                                         Test
                                     </span>
                                 )}
@@ -175,14 +175,14 @@ function ExecutionRow({
                     </div>
                     <button
                         onClick={onToggle}
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5 transition hover:bg-muted/10"
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5 transition hover:bg-muted/10"
                     >
                         {isExpanded ? <ChevronUp size={16} className="text-muted-foreground" /> : <ChevronDown size={16} className="text-muted-foreground" />}
                     </button>
                 </div>
 
                 {isExpanded && (
-                    <div className="mt-4 rounded-xl border border-border/30 bg-muted/30 p-4">
+                    <div className="mt-4 rounded-lg border border-border/30 bg-muted/30 p-4">
                         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
                             <DetailRow label="Execution ID" value={execution.id} copyable />
                             <DetailRow label="Workflow" value={`${execution.workflowId} v${execution.workflowVersion}`} />
@@ -201,7 +201,7 @@ function ExecutionRow({
                                 <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Errors</h5>
                                 <div className="space-y-1">
                                     {execution.errors.map((err, i) => (
-                                        <div key={i} className="text-xs p-2 rounded-lg bg-red-500/10 text-red-300">{err}</div>
+                                        <div key={i} className="text-xs p-2 rounded-lg bg-negative/10 text-negative">{err}</div>
                                     ))}
                                 </div>
                             </div>

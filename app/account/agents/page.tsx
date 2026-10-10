@@ -92,7 +92,7 @@ export default function AccountAgentsPage() {
                     title="No active agents running"
                     description="Install a plugin, configure it, and activate it — it will start running as a background agent on the schedule you choose."
                     action={
-                        <Link href="/marketplace/plugins" className="inline-flex items-center gap-2 rounded-xl bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
+                        <Link href="/marketplace/plugins" className="inline-flex items-center gap-2 rounded-lg bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
                             Browse Plugins <ArrowRight size={14} />
                         </Link>
                     }
@@ -106,7 +106,7 @@ export default function AccountAgentsPage() {
                             <div key={install.pluginId} className="rounded-lg border border-border/30 bg-muted/50 p-5">
                                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                     <div className="flex items-start gap-4">
-                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
+                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
                                             <Plug size={20} className="text-primary" />
                                         </div>
                                         <div>
@@ -130,7 +130,7 @@ export default function AccountAgentsPage() {
                                     </div>
                                     <Link
                                         href={`/account/plugins/${install.pluginId}`}
-                                        className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-background px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
+                                        className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-background px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
                                     >
                                         <Settings2 size={13} />
                                         Manage Agent
@@ -138,7 +138,7 @@ export default function AccountAgentsPage() {
                                 </div>
 
                                 {recent && recent.length > 0 && (
-                                    <div className="mt-4 rounded-xl border border-border/30 bg-muted/20 p-4">
+                                    <div className="mt-4 rounded-lg border border-border/30 bg-muted/20 p-4">
                                         <p className="text-micro font-medium uppercase tracking-wide text-muted-foreground">Recent runs</p>
                                         <div className="mt-2 space-y-2">
                                             {recent.slice(0, 3).map((exec) => (
@@ -168,7 +168,7 @@ export default function AccountAgentsPage() {
                     type="button"
                     onClick={load}
                     disabled={refreshing}
-                    className="inline-flex items-center gap-2 rounded-xl border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
                 >
                     {refreshing ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
                     Refresh
@@ -181,7 +181,7 @@ export default function AccountAgentsPage() {
 function SummaryCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
     return (
         <div className="flex items-center gap-4 rounded-lg border border-border/30 bg-muted/50 p-5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/30 bg-muted/5 text-muted-foreground">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/30 bg-muted/5 text-muted-foreground">
                 {icon}
             </div>
             <div>

@@ -68,7 +68,7 @@ export default function ExecutionGatewaySection() {
  {/* Header */}
  <div className="flex flex-col md:flex-row md:items-end md:justify-between">
  <div>
- <p className="font-mono text-xs font-semibold uppercase tracking-widest text-primary">
+ <p className="font-numeric text-xs font-semibold uppercase tracking-widest text-primary">
  Execution Infrastructure
  </p>
  <h2 className="mt-3 font-display text-4xl font-normal leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-6xl">
@@ -95,7 +95,7 @@ export default function ExecutionGatewaySection() {
  <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
  {/* Flow + specs */}
  <div className="space-y-6 lg:col-span-7">
- <div className="grid grid-cols-2 gap-3 font-mono text-sm sm:grid-cols-4">
+ <div className="grid grid-cols-2 gap-3 font-numeric text-sm sm:grid-cols-4">
  {FLOW_NODES.map((node, idx) => {
  const Icon = node.icon;
  return (
@@ -115,7 +115,7 @@ export default function ExecutionGatewaySection() {
  })}
  </div>
 
- <div className="rounded-lg border border-border bg-background/60 p-5 font-mono text-sm">
+ <div className="rounded-lg border border-border bg-background/60 p-5 font-numeric text-sm">
  <div className="flex items-center justify-between border-b border-border/30 pb-2 text-muted-foreground">
  <span className="font-semibold text-foreground">Gateway characteristics</span>
  <span className="text-xs text-info">Reported, not assumed</span>
@@ -142,7 +142,7 @@ export default function ExecutionGatewaySection() {
  </div>
 
  {/* MQL5 schematic */}
- <div className="rounded-lg border border-border bg-background/90 p-5 font-mono text-sm lg:col-span-5">
+ <div className="rounded-lg border border-border bg-background/90 p-5 font-numeric text-sm lg:col-span-5">
  <div className="flex items-center justify-between border-b border-border pb-2 text-muted-foreground">
  <span className="flex items-center gap-2 font-semibold text-foreground">
  <FileCode2 size={14} className="text-positive" />

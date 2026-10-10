@@ -178,7 +178,7 @@ export async function POST(
         const mt5Account = String(
             body.mt5Account ??
             body.account ??
-            ""
+              ""
         ).trim();
 
         const positions =
@@ -429,19 +429,19 @@ export async function GET(
         const productId =
             String(
                 searchParams.get("productId") ||
-                ""
+                  ""
             ).trim();
 
         const licenseKey =
             String(
                 searchParams.get("licenseKey") ||
-                ""
+                  ""
             ).trim();
 
         const requestedMt5Account =
             String(
                 searchParams.get("mt5Account") ||
-                ""
+                  ""
             ).trim();
 
         if (!productId) {

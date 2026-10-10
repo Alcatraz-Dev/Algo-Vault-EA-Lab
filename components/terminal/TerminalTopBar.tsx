@@ -60,14 +60,14 @@ function SymbolPicker() {
                     onBlur={() => window.setTimeout(() => setOpen(false), 150)}
                     placeholder={state.symbol}
                     aria-label="Search symbol"
-                    className="w-24 bg-transparent font-mono text-xs uppercase text-foreground outline-none placeholder:text-foreground"
+                    className="w-24 bg-transparent font-numeric text-xs uppercase text-foreground outline-none placeholder:text-foreground"
                 />
-                <kbd className="hidden rounded border border-border px-1 font-mono text-micro text-muted-foreground sm:inline">
+                <kbd className="hidden rounded border border-border px-1 font-numeric text-micro text-muted-foreground sm:inline">
                     ⌘K
                 </kbd>
             </div>
             {open && matches.length > 0 ? (
-                <ul className="absolute left-0 z-40 mt-1 max-h-64 w-44 overflow-y-auto rounded-xl border border-border bg-card p-1 shadow-xl">
+                <ul className="absolute left-0 z-40 mt-1 max-h-64 w-44 overflow-y-auto rounded-lg border border-border bg-card p-1 shadow-xl">
                     {matches.map((s) => (
                         <li key={s}>
                             <button
@@ -79,7 +79,7 @@ function SymbolPicker() {
                                     setOpen(false);
                                 }}
                                 className={cn(
-                                    "w-full rounded-md px-2 py-1.5 text-left font-mono text-xs transition",
+                                    "w-full rounded-md px-2 py-1.5 text-left font-numeric text-xs transition",
                                     s === state.symbol ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
                                 )}
                             >
@@ -105,7 +105,7 @@ function TimeframePicker() {
                     aria-pressed={state.timeframe === tf}
                     title={TIMEFRAME_LABELS[tf as Timeframe]}
                     className={cn(
-                        "rounded px-2 py-1 font-mono text-micro font-semibold transition",
+                        "rounded px-2 py-1 font-numeric text-micro font-semibold transition",
                         state.timeframe === tf ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
                     )}
                 >
@@ -132,7 +132,7 @@ function FreshnessPill({
     return (
         <span
             className={cn(
-                "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 font-mono text-micro",
+                "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 font-numeric text-micro",
                 f.status === "live" && "border-positive/40 bg-positive/10 text-positive",
                 f.status === "stale" && "border-warning/40 bg-warning/10 text-warning",
                 f.status === "loading" && "border-border bg-muted text-muted-foreground"
@@ -195,7 +195,7 @@ export function TerminalTopBar({ now, isPro }: { now: number; isPro: boolean }) 
     const change = data.changePct;
 
     return (
-        <header className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-border bg-card px-3 py-2">
+        <header className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-border bg-card px-3 py-2">
             <div className="flex min-w-0 items-center gap-2">
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
                     <Activity className="size-3.5" />
@@ -204,15 +204,15 @@ export function TerminalTopBar({ now, isPro }: { now: number; isPro: boolean }) 
                     <div className="flex items-center gap-1.5">
                         <span className="text-sm font-semibold tracking-tight text-foreground">AlgoVault</span>
                         <span className="text-border">|</span>
-                        <span className="font-mono text-xs font-bold text-primary">{state.symbol}</span>
-                        <span className="font-mono text-micro text-muted-foreground">{state.timeframe}</span>
+                        <span className="font-numeric text-xs font-bold text-primary">{state.symbol}</span>
+                        <span className="font-numeric text-micro text-muted-foreground">{state.timeframe}</span>
                         {isPro ? (
                             <span className="rounded border border-primary/30 px-1 py-px text-micro font-bold tracking-wider text-primary">
                                 PRO
                             </span>
                         ) : null}
                     </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-micro text-muted-foreground">
+                    <div className="mt-1 flex flex-wrap items-center gap-2 font-numeric text-micro text-muted-foreground">
                         <span
                             className="inline-flex items-center gap-1"
                             title="Deterministic session windows (UTC)"
@@ -231,13 +231,13 @@ export function TerminalTopBar({ now, isPro }: { now: number; isPro: boolean }) 
 
             {price !== null ? (
                 <div className="flex items-baseline gap-1.5">
-                    <span className="font-mono text-base font-semibold tabular-nums text-foreground">
+                    <span className="font-numeric text-base font-semibold tabular-nums text-foreground">
                         {price >= 100 ? price.toFixed(2) : price.toFixed(5)}
                     </span>
                     {change !== null ? (
                         <span
                             className={cn(
-                                "font-mono text-micro tabular-nums",
+                                "font-numeric text-micro tabular-nums",
                                 change >= 0 ? "text-positive" : "text-negative"
                             )}
                         >
@@ -245,11 +245,11 @@ export function TerminalTopBar({ now, isPro }: { now: number; isPro: boolean }) 
                             {change.toFixed(2)}%
                         </span>
                     ) : (
-                        <span className="font-mono text-micro text-muted-foreground">day n/a</span>
+                        <span className="font-numeric text-micro text-muted-foreground">day n/a</span>
                     )}
                 </div>
             ) : (
-                <span className="font-mono text-micro text-muted-foreground">
+                <span className="font-numeric text-micro text-muted-foreground">
                     {data.quotesLoading ? "Loading price…" : "No price available"}
                 </span>
             )}

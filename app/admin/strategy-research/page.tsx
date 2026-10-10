@@ -101,11 +101,11 @@ export default function StrategyResearchAdminPage() {
             </div>
 
             {loading ? (
-                <div className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">Loading diagnostics…</div>
+                <div className="rounded-lg border bg-card p-8 text-center text-sm text-muted-foreground">Loading diagnostics…</div>
             ) : error ? (
-                <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-6 text-sm text-destructive">{error}</div>
+                <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-6 text-sm text-destructive">{error}</div>
             ) : !data ? (
-                <div className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">No diagnostics available.</div>
+                <div className="rounded-lg border bg-card p-8 text-center text-sm text-muted-foreground">No diagnostics available.</div>
             ) : (
                 <>
                     {/* Queue health */}
@@ -120,7 +120,7 @@ export default function StrategyResearchAdminPage() {
                                 ["Leases held", data.queue.leasesHeld, ""],
                             ] as const
                         ).map(([label, value, tone]) => (
-                            <div key={label} className="rounded-xl border bg-card p-4 shadow-sm">
+                            <div key={label} className="rounded-lg border bg-card p-4 shadow-sm">
                                 <div className="text-xs text-muted-foreground">{label}</div>
                                 <div className={`font-semibold ${tone}`}>{value}</div>
                             </div>
@@ -139,7 +139,7 @@ export default function StrategyResearchAdminPage() {
                                 ["AI requests", data.totals.aiRequests, <Zap key="f" className="h-3.5 w-3.5" />],
                             ] as const
                         ).map(([label, value, icon]) => (
-                            <div key={label} className="rounded-xl border bg-card p-4 shadow-sm">
+                            <div key={label} className="rounded-lg border bg-card p-4 shadow-sm">
                                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">{icon} {label}</div>
                                 <div className="font-semibold">{value}</div>
                             </div>
@@ -147,7 +147,7 @@ export default function StrategyResearchAdminPage() {
                     </div>
 
                     <div className="mb-6 grid gap-4 md:grid-cols-2">
-                        <div className="rounded-xl border bg-card p-4 shadow-sm">
+                        <div className="rounded-lg border bg-card p-4 shadow-sm">
                             <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
                                 <Coins className="h-4 w-4" /> Research cost totals
                             </div>
@@ -157,7 +157,7 @@ export default function StrategyResearchAdminPage() {
                                 <li>Data quality failures: <span className={`font-semibold ${data.totals.dataQualityFailures > 0 ? "text-negative" : ""}`}>{data.totals.dataQualityFailures}</span></li>
                             </ul>
                         </div>
-                        <div className="rounded-xl border bg-card p-4 shadow-sm">
+                        <div className="rounded-lg border bg-card p-4 shadow-sm">
                             <div className="mb-2 text-sm font-semibold">Fail-closed states</div>
                             {Object.keys(data.failStates).length === 0 ? (
                                 <p className="text-sm text-muted-foreground">No fail-closed terminations.</p>
@@ -172,7 +172,7 @@ export default function StrategyResearchAdminPage() {
                     </div>
 
                     {/* Failed jobs */}
-                    <div className="mb-6 rounded-xl border bg-card p-4 shadow-sm">
+                    <div className="mb-6 rounded-lg border bg-card p-4 shadow-sm">
                         <h3 className="mb-2 text-sm font-semibold">Failed research jobs (tail events)</h3>
                         {data.failureDetails.length === 0 ? (
                             <p className="text-sm text-muted-foreground">No failed jobs.</p>
@@ -201,7 +201,7 @@ export default function StrategyResearchAdminPage() {
                     </div>
 
                     {/* Recent missions */}
-                    <div className="rounded-xl border bg-card p-4 shadow-sm">
+                    <div className="rounded-lg border bg-card p-4 shadow-sm">
                         <h3 className="mb-2 text-sm font-semibold">Recent missions</h3>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-xs">

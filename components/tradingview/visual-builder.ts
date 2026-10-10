@@ -308,7 +308,7 @@ export function createPineSource(nodes: VisualNode[], edges: VisualEdge[]): stri
     const lines: string[] = [
         "//@version=6",
         studies.isStrategy ? 'strategy("Visual strategy", overlay=true, pyramiding=0)' : 'indicator("Visual indicator", overlay=true)',
-        "",
+          "",
         ...studies.lines,
     ];
 
@@ -335,7 +335,7 @@ export function createPineSource(nodes: VisualNode[], edges: VisualEdge[]): stri
     const kinds = new Set(nodes.map((n) => n.kind));
     if (studies.isStrategy && kinds.has("risk_manager")) {
         lines.push(
-            "",
+          "",
             "strategy.exit(\"Long risk\", \"Long\", stop=strategy.position_avg_price * (1 - stopPercent / 100), limit=strategy.position_avg_price * (1 + takeProfitPercent / 100))",
             "strategy.exit(\"Short risk\", \"Short\", stop=strategy.position_avg_price * (1 + stopPercent / 100), limit=strategy.position_avg_price * (1 - takeProfitPercent / 100))"
         );

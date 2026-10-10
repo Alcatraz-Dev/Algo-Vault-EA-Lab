@@ -127,9 +127,9 @@ export default function AdminAccountHealthPage() {
                                         key={level}
                                         className={cn(
                                             "h-full transition-[width] duration-700 ease-out",
-                                            level === "HIGH" && "bg-rose-500",
-                                            level === "MODERATE" && "bg-amber-500",
-                                            level === "LOW" && "bg-emerald-500",
+                                            level === "HIGH" && "bg-negative",
+                                            level === "MODERATE" && "bg-warning",
+                                            level === "LOW" && "bg-positive",
                                         )}
                                         style={{ width: `${share}%` }}
                                         title={`${level}: ${share}%`}
@@ -143,9 +143,9 @@ export default function AdminAccountHealthPage() {
                                     <span
                                         className={cn(
                                             "h-1.5 w-1.5 rounded-full",
-                                            level === "HIGH" && "bg-rose-500",
-                                            level === "MODERATE" && "bg-amber-500",
-                                            level === "LOW" && "bg-emerald-500",
+                                            level === "HIGH" && "bg-negative",
+                                            level === "MODERATE" && "bg-warning",
+                                            level === "LOW" && "bg-positive",
                                         )}
                                     />
                                     {level.toLowerCase()} {d[level]}%
@@ -156,7 +156,7 @@ export default function AdminAccountHealthPage() {
                 )}
 
                 {t?.allImpaired && (
-                    <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3.5 py-2.5 text-micro text-rose-400">
+                    <div className="rounded-lg border border-negative/30 bg-negative/10 px-3.5 py-2.5 text-micro text-negative">
                         Every active account is rated HIGH risk. No account is currently in good standing.
                     </div>
                 )}
@@ -169,7 +169,7 @@ export default function AdminAccountHealthPage() {
 
                 {/* Search + refresh */}
                 <div className="flex flex-wrap items-center gap-2">
-                    <div className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-border/30 bg-muted/50 px-3 py-2">
+                    <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-border/30 bg-muted/50 px-3 py-2">
                         <Search size={13} className="shrink-0 text-muted-foreground" />
                         <input
                             value={query}
@@ -182,7 +182,7 @@ export default function AdminAccountHealthPage() {
                     <button
                         onClick={() => void loadDirectory()}
                         disabled={listLoading}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-border/30 bg-muted/50 px-3 py-2 text-micro font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/50 px-3 py-2 text-micro font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
                     >
                         <RefreshCw size={12} className={listLoading ? "animate-spin" : ""} /> Refresh
                     </button>
@@ -245,7 +245,7 @@ export default function AdminAccountHealthPage() {
                                         {detail.displayName && detail.email && (
                                             <span className="text-micro text-muted-foreground">{detail.email}</span>
                                         )}
-                                        <span className="ml-auto font-mono text-micro text-muted-foreground">{detail.uid}</span>
+                                        <span className="ml-auto font-numeric text-micro text-muted-foreground">{detail.uid}</span>
                                     </div>
                                 }
                             />
@@ -269,14 +269,14 @@ export default function AdminAccountHealthPage() {
 
 function Stat({ label, value, tone }: { label: string; value: string; tone?: "negative" | "warning" | "positive" }) {
     return (
-        <div className="rounded-xl border border-border/30 bg-muted/50 px-3 py-2.5">
+        <div className="rounded-lg border border-border/30 bg-muted/50 px-3 py-2.5">
             <p className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
             <p
                 className={cn(
-                    "mt-1 font-mono text-base font-semibold tabular-nums",
-                    tone === "negative" && "text-rose-400",
-                    tone === "warning" && "text-amber-400",
-                    tone === "positive" && "text-emerald-400",
+                    "mt-1 font-numeric text-base font-semibold tabular-nums",
+                    tone === "negative" && "text-negative",
+                    tone === "warning" && "text-warning",
+                    tone === "positive" && "text-positive",
                     !tone && "text-foreground",
                 )}
             >
@@ -315,7 +315,7 @@ function AccountRow({ account, active, onSelect }: {
                 funded. */}
             {account.hasData && (
                 <div className="hidden shrink-0 text-right sm:block">
-                    <p className="font-mono text-micro tabular-nums text-foreground">
+                    <p className="font-numeric text-micro tabular-nums text-foreground">
                         {money(account.balance, account.currency)}
                     </p>
                     <p className="text-micro uppercase tracking-wide text-muted-foreground">
@@ -328,7 +328,7 @@ function AccountRow({ account, active, onSelect }: {
 
             {account.hasData && account.totalPositions > 0 && (
                 <div className="hidden shrink-0 text-right md:block">
-                    <p className="font-mono text-micro tabular-nums text-foreground">
+                    <p className="font-numeric text-micro tabular-nums text-foreground">
                         {account.totalPositions}
                     </p>
                     <p className="text-micro uppercase tracking-wide text-muted-foreground">open</p>
@@ -338,10 +338,10 @@ function AccountRow({ account, active, onSelect }: {
             <div className="shrink-0 text-right">
                 <p
                     className={cn(
-                        "font-mono text-[13px] font-semibold tabular-nums",
+                        "font-numeric text-[13px] font-semibold tabular-nums",
                         !account.hasData ? "text-muted-foreground"
-                            : account.riskLevel === "HIGH" ? "text-rose-400"
-                                : account.riskLevel === "MODERATE" ? "text-amber-400" : "text-emerald-400",
+                            : account.riskLevel === "HIGH" ? "text-negative"
+                                : account.riskLevel === "MODERATE" ? "text-warning" : "text-positive",
                     )}
                 >
                     {account.hasData ? account.score : "—"}

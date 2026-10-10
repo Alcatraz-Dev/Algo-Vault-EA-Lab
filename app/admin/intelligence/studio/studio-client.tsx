@@ -45,24 +45,24 @@ import { PageHeader } from "@/components/ui/page-header";
 
 // ─── Category styles ──────────────────────────────────────────────────────────
 const CAT_STYLES: Record<string, { dot: string; header: string; badge: string; icon: React.ReactNode }> = {
-  trigger: { dot: "#8b5cf6", header: "bg-violet-500/10 border-b border-violet-500/30", badge: "bg-violet-100 text-violet-950 dark:bg-violet-900/70 dark:text-violet-100 font-extrabold border border-violet-400/50 shadow-xs", icon: <Zap size={11} /> },
-  market_data: { dot: "#0ea5e9", header: "bg-sky-500/10 border-b border-sky-500/30", badge: "bg-sky-100 text-sky-950 dark:bg-sky-900/70 dark:text-sky-100 font-extrabold border border-sky-400/50 shadow-xs", icon: <BarChart2 size={11} /> },
-  technical: { dot: "#f59e0b", header: "bg-amber-500/10 border-b border-amber-500/30", badge: "bg-amber-100 text-amber-950 dark:bg-amber-900/70 dark:text-amber-100 font-extrabold border border-amber-400/50 shadow-xs", icon: <TrendingUp size={11} /> },
-  filter: { dot: "#f97316", header: "bg-orange-500/10 border-b border-orange-500/30", badge: "bg-orange-100 text-orange-950 dark:bg-orange-900/70 dark:text-orange-100 font-extrabold border border-orange-400/50 shadow-xs", icon: <Filter size={11} /> },
-  signal: { dot: "#22c55e", header: "bg-emerald-500/10 border-b border-emerald-500/30", badge: "bg-emerald-100 text-emerald-950 dark:bg-emerald-900/70 dark:text-emerald-100 font-extrabold border border-emerald-400/50 shadow-xs", icon: <Bell size={11} /> },
-  execution: { dot: "#3b82f6", header: "bg-blue-500/10 border-b border-blue-500/30", badge: "bg-blue-100 text-blue-950 dark:bg-blue-900/70 dark:text-blue-100 font-extrabold border border-blue-400/50 shadow-xs", icon: <Play size={11} /> },
-  ai: { dot: "#ec4899", header: "bg-pink-500/10 border-b border-pink-500/30", badge: "bg-pink-100 text-pink-950 dark:bg-pink-900/70 dark:text-pink-100 font-extrabold border border-pink-400/50 shadow-xs", icon: <BrainCircuit size={11} /> },
-  notification: { dot: "#14b8a6", header: "bg-teal-500/10 border-b border-teal-500/30", badge: "bg-teal-100 text-teal-950 dark:bg-teal-900/70 dark:text-teal-100 font-extrabold border border-teal-400/50 shadow-xs", icon: <Bell size={11} /> },
-  logic: { dot: "#6366f1", header: "bg-indigo-500/10 border-b border-indigo-500/30", badge: "bg-indigo-100 text-indigo-950 dark:bg-indigo-900/70 dark:text-indigo-100 font-extrabold border border-indigo-400/50 shadow-xs", icon: <FlaskConical size={11} /> },
-  risk: { dot: "#ef4444", header: "bg-red-500/10 border-b border-red-500/30", badge: "bg-red-100 text-red-950 dark:bg-red-900/70 dark:text-red-100 font-extrabold border border-red-400/50 shadow-xs", icon: <Shield size={11} /> },
-  integration: { dot: "#8b5cf6", header: "bg-purple-500/10 border-b border-purple-500/30", badge: "bg-purple-100 text-purple-950 dark:bg-purple-900/70 dark:text-purple-100 font-extrabold border border-purple-400/50 shadow-xs", icon: <GitBranch size={11} /> },
-  storage: { dot: "#64748b", header: "bg-slate-500/10 border-b border-slate-500/30", badge: "bg-slate-200 text-slate-950 dark:bg-slate-800 dark:text-slate-100 font-extrabold border border-slate-400/50 shadow-xs", icon: <Boxes size={11} /> },
-  http: { dot: "#0284c7", header: "bg-cyan-500/10 border-b border-cyan-500/30", badge: "bg-cyan-100 text-cyan-950 dark:bg-cyan-900/70 dark:text-cyan-100 font-extrabold border border-cyan-400/50 shadow-xs", icon: <Globe size={11} /> },
-  transform: { dot: "#d97706", header: "bg-yellow-500/10 border-b border-yellow-500/30", badge: "bg-yellow-100 text-yellow-950 dark:bg-yellow-900/70 dark:text-yellow-100 font-extrabold border border-yellow-400/50 shadow-xs", icon: <SlidersHorizontal size={11} /> },
-  simulation: { dot: "#059669", header: "bg-emerald-500/10 border-b border-emerald-500/30", badge: "bg-emerald-100 text-emerald-950 dark:bg-emerald-900/70 dark:text-emerald-100 font-extrabold border border-emerald-400/50 shadow-xs", icon: <Layers size={11} /> },
-  reports: { dot: "#4f46e5", header: "bg-indigo-500/10 border-b border-indigo-500/30", badge: "bg-indigo-100 text-indigo-950 dark:bg-indigo-900/70 dark:text-indigo-100 font-extrabold border border-indigo-400/50 shadow-xs", icon: <FileText size={11} /> },
+  trigger: { dot: "#8b5cf6", header: "bg-primary/10 border-b border-primary/30", badge: "bg-primary text-primary dark:bg-primary/70 dark:text-primary font-extrabold border border-primary/50 shadow-xs", icon: <Zap size={11} /> },
+  market_data: { dot: "#0ea5e9", header: "bg-info/10 border-b border-info/30", badge: "bg-info text-info dark:bg-info/70 dark:text-info font-extrabold border border-info/50 shadow-xs", icon: <BarChart2 size={11} /> },
+  technical: { dot: "#f59e0b", header: "bg-warning/10 border-b border-warning/30", badge: "bg-warning text-warning dark:bg-warning/70 dark:text-warning font-extrabold border border-warning/50 shadow-xs", icon: <TrendingUp size={11} /> },
+  filter: { dot: "var(--warning)", header: "bg-warning-muted border-b border-warning/30", badge: "bg-warning-muted text-warning-foreground font-extrabold border border-warning/50", icon: <Filter size={11} /> },
+  signal: { dot: "#22c55e", header: "bg-positive/10 border-b border-positive/30", badge: "bg-positive text-positive dark:bg-positive/70 dark:text-positive font-extrabold border border-positive/50 shadow-xs", icon: <Bell size={11} /> },
+  execution: { dot: "#3b82f6", header: "bg-info/10 border-b border-info/30", badge: "bg-info text-info dark:bg-info/70 dark:text-info font-extrabold border border-info/50 shadow-xs", icon: <Play size={11} /> },
+  ai: { dot: "#ec4899", header: "bg-primary/10 border-b border-primary/30", badge: "bg-primary text-primary dark:bg-primary/70 dark:text-primary font-extrabold border border-primary/50 shadow-xs", icon: <BrainCircuit size={11} /> },
+  notification: { dot: "#14b8a6", header: "bg-positive/10 border-b border-positive/30", badge: "bg-positive text-positive dark:bg-positive/70 dark:text-positive font-extrabold border border-positive/50 shadow-xs", icon: <Bell size={11} /> },
+  logic: { dot: "#6366f1", header: "bg-primary/10 border-b border-primary/30", badge: "bg-primary text-primary dark:bg-primary/70 dark:text-primary font-extrabold border border-primary/50 shadow-xs", icon: <FlaskConical size={11} /> },
+  risk: { dot: "#ef4444", header: "bg-negative/10 border-b border-negative/30", badge: "bg-negative text-negative dark:bg-negative/70 dark:text-negative font-extrabold border border-negative/50 shadow-xs", icon: <Shield size={11} /> },
+  integration: { dot: "#8b5cf6", header: "bg-primary/10 border-b border-primary/30", badge: "bg-primary text-primary dark:bg-primary/70 dark:text-primary font-extrabold border border-primary/50 shadow-xs", icon: <GitBranch size={11} /> },
+  storage: { dot: "#64748b", header: "bg-muted/10 border-b border-border/30", badge: "bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground font-extrabold border border-border/50 shadow-xs", icon: <Boxes size={11} /> },
+  http: { dot: "#0284c7", header: "bg-info/10 border-b border-info/30", badge: "bg-info text-info dark:bg-info/70 dark:text-info font-extrabold border border-info/50 shadow-xs", icon: <Globe size={11} /> },
+  transform: { dot: "#d97706", header: "bg-warning/10 border-b border-warning/30", badge: "bg-warning text-warning dark:bg-warning/70 dark:text-warning font-extrabold border border-warning/50 shadow-xs", icon: <SlidersHorizontal size={11} /> },
+  simulation: { dot: "#059669", header: "bg-positive/10 border-b border-positive/30", badge: "bg-positive text-positive dark:bg-positive/70 dark:text-positive font-extrabold border border-positive/50 shadow-xs", icon: <Layers size={11} /> },
+  reports: { dot: "#4f46e5", header: "bg-primary/10 border-b border-primary/30", badge: "bg-primary text-primary dark:bg-primary/70 dark:text-primary font-extrabold border border-primary/50 shadow-xs", icon: <FileText size={11} /> },
 };
-const DEF_CAT = { dot: "#64748b", header: "bg-slate-500/10 border-b border-slate-500/30", badge: "bg-slate-200 text-slate-950 dark:bg-slate-800 dark:text-slate-100 font-extrabold border border-slate-400/50 shadow-xs", icon: <GitBranch size={11} /> };
+const DEF_CAT = { dot: "#64748b", header: "bg-muted/10 border-b border-border/30", badge: "bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground font-extrabold border border-border/50 shadow-xs", icon: <GitBranch size={11} /> };
 const getCat = (c?: string) => CAT_STYLES[c ?? ""] ?? DEF_CAT;
 
 // ─── Custom Node (type="wfNode" avoids ReactFlow's .react-flow__node-default styles) ──
@@ -84,14 +84,14 @@ function WfNode({ data, selected }: { data: any; selected?: boolean }) {
     return p.slice(0, 2).join(" · ");
   }, [node.config]);
 
-  const ring = runState === "success" ? "ring-2 ring-emerald-500/50"
-    : runState === "failed" ? "ring-2 ring-red-500/50"
-      : runState === "running" ? "ring-2 ring-blue-500/50 animate-pulse"
+  const ring = runState === "success" ? "ring-2 ring-positive/50"
+    : runState === "failed" ? "ring-2 ring-negative/50"
+      : runState === "running" ? "ring-2 ring-info/50 animate-pulse"
         : selected ? "ring-2 ring-primary/60"
-          : hasErrors ? "ring-1 ring-red-500/40" : "";
+          : hasErrors ? "ring-1 ring-negative/40" : "";
 
   return (
-    <div className={`relative rounded-xl border-2 ${selected ? "border-primary shadow-md" : "border-border"} bg-card text-card-foreground shadow-sm min-w-[168px] max-w-[208px] select-none transition-all duration-150 ${ring}`}>
+    <div className={`relative rounded-lg border-2 ${selected ? "border-primary shadow-md" : "border-border"} bg-card text-card-foreground shadow-sm min-w-[168px] max-w-[208px] select-none transition-all duration-150 ${ring}`}>
       {/* target port — clearly visible input */}
       <div className="absolute -top-2 left-1/2 -translate-x-1/2 flex flex-col items-center z-20">
         <Handle type="target" id="in" position={Position.Top}
@@ -105,8 +105,8 @@ function WfNode({ data, selected }: { data: any; selected?: boolean }) {
           {node.label || def?.name || node.id}
         </span>
         {runState === "running" && <Loader2 size={9} className="shrink-0 animate-spin" style={{ color: cs.dot }} />}
-        {runState === "success" && <CheckCircle2 size={9} className="text-emerald-500 shrink-0" />}
-        {runState === "failed" && <XCircle size={9} className="text-red-500 shrink-0" />}
+        {runState === "success" && <CheckCircle2 size={9} className="text-positive shrink-0" />}
+        {runState === "failed" && <XCircle size={9} className="text-negative shrink-0" />}
       </div>
 
       {/* body */}
@@ -116,7 +116,7 @@ function WfNode({ data, selected }: { data: any; selected?: boolean }) {
         </span>
         {summary && <p className="text-[0.68rem] text-muted-foreground truncate">{summary}</p>}
         {hasErrors && (
-          <p className="flex items-center gap-1 text-[0.65rem] text-red-500 font-medium truncate">
+          <p className="flex items-center gap-1 text-[0.65rem] text-negative font-medium truncate">
             <AlertCircle size={8} className="shrink-0" />{validation.errors[0]}
           </p>
         )}
@@ -499,8 +499,8 @@ export default function StudioClient() {
 
       {/* Toast */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-sm font-medium animate-in slide-in-from-bottom-2
-          ${toast.kind === "err" ? "bg-red-600 text-white" : toast.kind === "info" ? "bg-blue-600 text-white" : "bg-emerald-600 text-white"}`}>
+        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-lg shadow-lg text-sm font-medium animate-in slide-in-from-bottom-2
+          ${toast.kind === "err" ? "bg-negative text-background" : toast.kind === "info" ? "bg-info text-background" : "bg-positive text-background"}`}>
           {toast.kind === "err" ? <AlertCircle size={14} /> : toast.kind === "info" ? <Info size={14} /> : <CheckCircle2 size={14} />}
           <span>{toast.msg}</span>
           <button onClick={() => setToast(null)}><X size={13} className="opacity-70 hover:opacity-100" /></button>
@@ -519,10 +519,10 @@ export default function StudioClient() {
                   <Plus size={14} className="mr-1.5" /> New Workflow
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setShowTemplatePicker(true)} data-guide="templates">
-                  <Sparkles size={14} className="mr-1.5 text-blue-500" /> Templates
+                  <Sparkles size={14} className="mr-1.5 text-info" /> Templates
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setShowAiBuilder(true)} data-guide="ai-builder">
-                  <BrainCircuit size={14} className="mr-1.5 text-pink-500" /> AI Builder
+                  <BrainCircuit size={14} className="mr-1.5 text-primary" /> AI Builder
                 </Button>
               </div>
             }
@@ -537,8 +537,8 @@ export default function StudioClient() {
               action={
                 <div className="flex justify-center gap-2 flex-wrap mt-4">
                   <Button size="sm" onClick={createBlank}><Plus size={14} className="mr-1.5" /> Blank Workflow</Button>
-                  <Button size="sm" variant="outline" onClick={() => setShowTemplatePicker(true)}><Sparkles size={14} className="mr-1.5 text-blue-500" /> Templates</Button>
-                  <Button size="sm" variant="outline" onClick={() => setShowAiBuilder(true)}><BrainCircuit size={14} className="mr-1.5 text-pink-500" /> AI Builder</Button>
+                  <Button size="sm" variant="outline" onClick={() => setShowTemplatePicker(true)}><Sparkles size={14} className="mr-1.5 text-info" /> Templates</Button>
+                  <Button size="sm" variant="outline" onClick={() => setShowAiBuilder(true)}><BrainCircuit size={14} className="mr-1.5 text-primary" /> AI Builder</Button>
                 </div>
               }
             />
@@ -548,7 +548,7 @@ export default function StudioClient() {
                 <div key={wf.id} className="group flex flex-col justify-between gap-4 rounded-lg border border-border bg-card p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5">
                   <div className="space-y-2">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-semibold text-sm truncate text-foreground group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">{wf.name}</h3>
+                      <h3 className="font-semibold text-sm truncate text-foreground group-hover:text-warning dark:group-hover:text-warning transition-colors">{wf.name}</h3>
                       <StatusBadge tone={wf.status === "active" ? "positive" : wf.status === "paused" ? "warning" : "neutral"} label={wf.status} />
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{wf.description || "No description."}</p>
@@ -557,7 +557,7 @@ export default function StudioClient() {
                     <div className="flex items-center gap-3 text-micro text-muted-foreground">
                       <span className="inline-flex items-center gap-1"><GitBranch size={11} />{wf.nodes?.length ?? 0} nodes</span>
                       <span className="inline-flex items-center gap-1"><Clock size={11} />{wf.updatedAt ? new Date(wf.updatedAt).toLocaleDateString() : "—"}</span>
-                      <span className="ml-auto text-micro font-mono text-muted-foreground/70">v{wf.version}</span>
+                      <span className="ml-auto text-micro font-numeric text-muted-foreground/70">v{wf.version}</span>
                     </div>
                     <Button size="sm" variant="outline" className="w-full justify-center" onClick={() => checkUnsaved(() => loadWorkflowById(wf.id, wf, true))}>Open Studio</Button>
                   </div>
@@ -582,8 +582,8 @@ export default function StudioClient() {
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold truncate max-w-[160px] sm:max-w-[240px] text-foreground">{wfName}</span>
-                  {isDirty && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" title="Unsaved changes" />}
-                  <Badge variant="outline" className="text-micro px-1.5 py-0 shrink-0 font-mono">v{selected.version}</Badge>
+                  {isDirty && <span className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse shrink-0" title="Unsaved changes" />}
+                  <Badge variant="outline" className="text-micro px-1.5 py-0 shrink-0 font-numeric">v{selected.version}</Badge>
                 </div>
                 <p className="text-micro text-muted-foreground">{nodes.length} nodes · {edges.length} edges</p>
               </div>
@@ -593,26 +593,26 @@ export default function StudioClient() {
                 <Save size={14} className="mr-1" />{saving ? "Saving…" : "Save"}
               </Button>
               <Button size="sm" variant="outline" onClick={validate}>
-                <CheckCircle2 size={14} className="mr-1 text-emerald-500" /> Validate
+                <CheckCircle2 size={14} className="mr-1 text-positive" /> Validate
               </Button>
               <Button size="sm" variant="outline" onClick={() => runWorkflow(true)} disabled={processingRun}>
-                {processingRun ? <Loader2 size={14} className="mr-1 animate-spin" /> : <Play size={14} className="mr-1 text-blue-500" />}
+                {processingRun ? <Loader2 size={14} className="mr-1 animate-spin" /> : <Play size={14} className="mr-1 text-info" />}
                 Test
               </Button>
-              <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-white" onClick={() => runWorkflow(false)} disabled={processingRun}>
+              <Button size="sm" className="bg-warning hover:bg-warning text-background" onClick={() => runWorkflow(false)} disabled={processingRun}>
                 <Zap size={14} className="mr-1" /> Run
               </Button>
               <div className="w-px h-4 bg-border mx-1" />
               <Button size="sm" variant="outline" onClick={handleAutoConnect} title="Auto Connect & Organize Nodes">
-                <GitBranch size={14} className="mr-1 text-indigo-500" />
+                <GitBranch size={14} className="mr-1 text-primary" />
                 <span className="hidden sm:inline">Auto Connect</span>
               </Button>
               <Button size="sm" variant="outline" onClick={() => setShowTemplatePicker(true)} title="Templates">
-                <Sparkles size={14} className="text-blue-500" />
+                <Sparkles size={14} className="text-info" />
                 <span className="hidden sm:inline ml-1">Templates</span>
               </Button>
               <Button size="sm" variant="outline" onClick={() => setShowAiBuilder(true)} title="AI Builder">
-                <BrainCircuit size={14} className="text-pink-500" />
+                <BrainCircuit size={14} className="text-primary" />
                 <span className="hidden sm:inline ml-1">AI</span>
               </Button>
               <Button size="sm" variant="outline" onClick={() => setShowImportExport(true)} title="Import/Export">
@@ -627,15 +627,15 @@ export default function StudioClient() {
 
           {/* Validation banner */}
           {validState && (
-            <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-xs
-              ${!validState.valid ? "border-red-500/30 bg-red-500/5" : "border-emerald-500/30 bg-emerald-500/5"}`}>
-              {!validState.valid ? <AlertCircle size={14} className="text-red-500 shrink-0 mt-0.5" /> : <CheckCircle2 size={14} className="text-emerald-500 shrink-0 mt-0.5" />}
+            <div className={`flex items-start gap-3 rounded-lg border px-4 py-3 text-xs
+              ${!validState.valid ? "border-negative/30 bg-negative/5" : "border-positive/30 bg-positive/5"}`}>
+              {!validState.valid ? <AlertCircle size={14} className="text-negative shrink-0 mt-0.5" /> : <CheckCircle2 size={14} className="text-positive shrink-0 mt-0.5" />}
               <div className="flex-1 space-y-0.5">
-                <p className={`font-semibold text-sm ${!validState.valid ? "text-red-500" : "text-emerald-500"}`}>
+                <p className={`font-semibold text-sm ${!validState.valid ? "text-negative" : "text-positive"}`}>
                   {!validState.valid ? `Validation failed — ${validState.errors.length} error(s)` : "Workflow validated ✓"}
                 </p>
-                {validState.errors.map((e, i) => <p key={i} className="text-red-500">✕ {e}</p>)}
-                {validState.warnings.map((w, i) => <p key={i} className="text-amber-500">⚠ {w}</p>)}
+                {validState.errors.map((e, i) => <p key={i} className="text-negative">✕ {e}</p>)}
+                {validState.warnings.map((w, i) => <p key={i} className="text-warning">⚠ {w}</p>)}
               </div>
               <button onClick={() => setValidState(null)} className="text-muted-foreground hover:text-foreground shrink-0"><X size={13} /></button>
             </div>
@@ -643,13 +643,13 @@ export default function StudioClient() {
 
           {/* Run outcome */}
           {runOutcome && (
-            <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-xs
-              ${runOutcome.success ? "border-emerald-500/30 bg-emerald-500/5" : "border-red-500/30 bg-red-500/5"}`}>
+            <div className={`flex items-start gap-3 rounded-lg border px-4 py-3 text-xs
+              ${runOutcome.success ? "border-positive/30 bg-positive/5" : "border-negative/30 bg-negative/5"}`}>
               {runOutcome.success
-                ? <CheckCircle2 size={14} className="text-emerald-500 shrink-0 mt-0.5" />
-                : <AlertCircle size={14} className="text-red-500 shrink-0 mt-0.5" />}
+                ? <CheckCircle2 size={14} className="text-positive shrink-0 mt-0.5" />
+                : <AlertCircle size={14} className="text-negative shrink-0 mt-0.5" />}
               <div className="flex-1 space-y-1.5">
-                <p className={`font-semibold text-sm ${runOutcome.success ? "text-emerald-500" : "text-red-500"}`}>
+                <p className={`font-semibold text-sm ${runOutcome.success ? "text-positive" : "text-negative"}`}>
                   {runOutcome.testMode ? "Test Run" : "Live Run"} — {runOutcome.success ? "Completed Successfully" : "Failed"}
                   {runOutcome.executedAt && (
                     <span className="text-muted-foreground font-normal ml-2 text-micro">
@@ -657,15 +657,15 @@ export default function StudioClient() {
                     </span>
                   )}
                 </p>
-                {runOutcome.error && <p className="text-red-500 font-medium">Error: {runOutcome.error}</p>}
+                {runOutcome.error && <p className="text-negative font-medium">Error: {runOutcome.error}</p>}
                 {runOutcome.message && <p className="text-muted-foreground">{runOutcome.message}</p>}
                 {runOutcome.nodeResults && Object.keys(runOutcome.nodeResults).length > 0 && (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 pt-1">
                     {Object.entries(runOutcome.nodeResults as Record<string, any>).map(([nid, res]) => (
-                      <div key={nid} className={`flex items-center gap-1.5 rounded-lg border px-2 py-1 bg-background ${(res as any).status === "success" ? "border-emerald-500/30" : "border-red-500/30"}`}>
+                      <div key={nid} className={`flex items-center gap-1.5 rounded-lg border px-2 py-1 bg-background ${(res as any).status === "success" ? "border-positive/30" : "border-negative/30"}`}>
                         {(res as any).status === "success"
-                          ? <CheckCircle2 size={9} className="text-emerald-500 shrink-0" />
-                          : <AlertCircle size={9} className="text-red-500 shrink-0" />}
+                          ? <CheckCircle2 size={9} className="text-positive shrink-0" />
+                          : <AlertCircle size={9} className="text-negative shrink-0" />}
                         <span className="truncate font-medium text-foreground">{nid}</span>
                       </div>
                     ))}
@@ -677,7 +677,7 @@ export default function StudioClient() {
           )}
 
           {/* Canvas */}
-          <div className="flex-1 flex overflow-hidden rounded-xl border border-border bg-transparent shadow-inner relative"
+          <div className="flex-1 flex overflow-hidden rounded-lg border border-border bg-transparent shadow-inner relative"
             style={{ minHeight: 520 }}>
 
             {/* Library panel */}
@@ -764,7 +764,7 @@ export default function StudioClient() {
                 <MiniMap nodeStrokeWidth={3} zoomable pannable />
                 {nodes.length === 0 && (
                   <Panel position="top-center">
-                    <div className="mt-6 rounded-xl border border-dashed border-border bg-card px-6 py-4 text-center text-sm text-muted-foreground pointer-events-none select-none">
+                    <div className="mt-6 rounded-lg border border-dashed border-border bg-card px-6 py-4 text-center text-sm text-muted-foreground pointer-events-none select-none">
                       Drag nodes from the panel · or use <strong>Templates</strong> / <strong>AI Builder</strong>
                     </div>
                   </Panel>
@@ -804,7 +804,7 @@ export default function StudioClient() {
       <Dialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-amber-600"><AlertTriangle size={18} /> Unsaved Changes</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-warning"><AlertTriangle size={18} /> Unsaved Changes</DialogTitle>
             <DialogDescription className="text-xs">You have unsaved edits. Proceeding will discard them.</DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2 pt-2">

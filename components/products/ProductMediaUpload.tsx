@@ -31,16 +31,16 @@ export default function ProductMediaUpload({
  if (file.size > 15 * 1024 * 1024) {
  alert("Thumbnail image must be smaller than 15MB.");
  return;
- }
+  }
  const reader = new FileReader();
  reader.onload = (event) => {
  if (event.target?.result) {
  onImageUrlChange(event.target.result as string);
- }
- };
+    }
+      };
  reader.readAsDataURL(file);
  e.target.value = "";
- };
+        };
 
  const handleVideoFile = (e: React.ChangeEvent<HTMLInputElement>) => {
  const file = e.target.files?.[0];
@@ -48,16 +48,16 @@ export default function ProductMediaUpload({
  if (file.size > 50 * 1024 * 1024) {
  alert("Video file must be smaller than 50MB.");
  return;
- }
+          }
  const reader = new FileReader();
  reader.onload = (event) => {
  if (event.target?.result) {
  onVideoUrlChange(event.target.result as string);
- }
- };
+            }
+              };
  reader.readAsDataURL(file);
  e.target.value = "";
- };
+                };
 
  const handleScreenshotsFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
  const files = Array.from(e.target.files || []);
@@ -70,25 +70,25 @@ export default function ProductMediaUpload({
  if (file.size > 15 * 1024 * 1024) {
  readCount++;
  return;
- }
+                  }
  const reader = new FileReader();
  reader.onload = (event) => {
  if (event.target?.result) {
  newImages.push(event.target.result as string);
- }
+                    }
  readCount++;
  if (readCount === files.length) {
  onImagesChange([...images, ...newImages]);
- }
- };
+                      }
+                        };
  reader.readAsDataURL(file);
  });
  e.target.value = "";
- };
+                          };
 
  const removeScreenshot = (index: number) => {
  onImagesChange(images.filter((_, i) => i !== index));
- };
+                            };
 
  return (
  <div className="space-y-6">
@@ -140,7 +140,7 @@ export default function ProductMediaUpload({
  </div>
 
  {imageUrl ? (
- <div className="relative overflow-hidden rounded-xl border border-border/40 bg-black/20 p-2 flex items-center gap-4">
+                              <div className="relative overflow-hidden rounded-lg border border-border/40 bg-black/20 p-2 flex items-center gap-4">
  <img
  src={imageUrl}
  alt="Thumbnail Preview"
@@ -165,9 +165,9 @@ export default function ProductMediaUpload({
  ) : (
  <div
  onClick={() => thumbnailInputRef.current?.click()}
- className="group flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-border/60 bg-muted/20 p-6 text-center transition hover:border-warning/50 hover:bg-warning/[0.02]"
+                                className="group flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-border/60 bg-muted/20 p-6 text-center transition hover:border-warning/50 hover:bg-warning/[0.02]"
  >
- <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl border border-warning/30 bg-warning/10 text-warning transition group-hover:scale-105">
+                                  <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg border border-warning/30 bg-warning/10 text-warning transition group-hover:scale-105">
  <Upload size={18} />
  </div>
  <span className="text-xs font-semibold text-foreground">Click to upload Thumbnail Image</span>
@@ -201,7 +201,7 @@ export default function ProductMediaUpload({
  </div>
 
  {videoUrl ? (
- <div className="rounded-xl border border-border/40 bg-black/20 p-3">
+                                    <div className="rounded-lg border border-border/40 bg-black/20 p-3">
  <div className="flex items-center justify-between">
  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-info">
  <Film size={14} />
@@ -218,7 +218,7 @@ export default function ProductMediaUpload({
  {videoUrl.startsWith("data:video") ? (
  <video src={videoUrl} controls className="mt-3 max-h-48 w-full rounded-lg bg-black" />
  ) : (
- <p className="mt-2 text-xs font-mono text-muted-foreground truncate">{videoUrl}</p>
+ <p className="mt-2 text-xs font-numeric text-muted-foreground truncate">{videoUrl}</p>
  )}
  </div>
  ) : (
@@ -226,7 +226,7 @@ export default function ProductMediaUpload({
  <button
  type="button"
  onClick={() => videoInputRef.current?.click()}
- className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 bg-muted/20 p-4 text-xs font-semibold text-foreground hover:border-info/50 hover:bg-info/[0.02] transition"
+                                      className="flex items-center justify-center gap-2 rounded-lg border border-dashed border-border/60 bg-muted/20 p-4 text-xs font-semibold text-foreground hover:border-info/50 hover:bg-info/[0.02] transition"
  >
  <Upload size={16} className="text-info" />
  Upload Video File (MP4)
@@ -238,7 +238,7 @@ export default function ProductMediaUpload({
  placeholder="Or paste YouTube / Vimeo link"
  value={videoUrl}
  onChange={(e) => onVideoUrlChange(e.target.value)}
- className="w-full rounded-xl border border-border/40 bg-muted px-3 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/50 focus:border-info outline-none"
+                                        className="w-full rounded-lg border border-border/40 bg-muted px-3 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/50 focus:border-info outline-none"
  />
  </div>
  </div>
@@ -262,16 +262,16 @@ export default function ProductMediaUpload({
  {images.length > 0 ? (
  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
  {images.map((img, idx) => (
- <div key={idx} className="group relative overflow-hidden rounded-xl border border-border/40 bg-black/20">
+                                          <div key={idx} className="group relative overflow-hidden rounded-lg border border-border/40 bg-black/20">
  <img src={img} alt={`Screenshot ${idx + 1}`} className="h-24 w-full object-cover" />
  <button
  type="button"
  onClick={() => removeScreenshot(idx)}
- className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/70 text-negative transition hover:bg-negative hover:text-white"
+                                            className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/70 text-negative transition hover:bg-negative hover:text-background"
  >
  <X size={12} />
  </button>
- <div className="absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5 text-micro font-mono text-white">
+ <div className="absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5 text-micro font-numeric text-white">
  #{idx + 1}
  </div>
  </div>
@@ -279,7 +279,7 @@ export default function ProductMediaUpload({
  <button
  type="button"
  onClick={() => screenshotsInputRef.current?.click()}
- className="flex h-24 flex-col items-center justify-center rounded-xl border border-dashed border-border/60 bg-muted/20 text-muted-foreground transition hover:border-primary/50 hover:bg-primary/[0.02] hover:text-foreground"
+                                              className="flex h-24 flex-col items-center justify-center rounded-lg border border-dashed border-border/60 bg-muted/20 text-muted-foreground transition hover:border-primary/50 hover:bg-primary/[0.02] hover:text-foreground"
  >
  <Plus size={18} />
  <span className="mt-1 text-micro font-medium">Add More</span>
@@ -288,9 +288,9 @@ export default function ProductMediaUpload({
  ) : (
  <div
  onClick={() => screenshotsInputRef.current?.click()}
- className="group flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-border/60 bg-muted/20 p-6 text-center transition hover:border-primary/50 hover:bg-primary/[0.02]"
+                                                className="group flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-border/60 bg-muted/20 p-6 text-center transition hover:border-primary/50 hover:bg-primary/[0.02]"
  >
- <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl border border-primary/30 bg-primary/10 text-primary transition group-hover:scale-105">
+                                                  <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 text-primary transition group-hover:scale-105">
  <Upload size={18} />
  </div>
  <span className="text-xs font-semibold text-foreground">Click to upload Screenshot Files</span>
@@ -311,7 +311,7 @@ export default function ProductMediaUpload({
  </div>
 
  {showUrlInputs && (
- <div className="rounded-xl border border-border/30 bg-muted/20 p-4 space-y-3">
+                                                    <div className="rounded-lg border border-border/30 bg-muted/20 p-4 space-y-3">
  <div>
  <label className="text-micro uppercase font-bold text-muted-foreground">Direct Thumbnail URL</label>
  <input

@@ -186,7 +186,7 @@ export function WorkflowGuideTour({ pageKey = "workflow_studio", title = "Page G
             </p>
 
             {/* Tips section */}
-            <div className="rounded-xl border border-border bg-card p-4 space-y-2.5">
+            <div className="rounded-lg border border-border bg-card p-4 space-y-2.5">
               <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                 <Info size={14} className="text-info" /> Key Features &amp; Best Practices
               </div>
@@ -220,7 +220,7 @@ export function WorkflowGuideTour({ pageKey = "workflow_studio", title = "Page G
               <Button
                 size="sm"
                 onClick={handleNext}
-                className="text-xs bg-gradient-to-r from-info to-primary text-white"
+                className="text-xs bg-info text-background"
               >
                 {stepIndex === GUIDE_STEPS.length - 1 ? (
                   <>

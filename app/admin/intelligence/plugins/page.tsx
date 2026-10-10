@@ -80,14 +80,14 @@ export default function AdminPluginsPage() {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Search plugins..."
-                        className="w-full rounded-xl border border-border/30 bg-muted py-3 pl-11 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                        className="w-full rounded-lg border border-border/30 bg-muted py-3 pl-11 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                     />
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                     <select
                         value={filterType}
                         onChange={(e) => setFilterType(e.target.value)}
-                        className="rounded-xl border border-border/30 bg-muted px-4 py-2.5 text-xs outline-none"
+                        className="rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs outline-none"
                     >
                         <option value="all">All Types</option>
                         <option value="plugin">Plugins</option>
@@ -96,7 +96,7 @@ export default function AdminPluginsPage() {
                     <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
-                        className="rounded-xl border border-border/30 bg-muted px-4 py-2.5 text-xs outline-none"
+                        className="rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs outline-none"
                     >
                         <option value="all">All Statuses</option>
                         {(["draft", "testing", "pending_review", "published", "disabled"] as PluginStatus[]).map((s) => (
@@ -106,7 +106,7 @@ export default function AdminPluginsPage() {
                     <select
                         value={filterCategory}
                         onChange={(e) => setFilterCategory(e.target.value)}
-                        className="rounded-xl border border-border/30 bg-muted px-4 py-2.5 text-xs outline-none"
+                        className="rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs outline-none"
                     >
                         <option value="all">All Categories</option>
                         {CATEGORIES.map((c) => (
@@ -163,24 +163,24 @@ function PluginCard({
             <div className="p-5">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-4">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
                             {isExtension ? (
-                                <Puzzle size={20} className="text-amber-300" />
+                                <Puzzle size={20} className="text-warning" />
                             ) : (
-                                <Plug size={20} className="text-violet-300" />
+                                <Plug size={20} className="text-primary" />
                             )}
                         </div>
                         <div className="min-w-0">
                             <div className="flex items-center gap-2">
                                 <Link
                                     href={`/admin/intelligence/plugins/${plugin.id}`}
-                                    className="text-sm font-semibold text-foreground transition hover:text-violet-300 truncate"
+                                    className="text-sm font-semibold text-foreground transition hover:text-primary truncate"
                                 >
                                     {plugin.displayName}
                                 </Link>
                                 <StatusBadge tone={pluginStatusTone(plugin.status)} label={plugin.status} />
                                 {isExtension && (
-                                    <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-micro font-medium text-amber-300">
+                                    <span className="rounded-full bg-warning/10 px-2 py-0.5 text-micro font-medium text-warning">
                                         {extType}
                                     </span>
                                 )}
@@ -199,14 +199,14 @@ function PluginCard({
                     </div>
                     <button
                         onClick={onToggle}
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5 transition hover:bg-muted/10"
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5 transition hover:bg-muted/10"
                     >
                         {isExpanded ? <ChevronUp size={16} className="text-muted-foreground" /> : <ChevronDown size={16} className="text-muted-foreground" />}
                     </button>
                 </div>
 
                 {isExpanded && (
-                    <div className="mt-4 rounded-xl border border-border/30 bg-muted/30 p-4">
+                    <div className="mt-4 rounded-lg border border-border/30 bg-muted/30 p-4">
                         <div className="grid gap-3 md:grid-cols-2">
                             <DetailRow label="ID" value={plugin.id} copyable />
                             <DetailRow label="Slug" value={plugin.slug || plugin.id} copyable />
@@ -242,7 +242,7 @@ function PluginCard({
                         <div className="mt-4 flex flex-wrap items-center gap-2">
                             <Link
                                 href={`/admin/intelligence/plugins/${plugin.id}`}
-                                className="inline-flex items-center gap-1.5 rounded-xl bg-background px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-background px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
                             >
                                 <Edit size={13} />
                                 Edit
@@ -250,7 +250,7 @@ function PluginCard({
                             <Link
                                 href={`/marketplace/${isExtension ? "extensions" : "plugins"}/${plugin.slug || plugin.id}`}
                                 target="_blank"
-                                className="inline-flex items-center gap-1.5 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/5 px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground"
                             >
                                 <ExternalLink size={13} />
                                 View in Marketplace
@@ -258,7 +258,7 @@ function PluginCard({
                             <Link
                                 href={`/api/plugins/${plugin.id}`}
                                 target="_blank"
-                                className="inline-flex items-center gap-1.5 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/5 px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground"
                             >
                                 <Copy size={13} />
                                 Copy API

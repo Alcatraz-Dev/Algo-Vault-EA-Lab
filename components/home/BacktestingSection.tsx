@@ -35,7 +35,7 @@ export default function BacktestingSection() {
  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
 
  {/* Left Settings & Controls */}
- <div className="lg:col-span-4 space-y-4 text-xs font-mono">
+ <div className="lg:col-span-4 space-y-4 text-xs font-numeric">
  <div className="rounded-xl bg-background/80 p-4 border border-border/40 space-y-3">
  <div className="flex items-center justify-between text-muted-foreground font-bold">
  <span>Simulation Config</span>
@@ -95,7 +95,7 @@ export default function BacktestingSection() {
 
  {/* Right Simulated SVG Equity Curve Visual */}
  <div className="lg:col-span-8 space-y-3">
- <div className="flex items-center justify-between text-xs font-mono text-muted-foreground">
+ <div className="flex items-center justify-between text-xs font-numeric text-muted-foreground">
  <span className="flex items-center gap-1.5 text-foreground font-bold"><TrendingUp size={14} className="text-positive" /> Simulated Equity & Growth Curve</span>
  <span>2,000 Historical Bars</span>
  </div>
@@ -124,7 +124,7 @@ export default function BacktestingSection() {
  />
  </svg>
 
- <div className="relative z-10 flex items-center justify-between text-micro font-mono text-muted-foreground pt-2 border-t border-border/30">
+ <div className="relative z-10 flex items-center justify-between text-micro font-numeric text-muted-foreground pt-2 border-t border-border/30">
  <span>Start: $10,000.00</span>
  <span>Peak: $12,680.00</span>
  <span className="text-positive font-bold">End: ${ (10000 + 2480 * (simulatedRisk/1.0)).toLocaleString() }.00</span>

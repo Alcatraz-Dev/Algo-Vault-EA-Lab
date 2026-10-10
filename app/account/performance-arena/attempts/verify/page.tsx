@@ -62,13 +62,13 @@ function VerifyContent() {
     }, [token, orderId, verifyAndStart]);
 
     return (
-        <div className="mx-auto max-w-lg space-y-6 rounded-xl border border-border bg-card p-8 text-center shadow-lg">
+        <div className="mx-auto max-w-lg space-y-6 rounded-lg border border-border bg-card p-8 text-center shadow-lg">
             {status === "verifying" && (
                 <div className="space-y-4 py-8">
                     <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
                     <h2 className="text-xl font-semibold">Confirming Your Challenge Purchase</h2>
                     <p className="text-sm text-muted-foreground">
-                        Order reference: <span className="font-mono">{orderId || "Processing"}</span>
+                        Order reference: <span className="font-numeric">{orderId || "Processing"}</span>
                     </p>
                     <p className="text-xs text-muted-foreground">Setting up your virtual account, risk metrics, and Challenge Guardian...</p>
                 </div>

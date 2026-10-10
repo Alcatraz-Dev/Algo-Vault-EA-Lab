@@ -38,7 +38,7 @@ export default function AdminScalpingPage() {
                     <p className="text-sm font-medium text-foreground">Admin sign-in required</p>
                     <a
                         href="/login?redirect=/admin/scalping"
-                        className="rounded-xl bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition hover:opacity-90"
+                        className="rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition hover:opacity-90"
                     >
                         Sign In
                     </a>

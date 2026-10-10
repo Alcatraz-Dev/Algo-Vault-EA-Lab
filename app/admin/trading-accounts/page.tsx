@@ -293,7 +293,7 @@ export default function AdminTradingAccountsPage() {
                                         <td className="px-6 py-4 text-xs text-muted-foreground">
                                             {formatRelativeTime(item.lastHeartbeatAt)}
                                         </td>
-                                        <td className="px-6 py-4 font-mono text-xs">
+                                        <td className="px-6 py-4 font-numeric text-xs">
                                             v{item.gatewayVersion}
                                         </td>
                                         <td className="px-6 py-4 text-right">

@@ -206,7 +206,7 @@ function WatchlistPicker({
                 <span className="text-xs font-semibold uppercase tracking-wide text-foreground">
                   Watchlist
                 </span>
-                <span className="font-mono text-xs text-muted-foreground">
+                <span className="font-numeric text-xs text-muted-foreground">
                     {selected.length} symbol{selected.length === 1 ? "" : "s"}
                 </span>
 
@@ -247,8 +247,8 @@ function WatchlistPicker({
                                 aria-pressed={on}
                                 className={
                                     on
-                                        ? "rounded-md border border-primary/50 bg-primary/10 px-2 py-0.5 font-mono text-xs text-primary"
-                                        : "rounded-md border border-border px-2 py-0.5 font-mono text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                                        ? "rounded-md border border-primary/50 bg-primary/10 px-2 py-0.5 font-numeric text-xs text-primary"
+                                        : "rounded-md border border-border px-2 py-0.5 font-numeric text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground"
                                 }
                             >
                                 {s}

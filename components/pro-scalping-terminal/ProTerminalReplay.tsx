@@ -163,7 +163,7 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                             setSymbol(e.target.value as SupportedSymbol);
                             setPlaying(false);
                         }}
-                        className="rounded-md border border-border bg-background px-1.5 py-0.5 font-mono text-xs outline-none focus:border-primary/50"
+                        className="rounded-md border border-border bg-background px-1.5 py-0.5 font-numeric text-xs outline-none focus:border-primary/50"
                         aria-label="Replay symbol"
                     >
                         {["XAUUSD", "EURUSD", "GBPUSD", "USDJPY", "US30", "NAS100", "BTCUSD", "ETHUSD"].map((s) => (
@@ -178,7 +178,7 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                             setTimeframe(e.target.value as Timeframe);
                             setPlaying(false);
                         }}
-                        className="rounded-md border border-border bg-background px-1.5 py-0.5 font-mono text-xs outline-none focus:border-primary/50"
+                        className="rounded-md border border-border bg-background px-1.5 py-0.5 font-numeric text-xs outline-none focus:border-primary/50"
                         aria-label="Replay timeframe"
                     >
                         {TERMINAL_TIMEFRAMES.map((t) => (
@@ -215,24 +215,24 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                     <>
                         {/* OHLC HUD */}
                         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-md border border-border/70 bg-background px-2.5 py-1.5">
-                            <span className="font-mono text-micro tabular-nums text-muted-foreground">
+                            <span className="font-numeric text-micro tabular-nums text-muted-foreground">
                                 {current ? new Date(current.timestamp).toISOString().replace("T", " ").slice(0, 16) : "—"} UTC
                             </span>
                             {current ? (
                                 <>
-                                    <span className="font-mono text-micro tabular-nums">
+                                    <span className="font-numeric text-micro tabular-nums">
                                         <span className="text-muted-foreground">O </span>
                                         <span className="text-foreground">{fmtPrice(current.open, symbol)}</span>
                                     </span>
-                                    <span className="font-mono text-micro tabular-nums">
+                                    <span className="font-numeric text-micro tabular-nums">
                                         <span className="text-muted-foreground">H </span>
                                         <span className="text-positive">{fmtPrice(current.high, symbol)}</span>
                                     </span>
-                                    <span className="font-mono text-micro tabular-nums">
+                                    <span className="font-numeric text-micro tabular-nums">
                                         <span className="text-muted-foreground">L </span>
                                         <span className="text-negative">{fmtPrice(current.low, symbol)}</span>
                                     </span>
-                                    <span className="font-mono text-micro tabular-nums">
+                                    <span className="font-numeric text-micro tabular-nums">
                                         <span className="text-muted-foreground">C </span>
                                         <span className={cn(current.close >= current.open ? "text-positive" : "text-negative")}>
                                             {fmtPrice(current.close, symbol)}
@@ -240,20 +240,20 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                                     </span>
                                     <span
                                         className={cn(
-                                            "font-mono text-micro tabular-nums",
+                                            "font-numeric text-micro tabular-nums",
                                             (current.close - (prev?.close ?? current.open)) >= 0 ? "text-positive" : "text-negative"
                                         )}
                                     >
                                         {fmtSigned(current.close - (prev?.close ?? current.open), current.close < 10 ? 5 : 2)}
                                     </span>
                                     {current.volume !== undefined ? (
-                                        <span className="font-mono text-micro tabular-nums text-muted-foreground">
+                                        <span className="font-numeric text-micro tabular-nums text-muted-foreground">
                                             V {current.volume.toLocaleString()}
                                         </span>
                                     ) : null}
                                 </>
                             ) : null}
-                            <span className="ml-auto font-mono text-micro tabular-nums text-muted-foreground">
+                            <span className="ml-auto font-numeric text-micro tabular-nums text-muted-foreground">
                                 Hi {fmtPrice(sessionHi, symbol)} · Lo {fmtPrice(sessionLo, symbol)}
                                 {rangePct !== null ? ` · range ${rangePct.toFixed(2)}%` : ""}
                             </span>
@@ -273,7 +273,7 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                                 className="w-full accent-[var(--primary,--theme(--color-primary))]"
                                 aria-label="Replay playhead"
                             />
-                            <div className="mt-0.5 flex justify-between font-mono text-micro text-muted-foreground">
+                            <div className="mt-0.5 flex justify-between font-numeric text-micro text-muted-foreground">
                                 <span>{state.from ? new Date(state.from).toISOString().slice(0, 10) : ""}</span>
                                 <span>
                                     bar {playhead + 1}/{state.candles.length}
@@ -329,7 +329,7 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                             <button
                                 type="button"
                                 onClick={() => setSpeed((s) => SPEEDS[(SPEEDS.indexOf(s as 1) + 1) % SPEEDS.length])}
-                                className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 font-mono text-xs transition hover:bg-muted"
+                                className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 font-numeric text-xs transition hover:bg-muted"
                                 aria-label="Cycle playback speed"
                                 title="Playback speed"
                             >
@@ -368,7 +368,7 @@ function ReplayHeader({
                     disabled={disabled}
                     onClick={() => setBars(n)}
                     className={cn(
-                        "rounded border px-1.5 py-0.5 font-mono transition disabled:opacity-50",
+                        "rounded border px-1.5 py-0.5 font-numeric transition disabled:opacity-50",
                         bars === n ? "border-primary/40 bg-primary/10 text-primary" : "border-border hover:bg-muted"
                     )}
                 >

@@ -220,9 +220,9 @@ export default function DonatePage() {
                         {FREE_RESOURCES.map((resource, idx) => (
                             <div
                                 key={idx}
-                                className={`rounded-xl border ${resource.border} bg-muted p-4`}
+                                className={`rounded-lg border ${resource.border} bg-muted p-4`}
                             >
-                                <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${resource.bg}`}>
+                                <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${resource.bg}`}>
                                     <resource.icon size={18} className={resource.color} />
                                 </div>
                                 <div className="mt-3">
@@ -261,13 +261,13 @@ export default function DonatePage() {
                                         setUseCustom(false);
                                         setError(null);
                                     }}
-                                    className={`w-full rounded-xl border p-5 text-left transition-all ${isSelected
+                                    className={`w-full rounded-lg border p-5 text-left transition-all ${isSelected
                                         ? `${tier.border} ${tier.color}`
                                         : "border-border/30 bg-muted hover:border-border/50 hover:bg-muted/20"
                                     }`}
                                 >
                                     <div className="flex items-start gap-4">
-                                        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg ${isSelected ? tier.color : "bg-muted/5"
+                                        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-lg ${isSelected ? tier.color : "bg-muted/5"
                                         }`}>
                                             {tier.emoji}
                                         </div>
@@ -303,7 +303,7 @@ export default function DonatePage() {
 
                         {/* Custom Amount */}
                         <div
-                            className={`rounded-xl border p-5 transition-all ${useCustom
+                            className={`rounded-lg border p-5 transition-all ${useCustom
                                 ? "border-positive/30 bg-positive/[0.08]"
                                 : "border-border/30 bg-muted"
                             }`}
@@ -337,7 +337,7 @@ export default function DonatePage() {
                                         placeholder="0.00"
                                         value={customAmount}
                                         onChange={(e) => setCustomAmount(e.target.value)}
-                                        className="w-full rounded-xl border border-border/30 bg-background pl-8 pr-4 py-2.5 text-sm font-numeric text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+                                        className="w-full rounded-lg border border-border/30 bg-background pl-8 pr-4 py-2.5 text-sm font-numeric text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
                                     />
                                 </div>
                             )}
@@ -345,7 +345,7 @@ export default function DonatePage() {
                     </div>
 
                     {/* Checkout Panel */}
-                    <div className="rounded-xl border border-border/30 bg-card p-6 h-fit sticky top-8">
+                    <div className="rounded-lg border border-border/30 bg-card p-6 h-fit sticky top-8">
                         <div className="flex items-center gap-2 mb-5 border-b border-border/30 pb-5">
                             <Sparkles size={16} className="text-primary" />
                             <h3 className="font-bold text-foreground">Your Donation</h3>
@@ -373,7 +373,7 @@ export default function DonatePage() {
 
                         {/* Rewards unlocked */}
                         {effectiveTier && (
-                            <div className="mb-5 rounded-xl border border-border/30 bg-background/70 p-4">
+                            <div className="mb-5 rounded-lg border border-border/30 bg-background/70 p-4">
                                 <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mb-2">
                                     🎁 Rewards Unlocked
                                 </p>
@@ -403,7 +403,7 @@ export default function DonatePage() {
                                     placeholder="Anonymous"
                                     value={donorName}
                                     onChange={(e) => setDonorName(e.target.value)}
-                                    className="w-full rounded-xl border border-border/30 bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+                                    className="w-full rounded-lg border border-border/30 bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
                                 />
                             </div>
 
@@ -420,13 +420,13 @@ export default function DonatePage() {
                                     value={donorMessage}
                                     onChange={(e) => setDonorMessage(e.target.value)}
                                     rows={2}
-                                    className="w-full resize-none rounded-xl border border-border/30 bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+                                    className="w-full resize-none rounded-lg border border-border/30 bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
                                 />
                             </div>
                         </div>
 
                         {!user && !authLoading && (
-                            <div className="mb-4 rounded-xl border border-warning/20 bg-warning/[0.08] p-3 text-xs text-warning leading-5">
+                            <div className="mb-4 rounded-lg border border-warning/20 bg-warning/[0.08] p-3 text-xs text-warning leading-5">
                                 <strong>Tip:</strong> Sign in to automatically receive your free rewards after donation.
                                 <Link href="/login" className="ml-1.5 underline hover:text-warning">
                                     Sign in →
@@ -435,7 +435,7 @@ export default function DonatePage() {
                         )}
 
                         {error && (
-                            <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/[0.08] p-3 text-xs text-destructive">
+                            <div className="mb-4 rounded-lg border border-destructive/20 bg-destructive/[0.08] p-3 text-xs text-destructive">
                                 {error}
                             </div>
                         )}
@@ -444,7 +444,7 @@ export default function DonatePage() {
                             type="button"
                             onClick={handleDonate}
                             disabled={loading || (!effectiveAmount || effectiveAmount < 100)}
-                            className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-primary text-primary-foreground px-5 py-3 text-sm font-bold transition-colors hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full flex items-center justify-center gap-2.5 rounded-lg bg-primary text-primary-foreground px-5 py-3 text-sm font-bold transition-colors hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? (
                                 <>

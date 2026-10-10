@@ -132,13 +132,13 @@ export default function AccountLivePage() {
       <div className="min-h-[60vh] flex items-center justify-center p-6">
         <div className="max-w-md w-full rounded-lg border border-border bg-card/60 p-8 text-center">
           <Plug className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
-          <h1 className="text-lg font-bold text-foreground">Sign in to view your live accounts</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Sign in to view your live accounts</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Connect an MT5 account via a product license to see real-time balance, equity and heartbeats here.
           </p>
           <Link
             href="/login?redirect=/account/live"
-            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#ff4d00] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#e64400] transition"
+            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-background hover:bg-primary/80 transition"
           >
             Sign in <ArrowUpRight size={14} />
           </Link>
@@ -149,11 +149,11 @@ export default function AccountLivePage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border/40 bg-background/80 backdrop-blur-md">
+      <header className="border-b border-border/40 bg-background/80">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
             <p className="text-micro font-semibold uppercase tracking-widest text-muted-foreground">Your account</p>
-            <h1 className="mt-1 text-2xl md:text-3xl font-extrabold tracking-tight">
+            <h1 className="text-2xl font-semibold tracking-tight mt-1">
               Live <span className="text-[#2563eb]">Accounts</span>
             </h1>
             <p className="mt-1.5 text-sm text-muted-foreground">
@@ -206,7 +206,7 @@ export default function AccountLivePage() {
                   <p className={`mt-2 text-2xl font-bold tabular-nums ${tone ?? "text-foreground"}`}>{value}</p>
                   {sub && <p className="mt-1 text-micro text-muted-foreground">{sub}</p>}
                 </div>
-                <div className="rounded-xl border border-border bg-muted/50 p-2.5">
+                <div className="rounded-lg border border-border bg-muted/50 p-2.5">
                   <Icon className="h-5 w-5 text-foreground" />
                 </div>
               </div>
@@ -215,7 +215,7 @@ export default function AccountLivePage() {
         </div>
 
         {error && (
-          <div className="rounded-xl border border-negative/20 bg-negative/10 px-4 py-3 text-sm text-negative">{error}</div>
+          <div className="rounded-lg border border-negative/20 bg-negative/10 px-4 py-3 text-sm text-negative">{error}</div>
         )}
 
         {/* Equity chart */}
@@ -226,7 +226,7 @@ export default function AccountLivePage() {
                 <h2 className="font-semibold">Equity by Account</h2>
                 <p className="mt-1 text-sm text-muted-foreground">Latest reported equity across your accounts</p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted/50">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-muted/50">
                 <Activity className="h-5 w-5 text-foreground" />
               </div>
             </div>
@@ -276,7 +276,7 @@ export default function AccountLivePage() {
                         <td className="px-5 py-4"><StatusPill online={isOnline} /></td>
                         <td className="px-5 py-4">
                           <p className="font-semibold text-foreground">{a.productName || a.productId}</p>
-                          <p className="text-xs text-muted-foreground font-mono mt-0.5">MT5 #{a.mt5Account}</p>
+                          <p className="text-xs text-muted-foreground font-numeric mt-0.5">MT5 #{a.mt5Account}</p>
                         </td>
                         <td className="px-5 py-4 text-muted-foreground">
                           <p>{a.broker || "—"}</p>

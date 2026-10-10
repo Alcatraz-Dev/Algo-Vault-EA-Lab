@@ -1843,7 +1843,7 @@ export default function LivePerformancePage() {
                                                                             }
                                                                             className="border-b border-border/60 last:border-0"
                                                                         >
-                                                                            <td className="px-5 py-4 font-mono text-xs text-muted-foreground">
+                                                                            <td className="px-5 py-4 font-numeric text-xs text-muted-foreground">
                                                                                 {position.ticket ||
                                                                                     "—"}
                                                                             </td>
@@ -2007,7 +2007,7 @@ export default function LivePerformancePage() {
                                                                             }
                                                                             className="border-b border-border/10 last:border-0"
                                                                         >
-                                                                            <td className="px-5 py-4 font-mono text-xs text-muted-foreground">
+                                                                            <td className="px-5 py-4 font-numeric text-xs text-muted-foreground">
                                                                                 {trade.ticket ||
                                                                                     "—"}
                                                                             </td>

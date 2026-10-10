@@ -116,20 +116,20 @@ export default function MarketHeader({
                     <button
                         type="button"
                         onClick={() => setShowSymbolDropdown(!showSymbolDropdown)}
-                        className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-1.5 font-mono text-sm font-semibold text-foreground transition hover:border-primary/40 hover:text-primary"
+                        className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-1.5 font-numeric text-sm font-semibold text-foreground transition hover:border-primary/40 hover:text-primary"
                     >
                         {symbol}
                         <ChevronDown size={14} className={cn("text-muted-foreground transition-transform", showSymbolDropdown && "rotate-180")} />
                     </button>
                     {showSymbolDropdown && (
-                        <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-xl border border-border bg-popover p-1 shadow-2xl">
+                        <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-lg border border-border bg-popover p-1 shadow-2xl">
                             {SUPPORTED_SYMBOLS.map((s) => (
                                 <button
                                     key={s}
                                     type="button"
                                     onClick={() => { onSymbolChange(s); setShowSymbolDropdown(false); }}
                                     className={cn(
-                                        "flex w-full items-center rounded-lg px-3 py-2 font-mono text-sm transition",
+                                        "flex w-full items-center rounded-lg px-3 py-2 font-numeric text-sm transition",
                                         s === symbol ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                     )}
                                 >
@@ -142,7 +142,7 @@ export default function MarketHeader({
 
                 {/* Price */}
                 <div className="flex items-baseline gap-2">
-                    <span className="text-lg font-bold font-mono text-foreground tabular-nums">
+                    <span className="text-lg font-bold font-numeric text-foreground tabular-nums">
                         {quote ? quote.bid.toFixed(quote.bid >= 100 ? 2 : quote.bid >= 1 ? 5 : 6) : "—"}
                     </span>
                     {quote && (
@@ -156,9 +156,9 @@ export default function MarketHeader({
                 {/* Bid/Ask */}
                 {quote && (
                     <div className="hidden items-center gap-3 text-xs text-muted-foreground md:flex">
-                        <span>Bid <span className="font-mono tabular-nums text-foreground/80">{quote.bid.toFixed(quote.bid >= 100 ? 2 : 5)}</span></span>
-                        <span>Ask <span className="font-mono tabular-nums text-foreground/80">{quote.ask.toFixed(quote.ask >= 100 ? 2 : 5)}</span></span>
-                        <span>Spread <span className="font-mono tabular-nums text-foreground/80">{quote.spread.toFixed(quote.spread >= 1 ? 2 : 5)}</span></span>
+                        <span>Bid <span className="font-numeric tabular-nums text-foreground/80">{quote.bid.toFixed(quote.bid >= 100 ? 2 : 5)}</span></span>
+                        <span>Ask <span className="font-numeric tabular-nums text-foreground/80">{quote.ask.toFixed(quote.ask >= 100 ? 2 : 5)}</span></span>
+                        <span>Spread <span className="font-numeric tabular-nums text-foreground/80">{quote.spread.toFixed(quote.spread >= 1 ? 2 : 5)}</span></span>
                     </div>
                 )}
 
@@ -182,7 +182,7 @@ export default function MarketHeader({
                         <span className="text-muted-foreground">
                             Vol: <span className={cn("font-medium capitalize", getVolatilityColor(volatility.state))}>{volatility.state}</span>
                         </span>
-                        <span className="font-mono tabular-nums text-muted-foreground">{volatility.atrPercent.toFixed(2)}%</span>
+                        <span className="font-numeric tabular-nums text-muted-foreground">{volatility.atrPercent.toFixed(2)}%</span>
                     </div>
                 )}
 
@@ -224,7 +224,7 @@ export default function MarketHeader({
                         type="button"
                         onClick={() => onTimeframeChange(tf)}
                         className={cn(
-                            "rounded-md px-2.5 py-1 font-mono text-xs font-medium transition",
+                            "rounded-md px-2.5 py-1 font-numeric text-xs font-medium transition",
                             tf === timeframe
                                 ? "bg-primary/15 text-primary"
                                 : "text-muted-foreground hover:bg-muted hover:text-foreground"

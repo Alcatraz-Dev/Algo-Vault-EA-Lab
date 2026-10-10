@@ -105,11 +105,11 @@ export async function POST(request: NextRequest) {
                     .slice(0, 6)
                     .map((r) => `  ${r.symbol.padEnd(8)} ${r.coefficient === null ? "n/a" : r.coefficient.toFixed(2)}  ${r.stability} (${r.term}, n=${r.sampleSize})`);
                 crossAssetBlock = [
-                    "",
+                  "",
                     "DETERMINISTIC CROSS-ASSET FACTS (measured by the AlgoVault relationship engine — treat as market truth, not as advice)",
                     "=======================================================================================================",
                     ...(rels.length > 0 ? [`Measured relationships for ${cross.symbol} (window ${cross.window.bars} ${cross.window.timeframe}):`, ...rels] : [`No relationship for ${cross.symbol} passed the |ρ| ≥ 0.3 threshold in this window.`]),
-                    "",
+                      "",
                     ...lines,
                     ...(cross.limitations.length > 0 ? ["", `Limitations: ${cross.limitations.join(" ")}`] : []),
                     "=======================================================================================================",
@@ -138,9 +138,9 @@ export async function POST(request: NextRequest) {
 
         const fallback = [
             "The AI provider is not available right now, so no interpretation was generated.",
-            "",
+              "",
             "The deterministic terminal context for this question is:",
-            "",
+              "",
             "```",
             facts,
             "```",

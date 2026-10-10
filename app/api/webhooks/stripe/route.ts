@@ -15,18 +15,18 @@ export const runtime = "nodejs";
  * =============================================================================
  * Stripe webhook endpoint
  * =============================================================================
- *
+  *
  * Single endpoint for BOTH delivery modes:
- *
+    *
  * 1. V1 webhook events (donations, platform subscriptions, marketplace product
  *    licenses, and — when connected-account events are forwarded here — store
  *    orders). Verified with `stripeClient.webhooks.constructEvent(...)`.
- *
+      *
  * 2. V2 thin events delivered via an Event Destination
  *    (`object === "v2.core.event_notification"` / `v2.`-prefixed type).
  *    Verified with `stripeClient.parseEventNotification(...)` and handled by
  *    refreshing the affected account's status straight from Stripe.
- *
+        *
  * Connect V2 note on delivery: sessions created on a connected account
  * ("Direct Charge" / `customer_account` subscriptions) belong to that account,
  * so their events are delivered to the account's event destination / Connect
@@ -34,10 +34,10 @@ export const runtime = "nodejs";
  * forwarding at this same route (e.g. `stripe listen --forward-connect-to
  * http://localhost:3000/api/webhooks/stripe`) and the metadata written by
  * `/api/store/checkout` tells us which order to finalize.
- *
+          *
  * Every event is claimed once in `webhook_events/{eventId}` (V2 thin events
  * keyed `v2:{id}`) so a redelivery cannot double-process.
- */
+            */
 
 function createLicenseId(orderId: string) {
     return `lic_${orderId.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
@@ -55,7 +55,7 @@ function createLicenseKey() {
  * Credit a referrer when a referred user makes a purchase.
  * Reads the commissionRate from settings, resolves the referrer UID,
  * and writes an earning record.
- */
+  */
 async function creditReferrerCommission(
     buyerUserId: string,
     referredByCode: string,
@@ -159,7 +159,7 @@ async function creditReferrerCommission(
  * V2 thin-event shape vs V1 event shape. Thin events have
  * `object === "v2.core.event_notification"` (and always a `v2.`-prefixed
  * type); V1 webhook events have `object === "event"`.
- */
+  */
 function looksLikeV2ThinEvent(parsed: unknown): boolean {
     if (!parsed || typeof parsed !== "object") return false;
     const obj = parsed as { object?: unknown; type?: unknown };
@@ -174,7 +174,7 @@ function looksLikeV2ThinEvent(parsed: unknown): boolean {
  * concurrent or repeated delivery of the same event sees the claim and is
  * short-circuited. If processing fails, the caller releases the claim so the
  * retry reprocesses the event.
- */
+  */
 async function tryClaimEvent(eventId: string): Promise<boolean> {
     const ref = adminDatabase.ref(`webhook_events/${eventId}`);
     let claimed = false;
@@ -201,7 +201,7 @@ async function releaseEventClaim(eventId: string) {
  * legacy platform records `users/{uid}/subscription` and
  * `users/{uid}/developerSubscription` (queried by stripeSubscriptionId), plus
  * the store-connected mirror `subscriptions/{uid}/{subscriptionId}`.
- */
+  */
 async function updateSubscriptionStatus(
     subscriptionId: string,
     status: string
@@ -266,7 +266,7 @@ async function updateSubscriptionStatus(
  * `stripeAccounts/{accountId}` reverse index and refresh the cached status
  * from Stripe (never from the event payload alone). Errors propagate so the
  * caller releases the event claim and Stripe retries.
- */
+  */
 async function refreshV2AccountStatus(accountId: string) {
     if (!accountId) return;
 
@@ -309,7 +309,7 @@ async function refreshV2AccountStatus(accountId: string) {
  * Process a verified V2 thin event (already signature-checked). The caller
  * already claimed the event idempotency key; failures bubble up so the claim
  * is released and the event is retried.
- */
+  */
 async function handleV2ThinEvent(
     notification: Stripe.V2.Core.EventNotification
 ) {

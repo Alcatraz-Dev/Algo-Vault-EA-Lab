@@ -30,24 +30,24 @@ export default function VolatilityPanel({ volatility }: Props) {
             <div className="grid grid-cols-2 gap-2">
                 <div className="rounded-lg bg-foreground/4 p-2.5">
                     <p className="text-micro font-semibold uppercase text-foreground/50">ATR</p>
-                    <p className="mt-1 font-mono text-sm text-foreground/70">{volatility.atr.toFixed(volatility.atr >= 100 ? 2 : 5)}</p>
+                    <p className="mt-1 font-numeric text-sm text-foreground/70">{volatility.atr.toFixed(volatility.atr >= 100 ? 2 : 5)}</p>
                 </div>
                 <div className="rounded-lg bg-foreground/4 p-2.5">
                     <p className="text-micro font-semibold uppercase text-foreground/50">ATR %</p>
-                    <p className={cn("mt-1 font-mono text-sm font-medium", config.color)}>{volatility.atrPercent.toFixed(3)}%</p>
+                    <p className={cn("mt-1 font-numeric text-sm font-medium", config.color)}>{volatility.atrPercent.toFixed(3)}%</p>
                 </div>
                 <div className="rounded-lg bg-foreground/4 p-2.5">
                     <p className="text-micro font-semibold uppercase text-foreground/50">Range Change</p>
                     <div className="mt-1 flex items-center gap-1">
                         {volatility.rangeExpansion > 0 ? <TrendingUp size={11} className="text-positive" /> : volatility.rangeExpansion < 0 ? <TrendingDown size={11} className="text-negative" /> : <Minus size={11} className="text-muted-foreground" />}
-                        <p className={cn("font-mono text-sm", volatility.rangeExpansion > 0 ? "text-positive" : volatility.rangeExpansion < 0 ? "text-negative" : "text-muted-foreground")}>
+                        <p className={cn("font-numeric text-sm", volatility.rangeExpansion > 0 ? "text-positive" : volatility.rangeExpansion < 0 ? "text-negative" : "text-muted-foreground")}>
                             {volatility.rangeExpansion > 0 ? "+" : ""}{volatility.rangeExpansion.toFixed(1)}%
                         </p>
                     </div>
                 </div>
                 <div className="rounded-lg bg-foreground/4 p-2.5">
                     <p className="text-micro font-semibold uppercase text-foreground/50">Lookback</p>
-                    <p className="mt-1 font-mono text-sm text-muted-foreground">{volatility.lookbackPeriods} periods</p>
+                    <p className="mt-1 font-numeric text-sm text-muted-foreground">{volatility.lookbackPeriods} periods</p>
                 </div>
             </div>
         </div>

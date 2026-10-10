@@ -231,7 +231,7 @@ export default function AiExecutionPage() {
     if (!user) {
         return (
             <AccountShell title="AI Execution">
-                <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-border bg-muted/30 py-24 text-center">
+                <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-border bg-muted/30 py-24 text-center">
                     <Shield className="h-10 w-10 text-muted-foreground" />
                     <h1 className="text-lg font-semibold">Sign in required</h1>
                     <Link href="/login?redirect=/account/ai-execution" className="rounded-lg bg-foreground px-5 py-2 text-sm font-medium text-background">Sign In</Link>
@@ -309,19 +309,19 @@ export default function AiExecutionPage() {
                             </label>
                             <label className="flex flex-col gap-1 text-xs">
                                 <span className="text-muted-foreground">Allowed instruments (comma-separated)</span>
-                                <input value={allowedInstruments} onChange={(e) => setAllowedInstruments(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1.5 font-mono text-xs outline-none focus:border-primary/50" />
+                                <input value={allowedInstruments} onChange={(e) => setAllowedInstruments(e.target.value)} className="rounded-md border border-border bg-background px-2 py-1.5 font-numeric text-xs outline-none focus:border-primary/50" />
                             </label>
                             <label className="flex flex-col gap-1 text-xs">
                                 <span className="text-muted-foreground">Max risk per trade (%)</span>
-                                <input value={maxRisk} onChange={(e) => setMaxRisk(e.target.value)} inputMode="decimal" className="rounded-md border border-border bg-background px-2 py-1.5 font-mono text-xs outline-none focus:border-primary/50" />
+                                <input value={maxRisk} onChange={(e) => setMaxRisk(e.target.value)} inputMode="decimal" className="rounded-md border border-border bg-background px-2 py-1.5 font-numeric text-xs outline-none focus:border-primary/50" />
                             </label>
                             <label className="flex flex-col gap-1 text-xs">
                                 <span className="text-muted-foreground">Max open positions</span>
-                                <input value={maxOpen} onChange={(e) => setMaxOpen(e.target.value)} inputMode="numeric" className="rounded-md border border-border bg-background px-2 py-1.5 font-mono text-xs outline-none focus:border-primary/50" />
+                                <input value={maxOpen} onChange={(e) => setMaxOpen(e.target.value)} inputMode="numeric" className="rounded-md border border-border bg-background px-2 py-1.5 font-numeric text-xs outline-none focus:border-primary/50" />
                             </label>
                             <label className="flex flex-col gap-1 text-xs">
                                 <span className="text-muted-foreground">Max daily loss (%)</span>
-                                <input value={maxDailyLoss} onChange={(e) => setMaxDailyLoss(e.target.value)} inputMode="decimal" className="rounded-md border border-border bg-background px-2 py-1.5 font-mono text-xs outline-none focus:border-primary/50" />
+                                <input value={maxDailyLoss} onChange={(e) => setMaxDailyLoss(e.target.value)} inputMode="decimal" className="rounded-md border border-border bg-background px-2 py-1.5 font-numeric text-xs outline-none focus:border-primary/50" />
                             </label>
                         </div>
 
@@ -380,12 +380,12 @@ export default function AiExecutionPage() {
                                 <tbody>
                                     {activePlans.map((p) => (
                                         <tr key={p.id} className="border-t border-border">
-                                            <td className="px-3 py-2 font-mono text-micro">{p.id.slice(0, 16)}…</td>
-                                            <td className="px-3 py-2 font-mono">{p.instrument}</td>
+                                            <td className="px-3 py-2 font-numeric text-micro">{p.id.slice(0, 16)}…</td>
+                                            <td className="px-3 py-2 font-numeric">{p.instrument}</td>
                                             <td className={cn("px-3 py-2 font-semibold", p.direction === "BUY" ? "text-positive" : "text-negative")}>{p.direction}</td>
                                             <td className="px-3 py-2 font-numeric tabular-nums">{fmtPrice(p.entry, p.instrument)} / {fmtPrice(p.stopLoss, p.instrument)}</td>
                                             <td className={cn("px-3 py-2 font-semibold", STATUS_COLOR[p.status])}>{p.status}</td>
-                                            <td className="px-3 py-2 font-mono text-micro">{p.execution?.gatewayTicket ?? p.execution?.clientOrderId ?? "—"}</td>
+                                            <td className="px-3 py-2 font-numeric text-micro">{p.execution?.gatewayTicket ?? p.execution?.clientOrderId ?? "—"}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -405,7 +405,7 @@ export default function AiExecutionPage() {
                                 <div key={e.id} className="flex items-center gap-2 border-b border-border/50 py-1.5 text-micro last:border-0">
                                     <span className="font-numeric tabular-nums text-muted-foreground">{fmtTime(e.timestamp)}</span>
                                     <span className={cn("font-semibold", e.action.includes("REJECT") || e.action.includes("FAILED") ? "text-negative" : e.action.includes("APPROVAL") || e.action.includes("ACCEPTED") ? "text-positive" : "text-foreground")}>{e.action}</span>
-                                    {e.planId && <span className="font-mono text-micro text-muted-foreground">{e.planId.slice(0, 14)}…</span>}
+                                    {e.planId && <span className="font-numeric text-micro text-muted-foreground">{e.planId.slice(0, 14)}…</span>}
                                     {e.reason && <span className="min-w-0 truncate text-muted-foreground">{e.reason}</span>}
                                 </div>
                             ))
@@ -436,7 +436,7 @@ function ApprovalCard({ plan, busy, onDecision }: { plan: TradePlan; busy: boole
             <button type="button" onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between px-4 py-3 text-left" aria-expanded={open}>
                 <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm">
                     <span className={cn("font-bold", plan.direction === "BUY" ? "text-positive" : "text-negative")}>{plan.direction}</span>
-                    <span className="font-mono font-semibold">{plan.instrument}</span>
+                    <span className="font-numeric font-semibold">{plan.instrument}</span>
                     <span className="text-muted-foreground">@</span>
                     <span className="font-numeric tabular-nums">{fmtPrice(plan.entry, plan.instrument)}</span>
                     <span className="text-muted-foreground">SL {fmtPrice(plan.stopLoss, plan.instrument)}</span>

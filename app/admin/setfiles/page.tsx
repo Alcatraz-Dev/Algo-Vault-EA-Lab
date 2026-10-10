@@ -210,12 +210,12 @@ export default function AdminSetFilesPage() {
                         placeholder="Search by name, pair, or bot..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full rounded-xl border border-border bg-muted pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-positive focus:outline-none"
+                        className="w-full rounded-lg border border-border bg-muted pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-positive focus:outline-none"
                     />
                 </div>
                 <button
                     onClick={() => setShowModal(true)}
-                    className="flex items-center gap-2 rounded-xl bg-positive px-4 py-2 text-sm font-semibold text-background transition hover:bg-positive"
+                    className="flex items-center gap-2 rounded-lg bg-positive px-4 py-2 text-sm font-semibold text-background transition hover:bg-positive"
                 >
                     <Plus size={16} /> Add .set Preset
                 </button>
@@ -235,7 +235,7 @@ export default function AdminSetFilesPage() {
                     </p>
                     <button
                         onClick={() => setShowModal(true)}
-                        className="mt-5 inline-flex items-center gap-2 rounded-xl bg-muted px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted transition"
+                        className="mt-5 inline-flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted transition"
                     >
                         <Plus size={16} /> Create First Preset
                     </button>
@@ -250,12 +250,12 @@ export default function AdminSetFilesPage() {
                             <div>
                                 <div className="flex items-start justify-between">
                                     <div className="flex items-center gap-2.5">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-positive/10 text-positive border border-positive/20">
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-positive/10 text-positive border border-positive/20">
                                             <FileCode2 size={20} />
                                         </div>
                                         <div>
                                             <h4 className="font-bold text-foreground text-base leading-snug">{item.name}</h4>
-                                            <p className="text-xs text-muted-foreground uppercase font-mono mt-0.5">
+                                            <p className="text-xs text-muted-foreground uppercase font-numeric mt-0.5">
                                                 {item.pair} • {item.timeframe}
                                             </p>
                                         </div>
@@ -326,7 +326,7 @@ export default function AdminSetFilesPage() {
                                     placeholder="e.g. Scalper Gold Conservative 2026"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
+                                    className="w-full rounded-lg border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                 />
                             </div>
 
@@ -339,7 +339,7 @@ export default function AdminSetFilesPage() {
                                         placeholder="e.g. XAUUSD or EURUSD"
                                         value={pair}
                                         onChange={(e) => setPair(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
+                                        className="w-full rounded-lg border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     />
                                 </div>
                                 <div>
@@ -347,7 +347,7 @@ export default function AdminSetFilesPage() {
                                     <select
                                         value={timeframe}
                                         onChange={(e) => setTimeframe(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
+                                        className="w-full rounded-lg border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     >
                                         {["M1", "M5", "M15", "M30", "H1", "H4", "D1"].map((tf) => (
                                             <option key={tf} value={tf}>{tf}</option>
@@ -363,7 +363,7 @@ export default function AdminSetFilesPage() {
                                         required
                                         value={selectedBotId}
                                         onChange={(e) => setSelectedBotId(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
+                                        className="w-full rounded-lg border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     >
                                         <option value="">Select a bot...</option>
                                         {bots.map((bot) => (
@@ -378,7 +378,7 @@ export default function AdminSetFilesPage() {
                                     <select
                                         value={riskLevel}
                                         onChange={(e) => setRiskLevel(e.target.value as "Low" | "Medium" | "High" | "Aggressive")}
-                                        className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
+                                        className="w-full rounded-lg border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                     >
                                         <option value="Low">Low Risk</option>
                                         <option value="Medium">Medium Risk</option>
@@ -390,7 +390,7 @@ export default function AdminSetFilesPage() {
 
                             <div>
                                 <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">.set File</label>
-                                <label className="flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted p-6 transition hover:border-positive/50 hover:bg-card">
+                                <label className="flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted p-6 transition hover:border-positive/50 hover:bg-card">
                                     <Upload size={20} className="text-muted-foreground" />
                                     <span className="text-xs text-muted-foreground">
                                         {file ? (
@@ -416,7 +416,7 @@ export default function AdminSetFilesPage() {
                                     placeholder="Recommended initial deposit: $500, Max Spread: 15..."
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
-                                    className="w-full rounded-xl border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
+                                    className="w-full rounded-lg border border-border bg-card p-3 text-sm text-foreground focus:border-positive focus:outline-none"
                                 />
                             </div>
 
@@ -424,14 +424,14 @@ export default function AdminSetFilesPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="rounded-xl px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
+                                    className="rounded-lg px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="rounded-xl bg-positive px-5 py-2.5 text-sm font-semibold text-background hover:bg-positive disabled:opacity-50"
+                                    className="rounded-lg bg-positive px-5 py-2.5 text-sm font-semibold text-background hover:bg-positive disabled:opacity-50"
                                 >
                                     {saving ? "Uploading..." : "Upload Preset File"}
                                 </button>

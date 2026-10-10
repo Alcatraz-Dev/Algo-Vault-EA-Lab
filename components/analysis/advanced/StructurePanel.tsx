@@ -111,7 +111,7 @@ export function StructurePanel({
                     {
                         label: "Liquidity",
                         value: (
-                            <span className="font-mono tabular-nums">
+                            <span className="font-numeric tabular-nums">
                                 {structure.liquidityLevels.value?.length ?? 0} levels ·{" "}
                                 {structure.liquiditySweeps.value?.length ?? 0} sweeps
                             </span>
@@ -120,7 +120,7 @@ export function StructurePanel({
                     {
                         label: "Last structure event",
                         value: structure.lastEvent ? (
-                            <span className="font-mono">{structure.lastEvent.type}</span>
+                            <span className="font-numeric">{structure.lastEvent.type}</span>
                         ) : (
                             <span className="italic">none detected</span>
                         ),
@@ -188,7 +188,7 @@ function LevelRow({
         <li className="flex items-baseline justify-between gap-2 text-xs">
             <span
                 className={cn(
-                    "font-mono font-medium tabular-nums",
+                    "font-numeric font-medium tabular-nums",
                     tone === "support" ? "text-positive" : "text-negative"
                 )}
             >
@@ -196,7 +196,7 @@ function LevelRow({
             </span>
             <span className="text-muted-foreground">
                 {level.touches} touch{level.touches === 1 ? "" : "es"} · strength{" "}
-                <span className="font-mono tabular-nums">{(level.strength * 100).toFixed(0)}%</span>
+                <span className="font-numeric tabular-nums">{(level.strength * 100).toFixed(0)}%</span>
             </span>
         </li>
     );
@@ -219,7 +219,7 @@ function EventList({ events, now }: { events: MarketStructureEvent[]; now: numbe
                     <li key={e.id} className="flex flex-wrap items-baseline gap-x-2 text-xs">
                         <span
                             className={cn(
-                                "inline-flex items-center gap-1 rounded border px-1 py-0.5 font-mono text-xs font-medium",
+                                "inline-flex items-center gap-1 rounded border px-1 py-0.5 font-numeric text-xs font-medium",
                                 e.type === "CHOCH"
                                     ? "border-primary/50 bg-primary/10 text-primary"
                                     : up
@@ -230,13 +230,13 @@ function EventList({ events, now }: { events: MarketStructureEvent[]; now: numbe
                             {up ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
                             {e.type}
                         </span>
-                        <span className="font-mono tabular-nums text-foreground">{formatPrice(e.price)}</span>
+                        <span className="font-numeric tabular-nums text-foreground">{formatPrice(e.price)}</span>
                         {typeof e.brokenLevel === "number" ? (
                             <span className="text-muted-foreground">
-                                broke <span className="font-mono tabular-nums">{formatPrice(e.brokenLevel)}</span>
+                                broke <span className="font-numeric tabular-nums">{formatPrice(e.brokenLevel)}</span>
                             </span>
                         ) : null}
-                        <span className="ml-auto font-mono text-muted-foreground">
+                        <span className="ml-auto font-numeric text-muted-foreground">
                             {relativeTime(e.timestamp, now)}
                         </span>
                     </li>
@@ -274,7 +274,7 @@ function ZoneList({
         <ul className="max-h-[300px] space-y-1 overflow-y-auto">
             {all.map((z) => (
                 <li key={`${z.kind}-${z.id}`} className="flex flex-wrap items-baseline gap-x-2 text-xs">
-                    <span className="rounded border border-border px-1 py-0.5 font-mono text-xs text-muted-foreground">
+                    <span className="rounded border border-border px-1 py-0.5 font-numeric text-xs text-muted-foreground">
                         {z.kind}
                     </span>
                     <span
@@ -289,15 +289,15 @@ function ZoneList({
                     >
                         {z.direction}
                     </span>
-                    <span className="font-mono tabular-nums text-foreground">
+                    <span className="font-numeric tabular-nums text-foreground">
                         {formatPrice(z.low)} – {formatPrice(z.high)}
                     </span>
                     <span className="text-muted-foreground">
                         strength{" "}
-                        <span className="font-mono tabular-nums">{(z.strength * 100).toFixed(0)}%</span>
+                        <span className="font-numeric tabular-nums">{(z.strength * 100).toFixed(0)}%</span>
                     </span>
                     <span className="ml-auto text-muted-foreground">
-                        <span className="font-mono uppercase">{z.status}</span>
+                        <span className="font-numeric uppercase">{z.status}</span>
                     </span>
                 </li>
             ))}
@@ -336,7 +336,7 @@ function ReversalBlock({
                     <StatRow
                         label="Bias flip"
                         value={
-                            <span className="font-mono">
+                            <span className="font-numeric">
                                 {reversal!.priorBias} → {reversal!.currentBias}
                             </span>
                         }
@@ -344,15 +344,15 @@ function ReversalBlock({
                     <StatRow
                         label="Break price"
                         value={
-                            <span className="font-mono tabular-nums">{formatPrice(reversal!.breakPrice)}</span>
+                            <span className="font-numeric tabular-nums">{formatPrice(reversal!.breakPrice)}</span>
                         }
                     />
-                    <StatRow label="Bars since break" value={<span className="font-mono tabular-nums">{reversal!.barsSince}</span>} />
-                    <StatRow label="At" value={<span className="font-mono">{relativeTime(reversal!.breakTimestamp, now)}</span>} />
+                    <StatRow label="Bars since break" value={<span className="font-numeric tabular-nums">{reversal!.barsSince}</span>} />
+                    <StatRow label="At" value={<span className="font-numeric">{relativeTime(reversal!.breakTimestamp, now)}</span>} />
                 </div>
             )}
             <p className="mt-1.5 text-xs text-muted-foreground/80">
-                Regime <span className="font-mono">{structure.trend.value ?? "unavailable"}</span> · derived
+                Regime <span className="font-numeric">{structure.trend.value ?? "unavailable"}</span> · derived
                 from real BOS / CHOCH events, not asserted.
             </p>
         </div>
@@ -375,14 +375,14 @@ export function ScoredZoneList({
             {zones.map((z) => (
                 <li key={z.zone.id} className="text-xs">
                     <span className="flex flex-wrap items-baseline gap-x-2">
-                        <span className="inline-flex items-center gap-1 font-mono font-medium text-foreground">
+                        <span className="inline-flex items-center gap-1 font-numeric font-medium text-foreground">
                             <Layers className="size-3 text-muted-foreground" />
                             {z.zone.type}
                         </span>
-                        <span className="font-mono tabular-nums text-muted-foreground">
+                        <span className="font-numeric tabular-nums text-muted-foreground">
                             {formatPrice(z.zone.low)} – {formatPrice(z.zone.high)}
                         </span>
-                        <span className="ml-auto font-mono tabular-nums font-semibold text-foreground">
+                        <span className="ml-auto font-numeric tabular-nums font-semibold text-foreground">
                             {(z.score * 100).toFixed(0)}
                         </span>
                     </span>

@@ -159,15 +159,15 @@ export default function BacktestTool({ userId }: { userId: string }) {
             : null;
 
     const statusColor = (returnVal: number) => {
-        if (returnVal > 10) return "text-emerald-400";
-        if (returnVal > 0) return "text-amber-400";
-        return "text-rose-400";
+        if (returnVal > 10) return "text-positive";
+        if (returnVal > 0) return "text-warning";
+        return "text-negative";
     };
 
     if (loading) {
         return (
             <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-10 text-sm text-muted-foreground">
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-violet-500" />
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-primary" />
                 Loading your backtest reports...
             </div>
         );
@@ -175,7 +175,7 @@ export default function BacktestTool({ userId }: { userId: string }) {
 
     if (error) {
         return (
-            <div className="rounded-lg border border-rose-500/20 bg-rose-500/[0.05] p-8 text-sm text-rose-400">
+            <div className="rounded-lg border border-negative/20 bg-negative/[0.05] p-8 text-sm text-negative">
                 {error}
             </div>
         );
@@ -185,7 +185,7 @@ export default function BacktestTool({ userId }: { userId: string }) {
         return (
             <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
                 No connected MT5 accounts yet. Add one in{" "}
-                <a href="/account/settings?tab=mt5" className="font-semibold text-violet-400 underline underline-offset-2 hover:text-violet-300">
+                <a href="/account/settings?tab=mt5" className="font-semibold text-primary underline underline-offset-2 hover:text-primary">
                     Settings → MT5 Accounts
                 </a>{" "}
                 to generate backtest reports from your trades.
@@ -207,7 +207,7 @@ export default function BacktestTool({ userId }: { userId: string }) {
                     <select
                         value={filterSymbol}
                         onChange={(e) => setFilterSymbol(e.target.value)}
-                        className="rounded-lg border border-border bg-muted px-3 py-1.5 text-sm text-foreground focus:border-violet-500 focus:outline-none"
+                        className="rounded-lg border border-border bg-muted px-3 py-1.5 text-sm text-foreground focus:border-primary focus:outline-none"
                     >
                         {symbols.map((s) => (
                             <option key={s} value={s}>{s === "all" ? "All Symbols" : s}</option>
@@ -221,22 +221,22 @@ export default function BacktestTool({ userId }: { userId: string }) {
                         placeholder="0"
                         value={filterMinWR}
                         onChange={(e) => setFilterMinWR(e.target.value)}
-                        className="w-20 rounded-lg border border-border bg-muted px-3 py-1.5 text-sm text-foreground focus:border-violet-500 focus:outline-none"
+                        className="w-20 rounded-lg border border-border bg-muted px-3 py-1.5 text-sm text-foreground focus:border-primary focus:outline-none"
                     />
                 </div>
             </div>
 
             {/* Summary */}
             <div className="grid gap-4 sm:grid-cols-3">
-                <div className="rounded-xl border border-border bg-card p-5">
+                <div className="rounded-lg border border-border bg-card p-5">
                     <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Avg Win Rate</p>
                     <p className="mt-2 text-3xl font-bold text-foreground">{avgWinRate}%</p>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-5">
+                <div className="rounded-lg border border-border bg-card p-5">
                     <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Avg Return</p>
                     <p className={`mt-2 text-3xl font-bold ${statusColor(Number(avgReturn))}`}>{avgReturn}%</p>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-5">
+                <div className="rounded-lg border border-border bg-card p-5">
                     <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Best Strategy</p>
                     <p className="mt-2 text-lg font-bold text-foreground">
                         {bestStrategy ? `${bestStrategy.strategy} (${bestStrategy.symbol})` : "—"}
@@ -280,7 +280,7 @@ export default function BacktestTool({ userId }: { userId: string }) {
                                     <td className="py-3.5 px-4 text-muted-foreground">{result.date}</td>
                                     <td className="py-3.5 px-4 text-muted-foreground">{result.totalTrades}</td>
                                     <td className="py-3.5 px-4">
-                                        <span className={`font-medium ${result.winRate >= 55 ? "text-emerald-400" : result.winRate >= 50 ? "text-amber-400" : "text-rose-400"}`}>
+                                        <span className={`font-medium ${result.winRate >= 55 ? "text-positive" : result.winRate >= 50 ? "text-warning" : "text-negative"}`}>
                                             {result.winRate.toFixed(1)}%
                                         </span>
                                     </td>
@@ -288,7 +288,7 @@ export default function BacktestTool({ userId }: { userId: string }) {
                                     <td className={`py-3.5 px-4 font-medium ${statusColor(result.totalReturn)}`}>
                                         {result.totalReturn > 0 ? "+" : ""}{result.totalReturn.toFixed(1)}%
                                     </td>
-                                    <td className="py-3.5 px-4 text-rose-400">{result.maxDrawdown.toFixed(1)}%</td>
+                                    <td className="py-3.5 px-4 text-negative">{result.maxDrawdown.toFixed(1)}%</td>
                                     <td className="py-3.5 px-4 text-muted-foreground">{result.sharpeRatio.toFixed(2)}</td>
                                     <td className="py-3.5 px-4">
                                         <button className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-3 py-1 text-xs text-muted-foreground hover:text-foreground hover:border-muted-foreground transition">
@@ -316,7 +316,7 @@ export default function BacktestTool({ userId }: { userId: string }) {
                           { label: "Recovery Days", value: `${filtered[0].recoveredDays}`, icon: TrendingUp, color: "violet" },
                           { label: "Buy & Hold", value: `${filtered[0].buyAndHoldReturn.toFixed(1)}%`, icon: BarChart3, color: "foreground" },
                         ].map(({ label, value, icon: Icon, color }) => (
-                            <div key={label} className="rounded-xl border border-border bg-card p-4">
+                            <div key={label} className="rounded-lg border border-border bg-card p-4">
                                 <div className="flex items-center gap-2">
                                     <Icon size={14} className={`text-${color}-400`} />
                                     <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{label}</p>

@@ -273,7 +273,7 @@ export default function AdminShell({
                         <button
                             type="button"
                             onClick={() => setMobileOpen(true)}
-                            className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted-foreground md:hidden"
+                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground md:hidden"
                             aria-label="Open navigation menu"
                         >
                             <Menu size={17} />
@@ -282,7 +282,7 @@ export default function AdminShell({
                             <button
                                 type="button"
                                 onClick={onBack}
-                                className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                                 aria-label="Go back"
                             >
                                 <ArrowLeft size={17} />

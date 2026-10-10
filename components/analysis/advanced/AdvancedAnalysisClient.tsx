@@ -126,7 +126,7 @@ export function AdvancedAnalysisClient() {
                     ))}
                 </select>
 
-                <span className="font-mono text-xs text-muted-foreground">
+                <span className="font-numeric text-xs text-muted-foreground">
                     {analysis ? `${analysis.symbol} · ${analysis.primaryTimeframe}` : "awaiting analysis"}
                 </span>
 
@@ -165,7 +165,7 @@ export function AdvancedAnalysisClient() {
                     <ul className="space-y-0.5">
                         {fetchErrors.map((f) => (
                             <li key={f.timeframe} className="text-xs text-muted-foreground">
-                                <span className="font-mono font-medium text-foreground">{f.timeframe}</span> —{" "}
+                                <span className="font-numeric font-medium text-foreground">{f.timeframe}</span> —{" "}
                                 {f.reason}
                             </li>
                         ))}

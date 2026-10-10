@@ -41,7 +41,7 @@ export function ToolBadge({
         return (
             <span
                 className={cn(
-                    "inline-flex items-center gap-1 rounded-full border border-border bg-muted font-semibold uppercase tracking-wider text-muted-foreground",
+                  "inline-flex items-center gap-1 rounded-full border border-border bg-muted font-semibold uppercase tracking-wider text-muted-foreground",
                     size === "sm"
                         ? "px-1.5 py-0.5 text-micro"
                         : "px-2 py-1 text-xs",
@@ -57,7 +57,7 @@ export function ToolBadge({
     return (
         <span
             className={cn(
-                "inline-flex items-center gap-1 rounded-full border border-border bg-muted font-semibold uppercase tracking-wider text-muted-foreground",
+              "inline-flex items-center gap-1 rounded-full border border-border bg-muted font-semibold uppercase tracking-wider text-muted-foreground",
                 size === "sm"
                     ? "px-1.5 py-0.5 text-micro"
                     : "px-2 py-1 text-xs",

@@ -88,7 +88,7 @@ export default function CorrelationPage() {
         >
             <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
                 <div className="flex items-center gap-3 text-xs">
-                    <span className="rounded-full border border-border bg-muted px-2 py-0.5 font-mono text-muted-foreground">
+                    <span className="rounded-full border border-border bg-muted px-2 py-0.5 font-numeric text-muted-foreground">
                         Window: 30d daily
                     </span>
                     <span className="text-muted-foreground">Fixed in Lite. Pro adds 7d / 30d / 90d.</span>
@@ -135,7 +135,7 @@ export default function CorrelationPage() {
                                                     onMouseEnter={() => !isDiagonal && setHoveredCell({ sym1, sym2, val })}
                                                     onMouseLeave={() => setHoveredCell(null)}
                                                     className={cn("p-1 transition", isDiagonal ? "" : "cursor-pointer hover:ring-1 hover:ring-primary/40")}>
-                                                    <div className={cn("flex h-12 w-16 items-center justify-center rounded-md font-mono text-xs font-bold", getCorrelationColor(val))}>
+                                                    <div className={cn("flex h-12 w-16 items-center justify-center rounded-md font-numeric text-xs font-bold", getCorrelationColor(val))}>
                                                         {isDiagonal ? "1.0" : val.toFixed(2)}
                                                     </div>
                                                 </td>
@@ -149,7 +149,7 @@ export default function CorrelationPage() {
 
                     {hoveredCell && (
                         <div className="rounded-md border border-border bg-card px-4 py-2 text-xs text-muted-foreground">
-                            <span className="font-mono text-foreground">{hoveredCell.sym1}</span> / <span className="font-mono text-foreground">{hoveredCell.sym2}</span>: <span className={cn("font-bold", hoveredCell.val > 0 ? "text-positive" : hoveredCell.val < 0 ? "text-negative" : "text-muted-foreground")}>{hoveredCell.val.toFixed(4)}</span>
+                            <span className="font-numeric text-foreground">{hoveredCell.sym1}</span> / <span className="font-numeric text-foreground">{hoveredCell.sym2}</span>: <span className={cn("font-bold", hoveredCell.val > 0 ? "text-positive" : hoveredCell.val < 0 ? "text-negative" : "text-muted-foreground")}>{hoveredCell.val.toFixed(4)}</span>
                             <span className="ml-2 text-muted-foreground">({Math.abs(hoveredCell.val) >= 0.7 ? "Strong" : Math.abs(hoveredCell.val) >= 0.4 ? "Moderate" : Math.abs(hoveredCell.val) >= 0.1 ? "Weak" : "No"} correlation)</span>
                         </div>
                     )}
@@ -159,7 +159,7 @@ export default function CorrelationPage() {
                             <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold text-warning"><AlertTriangle size={13} /> Strong Correlations Detected</h3>
                             <div className="flex flex-wrap gap-2">
                                 {strongCorrelations.map((c) => (
-                                    <span key={`${c.sym1}-${c.sym2}`} className="rounded-md bg-muted px-2.5 py-1 font-mono text-micro text-muted-foreground">
+                                    <span key={`${c.sym1}-${c.sym2}`} className="rounded-md bg-muted px-2.5 py-1 font-numeric text-micro text-muted-foreground">
                                         {c.sym1}/{c.sym2}: <span className={cn("font-bold", c.val > 0 ? "text-positive" : "text-negative")}>{c.val}</span>
                                     </span>
                                 ))}

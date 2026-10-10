@@ -182,7 +182,7 @@ export default function MarketingAgentPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+          <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
             <Bot size={22} /> Marketing Agent
           </h1>
           <p className="text-sm text-muted-foreground">

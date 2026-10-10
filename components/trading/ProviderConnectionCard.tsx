@@ -141,7 +141,7 @@ export default function ProviderConnectionCard({ className }: { className?: stri
       <header className="flex items-center gap-2 border-b border-border px-3 py-2">
         <Server className="size-3.5 text-muted-foreground" />
         <h2 className="text-sm font-semibold">Trading Accounts</h2>
-        <span className="ml-auto rounded border border-border px-1.5 py-0.5 font-mono text-micro text-muted-foreground">
+        <span className="ml-auto rounded border border-border px-1.5 py-0.5 font-numeric text-micro text-muted-foreground">
           DEMO ONLY
         </span>
       </header>
@@ -162,7 +162,7 @@ export default function ProviderConnectionCard({ className }: { className?: stri
                     Demo
                   </span>
                 )}
-                <span className="ml-auto font-mono text-micro text-muted-foreground">
+                <span className="ml-auto font-numeric text-micro text-muted-foreground">
                   {provider.environments.join(" / ")}
                 </span>
               </div>
@@ -191,18 +191,18 @@ export default function ProviderConnectionCard({ className }: { className?: stri
                       >
                         <span className={cn("size-2 shrink-0 rounded-full", style.dot)} aria-hidden />
                         <Icon className="size-3 text-muted-foreground" />
-                        <span className="font-mono text-xs">
+                        <span className="font-numeric text-xs">
                           {account.externalAccountId ?? account.id}
                         </span>
                         <span className="text-micro text-muted-foreground">
                           {account.brokerName ?? "Unknown broker"} · {account.serverName ?? "unknown server"}
                         </span>
                         <span className="text-micro text-muted-foreground">{style.label}</span>
-                        <span className="ml-auto font-mono text-micro text-muted-foreground">
+                        <span className="ml-auto font-numeric text-micro text-muted-foreground">
                           hb {relative(account.lastHeartbeatAt)}
                           {account.gatewayVersion ? ` · v${account.gatewayVersion}` : ""}
                         </span>
-                        <span className="w-full font-mono text-micro text-muted-foreground sm:w-auto">
+                        <span className="w-full font-numeric text-micro text-muted-foreground sm:w-auto">
                           bal {money(account.metrics.balance)} · eq {money(account.metrics.equity)} · fm{" "}
                           {money(account.metrics.freeMargin)}
                         </span>
