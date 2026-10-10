@@ -150,7 +150,7 @@ export default function SiteHeader() {
                             </Link>
                             <Link
                                 href="/register"
-                                className="hidden rounded-md bg-primary-action px-4 py-2 text-sm font-semibold text-primary-action-foreground transition-colors hover:bg-primary-action-hover md:block"
+                                className="hidden rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 md:block"
                             >
                                 Get Started
                             </Link>
@@ -224,7 +224,7 @@ export default function SiteHeader() {
                                     </Link>
                                     <Link
                                         href="/register"
-                                        className="flex-1 rounded-md bg-primary-action px-3 py-2.5 text-center text-sm font-semibold text-primary-action-foreground"
+                                        className="flex-1 rounded-md bg-primary px-3 py-2.5 text-center text-sm font-semibold text-primary-foreground"
                                     >
                                         Get Started
                                     </Link>
