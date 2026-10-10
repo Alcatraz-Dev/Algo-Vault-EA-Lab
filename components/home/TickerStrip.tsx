@@ -55,7 +55,7 @@ function TickerItem({
             {quote ? (
                 <>
                     <span
-                        className={`font-mono tabular-nums ${
+                        className={`font-numeric tabular-nums ${
                             flash === "up"
                                 ? "text-positive"
                                 : flash === "down"
@@ -75,7 +75,7 @@ function TickerItem({
                     </span>
                 </>
             ) : (
-                <span className="font-mono text-muted-foreground/50">···</span>
+                <span className="font-numeric text-muted-foreground/50">···</span>
             )}
         </div>
     );

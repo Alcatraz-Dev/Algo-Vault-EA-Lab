@@ -121,6 +121,8 @@ Complete for the premium-SaaS scope (`UI-004`, `UI-005`):
 
 Started (`UI-006`): closed the light-theme `text-primary` contrast failure (`#ff4d00` ≈3.3:1 → new `--primary-text` `#c2410c`, 4.56–5.18:1 AA) without a 129-file sweep, via one unlayered `html.light .text-primary` override. Dark theme unchanged.
 
+Continued (`UI-008`): bounded premium pass on the **live** marketing surfaces — `ReplaySection` and `GatewaySection` (interactive homepage sections with the heaviest drift), `app/pricing/page.tsx`, plus the homepage shell files (`HomePage`, `EvidenceAnalytics`, `HeroConsoleChart`, `TickerStrip`, `EcosystemSection`, `site-header`). Result: homepage and pricing now render with **zero** raw colour / gradient / `rounded-2xl|3xl` / `backdrop-blur` / `shadow-2xl` / `text-[9–10px]` elements and zero non-TradingView console errors. Discovery: **19 of 24 `components/home/*.tsx` are dead code** (not imported anywhere), so those files were intentionally *not* swept; `HeroSection.tsx` was reverted to HEAD to keep the diff on live surfaces.
+
 Remaining, deliberately deferred as bounded follow-ups (large mechanical sweeps; not landed while a concurrent session is committing the tree):
 - Micro type: `text-[9px]` (193) and `text-[10px]` (~1,228) → `text-micro` (11px floor).
 - Raw colour families (~5,900) → semantic tokens.

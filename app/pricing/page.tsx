@@ -190,7 +190,7 @@ export default function PricingPage() {
                         Tools that earn the upgrade.
                     </h1>
                     <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
-                        Every public tool has a real, useful Lite path that's free forever.
+                        Every public tool has a real, useful Lite path that&apos;s free forever.
                         Pro unlocks the chart workspace, replay, persistence, AI explanations and exports on top.
                         You only subscribe when Pro gives you something you can use every day.
                     </p>
@@ -203,15 +203,15 @@ export default function PricingPage() {
                         return (
                             <div
                                 key={tier.id}
-                                className={`relative flex flex-col rounded-2xl border p-6 transition hover:shadow-lg ${
+                                className={`relative flex flex-col rounded-lg border p-6 transition hover:shadow-lg ${
                                     tier.highlighted
-                                        ? "border-primary bg-gradient-to-b from-primary/[0.06] via-card to-card shadow-2xl"
+                                        ? "border-primary bg-card shadow-md"
                                         : "border-border bg-card"
                                 }`}
                             >
                                 {tier.highlighted && (
                                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                                        <span className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold text-primary-foreground">
+                                        <span className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-micro font-semibold text-primary-foreground">
                                             <Zap size={11} />
                                             Most Popular
                                         </span>
@@ -271,10 +271,10 @@ export default function PricingPage() {
                     </div>
 
                     <div className="mt-8 grid gap-3 md:grid-cols-2">
-                        <div className="rounded-2xl border border-border bg-card p-5">
+                        <div className="rounded-lg border border-border bg-card p-5">
                             <div className="mb-3 flex items-center justify-between">
                                 <ToolBadge kind="lite" size="md" />
-                                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{freeTools.length} tools</span>
+                                <span className="text-micro uppercase tracking-wider text-muted-foreground">{freeTools.length} tools</span>
                             </div>
                             <h3 className="text-sm font-semibold text-foreground">Lite (Free) — what works on day one</h3>
                             <ul className="mt-3 space-y-1.5">
@@ -287,10 +287,10 @@ export default function PricingPage() {
                             </ul>
                         </div>
 
-                        <div className="rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/[0.07] via-card to-primary/[0.02] p-5">
+                        <div className="rounded-lg border border-primary/30 bg-primary/5 p-5">
                             <div className="mb-3 flex items-center justify-between">
                                 <ToolBadge kind="pro" size="md" />
-                                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{proTools.length} tools</span>
+                                <span className="text-micro uppercase tracking-wider text-muted-foreground">{proTools.length} tools</span>
                             </div>
                             <h3 className="text-sm font-semibold text-foreground">Pro — the deep workspace</h3>
                             <ul className="mt-3 space-y-1.5">
@@ -320,7 +320,7 @@ export default function PricingPage() {
                         Every feature, side by side.
                     </p>
 
-                    <div className="mt-8 overflow-x-auto rounded-2xl border border-border">
+                    <div className="mt-8 overflow-x-auto rounded-lg border border-border">
                         <table className="w-full text-left text-sm">
                             <thead className="border-b border-border bg-muted/30">
                                 <tr>

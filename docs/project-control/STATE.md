@@ -61,6 +61,14 @@ This file records what exists today, in one place. It is updated after every sig
 | BR-000 | 2026-10-10 | Docs baseline: `docs/project-control/BASELINE.md` |
 | BR-000 | 2026-10-10 | Docs: created `docs/project-control/` directory skeleton (STATE, ARCHITECTURE, FEATURE_INVENTORY, BUGS_AND_REGRESSIONS, ROADMAP, DECISIONS, RESOURCES_AND_LICENSES, TESTING_STRATEGY, RELEASE_CHECKLIST, MASTER_CONTEXT) |
 
+## Completed work (this session)
+
+| Block | Date | What changed |
+|---|---|---|
+| SEC-001 | 2026-10-10 | Application-layer security suite (B-009/B-010): `tests/security/route-auth-negative.test.ts` (25 checks, exit 0), `tests/security/firebase-admin-stub.ts` (in-memory Auth + RTDB seam), `scripts/jiti-tsrun.mjs` alias, `package.json` `test:security`. Full gate: 25 checks pass; `tsc` 0; `next build` 478/478 green. |
+| BR-000c | 2026-10-10 | Verified candels workspace repair; full gate green. |
+| UI-001..UI-006 | 2026-10-10 | Phases 2/3/4/5a/5b/6 design-system slices, tokens, shared shell components, Pro terminal token pass, marketplace premium discovery, account surfaces, light-theme primary-text AA. |
+
 ## Pending work
 
 - P0: candels workspace ordering bug (lint-driven fix).

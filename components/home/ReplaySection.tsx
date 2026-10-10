@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowRight, Play, Pause, SkipBack, SkipForward, RotateCcw, Scissors, TrendingUp, TrendingDown, RefreshCw, BarChart2, ShieldCheck, Zap } from "lucide-react";
+import { ArrowRight, Play, Pause, SkipBack, SkipForward, RotateCcw, Scissors, TrendingUp, TrendingDown, RefreshCw, Zap } from "lucide-react";
 
 export default function ReplaySection() {
     const [cursor, setCursor] = useState(120);
@@ -77,47 +77,44 @@ export default function ReplaySection() {
     };
 
     return (
-        <section className="py-24 border-b border-border/40 bg-background relative overflow-hidden">
-            {/* Ambient Background Gradient Lighting */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-violet-600/10 blur-[130px] rounded-full pointer-events-none" />
-
-            <div className="mx-auto max-w-7xl px-6 md:px-8 relative z-10">
+        <section className="relative overflow-hidden border-b border-border bg-background py-24">
+            <div className="relative z-10 mx-auto max-w-7xl px-6 md:px-8">
                 
                 {/* Section Header */}
                 <div className="flex flex-col md:flex-row md:items-end md:justify-between">
                     <div>
-                        <div className="inline-flex items-center gap-2 rounded-full bg-violet-500/10 border border-violet-500/20 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-violet-400 mb-3">
-                            <Scissors size={13} className="text-violet-400" /> TradingView-Grade Market Replay
+                        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                            <Scissors size={13} className="text-primary" /> TradingView-Grade Market Replay
                         </div>
-                        <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl text-foreground">
-                            Bar-by-Bar Replay & Execution Simulator
+                        <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+                            Bar-by-Bar Replay &amp; Execution Simulator
                         </h2>
-                        <p className="mt-3 text-base text-muted-foreground max-w-2xl">
+                        <p className="mt-3 max-w-2xl text-base text-muted-foreground">
                             Step through past market price action bar by bar. Practice manual entry triggers, analyze market structure without lookahead bias, and test paper trades in real time.
                         </p>
                     </div>
                     <Link
                         href="/trade-replay"
-                        className="mt-6 md:mt-0 inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-violet-500 transition shadow-lg shadow-violet-600/20"
+                        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90 active:translate-y-px md:mt-0"
                     >
                         Launch Replay Studio <ArrowRight size={14} />
                     </Link>
                 </div>
 
                 {/* Main TradingView Replay Console Window */}
-                <div className="mt-10 rounded-3xl border border-border/80 bg-card/90 p-5 sm:p-7 shadow-2xl backdrop-blur-2xl space-y-6">
+                <div className="mt-10 space-y-6 rounded-lg border border-border bg-card p-5 sm:p-7">
                     
                     {/* Floating Top Control Toolbar (TradingView Replay Toolbar) */}
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-border/40 pb-5">
                         
                         {/* Symbol & Cutoff Badge */}
-                        <div className="flex items-center gap-3 font-mono text-xs">
-                            <span className="rounded-lg bg-violet-500/15 border border-violet-500/30 px-3 py-1.5 font-bold text-violet-300 flex items-center gap-1.5">
-                                <Zap size={14} /> XAUUSD · 1H
+                        <div className="flex items-center gap-3 font-numeric text-xs">
+                            <span className="flex items-center gap-1.5 rounded-md border border-border bg-muted px-3 py-1.5 font-bold text-foreground">
+                                <Zap size={14} className="text-primary" /> XAUUSD · 1H
                             </span>
-                            <span className="text-muted-foreground hidden sm:inline">|</span>
-                            <span className="text-foreground font-semibold flex items-center gap-1.5">
-                                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" /> Replay Cut-off Active
+                            <span className="hidden text-muted-foreground sm:inline">|</span>
+                            <span className="flex items-center gap-1.5 font-semibold text-foreground">
+                                <span className="h-2 w-2 rounded-full bg-positive animate-pulse motion-reduce:animate-none" /> Replay Cut-off Active
                             </span>
                         </div>
 
@@ -126,10 +123,10 @@ export default function ReplaySection() {
                             <button
                                 type="button"
                                 onClick={() => { setIsCutoffMode(!isCutoffMode); setIsPlaying(false); }}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition border ${
+                                className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition ${
                                     isCutoffMode
-                                        ? "bg-rose-500/20 text-rose-400 border-rose-500/40 animate-pulse"
-                                        : "bg-muted/50 text-muted-foreground border-border hover:text-foreground"
+                                        ? "border-negative/40 bg-negative/15 text-negative animate-pulse motion-reduce:animate-none"
+                                        : "border-border bg-muted/50 text-muted-foreground hover:text-foreground"
                                 }`}
                                 title="Jump to bar (Cut point)"
                             >
@@ -139,7 +136,7 @@ export default function ReplaySection() {
                             <button
                                 type="button"
                                 onClick={() => { setCursor((p) => Math.max(1, p - 1)); setIsPlaying(false); }}
-                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background hover:bg-muted text-foreground transition"
+                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-muted"
                                 title="Step Back"
                             >
                                 <SkipBack size={14} />
@@ -147,7 +144,7 @@ export default function ReplaySection() {
                             <button
                                 type="button"
                                 onClick={() => setIsPlaying((p) => !p)}
-                                className="flex h-8.5 w-10 items-center justify-center rounded-lg bg-violet-600 text-white font-bold hover:bg-violet-500 transition shadow-md"
+                                className="flex h-8.5 w-10 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground transition-colors hover:bg-primary/90"
                                 title={isPlaying ? "Pause" : "Play"}
                             >
                                 {isPlaying ? <Pause size={15} /> : <Play size={15} className="ml-0.5" />}
@@ -155,7 +152,7 @@ export default function ReplaySection() {
                             <button
                                 type="button"
                                 onClick={() => { setCursor((p) => Math.min(totalBars, p + 1)); setIsPlaying(false); }}
-                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background hover:bg-muted text-foreground transition"
+                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background text-foreground transition-colors hover:bg-muted"
                                 title="Step Forward"
                             >
                                 <SkipForward size={14} />
@@ -163,7 +160,7 @@ export default function ReplaySection() {
                             <button
                                 type="button"
                                 onClick={() => { setCursor(10); setIsPlaying(false); setPosition(null); }}
-                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground transition"
+                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition-colors hover:bg-muted"
                                 title="Reset"
                             >
                                 <RotateCcw size={14} />
@@ -172,7 +169,7 @@ export default function ReplaySection() {
                             <select
                                 value={speed}
                                 onChange={(e) => setSpeed(Number(e.target.value))}
-                                className="ml-1 rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs font-mono outline-none focus:border-violet-500"
+                                className="ml-1 rounded-lg border border-border bg-background px-2.5 py-1.5 font-numeric text-xs outline-none focus:border-ring"
                             >
                                 {[1, 2, 5, 10].map((s) => (
                                     <option key={s} value={s}>{s}x Speed</option>
@@ -186,7 +183,7 @@ export default function ReplaySection() {
                                 <button
                                     type="button"
                                     onClick={handleClose}
-                                    className="flex items-center gap-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 px-3 py-1.5 text-xs font-bold hover:bg-amber-500/30 transition"
+                                    className="flex items-center gap-1.5 rounded-lg border border-warning/40 bg-warning/15 px-3 py-1.5 text-xs font-bold text-warning transition-colors hover:bg-warning/25"
                                 >
                                     <RefreshCw size={13} /> Close Position
                                 </button>
@@ -195,14 +192,14 @@ export default function ReplaySection() {
                                     <button
                                         type="button"
                                         onClick={handleBuy}
-                                        className="flex items-center gap-1 rounded-lg bg-emerald-600 text-white px-3 py-1.5 text-xs font-bold hover:bg-emerald-500 transition shadow-sm"
+                                        className="flex items-center gap-1 rounded-lg bg-positive px-3 py-1.5 text-xs font-bold text-background transition-colors hover:bg-positive/90"
                                     >
                                         <TrendingUp size={13} /> Buy Long
                                     </button>
                                     <button
                                         type="button"
                                         onClick={handleSell}
-                                        className="flex items-center gap-1 rounded-lg bg-rose-600 text-white px-3 py-1.5 text-xs font-bold hover:bg-rose-500 transition shadow-sm"
+                                        className="flex items-center gap-1 rounded-lg bg-negative px-3 py-1.5 text-xs font-bold text-background transition-colors hover:bg-negative/90"
                                     >
                                         <TrendingDown size={13} /> Sell Short
                                     </button>
@@ -212,10 +209,10 @@ export default function ReplaySection() {
                     </div>
 
                     {/* Timeline Scrubber Bar */}
-                    <div className="space-y-1.5 font-mono text-xs">
+                    <div className="space-y-1.5 font-numeric text-xs">
                         <div className="flex items-center justify-between text-muted-foreground">
                             <span>Bar Sequence ({cursor} / {totalBars})</span>
-                            <span className="text-foreground font-bold">XAUUSD @ ${currentPrice.toFixed(2)}</span>
+                            <span className="font-bold text-foreground">XAUUSD @ ${currentPrice.toFixed(2)}</span>
                         </div>
                         <input
                             type="range"
@@ -223,25 +220,25 @@ export default function ReplaySection() {
                             max={totalBars}
                             value={cursor}
                             onChange={(e) => { setCursor(Number(e.target.value)); setIsPlaying(false); }}
-                            className="w-full accent-violet-500 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer"
+                            className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-muted accent-primary"
                         />
                     </div>
 
                     {/* Interactive SVG TradingView Chart Simulator Container */}
-                    <div className="relative h-64 rounded-2xl border border-border/60 bg-background/95 p-4 overflow-hidden flex flex-col justify-between">
+                    <div className="relative flex h-64 flex-col justify-between overflow-hidden rounded-lg border border-border bg-background p-4">
                         
                         {/* Replay Watermark & Cutoff Indicator Line */}
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5 font-mono text-6xl font-black text-foreground uppercase tracking-widest">
+                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center font-numeric text-6xl font-black uppercase tracking-widest text-foreground opacity-5">
                             TradingView Replay
                         </div>
 
                         {/* Top Info Bar */}
-                        <div className="flex items-center justify-between text-xs font-mono text-muted-foreground z-10">
+                        <div className="z-10 flex items-center justify-between font-numeric text-xs text-muted-foreground">
                             <div className="flex items-center gap-4">
-                                <span className="text-foreground font-semibold">EMA(20): ${(currentPrice * 0.998).toFixed(2)}</span>
+                                <span className="font-semibold text-foreground">EMA(20): ${(currentPrice * 0.998).toFixed(2)}</span>
                                 <span>RSI(14): 58.4</span>
                             </div>
-                            <span className="text-violet-400 font-bold">
+                            <span className="font-bold text-primary-text">
                                 {isPlaying ? "REPLAY PLAYING" : "PAUSED (NO LOOKAHEAD)"}
                             </span>
                         </div>
@@ -253,11 +250,11 @@ export default function ReplaySection() {
                                 return (
                                     <div key={idx} className="flex flex-col items-center justify-end h-full w-1.5 group relative">
                                         <div
-                                            className={`w-0.5 ${candle.isUp ? "bg-emerald-500" : "bg-rose-500"}`}
+                                            className={`w-0.5 ${candle.isUp ? "bg-positive" : "bg-negative"}`}
                                             style={{ height: `${Math.min(100, heightPct + 15)}%` }}
                                         />
                                         <div
-                                            className={`w-1.5 rounded-sm ${candle.isUp ? "bg-emerald-500" : "bg-rose-500"}`}
+                                            className={`w-1.5 rounded-sm ${candle.isUp ? "bg-positive" : "bg-negative"}`}
                                             style={{ height: `${Math.max(15, Math.abs(candle.close - candle.open) * 5)}px` }}
                                         />
                                     </div>
@@ -265,20 +262,20 @@ export default function ReplaySection() {
                             })}
                             
                             {/* Vertical Cutoff Indicator Line */}
-                            <div className="absolute right-4 top-0 bottom-0 border-r-2 border-dashed border-rose-500/80 flex flex-col justify-between items-end pr-1 text-[10px] font-mono text-rose-400 font-bold">
+                            <div className="absolute right-4 top-0 bottom-0 flex flex-col items-end justify-between border-r-2 border-dashed border-negative/70 pr-1 font-numeric text-micro font-bold text-negative">
                                 <span>REPLAY CUTOFF</span>
                                 <span>FUTURE HIDDEN</span>
                             </div>
                         </div>
 
                         {/* Bottom Scorecard Strip */}
-                        <div className="flex items-center justify-between border-t border-border/40 pt-2 text-xs font-mono z-10">
+                        <div className="z-10 flex items-center justify-between border-t border-border pt-2 font-numeric text-xs">
                             <div className="flex items-center gap-4">
-                                <span className="text-muted-foreground">Session PnL: <strong className="text-emerald-400">+${pnl.toFixed(2)}</strong></span>
-                                <span className="text-muted-foreground">Win Rate: <strong className="text-violet-400">{((winsCount / tradesCount) * 100).toFixed(0)}% ({winsCount}/{tradesCount})</strong></span>
+                                <span className="text-muted-foreground">Session PnL: <strong className="text-positive">+${pnl.toFixed(2)}</strong></span>
+                                <span className="text-muted-foreground">Win Rate: <strong className="text-info">{((winsCount / tradesCount) * 100).toFixed(0)}% ({winsCount}/{tradesCount})</strong></span>
                             </div>
                             {position && (
-                                <span className={`font-bold ${position.type === "LONG" ? "text-emerald-400" : "text-rose-400"}`}>
+                                <span className={`font-bold ${position.type === "LONG" ? "text-positive" : "text-negative"}`}>
                                     Active: {position.type} @ ${position.entry.toFixed(2)}
                                 </span>
                             )}

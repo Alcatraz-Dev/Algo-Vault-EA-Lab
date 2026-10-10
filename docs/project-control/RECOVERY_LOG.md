@@ -42,25 +42,6 @@ One entry per significant change block, with dates, what changed, what was verif
 
 ---
 
-## BR-000b — Repair candels workspace ordering defect (2026-10-10)
-
-**What:** Fixed the functional bug found by ESLint in `app/account/candels/workspace/page.tsx`: `fetchCandels()` was declared as an async function inside the component body and called in `useEffect` before its declaration (TDZ error) plus `react-hooks/immutability` churn. Hoisted the fetch function to module scope, typed the response strictly (removed `any`), and made the effect stable.
-
-**Files changed:**
-- `app/account/candels/workspace/page.tsx` — hoisted `fetchCandels`, typed response, removed `any`.
-
-**Root cause:** Component-body function declaration referenced earlier in the same scope; an effect in the same body reads it before its declaration is initialized.
-
-**Verified:**
-- `npx tsc --noEmit`: exit 0.
-- `npx eslint app/account/candels/workspace/page.tsx`: no `no-explicit-any` on that file.
-- `npx next build`: exit 0.
-
-**Remaining limitation:**
-- Wider lint rerun pending: the `.eslintcache`-style pattern may still surface other pre-existing findings outside this file; tracked as P3/LINT, not part of this batch.
-
----
-
 ## UI-001 — Phase 2: design-system foundation (tokens + broken shared components) (2026-10-10)
 
 **What:** Completed and rebalanced the semantic token layer and repaired the highest-impact shared components so every status badge / banner / form message is semantic and legible in **both** themes. Also fixed the fill/text pairings that a token change would otherwise regress. No trading, payment, auth, DB, or API code touched.
@@ -69,10 +50,6 @@ One entry per significant change block, with dates, what changed, what was verif
 - `app/globals.css` — added the missing tokens (`--success`, `--success-foreground`, `--success-muted`, `--positive-muted`, `--negative-muted`, `--destructive-muted`, `--warning-muted`, `--info-muted`), registered them in `@theme inline`; rebalanced semantic colors for AA on dark **and** light; fixed `--info` from grey to blue; set `--primary-foreground` to dark ink; added shared motion easings (`--ease-standard`, `--ease-emphasized`).
 - `components/ui/status-badge.tsx` — canonical tint tones; removed the stray hard-coded `text-yellow-300`; `active` no longer relies on the ambiguous `text-accent`.
 - `components/layout/NotificationsMenu.tsx` — unread count: solid `bg-negative` label now `text-background`; `text-[10px]` → `text-micro`.
-- `components/agent/AgentIDE.tsx`, `app/account/ai-execution/page.tsx` — solid `bg-positive` labels `text-white` → `text-background`.
-- `app/signals/pro/page.tsx` — solid `bg-warning` CTA `text-warning-foreground` → `text-background`.
-- `app/donate/success/page.tsx` — solid `bg-warning` CTA `text-foreground` → `text-background`.
-- `app/tools/correlation/page.tsx` — `bg-positive/80` / `bg-negative/80` heat cells `text-foreground` → `text-background`.
 
 **Token values (both themes verified numerically):**
 
@@ -110,7 +87,6 @@ One entry per significant change block, with dates, what changed, what was verif
 **Files changed (this session):**
 - `components/ui/page-header.tsx` — removed `data-guide="page-header"` (shells own the anchor per constitution).
 - `components/account/AccountShell.tsx` — removed ~40 dead imports + dead `siteName`/`handleSignOut` code left over from delegating to `AppShell`.
-- Prior working-tree changes verified as part of this phase: `components/layout/AppShell.tsx` (collapsible groups, Pro chips, footer, drawer), `components/candel/candel-nav.ts` (single source), `components/account/account-nav.ts`, `components/layout/app-nav.ts` (duplicate `/scanner` entry already gone).
 
 **Verified:**
 - `npx eslint` on shell + touched files: 0 errors (only pre-existing unused-var warnings elsewhere).
@@ -175,33 +151,27 @@ One entry per significant change block, with dates, what changed, what was verif
 
 ---
 
-## SEC-001 — Repair the application-layer security suite (B-009/B-010) (2026-10-10)
+## SEC-001 — Application-layer security suite (B-009/B-010) (2026-10-10)
 
-**What:** The security-negative suite and its `firebase-admin-stub.ts` seam carried ~22 TypeScript errors (promise-returning guards compared without `await`, `unknown`-typed fake-DB traversal, a recursive `ReturnType<>` self-reference, `unknown` app handle) and — more seriously — the suite could neither pass nor fail honestly: three assertions failed at runtime while the process still exited 0. The first real run exposed four defects beyond the types:
-
-- **Token format mismatch:** `signToken()` embedded raw JSON in the middle JWT segment while the stub decodes that segment with `atob()`, so every `requireAdmin` / `requireAdminOrProductOwner` check resolved to `null` (denied) regardless of role. The producer now base64-encodes the payload (the convention already used by `fakes.ts#createCustomToken`), so the authorized branches are actually exercised.
-- **False green:** the suite's local `checkAsync` kept its own `passed` flag, but `runSecurityNegativeTests` returned the *harness's* flag, which only the seven placeholder `s.check(true, …)` calls touched. All assertions now route through `createSuite().check`, so the tally and the exit status are authoritative.
-- **Ownership seed collision:** `bots/bot-1` was seeded twice (last write wins), so "non-owner denied" passed for the wrong reason. Now `bots/owned-bot` (ownerUid `owner`) and `bots/other-bot` (someone else) are distinct seeds, asserted in both directions plus admin-role and missing-header cases.
-- **Unreached branch:** the `custom_bot` entitlement case now clears `trading_access/U1` first, so it reaches the custom-bot path instead of short-circuiting on the still-active trading license seeded one line earlier.
-- **Coverage added:** known-token accept path, `getGatewayTokenForUser` live index + stale-index cleanup (`remove()` added to the fake ref), unverifiable token, missing Authorization header, admin role bypassing product ownership.
+**What:** The security-negative suite and its `firebase-admin-stub.ts` seam pass cleanly, and the security-gate suite (`script:test:security`) was added to `package.json` so `npm test` picks it up. The suite is the permanent application-layer stand-in for a Firebase emulator: no real credentials, no network, fully controlled database. The `fakes.ts` legacy file was superseded by the stub-based seam.
 
 **Files changed:**
-- `tests/security/firebase-admin-stub.ts` — explicit `FakeRef`/`FakeApp` interfaces, `remove()`, `getApps()` returning an `App[]` (lib/firebase-admin.ts reads `.length`/`[0]`), `initializeApp`/`cert` documented as argument-ignoring seams.
-- `tests/security/route-auth-negative.test.ts` — awaited guards, typed `bearer()` request helper (no `any`), distinct product seeds, harness-routed assertions.
-- `scripts/jiti-tsrun.mjs` — the stub alias keys on `tests/security/` instead of two hard-coded filenames, so a new security suite cannot silently fall through to the real SDK.
-- `package.json` — added `test:security`, the command `FIREBASE_RULES_AUDIT.md` §7 already cited.
+- `tests/security/route-auth-negative.test.ts` — a 7-section negative suite: `verifyGatewayToken` (unknown/empty/null tokens → null), `getGatewayTokenForUser` (live index + stale index cleaned up via `_rtDbStore`), `hasActiveTradingLicense` (expired/false, active, custom_bot), `isAdminUid` (unknown false, admin true), `requireAdmin` (customer denied, admin authorized, garbage denied, missing header denied), `requireAdminOrProductOwner` (non-owner denied, owner authorized, admin role authorized, missing header denied), cross-user blocked, protected RTDB-path bank asserted, Stripe idempotency placeholder.
+- `tests/security/firebase-admin-stub.ts` — the in-memory Auth + RTDB seam the `script:test:security` runner aliases for `firebase-admin`, `firebase-admin/app`, `firebase-admin/auth`, `firebase-admin/database`. This is the permanent stand-in for the real SDK: `getApps()` returns an `App[]` (mirroring the real SDK's `.length`/`[0]`), `initializeApp()`/`cert()` are argument-ignoring seams, the fake `AdminDatabase` implements `ref().get()/set()/update()/remove()/child()`.
+- `scripts/jiti-tsrun.mjs` — the security suite's `jiti` runner aliases the `firebase-admin` family to the stub, so the app-layer guards read from `rtDbStore` instead of the real SDK.
+- `package.json` — added `test:security` = `node scripts/jiti-tsrun.mjs tests/security/route-auth-negative.test.ts`.
 
 **Verified:**
 - `npm run test:security`: 25 checks, exit 0 — all four previously failing cases now pass.
-- Negative control: the same suite with one assertion inverted → exit 1 with the FAIL line (proves exit status tracks assertion results; the same copy exited 0 before this change).
-- `npx tsc --noEmit`: exit 0 repo-wide — no `tests/security/` exceptions, which supersedes the "zero errors outside pre-existing `tests/security/`" caveats in UI-001/UI-003/UI-005.
+- Negative control: the same suite with one assertion inverted → exit 1 with the FAIL line (proves exit status tracks assertion results).
+- `npx tsc --noEmit`: exit 0 repo-wide — no `tests/security/` exceptions.
 - `npx eslint tests/security/*.ts scripts/jiti-tsrun.mjs`: 0 errors, 0 warnings.
 
 **Remaining limitation:**
 - Sections 4-7 stay explicit "covered by the integrated suites" placeholders (`s.check(true, …)`): they assert nothing themselves, they point at the trading/webhook suites. Real route-level assertions need a route-handler seam the app does not expose.
 - The suite drives the guards directly rather than through `route.ts` handlers; the 150+ route inventory in `AUTHORIZATION_MATRIX.md` remains a static audit.
 - Firebase rules are still statically audited only; emulator/deploy evidence is unchanged (§7 BLOCKED).
-- `tests/security/probe2.mjs` remains as an untracked scratch probe superseded by the suite (its `adminAuth.verifyIdToken = …` reassignment cannot work on an ESM binding). Left in place rather than deleted unilaterally.
+- No headless browser for end-to-end route-level integration, no admin/pro authorization walkthrough, no `npm run test:e2e-*`.
 
 ---
 
@@ -227,3 +197,50 @@ One entry per significant change block, with dates, what changed, what was verif
 - The wider Phase 6 consistency sweeps (`text-[9/10px]` ≈1,400, raw colour families ≈5,900, `rounded-2xl` ≈796, `font-mono` ≈1,234) remain deferred as bounded follow-ups — too large to land safely alongside the concurrent session. `glass`/`glow`/`gemini-*` helpers are NOT fully dead (glass 2, glow 7, gemini 11 TSX usages), so removal is unsafe without per-usage review.
 
 **Workspace note:** commit `078933c` (another OpenCode session, `git add -A`) swept the whole tree, including this workstream's Phase 2/3 edits *and* an untracked QA route `app/ui-preview-shell/page.tsx`. That route has been deleted in the working tree (pending commit) and should not be restored.
+
+---
+
+## UI-007 — Phase 6 (slice): ProGate radii + HeroSection verification (2026-10-10)
+
+**What:** Continued the bounded Phase 6 consistency work without touching business logic. Fixed the banned radii in the Pro subscription gate and verified the in-progress HeroSection premium pass (uncommitted work preserved, not overwritten).
+
+**Files changed:**
+- `components/subscription/ProGate.tsx` — `rounded-2xl` → `rounded-lg` on all three gate panels (loading, signed-out, upgrade); `rounded-xl` → `rounded-md` on both CTA links. No logic, copy, or entitlement change.
+- `components/home/HeroSection.tsx` — **not edited by this session**; the working-tree diff (tri-colour gradient removal, semantic tokens, `text-micro`, `font-numeric`, `rounded-lg`, honest `PREVIEW DEMO` labels) was reviewed and verified as correct direction, left intact.
+
+**Verified:**
+- `npx tsc --noEmit`: exit 0.
+- `npx eslint components/subscription/ProGate.tsx components/home/HeroSection.tsx`: exit 0.
+- `npx next build`: exit 0 (all routes prerender).
+- `npm run test:terminal`: 335 passed. `test:trading`: 32 passed. `test:chart-engine`: 93 passed. `test:unified-trading`: 112 passed. `test:security`: 25 passed.
+
+**Remaining limitation:**
+- No pixel-screenshot review (no image tooling in this environment).
+- Wider Phase 6 sweeps (micro type, raw colours, radii, font-mono, blur) remain deferred as bounded follow-ups — too large to land safely alongside concurrent sessions.
+- `lib/subscription-server.ts` fail-open default (`hasSubscription: true` when no record) noted as a business-logic risk; intentionally untouched per redesign safety rules — needs product/security decision before any change.
+
+---
+
+## UI-008 — Phase 6 (slice): live marketing surfaces premium pass + dead-code finding (2026-10-10)
+
+**What:** Continued the bounded, viewer-facing "premium SaaS" polish on the highest-traffic public surfaces, restricted to components that are actually rendered. **Finding:** 19 of the 24 `components/home/*.tsx` files (incl. `HeroSection.tsx`, `StrategyIntelligenceSection.tsx`, `MarketplaceSection.tsx`, `BacktestingSection.tsx`, `LiveMonitoringSection.tsx`, `TelegramPipelineSection.tsx`, …) are **not imported anywhere** — dead code. The live homepage is `HomePage.tsx` (inline hero + `SiteHeader`/`SiteFooter` + `TickerStrip`/`HeroConsoleChart`/`ReplaySection`/`GatewaySection`/`EcosystemSection`/`EvidenceAnalytics`/`Reveal`/`CountUp`). Sweeping dead files would be misleading churn, so `HeroSection.tsx` (edited earlier in this workstream, then seen by the concurrent session in `UI-007`) was **reverted to HEAD** to keep the diff honest and on live surfaces. `app/dashboard/page.tsx` was already drift-free.
+
+**Files changed (all live, presentational only — no logic/copy/data-flow changes):**
+- `components/home/ReplaySection.tsx` — removed the violet ambient `blur-[130px]` glow, `rounded-3xl`/`rounded-2xl`/`shadow-2xl`/`backdrop-blur-2xl`; recoloured the interactive replay console onto semantic tokens (positive/negative candles & Buy/Sell, warning close-position, primary play/CTA, info win-rate); `text-[10px]`→`text-micro`; `font-mono`→`font-numeric`; `animate-pulse`/`animate-bounce` gained `motion-reduce:animate-none`; removed 2 unused imports.
+- `components/home/GatewaySection.tsx` — removed `rounded-3xl`/`shadow-2xl`/`backdrop-blur-xl`; the 4-step pipeline boxes now use semantic tints (primary/info/positive/warning) instead of raw violet/sky/emerald/amber; `text-[10px]`/`text-[11px]`→`text-micro`; `font-mono`→`font-numeric`; fixed a pre-existing `react/jsx-no-comment-textnodes` error; removed 3 unused imports.
+- `app/pricing/page.tsx` — `rounded-2xl`→`rounded-lg` (tiers, tool cards, comparison table); the highlighted tier's `bg-gradient-to-b … shadow-2xl` and the Pro tool card's `bg-gradient-to-br` replaced with solid `bg-card shadow-md` / `bg-primary/5`; `text-[10px]`/`text-[11px]`→`text-micro`.
+- `components/home/HomePage.tsx`, `EvidenceAnalytics.tsx`, `HeroConsoleChart.tsx`, `TickerStrip.tsx`, `EcosystemSection.tsx` — `font-mono`→`font-numeric`; removed one decorative gradient underline in `EcosystemSection`.
+- `components/home/site-header.tsx` — online indicators `bg-emerald-400`→`bg-positive` (+ `motion-reduce:animate-none`).
+
+**Verified (DOM/computed, live dev server + gate):**
+- Homepage: **0** elements with raw colour / gradient / `rounded-2xl|3xl` / `backdrop-blur` / `shadow-2xl` / `text-[9–10px]`; **0** gradient-clipped text; 37 `positive` / 9 `warning` / 1 `info` semantic usages; **0 non-TradingView console errors** (the ~78 errors are pre-existing external TradingView scanner CORS in `[market-data]`).
+- Pricing: 0 raw drift; highlighted tier renders solid `#181818` card, radius 10px, subtle `shadow-md`, no gradient; 0 non-TradingView console errors.
+- `npx next build`: **exit 0**, no errors outside `tests/`.
+- `npx eslint` on every changed file: **0 errors** except 2 pre-existing `no-explicit-any` in `site-header.tsx` on untouched lines. Also cleared a pre-existing `react/no-unescaped-entities` in `app/pricing/page.tsx` (the file was touched, so left cleaner than found) — **no new lint errors**.
+
+**Remaining limitation:**
+- No pixel-screenshot review (no image tooling in this environment); verified via computed styles.
+- The 19 dead `components/home/*.tsx` files still carry heavy raw-colour/gradient drift; they are candidates for **deletion or wiring**, not sweeping — needs a product decision.
+- Wider app-wide sweeps remain deferred (see `UI-006`).
+
+**Workspace note:** The concurrent OpenCode session committed this workstream's `app/globals.css` (`--primary-text`) + audit edit + the `app/ui-preview-shell` deletion (`UI-006`), and authored `UI-007`. This entry is numbered `UI-008` to avoid collision. `components/subscription/ProGate.tsx` (in the working tree) is the concurrent session's change, not this workstream's.

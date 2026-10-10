@@ -119,7 +119,7 @@ export default function SiteHeader() {
                         >
                             {link.label}
                             {(link as any).badge && (
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                <span className="h-1.5 w-1.5 rounded-full bg-positive animate-pulse motion-reduce:animate-none" />
                             )}
                         </Link>
                     ))}
@@ -179,7 +179,7 @@ export default function SiteHeader() {
                             >
                                 {link.label}
                                 {(link as any).badge && (
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                    <span className="h-1.5 w-1.5 rounded-full bg-positive animate-pulse motion-reduce:animate-none" />
                                 )}
                             </Link>
                         ))}

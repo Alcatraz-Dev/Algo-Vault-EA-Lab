@@ -54,7 +54,7 @@ function ProductRow({ product }: { product: HomeProduct }) {
                 <p className="mt-1 truncate text-xs text-muted-foreground">{[product.symbol, product.timeframe, product.platform].filter(Boolean).join(" · ") || "Marketplace listing"}</p>
             </div>
             <div className="ml-4 flex shrink-0 items-center gap-3 text-right">
-                <span className="font-mono text-sm text-primary">{formatPrice(product.pricing?.price, product.pricing?.currency)}</span>
+                <span className="font-numeric text-sm text-primary">{formatPrice(product.pricing?.price, product.pricing?.currency)}</span>
                 <ChevronRight size={15} className="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
             </div>
         </Link>
@@ -323,7 +323,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                                     <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
                                         Verified workspace
                                         {previewBacktests && (
-                                            <span className="rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 font-mono text-micro font-medium normal-case tracking-normal text-warning">Sample preview</span>
+                                            <span className="rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 font-numeric text-micro font-medium normal-case tracking-normal text-warning">Sample preview</span>
                                         )}
                                     </p>
                                     <h2 className="mt-2 text-2xl font-semibold text-foreground">Recent research</h2>
@@ -336,7 +336,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                                         <p className="text-sm font-semibold text-foreground">{backtest.title || "Untitled backtest"}</p>
                                         <p className="mt-1 text-xs text-muted-foreground">{[backtest.pair, backtest.timeframe, backtest.period].filter(Boolean).join(" · ") || "Configuration unavailable"}</p>
                                     </div>
-                                    <span className="text-xs text-muted-foreground">Net result <strong className="ml-1 font-mono text-foreground">{backtest.netProfit === undefined ? "Unavailable" : backtest.netProfit >= 0 ? `+${backtest.netProfit}` : backtest.netProfit}</strong></span>
+                                    <span className="text-xs text-muted-foreground">Net result <strong className="ml-1 font-numeric text-foreground">{backtest.netProfit === undefined ? "Unavailable" : backtest.netProfit >= 0 ? `+${backtest.netProfit}` : backtest.netProfit}</strong></span>
                                     <ChevronRight size={15} className="hidden text-muted-foreground sm:block" />
                                 </div>
                             )) : <div className="px-5 py-12 text-center text-sm text-muted-foreground">No backtest data available.</div>}

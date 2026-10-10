@@ -87,12 +87,12 @@ function QualityTooltip({
             <p className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground">
                 <span className="h-2 w-2 rounded-full" style={{ background: "var(--primary)" }} />
                 Win rate
-                <span className="ml-auto pl-4 font-mono font-semibold text-foreground">{win}%</span>
+                <span className="ml-auto pl-4 font-numeric font-semibold text-foreground">{win}%</span>
             </p>
             <p className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                 <span className="h-2 w-2 rounded-full" style={{ background: "var(--negative)" }} />
                 Max drawdown
-                <span className="ml-auto pl-4 font-mono font-semibold text-foreground">{dd}%</span>
+                <span className="ml-auto pl-4 font-numeric font-semibold text-foreground">{dd}%</span>
             </p>
         </div>
     );
@@ -153,7 +153,7 @@ export default function EvidenceAnalytics({
                             <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
                                 Recorded evidence
                                 {preview && (
-                                    <span className="rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 font-mono text-micro font-medium normal-case tracking-normal text-warning">Sample preview</span>
+                                    <span className="rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 font-numeric text-micro font-medium normal-case tracking-normal text-warning">Sample preview</span>
                                 )}
                             </p>
                             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-foreground md:text-5xl">Backtests with numbers anyone can check.</h2>
@@ -247,7 +247,7 @@ export default function EvidenceAnalytics({
                                 {tiles.map((tile) => (
                                     <div key={tile.label} className="bg-card px-4 py-4">
                                         <p className="text-xs text-muted-foreground">{tile.label}</p>
-                                        <p className={`mt-2 font-mono text-xl font-semibold ${tile.tone}`}>
+                                        <p className={`mt-2 font-numeric text-xl font-semibold ${tile.tone}`}>
                                             <CountUp value={tile.count} format={tile.format} />
                                         </p>
                                     </div>

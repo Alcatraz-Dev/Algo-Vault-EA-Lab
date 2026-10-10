@@ -61,7 +61,7 @@ export default function HeroConsoleChart() {
                     Equity curve
                 </span>
                 <span className="flex items-center gap-3">
-                    <span className="font-mono text-foreground">{formatUsd(last)}</span>
+                    <span className="font-numeric text-foreground">{formatUsd(last)}</span>
                     <span className="font-semibold text-positive">
                         {delta >= 0 ? "+" : ""}
                         {delta.toFixed(1)}%

@@ -218,7 +218,7 @@ function StageCard({ stage, index, isActive, onSelect }: { stage: Stage; index: 
             className={isActive ? "eco-card group relative z-10 block overflow-hidden rounded-lg border p-5 border-primary/80 bg-card/80 shadow-[0_0_48px_-14px_color-mix(in_oklch,var(--primary)_50%,transparent)] transition-all duration-300 hover:-translate-y-1" : "eco-card group relative z-10 block overflow-hidden rounded-lg border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-[0_0_36px_-12px_color-mix(in_oklch,var(--primary)_65%,transparent)]"}
         >
             {/* Agent status glow bar */}
-            <span className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            <span className="absolute inset-x-0 top-0 h-[2px] bg-primary/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             <div className="flex items-start justify-between">
                 <span className="relative">
                     <span className="eco-orbit transition-transform duration-300 group-hover:scale-105">
@@ -302,7 +302,7 @@ export default function EcosystemSection() {
                                                 <Icon size={13} className="text-primary" />
                                             </span>
                                         ) : (
-                                            <span className="font-mono text-micro font-bold text-primary">{mono}</span>
+                                            <span className="font-numeric text-micro font-bold text-primary">{mono}</span>
                                         )}
                                     </span>
                                     <span aria-hidden="true" className="eco-orbit-spin">
