@@ -62,7 +62,7 @@ const ROOT_REVERIFY_MS = 30_000;
 export function getProjectRoot(): string | null {
     const configured = process.env.AGENT_PROJECT_ROOT || process.cwd();
     try {
-        const real = fs.realpathSync(configured);
+        const real = fs.realpathSync(/*turbopackIgnore: true*/ configured);
         if (!fs.statSync(real).isDirectory()) return null;
         if (cachedRoot && cachedRoot.abs === real && Date.now() - cachedRoot.verifiedAt < ROOT_REVERIFY_MS) {
             return cachedRoot.abs;
@@ -213,7 +213,7 @@ export function checkPath(inputPath: string, opts?: { forWrite?: boolean }): Pat
 
     // 2. Anchor to root. Absolute external paths are rejected by containment
     //    below; absolute paths inside the root are accepted for convenience.
-    const anchored = path.isAbsolute(inputPath) ? inputPath : path.join(root, inputPath);
+    const anchored = path.isAbsolute(inputPath) ? inputPath : path.join(/*turbopackIgnore: true*/ root, inputPath);
 
     // 3. Lexical normalization — catches `a/../..` BEFORE touching the disk.
     const lexicallyResolved = path.resolve(anchored);
@@ -335,12 +335,12 @@ export async function sandboxedReadFile(
     }
 
     try {
-        const stat = await fsp.stat(check.absPath);
+        const stat = await fsp.stat(/*turbopackIgnore: true*/ check.absPath);
         if (stat.isDirectory()) {
             return { found: false, reason: "outside_project_root", message: "Path is a directory, not a file." };
         }
         const truncated = stat.size > maxBytes;
-        const handle = await fsp.open(check.absPath, "r");
+        const handle = await fsp.open(/*turbopackIgnore: true*/ check.absPath, "r");
         try {
             const length = truncated ? maxBytes : stat.size;
             const buffer = Buffer.alloc(length);

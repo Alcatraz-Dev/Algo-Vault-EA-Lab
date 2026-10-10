@@ -76,7 +76,7 @@ function run(
     const timeoutMs = opts.timeoutMs ?? 120_000;
     let child: ReturnType<typeof spawn>;
     try {
-      child = spawn(hypitBinary(), args, { cwd: opts.cwd, shell: false, stdio: ["ignore", "pipe", "pipe"] });
+      child = spawn(/*turbopackIgnore: true*/ hypitBinary(), args, { cwd: opts.cwd, shell: false, stdio: ["ignore", "pipe", "pipe"] });
     } catch (err) {
       done(127, "", err instanceof Error ? err.message : String(err), false);
       return;
@@ -435,7 +435,7 @@ async function probeMedia(file: string): Promise<{
   const res = await new Promise<{ code: number; stdout: string }>((resolve) => {
     let child: ReturnType<typeof spawn>;
     try {
-      child = spawn(ffprobe, ["-v", "error", "-print_format", "json", "-show_format", "-show_streams", file], {
+      child = spawn(/*turbopackIgnore: true*/ ffprobe, ["-v", "error", "-print_format", "json", "-show_format", "-show_streams", file], {
         shell: false,
         stdio: ["ignore", "pipe", "pipe"],
       });

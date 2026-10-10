@@ -65,7 +65,7 @@ export async function composeVideo(input: ComposeVideoInput): Promise<{ ok: bool
 
     // 3) Logo overlay (deterministic position: bottom-right).
     const logo = input.assets.find((a) => a.kind === "overlay" || a.url.includes("logo"));
-    if (logo && fs.existsSync(logo.localPath || "")) {
+    if (logo && fs.existsSync(/*turbopackIgnore: true*/ logo.localPath || "")) {
       const overPath = path.join(tmpDir, "with_logo.mp4");
       await runFfmpeg([
         "-i", outPath, "-i", logo.localPath!,

@@ -68,7 +68,7 @@ export function detectMetaEditor(): MetaEditorInfo {
         };
     }
     try {
-        if (!existsSync(metaeditor)) {
+        if (!existsSync(/*turbopackIgnore: true*/ metaeditor)) {
             return {
                 available: false,
                 wine: null,
@@ -77,7 +77,7 @@ export function detectMetaEditor(): MetaEditorInfo {
                 reason: `MetaEditor not found at ${metaeditor}`,
             };
         }
-        if (wine && !existsSync(wine)) {
+        if (wine && !existsSync(/*turbopackIgnore: true*/ wine)) {
             return {
                 available: false,
                 wine: null,
@@ -266,7 +266,7 @@ export async function compileWithMetaEditor(mq5Path: string, timeoutMs = 120_000
 
             // 2. Queue the compile request.
             const metaArgs = [info.metaeditor, `/compile:${mq5Path}`, `/log:${logPath}`];
-            const metaProc = spawn(info.wine, metaArgs, {
+            const metaProc = spawn(/*turbopackIgnore: true*/ info.wine, metaArgs, {
                 env: wineEnv,
                 stdio: ["ignore", "ignore", "pipe"],
             });
@@ -277,7 +277,7 @@ export async function compileWithMetaEditor(mq5Path: string, timeoutMs = 120_000
             // 3. Boot the terminal to serve the queued request.
             const terminalExists = existsSync(exePath);
             if (terminalExists) {
-                terminalProc = spawn(info.wine, [exePath, "/portable"], {
+                terminalProc = spawn(/*turbopackIgnore: true*/ info.wine, [exePath, "/portable"], {
                     env: wineEnv,
                     detached: true,
                     stdio: "ignore",
