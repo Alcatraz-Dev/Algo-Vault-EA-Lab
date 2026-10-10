@@ -190,7 +190,7 @@ export function AppShell({
   const renderChip = (item: NavItem) => {
     if (item.pro) {
       return (
-        <span className="ml-auto inline-flex h-4 shrink-0 items-center rounded-[4px] border border-primary/30 bg-primary/10 px-1 text-micro font-bold uppercase leading-none tracking-wide text-foreground">
+        <span className="ml-auto inline-flex h-3 shrink-0 items-center rounded-md border border-primary/30 bg-primary/10 px-0.5 text-[9px] font-bold uppercase leading-none tracking-wide text-foreground">
           Pro
         </span>
       );
@@ -205,7 +205,7 @@ export function AppShell({
     return (
       <span
         className={cn(
-          "ml-auto inline-flex h-4 shrink-0 items-center rounded-[4px] border px-1 text-micro font-bold uppercase leading-none tracking-wide",
+          "ml-auto inline-flex h-3 shrink-0 items-center rounded-md border px-0.5 text-[9px] font-bold uppercase leading-none tracking-wide",
           tone
         )}
       >
@@ -366,6 +366,13 @@ export function AppShell({
         </Link>
       </div>
       {/* Sidebar search */}
+      <style>{`
+        input[type="search"]::-webkit-search-cancel-button,
+        input[type="search"]::-webkit-search-decoration {
+          -webkit-appearance: none;
+          appearance: none;
+        }
+      `}</style>
       <div className="border-b border-border px-3 py-2">
         <div className="relative">
           <Search
@@ -377,7 +384,7 @@ export function AppShell({
             value={searchValue}
             onChange={(e) => handleSearch(e.target.value)}
             placeholder="Search navigation…"
-            className="h-7 w-full rounded-button border border-border bg-muted/40 pl-7 pr-2 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+            className="h-7 w-full rounded-full border border-border bg-muted/40 pl-7 pr-2 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
           />
           {searchValue ? (
             <button

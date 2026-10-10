@@ -18,20 +18,20 @@ export type StatusTone =
   | "profitable";
 
 const TONE_CLASSES: Record<StatusTone, string> = {
-  live: "bg-success-muted text-success-foreground border-success/30",
+  live: "bg-positive-muted text-positive border-positive/30",
   active: "bg-primary/10 text-foreground border-primary/40",
-  positive: "bg-success-muted text-success-foreground border-success/30",
-  negative: "bg-destructive-muted text-destructive-foreground border-destructive/30",
-  warning: "bg-warning-muted text-warning-foreground border-warning/30",
-  info: "bg-info-muted text-info-foreground border-info/30",
-  neutral: "bg-surface-muted text-text-secondary border-border",
-  stale: "bg-warning-muted text-warning-foreground border-warning/30",
-  offline: "bg-surface-muted text-text-muted border-border",
-  error: "bg-destructive-muted text-destructive-foreground border-destructive/30",
-  pending: "bg-warning-muted text-warning-foreground border-warning/30",
-  connected: "bg-success-muted text-success-foreground border-success/30",
-  expired: "bg-surface-muted text-text-muted border-border",
-  profitable: "bg-success-muted text-success-foreground border-success/30",
+  positive: "bg-positive-muted text-positive border-positive/30",
+  negative: "bg-negative-muted text-negative border-negative/30",
+  warning: "bg-warning-muted text-warning border-warning/30",
+  info: "bg-info-muted text-info border-info/30",
+  neutral: "bg-muted text-muted-foreground border-border",
+  stale: "bg-warning-muted text-warning border-warning/30",
+  offline: "bg-muted text-muted-foreground border-border",
+  error: "bg-negative-muted text-negative border-negative/30",
+  pending: "bg-warning-muted text-warning border-warning/30",
+  connected: "bg-positive-muted text-positive border-positive/30",
+  expired: "bg-muted text-muted-foreground border-border",
+  profitable: "bg-positive-muted text-positive border-positive/30",
 };
 
 export function StatusBadge({

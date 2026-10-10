@@ -278,7 +278,7 @@ export default function MarketplacePage() {
         <main className="min-h-screen bg-background text-foreground">
 
             {/* Header */}
-            <section className="border-b border-border/30" data-guide="page-header">
+            <section className="pb-10" data-guide="page-header">
 
                 <div className="mx-auto max-w-7xl px-6 py-10">
 
@@ -363,7 +363,7 @@ export default function MarketplacePage() {
             </section>
 
             {/* Plugins & Extensions hub banner */}
-            <section className="border-b border-border/30 bg-muted/30">
+            <section className="bg-muted/30">
                 <div className="mx-auto max-w-7xl px-6 py-8">
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                         <div className="max-w-xl">
