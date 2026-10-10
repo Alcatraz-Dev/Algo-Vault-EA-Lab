@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 /**
  * useShellHeaderHeight — measures the sticky shell page header and republishes its
@@ -18,8 +18,9 @@ export function useShellHeaderHeight(ref: React.RefObject<HTMLElement | null>) {
     const el = ref.current;
     if (!el || typeof ResizeObserver === "undefined") return;
 
-    const observer = new ResizeObserver((entries) => {
-      const next = entries[0]?.contentRect.height ?? 0;
+    const observer = new ResizeObserver(() => {
+      // Border-box height: contentRect would drop the header's own padding.
+      const next = el.getBoundingClientRect().height;
       setHeight((current) => (Math.abs(current - next) < 0.5 ? current : next));
     });
     observer.observe(el);

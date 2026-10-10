@@ -9,7 +9,8 @@ export const metadata = {
 export default function AdminAnalysisPage() {
     return (
         <AdminShell title="Market Analysis" subtitle="Structure · Liquidity · Volume · Regime — live from your connected accounts">
-            <AnalysisWorkspace stickyTop="top-0" />
+            {/* Default sticky offset: below the shell's sticky header. */}
+            <AnalysisWorkspace />
         </AdminShell>
     );
 }

@@ -418,3 +418,90 @@ The §9.4 note that `animate-in` is inert is broader than first recorded. **16 u
 project — including `components/ui/dropdown-menu.tsx` and `components/ui/tooltip.tsx`, which
 means **every Radix dropdown and tooltip in the app currently has no enter/exit animation**.
 Fixes and the researched library options are in §11.
+
+---
+
+## 11. Animation pass — Motion + tw-animate-css — 2026-10-10 (fourth session)
+
+### 11.1 Library choice (researched, not assumed)
+
+Two different needs, two free MIT packages. Verified against the real stack
+(**Next 16.3.4 · React 19.2.8 · Tailwind v4, CSS-first, no `tailwind.config`**):
+
+| Need | Choice | Why |
+|---|---|---|
+| JS-driven reveals / scroll / enter-exit | **`motion` 14.1.0** | Framer Motion's current name — its own upgrade guide says uninstall `framer-motion` and `import { motion } from "motion/react"`. MIT, official React 19 peer (`^18 \|\| ^19`), App-Router friendly with a `"use client"` boundary. |
+| The existing `animate-in` utility family | **`tw-animate-css` 1.4.0** | The Tailwind v4 successor to `tailwindcss-animate`; shadcn/ui deprecated the old plugin for v4. `npm i -D` + `@import "tw-animate-css";`. Zero JS runtime. |
+
+**Rejected:** `gsap` — free to use on websites but Webflow-licensed, *not* OSI open source.
+`tailwindcss-motion` — plugin-based and its Tailwind v4 support is not clearly documented.
+`@formkit/auto-animate` — good, but for list reordering, which is not this need.
+
+### 11.2 The dead-class bug this actually fixes
+
+§10.5 recorded 16 inert `animate-in` usages. Two of them matter most: the Base UI
+primitives **`components/ui/dropdown-menu.tsx`** and **`components/ui/tooltip.tsx`** already
+carry `data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95
+data-closed:animate-out …` and `data-[side=*]:slide-in-from-*`. With no plugin installed those
+classes compiled to **nothing**, so every dropdown and tooltip in the app appeared and
+disappeared instantly. One CSS import fixes all of them; no component edit was needed.
+
+### 11.3 Reveal: hand-rolled observer → Motion
+
+`components/home/Reveal.tsx` was a manual `IntersectionObserver` writing `.reveal` /
+`.is-visible` classes. It is now Motion's `whileInView`, same effect
+(opacity `0 → 1`, `translateY(16px) → 0`, `0.7s`, `cubic-bezier(0.22, 1, 0.36, 1)`),
+`viewport={{ once: true, amount: 0.12 }}`. Because the public props (`children`, `delay`,
+`className`) are unchanged, **all 32 call sites animate with no edits** — 21 in
+`HomePage.tsx`, 5 in `EcosystemSection.tsx`, 6 in `EvidenceAnalytics.tsx`.
+
+The now-dead `.reveal { … }` CSS block was removed and replaced with a reduced-motion guard:
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  [data-motion-reveal] { opacity: 1 !important; transform: none !important; }
+}
+```
+
+Motion writes animated values as **inline styles**, so the guard needs `!important` to win.
+Keeping it in CSS rather than reading a media query during render keeps server and client
+markup identical — no hydration mismatch.
+
+### 11.4 Verification — real browser, not the preview panel
+
+The in-app preview panel **cannot verify this**: after programmatic scrolling it stops
+servicing `IntersectionObserver` callbacks entirely (a freshly created observer on an element
+whose rects prove it is on screen never fires), so `whileInView` can never reveal there.
+Rather than report that as a product failure, the check moved to real Chromium via the repo's
+existing Playwright harness — plus the documented one-time link repair
+`ln -sfn ../../chrome-extension/node_modules/@playwright/test node_modules/@playwright/test`.
+
+New spec: **`e2e/motion-reveal.smoke.spec.ts`**
+`SMOKE_BASE_URL=http://localhost:3000 playwright test -c e2e/playwright.config.ts e2e/motion-reveal.smoke.spec.ts`
+
+| Test | Result |
+|---|---|
+| Home reveal animates in view **and on scroll** (Motion `whileInView`) | **pass** (10.7s) — in-view wrappers settle to opacity 1, below-fold wrappers start hidden, and scrolling reveals ≥80% of the page |
+| Reduced motion shows all reveal content immediately | **pass** (3.5s) — `stuckHidden === 0` under `prefers-reduced-motion: reduce` |
+| `animate-in` / `fade-in-0` / `zoom-in-95` / `slide-in-from-top-2` resolve to a real animation | **pass** (0.9s) — computed `animation-name` contains `enter` / `exit`, `--tw-enter-scale` = `.95`, `--tw-enter-translate-y` set; a plain element still reports `none` |
+
+Also: `npx next build` → **exit 0**; `npx tsc --noEmit` → **exit 0**; and the compiled
+production CSS now contains `animate-in`, `animate-out`, `fade-in-0`, `fade-out-0`,
+`zoom-in-95`, `slide-in-from-top-2`, `@keyframes enter`, `@keyframes exit` and
+`[data-motion-reveal]` (all previously absent).
+
+### 11.5 Limitations
+
+- **The preview panel remains unusable for animation verification** (its IO callbacks stop
+  after programmatic scroll). Use the Playwright spec instead; do not read a stuck
+  `opacity: 0` in that panel as a defect.
+- **In Next dev the first load of the new `motion` chunk delays hydration**, so a 1–2s check
+  can catch the page pre-reveal. This is a dev-server compile artifact, not a runtime bug —
+  the Playwright spec polls until settled.
+- Motion is ~34 KB; `m + LazyMotion` would cut the initial payload to under 5 KB if the
+  landing-page budget ever needs it. Not done here — `motion` was requested and is simpler.
+- The reveal deliberately does not degrade to CSS: with JS disabled the server-rendered
+  markup keeps its `opacity: 0` inline style, exactly as the previous CSS-class version did.
+  That is not a regression, but it is a real (pre-existing) characteristic.
+- `motion@14` still depends on `framer-motion@14`, so `framer-motion` is present transitively.
+  Only `motion` is a direct dependency.
