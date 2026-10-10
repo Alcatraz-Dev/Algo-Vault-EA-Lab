@@ -63,7 +63,7 @@ function StructureBlock() {
     const bias = analysis?.structure.trend.value ?? null;
 
     if (analysisError) {
-        return <p className="p-3 text-xs text-amber-400">{analysisError}</p>;
+        return <p className="p-3 text-xs text-warning">{analysisError}</p>;
     }
     if (!analysis) {
         return (
@@ -81,7 +81,7 @@ function StructureBlock() {
                     <div
                         className={cn(
                             "text-xs font-semibold capitalize",
-                            bias === "bullish" ? "text-emerald-400" : bias === "bearish" ? "text-rose-400" : "text-muted-foreground"
+                            bias === "bullish" ? "text-positive" : bias === "bearish" ? "text-negative" : "text-muted-foreground"
                         )}
                     >
                         {bias ?? "unavailable"}
@@ -113,12 +113,12 @@ function StructureBlock() {
                                     <span
                                         className={cn(
                                             "rounded border px-1 font-mono text-micro font-bold",
-                                            e.type === "BOS" ? "border-sky-500/40 text-sky-400" : "border-amber-500/40 text-amber-400"
+                                            e.type === "BOS" ? "border-info/40 text-info" : "border-warning/40 text-warning"
                                         )}
                                     >
                                         {e.type}
                                     </span>
-                                    <span className={cn("capitalize", e.direction === "bullish" ? "text-emerald-400" : "text-rose-400")}>
+                                    <span className={cn("capitalize", e.direction === "bullish" ? "text-positive" : "text-negative")}>
                                         {e.direction}
                                     </span>
                                     <span className="font-mono text-micro text-muted-foreground">{e.timeframe}</span>
@@ -196,10 +196,10 @@ function SetupCard() {
                                 className={cn(
                                     "rounded border px-1.5 py-0.5 text-micro font-bold tracking-wider",
                                     invalid
-                                        ? "border-rose-500/50 text-rose-400"
+                                        ? "border-negative/50 text-negative"
                                         : s.direction === "long"
-                                          ? "border-emerald-500/50 text-emerald-400"
-                                          : "border-rose-500/50 text-rose-400"
+                                          ? "border-positive/50 text-positive"
+                                          : "border-negative/50 text-negative"
                                 )}
                             >
                                 {s.direction === "long" ? "LONG SETUP" : "SHORT SETUP"}
@@ -213,11 +213,11 @@ function SetupCard() {
                             </div>
                             <div className="flex justify-between">
                                 <dt className="text-muted-foreground">Invalidation</dt>
-                                <dd className="font-mono tabular-nums text-rose-400">{s.stop}</dd>
+                                <dd className="font-mono tabular-nums text-negative">{s.stop}</dd>
                             </div>
                             <div className="flex justify-between">
                                 <dt className="text-muted-foreground">Target</dt>
-                                <dd className="font-mono tabular-nums text-emerald-400">{s.target}</dd>
+                                <dd className="font-mono tabular-nums text-positive">{s.target}</dd>
                             </div>
                             <div className="flex justify-between">
                                 <dt className="text-muted-foreground">Risk / Reward</dt>
@@ -238,7 +238,7 @@ function SetupCard() {
                         <ul className="mt-2 space-y-0.5 border-t border-border pt-1.5">
                             {s.evidence.slice(0, 4).map((ev, i) => (
                                 <li key={i} className="flex gap-1.5 text-micro leading-4 text-muted-foreground">
-                                    <span className="text-emerald-400">✓</span>
+                                    <span className="text-positive">✓</span>
                                     <span className="min-w-0">{ev}</span>
                                 </li>
                             ))}
@@ -279,7 +279,7 @@ function SetupCard() {
 
 function RiskSummary() {
     const { risk, riskError, riskLoading } = useTerminalData();
-    if (riskError) return <p className="p-3 text-xs text-amber-400">{riskError}</p>;
+    if (riskError) return <p className="p-3 text-xs text-warning">{riskError}</p>;
     if (riskLoading && !risk) return <p className="p-3 text-xs italic text-muted-foreground">Loading risk state…</p>;
     if (!risk || !risk.status) {
         return <p className="p-3 text-xs italic text-muted-foreground">No connected account — risk state unavailable.</p>;
@@ -299,10 +299,10 @@ function RiskSummary() {
             <div
                 className={cn(
                     "rounded-md border px-2 py-1.5 text-center text-xs font-bold tracking-wider",
-                    risk.status === "SAFE" && "border-emerald-500/40 bg-emerald-500/10 text-emerald-400",
-                    risk.status === "WARNING" && "border-amber-500/40 bg-amber-500/10 text-amber-400",
-                    risk.status === "RESTRICTED" && "border-orange-500/40 bg-orange-500/10 text-orange-400",
-                    risk.status === "HALTED" && "border-red-600/50 bg-red-600/10 text-red-400"
+                    risk.status === "SAFE" && "border-positive/40 bg-positive/10 text-positive",
+                    risk.status === "WARNING" && "border-warning/40 bg-warning/10 text-warning",
+                    risk.status === "RESTRICTED" && "border-warning/40 bg-warning/10 text-warning",
+                    risk.status === "HALTED" && "border-negative/50 bg-negative/10 text-negative"
                 )}
             >
                 {risk.status}
@@ -320,7 +320,7 @@ function RiskSummary() {
             {risk.reasons.length > 0 ? (
                 <ul className="space-y-0.5 border-t border-border pt-1.5">
                     {risk.reasons.map((r) => (
-                        <li key={r} className="text-micro leading-4 text-amber-400">
+                        <li key={r} className="text-micro leading-4 text-warning">
                             • {r}
                         </li>
                     ))}
@@ -414,7 +414,7 @@ export function IntelligenceRail({ now }: { now: number }) {
 
                     {mode === "signals" ? (
                         signalsError ? (
-                            <p className="p-3 text-xs text-amber-400">{signalsError}</p>
+                            <p className="p-3 text-xs text-warning">{signalsError}</p>
                         ) : (
                             <SignalsMiniPanel signals={signals} rejected={[]} loading={signals.length === 0} now={now} token={token} />
                         )

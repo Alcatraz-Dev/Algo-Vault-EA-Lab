@@ -18,7 +18,7 @@ export default function BusinessOperationsOrdersPage() {
       <div className="rounded-lg border border-border bg-card p-6 mb-6">
         <h3 className="font-semibold mb-4">Orders</h3>
         <p className="text-sm text-muted-foreground mb-4">Marketplace orders from the existing order management system.</p>
-        <Link href="/admin/orders" className="inline-flex items-center rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-white hover:bg-accent">
+        <Link href="/admin/orders" className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80">
           View Full Orders Admin
         </Link>
       </div>

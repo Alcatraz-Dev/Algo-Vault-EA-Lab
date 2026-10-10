@@ -19,23 +19,23 @@ export default function ConnectionStatus({
   const isOffline = status === "offline" || age > 120 || status !== "connected";
 
   const dotClass = isStable
-    ? "bg-emerald-500"
+    ? "bg-positive"
     : isUnstable
-    ? "bg-yellow-500"
-    : "bg-rose-500";
+    ? "bg-warning"
+    : "bg-negative";
 
   const label = isStable ? "Connected" : isUnstable ? "Unstable" : "Offline";
   const labelClass = isStable
-    ? "text-emerald-600 dark:text-emerald-400"
+    ? "text-positive dark:text-positive"
     : isUnstable
-    ? "text-yellow-600 dark:text-yellow-400"
-    : "text-rose-600 dark:text-rose-400";
+    ? "text-warning dark:text-warning"
+    : "text-negative dark:text-negative";
 
   return (
     <span className="inline-flex items-center gap-2">
       <span className="relative flex h-2 w-2">
         {isStable && (
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-60" />
         )}
         <span className={cn("relative inline-flex h-2 w-2 rounded-full", dotClass)} />
       </span>

@@ -260,7 +260,7 @@ export function ProScalpingTerminal() {
                         <span
                             className={cn(
                                 "font-mono text-xs tabular-nums",
-                                (changePercent ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"
+                                (changePercent ?? 0) >= 0 ? "text-positive" : "text-negative"
                             )}
                         >
                             {fmtSignedPct(changePercent, 3)}
@@ -280,8 +280,8 @@ export function ProScalpingTerminal() {
                         className={cn(
                             "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs transition",
                             pollMs === 0
-                                ? "border-amber-500/40 bg-amber-500/10 text-amber-400"
-                                : "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                                ? "border-warning/40 bg-warning/10 text-warning"
+                                : "border-positive/40 bg-positive/10 text-positive"
                         )}
                         aria-label={pollMs === 0 ? "Resume live polling" : "Pause live polling"}
                     >
@@ -337,9 +337,9 @@ export function ProScalpingTerminal() {
 
             {/* access / engine errors */}
             {accessError ? (
-                <div role="alert" className="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
-                    <AlertTriangle className="size-3.5 shrink-0 text-amber-400" />
-                    <span className="min-w-0 text-amber-200">{accessError}</span>
+                <div role="alert" className="flex items-center gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs">
+                    <AlertTriangle className="size-3.5 shrink-0 text-warning" />
+                    <span className="min-w-0 text-warning">{accessError}</span>
                 </div>
             ) : null}
 
@@ -527,7 +527,7 @@ export function ProScalpingTerminal() {
 
                     <div className="rounded-lg border border-border bg-card p-3">
                         <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-foreground">
-                            {pollMs === 0 ? <WifiOff className="size-3 text-amber-400" /> : <Wifi className="size-3 text-emerald-400" />}
+                            {pollMs === 0 ? <WifiOff className="size-3 text-warning" /> : <Wifi className="size-3 text-positive" />}
                             Data status
                         </h3>
                         <ul className="mt-1.5 space-y-1 font-mono text-micro text-muted-foreground">

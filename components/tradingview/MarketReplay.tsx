@@ -584,14 +584,14 @@ export default function MarketReplay({ studies = [], strategyType = "indicator",
                     
                     {/* Left: Replay Status & Asset Selectors */}
                     <div className="flex items-center gap-1.5 text-xs shrink-0">
-                        <span className="inline-flex items-center gap-1 rounded-lg bg-amber-500/10 px-2.5 py-1.5 text-micro font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 border border-amber-500/20 shadow-xs shrink-0">
-                            <Scissors size={12} className="text-amber-500 shrink-0" /> REPLAY
+                        <span className="inline-flex items-center gap-1 rounded-lg bg-warning/10 px-2.5 py-1.5 text-micro font-bold uppercase tracking-wider text-warning border border-warning/20 shadow-xs shrink-0">
+                            <Scissors size={12} className="text-warning shrink-0" /> REPLAY
                         </span>
 
                         <select
                             value={symbol}
                             onChange={(e) => { setSymbol(e.target.value); setCursor(120); setPlaying(false); setPosition(null); setClosedTrades([]); setBalance(10000); }}
-                            className="h-8 rounded-lg border border-border bg-background px-2.5 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-amber-500/20 transition shrink-0"
+                            className="h-8 rounded-lg border border-border bg-background px-2.5 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-warning/20 transition shrink-0"
                         >
                             {SYMBOLS.map((s) => <option key={s} value={s}>{s}</option>)}
                         </select>
@@ -599,7 +599,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator",
                         <select
                             value={interval}
                             onChange={(e) => { setIntervalState(e.target.value); setCursor(120); setPlaying(false); setPosition(null); setClosedTrades([]); setBalance(10000); }}
-                            className="h-8 rounded-lg border border-border bg-background px-2.5 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-amber-500/20 transition shrink-0"
+                            className="h-8 rounded-lg border border-border bg-background px-2.5 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-warning/20 transition shrink-0"
                         >
                             {INTERVALS.map((i) => <option key={i} value={i}>{i}</option>)}
                         </select>
@@ -618,7 +618,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator",
                             </span>
                         )}
                         {loadError && !isLoadingData && (
-                            <span className="inline-flex items-center gap-1 text-micro text-rose-500" title={loadError}>
+                            <span className="inline-flex items-center gap-1 text-micro text-negative" title={loadError}>
                                 feed unavailable
                             </span>
                         )}
@@ -656,7 +656,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator",
                                 type="button"
                                 size="sm"
                                 onClick={() => setPlaying((p) => !p)}
-                                className="h-8 px-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-semibold shadow-xs shrink-0"
+                                className="h-8 px-3 rounded-lg bg-warning hover:bg-warning text-white font-semibold shadow-xs shrink-0"
                                 title={playing ? "Pause" : "Play Sequential Bars"}
                             >
                                 {playing ? <Pause size={14} /> : <Play size={14} className="ml-0.5" />}
@@ -704,7 +704,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator",
                                 size="sm"
                                 variant="outline"
                                 onClick={closePosition}
-                                className="h-8 border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 font-semibold text-xs px-3 rounded-lg"
+                                className="h-8 border-warning/40 bg-warning/10 text-warning hover:bg-warning/20 font-semibold text-xs px-3 rounded-lg"
                             >
                                 <RefreshCw size={12} className="mr-1" /> Flat ({floatingPnL >= 0 ? `+$${floatingPnL.toFixed(2)}` : `-$${Math.abs(floatingPnL).toFixed(2)}`})
                             </Button>
@@ -714,7 +714,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator",
                                     type="button"
                                     size="sm"
                                     onClick={() => openTrade("LONG")}
-                                    className="h-8 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-micro tracking-wider uppercase px-3 rounded-lg shadow-xs shrink-0"
+                                    className="h-8 bg-positive hover:bg-positive text-white font-semibold text-micro tracking-wider uppercase px-3 rounded-lg shadow-xs shrink-0"
                                 >
                                     <TrendingUp size={13} className="mr-1" /> Buy Long
                                 </Button>
@@ -722,7 +722,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator",
                                     type="button"
                                     size="sm"
                                     onClick={() => openTrade("SHORT")}
-                                    className="h-8 bg-red-600 hover:bg-red-500 text-white font-semibold text-micro tracking-wider uppercase px-3 rounded-lg shadow-xs shrink-0"
+                                    className="h-8 bg-negative hover:bg-negative text-white font-semibold text-micro tracking-wider uppercase px-3 rounded-lg shadow-xs shrink-0"
                                 >
                                     <TrendingDown size={13} className="mr-1" /> Sell Short
                                 </Button>
@@ -748,7 +748,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator",
                 <div className="mt-3 pt-3 border-t border-border/60 space-y-1.5">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-micro font-mono text-muted-foreground">
                         <span className="flex items-center gap-1.5">
-                            <span className="inline-block h-2 w-2 rounded-full bg-amber-500 animate-pulse" /> Replay Scrubber: Bar #{cursor} of {candles.length}
+                            <span className="inline-block h-2 w-2 rounded-full bg-warning animate-pulse" /> Replay Scrubber: Bar #{cursor} of {candles.length}
                         </span>
                         <span className="text-foreground font-bold">
                             Current Price: ${currentPrice > 0 ? currentPrice.toFixed(2) : "—"}
@@ -761,7 +761,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator",
                         max={Math.max(1, candles.length)}
                         value={Math.min(cursor, Math.max(1, candles.length))}
                         onChange={(e) => { setCursor(Number(e.target.value)); setPlaying(false); }}
-                        className="w-full accent-amber-500 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer"
+                        className="w-full accent-warning h-1.5 bg-muted rounded-lg appearance-none cursor-pointer"
                     />
                 </div>
             </div>
@@ -774,18 +774,18 @@ export default function MarketReplay({ studies = [], strategyType = "indicator",
                 </div>
                 <div className="rounded-lg border border-border bg-card p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 shadow-xs">
                     <span className="text-muted-foreground">Net Replay PnL:</span>
-                    <span className={`font-semibold ${netPnL >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
+                    <span className={`font-semibold ${netPnL >= 0 ? "text-positive" : "text-negative"}`}>
                         {netPnL >= 0 ? `+$${netPnL.toFixed(2)}` : `-$${Math.abs(netPnL).toFixed(2)}`}
                     </span>
                 </div>
                 <div className="rounded-lg border border-border bg-card p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 shadow-xs">
                     <span className="text-muted-foreground">Win Rate:</span>
-                    <span className="font-semibold text-amber-600 dark:text-amber-400">{winRate}% ({totalWins}/{totalTrades})</span>
+                    <span className="font-semibold text-warning">{winRate}% ({totalWins}/{totalTrades})</span>
                 </div>
                 <div className="rounded-lg border border-border bg-card p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 shadow-xs">
                     <span className="text-muted-foreground">Open Position:</span>
                     {position ? (
-                        <span className={`font-semibold ${position.type === "LONG" ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
+                        <span className={`font-semibold ${position.type === "LONG" ? "text-positive" : "text-negative"}`}>
                             {position.type} @ ${position.entryPrice.toFixed(2)}
                         </span>
                     ) : (
@@ -805,7 +805,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator",
                         {closedTrades.map((t) => (
                             <div key={t.id} className="flex items-center justify-between p-2 rounded-xl bg-background border border-border/60">
                                 <div className="flex items-center gap-2">
-                                    <span className={`px-2 py-0.5 rounded-lg text-micro font-bold ${t.type === "LONG" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20"}`}>
+                                    <span className={`px-2 py-0.5 rounded-lg text-micro font-bold ${t.type === "LONG" ? "bg-positive/10 text-positive border border-positive/20" : "bg-negative/10 text-negative border border-negative/20"}`}>
                                         {t.type}
                                     </span>
                                     <span className="text-muted-foreground">
@@ -813,10 +813,10 @@ export default function MarketReplay({ studies = [], strategyType = "indicator",
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2 font-semibold">
-                                    <span className={t.result === "WIN" ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}>
+                                    <span className={t.result === "WIN" ? "text-positive" : "text-negative"}>
                                         {t.pnl >= 0 ? `+$${t.pnl.toFixed(2)}` : `-$${Math.abs(t.pnl).toFixed(2)}`}
                                     </span>
-                                    <span className={`text-micro px-1.5 py-0.5 rounded-md font-bold ${t.result === "WIN" ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400" : "bg-red-500/20 text-red-600 dark:text-red-400"}`}>
+                                    <span className={`text-micro px-1.5 py-0.5 rounded-md font-bold ${t.result === "WIN" ? "bg-positive/20 text-positive" : "bg-negative/20 text-negative"}`}>
                                         {t.result}
                                     </span>
                                 </div>
@@ -828,7 +828,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator",
 
             {/* Active Cut Mode Banner Overlay */}
             {isCutoffMode && (
-                <div className="flex items-center justify-center gap-2 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-center text-xs font-mono font-bold text-red-600 dark:text-red-400 animate-pulse shadow-xs">
+                <div className="flex items-center justify-center gap-2 rounded-lg border border-negative/40 bg-negative/10 p-3 text-center text-xs font-mono font-bold text-negative animate-pulse shadow-xs">
                     <Scissors size={12} className="shrink-0" aria-hidden />
                     CUT MODE ACTIVE: Click any candle on the chart below to set the replay cut-off point.
                 </div>
@@ -837,7 +837,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator",
             {/* TradingView Lightweight Chart Container with Responsive CSS Sizing */}
             <div 
                 ref={containerRef} 
-                className={`relative overflow-hidden rounded-lg border border-border bg-card shadow-xs transition-all h-[380px] sm:h-[480px] lg:h-[560px] ${isCutoffMode ? "cursor-crosshair ring-2 ring-red-500/50" : ""}`} 
+                className={`relative overflow-hidden rounded-lg border border-border bg-card shadow-xs transition-all h-[380px] sm:h-[480px] lg:h-[560px] ${isCutoffMode ? "cursor-crosshair ring-2 ring-negative/50" : ""}`} 
             >
                 {(isLoadingData || loadError) && (
                     <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 backdrop-blur-[2px]">

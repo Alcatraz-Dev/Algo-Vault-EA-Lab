@@ -226,22 +226,22 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                                     </span>
                                     <span className="font-mono text-micro tabular-nums">
                                         <span className="text-muted-foreground">H </span>
-                                        <span className="text-emerald-400">{fmtPrice(current.high, symbol)}</span>
+                                        <span className="text-positive">{fmtPrice(current.high, symbol)}</span>
                                     </span>
                                     <span className="font-mono text-micro tabular-nums">
                                         <span className="text-muted-foreground">L </span>
-                                        <span className="text-rose-400">{fmtPrice(current.low, symbol)}</span>
+                                        <span className="text-negative">{fmtPrice(current.low, symbol)}</span>
                                     </span>
                                     <span className="font-mono text-micro tabular-nums">
                                         <span className="text-muted-foreground">C </span>
-                                        <span className={cn(current.close >= current.open ? "text-emerald-400" : "text-rose-400")}>
+                                        <span className={cn(current.close >= current.open ? "text-positive" : "text-negative")}>
                                             {fmtPrice(current.close, symbol)}
                                         </span>
                                     </span>
                                     <span
                                         className={cn(
                                             "font-mono text-micro tabular-nums",
-                                            (current.close - (prev?.close ?? current.open)) >= 0 ? "text-emerald-400" : "text-rose-400"
+                                            (current.close - (prev?.close ?? current.open)) >= 0 ? "text-positive" : "text-negative"
                                         )}
                                     >
                                         {fmtSigned(current.close - (prev?.close ?? current.open), current.close < 10 ? 5 : 2)}

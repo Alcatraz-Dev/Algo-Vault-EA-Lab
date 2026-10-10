@@ -269,15 +269,15 @@ export function TradingChat({ now }: { now: number }) {
                                             Reading terminal context…
                                         </span>
                                     ) : t.error ? (
-                                        <span className="flex items-start gap-1.5 text-amber-400">
+                                        <span className="flex items-start gap-1.5 text-warning">
                                             <ShieldAlert className="mt-0.5 size-3 shrink-0" />
                                             {t.error}
                                         </span>
                                     ) : (
                                         <>
                                             {t.missing && t.missing.length > 0 ? (
-                                                <span className="mb-1.5 flex items-start gap-1.5 rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-1 text-micro leading-4 text-amber-200">
-                                                    <ShieldAlert className="mt-0.5 size-3 shrink-0 text-amber-400" />
+                                                <span className="mb-1.5 flex items-start gap-1.5 rounded border border-warning/40 bg-warning/10 px-1.5 py-1 text-micro leading-4 text-warning">
+                                                    <ShieldAlert className="mt-0.5 size-3 shrink-0 text-warning" />
                                                     <span>
                                                         Unavailable in context: {t.missing.slice(0, 6).join(", ")}
                                                         {t.missing.length > 6 ? "…" : ""} — the model was told not to

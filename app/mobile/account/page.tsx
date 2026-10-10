@@ -161,7 +161,7 @@ export default function MobileAccountPage() {
                 <Badge variant={isPro ? "default" : "outline"} className={cn(isPro && "bg-positive/10 text-positive")}>
                   {isPro ? "PRO" : "FREE"}
                 </Badge>
-                {isDev && <Badge variant="outline" className="border-violet-500/30 text-violet-400">Developer</Badge>}
+                {isDev && <Badge variant="outline" className="border-chart-3/30 text-chart-3">Developer</Badge>}
                 {profile?.role === "admin" && <Badge variant="destructive" className="text-micro">Admin</Badge>}
               </div>
             </div>

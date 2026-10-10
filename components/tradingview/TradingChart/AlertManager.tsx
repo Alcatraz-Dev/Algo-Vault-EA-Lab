@@ -42,7 +42,7 @@ export default function AlertManager({ alerts, onChange }: AlertManagerProps) {
                     <Bell size={14} />
                     <span className="hidden sm:inline">Alert</span>
                     {alerts.length > 0 && (
-                        <span className="rounded-full bg-cyan-400/20 px-1.5 py-0.5 text-micro font-medium text-cyan-300">
+                        <span className="rounded-full bg-info/20 px-1.5 py-0.5 text-micro font-medium text-info">
                             {alerts.length}
                         </span>
                     )}
@@ -70,7 +70,7 @@ export default function AlertManager({ alerts, onChange }: AlertManagerProps) {
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-6 w-6 p-0 text-muted-foreground hover:text-rose-300"
+                                className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
                                 onClick={() => removeAlert(alert.id)}
                             >
                                 <Trash2 size={12} />

@@ -219,7 +219,7 @@ export default function MobileBotsPage() {
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
                             <h3 className="font-semibold truncate">{bot.name}</h3>
-                            {bot.type === "marketplace" && <Badge variant="outline" className="text-micro border-violet-500/30 text-violet-400">Marketplace</Badge>}
+                            {bot.type === "marketplace" && <Badge variant="outline" className="text-micro border-chart-3/30 text-chart-3">Marketplace</Badge>}
                             {bot.type === "custom" && <Badge variant="outline" className="text-micro">Custom</Badge>}
                           </div>
                           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">

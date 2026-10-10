@@ -87,7 +87,7 @@ function SideLabel({ side }: { side: string }) {
     <span
       className={cn(
         "font-semibold",
-        isBuy ? "text-emerald-500" : "text-rose-500"
+        isBuy ? "text-positive" : "text-negative"
       )}
     >
       {String(side).toUpperCase() === "BUY" ? "BUY" : "SELL"}
@@ -110,8 +110,8 @@ function SummaryStat({
       <span
         className={cn(
           "font-numeric text-sm font-semibold tabular-nums",
-          tone === "positive" && "text-emerald-500",
-          tone === "negative" && "text-rose-500"
+          tone === "positive" && "text-positive",
+          tone === "negative" && "text-negative"
         )}
       >
         {value}
@@ -209,8 +209,8 @@ export default function TradeHistory({ trades }: { trades: ClosedTrade[] }) {
         <SummaryStat label="Wins / Losses" value={`${stats.wins} / ${stats.losses}`} />
         <span className="ml-auto flex items-center gap-1.5 text-micro text-muted-foreground">
           <span className="relative flex size-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
-            <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-60" />
+            <span className="relative inline-flex size-2 rounded-full bg-positive" />
           </span>
           Live
         </span>
@@ -259,7 +259,7 @@ export default function TradeHistory({ trades }: { trades: ClosedTrade[] }) {
                   <TableCell
                     className={cn(
                       "text-right font-numeric font-semibold tabular-nums",
-                      pnl >= 0 ? "text-emerald-500" : "text-rose-500"
+                      pnl >= 0 ? "text-positive" : "text-negative"
                     )}
                   >
                     {formatMoneySigned(pnl)}
@@ -270,8 +270,8 @@ export default function TradeHistory({ trades }: { trades: ClosedTrade[] }) {
                       pct === null
                         ? "text-muted-foreground"
                         : pct >= 0
-                          ? "text-emerald-500"
-                          : "text-rose-500"
+                          ? "text-positive"
+                          : "text-negative"
                     )}
                   >
                     {pct === null

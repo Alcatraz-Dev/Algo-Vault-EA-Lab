@@ -61,13 +61,13 @@ type CatalogEntry = {
 };
 
 const STATE_STYLES: Record<ConnectionState, { dot: string; label: string; icon: typeof Wifi }> = {
-  CONNECTED: { dot: "bg-emerald-500", label: "Connected", icon: Wifi },
-  DEGRADED: { dot: "bg-amber-500", label: "Degraded", icon: Activity },
-  STALE: { dot: "bg-amber-500", label: "Stale heartbeat", icon: Clock },
-  CONNECTING: { dot: "bg-sky-500", label: "Connecting", icon: Loader2 },
+  CONNECTED: { dot: "bg-positive", label: "Connected", icon: Wifi },
+  DEGRADED: { dot: "bg-warning", label: "Degraded", icon: Activity },
+  STALE: { dot: "bg-warning", label: "Stale heartbeat", icon: Clock },
+  CONNECTING: { dot: "bg-info", label: "Connecting", icon: Loader2 },
   DISCONNECTING: { dot: "bg-muted-foreground", label: "Disconnecting", icon: Loader2 },
-  DISCONNECTED: { dot: "bg-rose-500", label: "Disconnected", icon: WifiOff },
-  ERROR: { dot: "bg-rose-500", label: "Error", icon: AlertTriangle },
+  DISCONNECTED: { dot: "bg-negative", label: "Disconnected", icon: WifiOff },
+  ERROR: { dot: "bg-negative", label: "Error", icon: AlertTriangle },
 };
 
 function money(value: number | null): string {
@@ -158,7 +158,7 @@ export default function ProviderConnectionCard({ className }: { className?: stri
                     Coming Soon
                   </span>
                 ) : (
-                  <span className="rounded border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wide text-emerald-500">
+                  <span className="rounded border border-positive/40 bg-positive/10 px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wide text-positive">
                     Demo
                   </span>
                 )}
@@ -219,7 +219,7 @@ export default function ProviderConnectionCard({ className }: { className?: stri
       <footer className="flex items-start gap-2 border-t border-border px-3 py-2 text-micro text-muted-foreground">
         {error ? (
           <>
-            <ShieldAlert className="mt-0.5 size-3 text-amber-500" />
+            <ShieldAlert className="mt-0.5 size-3 text-warning" />
             <span>{error}</span>
           </>
         ) : loading ? (
@@ -229,7 +229,7 @@ export default function ProviderConnectionCard({ className }: { className?: stri
           </>
         ) : (
           <>
-            <CheckCircle2 className="mt-0.5 size-3 text-emerald-500" />
+            <CheckCircle2 className="mt-0.5 size-3 text-positive" />
             <span>
               Live (real-money) execution is disabled platform-wide. Broker credentials are never sent to the
               browser.

@@ -253,7 +253,7 @@ export default function MobileSignalsPage() {
                         <div className="flex items-center gap-2">
                           <span className="font-mono font-semibold truncate">{signal.symbol}</span>
                           <Badge variant="outline" className={cn(
-                            signal.tier === "PRO" && "border-violet-500/30 text-violet-400",
+                            signal.tier === "PRO" && "border-chart-3/30 text-chart-3",
                             signal.tier === "FREE" && "border-positive/30 text-positive"
                           )}>
                             {signal.tier}

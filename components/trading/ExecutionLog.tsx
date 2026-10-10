@@ -48,7 +48,7 @@ function StatusBadge({ status }: { status: string }) {
   switch (s) {
     case "filled":
       return (
-        <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+        <Badge className="bg-positive/10 text-positive dark:text-positive">
           <Check size={10} className="mr-0.5" />
           Filled
         </Badge>
@@ -56,14 +56,14 @@ function StatusBadge({ status }: { status: string }) {
     case "rejected":
     case "failed":
       return (
-        <Badge className="bg-rose-500/10 text-rose-600 dark:text-rose-400">
+        <Badge className="bg-negative/10 text-negative dark:text-negative">
           <X size={10} className="mr-0.5" />
           Rejected
         </Badge>
       );
     case "pending":
       return (
-        <Badge className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
+        <Badge className="bg-warning/10 text-warning dark:text-warning">
           <Clock size={10} className="mr-0.5" />
           Pending
         </Badge>
@@ -71,7 +71,7 @@ function StatusBadge({ status }: { status: string }) {
     case "executing":
     case "queued":
       return (
-        <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400">
+        <Badge className="bg-info/10 text-info dark:text-info">
           <Zap size={10} className="mr-0.5" />
           Executing
         </Badge>
@@ -124,8 +124,8 @@ export default function ExecutionLog({
                   className={cn(
                     "font-semibold",
                     log.action.toUpperCase().includes("BUY") || log.action.toUpperCase() === "BUY"
-                      ? "text-emerald-500"
-                      : "text-rose-500"
+                      ? "text-positive"
+                      : "text-negative"
                   )}
                 >
                   {log.action}
@@ -155,7 +155,7 @@ export default function ExecutionLog({
 
               {/* Error */}
               {log.errorMessage && (
-                <span className="flex items-center gap-1 text-micro text-rose-500">
+                <span className="flex items-center gap-1 text-micro text-negative">
                   <AlertTriangle size={10} />
                   {log.errorMessage}
                 </span>

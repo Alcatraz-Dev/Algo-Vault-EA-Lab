@@ -26,14 +26,14 @@ export interface TradingViewContextPayload {
 }
 
 const STATE_STYLES: Record<string, string> = {
-    CONNECTED: "bg-emerald-500/10 text-emerald-400",
+    CONNECTED: "bg-positive/10 text-positive",
     DISABLED: "bg-muted text-muted-foreground",
     NOT_CONNECTED: "bg-muted text-muted-foreground",
-    RATE_LIMITED: "bg-amber-500/10 text-amber-400",
-    REAUTH_REQUIRED: "bg-amber-500/10 text-amber-400",
-    TOKEN_EXPIRED: "bg-amber-500/10 text-amber-400",
-    UNAVAILABLE: "bg-rose-500/10 text-rose-400",
-    ERROR: "bg-rose-500/10 text-rose-400",
+    RATE_LIMITED: "bg-warning/10 text-warning",
+    REAUTH_REQUIRED: "bg-warning/10 text-warning",
+    TOKEN_EXPIRED: "bg-warning/10 text-warning",
+    UNAVAILABLE: "bg-negative/10 text-negative",
+    ERROR: "bg-negative/10 text-negative",
 };
 
 function SectionCard({
@@ -93,16 +93,16 @@ export function ProTradingViewContextPanel({ context }: { context: TradingViewCo
     return (
         <section className="rounded-lg border border-border bg-card">
             <div className="flex min-w-0 items-center gap-2 border-b border-border px-3 py-2">
-                <Zap size={14} className="text-blue-400" />
+                <Zap size={14} className="text-info" />
                 <h2 className="truncate text-xs font-semibold uppercase tracking-wide text-foreground">TradingView Context</h2>
-                <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-micro font-medium text-blue-400">BETA</span>
+                <span className="rounded bg-info/10 px-1.5 py-0.5 text-micro font-medium text-info">BETA</span>
                 <span className="ml-auto text-micro text-muted-foreground">external · may be delayed</span>
             </div>
 
             <div className="grid gap-2 p-2.5 sm:grid-cols-3">
-                <SectionCard icon={<Zap size={11} className="text-blue-400" />} title="Technicals" section={context.technicals} />
-                <SectionCard icon={<Newspaper size={11} className="text-blue-400" />} title="News" section={context.news} />
-                <SectionCard icon={<CalendarClock size={11} className="text-blue-400" />} title="Economic events" section={context.economicCalendar} />
+                <SectionCard icon={<Zap size={11} className="text-info" />} title="Technicals" section={context.technicals} />
+                <SectionCard icon={<Newspaper size={11} className="text-info" />} title="News" section={context.news} />
+                <SectionCard icon={<CalendarClock size={11} className="text-info" />} title="Economic events" section={context.economicCalendar} />
             </div>
 
             {allUnavailable ? (

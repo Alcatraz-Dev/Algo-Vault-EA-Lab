@@ -486,7 +486,7 @@ export default function SignalHistoryPage() {
                                 </span>
                             )}
                             {hasPro && (
-                                <span className="inline-flex items-center gap-1 rounded-full border border-warning/30 bg-warning/10 px-2 py-0.5 text-micro font-semibold text-warning">
+                                <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-micro font-semibold text-primary">
                                     <Zap size={9} className="fill-current" />
                                     PRO
                                 </span>
@@ -504,7 +504,7 @@ export default function SignalHistoryPage() {
                         <button
                             onClick={() => void Promise.all([fetchSignals(user), fetchStats(user)])}
                             disabled={isRefreshing}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-card/40 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-border/50 hover:text-foreground disabled:opacity-40"
+                            className="inline-flex items-center gap-1.5 rounded-md border border-border/30 bg-card px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-border/50 hover:text-foreground disabled:opacity-40"
                         >
                             <RefreshCw size={12} className={isRefreshing ? "animate-spin" : ""} />
                             {isRefreshing ? "Refreshing…" : "Refresh"}
@@ -518,7 +518,7 @@ export default function SignalHistoryPage() {
                     <div className="relative">
                         <button
                             onClick={() => setPeriodOpen(!periodOpen)}
-                            className="flex h-8 items-center gap-1.5 rounded-lg border border-border/30 bg-card/40 px-3 text-xs text-muted-foreground transition-colors hover:border-border/50 hover:text-foreground"
+                            className="flex h-8 items-center gap-1.5 rounded-md border border-border/30 bg-card px-3 text-xs text-muted-foreground transition-colors hover:border-border/50 hover:text-foreground"
                         >
                             <Calendar size={12} />
                             {PERIOD_OPTIONS.find((o) => o.value === period)?.label}
@@ -527,12 +527,12 @@ export default function SignalHistoryPage() {
                         {periodOpen && (
                             <>
                                 <div className="fixed inset-0 z-40" onClick={() => setPeriodOpen(false)} />
-                                <div className="absolute left-0 top-full z-50 mt-1 w-44 rounded-xl border border-border/30 bg-card p-1 shadow-xl backdrop-blur-xl">
+                                <div className="absolute left-0 top-full z-50 mt-1 w-44 rounded-lg border border-border/30 bg-popover p-1 shadow-lg">
                                     {PERIOD_OPTIONS.map((opt) => (
                                         <button
                                             key={opt.value}
                                             onClick={() => { setPeriod(opt.value); setPeriodOpen(false); }}
-                                            className={`flex w-full items-center rounded-lg px-3 py-1.5 text-xs transition-colors ${period === opt.value ? "bg-warning/10 text-warning" : "text-muted-foreground hover:bg-muted/5 hover:text-foreground"}`}
+                                            className={`flex w-full items-center rounded-md px-3 py-1.5 text-xs transition-colors ${period === opt.value ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/5 hover:text-foreground"}`}
                                         >
                                             {opt.label}
                                         </button>
@@ -548,7 +548,7 @@ export default function SignalHistoryPage() {
                             <button
                                 key={opt.value}
                                 onClick={() => setTierFilter(opt.value)}
-                                className={`rounded-md px-2.5 py-1 text-micro font-medium transition-all ${tierFilter === opt.value ? "bg-warning/20 text-warning" : "text-muted-foreground hover:text-foreground"}`}
+                                className={`rounded-md px-2.5 py-1 text-micro font-medium transition-all ${tierFilter === opt.value ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
                             >
                                 {opt.label}
                             </button>
@@ -559,7 +559,7 @@ export default function SignalHistoryPage() {
                     <div className="flex items-center gap-0.5 rounded-lg border border-border/30 bg-card/40 p-0.5">
                         <button
                             onClick={() => setTimeframeFilter("all")}
-                            className={`rounded-md px-2.5 py-1 text-micro font-medium transition-all ${timeframeFilter === "all" ? "bg-warning/20 text-warning" : "text-muted-foreground hover:text-foreground"}`}
+                            className={`rounded-md px-2.5 py-1 text-micro font-medium transition-all ${timeframeFilter === "all" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
                         >
                             All TF
                         </button>
@@ -567,7 +567,7 @@ export default function SignalHistoryPage() {
                             <button
                                 key={tf}
                                 onClick={() => setTimeframeFilter(tf)}
-                                className={`rounded-md px-2.5 py-1 text-micro font-medium transition-all ${timeframeFilter === tf ? "bg-warning/20 text-warning" : "text-muted-foreground hover:text-foreground"}`}
+                                className={`rounded-md px-2.5 py-1 text-micro font-medium transition-all ${timeframeFilter === tf ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
                             >
                                 {tf}
                             </button>
@@ -580,7 +580,7 @@ export default function SignalHistoryPage() {
                             <button
                                 key={dir}
                                 onClick={() => setDirectionFilter(dir)}
-                                className={`rounded-md px-2.5 py-1 text-micro font-medium transition-all ${directionFilter === dir ? "bg-warning/20 text-warning" : "text-muted-foreground hover:text-foreground"}`}
+                                className={`rounded-md px-2.5 py-1 text-micro font-medium transition-all ${directionFilter === dir ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
                             >
                                 {dir === "all" ? "All" : dir}
                             </button>

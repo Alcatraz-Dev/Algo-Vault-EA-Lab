@@ -94,7 +94,7 @@ export function LayerPicker({ layers, availability, onToggle, compact = false }:
                                         {!available ? <Lock className="size-3" /> : layers[l.id] ? <Check className="size-3" /> : null}
                                         <span className="flex-1 text-left">{l.label}</span>
                                         {!available && req ? <ChevronDown className={cn("size-3 transition", expandedId === l.id && "rotate-180")} /> : null}
-                                        {isEstimatedChip ? <span aria-hidden className="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-micro font-bold text-amber-500">EST</span> : null}
+                                        {isEstimatedChip ? <span aria-hidden className="rounded-full bg-warning/20 px-1.5 py-0.5 text-micro font-bold text-warning">EST</span> : null}
                                     </button>
                                 );
                             })}

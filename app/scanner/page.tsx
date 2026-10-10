@@ -128,7 +128,7 @@ export default function ScannerPage() {
     const filteredResults = filters.symbol || filters.direction || filters.regime ? filtered : results;
 
     if (authLoading) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Market Scanner"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div></AccountShell></div>);
+        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Market Scanner"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></AccountShell></div>);
     }
     if (!user) {
         return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Market Scanner"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1></div></AccountShell></div>);
@@ -138,17 +138,17 @@ export default function ScannerPage() {
         <AccountShell title="Professional Market Scanner" subtitle="Multi-asset market scanner with real-time signals" onBack={() => router.push("/account")}>
             <div className="space-y-4" data-guide="scanner">
                 <div className="flex flex-wrap items-center gap-3" data-guide="controls">
-                    <button type="button" onClick={scan} disabled={loading} className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-violet-500 transition disabled:opacity-50">
+                    <button type="button" onClick={scan} disabled={loading} className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-primary transition disabled:opacity-50">
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />} Scan Markets
                     </button>
                     <span className="text-xs text-muted-foreground">{filteredResults.length} symbols scanned</span>
-                    {isPro && <Crown size={14} className="text-amber-400" />}
+                    {isPro && <Crown size={14} className="text-warning" />}
                 </div>
 
                 {isPro && (
-                    <div className="rounded-xl border border-violet-500/20 bg-violet-500/[0.03] p-4" data-guide="image-scan">
+                    <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-4" data-guide="image-scan">
                         <div className="flex items-center gap-3 mb-3">
-                            <Upload className="h-5 w-5 text-violet-400" />
+                            <Upload className="h-5 w-5 text-primary" />
                             <span className="text-sm font-semibold text-foreground">Chart Image Scanner (Pro)</span>
                             <span className="text-xs text-muted-foreground">Upload a chart screenshot for AI analysis</span>
                         </div>
@@ -166,7 +166,7 @@ export default function ScannerPage() {
                                     type="button"
                                     onClick={() => fileInputRef.current?.click()}
                                     disabled={imageUploading}
-                                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-violet-500/30 bg-violet-500/5 px-4 py-3 text-sm text-violet-400 hover:bg-violet-500/10 transition disabled:opacity-50"
+                                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-primary/30 bg-primary/5 px-4 py-3 text-sm text-primary hover:bg-primary/10 transition disabled:opacity-50"
                                 >
                                     {imageUploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
                                     {imageUploading ? "Analyzing..." : "Upload Chart Image"}
@@ -180,7 +180,7 @@ export default function ScannerPage() {
                         </div>
                         {imageResult && (
                             <div className="mt-3 rounded-lg border border-border/30 bg-muted/30 p-3 text-xs text-muted-foreground">
-                                <div className="flex items-center gap-2 text-emerald-400"><Eye className="h-4 w-4" /> Image Analysis Results</div>
+                                <div className="flex items-center gap-2 text-positive"><Eye className="h-4 w-4" /> Image Analysis Results</div>
                                 <p className="mt-1">Detected: {imageResult.detectedMarketData?.regime} ({imageResult.detectedMarketData?.confidence}%) | Volatility: {imageResult.detectedMarketData?.volatility} | Score: {imageResult.detectedMarketData?.score}/100</p>
                                 <p className="mt-1">{imageResult.analysis}</p>
                             </div>
@@ -189,7 +189,7 @@ export default function ScannerPage() {
                 )}
 
                 {!isPro && (
-                    <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.03] p-3 text-xs text-amber-400/60">
+                    <div className="rounded-xl border border-warning/20 bg-warning/[0.03] p-3 text-xs text-warning/60">
                         <Lock size={14} className="inline mr-1" /> Chart image scanning requires a Pro subscription. Upgrade at <a href="/pricing" className="underline">/pricing</a>
                     </div>
                 )}
@@ -217,14 +217,14 @@ export default function ScannerPage() {
                                 filteredResults.map((r) => (
                                     <tr key={r.symbol} className="border-b border-border/50 hover:bg-muted/50">
                                         <td className="px-4 py-3 font-mono font-bold text-foreground">{r.symbol}</td>
-                                        <td className={cn("px-4 py-3 font-medium", r.direction === "BUY" ? "text-emerald-400" : r.direction === "SELL" ? "text-rose-400" : "text-muted-foreground")}>
+                                        <td className={cn("px-4 py-3 font-medium", r.direction === "BUY" ? "text-positive" : r.direction === "SELL" ? "text-negative" : "text-muted-foreground")}>
                                             {r.direction}
-                                            {(r.strength ?? 0) >= 80 && <span className="ml-1 text-micro text-amber-400">●</span>}
+                                            {(r.strength ?? 0) >= 80 && <span className="ml-1 text-micro text-warning">●</span>}
                                         </td>
                                         <td className="px-4 py-3 text-right font-mono font-bold" style={{ color: (r.strength ?? 0) >= 80 ? "#10b981" : (r.strength ?? 0) >= 60 ? "#f59e0b" : "#ef4444" }}>{r.strength}</td>
                                         <td className="px-4 py-3 text-right text-muted-foreground">{r.trend}</td>
                                         <td className="px-4 py-3 text-right font-mono text-muted-foreground">{r.momentum}</td>
-                                        <td className="px-4 py-3 text-left"><span className={cn("rounded px-1.5 py-0.5 text-micro", r.volatility === "high" ? "bg-rose-500/10 text-rose-400" : r.volatility === "low" ? "bg-emerald-500/10 text-emerald-400" : "bg-muted/10 text-muted-foreground")}>{r.volatility}</span></td>
+                                        <td className="px-4 py-3 text-left"><span className={cn("rounded px-1.5 py-0.5 text-micro", r.volatility === "high" ? "bg-negative/10 text-negative" : r.volatility === "low" ? "bg-positive/10 text-positive" : "bg-muted/10 text-muted-foreground")}>{r.volatility}</span></td>
                                         <td className="px-4 py-3 text-left text-muted-foreground">{r.regime}</td>
                                         <td className="px-4 py-3 text-left text-muted-foreground">{r.liquidity}</td>
                                     </tr>
@@ -234,7 +234,7 @@ export default function ScannerPage() {
                     </table>
                 </div>
 
-                <div className="rounded-xl border border-amber-500/10 bg-amber-500/[0.03] p-3 text-micro text-amber-400/60">
+                <div className="rounded-xl border border-warning/10 bg-warning/[0.03] p-3 text-micro text-warning/60">
                     Market Scanner uses real-time data from connected market sources. Pro subscribers can upload chart screenshots for AI-powered analysis combined with real market data. Strength scores reflect current market conditions based on trend, structure, liquidity, momentum, and volume analysis. Not financial advice.
                 </div>
             </div>

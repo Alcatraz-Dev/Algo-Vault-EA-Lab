@@ -36,13 +36,13 @@ export interface TerminalIntelligencePayload {
 }
 
 const STATE_TONES: Record<string, string> = {
-    READY: "border-emerald-500/40 bg-emerald-500/10 text-emerald-400",
-    TRIGGERED: "border-emerald-500/40 bg-emerald-500/10 text-emerald-400",
-    WAITING: "border-amber-500/40 bg-amber-500/10 text-amber-400",
-    VALIDATING: "border-amber-500/40 bg-amber-500/10 text-amber-400",
-    HOLD: "border-amber-500/40 bg-amber-500/10 text-amber-400",
-    BLOCKED: "border-rose-500/40 bg-rose-500/10 text-rose-400",
-    INVALID: "border-rose-500/40 bg-rose-500/10 text-rose-400",
+    READY: "border-positive/40 bg-positive/10 text-positive",
+    TRIGGERED: "border-positive/40 bg-positive/10 text-positive",
+    WAITING: "border-warning/40 bg-warning/10 text-warning",
+    VALIDATING: "border-warning/40 bg-warning/10 text-warning",
+    HOLD: "border-warning/40 bg-warning/10 text-warning",
+    BLOCKED: "border-negative/40 bg-negative/10 text-negative",
+    INVALID: "border-negative/40 bg-negative/10 text-negative",
     AI_UNAVAILABLE: "border-border bg-muted text-muted-foreground",
 };
 
@@ -71,7 +71,7 @@ function FactorRow({ factor }: { factor: { source: string; label: string; value:
             <span className="shrink-0 text-micro uppercase tracking-wide text-muted-foreground">
                 {SOURCE_LABELS[factor.source] ?? factor.source}
             </span>
-            <span className={cn("min-w-0 flex-1 text-right text-xs", factor.negative ? "text-rose-400" : "text-foreground")}>
+            <span className={cn("min-w-0 flex-1 text-right text-xs", factor.negative ? "text-negative" : "text-foreground")}>
                 <span className="font-medium">{factor.label}</span>
                 <span className="text-muted-foreground"> — {factor.value}</span>
             </span>
@@ -134,7 +134,7 @@ export function IntelligencePanel({
                                         className={cn(
                                             "rounded-full border px-1.5 py-0.5 text-micro font-medium",
                                             decision.jev.status === "VALIDATED"
-                                                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                                                ? "border-positive/40 bg-positive/10 text-positive"
                                                 : "border-border bg-muted text-muted-foreground",
                                         )}
                                         title={`Jev ${decision.jev.status}`}
@@ -170,9 +170,9 @@ export function IntelligencePanel({
                                 {decision.risk ? (
                                     <li className="flex items-center gap-2 py-1 text-xs">
                                         {decision.risk.approved ? (
-                                            <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+                                            <ShieldCheck className="h-3.5 w-3.5 text-positive" />
                                         ) : (
-                                            <ShieldX className="h-3.5 w-3.5 text-rose-400" />
+                                            <ShieldX className="h-3.5 w-3.5 text-negative" />
                                         )}
                                         <span className="text-muted-foreground">
                                             Risk engine {decision.risk.approved ? "PASS" : "FAIL"} ({decision.risk.code})

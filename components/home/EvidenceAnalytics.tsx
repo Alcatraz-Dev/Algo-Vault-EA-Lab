@@ -188,15 +188,15 @@ export default function EvidenceAnalytics({
                                                 <AreaChart data={equityData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                                                     <defs>
                                                         <linearGradient id="recordedEquity" x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="5%" stopColor="#ff4d00" stopOpacity={0.35} />
-                                                            <stop offset="95%" stopColor="#ff4d00" stopOpacity={0} />
+                                                            <stop offset="5%" stopColor="#daba6b" stopOpacity={0.35} />
+                                                            <stop offset="95%" stopColor="#daba6b" stopOpacity={0} />
                                                         </linearGradient>
                                                     </defs>
                                                     <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
                                                     <XAxis dataKey="label" tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} axisLine={false} tickLine={false} interval={0} />
                                                     <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} axisLine={false} tickLine={false} width={52} tickFormatter={(v: number) => formatUsd(v)} />
                                                     <Tooltip cursor={{ stroke: "var(--border)", strokeDasharray: "3 3" }} contentStyle={TOOLTIP_STYLE} formatter={(value) => [formatSignedUsd(Number(value)), "Equity"]} />
-                                                    <Area type="monotone" dataKey="equity" stroke="#ff4d00" strokeWidth={2.5} fillOpacity={1} fill="url(#recordedEquity)" />
+                                                    <Area type="monotone" dataKey="equity" stroke="#daba6b" strokeWidth={2.5} fillOpacity={1} fill="url(#recordedEquity)" />
                                                 </AreaChart>
                                             </ResponsiveContainer>
                                         </div>
@@ -219,8 +219,8 @@ export default function EvidenceAnalytics({
                                                 <ComposedChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                                                     <defs>
                                                         <linearGradient id="winRateGradient" x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="0%" stopColor="#ff4d00" stopOpacity={0.95} />
-                                                            <stop offset="100%" stopColor="#ff4d00" stopOpacity={0.2} />
+                                                            <stop offset="0%" stopColor="#daba6b" stopOpacity={0.95} />
+                                                            <stop offset="100%" stopColor="#daba6b" stopOpacity={0.2} />
                                                         </linearGradient>
                                                     </defs>
                                                     <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />

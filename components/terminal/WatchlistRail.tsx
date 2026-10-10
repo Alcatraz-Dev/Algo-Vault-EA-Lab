@@ -219,8 +219,8 @@ export function WatchlistRail({ now }: { now: number }) {
                                                     className={cn(
                                                         "rounded border px-1 text-[8px] font-bold tracking-wide",
                                                         sig.startsWith("LONG")
-                                                            ? "border-emerald-500/40 text-emerald-400"
-                                                            : "border-rose-500/40 text-rose-400"
+                                                            ? "border-positive/40 text-positive"
+                                                            : "border-negative/40 text-negative"
                                                     )}
                                                     title="Deterministic scanner signal for this symbol"
                                                 >
@@ -240,8 +240,8 @@ export function WatchlistRail({ now }: { now: number }) {
                                             change === null
                                                 ? "text-muted-foreground"
                                                 : change >= 0
-                                                  ? "text-emerald-400"
-                                                  : "text-rose-400"
+                                                  ? "text-positive"
+                                                  : "text-negative"
                                         )}
                                     >
                                         {change !== null ? `${change >= 0 ? "+" : ""}${change.toFixed(2)}%` : "—"}
@@ -255,7 +255,7 @@ export function WatchlistRail({ now }: { now: number }) {
                                             aria-pressed={fav}
                                             className="rounded p-0.5 text-muted-foreground transition hover:text-foreground"
                                         >
-                                            <Star className={cn("size-3", fav && "fill-amber-400 text-amber-400")} />
+                                            <Star className={cn("size-3", fav && "fill-warning text-warning")} />
                                         </button>
                                         <button
                                             type="button"
@@ -279,7 +279,7 @@ export function WatchlistRail({ now }: { now: number }) {
                                             type="button"
                                             onClick={() => removeFromWatchlist(s)}
                                             aria-label={`Remove ${s} from watchlist`}
-                                            className="rounded p-0.5 text-muted-foreground transition hover:text-rose-400"
+                                            className="rounded p-0.5 text-muted-foreground transition hover:text-negative"
                                         >
                                             <Trash2 className="size-3" />
                                         </button>
@@ -292,7 +292,7 @@ export function WatchlistRail({ now }: { now: number }) {
 
                 <div className="mt-1.5 flex items-center justify-between border-t border-border pt-1.5 text-micro text-muted-foreground">
                     <span className="inline-flex items-center gap-1">
-                        {quotesLoading ? <Loader2 className="size-2.5 animate-spin" /> : quotesError ? <WifiOff className="size-2.5 text-amber-400" /> : null}
+                        {quotesLoading ? <Loader2 className="size-2.5 animate-spin" /> : quotesError ? <WifiOff className="size-2.5 text-warning" /> : null}
                         {quotesError ? "Quote feed unavailable" : "Quotes · 1h change"}
                     </span>
                     <span className="font-mono">{SUPPORTED_SYMBOLS.length} supported</span>
@@ -348,8 +348,8 @@ function MarketOverview({ now }: { now: number }) {
                         <dd
                             className={cn(
                                 "truncate font-mono tabular-nums",
-                                r.tone === "up" && "text-emerald-400",
-                                r.tone === "down" && "text-rose-400",
+                                r.tone === "up" && "text-positive",
+                                r.tone === "down" && "text-negative",
                                 r.tone === "muted" && "text-muted-foreground italic",
                                 !r.tone && "text-foreground"
                             )}

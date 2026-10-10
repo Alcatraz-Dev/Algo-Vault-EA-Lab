@@ -291,7 +291,7 @@ export default function MobileMarketContextPage() {
                                                 "mr-1 rounded px-1 py-0.5 font-mono text-micro",
                                                 n.kind === "OBSERVED" && "bg-positive/15 text-positive",
                                                 n.kind === "CALCULATED" && "bg-info/15 text-info",
-                                                n.kind === "INFERENCE" && "bg-violet-500/15 text-violet-300",
+                                                n.kind === "INFERENCE" && "bg-chart-3/15 text-chart-3",
                                                 n.kind === "RECOMMENDATION" && "bg-negative/15 text-negative"
                                             )}
                                         >

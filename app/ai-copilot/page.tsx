@@ -64,7 +64,7 @@ export default function AICopilotPage() {
         return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="AI Trading Copilot" subtitle="Ask about your market, account, and strategies"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></AccountShell></div>);
     }
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="AI Trading Copilot"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><a href="/login" className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-foreground">Sign In</a></div></AccountShell></div>);
+        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="AI Trading Copilot"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><a href="/login" className="rounded-md bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground">Sign In</a></div></AccountShell></div>);
     }
 
     return (
@@ -73,20 +73,20 @@ export default function AICopilotPage() {
                 <div className="grid gap-6 lg:grid-cols-3" data-guide="page-header">
                     <div className="lg:col-span-2 space-y-6">
                         {/* Quick Questions */}
-                        <div className="rounded-xl border border-border/30 bg-muted/50 p-5">
+                        <div className="rounded-lg border border-border bg-card p-5">
                             <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><Sparkles size={16} className="text-primary" />Quick Questions</h3>
                             <div className="flex flex-wrap gap-2">
                                 {quickQuestions.map((q) => (
-                                    <button key={q} type="button" onClick={() => { setQuestion(q); }} className="rounded-lg border border-border/40 bg-muted px-3 py-1.5 text-xs text-muted-foreground hover:bg-violet-500/10 hover:text-primary transition">{q}</button>
+                                    <button key={q} type="button" onClick={() => { setQuestion(q); }} className="rounded-md border border-border bg-muted px-3 py-1.5 text-xs text-muted-foreground hover:bg-primary/10 hover:text-primary transition">{q}</button>
                                 ))}
                             </div>
                         </div>
 
                         {/* Chat Input */}
-                        <div className="rounded-xl border border-border/30 bg-muted/50 p-5">
+                        <div className="rounded-lg border border-border bg-card p-5">
                             <div className="flex gap-3">
-                                <input type="text" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Ask about market regime, account risk, trade performance, strategy recommendations..." className="flex-1 rounded-lg border border-border/40 bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" onKeyDown={(e) => e.key === "Enter" && handleAsk()} />
-                                <button type="button" onClick={handleAsk} disabled={loading || !question.trim()} className="rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-foreground hover:bg-primary/90 transition disabled:opacity-50">
+                                <input type="text" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Ask about market regime, account risk, trade performance, strategy recommendations..." className="flex-1 rounded-md border border-border bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-ring focus:outline-none" onKeyDown={(e) => e.key === "Enter" && handleAsk()} />
+                                <button type="button" onClick={handleAsk} disabled={loading || !question.trim()} className="rounded-md bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50">
                                     {loading ? <Loader2 size={16} className="animate-spin" /> : <MessageSquare size={16} />}
                                 </button>
                             </div>
@@ -96,7 +96,7 @@ export default function AICopilotPage() {
                         {Object.keys(responses).length > 0 && (
                             <div className="space-y-4">
                                 {Object.entries(responses).map(([key, text]) => (
-                                    <div key={key} className="rounded-xl border border-positive/20 bg-positive/[0.03] p-5">
+                                    <div key={key} className="rounded-lg border border-positive/30 bg-positive/10 p-5">
                                         <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-positive"><Activity size={14} />{key.replace(/_/g, " ").toUpperCase()}</div>
                                         <p className="text-sm text-muted-foreground whitespace-pre-line">{text}</p>
                                     </div>
@@ -106,15 +106,15 @@ export default function AICopilotPage() {
 
                         {/* TradingView external evidence (separate, provenance-preserved) */}
                         {copilotData?.tradingview && (
-                            <div className="rounded-xl border border-info/20 bg-info/[0.03] p-5">
-                                <div className="mb-1 flex items-center gap-2 text-xs font-semibold text-info"><Globe size={14} />TRADINGVIEW EVIDENCE <span className="rounded bg-info/10 px-1.5 py-0.5 text-micro font-medium">BETA · MAY BE DELAYED</span></div>
+                            <div className="rounded-lg border border-info/30 bg-info/10 p-5">
+                                <div className="mb-1 flex items-center gap-2 text-xs font-semibold text-info"><Globe size={14} />TRADINGVIEW EVIDENCE <span className="rounded-full bg-info/10 px-1.5 py-0.5 text-micro font-medium">BETA · MAY BE DELAYED</span></div>
                                 <p className="mb-3 text-micro text-muted-foreground">External context from the TradingView MCP provider — kept separate from AlgoVault evidence.</p>
                                 <div className="grid gap-2">
                                     {[copilotData.tradingview.technicals, copilotData.tradingview.news, copilotData.tradingview.economicCalendar].map((section: any, i: number) => (
                                         <div key={i} className="rounded-lg bg-muted/50 p-3">
                                             <div className="flex items-center justify-between">
                                                 <span className="text-micro font-semibold text-foreground">{{ 0: "Technical snapshot", 1: "News", 2: "Economic calendar" }[i]}</span>
-                                                <span className={cn("rounded px-1.5 py-0.5 text-micro", section?.state === "CONNECTED" ? "bg-positive/10 text-positive" : "bg-muted text-muted-foreground")}>{section?.state ?? "UNAVAILABLE"}</span>
+                                                <span className={cn("rounded-full px-1.5 py-0.5 text-micro", section?.state === "CONNECTED" ? "bg-positive/10 text-positive" : "bg-muted text-muted-foreground")}>{section?.state ?? "UNAVAILABLE"}</span>
                                             </div>
                                             {section?.available ? (
                                                 <p className="mt-1 whitespace-pre-line text-micro text-muted-foreground">{section.items?.[0]?.value}</p>
@@ -128,7 +128,7 @@ export default function AICopilotPage() {
                                     ))}
                                 </div>
                                 {copilotData.tradingview.limitations?.length > 0 && (
-                                    <div className="mt-3 border-t border-border/30 pt-2">
+                                    <div className="mt-3 border-t border-border pt-2">
                                         <p className="text-micro font-semibold uppercase tracking-wide text-warning/70">Limitations</p>
                                         <ul className="mt-1 list-inside list-disc text-micro text-muted-foreground">
                                             {copilotData.tradingview.limitations.map((l: string, i: number) => <li key={i}>{l}</li>)}
@@ -140,14 +140,14 @@ export default function AICopilotPage() {
 
                         {/* Market Data Summary */}
                         {Object.keys(marketData).length > 0 && (
-                            <div className="rounded-xl border border-border/30 bg-muted/50 p-5">
+                            <div className="rounded-lg border border-border bg-card p-5">
                                 <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><TrendingUp size={16} className="text-primary" />Market Snapshot</h3>
                                 <div className="grid gap-3 sm:grid-cols-2">
                                     {Object.entries(marketData).map(([sym, data]: [string, any]) => (
                                         <div key={sym} className="rounded-lg bg-muted/50 p-3">
                                             <div className="flex items-center justify-between">
                                                 <span className="font-mono text-sm font-bold text-foreground">{sym}</span>
-                                                <span className={cn("rounded px-2 py-0.5 text-micro font-medium", data.error ? "bg-negative/10 text-negative" : data.bias === "bullish" ? "bg-positive/10 text-positive" : "bg-negative/10 text-negative")}>{data.error ? "N/A" : data.bias}</span>
+                                                <span className={cn("rounded-full px-2 py-0.5 text-micro font-medium", data.error ? "bg-negative/10 text-negative" : data.bias === "bullish" ? "bg-positive/10 text-positive" : "bg-negative/10 text-negative")}>{data.error ? "N/A" : data.bias}</span>
                                             </div>
                                             {data.error ? (
                                                 <p className="mt-1 text-xs text-muted-foreground">Data unavailable</p>
@@ -169,18 +169,18 @@ export default function AICopilotPage() {
                     {/* Sidebar */}
                     <div className="space-y-4">
                         {copilotData && (
-                            <div className="rounded-xl border border-border/30 bg-muted/50 p-5">
+                            <div className="rounded-lg border border-border bg-card p-5">
                                 <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><Activity size={16} className="text-primary" />Account Status</h3>
                                 <div className="space-y-2 text-xs">
-                                    <div className="flex justify-between"><span className="text-muted-foreground">MT5 Accounts</span><span className="text-foreground font-mono">{copilotData.accounts}</span></div>
-                                    <div className="flex justify-between"><span className="text-muted-foreground">Open Positions</span><span className="text-foreground font-mono">{copilotData.positions}</span></div>
-                                    <div className="flex justify-between"><span className="text-muted-foreground">Recent Signals</span><span className="text-foreground font-mono">{copilotData.recentSignals}</span></div>
-                                    <div className="flex justify-between"><span className="text-muted-foreground">Subscription</span><span className={cn("font-mono", copilotData.isPro ? "text-positive" : "text-muted-foreground")}>{copilotData.isPro ? "PRO" : "FREE"}</span></div>
+                                    <div className="flex justify-between"><span className="text-muted-foreground">MT5 Accounts</span><span className="text-foreground font-numeric">{copilotData.accounts}</span></div>
+                                    <div className="flex justify-between"><span className="text-muted-foreground">Open Positions</span><span className="text-foreground font-numeric">{copilotData.positions}</span></div>
+                                    <div className="flex justify-between"><span className="text-muted-foreground">Recent Signals</span><span className="text-foreground font-numeric">{copilotData.recentSignals}</span></div>
+                                    <div className="flex justify-between"><span className="text-muted-foreground">Subscription</span><span className={cn("font-medium", copilotData.isPro ? "text-positive" : "text-muted-foreground")}>{copilotData.isPro ? "PRO" : "FREE"}</span></div>
                                 </div>
                             </div>
                         )}
 
-                        <div className="rounded-xl border border-warning/10 bg-warning/[0.03] p-4 text-micro text-warning/60">
+                        <div className="rounded-lg border border-warning/30 bg-warning/10 p-4 text-micro text-warning-foreground">
                             <Shield size={12} className="mr-1 inline" />
                             AI Copilot uses real platform data. All analysis is based on your actual signals, positions, and market conditions. Not financial advice.
                         </div>

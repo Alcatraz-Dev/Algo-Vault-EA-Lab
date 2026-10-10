@@ -102,7 +102,7 @@ export default function PortfolioPage() {
     };
 
     if (authLoading) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><SiteNavbar /><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><SiteNavbar /><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></div>);
     }
 
     if (!user) {
@@ -112,7 +112,7 @@ export default function PortfolioPage() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                     <Wallet size={40} className="text-muted-foreground" />
                     <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
-                    <a href="/login" className="rounded-xl bg-violet-600 px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-violet-500 transition">Sign In</a>
+                    <a href="/login" className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-primary transition">Sign In</a>
                 </div>
             </div>
         );
@@ -133,16 +133,16 @@ export default function PortfolioPage() {
                 </div>
 
                 {loading && !portfolio ? (
-                    <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div>
+                    <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
                 ) : portfolio ? (
                     <>
                         {/* Summary Cards */}
                         <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6" data-guide="stats">
                             <SummaryCard icon={Wallet} label="Total Balance" value={`$${portfolio.totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} />
-                            <SummaryCard icon={TrendingUp} label="Total Equity" value={`$${portfolio.totalEquity.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} color={portfolio.totalFloatingPnl >= 0 ? "text-emerald-400" : "text-rose-400"} />
-                            <SummaryCard icon={Activity} label="Floating P/L" value={`${portfolio.totalFloatingPnl >= 0 ? "+" : ""}$${portfolio.totalFloatingPnl.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} color={portfolio.totalFloatingPnl >= 0 ? "text-emerald-400" : "text-rose-400"} />
+                            <SummaryCard icon={TrendingUp} label="Total Equity" value={`$${portfolio.totalEquity.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} color={portfolio.totalFloatingPnl >= 0 ? "text-positive" : "text-negative"} />
+                            <SummaryCard icon={Activity} label="Floating P/L" value={`${portfolio.totalFloatingPnl >= 0 ? "+" : ""}$${portfolio.totalFloatingPnl.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} color={portfolio.totalFloatingPnl >= 0 ? "text-positive" : "text-negative"} />
                             <SummaryCard icon={Shield} label="Margin Used" value={`$${portfolio.totalMargin.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} />
-                            <SummaryCard icon={AlertTriangle} label="Drawdown" value={`${portfolio.overallDrawdown.toFixed(2)}%`} color={portfolio.overallDrawdown > 10 ? "text-rose-400" : portfolio.overallDrawdown > 5 ? "text-amber-400" : "text-muted-foreground"} />
+                            <SummaryCard icon={AlertTriangle} label="Drawdown" value={`${portfolio.overallDrawdown.toFixed(2)}%`} color={portfolio.overallDrawdown > 10 ? "text-negative" : portfolio.overallDrawdown > 5 ? "text-warning" : "text-muted-foreground"} />
                             <SummaryCard icon={Monitor} label="Accounts" value={`${portfolio.onlineCount}/${portfolio.accountCount} Online`} />
                         </div>
 
@@ -170,8 +170,8 @@ export default function PortfolioPage() {
                                         {portfolio.accounts.map((acc) => (
                                             <tr key={acc.accountId} className="border-b border-border/10 hover:bg-muted/50">
                                                 <td className="px-4 py-2.5">
-                                                    <span className={cn("flex items-center gap-1.5 text-xs", acc.status === "connected" ? "text-emerald-400" : "text-muted-foreground")}>
-                                                        <span className={cn("h-1.5 w-1.5 rounded-full", acc.status === "connected" ? "bg-emerald-400" : "bg-muted")} />
+                                                    <span className={cn("flex items-center gap-1.5 text-xs", acc.status === "connected" ? "text-positive" : "text-muted-foreground")}>
+                                                        <span className={cn("h-1.5 w-1.5 rounded-full", acc.status === "connected" ? "bg-positive" : "bg-muted")} />
                                                         {acc.status}
                                                     </span>
                                                 </td>
@@ -179,15 +179,15 @@ export default function PortfolioPage() {
                                                 <td className="px-4 py-2.5 font-mono text-muted-foreground">{acc.mt5Account}</td>
                                                 <td className="px-4 py-2.5 text-right font-mono text-muted-foreground">${acc.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                                 <td className="px-4 py-2.5 text-right font-mono text-muted-foreground">${acc.equity.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                                <td className={cn("px-4 py-2.5 text-right font-mono font-medium", acc.floatingPnl >= 0 ? "text-emerald-400" : "text-rose-400")}>
+                                                <td className={cn("px-4 py-2.5 text-right font-mono font-medium", acc.floatingPnl >= 0 ? "text-positive" : "text-negative")}>
                                                     {acc.floatingPnl >= 0 ? "+" : ""}${acc.floatingPnl.toFixed(2)}
                                                 </td>
-                                                <td className={cn("px-4 py-2.5 text-right font-mono", acc.drawdown > 10 ? "text-rose-400" : acc.drawdown > 5 ? "text-amber-400" : "text-muted-foreground")}>
+                                                <td className={cn("px-4 py-2.5 text-right font-mono", acc.drawdown > 10 ? "text-negative" : acc.drawdown > 5 ? "text-warning" : "text-muted-foreground")}>
                                                     {acc.drawdown.toFixed(2)}%
                                                 </td>
                                                 <td className="px-4 py-2.5 text-right text-muted-foreground">{acc.positionsCount}</td>
                                                 <td className="px-4 py-2.5 text-right">
-                                                    <button type="button" onClick={() => syncJournal(acc.accountId)} disabled={syncingJournal} className="rounded-lg bg-violet-500/10 px-2.5 py-1 text-micro text-violet-400 hover:bg-violet-500/20 transition disabled:opacity-50">
+                                                    <button type="button" onClick={() => syncJournal(acc.accountId)} disabled={syncingJournal} className="rounded-lg bg-primary/10 px-2.5 py-1 text-micro text-primary hover:bg-primary/20 transition disabled:opacity-50">
                                                         {syncingJournal ? "Syncing..." : "Sync Journal"}
                                                     </button>
                                                 </td>
@@ -196,7 +196,7 @@ export default function PortfolioPage() {
                                     </tbody>
                                 </table>
                             </div>
-                            {syncResult && <div className="px-4 py-2 text-xs text-violet-400">{syncResult}</div>}
+                            {syncResult && <div className="px-4 py-2 text-xs text-primary">{syncResult}</div>}
                         </div>
 
                         {/* Exposure */}
@@ -219,9 +219,9 @@ export default function PortfolioPage() {
                                             {portfolio.exposure.map((exp) => (
                                                 <tr key={`${exp.symbol}_${exp.type}`} className="border-b border-border/10">
                                                     <td className="px-4 py-2.5 font-mono font-medium text-foreground">{exp.symbol}</td>
-                                                    <td className={cn("px-4 py-2.5 font-medium", exp.type === "BUY" ? "text-emerald-400" : "text-rose-400")}>{exp.type}</td>
+                                                    <td className={cn("px-4 py-2.5 font-medium", exp.type === "BUY" ? "text-positive" : "text-negative")}>{exp.type}</td>
                                                     <td className="px-4 py-2.5 text-right font-mono text-muted-foreground">{exp.volume.toFixed(2)}</td>
-                                                    <td className={cn("px-4 py-2.5 text-right font-mono font-medium", exp.pnl >= 0 ? "text-emerald-400" : "text-rose-400")}>
+                                                    <td className={cn("px-4 py-2.5 text-right font-mono font-medium", exp.pnl >= 0 ? "text-positive" : "text-negative")}>
                                                         {exp.pnl >= 0 ? "+" : ""}${exp.pnl.toFixed(2)}
                                                     </td>
                                                 </tr>
@@ -248,7 +248,7 @@ function SummaryCard({ icon: Icon, label, value, color }: { icon: React.ElementT
     return (
         <div className="rounded-xl border border-border/30 bg-muted/50 p-4">
             <div className="flex items-center gap-2">
-                <Icon size={14} className="text-violet-400" />
+                <Icon size={14} className="text-primary" />
                 <span className="text-micro font-semibold uppercase text-muted-foreground">{label}</span>
             </div>
             <p className={cn("mt-2 font-mono text-lg font-bold", color || "text-foreground")}>{value}</p>

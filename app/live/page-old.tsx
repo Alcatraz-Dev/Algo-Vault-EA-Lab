@@ -1449,7 +1449,7 @@ export default function LivePerformancePage() {
                                                             { label: "Average Loss", value: formatMoney(Number(stats.averageLoss || 0), currency), color: "text-negative" },
                                                             { label: "Best Trade", value: formatMoney(Number(stats.bestTrade || 0), currency), color: "text-positive" },
                                                             { label: "Worst Trade", value: formatMoney(Number(stats.worstTrade || 0), currency), color: "text-negative" },
-                                                            { label: "Profit Factor", value: stats.profitFactor ? Number(stats.profitFactor).toFixed(2) : "—", color: "text-violet-400" },
+                                                            { label: "Profit Factor", value: stats.profitFactor ? Number(stats.profitFactor).toFixed(2) : "—", color: "text-chart-3" },
                                                             { label: "Total Profit", value: formatMoney(Number(stats.totalProfit || 0), currency), color: "text-warning" },
                                                         ].map((item) => (
                                                             <div key={item.label} className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-2.5">

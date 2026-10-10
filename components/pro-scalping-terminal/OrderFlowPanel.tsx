@@ -17,11 +17,11 @@ import type { UseOrderFlowResult } from "@/hooks/use-order-flow";
 import type { GexResult, OrderFlowEvidence } from "@/lib/order-flow/types";
 
 const QUALITY_STYLES: Record<string, string> = {
-    HIGH: "border-emerald-500/40 bg-emerald-500/10 text-emerald-400",
-    PARTIAL: "border-sky-500/40 bg-sky-500/10 text-sky-400",
-    ESTIMATED: "border-amber-500/40 bg-amber-500/10 text-amber-400",
+    HIGH: "border-positive/40 bg-positive/10 text-positive",
+    PARTIAL: "border-info/40 bg-info/10 text-info",
+    ESTIMATED: "border-warning/40 bg-warning/10 text-warning",
     UNAVAILABLE: "border-border bg-muted/40 text-muted-foreground",
-    STALE: "border-zinc-500/40 bg-zinc-500/10 text-zinc-400",
+    STALE: "border-border/40 bg-muted/10 text-muted-foreground",
     INSUFFICIENT_HISTORY: "border-border bg-muted/40 text-muted-foreground",
 };
 
@@ -32,8 +32,8 @@ function Row({ label, value, tone }: { label: string; value: string; tone?: "bul
             <span
                 className={cn(
                     "font-mono text-micro tabular-nums",
-                    tone === "bull" && "text-emerald-400",
-                    tone === "bear" && "text-rose-400",
+                    tone === "bull" && "text-positive",
+                    tone === "bear" && "text-negative",
                     (!tone || tone === "muted") && "text-foreground",
                 )}
             >
@@ -79,7 +79,7 @@ function GexBlock({ gex, symbol }: { gex: GexResult | null; symbol: string }) {
         <div className="mt-2 rounded-md border border-border/60 bg-background/50 p-2">
             <div className="flex items-center justify-between gap-2">
                 <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">GEX · real chain</p>
-                <span className="rounded border border-emerald-500/40 bg-emerald-500/10 px-1 py-0.5 text-micro font-bold text-emerald-400">HIGH</span>
+                <span className="rounded border border-positive/40 bg-positive/10 px-1 py-0.5 text-micro font-bold text-positive">HIGH</span>
             </div>
             <Row label="Net GEX" value={`${gex.netGex >= 0 ? "+" : ""}${(gex.netGex / 1e9).toFixed(2)}B$/1%`} tone={gex.netGex > 0 ? "bull" : gex.netGex < 0 ? "bear" : "muted"} />
             {gex.callWalls.slice(0, 3).map((w) => (
@@ -179,7 +179,7 @@ export function OrderFlowPanel({ orderFlow, symbol }: { orderFlow: UseOrderFlowR
                     <div className="mt-1">
                         <Row label="Delta (est.)" value={orderFlow.estimatedDelta.delta >= 0 ? `+${orderFlow.estimatedDelta.delta.toFixed(0)}` : orderFlow.estimatedDelta.delta.toFixed(0)} tone={orderFlow.estimatedDelta.delta > 0 ? "bull" : orderFlow.estimatedDelta.delta < 0 ? "bear" : "muted"} />
                         <Row label="Cum. (est.)" value={orderFlow.estimatedDelta.cumulativeDelta >= 0 ? `+${orderFlow.estimatedDelta.cumulativeDelta.toFixed(0)}` : orderFlow.estimatedDelta.cumulativeDelta.toFixed(0)} tone={orderFlow.estimatedDelta.cumulativeDelta > 0 ? "bull" : orderFlow.estimatedDelta.cumulativeDelta < 0 ? "bear" : "muted"} />
-                        <p className="mt-1 text-micro leading-4 text-amber-400/90">
+                        <p className="mt-1 text-micro leading-4 text-warning/90">
                             ESTIMATED · {orderFlow.estimatedDelta.method} — candle volume signed by bar direction, not bid/ask delta.
                         </p>
                     </div>
@@ -206,7 +206,7 @@ export function OrderFlowPanel({ orderFlow, symbol }: { orderFlow: UseOrderFlowR
                     <p
                         className={cn(
                             "font-mono text-sm font-semibold tabular-nums",
-                            confl?.direction === "bullish" ? "text-emerald-400" : confl?.direction === "bearish" ? "text-rose-400" : "text-foreground",
+                            confl?.direction === "bullish" ? "text-positive" : confl?.direction === "bearish" ? "text-negative" : "text-foreground",
                         )}
                     >
                         {confl ? `${confl.score}%` : "—"}
@@ -225,7 +225,7 @@ export function OrderFlowPanel({ orderFlow, symbol }: { orderFlow: UseOrderFlowR
                     {ctx.limitations.length > 0 ? (
                         <div>
                             <p className="flex items-center gap-1 text-micro font-semibold uppercase tracking-wider text-muted-foreground">
-                                <TriangleAlert className="size-2.5 text-amber-400" />
+                                <TriangleAlert className="size-2.5 text-warning" />
                                 Limitations
                             </p>
                             <ul className="mt-0.5 space-y-0.5">

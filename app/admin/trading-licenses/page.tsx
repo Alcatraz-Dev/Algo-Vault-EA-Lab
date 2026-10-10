@@ -6,6 +6,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import AdminShell from "@/components/admin/AdminShell";
 import { Shield, Search, Ban, RotateCcw } from "lucide-react";
+import { StatusBadge as UiStatusBadge } from "@/components/ui/status-badge";
 
 type TradingLicense = {
     id: string;
@@ -30,19 +31,13 @@ function formatDate(ts: number): string {
 
 function StatusBadge({ status }: { status: string }) {
     const s = status.toLowerCase();
-    return (
-        <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
-                s === "active"
-                    ? "border-positive/30 bg-positive/10 text-positive"
-                    : s === "expired"
-                    ? "border-warning/30 bg-warning/10 text-warning"
-                    : "border-negative/30 bg-negative/10 text-negative"
-            }`}
-        >
-            {status.toUpperCase()}
-        </span>
-    );
+    const tone =
+        s === "active"
+            ? "positive"
+            : s === "expired"
+                ? "warning"
+                : "negative";
+    return <UiStatusBadge tone={tone} label={status.toUpperCase()} />;
 }
 
 export default function AdminTradingLicensesPage() {
@@ -204,13 +199,13 @@ export default function AdminTradingLicensesPage() {
                             placeholder="Search email, name, or plan..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full rounded-xl border border-border bg-muted pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-positive focus:outline-none"
+                            className="w-full rounded-md border border-border bg-muted py-2 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-ring focus:outline-none"
                         />
                     </div>
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="rounded-xl border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-positive focus:outline-none"
+                        className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
                     >
                         <option value="all">All Status</option>
                         <option value="active">Active</option>
@@ -221,7 +216,7 @@ export default function AdminTradingLicensesPage() {
                 <button
                     onClick={() => fetchLicenses()}
                     disabled={loading}
-                    className="flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted/70 hover:text-foreground disabled:opacity-50"
+                    className="flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground disabled:opacity-50"
                 >
                     Refresh
                 </button>
@@ -230,7 +225,7 @@ export default function AdminTradingLicensesPage() {
             {/* Table */}
             {loading ? (
                 <div className="flex justify-center py-20">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-positive border-t-transparent" />
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                 </div>
             ) : filtered.length === 0 ? (
                 <div className="rounded-lg border border-border bg-card p-12 text-center">

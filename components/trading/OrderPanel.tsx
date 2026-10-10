@@ -197,10 +197,10 @@ export default function OrderPanel({
     <Badge
       className={cn(
         "gap-1",
-        PHASE_TONE[ticket.phase] === "good" && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-        PHASE_TONE[ticket.phase] === "progress" && "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-        PHASE_TONE[ticket.phase] === "bad" && "bg-rose-500/10 text-rose-600 dark:text-rose-400",
-        PHASE_TONE[ticket.phase] === "warn" && "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+        PHASE_TONE[ticket.phase] === "good" && "bg-positive/10 text-positive dark:text-positive",
+        PHASE_TONE[ticket.phase] === "progress" && "bg-info/10 text-info dark:text-info",
+        PHASE_TONE[ticket.phase] === "bad" && "bg-negative/10 text-negative dark:text-negative",
+        PHASE_TONE[ticket.phase] === "warn" && "bg-warning/10 text-warning dark:text-warning",
         PHASE_TONE[ticket.phase] === "neutral" && "bg-muted text-muted-foreground"
       )}
     >
@@ -253,7 +253,7 @@ export default function OrderPanel({
           </span>
         </div>
         {r.status === "EXECUTED_PENDING_SYNC" ? (
-          <p className="pt-1 text-amber-600 dark:text-amber-400">
+          <p className="pt-1 text-warning dark:text-warning">
             Executed on the broker — the position will appear when the next
             account snapshot syncs.
           </p>
@@ -296,7 +296,7 @@ export default function OrderPanel({
               className={cn(
                 "flex items-center justify-center gap-2 rounded-none border py-2 text-sm font-semibold transition-all",
                 side === "BUY"
-                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  ? "border-positive bg-positive/10 text-positive dark:text-positive"
                   : "border-border text-muted-foreground hover:bg-muted"
               )}
             >
@@ -310,7 +310,7 @@ export default function OrderPanel({
               className={cn(
                 "flex items-center justify-center gap-2 rounded-none border py-2 text-sm font-semibold transition-all",
                 side === "SELL"
-                  ? "border-rose-500 bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                  ? "border-negative bg-negative/10 text-negative dark:text-negative"
                   : "border-border text-muted-foreground hover:bg-muted"
               )}
             >
@@ -422,7 +422,7 @@ export default function OrderPanel({
         </div>
 
         {error && (
-          <div className="rounded-none border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-600 dark:text-rose-400">
+          <div className="rounded-none border border-negative/30 bg-negative/10 px-3 py-2 text-xs text-negative dark:text-negative">
             {error}
           </div>
         )}
@@ -435,8 +435,8 @@ export default function OrderPanel({
           className={cn(
             "w-full font-semibold",
             side === "BUY"
-              ? "bg-emerald-600 text-foreground hover:bg-emerald-700"
-              : "bg-rose-600 text-foreground hover:bg-rose-700"
+              ? "bg-positive text-foreground hover:bg-positive"
+              : "bg-negative text-foreground hover:bg-negative"
           )}
         >
           {processing ? "Submitting…" : `PLACE ${side} ORDER`}

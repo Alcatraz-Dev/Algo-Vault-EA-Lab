@@ -467,7 +467,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                         </p>
                     ) : null}
                     {actionError ? (
-                        <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+                        <p className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning dark:text-warning">
                             {actionError}
                         </p>
                     ) : null}
@@ -508,7 +508,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                 {mobileTab === "account" ? (
                     <>
                         {actionError ? (
-                            <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+                            <p className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning dark:text-warning">
                                 {actionError}
                             </p>
                         ) : null}

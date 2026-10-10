@@ -96,7 +96,7 @@ export function CandelContextHeader({
           <span className="text-micro text-muted-foreground">·</span>
           <span className={cn(
             "text-xs font-medium",
-            marketStatus === "open" ? "text-emerald-400" : "text-rose-400"
+            marketStatus === "open" ? "text-positive" : "text-negative"
           )}>
             Market: {marketStatus}
           </span>
@@ -220,9 +220,9 @@ export function CandelPanel({
                   key={i}
                   className={cn(
                     "rounded-md px-3 py-2 text-xs",
-                    obs.type === "fact" && "bg-emerald-500/10 text-emerald-200",
-                    obs.type === "interpretation" && "bg-sky-500/10 text-sky-200",
-                    obs.type === "limitation" && "bg-amber-500/10 text-amber-200"
+                    obs.type === "fact" && "bg-positive/10 text-positive",
+                    obs.type === "interpretation" && "bg-info/10 text-info",
+                    obs.type === "limitation" && "bg-warning/10 text-warning"
                   )}
                 >
                   <span className="font-semibold uppercase tracking-wide">
@@ -240,9 +240,9 @@ export function CandelPanel({
 
           {/* Limitations (never present as facts) */}
           {analysisResponse?.limitations?.length ? (
-            <div className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2">
-              <p className="text-micro uppercase tracking-wide text-amber-400">Limitations</p>
-              <p className="mt-1 text-xs text-amber-200">{analysisResponse.limitations.join("; ")}</p>
+            <div className="mt-3 rounded-md border border-warning/30 bg-warning/5 px-3 py-2">
+              <p className="text-micro uppercase tracking-wide text-warning">Limitations</p>
+              <p className="mt-1 text-xs text-warning">{analysisResponse.limitations.join("; ")}</p>
             </div>
           ) : null}
 

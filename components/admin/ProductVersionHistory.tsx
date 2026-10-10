@@ -757,7 +757,7 @@ export default function ProductVersionHistory({
                                                         null
                                                     }
                                                     title="Delete version"
-                                                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/20 text-foreground/70 transition hover:border-negative/20 hover:bg-negative/5 hover:text-negative disabled:cursor-not-allowed disabled:opacity-50"
+                                                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/20 text-foreground/70 transition hover:border-destructive/20 hover:bg-destructive/5 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-50"
                                                 >
                                                     {isBusy ? (
                                                         <Loader2

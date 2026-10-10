@@ -213,7 +213,7 @@ function FiboLevelsInput({
                 }}
                 className={cn(
                     "h-6 w-40 rounded border bg-background px-1.5 font-mono text-micro text-foreground outline-none",
-                    invalid ? "border-rose-500" : "border-border focus:border-primary"
+                    invalid ? "border-negative" : "border-border focus:border-primary"
                 )}
                 title="Comma-separated Fibonacci levels (values), e.g. 0, 0.382, 0.5, 0.618, 1"
             />
@@ -360,7 +360,7 @@ function ChartToolbar({
                             size="sm"
                             variant="ghost"
                             onClick={onClearDrawings}
-                            className="h-7 px-2 text-micro text-rose-500 hover:bg-rose-500/10 hover:text-rose-600"
+                            className="h-7 px-2 text-micro text-negative hover:bg-negative/10 hover:text-negative"
                             title="Clear all drawings on chart"
                         >
                             <Trash2 className="size-3.5 mr-1" />
@@ -381,7 +381,7 @@ function ChartToolbar({
                             className={cn(
                                 "h-8 gap-1 px-2 text-micro",
                                 aiDraw
-                                    ? "bg-violet-600 text-white hover:bg-violet-600/90"
+                                    ? "bg-primary text-white hover:bg-primary/90"
                                     : "text-muted-foreground hover:text-foreground"
                             )}
                             title={
@@ -395,7 +395,7 @@ function ChartToolbar({
                             <span
                                 className={cn(
                                     "rounded px-1 font-mono text-micro font-bold",
-                                    aiDraw ? "bg-white/20 text-white" : "bg-violet-500/15 text-violet-400"
+                                    aiDraw ? "bg-white/20 text-white" : "bg-primary/15 text-primary"
                                 )}
                             >
                                 PRO

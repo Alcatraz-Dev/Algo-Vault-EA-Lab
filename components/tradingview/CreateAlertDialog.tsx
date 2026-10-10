@@ -397,13 +397,13 @@ export default function CreateAlertDialog({
                 <DialogHeader className="border-b border-border bg-muted/20 px-4 py-4 sm:px-6">
                     <div className="flex items-center justify-between pr-8">
                         <div className="flex items-center gap-3 min-w-0">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
                                 <Bell size={18} />
                             </div>
                             <div className="min-w-0">
                                 <DialogTitle className="text-base font-semibold text-foreground flex items-center gap-2 truncate">
                                     Create Alert
-                                    <span className="shrink-0 rounded-md bg-emerald-500/10 px-2 py-0.5 text-micro font-medium text-emerald-600 dark:text-emerald-400">
+                                    <span className="shrink-0 rounded-md bg-positive/10 px-2 py-0.5 text-micro font-medium text-positive">
                                         TradingView Compatible
                                     </span>
                                 </DialogTitle>
@@ -461,8 +461,8 @@ export default function CreateAlertDialog({
                         <div
                             className={`flex items-center gap-2 rounded-xl p-3 text-xs border ${
                                 feedback.type === "success"
-                                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                                    : "border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                                    ? "border-positive/30 bg-positive/10 text-positive"
+                                    : "border-negative/30 bg-negative/10 text-negative"
                             }`}
                         >
                             {feedback.type === "success" ? (
@@ -484,7 +484,7 @@ export default function CreateAlertDialog({
                                     <select
                                         value={selectedScriptKey}
                                         onChange={(e) => handleScriptSelect(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-medium text-foreground outline-none focus:border-violet-500"
+                                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-medium text-foreground outline-none focus:border-primary"
                                     >
                                         <option value="__current__">
                                             Current Script — {scriptName || "Pine Script"}
@@ -495,7 +495,7 @@ export default function CreateAlertDialog({
                                             </option>
                                         ))}
                                     </select>
-                                    <span className="shrink-0 rounded bg-violet-500/10 px-2 py-1 text-micro text-violet-600 dark:text-violet-400 font-medium">
+                                    <span className="shrink-0 rounded bg-primary/10 px-2 py-1 text-micro text-primary font-medium">
                                         {effectiveIsStrategy ? "Strategy" : "Indicator"}
                                     </span>
                                 </div>
@@ -508,7 +508,7 @@ export default function CreateAlertDialog({
                                     <select
                                         value={selectedSymbol}
                                         onChange={(e) => setSelectedSymbol(e.target.value as SupportedSymbol)}
-                                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-medium text-foreground outline-none focus:border-violet-500"
+                                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-medium text-foreground outline-none focus:border-primary"
                                     >
                                         {ALERT_SYMBOL_OPTIONS.reduce<{ group: string; options: typeof ALERT_SYMBOL_OPTIONS }[]>(
                                             (acc, opt) => {
@@ -534,7 +534,7 @@ export default function CreateAlertDialog({
                                     <select
                                         value={selectedTimeframe}
                                         onChange={(e) => setSelectedTimeframe(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-medium text-foreground outline-none focus:border-violet-500"
+                                        className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-medium text-foreground outline-none focus:border-primary"
                                     >
                                         {TIMEFRAME_OPTIONS.map((tf) => (
                                             <option key={tf} value={tf}>
@@ -551,7 +551,7 @@ export default function CreateAlertDialog({
                                 <select
                                     value={selectedConditionSignal}
                                     onChange={(e) => handleSignalChange(e.target.value)}
-                                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-medium text-foreground outline-none focus:border-violet-500"
+                                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-medium text-foreground outline-none focus:border-primary"
                                 >
                                     {scriptAlerts.length > 0 ? (
                                         scriptAlerts.map((a) => (
@@ -587,7 +587,7 @@ export default function CreateAlertDialog({
                                         step="0.0001"
                                         value={targetPrice}
                                         onChange={(e) => setTargetPrice(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-mono text-foreground outline-none focus:border-violet-500"
+                                        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-mono text-foreground outline-none focus:border-primary"
                                     />
                                 </div>
                             )}
@@ -608,13 +608,13 @@ export default function CreateAlertDialog({
                                             onClick={() => setFrequency(item.id as any)}
                                             className={`rounded-xl border p-2.5 text-left transition ${
                                                 frequency === item.id
-                                                    ? "border-violet-500 bg-violet-500/10 text-foreground"
+                                                    ? "border-primary bg-primary/10 text-foreground"
                                                     : "border-border bg-background/50 text-muted-foreground hover:border-border/80"
                                             }`}
                                         >
                                             <div className="font-semibold text-xs flex items-center justify-between gap-2">
                                                 <span className="truncate">{item.label}</span>
-                                                {frequency === item.id && <Check size={12} className="shrink-0 text-violet-600 dark:text-violet-400" />}
+                                                {frequency === item.id && <Check size={12} className="shrink-0 text-primary" />}
                                             </div>
                                             <div className="text-micro text-muted-foreground mt-0.5">{item.desc}</div>
                                         </button>
@@ -638,7 +638,7 @@ export default function CreateAlertDialog({
                                             onClick={() => setExpiration(exp.id as any)}
                                             className={`rounded-lg border py-2 text-center text-xs font-medium transition ${
                                                 expiration === exp.id
-                                                    ? "border-violet-500 bg-violet-500/10 text-violet-600 dark:text-violet-400"
+                                                    ? "border-primary bg-primary/10 text-primary"
                                                     : "border-border bg-background text-muted-foreground hover:text-foreground"
                                             }`}
                                         >
@@ -655,7 +655,7 @@ export default function CreateAlertDialog({
                         <div className="space-y-4">
                             <div className="rounded-xl border border-border bg-background p-4 space-y-3">
                                 <h4 className="font-semibold text-foreground text-xs flex items-center gap-1.5">
-                                    <Globe size={14} className="text-violet-600 dark:text-violet-400" />
+                                    <Globe size={14} className="text-primary" />
                                     Notification Destinations &amp; Automations
                                 </h4>
 
@@ -669,7 +669,7 @@ export default function CreateAlertDialog({
                                         type="checkbox"
                                         checked={notifyInApp}
                                         onChange={(e) => setNotifyInApp(e.target.checked)}
-                                        className="h-4 w-4 rounded border-border text-violet-500 focus:ring-violet-500"
+                                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                                     />
                                 </div>
 
@@ -679,7 +679,7 @@ export default function CreateAlertDialog({
                                         <div>
                                             <span className="font-medium text-foreground block flex items-center gap-1.5">
                                                 Webhook URL (Bot Automation)
-                                                <span className="shrink-0 rounded bg-sky-500/10 px-1.5 py-0.5 text-micro text-sky-600 dark:text-sky-400 font-medium">
+                                                <span className="shrink-0 rounded bg-info/10 px-1.5 py-0.5 text-micro text-info font-medium">
                                                     MT4/MT5 / Bot Bridge
                                                 </span>
                                             </span>
@@ -689,7 +689,7 @@ export default function CreateAlertDialog({
                                             type="checkbox"
                                             checked={notifyWebhook}
                                             onChange={(e) => setNotifyWebhook(e.target.checked)}
-                                            className="h-4 w-4 rounded border-border text-violet-500 focus:ring-violet-500"
+                                            className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                                         />
                                     </div>
                                     {notifyWebhook && (
@@ -698,30 +698,30 @@ export default function CreateAlertDialog({
                                             value={webhookUrl}
                                             onChange={(e) => setWebhookUrl(e.target.value)}
                                             placeholder="https://your-trading-bot.com/api/webhook"
-                                            className="w-full rounded-lg border border-border bg-card px-3 py-2 font-mono text-xs text-foreground outline-none focus:border-violet-500"
+                                            className="w-full rounded-lg border border-border bg-card px-3 py-2 font-mono text-xs text-foreground outline-none focus:border-primary"
                                         />
                                     )}
                                 </div>
 
                                 {/* Discord / Telegram / Email */}
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
-                                    <label className={`flex items-center justify-between rounded-xl border p-2.5 cursor-pointer transition ${notifyDiscord ? "border-violet-500 bg-violet-500/10" : "border-border bg-card"}`}>
+                                    <label className={`flex items-center justify-between rounded-xl border p-2.5 cursor-pointer transition ${notifyDiscord ? "border-primary bg-primary/10" : "border-border bg-card"}`}>
                                         <span className="flex items-center gap-1.5 text-xs font-medium text-foreground">
-                                            <Send size={12} className="text-indigo-600 dark:text-indigo-400" /> Discord
+                                            <Send size={12} className="text-primary" /> Discord
                                         </span>
                                         <input type="checkbox" checked={notifyDiscord} onChange={(e) => setNotifyDiscord(e.target.checked)} className="h-3.5 w-3.5" />
                                     </label>
 
-                                    <label className={`flex items-center justify-between rounded-xl border p-2.5 cursor-pointer transition ${notifyTelegram ? "border-violet-500 bg-violet-500/10" : "border-border bg-card"}`}>
+                                    <label className={`flex items-center justify-between rounded-xl border p-2.5 cursor-pointer transition ${notifyTelegram ? "border-primary bg-primary/10" : "border-border bg-card"}`}>
                                         <span className="flex items-center gap-1.5 text-xs font-medium text-foreground">
-                                            <Send size={12} className="text-sky-600 dark:text-sky-400" /> Telegram
+                                            <Send size={12} className="text-info" /> Telegram
                                         </span>
                                         <input type="checkbox" checked={notifyTelegram} onChange={(e) => setNotifyTelegram(e.target.checked)} className="h-3.5 w-3.5" />
                                     </label>
 
-                                    <label className={`flex items-center justify-between rounded-xl border p-2.5 cursor-pointer transition ${notifyEmail ? "border-violet-500 bg-violet-500/10" : "border-border bg-card"}`}>
+                                    <label className={`flex items-center justify-between rounded-xl border p-2.5 cursor-pointer transition ${notifyEmail ? "border-primary bg-primary/10" : "border-border bg-card"}`}>
                                         <span className="flex items-center gap-1.5 text-xs font-medium text-foreground">
-                                            <Mail size={12} className="text-amber-600 dark:text-amber-400" /> Email
+                                            <Mail size={12} className="text-warning" /> Email
                                         </span>
                                         <input type="checkbox" checked={notifyEmail} onChange={(e) => setNotifyEmail(e.target.checked)} className="h-3.5 w-3.5" />
                                     </label>
@@ -737,13 +737,13 @@ export default function CreateAlertDialog({
                             <div className="rounded-xl border border-border bg-background p-4 space-y-3">
                                 <div className="flex items-center justify-between">
                                     <span className="font-semibold text-foreground text-xs flex items-center gap-1.5">
-                                        <Volume2 size={14} className="text-violet-600 dark:text-violet-400" /> Audio Sound Tone
+                                        <Volume2 size={14} className="text-primary" /> Audio Sound Tone
                                     </span>
                                     <input
                                         type="checkbox"
                                         checked={playSound}
                                         onChange={(e) => setPlaySound(e.target.checked)}
-                                        className="h-4 w-4 rounded border-border text-violet-500 focus:ring-violet-500"
+                                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                                     />
                                 </div>
                                 {playSound && (
@@ -751,7 +751,7 @@ export default function CreateAlertDialog({
                                         <select
                                             value={soundName}
                                             onChange={(e) => setSoundName(e.target.value)}
-                                            className="flex-1 rounded-xl border border-border bg-card px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-violet-500"
+                                            className="flex-1 rounded-xl border border-border bg-card px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-primary"
                                         >
                                             <option value="Chime">Chime (High Tone)</option>
                                             <option value="Bell">Bell (Classic Ring)</option>
@@ -780,7 +780,7 @@ export default function CreateAlertDialog({
                                     type="text"
                                     value={alertName}
                                     onChange={(e) => setAlertName(e.target.value)}
-                                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-medium text-foreground outline-none focus:border-violet-500"
+                                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-medium text-foreground outline-none focus:border-primary"
                                 />
                             </div>
 
@@ -794,8 +794,8 @@ export default function CreateAlertDialog({
                                             onClick={() => { setShowAiWriter((v) => !v); setAiError(null); }}
                                             className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-micro font-semibold transition ${
                                                 showAiWriter
-                                                    ? "border-violet-500 bg-violet-500/10 text-violet-600 dark:text-violet-400"
-                                                    : "border-border bg-background/50 text-muted-foreground hover:bg-violet-500/10 hover:text-violet-600 dark:hover:text-violet-400"
+                                                    ? "border-primary bg-primary/10 text-primary"
+                                                    : "border-border bg-background/50 text-muted-foreground hover:bg-primary/10 hover:text-primary"
                                             }`}
                                             aria-label="Write with AI"
                                         >
@@ -805,13 +805,13 @@ export default function CreateAlertDialog({
                                 </div>
 
                                 {showAiWriter && (
-                                    <div className="mb-2 space-y-2 rounded-xl border border-violet-500/30 bg-violet-500/5 p-2.5">
+                                    <div className="mb-2 space-y-2 rounded-xl border border-primary/30 bg-primary/5 p-2.5">
                                         <input
                                             type="text"
                                             value={aiInstruction}
                                             onChange={(e) => setAiInstruction(e.target.value)}
                                             placeholder="Describe it (optional): e.g. JSON with side, ticker, price"
-                                            className="w-full rounded-lg border border-border bg-card px-2.5 py-1.5 text-micro text-foreground outline-none focus:border-violet-500"
+                                            className="w-full rounded-lg border border-border bg-card px-2.5 py-1.5 text-micro text-foreground outline-none focus:border-primary"
                                         />
                                         <div className="flex flex-wrap items-center gap-2">
                                             <div className="inline-flex overflow-hidden rounded-lg border border-border">
@@ -822,7 +822,7 @@ export default function CreateAlertDialog({
                                                         onClick={() => setAiFormat(f)}
                                                         className={`px-2.5 py-1 text-micro font-semibold uppercase transition ${
                                                             aiFormat === f
-                                                                ? "bg-violet-500 text-white"
+                                                                ? "bg-primary text-white"
                                                                 : "bg-card text-muted-foreground hover:bg-muted"
                                                         }`}
                                                     >
@@ -834,24 +834,24 @@ export default function CreateAlertDialog({
                                                 type="button"
                                                 onClick={handleAiWrite}
                                                 disabled={aiLoading}
-                                                className="inline-flex items-center gap-1.5 rounded-lg bg-violet-500 px-3 py-1.5 text-micro font-semibold text-white transition hover:bg-violet-400 disabled:opacity-60"
+                                                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-micro font-semibold text-white transition hover:bg-primary disabled:opacity-60"
                                             >
                                                 {aiLoading ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />}
                                                 {aiLoading ? "Generating..." : "Generate"}
                                             </button>
                                             {aiError && (
-                                                <span className="inline-flex items-center gap-1 text-micro text-rose-600 dark:text-rose-400">
+                                                <span className="inline-flex items-center gap-1 text-micro text-negative">
                                                     <AlertCircle size={11} /> {aiError}
                                                 </span>
                                             )}
                                         </div>
                                         {aiSource === "template" && !aiError && (
-                                            <p className="text-micro text-amber-600 dark:text-amber-400">
+                                            <p className="text-micro text-warning">
                                                 Generated from a smart template — add an AI provider key (e.g. OPENROUTER_API_KEY) for AI-written payloads.
                                             </p>
                                         )}
                                         {aiSource === "ai" && !aiError && (
-                                            <p className="text-micro text-emerald-600 dark:text-emerald-400">
+                                            <p className="text-micro text-positive">
                                                 Written by AI. Edit freely before creating the alert.
                                             </p>
                                         )}
@@ -862,7 +862,7 @@ export default function CreateAlertDialog({
                                     value={alertMessage}
                                     onChange={(e) => setAlertMessage(e.target.value)}
                                     rows={4}
-                                    className="w-full rounded-xl border border-border bg-background p-3 font-mono text-xs text-foreground outline-none focus:border-violet-500 leading-5"
+                                    className="w-full rounded-xl border border-border bg-background p-3 font-mono text-xs text-foreground outline-none focus:border-primary leading-5"
                                 />
                             </div>
 
@@ -882,7 +882,7 @@ export default function CreateAlertDialog({
                                             key={v}
                                             type="button"
                                             onClick={() => insertVariable(v)}
-                                            className="rounded-lg border border-border bg-background/50 px-2 py-1 font-mono text-micro text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 transition"
+                                            className="rounded-lg border border-border bg-background/50 px-2 py-1 font-mono text-micro text-primary hover:bg-primary/10 transition"
                                         >
                                             + {v}
                                         </button>
@@ -898,7 +898,7 @@ export default function CreateAlertDialog({
                     <a
                         href="/alerts"
                         target="_self"
-                        className="text-xs text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 flex items-center gap-1 transition font-medium"
+                        className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 transition font-medium"
                     >
                         <ExternalLink size={12} /> View Active Alerts
                     </a>
@@ -914,7 +914,7 @@ export default function CreateAlertDialog({
                             type="button"
                             onClick={handleCreate}
                             disabled={isSubmitting}
-                            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 rounded-xl bg-violet-600 px-5 py-2 text-xs font-semibold text-white shadow-lg shadow-violet-500/25 transition hover:bg-violet-500 disabled:opacity-50"
+                            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary px-5 py-2 text-xs font-semibold text-white shadow-lg shadow-primary/25 transition hover:bg-primary disabled:opacity-50"
                         >
                             {isSubmitting ? (
                                 <>

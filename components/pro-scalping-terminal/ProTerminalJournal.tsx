@@ -178,7 +178,7 @@ export const ProTerminalJournal = memo(function ProTerminalJournal({
                                                 <td
                                                     className={cn(
                                                         "px-2 py-1 text-right font-mono tabular-nums",
-                                                        b.netR >= 0 ? "text-emerald-400" : "text-rose-400"
+                                                        b.netR >= 0 ? "text-positive" : "text-negative"
                                                     )}
                                                 >
                                                     {fmtSignedR(b.netR)}
@@ -206,9 +206,9 @@ export const ProTerminalJournal = memo(function ProTerminalJournal({
                                             className={cn(
                                                 "w-14 shrink-0 rounded px-1 py-0.5 text-center text-micro font-bold uppercase tracking-wide",
                                                 t.result === "win"
-                                                    ? "bg-emerald-500/10 text-emerald-400"
+                                                    ? "bg-positive/10 text-positive"
                                                     : t.result === "loss"
-                                                      ? "bg-rose-500/10 text-rose-400"
+                                                      ? "bg-negative/10 text-negative"
                                                       : t.result === "breakeven"
                                                         ? "bg-muted text-muted-foreground"
                                                         : "border border-border text-muted-foreground"
@@ -239,8 +239,8 @@ export const ProTerminalJournal = memo(function ProTerminalJournal({
                                                 t.r === null
                                                     ? "text-muted-foreground"
                                                     : t.r >= 0
-                                                      ? "text-emerald-400"
-                                                      : "text-rose-400"
+                                                      ? "text-positive"
+                                                      : "text-negative"
                                             )}
                                         >
                                             {t.r !== null ? fmtSignedR(t.r) : "—"}
@@ -301,8 +301,8 @@ function Stat({
             <div
                 className={cn(
                     "font-mono text-xs font-semibold tabular-nums",
-                    tone === "positive" && "text-emerald-400",
-                    tone === "negative" && "text-rose-400",
+                    tone === "positive" && "text-positive",
+                    tone === "negative" && "text-negative",
                     !tone && "text-foreground"
                 )}
             >

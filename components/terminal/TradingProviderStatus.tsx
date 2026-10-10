@@ -46,13 +46,13 @@ const STATE_LABEL: Record<ConnectionState, string> = {
 };
 
 const DOT: Record<ConnectionState, string> = {
-  CONNECTED: "bg-emerald-500",
-  DEGRADED: "bg-amber-500",
-  STALE: "bg-amber-500",
-  DISCONNECTED: "bg-rose-500",
-  CONNECTING: "bg-sky-500",
+  CONNECTED: "bg-positive",
+  DEGRADED: "bg-warning",
+  STALE: "bg-warning",
+  DISCONNECTED: "bg-negative",
+  CONNECTING: "bg-info",
   DISCONNECTING: "bg-muted-foreground",
-  ERROR: "bg-rose-500",
+  ERROR: "bg-negative",
 };
 
 export function TradingProviderStatus() {
@@ -108,9 +108,9 @@ export function TradingProviderStatus() {
         {loading ? (
           <Loader2 className="size-3 animate-spin text-muted-foreground" />
         ) : executable ? (
-          <Wifi className="size-3 text-emerald-500" />
+          <Wifi className="size-3 text-positive" />
         ) : (
-          <WifiOff className="size-3 text-rose-500" />
+          <WifiOff className="size-3 text-negative" />
         )}
         <span className={cn("size-1.5 rounded-full", DOT[state])} aria-hidden />
         <span className="text-micro font-medium">{connection?.provider ?? "NO PROVIDER"}</span>
@@ -122,8 +122,8 @@ export function TradingProviderStatus() {
             className={cn(
               "rounded border px-1 py-px text-micro font-semibold tracking-wide",
               isDemo
-                ? "border-sky-500/40 bg-sky-500/10 text-sky-500"
-                : "border-rose-500/40 bg-rose-500/10 text-rose-500"
+                ? "border-info/40 bg-info/10 text-info"
+                : "border-negative/40 bg-negative/10 text-negative"
             )}
           >
             {connection.environment}
@@ -146,7 +146,7 @@ export function TradingProviderStatus() {
       ) : null}
 
       {!executable ? (
-        <p className="mt-1.5 flex items-start gap-1.5 text-micro text-amber-500">
+        <p className="mt-1.5 flex items-start gap-1.5 text-micro text-warning">
           <ShieldAlert className="mt-px size-3 shrink-0" />
           <span>
             {state === "STALE"
@@ -157,7 +157,7 @@ export function TradingProviderStatus() {
       ) : null}
 
       {!isDemo && connection ? (
-        <p className="mt-1.5 flex items-start gap-1.5 text-micro text-rose-500">
+        <p className="mt-1.5 flex items-start gap-1.5 text-micro text-negative">
           <ShieldAlert className="mt-px size-3 shrink-0" />
           <span>Live (real-money) execution is disabled platform-wide.</span>
         </p>

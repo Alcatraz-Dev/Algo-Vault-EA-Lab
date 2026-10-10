@@ -23,10 +23,10 @@ const STATUS_ICON = {
 } as const;
 
 const STATUS_STYLE = {
-    SAFE: "border-emerald-500/40 bg-emerald-500/10 text-emerald-400",
-    WARNING: "border-amber-500/40 bg-amber-500/10 text-amber-400",
-    RESTRICTED: "border-orange-500/40 bg-orange-500/10 text-orange-400",
-    HALTED: "border-red-600/50 bg-red-600/10 text-red-400",
+    SAFE: "border-positive/40 bg-positive/10 text-positive",
+    WARNING: "border-warning/40 bg-warning/10 text-warning",
+    RESTRICTED: "border-warning/40 bg-warning/10 text-warning",
+    HALTED: "border-negative/50 bg-negative/10 text-negative",
 } as const;
 
 function pct(v: number | null | undefined, digits = 1): string {
@@ -48,7 +48,7 @@ export function RiskHud() {
                 </div>
 
                 {riskError ? (
-                    <p className="mt-2 text-micro leading-4 text-amber-400">
+                    <p className="mt-2 text-micro leading-4 text-warning">
                         Risk state unavailable — trading status cannot be verified.
                     </p>
                 ) : !risk || !risk.status ? (
@@ -114,7 +114,7 @@ export function RiskHud() {
                         {risk.reasons.length > 0 ? (
                             <ul className="mt-2 space-y-0.5 border-t border-border pt-1.5">
                                 {risk.reasons.map((r) => (
-                                    <li key={r} className="text-micro leading-4 text-amber-400">
+                                    <li key={r} className="text-micro leading-4 text-warning">
                                         • {r}
                                     </li>
                                 ))}

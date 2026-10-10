@@ -133,8 +133,8 @@ function FreshnessPill({
         <span
             className={cn(
                 "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 font-mono text-micro",
-                f.status === "live" && "border-emerald-500/40 bg-emerald-500/10 text-emerald-400",
-                f.status === "stale" && "border-amber-500/40 bg-amber-500/10 text-amber-400",
+                f.status === "live" && "border-positive/40 bg-positive/10 text-positive",
+                f.status === "stale" && "border-warning/40 bg-warning/10 text-warning",
                 f.status === "loading" && "border-border bg-muted text-muted-foreground"
             )}
             title={`${label} — ${f.label}`}
@@ -156,8 +156,8 @@ function AccountModeBadge({ risk }: { risk: RiskPayload | null }) {
             <span
                 className={cn(
                     "rounded border px-1.5 py-0.5 text-micro font-bold tracking-wider",
-                    mode === "live" && "border-rose-500/50 bg-rose-500/10 text-rose-400",
-                    mode === "paper" && "border-sky-500/50 bg-sky-500/10 text-sky-400",
+                    mode === "live" && "border-negative/50 bg-negative/10 text-negative",
+                    mode === "paper" && "border-info/50 bg-info/10 text-info",
                     mode === "unknown" && "border-border bg-muted text-muted-foreground"
                 )}
                 title={
@@ -174,9 +174,9 @@ function AccountModeBadge({ risk }: { risk: RiskPayload | null }) {
                 <span
                     className={cn(
                         "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-micro font-bold tracking-wider",
-                        status === "WARNING" && "border-amber-500/50 bg-amber-500/10 text-amber-400",
-                        status === "RESTRICTED" && "border-orange-500/50 bg-orange-500/10 text-orange-400",
-                        status === "HALTED" && "border-red-600/50 bg-red-600/10 text-red-400"
+                        status === "WARNING" && "border-warning/50 bg-warning/10 text-warning",
+                        status === "RESTRICTED" && "border-warning/50 bg-warning/10 text-warning",
+                        status === "HALTED" && "border-negative/50 bg-negative/10 text-negative"
                     )}
                 >
                     <ShieldAlert className="size-2.5" />
@@ -238,7 +238,7 @@ export function TerminalTopBar({ now, isPro }: { now: number; isPro: boolean }) 
                         <span
                             className={cn(
                                 "font-mono text-micro tabular-nums",
-                                change >= 0 ? "text-emerald-400" : "text-rose-400"
+                                change >= 0 ? "text-positive" : "text-negative"
                             )}
                         >
                             {change >= 0 ? "+" : ""}
@@ -259,7 +259,7 @@ export function TerminalTopBar({ now, isPro }: { now: number; isPro: boolean }) 
                 <FreshnessPill lastUpdated={data.analysisUpdatedAt} now={now} label="Analysis" liveWithinMs={45_000} />
                 <AccountModeBadge risk={data.risk} />
                 {data.riskError ? (
-                    <span className="inline-flex items-center gap-1 rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-micro text-amber-400">
+                    <span className="inline-flex items-center gap-1 rounded border border-warning/40 bg-warning/10 px-1.5 py-0.5 text-micro text-warning">
                         <WifiOff className="size-2.5" />
                         Risk state unavailable
                     </span>

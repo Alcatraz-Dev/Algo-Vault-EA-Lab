@@ -106,9 +106,9 @@ function BiasChip({ bias }: { bias: string | null | undefined }) {
     if (!bias) return <span className="text-xs italic text-muted-foreground">—</span>;
     const tone =
         bias === "bullish"
-            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+            ? "border-positive/40 bg-positive/10 text-positive"
             : bias === "bearish"
-              ? "border-rose-500/40 bg-rose-500/10 text-rose-400"
+              ? "border-negative/40 bg-negative/10 text-negative"
               : "border-border bg-muted text-muted-foreground";
     return (
         <span className={cn("rounded-full border px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide", tone)}>
@@ -279,8 +279,8 @@ export const WatchlistPanel = memo(function WatchlistPanel({
                                                 chg === null
                                                     ? "text-muted-foreground"
                                                     : chg >= 0
-                                                      ? "text-emerald-400"
-                                                      : "text-rose-400"
+                                                      ? "text-positive"
+                                                      : "text-negative"
                                             )}
                                         >
                                             {chg === null ? "—" : fmtSignedPct(chg, 3)}
@@ -293,7 +293,7 @@ export const WatchlistPanel = memo(function WatchlistPanel({
                                                 <button
                                                     type="button"
                                                     aria-label={`Remove ${s} from watchlist`}
-                                                    className="rounded p-0.5 text-muted-foreground/50 opacity-0 transition hover:bg-rose-500/15 hover:text-rose-400 focus:opacity-100 group-hover:opacity-100"
+                                                    className="rounded p-0.5 text-muted-foreground/50 opacity-0 transition hover:bg-negative/15 hover:text-negative focus:opacity-100 group-hover:opacity-100"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         onRemove(s);
@@ -346,15 +346,15 @@ export const SessionsPanel = memo(function SessionsPanel({ now }: { now: number 
                                 </span>
                             </span>
                             {s.active ? (
-                                <span className="inline-flex items-center gap-1 text-micro font-semibold uppercase tracking-wide text-emerald-400">
-                                    <span className="size-1.5 animate-pulse rounded-full bg-emerald-400" />
+                                <span className="inline-flex items-center gap-1 text-micro font-semibold uppercase tracking-wide text-positive">
+                                    <span className="size-1.5 animate-pulse rounded-full bg-positive" />
                                     live
                                 </span>
                             ) : null}
                         </div>
                         <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-muted">
                             <div
-                                className={cn("h-full rounded-full", s.active ? "bg-emerald-400" : "bg-transparent")}
+                                className={cn("h-full rounded-full", s.active ? "bg-positive" : "bg-transparent")}
                                 style={{ width: `${s.progress * 100}%` }}
                             />
                         </div>
@@ -452,9 +452,9 @@ export const MtfPanel = memo(function MtfPanel({
                                             className={cn(
                                                 "text-micro font-medium uppercase",
                                                 r.alignment.value === "aligned"
-                                                    ? "text-emerald-400"
+                                                    ? "text-positive"
                                                     : r.alignment.value === "conflicting"
-                                                      ? "text-amber-400"
+                                                      ? "text-warning"
                                                       : "text-muted-foreground"
                                             )}
                                         >
@@ -723,7 +723,7 @@ export const RadarMiniPanel = memo(function RadarMiniPanel({
                                     >
                                         <td className="px-3 py-1.5 font-mono font-semibold text-foreground">
                                             {r.symbol}
-                                            {r.stale ? <span className="ml-1 text-micro text-amber-400">stale</span> : null}
+                                            {r.stale ? <span className="ml-1 text-micro text-warning">stale</span> : null}
                                         </td>
                                         <td className="px-2 py-1.5 text-right">
                                             <Val value={r.lastPrice.status === "available" ? r.lastPrice.value : null} format={(v) => fmtPrice(Number(v), r.symbol)} />
@@ -731,7 +731,7 @@ export const RadarMiniPanel = memo(function RadarMiniPanel({
                                         <td
                                             className={cn(
                                                 "px-2 py-1.5 text-right font-mono tabular-nums",
-                                                chg === null ? "text-muted-foreground" : chg >= 0 ? "text-emerald-400" : "text-rose-400"
+                                                chg === null ? "text-muted-foreground" : chg >= 0 ? "text-positive" : "text-negative"
                                             )}
                                         >
                                             {chg === null ? "—" : fmtSignedPct(chg, 3)}
@@ -810,8 +810,8 @@ export const SignalsMiniPanel = memo(function SignalsMiniPanel({
                                         className={cn(
                                             "rounded-full border px-1.5 py-0.5 text-micro font-bold tracking-wide",
                                             isLong
-                                                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
-                                                : "border-rose-500/40 bg-rose-500/10 text-rose-400"
+                                                ? "border-positive/40 bg-positive/10 text-positive"
+                                                : "border-negative/40 bg-negative/10 text-negative"
                                         )}
                                     >
                                         {isLong ? "LONG" : "SHORT"}
@@ -828,10 +828,10 @@ export const SignalsMiniPanel = memo(function SignalsMiniPanel({
                                         E <span className="text-foreground">{fmtPrice(s.entry, s.symbol)}</span>
                                     </span>
                                     <span className="text-muted-foreground">
-                                        SL <span className="text-rose-400">{fmtPrice(s.stop, s.symbol)}</span>
+                                        SL <span className="text-negative">{fmtPrice(s.stop, s.symbol)}</span>
                                     </span>
                                     <span className="text-muted-foreground">
-                                        TP <span className="text-emerald-400">{fmtPrice(s.target, s.symbol)}</span>
+                                        TP <span className="text-positive">{fmtPrice(s.target, s.symbol)}</span>
                                     </span>
                                     <span className="text-muted-foreground">
                                         R:R <span className="text-foreground">{s.riskReward.toFixed(2)}</span>
@@ -885,8 +885,8 @@ export const SignalsMiniPanel = memo(function SignalsMiniPanel({
 // ── economic calendar (from /api/calendar) ──────────────────────────────────
 
 const IMPACT_TONE: Record<CalendarEvent["impact"], string> = {
-    High: "border-rose-500/40 bg-rose-500/10 text-rose-400",
-    Medium: "border-amber-500/40 bg-amber-500/10 text-amber-400",
+    High: "border-negative/40 bg-negative/10 text-negative",
+    Medium: "border-warning/40 bg-warning/10 text-warning",
     Low: "border-border bg-muted text-muted-foreground",
 };
 

@@ -55,62 +55,62 @@ export default function AIHistoricalPage() {
     useEffect(() => { if (!authLoading && user) void Promise.resolve().then(() => fetchAnalysis()); }, [authLoading, user]);
 
     if (authLoading) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="AI Historical Analysis"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div></AccountShell></div>);
+        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="AI Historical Analysis"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></AccountShell></div>);
     }
 
     return (
         <AccountShell title="AI Historical Analysis" subtitle="Deep historical market data analysis powered by AI" onBack={() => router.push("/account")}>
             <div className="space-y-6" data-guide="page-header">
                 <div className="flex flex-wrap gap-3">
-                    <select value={symbol} onChange={(e) => setSymbol(e.target.value)} className="rounded-lg border border-border/30 bg-muted px-3 py-2 text-sm text-foreground focus:border-violet-500 focus:outline-none">
+                    <select value={symbol} onChange={(e) => setSymbol(e.target.value)} className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none">
                         <option value="XAUUSD">XAUUSD</option>
                         <option value="EURUSD">EURUSD</option>
                         <option value="GBPUSD">GBPUSD</option>
                         <option value="USDJPY">USDJPY</option>
                         <option value="BTCUSD">BTCUSD</option>
                     </select>
-                    <select value={timeframe} onChange={(e) => setTimeframe(e.target.value)} className="rounded-lg border border-border/30 bg-muted px-3 py-2 text-sm text-foreground focus:border-violet-500 focus:outline-none">
+                    <select value={timeframe} onChange={(e) => setTimeframe(e.target.value)} className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none">
                         <option value="M15">M15</option>
                         <option value="H1">H1</option>
                         <option value="H4">H4</option>
                         <option value="D1">D1</option>
                     </select>
-                    <button type="button" onClick={fetchAnalysis} disabled={loading} className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-foreground hover:bg-violet-500 transition disabled:opacity-50">
+                    <button type="button" onClick={fetchAnalysis} disabled={loading} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50">
                         {loading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : "Analyze"}
                     </button>
                 </div>
 
-                {error && <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">{error}</div>}
+                {error && <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive-foreground">{error}</div>}
 
                 {data && (
                     <>
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                            <StatCard icon={<Activity className="h-5 w-5 text-violet-400" />} label="Regime" value={data.regime.regime} />
-                            <StatCard icon={<Shield className="h-5 w-5 text-emerald-400" />} label="Confidence" value={`${data.regime.confidence}%`} />
-                            <StatCard icon={<Zap className="h-5 w-5 text-amber-400" />} label="Volatility" value={data.volatility.state} />
-                            <StatCard icon={<Target className="h-5 w-5 text-sky-400" />} label="Market Score" value={`${data.score.total}/100`} />
+                            <StatCard icon={<Activity className="h-5 w-5 text-muted-foreground" />} label="Regime" value={data.regime.regime} />
+                            <StatCard icon={<Shield className="h-5 w-5 text-muted-foreground" />} label="Confidence" value={`${data.regime.confidence}%`} />
+                            <StatCard icon={<Zap className="h-5 w-5 text-muted-foreground" />} label="Volatility" value={data.volatility.state} />
+                            <StatCard icon={<Target className="h-5 w-5 text-muted-foreground" />} label="Market Score" value={`${data.score.total}/100`} />
                         </div>
 
                         <div className="grid gap-6 lg:grid-cols-2">
-                            <div className="rounded-xl border border-border/30 bg-muted/50 p-6">
-                                <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><Brain className="h-4 w-4 text-violet-400" />AI Summary</h3>
+                            <div className="rounded-lg border border-border bg-card p-6">
+                                <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><Brain className="h-4 w-4 text-muted-foreground" />AI Summary</h3>
                                 <p className="text-sm text-muted-foreground whitespace-pre-line">{data.aiSummary}</p>
                             </div>
-                            <div className="rounded-xl border border-border/30 bg-muted/50 p-6">
-                                <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><BarChart3 className="h-4 w-4 text-emerald-400" />Structure Analysis</h3>
+                            <div className="rounded-lg border border-border bg-card p-6">
+                                <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><BarChart3 className="h-4 w-4 text-muted-foreground" />Structure Analysis</h3>
                                 <p className="text-sm text-muted-foreground">Bias: <span className="text-foreground font-medium">{data.structure.bias}</span></p>
                                 <p className="mt-2 text-sm text-muted-foreground">Swing Levels: {data.structure.levels}</p>
                                 <p className="mt-1 text-sm text-muted-foreground">BOS/CHoCH Events: {data.structure.blocks}</p>
                             </div>
                         </div>
 
-                        <div className="rounded-xl border border-border/30 bg-muted/50 p-6">
-                            <h3 className="mb-4 text-sm font-semibold text-foreground flex items-center gap-2"><TrendingUp className="h-4 w-4 text-amber-400" />Historical Performance</h3>
+                        <div className="rounded-lg border border-border bg-card p-6">
+                            <h3 className="mb-4 text-sm font-semibold text-foreground flex items-center gap-2"><TrendingUp className="h-4 w-4 text-muted-foreground" />Historical Performance</h3>
                             <div className="space-y-2">
                                 {data.history?.slice(-15).map((entry, i) => (
                                     <div key={i} className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-2">
                                         <span className="text-xs text-muted-foreground">{entry.period}</span>
-                                        <span className={cn("text-xs font-medium", entry.avgReturn >= 0 ? "text-emerald-400" : "text-rose-400")}>{((entry.avgReturn || 0) * 100).toFixed(2)}%</span>
+                                        <span className={cn("text-xs font-medium font-numeric", entry.avgReturn >= 0 ? "text-positive" : "text-negative")}>{entry.avgReturn >= 0 ? "+" : ""}{((entry.avgReturn || 0) * 100).toFixed(2)}%</span>
                                         <span className="text-xs text-muted-foreground">{entry.regime}</span>
                                     </div>
                                 ))}
@@ -125,7 +125,7 @@ export default function AIHistoricalPage() {
 
 function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
     return (
-        <div className="rounded-xl border border-border/30 bg-muted/50 p-4">
+        <div className="rounded-lg border border-border bg-card p-4">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">{icon}<span>{label}</span></div>
             <p className="mt-2 text-lg font-bold text-foreground">{value}</p>
         </div>

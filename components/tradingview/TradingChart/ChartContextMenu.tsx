@@ -41,7 +41,7 @@ export default function ChartContextMenu({
                 {onFullscreen && <DropdownMenuItem onSelect={onFullscreen}><Maximize2 size={14} className="mr-2" />Fullscreen</DropdownMenuItem>}
                 <DropdownMenuSeparator />
                 {onReset && <DropdownMenuItem onSelect={onReset}><RotateCcw size={14} className="mr-2" />Reset zoom</DropdownMenuItem>}
-                {onClear && <DropdownMenuItem onSelect={onClear} className="text-rose-400 focus:text-rose-400"><Trash2 size={14} className="mr-2" />Clear drawings</DropdownMenuItem>}
+                {onClear && <DropdownMenuItem onSelect={onClear} className="text-destructive focus:text-destructive"><Trash2 size={14} className="mr-2" />Clear drawings</DropdownMenuItem>}
             </DropdownMenuContent>
         </DropdownMenu>
     );

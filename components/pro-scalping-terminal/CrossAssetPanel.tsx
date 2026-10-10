@@ -85,7 +85,7 @@ export const CrossAssetPanel = memo(function CrossAssetPanel({
         <section className="rounded-lg border border-border bg-card p-3" data-phase="16-cross-asset">
             <header className="flex items-center justify-between gap-2">
                 <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-foreground">
-                    <Network className="size-3.5 text-sky-400" />
+                    <Network className="size-3.5 text-info" />
                     Cross-Asset Context
                 </h3>
                 <Link href="/cross-asset" className="text-micro text-primary hover:underline">
@@ -100,7 +100,7 @@ export const CrossAssetPanel = memo(function CrossAssetPanel({
             ) : null}
 
             {error ? (
-                <p className="mt-2 flex items-start gap-1.5 text-micro text-amber-300/90">
+                <p className="mt-2 flex items-start gap-1.5 text-micro text-warning/90">
                     <TriangleAlert className="mt-0.5 size-3 shrink-0" />
                     {error}
                 </p>
@@ -115,17 +115,17 @@ export const CrossAssetPanel = memo(function CrossAssetPanel({
                                 className={cn(
                                     "rounded px-1.5 py-0.5 text-micro font-semibold",
                                     state === "RISK_OFF" || state === "HIGH_VOLATILITY"
-                                        ? "bg-rose-500/20 text-rose-300"
+                                        ? "bg-negative/20 text-negative"
                                         : state === "RISK_ON" || state === "LOW_VOLATILITY"
-                                          ? "bg-emerald-500/20 text-emerald-300"
-                                          : "bg-sky-500/20 text-sky-300"
+                                          ? "bg-positive/20 text-positive"
+                                          : "bg-info/20 text-info"
                                 )}
                             >
                                 {state.replace(/_/g, " ")}
                             </span>
                         ))}
                         {!ctx.regime || ctx.regime.activeStates.length === 0 ? (
-                            <span className="rounded bg-zinc-500/20 px-1.5 py-0.5 text-micro font-semibold text-zinc-300">
+                            <span className="rounded bg-muted/20 px-1.5 py-0.5 text-micro font-semibold text-muted-foreground">
                                 REGIME UNKNOWN
                             </span>
                         ) : null}
@@ -145,7 +145,7 @@ export const CrossAssetPanel = memo(function CrossAssetPanel({
                                         <span
                                             className={cn(
                                                 "font-mono",
-                                                (r.coefficient ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"
+                                                (r.coefficient ?? 0) >= 0 ? "text-positive" : "text-negative"
                                             )}
                                         >
                                             {r.coefficient === null ? "n/a" : r.coefficient.toFixed(2)}
@@ -154,17 +154,17 @@ export const CrossAssetPanel = memo(function CrossAssetPanel({
                                             className={cn(
                                                 "rounded px-1 py-0.5 text-[8px] font-semibold",
                                                 r.stability === "BREAKING" || r.stability === "FLIPPING"
-                                                    ? "bg-rose-500/20 text-rose-300"
+                                                    ? "bg-negative/20 text-negative"
                                                     : r.stability === "WEAKENING"
-                                                      ? "bg-amber-500/20 text-amber-300"
+                                                      ? "bg-warning/20 text-warning"
                                                       : r.stability === "STRENGTHENING"
-                                                        ? "bg-sky-500/20 text-sky-300"
-                                                        : "bg-zinc-500/20 text-zinc-300"
+                                                        ? "bg-info/20 text-info"
+                                                        : "bg-muted/20 text-muted-foreground"
                                             )}
                                         >
                                             {r.stability.replace("_", " ")}
                                         </span>
-                                        {r.changed ? <span className="text-[8px] text-amber-300">Δ</span> : null}
+                                        {r.changed ? <span className="text-[8px] text-warning">Δ</span> : null}
                                     </span>
                                 </li>
                             ))}
@@ -176,7 +176,7 @@ export const CrossAssetPanel = memo(function CrossAssetPanel({
                             Portfolio: {(ctx.portfolioImpact.relatedExposureWeight * 100).toFixed(1)}% of gross exposure
                             sits in correlated positions.
                             {ctx.portfolioImpact.warnings[0]?.text ? (
-                                <span className="text-amber-300/90"> {ctx.portfolioImpact.warnings[0].text}</span>
+                                <span className="text-warning/90"> {ctx.portfolioImpact.warnings[0].text}</span>
                             ) : null}
                         </p>
                     ) : null}

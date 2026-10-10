@@ -61,8 +61,8 @@ function normalizeSymbol(symbol: string): string {
 /** Coloured dot class for the live-status badge. */
 function cnLiveDot(isLive: boolean): string {
     return isLive
-        ? "inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"
-        : "inline-block h-1.5 w-1.5 rounded-full bg-amber-500";
+        ? "inline-block h-1.5 w-1.5 rounded-full bg-positive animate-pulse"
+        : "inline-block h-1.5 w-1.5 rounded-full bg-warning";
 }
 
 export default function TradingChart({
@@ -248,7 +248,7 @@ export default function TradingChart({
                     </div>
                 )}
                 {!marketLoading && candles.length > 0 && (
-                    <div className={`absolute right-2 top-2 z-10 flex items-center gap-1.5 rounded-full border border-border/40 bg-background/90 px-2 py-0.5 text-micro backdrop-blur-sm ${staleData ? "text-amber-500" : "text-muted-foreground"}`} role="status" aria-live="polite">
+                    <div className={`absolute right-2 top-2 z-10 flex items-center gap-1.5 rounded-full border border-border/40 bg-background/90 px-2 py-0.5 text-micro backdrop-blur-sm ${staleData ? "text-warning" : "text-muted-foreground"}`} role="status" aria-live="polite">
                         <span className={cnLiveDot(isLive && !staleData)} aria-hidden />
                         {staleData
                             ? quality === "market_closed" ? "Market closed · last data" : "Stale data · reconnecting"

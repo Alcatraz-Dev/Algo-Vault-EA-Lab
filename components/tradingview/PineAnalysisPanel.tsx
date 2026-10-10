@@ -159,23 +159,23 @@ export default function PineAnalysisPanel({ source, onApply, onBacktest, onRepla
   return (
     <div className="rounded-xl border border-border bg-card p-5">
       <div className="flex items-start gap-3">
-        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${analysis.canRun ? "bg-emerald-500/10" : "bg-amber-500/10"}`}>
-          {analysis.canRun ? <Check size={18} className="text-emerald-400" /> : <AlertTriangle size={18} className="text-amber-400" />}
+        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${analysis.canRun ? "bg-positive/10" : "bg-warning/10"}`}>
+          {analysis.canRun ? <Check size={18} className="text-positive" /> : <AlertTriangle size={18} className="text-warning" />}
         </div>
         <div className="flex-1">
           <h3 className="text-sm font-semibold text-foreground">Pine Script Analysis</h3>
           <p className="text-xs text-muted-foreground">{analysis.title}</p>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="rounded-md bg-violet-500/10 px-2 py-0.5 text-micro font-medium text-violet-400">{analysis.version}</span>
-          <span className="rounded-md bg-sky-500/10 px-2 py-0.5 text-micro font-medium text-sky-400">{analysis.scriptType}</span>
-          {analysis.canRun && <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-micro font-medium text-emerald-400">Runtime Compatible</span>}
+          <span className="rounded-md bg-primary/10 px-2 py-0.5 text-micro font-medium text-primary">{analysis.version}</span>
+          <span className="rounded-md bg-info/10 px-2 py-0.5 text-micro font-medium text-info">{analysis.scriptType}</span>
+          {analysis.canRun && <span className="rounded-md bg-positive/10 px-2 py-0.5 text-micro font-medium text-positive">Runtime Compatible</span>}
         </div>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
         {analysis.features.map((f) => (
-          <div key={f.name} className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-micro font-medium ${f.supported ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-400" : "border-rose-500/20 bg-rose-500/5 text-rose-400"}`}>
+          <div key={f.name} className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-micro font-medium ${f.supported ? "border-positive/20 bg-positive/5 text-positive" : "border-negative/20 bg-negative/5 text-negative"}`}>
             {f.supported ? <Check size={11} /> : <X size={11} />}
             {f.name}
           </div>
@@ -197,15 +197,15 @@ export default function PineAnalysisPanel({ source, onApply, onBacktest, onRepla
               <p className="text-micro text-muted-foreground">Win Rate</p>
               <p className="text-sm font-semibold text-foreground">{backtestResult.metrics.winRate.toFixed(1)}%</p>
             </div>
-            <div className={`rounded-lg border p-2 text-center ${backtestResult.metrics.netProfit >= 0 ? "border-emerald-500/20 bg-emerald-500/5" : "border-rose-500/20 bg-rose-500/5"}`}>
+            <div className={`rounded-lg border p-2 text-center ${backtestResult.metrics.netProfit >= 0 ? "border-positive/20 bg-positive/5" : "border-negative/20 bg-negative/5"}`}>
               <p className="text-micro text-muted-foreground">Net P&amp;L</p>
-              <p className={`text-sm font-semibold ${backtestResult.metrics.netProfit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+              <p className={`text-sm font-semibold ${backtestResult.metrics.netProfit >= 0 ? "text-positive" : "text-negative"}`}>
                 {backtestResult.metrics.netProfit.toFixed(2)}
               </p>
             </div>
             <div className="rounded-lg border border-border bg-card p-2 text-center">
               <p className="text-micro text-muted-foreground">Max DD</p>
-              <p className="text-sm font-semibold text-rose-400">{backtestResult.metrics.maxDrawdownPct.toFixed(1)}%</p>
+              <p className="text-sm font-semibold text-negative">{backtestResult.metrics.maxDrawdownPct.toFixed(1)}%</p>
             </div>
           </div>
           {backtestResult.trades.length > 0 && (
@@ -223,10 +223,10 @@ export default function PineAnalysisPanel({ source, onApply, onBacktest, onRepla
                 <tbody>
                   {backtestResult.trades.map((t) => (
                     <tr key={t.id}>
-                      <td className={t.direction === "long" ? "text-emerald-400" : "text-rose-400"}>{t.direction}</td>
+                      <td className={t.direction === "long" ? "text-positive" : "text-negative"}>{t.direction}</td>
                       <td>{t.entry.toFixed(5)}</td>
                       <td>{t.exit.toFixed(5)}</td>
-                      <td className={t.profit >= 0 ? "text-emerald-400" : "text-rose-400"}>{t.profit.toFixed(2)}</td>
+                      <td className={t.profit >= 0 ? "text-positive" : "text-negative"}>{t.profit.toFixed(2)}</td>
                       <td className="text-muted-foreground">{t.exitReason}</td>
                     </tr>
                   ))}
@@ -238,7 +238,7 @@ export default function PineAnalysisPanel({ source, onApply, onBacktest, onRepla
       )}
 
       <div className="mt-4 flex flex-wrap gap-2" data-guide="alerts">
-        <Button size="sm" onClick={onApply} className="bg-amber-500 hover:bg-amber-600 text-white font-medium">
+        <Button size="sm" onClick={onApply} className="bg-warning hover:bg-warning text-white font-medium">
           <Check size={14} className="mr-1" /> Apply to Chart
         </Button>
         {analysis.scriptType === "Strategy" && onBacktest && (

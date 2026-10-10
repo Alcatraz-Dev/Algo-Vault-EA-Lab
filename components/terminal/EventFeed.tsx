@@ -21,18 +21,18 @@ import { useTerminalData } from "./TerminalData";
 const SOURCES: Array<TerminalEventSource | "all"> = ["all", "smart-money", "signal", "risk", "account"];
 
 const TYPE_STYLE: Record<string, string> = {
-    BOS: "border-sky-500/40 text-sky-400",
-    CHOCH: "border-amber-500/40 text-amber-400",
-    SWEEP: "border-violet-500/40 text-violet-400",
-    FVG_CREATED: "border-emerald-500/40 text-emerald-400",
+    BOS: "border-info/40 text-info",
+    CHOCH: "border-warning/40 text-warning",
+    SWEEP: "border-primary/40 text-primary",
+    FVG_CREATED: "border-positive/40 text-positive",
     FVG_MITIGATED: "border-border text-muted-foreground",
-    OB_CREATED: "border-emerald-500/40 text-emerald-400",
+    OB_CREATED: "border-positive/40 text-positive",
     OB_MITIGATED: "border-border text-muted-foreground",
-    STRATEGY_SIGNAL: "border-teal-500/40 text-teal-400",
-    POSITION_OPENED: "border-sky-500/40 text-sky-400",
+    STRATEGY_SIGNAL: "border-info/40 text-info",
+    POSITION_OPENED: "border-info/40 text-info",
     POSITION_CLOSED: "border-border text-muted-foreground",
-    RISK_WARNING: "border-red-500/50 text-red-400",
-    ALERT_TRIGGERED: "border-amber-500/40 text-amber-400",
+    RISK_WARNING: "border-negative/50 text-negative",
+    ALERT_TRIGGERED: "border-warning/40 text-warning",
     SESSION_CHANGE: "border-border text-muted-foreground",
 };
 

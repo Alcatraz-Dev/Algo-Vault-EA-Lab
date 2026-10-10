@@ -75,10 +75,10 @@ export default function TradingAccessCard({
 
   if (license.status === "expired") {
     return (
-      <Card className="border-yellow-500/30">
+      <Card className="border-warning/30">
         <CardContent className="flex flex-col items-center gap-4 py-8 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-500/10">
-            <AlertTriangle size={24} className="text-yellow-600 dark:text-yellow-400" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-warning/10">
+            <AlertTriangle size={24} className="text-warning dark:text-warning" />
           </div>
           <div>
             <p className="text-sm font-semibold">Trading Access Expired</p>
@@ -101,12 +101,12 @@ export default function TradingAccessCard({
   );
 
   return (
-    <Card className="border-emerald-500/30">
+    <Card className="border-positive/30">
       <CardContent className="py-6">
         <div className="flex flex-wrap items-center gap-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
-              <Shield size={20} className="text-emerald-600 dark:text-emerald-400" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-positive/10">
+              <Shield size={20} className="text-positive dark:text-positive" />
             </div>
             <div>
               <p className="text-sm font-semibold">Trading Access Active</p>
@@ -131,7 +131,7 @@ export default function TradingAccessCard({
             <span
               className={cn(
                 "text-sm font-mono font-semibold tabular-nums",
-                daysLeft <= 7 ? "text-yellow-600 dark:text-yellow-400" : "text-foreground"
+                daysLeft <= 7 ? "text-warning dark:text-warning" : "text-foreground"
               )}
             >
               {daysLeft} day{daysLeft === 1 ? "" : "s"}

@@ -688,7 +688,7 @@ export default function StrategyResearchClient() {
                                             </label>
                                         ))}
                                         <span className="flex items-center gap-1.5 rounded-md border border-border px-2 py-1 text-muted-foreground">
-                                            <Square className="h-3 w-3 text-emerald-500" /> executionEnabled = false (always)
+                                            <Square className="h-3 w-3 text-positive" /> executionEnabled = false (always)
                                         </span>
                                     </div>
 
@@ -835,7 +835,7 @@ export default function StrategyResearchClient() {
                                                                 title={`${STAGE_LABELS[stage]} — ${status}${state?.error ? ` (${state.error})` : ""}`}
                                                                 className={`rounded-md border px-2 py-0.5 text-micro ${
                                                                     status === "completed"
-                                                                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600"
+                                                                        ? "border-positive/40 bg-positive/10 text-positive"
                                                                         : status === "running"
                                                                             ? "border-primary/50 bg-primary/10 text-primary"
                                                                             : status === "failed"
@@ -971,10 +971,10 @@ export default function StrategyResearchClient() {
                                                                 <span
                                                                     className={
                                                                         c.outOfSample.verdict === "robust"
-                                                                            ? "text-emerald-600"
+                                                                            ? "text-positive"
                                                                             : c.outOfSample.verdict === "fragile"
                                                                                 ? "text-destructive"
-                                                                                : "text-amber-600"
+                                                                                : "text-warning"
                                                                     }
                                                                 >
                                                                     {c.outOfSample.verdict}
@@ -1002,7 +1002,7 @@ export default function StrategyResearchClient() {
                                                         </td>
                                                         <td className="px-2 py-2">
                                                             {c.warnings.length > 0 ? (
-                                                                <span className="inline-flex items-center gap-1 text-amber-600">
+                                                                <span className="inline-flex items-center gap-1 text-warning">
                                                                     <AlertTriangle className="h-3 w-3" />
                                                                     {c.warnings.length}
                                                                 </span>
@@ -1048,7 +1048,7 @@ export default function StrategyResearchClient() {
                                                                 e.level === "error"
                                                                     ? "font-medium text-destructive"
                                                                     : e.level === "warn"
-                                                                        ? "font-medium text-amber-600"
+                                                                        ? "font-medium text-warning"
                                                                         : "font-medium text-foreground"
                                                             }
                                                         >

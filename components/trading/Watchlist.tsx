@@ -271,7 +271,7 @@ export default function Watchlist({
                                         {chg !== null ? (
                                             <span className={cn(
                                                 "font-mono text-xs font-medium tabular-nums",
-                                                isPositive ? "text-emerald-500" : "text-rose-500"
+                                                isPositive ? "text-positive" : "text-negative"
                                             )}>
                                                 {isPositive ? "+" : ""}{chg.toFixed(2)}%
                                             </span>
@@ -293,7 +293,7 @@ export default function Watchlist({
                                             type="button"
                                             onClick={(e) => handleRemoveSymbol(e, symbol)}
                                             title="Remove symbol"
-                                            className="opacity-0 group-hover:opacity-100 p-0.5 text-muted-foreground hover:text-rose-500 transition-opacity"
+                                            className="opacity-0 group-hover:opacity-100 p-0.5 text-muted-foreground hover:text-negative transition-opacity"
                                         >
                                             <X className="size-3" />
                                         </button>

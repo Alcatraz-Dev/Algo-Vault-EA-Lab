@@ -605,9 +605,9 @@ export function ProTerminalChartWorkspace({
             ) : null}
 
             {aiGate.error ? (
-                <div role="alert" className="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
-                    <AlertTriangle className="size-3.5 shrink-0 text-amber-400" />
-                    <span className="text-amber-200">{aiGate.error}</span>
+                <div role="alert" className="flex items-center gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs">
+                    <AlertTriangle className="size-3.5 shrink-0 text-warning" />
+                    <span className="text-warning">{aiGate.error}</span>
                 </div>
             ) : null}
 

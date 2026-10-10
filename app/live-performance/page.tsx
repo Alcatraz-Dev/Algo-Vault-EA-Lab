@@ -974,7 +974,7 @@ export default function LivePerformancePage() {
                                 <Clock className="h-4 w-4 text-positive" />
                                 <span>Trade Execution Profile</span>
                             </h3>
-                            <span className="text-micro uppercase tracking-wider font-semibold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded">
+                            <span className="text-micro uppercase tracking-wider font-semibold text-chart-4 bg-chart-4/10 border border-chart-4/20 px-2 py-0.5 rounded">
                                 Real Trades
                             </span>
                         </div>

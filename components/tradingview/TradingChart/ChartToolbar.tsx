@@ -141,7 +141,7 @@ export default function ChartToolbar({
                         key={tf}
                         variant={interval === tf ? "secondary" : "ghost"}
                         size="sm"
-                        className={`text-micro px-1.5 ${interval === tf ? "bg-cyan-400/15 text-cyan-200" : "text-muted-foreground hover:text-foreground"}`}
+                        className={`text-micro px-1.5 ${interval === tf ? "bg-info/15 text-info" : "text-muted-foreground hover:text-foreground"}`}
                         onClick={() => {
                             onChangeInterval(tf);
                             onIntervalChange?.(tf);
@@ -192,7 +192,7 @@ export default function ChartToolbar({
                                         <span className="h-2 w-2 rounded-full" style={{ backgroundColor: study.color }} />
                                         {study.name}
                                     </span>
-                                    {studies.includes(study.id) && <Check size={14} className="text-cyan-400" aria-hidden />}
+                                    {studies.includes(study.id) && <Check size={14} className="text-info" aria-hidden />}
                                 </button>
                             ))}
                         </div>

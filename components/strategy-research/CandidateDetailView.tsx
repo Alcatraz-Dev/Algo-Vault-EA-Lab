@@ -51,7 +51,7 @@ function Metric({ label, value, tone }: { label: string; value: string; tone?: "
             <div className="text-micro uppercase tracking-wide text-muted-foreground">{label}</div>
             <div
                 className={`text-sm font-semibold ${
-                    tone === "positive" ? "text-emerald-600" : tone === "negative" ? "text-destructive" : tone === "warning" ? "text-amber-600" : "text-foreground"
+                    tone === "positive" ? "text-positive" : tone === "negative" ? "text-destructive" : tone === "warning" ? "text-warning" : "text-foreground"
                 }`}
             >
                 {value}
@@ -257,10 +257,10 @@ export default function CandidateDetailView({
                                             <span
                                                 className={
                                                     validation.verdict === "robust"
-                                                        ? "text-emerald-600"
+                                                        ? "text-positive"
                                                         : validation.verdict === "fragile"
                                                             ? "text-destructive"
-                                                            : "text-amber-600"
+                                                            : "text-warning"
                                                 }
                                             >
                                                 {validation.verdict}
@@ -361,7 +361,7 @@ export default function CandidateDetailView({
                                                             <td className="px-2 py-1">{String(t.direction)}</td>
                                                             <td className="px-2 py-1 text-right">{String(t.entry)}</td>
                                                             <td className="px-2 py-1 text-right">{String(t.exit)}</td>
-                                                            <td className={`px-2 py-1 text-right ${Number(t.profit) >= 0 ? "text-emerald-600" : "text-destructive"}`}>
+                                                            <td className={`px-2 py-1 text-right ${Number(t.profit) >= 0 ? "text-positive" : "text-destructive"}`}>
                                                                 {Number(t.profit).toFixed(2)}
                                                             </td>
                                                             <td className="px-2 py-1 text-right">{Number(t.profitR ?? 0).toFixed(2)}</td>
@@ -386,12 +386,12 @@ export default function CandidateDetailView({
                                             <span
                                                 className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
                                                     entry.status === "completed"
-                                                        ? "border-emerald-500/40 text-emerald-600"
+                                                        ? "border-positive/40 text-positive"
                                                         : entry.status === "failed"
                                                             ? "border-destructive/40 text-destructive"
                                                             : entry.status === "skipped"
                                                                 ? "border-border text-muted-foreground/50"
-                                                                : "border-amber-500/40 text-amber-600"
+                                                                : "border-warning/40 text-warning"
                                                 }`}
                                             >
                                                 {LINEAGE_ICON[entry.kind] ?? <MinusCircle className="h-3.5 w-3.5" />}
@@ -427,10 +427,10 @@ export default function CandidateDetailView({
                                                 variant="outline"
                                                 className={
                                                     robustness.status === "robust"
-                                                        ? "border-emerald-500/50 text-emerald-600"
+                                                        ? "border-positive/50 text-positive"
                                                         : robustness.status === "fragile"
                                                             ? "border-destructive/50 text-destructive"
-                                                            : "border-amber-500/50 text-amber-600"
+                                                            : "border-warning/50 text-warning"
                                                 }
                                             >
                                                 {robustness.status}
@@ -510,7 +510,7 @@ export default function CandidateDetailView({
                                                     w.severity === "high"
                                                         ? "border-destructive/40 bg-destructive/5"
                                                         : w.severity === "medium"
-                                                            ? "border-amber-500/40 bg-amber-500/5"
+                                                            ? "border-warning/40 bg-warning/5"
                                                             : "border-border/40 bg-background"
                                                 }`}
                                             >
@@ -572,7 +572,7 @@ export default function CandidateDetailView({
                                 <ul className="space-y-1 text-micro">
                                     {events.map((e) => (
                                         <li key={e.id} className="flex items-start justify-between gap-3 rounded-md border border-border/30 bg-background px-3 py-1.5">
-                                            <span className={e.level === "error" ? "text-destructive" : e.level === "warn" ? "text-amber-600" : "text-foreground"}>
+                                            <span className={e.level === "error" ? "text-destructive" : e.level === "warn" ? "text-warning" : "text-foreground"}>
                                                 {e.code ? <span className="mr-1.5 text-muted-foreground">{e.code}</span> : null}
                                                 {e.message}
                                             </span>
