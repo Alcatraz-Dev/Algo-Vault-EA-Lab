@@ -104,7 +104,7 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#ff4d00] to-amber-500 shadow-lg shadow-[#ff4d00]/20">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#ff4d00] to-warning shadow-lg shadow-[#ff4d00]/20">
               <Zap size={16} className="text-white" />
             </span>
             <div>
@@ -114,11 +114,11 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
           </div>
           <div className="flex items-center gap-2">
             {pro ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-micro font-bold text-emerald-400 border border-emerald-500/20">
+              <span className="inline-flex items-center gap-1 rounded-full bg-positive/10 px-2.5 py-0.5 text-micro font-bold text-positive border border-positive/20">
                 <ShieldCheck size={10} /> PRO ACTIVE
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-micro font-bold text-amber-400 border border-amber-500/20">
+              <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 px-2.5 py-0.5 text-micro font-bold text-warning border border-warning/20">
                 UPGRADE
               </span>
             )}
@@ -129,10 +129,10 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
         </div>
 
         {!pro && (
-          <div className="rounded-xl bg-gradient-to-r from-amber-500/[0.08] to-rose-500/[0.08] border border-amber-500/20 p-4 mb-4">
-            <div className="text-sm font-semibold text-amber-300 mb-1">Unlock full terminal access</div>
+          <div className="rounded-xl bg-gradient-to-r from-warning/[0.08] to-negative/[0.08] border border-warning/20 p-4 mb-4">
+            <div className="text-sm font-semibold text-warning mb-1">Unlock full terminal access</div>
             <p className="text-xs text-muted-foreground mb-3">Get real-time scalping signals, smart-money tracking, and AI execution hooks.</p>
-            <Link href="/pricing" className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#ff4d00] to-amber-500 px-4 py-2 text-xs font-extrabold text-white shadow-lg shadow-[#ff4d00]/25 hover:shadow-[#ff4d00]/40 transition hover:-translate-y-px">
+            <Link href="/pricing" className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#ff4d00] to-warning px-4 py-2 text-xs font-extrabold text-white shadow-lg shadow-[#ff4d00]/25 hover:shadow-[#ff4d00]/40 transition hover:-translate-y-px">
               GO PRO <ArrowUpRight size={12} />
             </Link>
           </div>
@@ -143,7 +143,7 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
           <div className="flex items-center gap-2 text-micro uppercase tracking-widest font-bold text-muted-foreground mb-2">
             <span>Live Signals</span>
             <span className="h-px flex-1 bg-border" />
-            <span className={error ? "text-rose-400" : "text-emerald-400"}>{statusLabel}</span>
+            <span className={error ? "text-negative" : "text-positive"}>{statusLabel}</span>
             {loading && <RefreshCcw size={12} className="animate-spin text-muted-foreground" />}
           </div>
 
@@ -156,9 +156,9 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
               </Link>
             </div>
           ) : error ? (
-            <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-3">
-              <WifiOff size={13} className="mt-0.5 shrink-0 text-amber-400" />
-              <p className="text-micro leading-relaxed text-amber-200">{error}</p>
+            <div className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/5 px-3 py-3">
+              <WifiOff size={13} className="mt-0.5 shrink-0 text-warning" />
+              <p className="text-micro leading-relaxed text-warning">{error}</p>
             </div>
           ) : signals.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border px-3 py-4 text-center">
@@ -171,8 +171,8 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
           ) : (
             signals.slice(0, 6).map((s) => {
               const long = s.direction === "long";
-              const color = long ? "text-amber-300" : "text-rose-400";
-              const bg = long ? "bg-amber-500/10" : "bg-rose-500/10";
+              const color = long ? "text-positive" : "text-negative";
+              const bg = long ? "bg-positive/10" : "bg-negative/10";
               return (
                 <div key={s.id} className="flex items-center justify-between rounded-lg bg-muted/60 px-3 py-2.5 hover:bg-muted transition border border-transparent hover:border-border/50" title={`Entry ${s.entry} · SL ${s.stop} · TP ${s.target}`}>
                   <div className="flex items-center gap-3">
@@ -191,16 +191,16 @@ export default function ScalpingTerminal({ pro = false }: { pro?: boolean }) {
         </div>
 
         {/* Bottom status bar */}
-        <div className="mt-4 h-1 rounded-full bg-gradient-to-r from-amber-500 via-emerald-400 to-blue-500 animate-pulse opacity-80" />
+        <div className="mt-4 h-1 rounded-full bg-gradient-to-r from-warning via-positive to-info animate-pulse opacity-80" />
         <div className="mt-3 flex flex-wrap items-center gap-3 text-micro text-muted-foreground font-medium">
-          <span className="inline-flex items-center gap-1 text-emerald-400">
-            <span className={`h-1.5 w-1.5 rounded-full ${!signedIn || error ? "bg-amber-400" : "bg-emerald-400 animate-pulse"}`} />
+          <span className="inline-flex items-center gap-1 text-positive">
+            <span className={`h-1.5 w-1.5 rounded-full ${!signedIn || error ? "bg-warning" : "bg-positive animate-pulse"}`} />
             Scanner: {!signedIn ? "IDLE" : error ? "UNREACHABLE" : "DETERMINISTIC"}
           </span>
           <span>•</span>
           <span>Signals: {signedIn && !error ? `${signals.length}/6` : "—"}</span>
           <span>•</span>
-          <span className="text-amber-400">Full terminal: /account/scalping-terminal-lite</span>
+          <span className="text-warning">Full terminal: /account/scalping-terminal-lite</span>
         </div>
       </div>
     </div>

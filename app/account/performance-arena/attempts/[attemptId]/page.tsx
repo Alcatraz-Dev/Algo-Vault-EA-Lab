@@ -414,7 +414,7 @@ export default function AccountChallengeDashboardPage() {
                 {state.requirements.map((req) => (
                   <li key={req.key} className="flex items-start justify-between gap-2">
                     <span className="flex items-center gap-1.5">
-                      <span className={`h-2 w-2 rounded-full ${req.met ? "bg-emerald-500" : "bg-amber-500"}`} />
+                      <span className={`h-2 w-2 rounded-full ${req.met ? "bg-positive" : "bg-warning"}`} />
                       {req.label}
                     </span>
                     <span className="text-right text-muted-foreground">{req.detail}</span>

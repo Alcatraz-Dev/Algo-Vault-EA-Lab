@@ -193,7 +193,7 @@ export default function AccountPerformanceArenaPage() {
                     <span className="text-muted-foreground">
                       Return{" "}
                       <span
-                        className={`font-mono ${metrics.totalReturnPct >= 0 ? "text-emerald-600" : "text-red-500"}`}
+                        className={`font-mono ${metrics.totalReturnPct >= 0 ? "text-positive" : "text-negative"}`}
                       >
                         {metrics.totalReturnPct >= 0 ? "+" : ""}
                         {metrics.totalReturnPct.toFixed(2)}%

@@ -50,7 +50,7 @@ function timeAgo(ms?: number | null, now = 0) {
 
 function StatusPill({ online }: { online: boolean }) {
   return online ? (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-micro font-bold text-emerald-600">
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-positive/20 bg-positive/10 px-2 py-0.5 text-micro font-bold text-positive">
       <Wifi size={10} /> LIVE
     </span>
   ) : (
@@ -161,10 +161,10 @@ export default function AccountLivePage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-600">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-positive/20 bg-positive/10 px-3 py-1.5 text-xs font-semibold text-positive">
               <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-positive" />
               </span>
               {online.length} live
             </span>
@@ -195,7 +195,7 @@ export default function AccountLivePage() {
               label: "Floating P/L",
               value: `${totalFloating >= 0 ? "+" : ""}${formatMoney(totalFloating)}`,
               icon: totalFloating >= 0 ? TrendingUp : TrendingDown,
-              tone: totalFloating >= 0 ? "text-emerald-600" : "text-red-500",
+              tone: totalFloating >= 0 ? "text-positive" : "text-negative",
               sub: `worst DD ${worstDrawdown.toFixed(1)}%`,
             },
           ].map(({ label, value, icon: Icon, tone, sub }) => (
@@ -215,7 +215,7 @@ export default function AccountLivePage() {
         </div>
 
         {error && (
-          <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-600">{error}</div>
+          <div className="rounded-xl border border-negative/20 bg-negative/10 px-4 py-3 text-sm text-negative">{error}</div>
         )}
 
         {/* Equity chart */}
@@ -288,10 +288,10 @@ export default function AccountLivePage() {
                         <td className="px-5 py-4 text-right text-foreground tabular-nums">
                           {a.equity != null ? formatMoney(a.equity, a.currency) : "—"}
                         </td>
-                        <td className={`px-5 py-4 text-right font-semibold tabular-nums ${fl >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+                        <td className={`px-5 py-4 text-right font-semibold tabular-nums ${fl >= 0 ? "text-positive" : "text-negative"}`}>
                           {fl >= 0 ? "+" : ""}{formatMoney(fl, a.currency)}
                         </td>
-                        <td className={`px-5 py-4 text-right tabular-nums ${dd > 20 ? "text-red-500 font-semibold" : "text-muted-foreground"}`}>
+                        <td className={`px-5 py-4 text-right tabular-nums ${dd > 20 ? "text-negative font-semibold" : "text-muted-foreground"}`}>
                           {a.drawdown != null ? `${a.drawdown.toFixed(2)}%` : "—"}
                         </td>
                         <td className="px-5 py-4 text-right text-xs text-muted-foreground">{timeAgo(a.lastHeartbeatAt, now)}</td>

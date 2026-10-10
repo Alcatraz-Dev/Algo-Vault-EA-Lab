@@ -366,9 +366,9 @@ function MarketRow({
 function TrendPill({ trend }: { trend: "bullish" | "bearish" | "neutral" }) {
     const tone =
         trend === "bullish"
-            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+            ? "bg-positive/10 text-positive"
             : trend === "bearish"
-              ? "bg-red-500/10 text-red-600 dark:text-red-400"
+              ? "bg-negative/10 text-negative"
               : "bg-muted text-muted-foreground";
     return (
         <span className={cn("rounded px-1 py-0.5 text-micro font-medium uppercase", tone)}>
@@ -379,12 +379,12 @@ function TrendPill({ trend }: { trend: "bullish" | "bearish" | "neutral" }) {
 
 function SetupStatusBadge({ status }: { status: string }) {
     const tone: Record<string, string> = {
-        ACTIVE: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-        TRIGGERED: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-        PARTIALLY_MATCHED: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+        ACTIVE: "bg-positive/10 text-positive",
+        TRIGGERED: "bg-info/10 text-info",
+        PARTIALLY_MATCHED: "bg-warning/10 text-warning",
         WAITING: "bg-muted text-muted-foreground",
         EXPIRED: "bg-muted text-muted-foreground",
-        INVALIDATED: "bg-red-500/10 text-red-600 dark:text-red-400",
+        INVALIDATED: "bg-negative/10 text-negative",
         CANCELLED: "bg-muted text-muted-foreground",
     };
     return (
@@ -396,10 +396,10 @@ function SetupStatusBadge({ status }: { status: string }) {
 
 function RiskBadge({ status }: { status: CommandCenterPayload["riskStatus"] }) {
     const map = {
-        normal: { label: "NORMAL", className: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" },
-        caution: { label: "CAUTION", className: "bg-amber-500/10 text-amber-600 dark:text-amber-400" },
-        restricted: { label: "RESTRICTED", className: "bg-orange-500/10 text-orange-600 dark:text-orange-400" },
-        halted: { label: "HALTED", className: "bg-red-500/10 text-red-600 dark:text-red-400" },
+        normal: { label: "NORMAL", className: "bg-positive/10 text-positive" },
+        caution: { label: "CAUTION", className: "bg-warning/10 text-warning" },
+        restricted: { label: "RESTRICTED", className: "bg-warning/10 text-warning" },
+        halted: { label: "HALTED", className: "bg-negative/10 text-negative" },
         unavailable: { label: "UNAVAILABLE", className: "bg-muted text-muted-foreground" },
     } as const;
     const entry = map[status];

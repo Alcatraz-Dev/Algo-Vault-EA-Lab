@@ -181,7 +181,7 @@ export default function AccountMarketIntelligencePage() {
           <div className="text-muted-foreground">Strategy: {data ? "Adaptive" : "—"}</div>
           <div className="text-muted-foreground">Backtest: {data ? "Ready" : "—"}</div>
           <div className="text-muted-foreground">Research: {data ? "Active" : "—"}</div>
-          {authLoading ? <span className="text-muted-foreground">Auth...</span> : user ? <span className="text-emerald-400">Signed in</span> : <span className="text-rose-400">Not signed in</span>}
+          {authLoading ? <span className="text-muted-foreground">Auth...</span> : user ? <span className="text-positive">Signed in</span> : <span className="text-negative">Not signed in</span>}
         </div>
 
         <div className="grid lg:grid-cols-[1fr_320px] gap-4">
@@ -221,8 +221,8 @@ export default function AccountMarketIntelligencePage() {
                         const bodyH = Math.max(2, (Math.abs(c.close - c.open) / range) * 80);
                         return (
                           <div key={i} className="flex-1 h-full flex items-end justify-center relative" title={`O:${c.open} H:${c.high} L:${c.low} C:${c.close}`}>
-                            <div className="w-full bg-emerald-500/20 rounded-t-sm relative" style={{ height: `${h}%` }}>
-                              <div className={`absolute w-full rounded-sm ${c.close >= c.open ? "bg-emerald-400" : "bg-rose-400"}`} style={{ bottom: `${bodyTop}%`, height: `${Math.max(1, bodyH)}%` }} />
+                            <div className="w-full bg-positive/20 rounded-t-sm relative" style={{ height: `${h}%` }}>
+                              <div className={`absolute w-full rounded-sm ${c.close >= c.open ? "bg-positive" : "bg-negative"}`} style={{ bottom: `${bodyTop}%`, height: `${Math.max(1, bodyH)}%` }} />
                             </div>
                           </div>
                         );
@@ -255,7 +255,7 @@ export default function AccountMarketIntelligencePage() {
                 <span className="rounded border border-border/30 px-1.5 py-0.5">Replay-safe</span>
               </div>
               {report.regime && (
-                <div className="mt-3 rounded bg-muted/40 p-2 text-xs font-mono">Regime: <span className={report.regime.regime?.includes("bullish") ? "text-emerald-400" : report.regime.regime?.includes("bearish") ? "text-rose-400" : "text-amber-400"}>{report.regime.regime ?? "—"}</span></div>
+                <div className="mt-3 rounded bg-muted/40 p-2 text-xs font-mono">Regime: <span className={report.regime.regime?.includes("bullish") ? "text-positive" : report.regime.regime?.includes("bearish") ? "text-negative" : "text-warning"}>{report.regime.regime ?? "—"}</span></div>
               )}
             </div>
 
@@ -268,7 +268,7 @@ export default function AccountMarketIntelligencePage() {
                 <div><strong>Order Blocks</strong> — {data ? "Not loaded" : "—"}</div>
                 <div><strong>Sessions</strong> — {data ? (data.session ? data.session.name : "Not loaded") : "—"}</div>
               </div>
-              <div className="mt-2 text-micro text-amber-300">Only real engine outputs displayed.</div>
+              <div className="mt-2 text-micro text-warning">Only real engine outputs displayed.</div>
             </div>
           </div>
         </div>
@@ -282,10 +282,10 @@ export default function AccountMarketIntelligencePage() {
               <span>Real-time feed</span>
             </div>
             <div className="space-y-2 text-xs">
-              <div className="flex justify-between"><span className="text-muted-foreground">Market API</span><span className={data ? "text-emerald-400" : "text-muted-foreground"}>{data ? "Active" : "Idle"}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">OHLC</span><span className={ohlc ? "text-emerald-400" : "text-muted-foreground"}>{ohlc ? "Loaded" : "Waiting"}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Accounts</span><span className={accounts.length ? "text-emerald-400" : "text-muted-foreground"}>{accounts.length ? `${accounts.length} connected` : "None"}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Positions</span><span className={positions.length ? "text-amber-400" : "text-muted-foreground"}>{positions.length ? `${positions.length} open` : "None"}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Market API</span><span className={data ? "text-positive" : "text-muted-foreground"}>{data ? "Active" : "Idle"}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">OHLC</span><span className={ohlc ? "text-positive" : "text-muted-foreground"}>{ohlc ? "Loaded" : "Waiting"}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Accounts</span><span className={accounts.length ? "text-positive" : "text-muted-foreground"}>{accounts.length ? `${accounts.length} connected` : "None"}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Positions</span><span className={positions.length ? "text-warning" : "text-muted-foreground"}>{positions.length ? `${positions.length} open` : "None"}</span></div>
             </div>
             <div className="mt-3 rounded-xl border border-border/20 bg-background/20 p-3 text-micro text-muted-foreground">Engine feeds are real: analytics APIs, MT5 accounts, and live positions. No replay or mock timers.</div>
           </div>
@@ -352,7 +352,7 @@ export default function AccountMarketIntelligencePage() {
           {/* Active Setups + Setup Memory */}
           <div className="rounded-lg border border-border/30 bg-card/60 p-4 backdrop-blur-xl">
             <h3 className="font-bold text-sm mb-2">Active Setups</h3>
-            <div className="text-xs text-muted-foreground mb-2">{setups.length ? setups.map((s) => <div key={s.id} className="flex items-center gap-2"><span className={cn("h-1.5 w-1.5 rounded-full", s.status === "Active" ? "bg-emerald-400" : "bg-amber-400")} /><span>{s.symbol} {s.tf}</span><span className="text-muted-foreground">score {s.score}</span></div>) : "No setups configured. Create from existing conditions."}</div>
+            <div className="text-xs text-muted-foreground mb-2">{setups.length ? setups.map((s) => <div key={s.id} className="flex items-center gap-2"><span className={cn("h-1.5 w-1.5 rounded-full", s.status === "Active" ? "bg-positive" : "bg-warning")} /><span>{s.symbol} {s.tf}</span><span className="text-muted-foreground">score {s.score}</span></div>) : "No setups configured. Create from existing conditions."}</div>
             <h3 className="font-bold text-sm mb-2 mt-3">Setup Memory</h3>
             <div className="text-xs text-muted-foreground">Persistent lifecycle of monitored setups. Real evidence from engine outputs only. No fabricated predictions or scores.</div>
           </div>

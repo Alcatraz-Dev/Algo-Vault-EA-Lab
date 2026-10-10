@@ -56,7 +56,7 @@ export function GuardianPanel({
         <div className="rounded-lg border border-border bg-card">
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
                 <h3 className="flex items-center gap-2 text-sm font-semibold">
-                    <ShieldCheck className="h-4 w-4 text-emerald-600" /> Challenge Guardian
+                    <ShieldCheck className="h-4 w-4 text-positive" /> Challenge Guardian
                 </h3>
                 <Button size="xs" variant="outline" disabled={loading} onClick={() => void runAI()}>
                     {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Brain className="h-3 w-3" />}
@@ -77,7 +77,7 @@ export function GuardianPanel({
                                 insight.severity === "critical"
                                     ? "rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs"
                                     : insight.severity === "warning"
-                                      ? "rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs"
+                                      ? "rounded-md border border-warning/30 bg-warning/5 p-3 text-xs"
                                       : "rounded-md border border-border bg-muted/30 p-3 text-xs"
                             }
                         >
@@ -106,9 +106,9 @@ export function GuardianPanel({
                         </span>
                     </div>
                     <div className="space-y-3">
-                        <Section title="FACTS" tone="text-emerald-600" items={analysis.facts} />
-                        <Section title="INTERPRETATIONS" tone="text-sky-600" items={analysis.interpretations} />
-                        <Section title="RISK WARNINGS" tone="text-amber-600" items={analysis.riskWarnings} icon={<TriangleAlert className="h-3 w-3" />} />
+                        <Section title="FACTS" tone="text-positive" items={analysis.facts} />
+                        <Section title="INTERPRETATIONS" tone="text-info" items={analysis.interpretations} />
+                        <Section title="RISK WARNINGS" tone="text-warning" items={analysis.riskWarnings} icon={<TriangleAlert className="h-3 w-3" />} />
                         <Section title="UNCERTAINTY" tone="text-muted-foreground" items={analysis.uncertainty} />
                         <Section title="LIMITATIONS" tone="text-muted-foreground" items={analysis.limitations} />
                     </div>

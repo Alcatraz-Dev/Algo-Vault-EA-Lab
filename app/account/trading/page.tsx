@@ -762,7 +762,7 @@ export default function AccountTradingPage() {
                 subtitle="Live account trading, charts & orders"
             >
                 <div className="mx-auto my-8 max-w-xl rounded-lg border border-border bg-card p-8 text-center shadow-lg">
-                    <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500">
+                    <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-lg bg-warning/10 text-warning">
                         <Lock className="size-7" />
                     </div>
                     <h2 className="text-xl font-bold text-foreground">
@@ -1060,8 +1060,8 @@ export default function AccountTradingPage() {
                                     className={cn(
                                         "font-mono font-semibold",
                                         historyStats.net >= 0
-                                            ? "text-emerald-500"
-                                            : "text-rose-500"
+                                            ? "text-positive"
+                                            : "text-negative"
                                     )}
                                 >
                                     {fmtSignedMoney(historyStats.net)}
@@ -1095,8 +1095,8 @@ export default function AccountTradingPage() {
                                     className={cn(
                                         "font-mono font-semibold",
                                         openBook.floating >= 0
-                                            ? "text-emerald-500"
-                                            : "text-rose-500"
+                                            ? "text-positive"
+                                            : "text-negative"
                                     )}
                                 >
                                     {fmtSignedMoney(openBook.floating)}
@@ -1248,7 +1248,7 @@ export default function AccountTradingPage() {
 
                     <div className="p-4">
                         {actionError ? (
-                            <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+                            <p className="mb-3 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning">
                                 {actionError}
                             </p>
                         ) : null}
@@ -1453,16 +1453,16 @@ function StatusDot({
     return (
         <span className="relative flex h-2.5 w-2.5">
             {isConnected && (
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-60" />
             )}
             <span
                 className={cn(
                     "relative inline-flex h-2.5 w-2.5 rounded-full",
                     isConnected
-                        ? "bg-emerald-500"
+                        ? "bg-positive"
                         : status === "offline"
-                          ? "bg-rose-500"
-                          : "bg-amber-500"
+                          ? "bg-negative"
+                          : "bg-warning"
                 )}
             />
         </span>

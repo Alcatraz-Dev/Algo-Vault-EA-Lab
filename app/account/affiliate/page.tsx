@@ -149,13 +149,13 @@ export default function AffiliatePage() {
         <AccountShell title="Affiliates" subtitle="Refer traders, grow the community, and earn">
             {/* Background blurs */}
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute left-1/2 top-[-300px] h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-violet-600/10 blur-[130px]" />
-                <div className="absolute bottom-[-200px] right-[-100px] h-[450px] w-[450px] rounded-full bg-blue-600/10 blur-[130px]" />
+                <div className="absolute left-1/2 top-[-300px] h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-chart-3/10 blur-[130px]" />
+                <div className="absolute bottom-[-200px] right-[-100px] h-[450px] w-[450px] rounded-full bg-info/10 blur-[130px]" />
             </div>
 
             <div className="relative mx-auto max-w-5xl" data-guide="page-header">
                 {error && (
-                    <div className="rounded-lg border border-rose-500/25 bg-rose-500/[0.05] p-4 text-sm text-rose-300 mb-6">
+                    <div className="rounded-lg border border-negative/25 bg-negative/[0.05] p-4 text-sm text-negative mb-6">
                         {error}
                     </div>
                 )}
@@ -179,14 +179,14 @@ export default function AffiliatePage() {
                                 <p className="mt-2 text-3xl font-bold text-foreground">{summary.signups}</p>
                                 <p className="mt-1 text-xs text-muted-foreground">Accounts created through you</p>
                             </div>
-                            <div className="rounded-lg border border-violet-500/20 bg-violet-500/[0.05] p-5">
+                            <div className="rounded-lg border border-chart-3/20 bg-chart-3/[0.05] p-5">
                                 <p className="text-xs text-muted-foreground">Commission</p>
-                                <p className="mt-2 text-3xl font-bold text-violet-400">{commissionRate}%</p>
+                                <p className="mt-2 text-3xl font-bold text-chart-3">{commissionRate}%</p>
                                 <p className="mt-1 text-xs text-muted-foreground">On every referred purchase</p>
                             </div>
-                            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.05] p-5">
+                            <div className="rounded-lg border border-positive/20 bg-positive/[0.05] p-5">
                                 <p className="text-xs text-muted-foreground">Total Earnings</p>
-                                <p className="mt-2 text-3xl font-bold text-emerald-400">${summary.totalEarningsUsd.toFixed(2)}</p>
+                                <p className="mt-2 text-3xl font-bold text-positive">${summary.totalEarningsUsd.toFixed(2)}</p>
                                 <p className="mt-1 text-xs text-muted-foreground">${summary.completedEarningsUsd.toFixed(2)} confirmed</p>
                             </div>
                         </div>
@@ -200,7 +200,7 @@ export default function AffiliatePage() {
                                         Share this link — anyone who signs up is credited to you.
                                     </p>
                                 </div>
-                                <Gift className="h-6 w-6 text-violet-400" />
+                                <Gift className="h-6 w-6 text-primary" />
                             </div>
 
                             <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -213,7 +213,7 @@ export default function AffiliatePage() {
                                             onClick={() => copyText("code", summary.code)}
                                             className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:text-foreground"
                                         >
-                                            {copied === "code" ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
+                                            {copied === "code" ? <Check size={13} className="text-positive" /> : <Copy size={13} />}
                                             {copied === "code" ? "Copied" : "Copy"}
                                         </button>
                                     </div>
@@ -228,7 +228,7 @@ export default function AffiliatePage() {
                                             onClick={() => copyText("link", shareLink)}
                                             className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:text-foreground"
                                         >
-                                            {copied === "link" ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
+                                            {copied === "link" ? <Check size={13} className="text-positive" /> : <Copy size={13} />}
                                             {copied === "link" ? "Copied" : "Copy"}
                                         </button>
                                     </div>
@@ -240,7 +240,7 @@ export default function AffiliatePage() {
                                     href={shareLink}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-violet-500"
+                                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-primary"
                                 >
                                     <Globe size={14} /> Preview Link
                                 </a>
@@ -267,15 +267,15 @@ export default function AffiliatePage() {
                                     {[
                                         ...summary.recentPurchases.map(p => ({
                                             key: p.id || `purchase-${p.createdAt}`,
-                                            icon: <DollarSign size={14} className="text-emerald-500" />,
+                                            icon: <DollarSign size={14} className="text-positive" />,
                                             text: `Purchase: ${p.productName} — $${((p.commissionCents || 0) / 100).toFixed(2)} earned`,
                                             createdAt: p.createdAt,
                                         })),
                                         ...summary.recentEvents.map(e => ({
                                             key: e.id || `${e.type}-${e.createdAt}`,
                                             icon: e.type === "signup"
-                                                ? <UserPlus size={14} className="text-emerald-500" />
-                                                : <MousePointerClick size={14} className="text-violet-400" />,
+                                                ? <UserPlus size={14} className="text-positive" />
+                                                : <MousePointerClick size={14} className="text-chart-3" />,
                                             text: e.type === "signup" ? "New signup via your link" : "Someone clicked your link",
                                             createdAt: e.createdAt,
                                         })),
@@ -299,14 +299,14 @@ export default function AffiliatePage() {
                         </div>
 
                         {/* How it works */}
-                        <div className="rounded-lg border border-violet-500/20 bg-violet-500/[0.04] p-6">
+                        <div className="rounded-lg border border-chart-3/20 bg-chart-3/[0.04] p-6">
                             <h3 className="font-bold text-foreground flex items-center gap-2">
-                                <TrendingUp size={16} className="text-violet-400" /> How it works
+                                <TrendingUp size={16} className="text-primary" /> How it works
                             </h3>
                             <ol className="mt-3 space-y-2 text-sm text-muted-foreground">
                                 <li>1. Copy your referral link above.</li>
                                 <li>2. Share it in your trading communities, Telegram groups, or with friends.</li>
-                                <li>3. When someone signs up, every purchase they make earns you <span className="font-semibold text-violet-400">{commissionRate}% commission</span>.</li>
+                                <li>3. When someone signs up, every purchase they make earns you <span className="font-semibold text-chart-3">{commissionRate}% commission</span>.</li>
                             </ol>
                             {summary.referredBy && (
                                 <p className="mt-4 rounded-xl bg-muted px-4 py-3 text-xs text-muted-foreground">

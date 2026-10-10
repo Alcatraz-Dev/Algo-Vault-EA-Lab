@@ -147,7 +147,7 @@ export default function AccountTraderProfilePage() {
                       {data.recentRewards.map((entry) => (
                         <TableRow key={entry.rewardId}>
                           <TableCell className="text-xs">{entry.rewardType.replace(/_/g, " ")}</TableCell>
-                          <TableCell className={`text-right font-mono text-xs ${entry.amount < 0 ? "text-red-500" : ""}`}>
+                          <TableCell className={`text-right font-mono text-xs ${entry.amount < 0 ? "text-negative" : ""}`}>
                             {entry.amount > 0 ? "+" : ""}
                             {entry.amount} <span className="text-muted-foreground">{entry.unit}</span>
                           </TableCell>
@@ -193,7 +193,7 @@ export default function AccountTraderProfilePage() {
                         </Link>
                       </TableCell>
                       <TableCell><ChallengeStatusBadge status={item.status} /></TableCell>
-                      <TableCell className={`text-right font-mono text-xs ${item.totalReturnPct >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+                      <TableCell className={`text-right font-mono text-xs ${item.totalReturnPct >= 0 ? "text-positive" : "text-negative"}`}>
                         {item.totalReturnPct >= 0 ? "+" : ""}
                         {item.totalReturnPct.toFixed(2)}%
                       </TableCell>

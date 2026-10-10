@@ -102,11 +102,11 @@ export function PositionsTable({
                             <TableCell className="font-mono text-xs">{centiLotsToNumber(trade.sizeCentiLots).toFixed(2)}</TableCell>
                             <TableCell className="text-right font-mono text-xs">{priceMicrosToNumber(trade.entryPriceMicros)}</TableCell>
                             <TableCell className="text-right font-mono text-xs">
-                                {markPriceMicros !== null ? priceMicrosToNumber(markPriceMicros) : <span className="text-amber-500">stale</span>}
+                                {markPriceMicros !== null ? priceMicrosToNumber(markPriceMicros) : <span className="text-warning">stale</span>}
                             </TableCell>
                             <TableCell className="text-right">
                                 <Money cents={unrealizedPnLCents} signed />
-                                {stale ? <span className="ml-1 text-micro text-amber-500">·</span> : null}
+                                {stale ? <span className="ml-1 text-micro text-warning">·</span> : null}
                             </TableCell>
                             <TableCell className="text-right font-mono text-xs text-muted-foreground">
                                 {trade.riskCents !== null ? `$${(trade.riskCents / 100).toFixed(2)}` : "no stop"}
@@ -116,7 +116,7 @@ export function PositionsTable({
                                     <div className="flex min-w-48 items-center gap-1">
                                         <input aria-label={`Stop loss for ${trade.symbol}`} value={stopLoss} onChange={(event) => setStopLoss(event.target.value)} placeholder={trade.stopLossMicros === null ? "SL" : priceMicrosToNumber(trade.stopLossMicros).toString()} className="w-20 rounded border border-border bg-background px-1.5 py-1 font-mono text-micro" />
                                         <input aria-label={`Take profit for ${trade.symbol}`} value={takeProfit} onChange={(event) => setTakeProfit(event.target.value)} placeholder={trade.takeProfitMicros === null ? "TP" : priceMicrosToNumber(trade.takeProfitMicros).toString()} className="w-20 rounded border border-border bg-background px-1.5 py-1 font-mono text-micro" />
-                                        <button type="button" aria-label="Save protection levels" disabled={savingStops} onClick={() => void saveStops(trade.tradeId)} className="rounded p-1 text-emerald-600 disabled:opacity-50">{savingStops ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}</button>
+                                        <button type="button" aria-label="Save protection levels" disabled={savingStops} onClick={() => void saveStops(trade.tradeId)} className="rounded p-1 text-positive disabled:opacity-50">{savingStops ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}</button>
                                         <button type="button" aria-label="Cancel edit" disabled={savingStops} onClick={() => setEditingId(null)} className="rounded p-1 text-muted-foreground"><X className="h-3 w-3" /></button>
                                     </div>
                                 ) : (

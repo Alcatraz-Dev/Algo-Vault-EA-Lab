@@ -212,13 +212,13 @@ export default function SubscribePage() {
                   {subscription.plan === "enterprise" ? "Enterprise" : subscription.plan === "pro" ? "Pro" : "Free"}
                 </span>
                 {subscription.status === "active" && (
-                  <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  <span className="flex items-center gap-1 rounded-full bg-positive/10 px-2.5 py-1 text-xs font-medium text-positive">
+                    <span className="h-1.5 w-1.5 rounded-full bg-positive" />
                     Active
                   </span>
                 )}
                 {subscription.cancelAtPeriodEnd && (
-                  <span className="flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-400">
+                  <span className="flex items-center gap-1 rounded-full bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning">
                     <AlertTriangle size={12} />
                     Canceling at period end
                   </span>
@@ -263,7 +263,7 @@ export default function SubscribePage() {
                     <button
                       onClick={handleCancel}
                       disabled={actionLoading}
-                      className="flex items-center gap-2 rounded-xl border border-rose-500/20 px-4 py-2.5 text-sm font-medium text-rose-400 transition hover:bg-rose-500/10 disabled:opacity-40"
+                      className="flex items-center gap-2 rounded-xl border border-destructive/20 px-4 py-2.5 text-sm font-medium text-destructive transition hover:bg-destructive/10 disabled:opacity-40"
                     >
                       {actionLoading ? <Loader2 size={15} className="animate-spin" /> : <LogOut size={15} />}
                       Cancel
@@ -349,12 +349,12 @@ export default function SubscribePage() {
                 tier.highlighted
                   ? "border-foreground bg-card shadow-xl"
                   : tier.current
-                  ? "border-emerald-500/50 bg-emerald-500/[0.03]"
+                  ? "border-positive/50 bg-positive/[0.03]"
                   : "border-border bg-card"
               }`}
             >
               {matchUrl && (
-                <div className="absolute -top-3 right-4 rounded-full bg-violet-500 px-3 py-1 text-micro font-bold text-foreground">
+                <div className="absolute -top-3 right-4 rounded-full bg-primary px-3 py-1 text-micro font-bold text-foreground">
                   Selected
                 </div>
               )}
@@ -376,14 +376,14 @@ export default function SubscribePage() {
                 </div>
               </div>
               {tier.current && (
-                <div className="mt-3 rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-400">
+                <div className="mt-3 rounded-lg bg-positive/10 px-3 py-1.5 text-xs font-medium text-positive">
                   Current Plan
                 </div>
               )}
               <ul className="mt-4 space-y-2">
                 {tier.features.map((feature, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm">
-                    <Check size={15} className={`mt-0.5 shrink-0 ${tier.features.includes(feature) ? "text-emerald-500" : "text-muted-foreground"}`} />
+                    <Check size={15} className={`mt-0.5 shrink-0 ${tier.features.includes(feature) ? "text-positive" : "text-muted-foreground"}`} />
                     <span className={tier.features.includes(feature) ? "text-foreground" : "text-muted-foreground"}>{feature}</span>
                   </li>
                 ))}
@@ -395,9 +395,9 @@ export default function SubscribePage() {
 
         {/* TradingView Benefits */}
         {subscription.plan !== "free" && (
-          <div className="mt-8 rounded-lg border border-violet-500/30 bg-gradient-to-br from-violet-500/10 to-purple-500/5 p-6">
+          <div className="mt-8 rounded-lg border border-chart-3/30 bg-gradient-to-br from-chart-3/10 to-chart-4/5 p-6">
             <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Sparkles size={20} className="text-violet-400" />
+              <Sparkles size={20} className="text-primary" />
               TradingView Pro Charts
             </h3>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -405,27 +405,27 @@ export default function SubscribePage() {
             </p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div className="flex items-center gap-2 text-sm">
-                <Check size={16} className="text-emerald-500" />
+                <Check size={16} className="text-positive" />
                 Custom chart types (Candle, Line, Area, Bar, Heikin-Ashi)
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <Check size={16} className="text-emerald-500" />
+                <Check size={16} className="text-positive" />
                 7 technical studies (MA, EMA, RSI, MACD, Bollinger, Volume, VWAP)
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <Check size={16} className="text-emerald-500" />
+                <Check size={16} className="text-positive" />
                 Real-time tick data and streaming
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <Check size={16} className="text-emerald-500" />
+                <Check size={16} className="text-positive" />
                 Full control over chart UI and interactions
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <Check size={16} className="text-emerald-500" />
+                <Check size={16} className="text-positive" />
                 Pine Script visual workspace with code export
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <Check size={16} className="text-emerald-500" />
+                <Check size={16} className="text-positive" />
                 Custom indicator and strategy support
               </div>
             </div>
@@ -445,21 +445,21 @@ export default function SubscribePage() {
         {/* Trust signals */}
         <div className="mt-10 grid gap-4 sm:grid-cols-3">
           <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-4">
-            <ShieldCheck size={18} className="text-emerald-500 shrink-0" />
+            <ShieldCheck size={18} className="text-positive shrink-0" />
             <div>
               <p className="text-sm font-medium">Secure Payment</p>
               <p className="text-xs text-muted-foreground">Powered by Stripe</p>
             </div>
           </div>
           <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-4">
-            <RefreshCw size={18} className="text-blue-400 shrink-0" />
+            <RefreshCw size={18} className="text-info shrink-0" />
             <div>
               <p className="text-sm font-medium">Cancel Anytime</p>
               <p className="text-xs text-muted-foreground">No long-term commitment</p>
             </div>
           </div>
           <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-4">
-            <Gift size={18} className="text-violet-400 shrink-0" />
+            <Gift size={18} className="text-primary shrink-0" />
             <div>
               <p className="text-sm font-medium">14-Day Refund</p>
               <p className="text-xs text-muted-foreground">Full money-back guarantee</p>

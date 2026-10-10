@@ -1573,7 +1573,7 @@ export default function AdminAffiliatesPage() {
                                                             deletingId ===
                                                             offer.id
                                                         }
-                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-negative/10 bg-negative/5 text-negative/60 transition hover:bg-negative/10 hover:text-negative disabled:opacity-50"
+                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-destructive/10 bg-destructive/5 text-destructive/60 transition hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
                                                         title="Delete"
                                                     >
                                                         {deletingId ===

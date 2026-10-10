@@ -56,9 +56,9 @@ export function MetricTile({
             <p
                 className={cn(
                     "mt-1.5 font-mono text-[13px] font-semibold tabular-nums",
-                    tone === "positive" && "text-emerald-400",
-                    tone === "negative" && "text-rose-400",
-                    tone === "warning" && "text-amber-400",
+                    tone === "positive" && "text-positive",
+                    tone === "negative" && "text-negative",
+                    tone === "warning" && "text-warning",
                     tone === "default" && "text-foreground",
                 )}
             >

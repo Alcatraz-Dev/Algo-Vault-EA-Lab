@@ -110,7 +110,7 @@ export function ChallengeContextBar() {
                 </div>
                 <div className="rounded-md border border-border bg-muted/30 p-2">
                     <p className="text-micro text-muted-foreground">Risk remaining today</p>
-                    <p className="font-mono text-sm font-medium text-emerald-600">{riskRemainingPct.toFixed(0)}%</p>
+                    <p className="font-mono text-sm font-medium text-positive">{riskRemainingPct.toFixed(0)}%</p>
                 </div>
                 <div className="rounded-md border border-border bg-muted/30 p-2">
                     <p className="text-micro text-muted-foreground">Target progress</p>

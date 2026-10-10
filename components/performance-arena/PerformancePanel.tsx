@@ -185,8 +185,8 @@ export function PerformancePanel({
                                 <KV label="Total fees" value={formatCents(stats.feesCents)} />
                             </div>
                             <div>
-                                <KV label="Best trade" value={<span className="text-emerald-500">{formatCents(stats.bestCents)}</span>} />
-                                <KV label="Worst trade" value={<span className="text-red-500">{formatCents(stats.worstCents)}</span>} />
+                                <KV label="Best trade" value={<span className="text-positive">{formatCents(stats.bestCents)}</span>} />
+                                <KV label="Worst trade" value={<span className="text-negative">{formatCents(stats.worstCents)}</span>} />
                                 <KV label="Avg win / loss" value={`${formatCents(stats.avgWinCents)} / ${formatCents(stats.avgLossCents)}`} />
                             </div>
                             <div>
@@ -332,7 +332,7 @@ function DailyTooltip({ active, payload, label }: { active?: boolean; payload?: 
     const value = Number(payload[0].value ?? 0);
     return (
         <div className="rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs shadow-md">
-            <p className={value >= 0 ? "font-mono tabular-nums text-emerald-500" : "font-mono tabular-nums text-red-500"}>
+            <p className={value >= 0 ? "font-mono tabular-nums text-positive" : "font-mono tabular-nums text-negative"}>
                 {value > 0 ? "+" : ""}
                 {formatCents(value)}
             </p>

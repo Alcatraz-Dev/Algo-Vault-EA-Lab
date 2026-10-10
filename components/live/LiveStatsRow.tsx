@@ -54,8 +54,8 @@ function StatCard({
       <div className="text-2xl md:text-3xl font-extrabold text-foreground leading-none tracking-tight tabular-nums">
         {display.toLocaleString()}
         {live && (
-          <span className="inline-flex items-center gap-1 ml-2 text-micro font-bold text-emerald-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> LIVE
+          <span className="inline-flex items-center gap-1 ml-2 text-micro font-bold text-positive">
+            <span className="w-1.5 h-1.5 rounded-full bg-positive animate-pulse" /> LIVE
           </span>
         )}
       </div>

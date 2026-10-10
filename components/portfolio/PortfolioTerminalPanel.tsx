@@ -118,8 +118,8 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
     if (error) {
         return (
             <div className="p-3">
-                <div className="rounded-md border border-amber-500/30 bg-amber-500/[0.04] p-2.5">
-                    <div className="flex items-center gap-1.5 text-micro font-semibold text-amber-400">
+                <div className="rounded-md border border-warning/30 bg-warning/[0.04] p-2.5">
+                    <div className="flex items-center gap-1.5 text-micro font-semibold text-warning">
                         <ShieldAlert className="size-3" /> Portfolio intelligence unavailable
                     </div>
                     <p className="mt-1 text-micro leading-4 text-muted-foreground">
@@ -160,7 +160,7 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
                     <dl className="space-y-0.5 text-micro">
                         {position.map((p) => (
                             <div key={p.positionId} className="flex items-center justify-between gap-2">
-                                <dt className={cn("font-mono font-semibold", p.side === "LONG" ? "text-emerald-400" : "text-rose-400")}>
+                                <dt className={cn("font-mono font-semibold", p.side === "LONG" ? "text-positive" : "text-negative")}>
                                     {p.side} {p.quantity}
                                 </dt>
                                 <dd className="font-mono tabular-nums text-muted-foreground">
@@ -214,9 +214,9 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
                                         c.value === null
                                             ? "italic text-muted-foreground"
                                             : c.value >= 0.3
-                                              ? "text-rose-400"
+                                              ? "text-negative"
                                               : c.value <= -0.3
-                                                ? "text-emerald-400"
+                                                ? "text-positive"
                                                 : "text-muted-foreground"
                                     )}
                                 >
@@ -259,7 +259,7 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
                                 <span className="font-mono text-foreground">
                                     {p.symbol} <span className="text-muted-foreground">{p.strategyId}</span>
                                 </span>
-                                <span className={cn("font-mono tabular-nums", p.unrealizedPnL < 0 ? "text-rose-400" : "text-emerald-400")}>
+                                <span className={cn("font-mono tabular-nums", p.unrealizedPnL < 0 ? "text-negative" : "text-positive")}>
                                     {fmtMoney(p.unrealizedPnL, data.baseCurrency, 0)}
                                 </span>
                             </li>
@@ -305,10 +305,10 @@ export function PortfolioTerminalPanel({ symbol, timeframe, onOpenPortfolioAnaly
                                 className={cn(
                                     "rounded border px-1.5 py-0.5 text-micro font-bold tracking-wide",
                                     precheck.data.precheck.verdict === "TRADE_ACCEPTABLE"
-                                        ? "border-emerald-500/40 text-emerald-400"
+                                        ? "border-positive/40 text-positive"
                                         : precheck.data.precheck.verdict === "TRADE_BLOCKED"
-                                          ? "border-rose-500/40 text-rose-400"
-                                          : "border-amber-500/40 text-amber-400"
+                                          ? "border-negative/40 text-negative"
+                                          : "border-warning/40 text-warning"
                                 )}
                             >
                                 {precheck.data.precheck.verdict}

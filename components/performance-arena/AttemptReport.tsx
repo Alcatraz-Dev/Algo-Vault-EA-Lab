@@ -61,7 +61,7 @@ export function AttemptReport({ report }: { report: PerformanceReport }) {
                                 key={day.dayKey}
                                 title={`${day.dayKey}: ${fmt(day.pnlCents)}`}
                                 className={`rounded px-1.5 py-0.5 font-mono text-micro tabular-nums ${
-                                    day.pnlCents >= 0 ? "bg-emerald-500/10 text-emerald-600" : "bg-red-500/10 text-red-500"
+                                    day.pnlCents >= 0 ? "bg-positive/10 text-positive" : "bg-negative/10 text-negative"
                                 }`}
                             >
                                 {day.dayKey.slice(5)} {fmt(day.pnlCents)}

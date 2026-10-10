@@ -67,9 +67,9 @@ export default function AccountAgentsPage() {
             onBack={() => router.push("/account")}
         >
             {loadError && (
-                <div className="mb-5 flex items-start gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-4">
-                    <AlertCircle size={16} className="mt-0.5 shrink-0 text-red-300" />
-                    <p className="text-sm text-red-300">{loadError}</p>
+                <div className="mb-5 flex items-start gap-3 rounded-lg border border-negative/30 bg-negative/10 p-4">
+                    <AlertCircle size={16} className="mt-0.5 shrink-0 text-negative" />
+                    <p className="text-sm text-negative">{loadError}</p>
                 </div>
             )}
 
@@ -107,7 +107,7 @@ export default function AccountAgentsPage() {
                                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                     <div className="flex items-start gap-4">
                                         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
-                                            <Plug size={20} className="text-violet-300" />
+                                            <Plug size={20} className="text-primary" />
                                         </div>
                                         <div>
                                             <div className="flex flex-wrap items-center gap-2">
@@ -124,7 +124,7 @@ export default function AccountAgentsPage() {
                                                 <span>Last run: {runtime?.lastRunAt ? timeAgo(runtime.lastRunAt) : "never"}</span>
                                                 <span>Executions: {install.executions || 0}</span>
                                                 <span>Alerts: {alertCount}</span>
-                                                {runtime?.failures ? <span className="text-amber-400">Failures: {runtime.failures}</span> : null}
+                                                {runtime?.failures ? <span className="text-warning">Failures: {runtime.failures}</span> : null}
                                             </div>
                                         </div>
                                     </div>

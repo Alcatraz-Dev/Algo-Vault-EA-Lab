@@ -61,10 +61,10 @@ export default function AICopilotPage() {
     ];
 
     if (authLoading) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="AI Trading Copilot" subtitle="Ask about your market, account, and strategies"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div></AccountShell></div>);
+        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="AI Trading Copilot" subtitle="Ask about your market, account, and strategies"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></AccountShell></div>);
     }
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="AI Trading Copilot"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><a href="/login" className="rounded-xl bg-violet-600 px-6 py-2.5 text-sm font-semibold text-foreground">Sign In</a></div></AccountShell></div>);
+        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="AI Trading Copilot"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><a href="/login" className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-foreground">Sign In</a></div></AccountShell></div>);
     }
 
     return (
@@ -74,10 +74,10 @@ export default function AICopilotPage() {
                     <div className="lg:col-span-2 space-y-6">
                         {/* Quick Questions */}
                         <div className="rounded-xl border border-border/30 bg-muted/50 p-5">
-                            <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><Sparkles size={16} className="text-violet-400" />Quick Questions</h3>
+                            <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><Sparkles size={16} className="text-primary" />Quick Questions</h3>
                             <div className="flex flex-wrap gap-2">
                                 {quickQuestions.map((q) => (
-                                    <button key={q} type="button" onClick={() => { setQuestion(q); }} className="rounded-lg border border-border/40 bg-muted px-3 py-1.5 text-xs text-muted-foreground hover:bg-violet-500/10 hover:text-violet-400 transition">{q}</button>
+                                    <button key={q} type="button" onClick={() => { setQuestion(q); }} className="rounded-lg border border-border/40 bg-muted px-3 py-1.5 text-xs text-muted-foreground hover:bg-violet-500/10 hover:text-primary transition">{q}</button>
                                 ))}
                             </div>
                         </div>
@@ -85,8 +85,8 @@ export default function AICopilotPage() {
                         {/* Chat Input */}
                         <div className="rounded-xl border border-border/30 bg-muted/50 p-5">
                             <div className="flex gap-3">
-                                <input type="text" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Ask about market regime, account risk, trade performance, strategy recommendations..." className="flex-1 rounded-lg border border-border/40 bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-violet-500 focus:outline-none" onKeyDown={(e) => e.key === "Enter" && handleAsk()} />
-                                <button type="button" onClick={handleAsk} disabled={loading || !question.trim()} className="rounded-lg bg-violet-600 px-4 py-3 text-sm font-semibold text-foreground hover:bg-violet-500 transition disabled:opacity-50">
+                                <input type="text" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Ask about market regime, account risk, trade performance, strategy recommendations..." className="flex-1 rounded-lg border border-border/40 bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" onKeyDown={(e) => e.key === "Enter" && handleAsk()} />
+                                <button type="button" onClick={handleAsk} disabled={loading || !question.trim()} className="rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-foreground hover:bg-primary/90 transition disabled:opacity-50">
                                     {loading ? <Loader2 size={16} className="animate-spin" /> : <MessageSquare size={16} />}
                                 </button>
                             </div>
@@ -141,7 +141,7 @@ export default function AICopilotPage() {
                         {/* Market Data Summary */}
                         {Object.keys(marketData).length > 0 && (
                             <div className="rounded-xl border border-border/30 bg-muted/50 p-5">
-                                <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><TrendingUp size={16} className="text-violet-400" />Market Snapshot</h3>
+                                <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><TrendingUp size={16} className="text-primary" />Market Snapshot</h3>
                                 <div className="grid gap-3 sm:grid-cols-2">
                                     {Object.entries(marketData).map(([sym, data]: [string, any]) => (
                                         <div key={sym} className="rounded-lg bg-muted/50 p-3">
@@ -170,7 +170,7 @@ export default function AICopilotPage() {
                     <div className="space-y-4">
                         {copilotData && (
                             <div className="rounded-xl border border-border/30 bg-muted/50 p-5">
-                                <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><Activity size={16} className="text-violet-400" />Account Status</h3>
+                                <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><Activity size={16} className="text-primary" />Account Status</h3>
                                 <div className="space-y-2 text-xs">
                                     <div className="flex justify-between"><span className="text-muted-foreground">MT5 Accounts</span><span className="text-foreground font-mono">{copilotData.accounts}</span></div>
                                     <div className="flex justify-between"><span className="text-muted-foreground">Open Positions</span><span className="text-foreground font-mono">{copilotData.positions}</span></div>

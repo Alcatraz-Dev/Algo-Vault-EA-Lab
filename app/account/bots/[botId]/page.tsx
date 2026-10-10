@@ -223,7 +223,7 @@ export default function BotDetailPage() {
                             <ArrowLeft size={14} /> All Bots
                         </Link>
                         <span className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium">
-                            <span className={`h-2 w-2 rounded-full ${online ? "bg-emerald-500" : "bg-slate-400"}`} />
+                            <span className={`h-2 w-2 rounded-full ${online ? "bg-positive" : "bg-muted"}`} />
                             {online ? "Online" : "Offline"}
                         </span>
                     </div>
@@ -318,12 +318,12 @@ export default function BotDetailPage() {
                                             <td className="px-3 py-2 font-mono text-xs">{p.ticket}</td>
                                             <td className="px-3 py-2">{p.symbol}</td>
                                             <td className="px-3 py-2">
-                                                <span className={p.type === "BUY" ? "text-emerald-500" : "text-destructive"}>{p.type}</span>
+                                                <span className={p.type === "BUY" ? "text-positive" : "text-destructive"}>{p.type}</span>
                                             </td>
                                             <td className="px-3 py-2 text-right">{p.volume}</td>
                                             <td className="px-3 py-2 text-right">{p.openPrice}</td>
                                             <td className="px-3 py-2 text-right">{p.currentPrice}</td>
-                                            <td className={`px-3 py-2 text-right font-medium ${p.profit >= 0 ? "text-emerald-500" : "text-destructive"}`}>
+                                            <td className={`px-3 py-2 text-right font-medium ${p.profit >= 0 ? "text-positive" : "text-destructive"}`}>
                                                 {formatPnl(p.profit + p.swap)}
                                             </td>
                                         </tr>
@@ -360,12 +360,12 @@ export default function BotDetailPage() {
                                             <td className="px-3 py-2 font-mono text-xs">{t.ticket}</td>
                                             <td className="px-3 py-2">{t.symbol}</td>
                                             <td className="px-3 py-2">
-                                                <span className={t.type === "BUY" ? "text-emerald-500" : "text-destructive"}>{t.type}</span>
+                                                <span className={t.type === "BUY" ? "text-positive" : "text-destructive"}>{t.type}</span>
                                             </td>
                                             <td className="px-3 py-2 text-right">{t.volume}</td>
                                             <td className="px-3 py-2 text-right">{t.openPrice}</td>
                                             <td className="px-3 py-2 text-right">{t.closePrice}</td>
-                                            <td className={`px-3 py-2 text-right font-medium ${t.profit + t.commission + t.swap >= 0 ? "text-emerald-500" : "text-destructive"}`}>
+                                            <td className={`px-3 py-2 text-right font-medium ${t.profit + t.commission + t.swap >= 0 ? "text-positive" : "text-destructive"}`}>
                                                 {formatPnl(t.profit + t.commission + t.swap)}
                                             </td>
                                             <td className="px-3 py-2 text-muted-foreground">{fmtTs(t.closedAt)}</td>
@@ -404,7 +404,7 @@ function StatCard({
     value: string;
     accent?: "emerald" | "red";
 }) {
-    const colors = accent === "emerald" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : accent === "red" ? "bg-destructive/10 text-destructive" : "bg-muted text-foreground";
+    const colors = accent === "emerald" ? "bg-positive/10 text-positive" : accent === "red" ? "bg-destructive/10 text-destructive" : "bg-muted text-foreground";
     return (
         <div className={`rounded-lg border border-border p-4 ${colors}`}>
             <div className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider opacity-80">

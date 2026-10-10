@@ -129,14 +129,14 @@ function AccountPluginsContent() {
             onBack={() => router.push("/account")}
         >
             {banner && (
-                <div className="mb-5 flex items-start gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4">
-                    <CheckCircle2 size={17} className="mt-0.5 shrink-0 text-emerald-400" />
-                    <div className="text-sm text-emerald-100">{banner}</div>
+                <div className="mb-5 flex items-start gap-3 rounded-lg border border-positive/30 bg-positive/10 p-4">
+                    <CheckCircle2 size={17} className="mt-0.5 shrink-0 text-positive" />
+                    <div className="text-sm text-positive">{banner}</div>
                 </div>
             )}
 
             {loadError && (
-                <div className="mb-5 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">{loadError}</div>
+                <div className="mb-5 rounded-lg border border-negative/30 bg-negative/10 p-4 text-sm text-negative">{loadError}</div>
             )}
 
             {/* Header */}
@@ -203,11 +203,11 @@ function AccountPluginsContent() {
                                             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                                 <div className="flex items-start gap-4">
                                                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
-                                                        <Plug size={20} className="text-violet-300" />
+                                                        <Plug size={20} className="text-primary" />
                                                     </div>
                                                     <div>
                                                         <div className="flex flex-wrap items-center gap-2">
-                                                            <Link href={`/account/plugins/${installation.pluginId}`} className="text-sm font-semibold text-foreground transition hover:text-violet-300">
+                                                            <Link href={`/account/plugins/${installation.pluginId}`} className="text-sm font-semibold text-foreground transition hover:text-primary">
                                                                 {plugin.displayName}
                                                             </Link>
                                                             <StatusBadge tone={installStatusTone(installation.status)} label={installation.status} dot={isActive} pulse={isActive} />
@@ -243,7 +243,7 @@ function AccountPluginsContent() {
                                                             type="button"
                                                             onClick={() => setState(installation.pluginId, installation.status === "disabled" ? "activate" : "resume")}
                                                             disabled={busyId === `${installation.pluginId}:resume`}
-                                                            className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-300 transition hover:bg-emerald-500/20 disabled:opacity-50"
+                                                            className="inline-flex items-center gap-1.5 rounded-xl border border-positive/30 bg-positive/10 px-3 py-2 text-xs font-medium text-positive transition hover:bg-positive/20 disabled:opacity-50"
                                                         >
                                                             {busyId === `${installation.pluginId}:resume` ? <Loader2 size={13} className="animate-spin" /> : <Play size={13} />}
                                                             {installation.status === "disabled" ? "Activate" : "Resume"}
@@ -303,7 +303,7 @@ function AccountPluginsContent() {
                                         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                             <div className="flex items-start gap-4">
                                                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
-                                                    <Cable size={20} className="text-emerald-300" />
+                                                    <Cable size={20} className="text-positive" />
                                                 </div>
                                                 <div>
                                                     <div className="flex flex-wrap items-center gap-2">
@@ -319,7 +319,7 @@ function AccountPluginsContent() {
                                                         <span>Installed {formatDate(install.installedAt)}</span>
                                                         {install.webhookUrl && <span className="max-w-[260px] truncate">Webhook: {install.webhookUrl}</span>}
                                                         {install.target && <span>Target: {install.target}</span>}
-                                                        <span className="inline-flex items-center gap-1 text-emerald-400">
+                                                        <span className="inline-flex items-center gap-1 text-positive">
                                                             <ExternalLink size={11} /> Reuses existing connections
                                                         </span>
                                                     </div>
@@ -329,7 +329,7 @@ function AccountPluginsContent() {
                                                 type="button"
                                                 onClick={() => uninstallExtension(install.extensionId)}
                                                 disabled={busyId === `ext:${install.extensionId}`}
-                                                className="inline-flex items-center gap-1.5 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-red-400 disabled:opacity-50"
+                                                className="inline-flex items-center gap-1.5 rounded-xl border border-border/30 bg-muted/5 px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-destructive disabled:opacity-50"
                                             >
                                                 {busyId === `ext:${install.extensionId}` ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
                                                 Uninstall

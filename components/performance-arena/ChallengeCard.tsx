@@ -151,7 +151,7 @@ export function ChallengeCard({ item, onJoined }: { item: CatalogItem; onJoined?
             </div>
 
             {!access.allowed && access.reason ? (
-                <p className="border-t border-border px-4 py-2 text-micro text-amber-600 dark:text-amber-400">{access.reason}</p>
+                <p className="border-t border-border px-4 py-2 text-micro text-warning">{access.reason}</p>
             ) : null}
             {error ? <p className="border-t border-border px-4 py-2 text-micro text-destructive">{error}</p> : null}
             <ArenaDisclaimer className="border-t border-border p-4">{ARENA_DISCLAIMERS.rewards}</ArenaDisclaimer>

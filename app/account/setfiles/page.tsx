@@ -383,8 +383,8 @@ export default function SetFilesPage() {
         <AccountShell title="Set Files" subtitle="Download pre-configured .set files for your licensed EAs">
             {/* Background Blurs */}
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute left-1/2 top-[-250px] h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-violet-600/10 blur-[130px]" />
-                <div className="absolute bottom-[-200px] right-[-100px] h-[450px] w-[450px] rounded-full bg-blue-600/10 blur-[130px]" />
+                <div className="absolute left-1/2 top-[-250px] h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-chart-3/10 blur-[130px]" />
+                <div className="absolute bottom-[-200px] right-[-100px] h-[450px] w-[450px] rounded-full bg-info/10 blur-[130px]" />
             </div>
 
             <div className="relative mx-auto max-w-5xl" data-guide="page-header">
@@ -399,17 +399,17 @@ export default function SetFilesPage() {
                 )}
 
                 {/* How To Use Card */}
-                <div className="mt-8 rounded-lg border border-violet-500/20 bg-violet-500/[0.05] p-5">
+                <div className="mt-8 rounded-lg border border-chart-3/20 bg-chart-3/[0.05] p-5">
                     <div className="flex items-start gap-3">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-500/10">
-                            <Sparkles size={16} className="text-violet-400" />
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-chart-3/10">
+                            <Sparkles size={16} className="text-primary" />
                         </div>
                         <div className="text-xs leading-6 text-muted-foreground">
                             <p className="font-semibold text-foreground mb-1">How to load a .set file in MT5</p>
                             <ol className="list-decimal ml-4 space-y-0.5">
                                 <li>Open MetaTrader 5 and attach the EA to your chart</li>
                                 <li>In the EA inputs window, click <span className="text-foreground font-medium">Load</span></li>
-                                <li>Select the downloaded <code className="text-violet-400">.set</code> file</li>
+                                <li>Select the downloaded <code className="text-chart-3">.set</code> file</li>
                                 <li>Click <span className="text-foreground font-medium">OK</span> to apply the settings</li>
                             </ol>
                         </div>
@@ -447,14 +447,14 @@ export default function SetFilesPage() {
                                 {/* Product Header */}
                                 <div className="flex items-center gap-4 border-b border-border p-5">
                                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-muted/50 border border-border">
-                                        <Bot size={20} className="text-violet-400" />
+                                        <Bot size={20} className="text-primary" />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <h2 className="font-semibold text-foreground truncate">
                                             {product.productName}
                                         </h2>
                                         <div className="mt-1 flex flex-wrap items-center gap-2">
-                                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-micro font-medium text-emerald-600">
+                                            <span className="inline-flex items-center gap-1 rounded-full border border-positive/30 bg-positive/10 px-2.5 py-0.5 text-micro font-medium text-positive">
                                                 <ShieldCheck size={10} />
                                                 Active License
                                             </span>
@@ -505,8 +505,8 @@ export default function SetFilesPage() {
                                                         key={file.name}
                                                         className="flex items-center gap-4 rounded-xl border border-border bg-muted/40 px-4 py-3.5 transition hover:border-border hover:bg-background/70"
                                                     >
-                                                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-500/10 border border-violet-500/20">
-                                                            <FileCode2 size={16} className="text-violet-400" />
+                                                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-chart-3/10 border border-chart-3/20">
+                                                            <FileCode2 size={16} className="text-primary" />
                                                         </div>
 
                                                         <div className="flex-1 min-w-0">
@@ -524,7 +524,7 @@ export default function SetFilesPage() {
                                                                 handleDownload(product.productId, file.name)
                                                             }
                                                             disabled={isDownloading}
-                                                            className="flex shrink-0 items-center gap-2 rounded-xl border border-violet-500/30 bg-violet-500/10 px-4 py-2 text-xs font-semibold text-violet-300 transition hover:bg-violet-500/20 hover:text-foreground disabled:opacity-50"
+                                                            className="flex shrink-0 items-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary/20 hover:text-foreground disabled:opacity-50"
                                                         >
                                                             {isDownloading ? (
                                                                 <>
@@ -551,10 +551,10 @@ export default function SetFilesPage() {
 
                 {/* Owner/Admin publish panel */}
                 {(role === "admin" || ownedProducts.length > 0) && (
-                    <div className="mt-8 rounded-lg border border-emerald-500/20 bg-emerald-500/[0.04] p-6">
+                    <div className="mt-8 rounded-lg border border-positive/20 bg-positive/[0.04] p-6">
                         <div className="flex items-center gap-3">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10">
-                                <Upload size={17} className="text-emerald-400" />
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-positive/10">
+                                <Upload size={17} className="text-positive" />
                             </div>
                             <div>
                                 <h2 className="text-base font-semibold text-foreground">Publish Set Files</h2>
@@ -570,8 +570,8 @@ export default function SetFilesPage() {
                             <div
                                 className={`mt-4 flex items-center gap-2 rounded-xl border px-4 py-3 text-xs font-medium ${
                                     pubMsg.type === "success"
-                                        ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-500"
-                                        : "border-rose-500/25 bg-rose-500/10 text-rose-400"
+                                        ? "border-positive/25 bg-positive/10 text-positive"
+                                        : "border-negative/25 bg-negative/10 text-negative"
                                 }`}
                             >
                                 {pubMsg.type === "success" ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}
@@ -584,14 +584,14 @@ export default function SetFilesPage() {
                             <div>
                                 <h3 className="text-sm font-semibold text-foreground mb-3">Published set files</h3>
                                 {ownPublished.length === 0 ? (
-                                    <div className="rounded-xl border border-dashed border-emerald-500/20 p-6 text-center text-sm text-muted-foreground">
+                                    <div className="rounded-xl border border-dashed border-positive/20 p-6 text-center text-sm text-muted-foreground">
                                         Nothing published yet — upload your first .set file.
                                     </div>
                                 ) : (
                                     <div className="max-h-[320px] space-y-2 overflow-y-auto pr-1">
                                         {ownPublished.map((f) => (
                                             <div key={f.id} className="flex items-center gap-3 rounded-xl border border-border bg-card px-3.5 py-2.5">
-                                                <FileCode2 size={15} className="shrink-0 text-emerald-400" />
+                                                <FileCode2 size={15} className="shrink-0 text-positive" />
                                                 <div className="min-w-0 flex-1">
                                                     <p className="truncate font-mono text-xs font-medium text-foreground">{f.fileName}</p>
                                                     <p className="text-micro text-muted-foreground">
@@ -602,7 +602,7 @@ export default function SetFilesPage() {
                                                     type="button"
                                                     onClick={() => handleDeletePublished(f)}
                                                     disabled={pubDeletingId === f.id}
-                                                    className="shrink-0 rounded-lg p-1.5 text-muted-foreground transition hover:text-rose-400 disabled:opacity-40"
+                                                    className="shrink-0 rounded-lg p-1.5 text-muted-foreground transition hover:text-destructive disabled:opacity-40"
                                                     aria-label="Delete set file"
                                                 >
                                                     {pubDeletingId === f.id ? (
@@ -698,13 +698,13 @@ export default function SetFilesPage() {
                                         required
                                         accept=".set"
                                         onChange={(e) => setPubFile(e.target.files?.[0] ?? null)}
-                                        className="w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-500/15 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-emerald-400"
+                                        className="w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm text-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-positive/15 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-positive"
                                     />
                                 </div>
                                 <button
                                     type="submit"
                                     disabled={pubSaving || !pubProductId || !pubFile}
-                                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-emerald-500 disabled:opacity-50"
+                                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-positive px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-positive disabled:opacity-50"
                                 >
                                     {pubSaving ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
                                     Publish Set File

@@ -413,9 +413,9 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                                                 className={cn(
                                                     "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium",
                                                     mtf.bias === "bullish"
-                                                        ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
+                                                        ? "border-positive/20 bg-positive/10 text-positive"
                                                         : mtf.bias === "bearish"
-                                                            ? "border-rose-500/20 bg-rose-500/10 text-rose-400"
+                                                            ? "border-negative/20 bg-negative/10 text-negative"
                                                             : "border-border bg-muted text-muted-foreground"
                                                 )}
                                             >
@@ -457,7 +457,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                                             <span className="rounded-full bg-muted px-2 py-0.5 text-micro text-muted-foreground">{positions.length}</span>
                                         </div>
                                         {totalFloatingPnl !== 0 && (
-                                            <span className={cn("font-mono text-xs font-bold tabular-nums", totalFloatingPnl >= 0 ? "text-emerald-400" : "text-rose-400")}>
+                                            <span className={cn("font-mono text-xs font-bold tabular-nums", totalFloatingPnl >= 0 ? "text-positive" : "text-negative")}>
                                                 {totalFloatingPnl >= 0 ? "+" : ""}${totalFloatingPnl.toFixed(2)}
                                             </span>
                                         )}
@@ -485,13 +485,13 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                                                     {positions.map((pos) => (
                                                         <tr key={pos.ticket} className="border-b border-border/50 last:border-b-0 transition-colors hover:bg-muted/50">
                                                             <td className="px-4 py-2.5 font-mono font-semibold text-foreground">{pos.symbol}</td>
-                                                            <td className={cn("px-4 py-2.5 font-medium", pos.type === "BUY" ? "text-emerald-400" : "text-rose-400")}>{pos.type}</td>
+                                                            <td className={cn("px-4 py-2.5 font-medium", pos.type === "BUY" ? "text-positive" : "text-negative")}>{pos.type}</td>
                                                             <td className="px-4 py-2.5 text-right font-mono text-muted-foreground tabular-nums">{pos.volume.toFixed(2)}</td>
                                                             <td className="px-4 py-2.5 text-right font-mono text-muted-foreground tabular-nums">{pos.openPrice.toFixed(pos.openPrice >= 100 ? 2 : 5)}</td>
                                                             <td className="px-4 py-2.5 text-right font-mono text-muted-foreground tabular-nums">{pos.currentPrice.toFixed(pos.currentPrice >= 100 ? 2 : 5)}</td>
                                                             <td className="px-4 py-2.5 text-right">
                                                                 {pos.sl > 0 ? (
-                                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-rose-500/25 bg-rose-500/10 px-2 py-0.5 font-mono text-micro font-semibold text-rose-400">
+                                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-negative/25 bg-negative/10 px-2 py-0.5 font-mono text-micro font-semibold text-negative">
                                                                         <Shield size={8} className="opacity-60" />
                                                                         {pos.sl.toFixed(pos.sl >= 100 ? 2 : 5)}
                                                                     </span>
@@ -499,13 +499,13 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                                                             </td>
                                                             <td className="px-4 py-2.5 text-right">
                                                                 {pos.tp > 0 ? (
-                                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 font-mono text-micro font-semibold text-emerald-400">
+                                                                    <span className="inline-flex items-center gap-0.5 rounded-full border border-positive/25 bg-positive/10 px-2 py-0.5 font-mono text-micro font-semibold text-positive">
                                                                         <Target size={8} className="opacity-60" />
                                                                         {pos.tp.toFixed(pos.tp >= 100 ? 2 : 5)}
                                                                     </span>
                                                                 ) : <span className="font-mono text-muted-foreground">—</span>}
                                                             </td>
-                                                            <td className={cn("px-4 py-2.5 text-right font-mono font-semibold tabular-nums", pos.profit >= 0 ? "text-emerald-400" : "text-rose-400")}>{pos.profit >= 0 ? "+" : ""}${pos.profit.toFixed(2)}</td>
+                                                            <td className={cn("px-4 py-2.5 text-right font-mono font-semibold tabular-nums", pos.profit >= 0 ? "text-positive" : "text-negative")}>{pos.profit >= 0 ? "+" : ""}${pos.profit.toFixed(2)}</td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
@@ -516,7 +516,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                             )}
 
                             {/* Risk disclaimer */}
-                            <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.03] p-3 text-micro text-amber-400/70">
+                            <div className="rounded-xl border border-warning/20 bg-warning/[0.03] p-3 text-micro text-warning/70">
                                 <Shield size={12} className="mr-1 inline" />
                                 Analytical tool — not financial advice. Scores and indicators are model-based estimates. Data from Biquote.io and your connected MT5 account.
                             </div>

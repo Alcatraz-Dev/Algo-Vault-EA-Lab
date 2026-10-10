@@ -47,7 +47,7 @@ export class MobileErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoun
         <div className="flex flex-col min-h-screen bg-background items-center justify-center p-4">
           <Card className="w-full max-w-md">
             <CardContent className="pt-6 pb-8 px-6 text-center">
-              <AlertTriangle className="h-12 w-12 text-rose-400 mx-auto mb-4" />
+              <AlertTriangle className="h-12 w-12 text-negative mx-auto mb-4" />
               <h2 className="text-lg font-semibold mb-2">Something went wrong</h2>
               <p className="text-sm text-muted-foreground mb-6">
                 {this.state.error?.message || "An unexpected error occurred. Please try again."}
@@ -114,7 +114,7 @@ export function MobileErrorFallback({
     <div className="flex flex-col min-h-screen bg-background items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardContent className="pt-6 pb-8 px-6 text-center">
-          <AlertTriangle className="h-12 w-12 text-rose-400 mx-auto mb-4" />
+          <AlertTriangle className="h-12 w-12 text-negative mx-auto mb-4" />
           <h2 className="text-lg font-semibold mb-2">{title}</h2>
           <p className="text-sm text-muted-foreground mb-6">
             {error?.message || description}

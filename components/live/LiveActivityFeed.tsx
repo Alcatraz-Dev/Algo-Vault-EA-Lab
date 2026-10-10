@@ -53,8 +53,8 @@ export default function LiveActivityFeed({
     <div className="rounded-xl border border-border bg-muted/30 p-5 h-full min-h-[320px] flex flex-col">
       <div className="flex items-center gap-2 mb-4">
         <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-75" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-positive" />
         </span>
         <h3 className="text-sm font-bold text-foreground tracking-tight">LIVE ACTIVITY</h3>
         <span className="ml-auto text-micro font-mono text-muted-foreground">{activities.length} events</span>
@@ -75,10 +75,10 @@ export default function LiveActivityFeed({
               <div
                 className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
                   item.direction === "bullish"
-                    ? "bg-emerald-400"
+                    ? "bg-positive"
                     : item.direction === "bearish"
-                      ? "bg-red-400"
-                      : "bg-blue-400"
+                      ? "bg-negative"
+                      : "bg-info"
                 }`}
               />
               <div className="min-w-0 flex-1">

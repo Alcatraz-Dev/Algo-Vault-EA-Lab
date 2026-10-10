@@ -157,7 +157,7 @@ export default function AdminExtensionsPage() {
                                                         type="button"
                                                         disabled={deletingId === ext.id}
                                                         onClick={() => deleteExtension(ext)}
-                                                        className="inline-flex items-center gap-1.5 rounded-lg border border-negative/30 px-2.5 py-2 text-xs text-negative transition hover:bg-negative/10 disabled:opacity-50"
+                                                        className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/30 px-2.5 py-2 text-xs text-destructive transition hover:bg-destructive/10 disabled:opacity-50"
                                                     >
                                                         {deletingId === ext.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
                                                         Delete

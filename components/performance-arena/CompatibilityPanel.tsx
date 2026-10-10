@@ -185,7 +185,7 @@ export function CompatibilityPanel({
                                 <li key={finding.key} className="flex items-start gap-2">
                                     <span
                                         className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${
-                                            finding.verdict === "pass" ? "bg-emerald-500" : finding.verdict === "warn" ? "bg-amber-500" : "bg-red-500"
+                                            finding.verdict === "pass" ? "bg-positive" : finding.verdict === "warn" ? "bg-warning" : "bg-negative"
                                         }`}
                                     />
                                     <span>

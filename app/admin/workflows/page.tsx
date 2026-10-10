@@ -499,7 +499,7 @@ export default function AdminWorkflowsPage() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-8 w-8 p-0 text-negative hover:text-negative hover:bg-negative/10"
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                       onClick={() => handleDeleteWorkflow(wf)}
                       disabled={isBusy}
                       title="Delete workflow"

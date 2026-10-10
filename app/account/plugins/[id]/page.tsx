@@ -280,7 +280,7 @@ export default function AccountPluginDetailPage() {
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex items-start gap-4">
                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border/30 bg-muted/5">
-                            <Plug size={22} className="text-violet-300" />
+                            <Plug size={22} className="text-primary" />
                         </div>
                         <div>
                             <div className="flex flex-wrap items-center gap-2">
@@ -322,8 +322,8 @@ export default function AccountPluginDetailPage() {
                 <div
                     className={`mb-5 flex items-start gap-3 rounded-lg border p-4 ${
                         notice.startsWith("Execution failed") || notice.includes("Unable") || notice.includes("failed")
-                            ? "border-red-500/30 bg-red-500/10 text-red-300"
-                            : "border-emerald-500/30 bg-emerald-500/10 text-emerald-100"
+                            ? "border-negative/30 bg-negative/10 text-negative"
+                            : "border-positive/30 bg-positive/10 text-positive"
                     }`}
                 >
                     <AlertCircle size={16} className="mt-0.5 shrink-0" />
@@ -362,7 +362,7 @@ export default function AccountPluginDetailPage() {
                     </p>
 
                     {manifestInterval === "manual" && config?.interval === "manual" && (
-                        <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+                        <div className="mt-4 rounded-xl border border-warning/30 bg-warning/10 p-3 text-xs text-warning">
                             This plugin is designed for on-demand analysis — set an interval below if you want it to run in the background.
                         </div>
                     )}
@@ -400,7 +400,7 @@ export default function AccountPluginDetailPage() {
                                         onClick={() => toggleArray(timeframes, tf, setTimeframes)}
                                         className={`rounded-lg border px-3 py-1.5 text-xs transition ${
                                             timeframes.includes(tf)
-                                                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+                                                ? "border-positive/40 bg-positive/10 text-positive"
                                                 : "border-border/30 bg-muted/5 text-muted-foreground hover:text-foreground"
                                         }`}
                                     >
@@ -419,7 +419,7 @@ export default function AccountPluginDetailPage() {
                                         onClick={() => toggleArray(channels, ch, setChannels)}
                                         className={`rounded-lg border px-3 py-1.5 text-xs transition ${
                                             channels.includes(ch)
-                                                ? "border-violet-500/40 bg-violet-500/10 text-violet-300"
+                                                ? "border-primary/40 bg-primary/10 text-primary"
                                                 : "border-border/30 bg-muted/5 text-muted-foreground hover:text-foreground"
                                         }`}
                                     >
@@ -606,7 +606,7 @@ export default function AccountPluginDetailPage() {
                                 {logs.map((log) => (
                                     <div key={log.id} className="flex items-start justify-between gap-3 border-b border-border/30 p-3 last:border-0">
                                         <div className="flex items-center gap-2 min-w-0">
-                                            <span className={`h-2 w-2 shrink-0 rounded-full ${log.level === "error" ? "bg-red-400" : log.level === "warning" ? "bg-amber-400" : "bg-emerald-400"}`} />
+                                            <span className={`h-2 w-2 shrink-0 rounded-full ${log.level === "error" ? "bg-negative" : log.level === "warning" ? "bg-warning" : "bg-positive"}`} />
                                             <p className="truncate text-xs text-muted-foreground">{log.message}</p>
                                         </div>
                                         <span className="shrink-0 text-micro text-muted-foreground">{log.createdAt ? formatDate(log.createdAt) : ""}</span>
@@ -679,9 +679,9 @@ function ActionButton({
     danger?: boolean;
 }) {
     const tone = danger
-        ? "border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/20"
+        ? "border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20"
         : primary
-          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
+          ? "border-positive/30 bg-positive/10 text-positive hover:bg-positive/20"
           : "border-border/30 bg-muted/5 text-muted-foreground hover:text-foreground";
     return (
         <button

@@ -170,7 +170,7 @@ export function AccountHealthReportView({
                                             <span className="inline-flex items-center gap-1 text-micro text-muted-foreground">
                                                 <Radio
                                                     size={9}
-                                                    className={a.status === "connected" ? "text-emerald-400" : "text-muted-foreground"}
+                                                    className={a.status === "connected" ? "text-positive" : "text-muted-foreground"}
                                                 />
                                                 {a.status === "connected"
                                                     ? relativeTime(a.lastHeartbeatAt)
@@ -194,7 +194,7 @@ export function AccountHealthReportView({
                     title={`Open positions (${health.positions.length})`}
                     action={
                         metrics.positionsAtRisk > 0 ? (
-                            <span className="rounded-md border border-rose-500/25 bg-rose-500/10 px-1.5 py-[3px] text-micro font-medium text-rose-400">
+                            <span className="rounded-md border border-negative/25 bg-negative/10 px-1.5 py-[3px] text-micro font-medium text-negative">
                                 {metrics.positionsAtRisk} above 5% risk
                             </span>
                         ) : null
@@ -222,7 +222,7 @@ export function AccountHealthReportView({
                                         <td
                                             className={cn(
                                                 "py-1.5 text-right font-mono tabular-nums",
-                                                p.profit > 0 ? "text-emerald-400" : p.profit < 0 ? "text-rose-400" : "text-muted-foreground",
+                                                p.profit > 0 ? "text-positive" : p.profit < 0 ? "text-negative" : "text-muted-foreground",
                                             )}
                                         >
                                             {p.profit > 0 ? "+" : ""}{p.profit.toFixed(2)}
@@ -230,7 +230,7 @@ export function AccountHealthReportView({
                                         <td
                                             className={cn(
                                                 "py-1.5 text-right font-mono tabular-nums",
-                                                p.atRisk ? "text-rose-400" : "text-muted-foreground",
+                                                p.atRisk ? "text-negative" : "text-muted-foreground",
                                             )}
                                         >
                                             {p.risk.toFixed(2)}
@@ -261,7 +261,7 @@ export function AccountHealthReportView({
                     ) : (
                         // The library exists but nothing has closed yet. Saying
                         // "0%" here would read as a 0% win rate and is not one.
-                        <span className="text-amber-400/90">
+                        <span className="text-warning/90">
                             No resolved signals yet — {trading.totalSignals} tracked, all still open.
                         </span>
                     )}

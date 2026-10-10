@@ -52,7 +52,7 @@ export default function SignalTransparencyPage() {
     useEffect(() => { if (!authLoading && user) void Promise.resolve().then(() => fetchSignals()); }, [authLoading, user]);
 
     if (authLoading) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Signal Transparency"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-violet-400" /></div></AccountShell></div>);
+        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Signal Transparency"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></AccountShell></div>);
     }
 
     return (
@@ -60,40 +60,40 @@ export default function SignalTransparencyPage() {
             <div className="space-y-6" data-guide="page-header">
                 <div className="flex items-center justify-between">
                     <div className="grid gap-4 sm:grid-cols-3">
-                        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.03] p-4">
-                            <div className="flex items-center gap-2 text-emerald-400"><CheckCircle2 className="h-5 w-5" /><span className="text-xs font-semibold">Provider</span></div>
+                        <div className="rounded-lg border border-positive/20 bg-positive/5 p-4">
+                            <div className="flex items-center gap-2 text-positive"><CheckCircle2 className="h-5 w-5" /><span className="text-xs font-semibold">Provider</span></div>
                             <p className="mt-1 text-sm font-bold text-foreground">{signals[0]?.provider || "Local"}</p>
                             <p className="mt-1 text-xs text-muted-foreground">{signals[0]?.providerAvailable ? "Available" : "Unavailable"}</p>
                         </div>
-                        <div className="rounded-xl border border-violet-500/20 bg-violet-500/[0.03] p-4">
-                            <div className="flex items-center gap-2 text-violet-400"><Activity className="h-5 w-5" /><span className="text-xs font-semibold">Total Signals</span></div>
-                            <p className="mt-1 text-sm font-bold text-foreground">{signals.length}</p>
+                        <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+                            <div className="flex items-center gap-2 text-primary"><Activity className="h-5 w-5" /><span className="text-xs font-semibold">Total Signals</span></div>
+                            <p className="mt-1 text-sm font-bold font-numeric text-foreground">{signals.length}</p>
                             <p className="mt-1 text-xs text-muted-foreground">Last 30 signals</p>
                         </div>
-                        <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.03] p-4">
-                            <div className="flex items-center gap-2 text-amber-400"><Target className="h-5 w-5" /><span className="text-xs font-semibold">Avg Confidence</span></div>
-                            <p className="mt-1 text-sm font-bold text-foreground">
+                        <div className="rounded-lg border border-warning/20 bg-warning/5 p-4">
+                            <div className="flex items-center gap-2 text-warning"><Target className="h-5 w-5" /><span className="text-xs font-semibold">Avg Confidence</span></div>
+                            <p className="mt-1 text-sm font-bold font-numeric text-foreground">
                                 {signals.length ? `${(signals.reduce((s, sig) => s + sig.confidence, 0) / signals.length).toFixed(0)}%` : "N/A"}
                             </p>
                             <p className="mt-1 text-xs text-muted-foreground">Average confidence</p>
                         </div>
                     </div>
-                    <button type="button" onClick={fetchSignals} disabled={loading} className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-foreground hover:bg-violet-500 transition disabled:opacity-50">
+                    <button type="button" onClick={fetchSignals} disabled={loading} aria-label="Refresh signals" className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/80 transition disabled:opacity-50">
                         {loading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : <RefreshCw size={16} />}
                     </button>
                 </div>
 
                 <div className="space-y-3">
                     {signals.map((signal) => (
-                        <div key={signal.id} className="rounded-xl border border-border/30 bg-muted/50 p-4">
+                        <div key={signal.id} className="rounded-lg border border-border bg-card p-4">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <span className={`rounded-lg px-2 py-0.5 text-xs font-bold ${signal.direction === "BUY" ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"}`}>{signal.direction}</span>
+                                    <span className={`rounded-full border px-2 py-0.5 text-xs font-bold ${signal.direction === "BUY" ? "border-positive/30 bg-positive/10 text-positive-foreground" : "border-negative/30 bg-negative/10 text-negative-foreground"}`}>{signal.direction}</span>
                                     <span className="font-mono text-sm font-bold text-foreground">{signal.symbol}</span>
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <span className="text-xs text-muted-foreground">Confidence: {signal.confidence}%</span>
-                                    <span className={`text-xs font-medium ${signal.result === "WIN" ? "text-emerald-400" : signal.result === "LOSS" ? "text-rose-400" : "text-muted-foreground"}`}>{signal.result} ({signal.resultR}R)</span>
+                                    <span className={`text-xs font-medium ${signal.result === "WIN" ? "text-positive" : signal.result === "LOSS" ? "text-negative" : "text-muted-foreground"}`}>{signal.result} ({signal.resultR}R)</span>
                                 </div>
                             </div>
                             <div className="mt-2 grid gap-2 sm:grid-cols-3">
@@ -109,7 +109,7 @@ export default function SignalTransparencyPage() {
                             )}
                         </div>
                     ))}
-                    {!signals.length && !loading && <div className="rounded-xl border border-dashed border-border/30 p-8 text-center"><Eye className="mx-auto h-8 w-8 text-muted-foreground" /><p className="mt-3 text-sm text-muted-foreground">No signals to display</p></div>}
+                    {!signals.length && !loading && <div className="rounded-lg border border-dashed border-border/30 p-8 text-center"><Eye className="mx-auto h-8 w-8 text-muted-foreground" /><p className="mt-3 text-sm text-muted-foreground">No signals to display</p></div>}
                 </div>
             </div>
         </AccountShell>

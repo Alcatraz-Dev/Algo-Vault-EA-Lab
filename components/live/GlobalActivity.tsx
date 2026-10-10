@@ -30,7 +30,7 @@ export default function GlobalActivity({ clusters }: { clusters: CountryCluster[
             <div className="w-24 text-xs font-medium text-muted-foreground truncate">{r.country}</div>
             <div className="flex-1 h-1.5 bg-muted/60 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full transition-[width] duration-700"
+                className="h-full bg-gradient-to-r from-info to-info rounded-full transition-[width] duration-700"
                 style={{ width: `${(r.pct / totalPct) * 100}%` }}
               />
             </div>

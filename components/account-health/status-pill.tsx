@@ -15,12 +15,12 @@ import { cn } from "@/lib/utils";
 import type { ExposureStatus, HealthStatus, RiskLevel } from "@/lib/account-health/types";
 
 const TONE: Record<RiskLevel | HealthStatus | ExposureStatus, string> = {
-    LOW: "border-emerald-500/25 bg-emerald-500/10 text-emerald-400",
-    SAFE: "border-emerald-500/25 bg-emerald-500/10 text-emerald-400",
-    MODERATE: "border-amber-500/25 bg-amber-500/10 text-amber-400",
-    WARNING: "border-amber-500/25 bg-amber-500/10 text-amber-400",
-    HIGH: "border-rose-500/25 bg-rose-500/10 text-rose-400",
-    DANGER: "border-rose-500/25 bg-rose-500/10 text-rose-400",
+    LOW: "border-positive/25 bg-positive/10 text-positive",
+    SAFE: "border-positive/25 bg-positive/10 text-positive",
+    MODERATE: "border-warning/25 bg-warning/10 text-warning",
+    WARNING: "border-warning/25 bg-warning/10 text-warning",
+    HIGH: "border-negative/25 bg-negative/10 text-negative",
+    DANGER: "border-negative/25 bg-negative/10 text-negative",
 };
 
 const IDLE = "border-border/40 bg-muted/30 text-muted-foreground";

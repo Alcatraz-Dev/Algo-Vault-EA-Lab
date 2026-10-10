@@ -239,7 +239,7 @@ export function PartialCloseDialog({
                             ) : null}
                             <p className="mt-2 border-t border-border pt-2 text-micro text-muted-foreground">{plan.message}</p>
                             {plan.warnings.map((warning) => (
-                                <p key={warning} className="mt-1 text-micro text-amber-500">{warning}</p>
+                                <p key={warning} className="mt-1 text-micro text-warning">{warning}</p>
                             ))}
                         </>
                     ) : (

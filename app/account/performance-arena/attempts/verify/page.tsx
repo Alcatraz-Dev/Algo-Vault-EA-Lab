@@ -76,15 +76,15 @@ function VerifyContent() {
 
             {status === "success" && (
                 <div className="space-y-4 py-8">
-                    <CheckCircle2 className="mx-auto h-14 w-14 text-emerald-500" />
-                    <h2 className="text-xl font-semibold text-emerald-500">Challenge Ready!</h2>
+                    <CheckCircle2 className="mx-auto h-14 w-14 text-positive" />
+                    <h2 className="text-xl font-semibold text-positive">Challenge Ready!</h2>
                     <p className="text-sm text-muted-foreground">Your virtual capital account has been provisioned. Redirecting to your trading terminal...</p>
                 </div>
             )}
 
             {status === "error" && (
                 <div className="space-y-4 py-6">
-                    <AlertCircle className="mx-auto h-12 w-12 text-amber-500" />
+                    <AlertCircle className="mx-auto h-12 w-12 text-warning" />
                     <h2 className="text-xl font-semibold">Challenge Not Yet Verified</h2>
                     <p className="text-sm text-muted-foreground">{errorMsg}</p>
                     <div className="flex justify-center gap-3 pt-4">

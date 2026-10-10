@@ -303,7 +303,7 @@ export default function AdminTradingLicensesPage() {
                                                         disabled={
                                                             actionLoading === item.id
                                                         }
-                                                        className="inline-flex items-center gap-1.5 rounded-lg border border-negative/30 bg-negative/10 px-3 py-1.5 text-xs font-semibold text-negative hover:bg-negative/20 transition disabled:opacity-50"
+                                                        className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/20 transition disabled:opacity-50"
                                                     >
                                                         <Ban size={13} /> Revoke
                                                     </button>

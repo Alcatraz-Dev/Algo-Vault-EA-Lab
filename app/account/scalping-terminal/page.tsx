@@ -84,7 +84,7 @@ export default function ScalpTerminalPage() {
                 onBack={() => void router.push("/account")}
             >
                 <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border bg-card p-10 text-center">
-                    <span className="text-amber-400">&#128274;</span>
+                    <span className="text-warning">&#128274;</span>
                     <h3 className="text-xl font-semibold text-foreground">Pro Scalping Terminal</h3>
                     <p className="max-w-sm text-sm text-muted-foreground leading-relaxed">
                         The Pro terminal is reserved for paid subscribers. It adds the full chart, Smart

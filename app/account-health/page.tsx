@@ -104,7 +104,7 @@ export default function AccountHealthPage() {
     if (error || !health) {
         return shell(
             <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border/30 bg-muted/50 px-6 py-12 text-center" data-guide="score-ring">
-                <Shield size={28} className={error ? "text-rose-400" : "text-muted-foreground"} />
+                <Shield size={28} className={error ? "text-negative" : "text-muted-foreground"} />
                 <h2 className="text-sm font-semibold text-foreground">
                     {error ? "Health report unavailable" : "No trading activity yet"}
                 </h2>

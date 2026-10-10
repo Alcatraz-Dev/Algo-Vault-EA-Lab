@@ -237,7 +237,7 @@ export default function AdminBacktestsPage() {
                                     </div>
                                     <button
                                         onClick={() => handleDelete(item)}
-                                        className="text-muted-foreground hover:text-negative transition"
+                                        className="text-muted-foreground hover:text-destructive transition"
                                         title="Delete report"
                                     >
                                         <Trash2 size={16} />

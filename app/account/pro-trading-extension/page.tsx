@@ -336,11 +336,11 @@ export default function ProTradingExtensionPage() {
                                                 className={cn(
                                                     "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wider",
                                                     live
-                                                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                                                        ? "border-positive/30 bg-positive/10 text-positive"
                                                         : "border-edge bg-raised text-ink-faint"
                                                 )}
                                             >
-                                                <span className={cn("h-1.5 w-1.5 rounded-full", live ? "bg-emerald-400 animate-pulse-dot" : "bg-ink-faint")} />
+                                                <span className={cn("h-1.5 w-1.5 rounded-full", live ? "bg-positive animate-pulse-dot" : "bg-ink-faint")} />
                                                 {live ? "Live" : "Soon"}
                                             </span>
                                         </div>
@@ -414,7 +414,7 @@ export default function ProTradingExtensionPage() {
                                 </Link>
                             </div>
                         ) : error ? (
-                            <div className="mt-4 flex items-start gap-2 rounded-lg border border-rose-500/30 bg-rose-500/5 p-3 text-xs text-rose-400">
+                            <div className="mt-4 flex items-start gap-2 rounded-lg border border-negative/30 bg-negative/5 p-3 text-xs text-negative">
                                 <AlertTriangle size={12} className="mt-0.5 shrink-0" />
                                 <span>{error}</span>
                             </div>
@@ -441,7 +441,7 @@ export default function ProTradingExtensionPage() {
                                                     : "No Pro subscription"}
                                             </p>
                                             {isPro && !isExpired ? (
-                                                <CheckCircle2 size={12} className="text-emerald-400" />
+                                                <CheckCircle2 size={12} className="text-positive" />
                                             ) : null}
                                         </div>
                                         <p className="mt-0.5 text-micro text-ink-mute">
@@ -479,11 +479,11 @@ export default function ProTradingExtensionPage() {
                                 className={cn(
                                     "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wider",
                                     extensionConnected
-                                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                                        ? "border-positive/30 bg-positive/10 text-positive"
                                         : "border-edge bg-raised text-ink-faint"
                                 )}
                             >
-                                <span className={cn("h-1.5 w-1.5 rounded-full", extensionConnected ? "bg-emerald-400 animate-pulse-dot" : "bg-ink-faint")} />
+                                <span className={cn("h-1.5 w-1.5 rounded-full", extensionConnected ? "bg-positive animate-pulse-dot" : "bg-ink-faint")} />
                                 {extensionConnected ? "Detected" : "Not installed"}
                             </span>
                         </header>
@@ -518,16 +518,16 @@ export default function ProTradingExtensionPage() {
                         <h3 className="text-sm font-semibold">Extension requirements</h3>
                         <ul className="mt-3 space-y-2 text-xs text-ink-mute">
                             <li className="flex items-center gap-2">
-                                <CheckCircle2 size={11} className="text-emerald-400" /> Chrome, Edge, Brave or any Chromium 116+
+                                <CheckCircle2 size={11} className="text-positive" /> Chrome, Edge, Brave or any Chromium 116+
                             </li>
                             <li className="flex items-center gap-2">
-                                <CheckCircle2 size={11} className="text-emerald-400" /> Active AlgoVault Pro subscription
+                                <CheckCircle2 size={11} className="text-positive" /> Active AlgoVault Pro subscription
                             </li>
                             <li className="flex items-center gap-2">
-                                <CheckCircle2 size={11} className="text-emerald-400" /> TradingView account (free or paid)
+                                <CheckCircle2 size={11} className="text-positive" /> TradingView account (free or paid)
                             </li>
                             <li className="flex items-center gap-2">
-                                <CheckCircle2 size={11} className="text-emerald-400" /> Optional: TradingView MCP for richer context
+                                <CheckCircle2 size={11} className="text-positive" /> Optional: TradingView MCP for richer context
                             </li>
                         </ul>
                     </section>

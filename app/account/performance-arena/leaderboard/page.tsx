@@ -108,12 +108,12 @@ export default function AccountLeaderboardPage() {
                 {snapshot.entries.slice(0, 50).map((entry, index) => (
                   <TableRow key={entry.attemptId}>
                     <TableCell className="font-mono text-xs">
-                      {index < 3 ? <Medal className={`h-3.5 w-3.5 ${index === 0 ? "text-amber-500" : index === 1 ? "text-slate-400" : "text-amber-700"}`} /> : index + 1}
+                      {index < 3 ? <Medal className={`h-3.5 w-3.5 ${index === 0 ? "text-warning" : index === 1 ? "text-muted-foreground" : "text-warning"}`} /> : index + 1}
                     </TableCell>
                     <TableCell className="font-mono text-xs">{entry.displayLabel}</TableCell>
                     <TableCell><Badge variant="outline">{entry.tier}</Badge></TableCell>
                     <TableCell><Badge variant={entry.status === "PASSED" ? "success" : "secondary"}>{entry.status}</Badge></TableCell>
-                    <TableCell className={`text-right font-mono text-xs ${entry.totalReturnPct >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+                    <TableCell className={`text-right font-mono text-xs ${entry.totalReturnPct >= 0 ? "text-positive" : "text-negative"}`}>
                       {entry.totalReturnPct >= 0 ? "+" : ""}
                       {entry.totalReturnPct.toFixed(2)}%
                     </TableCell>

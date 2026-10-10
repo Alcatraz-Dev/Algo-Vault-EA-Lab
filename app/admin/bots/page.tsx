@@ -773,7 +773,7 @@ export default function AdminBotsPage() {
                                                                     bot
                                                                 )
                                                             }
-                                                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-negative/10 text-negative transition hover:bg-negative/10"
+                                                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-destructive/10 text-destructive transition hover:bg-destructive/10"
                                                             title="Delete Product"
                                                         >
                                                             <Trash2

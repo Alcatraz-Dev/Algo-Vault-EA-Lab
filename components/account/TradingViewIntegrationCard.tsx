@@ -58,11 +58,11 @@ interface TradingViewIntegrationCardProps {
 
 const STATE_META: Record<TradingViewStatus["state"], { label: string; tone: string; dot: string }> = {
     DISCONNECTED: { label: "Not connected", tone: "border-border bg-muted/40 text-muted-foreground", dot: "bg-muted-foreground" },
-    CONNECTING: { label: "Connecting…", tone: "border-blue-500/30 bg-blue-500/10 text-blue-500", dot: "bg-blue-500 animate-pulse" },
-    CONNECTED: { label: "Connected", tone: "border-emerald-500/30 bg-emerald-500/10 text-emerald-600", dot: "bg-emerald-500" },
-    TOKEN_EXPIRED: { label: "Authorization expired", tone: "border-amber-500/30 bg-amber-500/10 text-amber-600", dot: "bg-amber-500" },
-    REAUTH_REQUIRED: { label: "Reconnect required", tone: "border-amber-500/30 bg-amber-500/10 text-amber-600", dot: "bg-amber-500" },
-    ERROR: { label: "Error", tone: "border-red-500/30 bg-red-500/10 text-red-600", dot: "bg-red-500" },
+    CONNECTING: { label: "Connecting…", tone: "border-info/30 bg-info/10 text-info", dot: "bg-info animate-pulse" },
+    CONNECTED: { label: "Connected", tone: "border-positive/30 bg-positive/10 text-positive", dot: "bg-positive" },
+    TOKEN_EXPIRED: { label: "Authorization expired", tone: "border-warning/30 bg-warning/10 text-warning", dot: "bg-warning" },
+    REAUTH_REQUIRED: { label: "Reconnect required", tone: "border-warning/30 bg-warning/10 text-warning", dot: "bg-warning" },
+    ERROR: { label: "Error", tone: "border-negative/30 bg-negative/10 text-negative", dot: "bg-negative" },
     DISABLED: { label: "Disabled", tone: "border-border bg-muted/40 text-muted-foreground", dot: "bg-muted-foreground" },
 };
 
@@ -190,8 +190,8 @@ export function TradingViewIntegrationCard({ user, showToast }: TradingViewInteg
     return (
         <div className="rounded-lg border border-border bg-foreground/[0.035] p-6 backdrop-blur-xl">
             <div className="mb-4 flex flex-wrap items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600/15">
-                    <PlugZap size={16} className="text-blue-500" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-info/15">
+                    <PlugZap size={16} className="text-info" />
                 </div>
                 <div className="min-w-0">
                     <h2 className="text-lg font-semibold text-foreground">TradingView MCP</h2>
@@ -213,7 +213,7 @@ export function TradingViewIntegrationCard({ user, showToast }: TradingViewInteg
             ) : null}
 
             {flags && !flags.master ? (
-                <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-600">
+                <div className="mb-4 flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning">
                     <AlertCircle size={13} className="mt-0.5 shrink-0" />
                     <span>
                         The TradingView MCP integration is currently disabled by the platform. All AlgoVault features work
@@ -247,7 +247,7 @@ export function TradingViewIntegrationCard({ user, showToast }: TradingViewInteg
                         return (
                             <div key={cap.id} className="flex items-center gap-2 rounded-lg border border-border bg-muted/20 px-3 py-1.5 text-xs">
                                 {enabled ? (
-                                    <Check size={13} className="shrink-0 text-emerald-500" />
+                                    <Check size={13} className="shrink-0 text-positive" />
                                 ) : (
                                     <span className="h-[13px] w-[13px] shrink-0 rounded-[3px] border border-border" />
                                 )}
@@ -268,7 +268,7 @@ export function TradingViewIntegrationCard({ user, showToast }: TradingViewInteg
                         type="button"
                         onClick={handleDisconnect}
                         disabled={disconnecting}
-                        className="inline-flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-500/20 disabled:opacity-50"
+                        className="inline-flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm font-medium text-destructive transition hover:bg-destructive/20 disabled:opacity-50"
                     >
                         {disconnecting ? <Loader2 size={14} className="animate-spin" /> : <Unplug size={14} />}
                         Disconnect

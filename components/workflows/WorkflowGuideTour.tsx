@@ -55,7 +55,7 @@ const GUIDE_STEPS: GuideStep[] = [
   {
     title: "Build Strategies with AI",
     subtitle: "Convert plain natural language into a validated node graph.",
-    icon: <Bot className="w-8 h-8 text-violet-500" />,
+    icon: <Bot className="w-8 h-8 text-primary" />,
     content:
       "Click the 'Build with AI' button in the toolbar. Type a prompt like: 'Monitor XAUUSD on M5. If H1 RSI is below 30 and EMA is bullish, send a Telegram alert.' The AI Router generates the exact DAG automatically.",
     tips: [
@@ -220,7 +220,7 @@ export function WorkflowGuideTour({ pageKey = "workflow_studio", title = "Page G
               <Button
                 size="sm"
                 onClick={handleNext}
-                className="text-xs bg-gradient-to-r from-info to-violet-600 text-white"
+                className="text-xs bg-gradient-to-r from-info to-primary text-white"
               >
                 {stepIndex === GUIDE_STEPS.length - 1 ? (
                   <>

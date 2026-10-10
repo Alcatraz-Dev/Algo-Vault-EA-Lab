@@ -24,7 +24,7 @@ import { WORKFLOW_TEMPLATES } from "@/lib/workflows/templates";
 function Toast({ msg, kind, onClose }: { msg: string; kind: "ok" | "err" | "info"; onClose: () => void }) {
   return (
     <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-sm font-medium animate-in slide-in-from-bottom-2
-      ${kind === "err" ? "bg-red-600 text-white" : kind === "info" ? "bg-blue-600 text-white" : "bg-emerald-600 text-white"}`}>
+      ${kind === "err" ? "bg-negative text-white" : kind === "info" ? "bg-info text-white" : "bg-positive text-white"}`}>
       {kind === "err" ? <AlertCircle size={14} /> : kind === "info" ? <Info size={14} /> : <CheckCircle2 size={14} />}
       <span>{msg}</span>
       <button onClick={onClose}><X size={13} className="opacity-70 hover:opacity-100" /></button>
@@ -46,7 +46,7 @@ function CreateWorkflowDialog({ open, onClose, onCreate, creating }: CreateDialo
     <Dialog open={open} onOpenChange={v => { if (!v) onClose(); }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><GitBranch size={18} className="text-blue-500" /> New Workflow</DialogTitle>
+          <DialogTitle className="flex items-center gap-2"><GitBranch size={18} className="text-info" /> New Workflow</DialogTitle>
           <DialogDescription className="text-xs">Give your workflow a name to get started. You can edit details in the Studio.</DialogDescription>
         </DialogHeader>
         <div className="space-y-3 pt-1">
@@ -231,10 +231,10 @@ export default function AccountWorkflowsPage() {
             {pro ? (
               <>
                 <Button size="sm" variant="outline" onClick={() => router.push("/admin/intelligence/studio?open=templates")}>
-                  <Sparkles size={14} className="mr-1.5 text-blue-500" /> Templates
+                  <Sparkles size={14} className="mr-1.5 text-info" /> Templates
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => router.push("/admin/intelligence/studio?open=ai")}>
-                  <BrainCircuit size={14} className="mr-1.5 text-pink-500" /> AI Builder
+                  <BrainCircuit size={14} className="mr-1.5 text-primary" /> AI Builder
                 </Button>
                 <Button size="sm" onClick={() => setShowCreate(true)}>
                   <Plus size={14} className="mr-1.5" /> New Workflow
@@ -253,8 +253,8 @@ export default function AccountWorkflowsPage() {
         {/* Pro upgrade callout */}
         {!loading && !pro && (
           <div className="rounded-xl border border-border bg-card p-8 text-center space-y-4">
-            <div className="w-14 h-14 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto">
-              <Shield size={26} className="text-blue-500" />
+            <div className="w-14 h-14 rounded-full bg-info/10 flex items-center justify-center mx-auto">
+              <Shield size={26} className="text-info" />
             </div>
             <div>
               <h3 className="text-lg font-bold text-foreground">Workflow Automation is a Pro Feature</h3>
@@ -265,7 +265,7 @@ export default function AccountWorkflowsPage() {
             <div className="flex justify-center gap-2 flex-wrap">
               <Link href="/pricing"><Button>Upgrade to Pro</Button></Link>
               <Link href="/admin/intelligence/studio">
-                <Button variant="outline"><Sparkles size={14} className="mr-1.5 text-blue-500" /> Explore Studio</Button>
+                <Button variant="outline"><Sparkles size={14} className="mr-1.5 text-info" /> Explore Studio</Button>
               </Link>
             </div>
           </div>
@@ -311,8 +311,8 @@ export default function AccountWorkflowsPage() {
         {/* Empty state */}
         {!loading && pro && workflows.length === 0 && (
           <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center space-y-6">
-            <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto">
-              <GitBranch size={28} className="text-blue-500" />
+            <div className="w-16 h-16 rounded-full bg-info/10 flex items-center justify-center mx-auto">
+              <GitBranch size={28} className="text-info" />
             </div>
             <div className="max-w-md mx-auto space-y-2">
               <h3 className="text-lg font-bold text-foreground">No Workflows Yet</h3>
@@ -323,10 +323,10 @@ export default function AccountWorkflowsPage() {
             <div className="flex justify-center gap-2 flex-wrap">
               <Button size="sm" onClick={() => setShowCreate(true)}><Plus size={14} className="mr-1.5" /> New Workflow</Button>
               <Button size="sm" variant="outline" onClick={() => router.push("/admin/intelligence/studio?open=templates")}>
-                <Sparkles size={14} className="mr-1.5 text-blue-500" /> Browse Templates
+                <Sparkles size={14} className="mr-1.5 text-info" /> Browse Templates
               </Button>
               <Button size="sm" variant="outline" onClick={() => router.push("/admin/intelligence/studio?open=ai")}>
-                <BrainCircuit size={14} className="mr-1.5 text-pink-500" /> AI Builder
+                <BrainCircuit size={14} className="mr-1.5 text-primary" /> AI Builder
               </Button>
             </div>
           </div>
@@ -348,7 +348,7 @@ export default function AccountWorkflowsPage() {
                 {/* Top */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <h3 className="font-bold text-sm truncate text-foreground group-hover:text-blue-500 transition-colors">
+                    <h3 className="font-bold text-sm truncate text-foreground group-hover:text-info transition-colors">
                       {wf.name}
                     </h3>
                     <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
@@ -371,7 +371,7 @@ export default function AccountWorkflowsPage() {
                 {/* Tags */}
                 <div className="flex flex-wrap gap-1.5 min-h-[20px]">
                   {wf.schedule?.enabled && (
-                    <Badge variant="outline" className="text-micro border-amber-300 text-amber-600 dark:text-amber-400">Scheduled</Badge>
+                    <Badge variant="outline" className="text-micro border-warning text-warning">Scheduled</Badge>
                   )}
                   {(wf.requiredPermissions ?? []).slice(0, 2).map(p => (
                     <Badge key={p} variant="secondary" className="text-micro">{p}</Badge>

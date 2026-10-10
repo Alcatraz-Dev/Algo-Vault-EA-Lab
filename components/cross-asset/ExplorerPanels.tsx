@@ -92,7 +92,7 @@ export function RelationshipList({
                                 )}
                             >
                                 <td className="py-1.5 font-mono text-foreground">{other}</td>
-                                <td className={cn("font-mono", (r.coefficient ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400")}>
+                                <td className={cn("font-mono", (r.coefficient ?? 0) >= 0 ? "text-positive" : "text-negative")}>
                                     {r.coefficient?.toFixed(2)}
                                 </td>
                                 <td className="font-mono text-muted-foreground">
@@ -118,16 +118,16 @@ export function RelationshipList({
 function stabilityClass(stability: string): string {
     switch (stability) {
         case "STABLE":
-            return "bg-emerald-500/15 text-emerald-300";
+            return "bg-positive/15 text-positive";
         case "STRENGTHENING":
-            return "bg-sky-500/15 text-sky-300";
+            return "bg-info/15 text-info";
         case "WEAKENING":
-            return "bg-amber-500/15 text-amber-300";
+            return "bg-warning/15 text-warning";
         case "BREAKING":
         case "FLIPPING":
-            return "bg-rose-500/20 text-rose-300";
+            return "bg-negative/20 text-negative";
         default:
-            return "bg-zinc-500/20 text-zinc-300";
+            return "bg-muted/20 text-muted-foreground";
     }
 }
 
@@ -306,12 +306,12 @@ export function RegimePanel({ regime, transitions }: { regime?: GraphRegime; tra
                         className={cn(
                             "rounded px-2 py-0.5 text-micro font-semibold",
                             state === "RISK_OFF" || state === "HIGH_VOLATILITY" || state === "DISLOCATION"
-                                ? "bg-rose-500/20 text-rose-300"
+                                ? "bg-negative/20 text-negative"
                                 : state === "RISK_ON" || state === "LOW_VOLATILITY"
-                                  ? "bg-emerald-500/20 text-emerald-300"
+                                  ? "bg-positive/20 text-positive"
                                   : state === "UNKNOWN"
-                                    ? "bg-zinc-500/20 text-zinc-300"
-                                    : "bg-sky-500/20 text-sky-300"
+                                    ? "bg-muted/20 text-muted-foreground"
+                                    : "bg-info/20 text-info"
                         )}
                     >
                         {state.replace(/_/g, " ")}
@@ -324,7 +324,7 @@ export function RegimePanel({ regime, transitions }: { regime?: GraphRegime; tra
                         <tr key={axis.axis} className="border-t border-border/60 align-top">
                             <td className="py-1.5 pr-2 font-medium text-muted-foreground">{axis.axis}</td>
                             <td className="py-1.5">
-                                <span className={cn("rounded px-1.5 py-0.5 text-micro", axis.state === "UNKNOWN" ? "bg-zinc-500/20 text-zinc-300" : stabilityClass(axis.state.includes("EXPANSION") ? "BREAKING" : "STABLE"))}>
+                                <span className={cn("rounded px-1.5 py-0.5 text-micro", axis.state === "UNKNOWN" ? "bg-muted/20 text-muted-foreground" : stabilityClass(axis.state.includes("EXPANSION") ? "BREAKING" : "STABLE"))}>
                                     {axis.state.replace(/_/g, " ")}
                                 </span>
                             </td>
@@ -341,7 +341,7 @@ export function RegimePanel({ regime, transitions }: { regime?: GraphRegime; tra
             {(transitions ?? []).length > 0 ? (
                 <ul className="space-y-1 text-micro">
                     {(transitions ?? []).map((t, i) => (
-                        <li key={`${t.axis}-${i}`} className="text-amber-300/90">
+                        <li key={`${t.axis}-${i}`} className="text-warning/90">
                             Transition: {t.axis} {t.previousState.replace(/_/g, " ")} → {t.newState.replace(/_/g, " ")} ·{" "}
                             {new Date(t.timestamp).toISOString().slice(0, 16).replace("T", " ")}
                         </li>
@@ -402,14 +402,14 @@ export function FactorsPanel({ factors }: { factors?: GraphFactor[] }) {
                         <span
                             className={cn(
                                 "rounded px-1.5 py-0.5 text-micro font-semibold",
-                                f.status === "AVAILABLE" ? "bg-emerald-500/15 text-emerald-300" : "bg-zinc-500/20 text-zinc-300"
+                                f.status === "AVAILABLE" ? "bg-positive/15 text-positive" : "bg-muted/20 text-muted-foreground"
                             )}
                         >
                             {f.status === "AVAILABLE" ? (f.value === null ? "AVAILABLE" : f.value.toFixed(2)) : "INSUFFICIENT DATA"}
                         </span>
                     </div>
                     <p className="mt-0.5 text-micro text-muted-foreground">{f.definition}</p>
-                    <p className="mt-0.5 font-mono text-micro text-violet-300/90">
+                    <p className="mt-0.5 font-mono text-micro text-chart-3/90">
                         [{f.kind}] {f.formula}
                     </p>
                     <p className="mt-0.5 font-mono text-micro text-muted-foreground">
@@ -417,7 +417,7 @@ export function FactorsPanel({ factors }: { factors?: GraphFactor[] }) {
                         {" · confidence "}
                         {f.confidence.toFixed(2)}
                     </p>
-                    {f.status !== "AVAILABLE" ? <p className="mt-0.5 text-micro text-amber-300/90">{f.limitations[0]}</p> : null}
+                    {f.status !== "AVAILABLE" ? <p className="mt-0.5 text-micro text-warning/90">{f.limitations[0]}</p> : null}
                 </li>
             ))}
         </ul>
@@ -441,10 +441,10 @@ export function EventsPanel({ signals }: { signals?: GraphSignal[] }) {
                             className={cn(
                                 "rounded px-1.5 py-0.5 text-micro font-semibold",
                                 s.status === "CONFIRMED"
-                                    ? "bg-emerald-500/15 text-emerald-300"
+                                    ? "bg-positive/15 text-positive"
                                     : s.status === "DETECTED"
-                                      ? "bg-sky-500/15 text-sky-300"
-                                      : "bg-zinc-500/20 text-zinc-300"
+                                      ? "bg-info/15 text-info"
+                                      : "bg-muted/20 text-muted-foreground"
                             )}
                         >
                             {s.status}

@@ -445,7 +445,7 @@ export default function AdminCopyTradingPage() {
                                                             <button
                                                                 onClick={() => deleteConfig(cfg)}
                                                                 disabled={actionId === cfg.id}
-                                                                className="rounded-lg border border-negative/20 bg-negative/10 p-1.5 text-negative hover:bg-negative/20 transition"
+                                                                className="rounded-lg border border-destructive/20 bg-destructive/10 p-1.5 text-destructive hover:bg-destructive/20 transition"
                                                             >
                                                                 <X size={12} />
                                                             </button>

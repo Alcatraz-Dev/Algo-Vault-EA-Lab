@@ -312,7 +312,7 @@ export function OrderTicket({
                     <span className="text-muted-foreground">{symbol} live quote</span>
                     {quote && quoteIsFresh
                         ? <span className="font-mono font-medium text-foreground">{quote.price.toLocaleString(undefined, { maximumFractionDigits: 6 })} <span className="text-micro text-muted-foreground">{new Date(quote.timestamp).toLocaleTimeString()} · live</span></span>
-                        : <span className="text-amber-600">{quote ? "Quote stale" : "Quote unavailable"}</span>}
+                        : <span className="text-warning">{quote ? "Quote stale" : "Quote unavailable"}</span>}
                 </div>
 
                 {orderType !== "market" ? (
@@ -328,7 +328,7 @@ export function OrderTicket({
                         variant={side === "long" ? "default" : "outline"}
                         disabled={disabled}
                         onClick={() => setSide("long")}
-                        className={side === "long" ? "bg-emerald-600 hover:bg-emerald-700 text-white" : ""}
+                        className={side === "long" ? "bg-positive text-white" : ""}
                     >
                         <ArrowUpRight className="h-3.5 w-3.5" /> Long
                     </Button>
@@ -337,7 +337,7 @@ export function OrderTicket({
                         variant={side === "short" ? "default" : "outline"}
                         disabled={disabled}
                         onClick={() => setSide("short")}
-                        className={side === "short" ? "bg-red-600 hover:bg-red-700 text-white" : ""}
+                        className={side === "short" ? "bg-negative text-white" : ""}
                     >
                         <ArrowDownRight className="h-3.5 w-3.5" /> Short
                     </Button>
@@ -428,7 +428,7 @@ export function OrderTicket({
                                 </span>
                             </div>
                             {stopMicros === null ? (
-                                <p className="text-micro text-amber-600">
+                                <p className="text-micro text-warning">
                                     Without a stop-loss the risk cannot be measured, so no lot size can be solved from a risk percentage.
                                 </p>
                             ) : null}
@@ -493,16 +493,16 @@ export function OrderTicket({
                     {policy ? ` · max risk/trade ${policy.maxRiskPerTradePct}% · max open risk ${effectiveAggregateRiskPct(policy)}%` : ""}
                 </p>
 
-                {sizeBelowMin ? <p role="alert" className="text-micro text-amber-600">Enter a size of at least {minLot} lots{policy ? ` — risk ceilings currently allow ${roundLots(maxLotsNow)} lots max` : ""}.</p> : null}
+                {sizeBelowMin ? <p role="alert" className="text-micro text-warning">Enter a size of at least {minLot} lots{policy ? ` — risk ceilings currently allow ${roundLots(maxLotsNow)} lots max` : ""}.</p> : null}
                 {oversizeOnly ? (
-                    <p className="flex items-start gap-1.5 text-micro text-amber-600">
+                    <p className="flex items-start gap-1.5 text-micro text-warning">
                         <ShieldAlert className="mt-0.5 h-3 w-3 shrink-0" />
                         <span>Size reduced to {roundLots(effectiveLotsNumber)} lots by the {gateLabel(preview?.ceilings.bindingGate)} limit ({policy ? effectiveAggregateRiskPct(policy) : "?"}% open-risk budget).</span>
                     </p>
                 ) : null}
 
                 <Button
-                    className={cn("w-full", side === "long" ? "bg-emerald-600 text-white hover:bg-emerald-700" : "bg-red-600 text-white hover:bg-red-700")}
+                    className={cn("w-full", side === "long" ? "bg-positive text-white" : "bg-negative text-white")}
                     disabled={!canSubmit}
                     onClick={() => void submit()}
                 >
@@ -516,7 +516,7 @@ export function OrderTicket({
                     <p className="text-micro text-muted-foreground">Trading is unavailable while the challenge is not ACTIVE.</p>
                 ) : null}
                 {!quoteIsFresh && !disabled ? (
-                    <p className="flex items-start gap-1.5 text-micro text-amber-600">
+                    <p className="flex items-start gap-1.5 text-micro text-warning">
                         <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
                         <span>A live quote is required before orders can be sized or placed.</span>
                     </p>
@@ -535,7 +535,7 @@ export function OrderTicket({
                     </div>
                 ) : null}
                 {result?.ok ? (
-                    <p className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-600">
+                    <p className="rounded-md border border-positive/30 bg-positive/10 p-3 text-xs text-positive">
                         {orderType === "market" ? "Market order accepted by the simulated execution engine. Check position and trade state below." : "Pending order accepted. It will fill only if the live quote triggers it and current challenge rules still permit entry."}
                     </p>
                 ) : null}

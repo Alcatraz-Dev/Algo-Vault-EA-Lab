@@ -451,14 +451,7 @@ export default function SignalHistoryPage() {
     const isRefreshing = signalsLoading || statsLoading;
 
     return (
-        <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
-            {/* ambient blobs */}
-            <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/8 blur-[120px]" />
-                <div className="absolute -right-40 top-1/3  h-96 w-96 rounded-full bg-info/8 blur-[120px]" />
-                <div className="absolute bottom-0 left-1/2 h-64 w-64 rounded-full bg-positive/5 blur-[100px]" />
-            </div>
-
+        <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
             <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
 
                 {/* ── Back link ── */}
@@ -470,11 +463,11 @@ export default function SignalHistoryPage() {
                 {/* ── Page header ── */}
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between" data-guide="page-header">
                     <div>
-                        <div className="flex items-center gap-2 text-sm text-warning font-semibold">
+                        <div className="flex items-center gap-2 text-sm text-primary font-semibold">
                             <Calendar className="h-4 w-4" />
                             Signal History
                         </div>
-                        <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
+                        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
                             History &amp; Results
                         </h1>
                         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">

@@ -61,11 +61,11 @@ function MarketNodeCard({ data }: NodeProps<MarketFlowNode>) {
         <div
             className={cn(
                 "rounded-md border px-2.5 py-1.5 text-micro font-medium shadow-sm transition",
-                data.kind === "REGIME" && "border-amber-500/50 bg-amber-500/10 text-amber-200",
-                data.kind === "FACTOR" && "border-violet-500/50 bg-violet-500/10 text-violet-200",
+                data.kind === "REGIME" && "border-warning/50 bg-warning/10 text-warning",
+                data.kind === "FACTOR" && "border-chart-3/50 bg-chart-3/10 text-chart-3",
                 data.kind === "ASSET_CLASS" && "border-border bg-card text-muted-foreground",
-                data.kind === "CURRENCY" && "border-sky-500/40 bg-sky-500/10 text-sky-200",
-                data.kind === "INSTRUMENT" && "border-emerald-500/40 bg-card text-foreground",
+                data.kind === "CURRENCY" && "border-info/40 bg-info/10 text-info",
+                data.kind === "INSTRUMENT" && "border-positive/40 bg-card text-foreground",
                 data.active && "ring-2 ring-primary",
                 data.dimmed && "opacity-35"
             )}
@@ -303,12 +303,12 @@ export function EdgeInspector({
                         <span
                             className={cn(
                                 "mr-1 rounded px-1 py-0.5 font-mono text-micro",
-                                claim.kind === "OBSERVED" && "bg-emerald-500/15 text-emerald-300",
-                                claim.kind === "CALCULATED" && "bg-sky-500/15 text-sky-300",
-                                claim.kind === "CONFIGURED" && "bg-zinc-500/20 text-zinc-300",
-                                claim.kind === "USER_DEFINED" && "bg-amber-500/15 text-amber-300",
-                                claim.kind === "INFERENCE" && "bg-violet-500/15 text-violet-300",
-                                claim.kind === "RECOMMENDATION" && "bg-rose-500/15 text-rose-300"
+                                claim.kind === "OBSERVED" && "bg-positive/15 text-positive",
+                                claim.kind === "CALCULATED" && "bg-info/15 text-info",
+                                claim.kind === "CONFIGURED" && "bg-muted/20 text-muted-foreground",
+                                claim.kind === "USER_DEFINED" && "bg-warning/15 text-warning",
+                                claim.kind === "INFERENCE" && "bg-chart-3/15 text-chart-3",
+                                claim.kind === "RECOMMENDATION" && "bg-negative/15 text-negative"
                             )}
                         >
                             {claim.kind}

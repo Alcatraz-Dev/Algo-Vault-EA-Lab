@@ -23,9 +23,9 @@ import type { SyncStatus } from "@/lib/mobile/sync-client";
 const STATUS_HINT: Record<SyncStatus, { label: string; tone: string } | null> = {
     idle: null,
     syncing: { label: "Syncing", tone: "text-muted-foreground" },
-    offline: { label: "Offline — changes saved on this device", tone: "text-amber-600 dark:text-amber-400" },
-    error: { label: "Sync failed — retrying", tone: "text-orange-600 dark:text-orange-400" },
-    conflict: { label: "Merged changes from another device", tone: "text-blue-600 dark:text-blue-400" },
+    offline: { label: "Offline — changes saved on this device", tone: "text-warning" },
+    error: { label: "Sync failed — retrying", tone: "text-warning" },
+    conflict: { label: "Merged changes from another device", tone: "text-info" },
 };
 
 export function MobileShell({ children }: { children: React.ReactNode }) {

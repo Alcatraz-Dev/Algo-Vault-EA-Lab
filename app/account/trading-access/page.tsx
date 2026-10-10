@@ -80,12 +80,12 @@ function StatusDot({ status }: { status: string }) {
     return (
         <span className="relative flex h-2 w-2">
             {isActive && (
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-60" />
             )}
             <span
                 className={cn(
                     "relative inline-flex h-2 w-2 rounded-full",
-                    isActive ? "bg-emerald-500" : "bg-rose-500"
+                    isActive ? "bg-positive" : "bg-negative"
                 )}
             />
         </span>
@@ -367,7 +367,7 @@ export default function TradingAccessPage() {
                             className={cn(
                                 "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold",
                                 accounts.length > 0
-                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                    ? "bg-positive/10 text-positive"
                                     : "bg-muted text-muted-foreground"
                             )}
                         >
@@ -383,7 +383,7 @@ export default function TradingAccessPage() {
                     </div>
 
                     {license?.status !== "active" && accounts.length > 0 && (
-                        <p className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+                        <p className="mt-3 rounded-lg border border-warning/30 bg-warning/5 px-3 py-2 text-xs text-warning">
                             Your trading access license is not active — these
                             accounts stay connected, but an active license is
                             required to trade from the terminal.
@@ -476,8 +476,8 @@ export default function TradingAccessPage() {
                                             className={cn(
                                                 "ml-auto border-none",
                                                 acc.status === "connected"
-                                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                                                    : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                                                    ? "bg-positive/10 text-positive"
+                                                    : "bg-negative/10 text-negative"
                                             )}
                                         >
                                             {acc.status}
@@ -492,10 +492,10 @@ export default function TradingAccessPage() {
                 {license?.status === "active" && (
                     <div className="rounded-lg border border-border bg-muted/30 p-6">
                         <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-positive/10">
                                 <Download
                                     size={20}
-                                    className="text-emerald-600 dark:text-emerald-400"
+                                    className="text-positive"
                                 />
                             </div>
                             <div>
@@ -573,8 +573,8 @@ export default function TradingAccessPage() {
                                 ) : gatewayToken ? (
                                     <div className="mt-3 space-y-2">
                                         <div className="flex items-center gap-2">
-                                            <KeyRound size={14} className="text-emerald-500" />
-                                            <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                                            <KeyRound size={14} className="text-positive" />
+                                            <span className="text-xs font-medium text-positive">
                                                 Token Ready
                                             </span>
                                         </div>
@@ -588,7 +588,7 @@ export default function TradingAccessPage() {
                                                 title="Copy to clipboard"
                                             >
                                                 {copied ? (
-                                                    <Check size={14} className="text-emerald-500" />
+                                                    <Check size={14} className="text-positive" />
                                                 ) : (
                                                     <Copy size={14} className="text-muted-foreground" />
                                                 )}
@@ -597,7 +597,7 @@ export default function TradingAccessPage() {
                                         <button
                                             onClick={handleRevokeToken}
                                             disabled={tokenRevoking}
-                                            className="inline-flex items-center gap-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-400 hover:bg-rose-500/20 transition disabled:opacity-50"
+                                            className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/20 transition disabled:opacity-50"
                                         >
                                             <Trash2 size={12} />
                                             {tokenRevoking ? "Revoking..." : "Revoke Token"}
@@ -621,11 +621,11 @@ export default function TradingAccessPage() {
                 )}
 
                 {/* Info Section */}
-                <div className="rounded-xl border border-amber-500/10 bg-amber-500/[0.03] p-5">
+                <div className="rounded-xl border border-warning/10 bg-warning/[0.03] p-5">
                     <div className="flex items-start gap-3">
                         <Shield
                             size={18}
-                            className="mt-0.5 shrink-0 text-amber-500"
+                            className="mt-0.5 shrink-0 text-warning"
                         />
                         <div>
                             <p className="text-sm font-semibold">About Trading Access</p>

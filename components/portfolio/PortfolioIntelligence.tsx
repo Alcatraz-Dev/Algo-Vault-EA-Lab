@@ -69,7 +69,7 @@ function Stat({ label, value, hint, tone }: { label: string; value: string; hint
             <div
                 className={cn(
                     "font-mono text-sm tabular-nums",
-                    tone === "good" ? "text-emerald-400" : tone === "warn" ? "text-amber-400" : tone === "bad" ? "text-rose-400" : "text-foreground"
+                    tone === "good" ? "text-positive" : tone === "warn" ? "text-warning" : tone === "bad" ? "text-negative" : "text-foreground"
                 )}
             >
                 {value}
@@ -81,8 +81,8 @@ function Stat({ label, value, hint, tone }: { label: string; value: string; hint
 
 function ProGate({ message }: { message: string | null }) {
     return (
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/[0.04] p-4">
-            <div className="flex items-center gap-2 text-sm font-semibold text-amber-400">
+        <div className="rounded-lg border border-warning/30 bg-warning/[0.04] p-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-warning">
                 <ShieldAlert className="size-4" /> Pro capability
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
@@ -97,10 +97,10 @@ function Empty({ message }: { message: string }) {
 }
 
 const RATING_TONE: Record<string, string> = {
-    GOOD: "text-emerald-400 border-emerald-500/40 bg-emerald-500/10",
-    WATCH: "text-amber-400 border-amber-500/40 bg-amber-500/10",
-    WARNING: "text-orange-400 border-orange-500/40 bg-orange-500/10",
-    CRITICAL: "text-rose-400 border-rose-500/40 bg-rose-500/10",
+    GOOD: "text-positive border-positive/40 bg-positive/10",
+    WATCH: "text-warning border-warning/40 bg-warning/10",
+    WARNING: "text-warning border-warning/40 bg-warning/10",
+    CRITICAL: "text-negative border-negative/40 bg-negative/10",
     UNKNOWN: "text-muted-foreground border-border bg-muted/40",
 };
 
@@ -259,7 +259,7 @@ function AllocationPanel() {
                 </button>
             }
         >
-            {error ? <p className="text-xs text-amber-400">{message ?? error}</p> : null}
+            {error ? <p className="text-xs text-warning">{message ?? error}</p> : null}
             {!result ? (
                 <Empty message="Compute recommendations from measured strategy evidence. Recommendations never move capital — applying one requires your explicit approval." />
             ) : result.recommendations.length === 0 ? (
@@ -285,11 +285,11 @@ function AllocationPanel() {
                                             className={cn(
                                                 "rounded border px-1.5 py-0.5 text-micro font-semibold",
                                                 r.action === "INCREASE"
-                                                    ? "border-emerald-500/40 text-emerald-400"
+                                                    ? "border-positive/40 text-positive"
                                                     : r.action === "REDUCE" || r.action === "PAUSE"
-                                                      ? "border-rose-500/40 text-rose-400"
+                                                      ? "border-negative/40 text-negative"
                                                       : r.action === "REVIEW"
-                                                        ? "border-amber-500/40 text-amber-400"
+                                                        ? "border-warning/40 text-warning"
                                                         : "border-border text-muted-foreground"
                                             )}
                                         >
@@ -348,7 +348,7 @@ function StressPanel({ snapshot }: { snapshot: PortfolioSnapshotPayload }) {
             {snapshot.positionCount === 0 ? (
                 <Empty message="No open positions — every scenario is a no-op." />
             ) : error ? (
-                <p className="text-xs text-amber-400">{message ?? error}</p>
+                <p className="text-xs text-warning">{message ?? error}</p>
             ) : !data ? (
                 <Empty message="Run a deterministic scenario. Historical shocks are measured from real candles; everything else is explicitly labelled SIMULATED." />
             ) : (
@@ -361,8 +361,8 @@ function StressPanel({ snapshot }: { snapshot: PortfolioSnapshotPayload }) {
                                     className={cn(
                                         "rounded border px-1.5 py-0.5 text-micro font-bold tracking-wide",
                                         s.scenario.basis === "HISTORICAL"
-                                            ? "border-emerald-500/40 text-emerald-400"
-                                            : "border-amber-500/40 text-amber-400"
+                                            ? "border-positive/40 text-positive"
+                                            : "border-warning/40 text-warning"
                                     )}
                                     title={s.scenario.methodology}
                                 >
@@ -373,7 +373,7 @@ function StressPanel({ snapshot }: { snapshot: PortfolioSnapshotPayload }) {
                                 <span
                                     className={cn(
                                         "font-mono text-sm tabular-nums",
-                                        s.pnlImpact < 0 ? "text-rose-400" : "text-emerald-400"
+                                        s.pnlImpact < 0 ? "text-negative" : "text-positive"
                                     )}
                                 >
                                     {fmtMoney(s.pnlImpact)}
@@ -383,7 +383,7 @@ function StressPanel({ snapshot }: { snapshot: PortfolioSnapshotPayload }) {
                             {s.breaches.length > 0 ? (
                                 <ul className="mt-1 space-y-0.5">
                                     {s.breaches.map((b) => (
-                                        <li key={b} className="text-micro leading-4 text-amber-400">
+                                        <li key={b} className="text-micro leading-4 text-warning">
                                             • {b}
                                         </li>
                                     ))}
@@ -421,8 +421,8 @@ export function PortfolioIntelligence({ portfolioId }: { portfolioId?: string })
     if (error) {
         return (
             <div className="space-y-3">
-                <div className="rounded-xl border border-amber-500/30 bg-amber-500/[0.04] p-4">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-amber-400">
+                <div className="rounded-xl border border-warning/30 bg-warning/[0.04] p-4">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-warning">
                         <TriangleAlert className="size-4" /> Portfolio intelligence unavailable
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
@@ -457,9 +457,9 @@ export function PortfolioIntelligence({ portfolioId }: { portfolioId?: string })
                         className={cn(
                             "rounded border px-1.5 py-0.5 text-micro font-bold tracking-wide",
                             freshness?.freshness === "FRESH"
-                                ? "border-emerald-500/40 text-emerald-400"
+                                ? "border-positive/40 text-positive"
                                 : freshness?.freshness === "STALE"
-                                  ? "border-amber-500/40 text-amber-400"
+                                  ? "border-warning/40 text-warning"
                                   : "border-border text-muted-foreground"
                         )}
                     >
@@ -537,11 +537,11 @@ export function PortfolioIntelligence({ portfolioId }: { portfolioId?: string })
                                     className={cn(
                                         "mt-0.5 rounded px-1.5 py-0.5 text-micro font-bold tracking-wide",
                                         w.severity === "CRITICAL"
-                                            ? "bg-rose-500/15 text-rose-400"
+                                            ? "bg-negative/15 text-negative"
                                             : w.severity === "WARNING"
-                                              ? "bg-orange-500/15 text-orange-400"
+                                              ? "bg-warning/15 text-warning"
                                               : w.severity === "WATCH"
-                                                ? "bg-amber-500/15 text-amber-400"
+                                                ? "bg-warning/15 text-warning"
                                                 : "bg-muted text-muted-foreground"
                                     )}
                                 >

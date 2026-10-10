@@ -295,7 +295,7 @@ export default function AdminSetFilesPage() {
                                 </button>
                                 <button
                                     onClick={() => handleDelete(item)}
-                                    className="rounded-lg p-2 text-muted-foreground hover:bg-negative/10 hover:text-negative transition"
+                                    className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition"
                                     title="Delete .set file"
                                 >
                                     <Trash2 size={16} />

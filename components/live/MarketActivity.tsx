@@ -30,7 +30,7 @@ export default function MarketActivity({ activities }: { activities: LiveActivit
             <div className="w-16 text-xs font-mono font-bold text-foreground">{m.market}</div>
             <div className="flex-1 h-1.5 bg-muted/60 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-amber-500 to-orange-400 rounded-full transition-[width] duration-700"
+                className="h-full bg-gradient-to-r from-warning to-warning rounded-full transition-[width] duration-700"
                 style={{ width: `${m.share}%` }}
               />
             </div>

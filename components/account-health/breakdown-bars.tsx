@@ -31,11 +31,11 @@ interface Row {
 }
 
 const ROWS: Row[] = [
-    { key: "drawdown", label: "Drawdown", max: 30, penalty: true, fill: "bg-rose-500" },
-    { key: "margin", label: "Margin usage", max: 20, penalty: true, fill: "bg-amber-500" },
-    { key: "exposure", label: "Exposure", max: 25, penalty: true, fill: "bg-blue-500" },
-    { key: "pnl", label: "Open P/L", max: 10, penalty: false, fill: "bg-emerald-500" },
-    { key: "signalQuality", label: "Signal quality", max: 15, penalty: false, fill: "bg-violet-500" },
+    { key: "drawdown", label: "Drawdown", max: 30, penalty: true, fill: "bg-negative" },
+    { key: "margin", label: "Margin usage", max: 20, penalty: true, fill: "bg-warning" },
+    { key: "exposure", label: "Exposure", max: 25, penalty: true, fill: "bg-info" },
+    { key: "pnl", label: "Open P/L", max: 10, penalty: false, fill: "bg-positive" },
+    { key: "signalQuality", label: "Signal quality", max: 15, penalty: false, fill: "bg-chart-3" },
 ];
 
 export function BreakdownBars({

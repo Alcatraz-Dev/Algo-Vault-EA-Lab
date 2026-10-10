@@ -83,12 +83,12 @@ export function LimitBar({
     const clamped = Math.max(0, Math.min(100, usedPct));
     const fill =
         tone === "positive"
-            ? "bg-emerald-500"
+            ? "bg-positive"
             : tone === "negative"
-              ? "bg-red-500"
+              ? "bg-negative"
               : tone === "info"
-                ? "bg-sky-500"
-                : "bg-amber-500";
+                ? "bg-info"
+                : "bg-warning";
     return (
         <div className="space-y-1">
             <div className="flex items-baseline justify-between gap-2 text-xs">
@@ -163,12 +163,12 @@ export function RuleEventList({ events }: { events: Array<{ id?: string; eventId
                             critical
                                 ? "border-destructive/40 bg-destructive/10"
                                 : warning
-                                  ? "border-amber-500/30 bg-amber-500/5"
+                                  ? "border-warning/30 bg-warning/5"
                                   : "border-border bg-muted/30"
                         )}
                     >
                         <div className="flex items-start justify-between gap-3">
-                            <span className={cn(critical ? "text-destructive" : warning ? "text-amber-600 dark:text-amber-400" : "text-foreground")}>
+                            <span className={cn(critical ? "text-destructive" : warning ? "text-warning" : "text-foreground")}>
                                 {event.message}
                             </span>
                             <span className="shrink-0 font-mono text-micro text-muted-foreground">
@@ -200,7 +200,7 @@ export function Money({ cents, className, signed = false }: { cents: number; cla
     const text = formatCents(cents);
     const display = signed && cents > 0 ? `+${text}` : text;
     return (
-        <span className={cn("font-mono tabular-nums", cents < 0 && "text-red-500", cents > 0 && signed && "text-emerald-500", className)}>
+        <span className={cn("font-mono tabular-nums", cents < 0 && "text-negative", cents > 0 && signed && "text-positive", className)}>
             {display}
         </span>
     );

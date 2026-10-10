@@ -597,7 +597,7 @@ export default function AdminReviewsPage() {
                                                                 review.id ? (
                                                                 <Loader2 className="h-4 w-4 animate-spin" />
                                                             ) : (
-                                                                <Trash2 className="h-4 w-4 text-negative" />
+                                                                <Trash2 className="h-4 w-4 text-destructive" />
                                                             )}
                                                         </ActionButton>
                                                     </div>

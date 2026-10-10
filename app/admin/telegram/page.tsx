@@ -912,7 +912,7 @@ function AdminTelegramDashboard() {
                                 <button
                                     onClick={handleDisconnect}
                                     disabled={authLoading}
-                                    className="inline-flex items-center gap-2 rounded-xl border border-negative/20 bg-negative/10 px-4 py-2 text-xs font-semibold text-negative transition hover:bg-negative/20 disabled:opacity-50"
+                                    className="inline-flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-2 text-xs font-semibold text-destructive transition hover:bg-destructive/20 disabled:opacity-50"
                                 >
                                     Disconnect Account
                                 </button>
@@ -1099,7 +1099,7 @@ function AdminTelegramDashboard() {
                                                             <button
                                                                 onClick={() => handleDeleteSource(src.id)}
                                                                 title="Remove Source"
-                                                                className="rounded-lg border border-negative/20 p-1.5 text-negative hover:bg-negative/10"
+                                                                className="rounded-lg border border-destructive/20 p-1.5 text-destructive hover:bg-destructive/10"
                                                             >
                                                                 <Trash2 size={13} />
                                                             </button>
@@ -1349,7 +1349,7 @@ function AdminTelegramDashboard() {
                                     </button>
                                     <button
                                         onClick={handleDisconnect}
-                                        className="rounded-xl border border-negative/30 bg-negative/10 px-5 py-2.5 text-xs font-semibold text-negative hover:bg-negative/20"
+                                        className="rounded-xl border border-destructive/30 bg-destructive/10 px-5 py-2.5 text-xs font-semibold text-destructive hover:bg-destructive/20"
                                     >
                                         Disconnect Account
                                     </button>
@@ -1685,7 +1685,7 @@ function AdminTelegramDashboard() {
                                         </button>
                                         <button
                                             onClick={() => handleDeleteGroup(grp.id)}
-                                            className="inline-flex items-center gap-1 rounded-lg border border-negative/20 px-3 py-1.5 text-xs font-semibold text-negative hover:bg-negative/10"
+                                            className="inline-flex items-center gap-1 rounded-lg border border-destructive/20 px-3 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/10"
                                         >
                                             <Trash2 size={13} />
                                             Delete

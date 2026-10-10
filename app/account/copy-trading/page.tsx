@@ -209,12 +209,12 @@ export default function AccountCopyTradingPage() {
         <AccountShell title="Master Copy Trading" subtitle="Control which of your live MT5 accounts can be copied">
             <div className="mx-auto max-w-6xl space-y-6" data-guide="page-header">
                 {!copyTradingEnabled && (
-                    <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-700 dark:text-amber-300">
+                    <div className="rounded-xl border border-warning/20 bg-warning/10 p-4 text-sm text-warning">
                         Copy trading is disabled platform-wide. Master controls are read-only until an admin enables it again.
                     </div>
                 )}
                 {errorMessage && (
-                    <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-600">
+                    <div className="rounded-xl border border-negative/20 bg-negative/10 p-4 text-sm text-negative">
                         {errorMessage}
                     </div>
                 )}
@@ -233,7 +233,7 @@ export default function AccountCopyTradingPage() {
                     </div>
                     <div className="rounded-xl border border-border bg-muted/30 p-5">
                         <p className="text-xs text-muted-foreground">Follower P/L</p>
-                        <p className={`mt-2 text-2xl font-bold ${metrics.totalProfit >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+                        <p className={`mt-2 text-2xl font-bold ${metrics.totalProfit >= 0 ? "text-positive" : "text-negative"}`}>
                             {formatMoney(metrics.totalProfit)}
                         </p>
                     </div>
@@ -273,11 +273,11 @@ export default function AccountCopyTradingPage() {
                                                 <span
                                                     className={`rounded-full px-2.5 py-1 text-micro font-semibold ${
                                                         status.tone === "success"
-                                                            ? "bg-emerald-500/10 text-emerald-600"
+                                                            ? "bg-positive/10 text-positive"
                                                             : status.tone === "danger"
-                                                              ? "bg-red-500/10 text-red-500"
+                                                              ? "bg-negative/10 text-negative"
                                                               : status.tone === "warning"
-                                                                ? "bg-amber-500/10 text-amber-500"
+                                                                ? "bg-warning/10 text-warning"
                                                                 : "bg-muted text-muted-foreground"
                                                     }`}
                                                 >
@@ -297,7 +297,7 @@ export default function AccountCopyTradingPage() {
                                             disabled={disabled}
                                             className={`inline-flex min-w-44 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                                                 account.allowCopyTrading
-                                                    ? "bg-emerald-600 text-foreground hover:bg-emerald-500"
+                                                    ? "bg-positive text-foreground hover:bg-positive"
                                                     : "border border-border bg-muted text-foreground hover:bg-muted/70"
                                             }`}
                                         >
@@ -342,11 +342,11 @@ export default function AccountCopyTradingPage() {
                                             {accountFollowers.slice(0, 5).map((cfg) => (
                                                 <div key={`${cfg.ownerUid}_${cfg.id}`} className="grid grid-cols-4 gap-3 px-4 py-3 text-xs">
                                                     <span className="font-mono text-foreground">#{cfg.followerMt5Account}</span>
-                                                    <span className={cfg.isActive === false ? "text-amber-500" : "text-emerald-600"}>
+                                                    <span className={cfg.isActive === false ? "text-warning" : "text-positive"}>
                                                         {cfg.isActive === false ? "Paused" : "Active"}
                                                     </span>
                                                     <span className="text-muted-foreground">{cfg.totalCopied || 0}</span>
-                                                    <span className={Number(cfg.totalProfit || 0) >= 0 ? "text-emerald-600" : "text-red-500"}>
+                                                    <span className={Number(cfg.totalProfit || 0) >= 0 ? "text-positive" : "text-negative"}>
                                                         {formatMoney(Number(cfg.totalProfit || 0))}
                                                     </span>
                                                 </div>
@@ -368,7 +368,7 @@ export default function AccountCopyTradingPage() {
 
                 <div className="rounded-xl border border-border bg-muted/20 p-5">
                     <div className="flex items-start gap-3">
-                        <AlertCircle className="mt-0.5 h-5 w-5 text-amber-500" />
+                        <AlertCircle className="mt-0.5 h-5 w-5 text-warning" />
                         <div>
                             <h2 className="text-sm font-semibold text-foreground">Listing rules</h2>
                             <p className="mt-1 text-xs leading-5 text-muted-foreground">
