@@ -59,7 +59,26 @@ firebase-debug.log
 settings.dat
 msedgewebview2.dxvk-cache
 
+# local debug logs (not evidence artifacts — see reports/)
+/agents-diag.log
+/dev-server-restart.log
+/diagnose.log
+/diagnose2.log
+
 # marketing / design tooling artifacts
 marketing-video/
 .impeccable/
+
+# next.js build output (default + isolated/alternate distDir builds)
+.next-build/
+.turbo/
+
+# test / e2e artifacts (Playwright + vitest)
+test-results/
+playwright-report/
+blob-report/
+
+# agent linked worktrees — never commit a worktree checkout
+.worktrees/
+
 
