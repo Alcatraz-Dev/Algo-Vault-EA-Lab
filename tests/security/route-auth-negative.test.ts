@@ -1,25 +1,20 @@
 /**
  * SECURITY NEGATIVE TEST SUITE — Section C (B-009 / B-010).
  *
- * Applies a temporary module override to `lib/firebase-admin` so every
- * security-sensitive route is driven by a controlled in-memory RTDB and a
- * stub Firebase ID-token verifier. This makes the application-layer
- * authorization gates executable:
- *   - requireAdmin / isAdminUid / requireAdminOrProductOwner (lib/admin-auth)
- *     — admin role verified server-side; non-admin blocked.
- *   - verifyGatewayToken / getGatewayTokenForUser (lib/gateway) — token
- *     verification is server-side only; unknown tokens rejected.
- *   - hasActiveTradingLicense (lib/gateway) — entitlement authoritative;
- *     fail-closed for expired / unknown / custom_bot.
+ * Drives the authorization gates at the app layer with a controlled
+ * in-memory stand-in for Firebase Auth + RTDB. The real `firebase-admin`
+ * SDK is kept at bay; only the exposed guards in `lib/admin-auth`
+ * (`requireAdmin`, `isAdminUid`, `requireAdminOrProductOwner`) and the
+ * entitlement/token helpers in `lib/gateway` (`verifyGatewayToken`,
+ * `hasActiveTradingLicense`) are under test.
  *
- * The 150+ route inventory is captured in docs/project-control/AUTHORIZATION_MATRIX.md;
- * the RTDB path mapping is captured in docs/project-control/FIREBASE_RULES_AUDIT.md.
- * The Firebase security rules are audited statically (database.rules.json);
- * a deployed emulator run is the documented production claim.
+ * The 150+ route inventory is captured in
+ * docs/project-control/AUTHORIZATION_MATRIX.md; the RTDB path mapping in
+ * docs/project-control/FIREBASE_RULES_AUDIT.md.
  *
- * NOTE: Firebase Emulator is NOT available in this checkout (no credentials
- * committed). This suite proves the application-layer authorization
- * decisions; the RTDB rule path mapping is a static audit.
+ * Firebase security rules remain audited statically from
+ * database.rules.json; a deployed emulator run is the documented
+ * production claim (no emulator in this checkout).
  */
 
 import { createSuite } from "@/lib/performance-arena/__tests__/harness";
@@ -42,7 +37,7 @@ const s = createSuite("security-negative");
 const rtDbStore = new Map<string, unknown>();
 
 // Stub Firebase Auth verifier: returns a stable fake ID token carrying a
-// deterministic `uid`/`role` claim. Mocked before the guards are imported.
+// deterministic `uid`/`role` claim.
 async function fakeVerifyIdToken(token: string): Promise<{ uid: string; role?: string } | null> {
     try {
         const raw = token.replace(/^Bearer-/, "");
@@ -74,15 +69,7 @@ function useFakeFirebase(): void {
             set: async (value: unknown) => { rtDbStore.set(path, value); },
             update: async (value: unknown) => {
                 const current = rtDbStore.get(path);
-                const patch =
-                    value && typeof value === "object" && !Array.isArray(value)
-                        ? (value as Record<string, unknown>)
-                        : {};
-                const base =
-                    current && typeof current === "object" && !Array.isArray(current)
-                        ? (current as Record<string, unknown>)
-                        : {};
-                rtDbStore.set(path, { ...base, ...patch });
+                rtDbStore.set(path, { ...current, ...value });
             },
             child: (childPath: string) => fakeDatabase.ref(`${path}/${childPath}`),
         }),
@@ -91,7 +78,14 @@ function useFakeFirebase(): void {
     (adminDatabase as unknown as { _fake: typeof fakeDatabase })._fake = fakeDatabase;
 }
 
-// Seed the fake RTDB with the roles/admin markers that the guards read.
+// Sign a fake token for the given (fake) uid. Works after useFakeFirebase().
+function signToken(uid: string): string {
+    // Match the payload schema used by the credential-less guard flow.
+    const payload = JSON.stringify({ sub: uid, role: uid === "superAdmin" ? "admin" : "customer" });
+    return "Bearer-fake-token-" + uid + "." + payload + ".sig";
+}
+
+// Seed the fake RTDB with the roles/admin markers the guards read.
 function seedRtdb(): void {
     rtDbStore.set("users/superAdmin/role", "admin");
     rtDbStore.set("users/normalUser", { role: "customer" });
@@ -99,17 +93,9 @@ function seedRtdb(): void {
     rtDbStore.set("bots/bot-1", { ownerUid: "owner", name: "Bot" });
 }
 
-// Seed the RTDB before any guard reads it.
-seedRtdb();
-
-// Sign a fake token for the given (fake) uid. Works after useFakeFirebase().
-function signToken(uid: string): string {
-    const payload = JSON.stringify({ sub: "algo-vault-" + uid, role: uid === "superAdmin" ? "admin" : "customer" });
-    return "Bearer-fake-token-" + uid + "." + payload + ".sig";
-}
-
-// Install the fake Firebase seam before tests run.
+// Install the fake Firebase seam and seed the RTDB before tests run.
 useFakeFirebase();
+seedRtdb();
 
 export async function runSecurityNegativeTests(): Promise<boolean> {
     let passed = true;

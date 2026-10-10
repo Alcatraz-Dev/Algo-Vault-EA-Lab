@@ -349,7 +349,7 @@ export function CandelFormDialog({
                         onChange={() => toggleTool(tool)}
                         className="size-3.5 accent-primary"
                       />
-                      <span className="font-mono text-[11px] text-foreground">{tool}</span>
+                      <span className="font-mono text-xs text-foreground">{tool}</span>
                     </label>
                   );
                 })}

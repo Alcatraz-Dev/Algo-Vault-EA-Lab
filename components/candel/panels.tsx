@@ -461,7 +461,7 @@ export function PermissionsPanel({
                             {toggleDef.label}
                           </span>
                           {toggleDef.description ? (
-                            <span className="ml-auto text-[10px] text-muted-foreground">
+                            <span className="ml-auto text-xs text-muted-foreground">
                               {toggleDef.description}
                             </span>
                           ) : null}

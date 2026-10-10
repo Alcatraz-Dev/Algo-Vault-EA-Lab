@@ -1,88 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticate } from "@/lib/admin-auth";
-import { adminDatabase } from "@/lib/firebase-admin";
 import {
-  getAllCandelTemplates,
-  saveCandelTemplate,
-  getCandelTemplate,
-  deleteCandelTemplate,
-  saveCandelInstance,
-  getCandelInstance,
-  getCandelInstancesByUser,
-  getCandelConversations,
-  saveCandelConversation,
-  saveCandelActivity,
-  getCandelAccountBindings,
   ensureDefaultCandelTemplates,
+  getAllCandelTemplates,
+  getCandelInstancesByUser,
 } from "@/lib/candel/workspace/database";
-import { isAdmin } from "@/lib/candel/authorization";
-import type { CandelActivity, CandelActionType, CandelProposal, CandelToolCall, CandelConversation, CandelInstance, CandelTemplate, AccountBinding, CandelPermissions, CandelJob, CandelMemoryEntry, CandelApprovalRequest, CandelAutomation, AccountContext } from "@/lib/candel/types";
+import { createCandelForUser } from "@/lib/candel/workspace/create";
 
-// GET /api/candel/candel/builder — list templates + user's Candels for builder
+/**
+ * GET /api/candel/candel/builder
+ *
+ * Everything the builder screen needs in one round trip: the template catalog
+ * (seeded on first use) and the caller's own Candels.
+ */
 export async function GET(request: NextRequest) {
   try {
     const token = await authenticate(request);
     if (!token) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
     await ensureDefaultCandelTemplates();
-    const templates = await getAllCandelTemplates();
-    const personal = await getCandelInstancesByUser(token.uid);
+    const [templates, personalCandels] = await Promise.all([
+      getAllCandelTemplates(),
+      getCandelInstancesByUser(token.uid),
+    ]);
 
-    return NextResponse.json({
-      success: true,
-      templates,
-      personalCandels: personal,
-    });
+    return NextResponse.json({ success: true, templates, personalCandels });
   } catch (error) {
     console.error("[candel/builder GET]", error);
     return NextResponse.json({ success: false, error: "Failed to load builder data" }, { status: 500 });
   }
 }
 
-// POST /api/candel/candel/builder/create — create a new Candel from a template
+/**
+ * POST /api/candel/candel/builder
+ *
+ * Create a Candel from a template. This intentionally delegates to the same
+ * helper as `POST /api/candel/candel` so there is exactly one creation path:
+ * the template is validated, customization is narrowed against the template
+ * ceiling, and execution access is never granted here.
+ */
 export async function POST(request: NextRequest) {
   try {
     const token = await authenticate(request);
     if (!token) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-    const body = await request.json();
-    const { templateId, name, instructions, role, avatar, capabilities, tools, model, mcpConnections, memoryPolicy, workspaceAccess, tradingAccess, accountAccess, approvalRequirements, backgroundPermissions, proOnly, status, version } = body;
-
-    if (!name || !templateId) {
-      return NextResponse.json({ success: false, error: "'name' and 'templateId' required" }, { status: 400 });
+    const created = await createCandelForUser(token.uid, await request.json());
+    if (!created.ok) {
+      return NextResponse.json({ success: false, error: created.error }, { status: created.status });
     }
 
-    // Default: execution OFF, trading account access OFF, external tools OFF
-    const instance: CandelInstance = {
-      id: crypto.randomUUID(),
-      templateId,
-      userId: token.uid,
-      createdBy: token.uid,
-      name,
-      displayName: name,
-      description: instructions || "",
-      status: status || "active",
-      accountBindings: [],
-      createdByAdmin: false,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
-
-    await saveCandelInstance(instance);
-
-    // Activity — server-generated
-    await saveCandelActivity({
-      id: crypto.randomUUID(),
-      candelId: instance.id,
-      userId: token.uid,
-      action: "create" as CandelActionType,
-      targetType: "candel",
-      targetId: instance.id,
-      details: { name, templateId, role: instance.status },
-      timestamp: Date.now(),
-    });
-
-    return NextResponse.json({ success: true, instance }, { status: 201 });
+    return NextResponse.json({ success: true, instance: created.instance }, { status: 201 });
   } catch (error) {
     console.error("[candel/builder POST]", error);
     return NextResponse.json({ success: false, error: "Failed to create Candel" }, { status: 500 });

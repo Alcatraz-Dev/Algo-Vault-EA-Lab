@@ -1,26 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticate } from "@/lib/admin-auth";
-import { adminDatabase } from "@/lib/firebase-admin";
 import {
   getCandelInstance,
   getCandelInstancesByUser,
   getCandelTemplate,
-  saveCandelInstance,
-  saveCandelPermissions,
   updateCandelInstance,
   purgeCandelInstance,
   saveCandelActivity,
 } from "@/lib/candel/workspace/database";
+import { createCandelForUser } from "@/lib/candel/workspace/create";
 import { requireCandelOwner } from "@/lib/candel/authorization";
 import {
   CANDEL_LIMITS,
   cleanText,
-  customizationFromCreateBody,
   sanitizeCandelCustomization,
   mergeCandelCustomization,
-  defaultCandelPermissions,
 } from "@/lib/candel/config";
-import type { CandelActivity, CandelActionType, CandelInstance } from "@/lib/candel/types";
+import type { CandelActionType } from "@/lib/candel/types";
 
 // GET /api/candel/candel — list Candel instances for the authenticated user
 export async function GET(request: NextRequest) {
@@ -47,65 +43,15 @@ export async function POST(request: NextRequest) {
     const token = await authenticate(request);
     if (!token) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-    const body = await request.json();
-    const templateId = cleanText(body.templateId, 120);
-    const name = cleanText(body.name, CANDEL_LIMITS.name);
-    const description = cleanText(
-      body.description ?? body.instructions ?? "",
-      CANDEL_LIMITS.description,
-    );
-
-    if (!name || !templateId) {
-      return NextResponse.json({ success: false, error: "'name' and 'templateId' are required" }, { status: 400 });
+    // Creation (template ceiling, customization validation, seeded permissions
+    // and the audit entry) lives in one shared helper — see
+    // `lib/candel/workspace/create.ts`.
+    const created = await createCandelForUser(token.uid, await request.json());
+    if (!created.ok) {
+      return NextResponse.json({ success: false, error: created.error }, { status: created.status });
     }
 
-    // The template is the tool/permission ceiling — a Candel cannot exist
-    // without one, and cannot exceed it (see lib/candel/config.ts).
-    const template = await getCandelTemplate(templateId);
-    if (!template) {
-      return NextResponse.json({ success: false, error: "Unknown template" }, { status: 400 });
-    }
-
-    const now = Date.now();
-    const instance: CandelInstance = {
-      id: crypto.randomUUID(),
-      templateId,
-      userId: token.uid,
-      createdBy: token.uid,
-      name,
-      displayName: name,
-      description,
-      status: "active",
-      accountBindings: [],
-      createdByAdmin: false,
-      customization: customizationFromCreateBody(body, template),
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    // Execution/trading access is never granted at creation time — it must be
-    // configured explicitly (permissions + account bindings) afterwards.
-    await saveCandelInstance(instance);
-    await saveCandelPermissions(instance.id, token.uid, defaultCandelPermissions());
-
-    const activity: CandelActivity = {
-      id: crypto.randomUUID(),
-      candelId: instance.id,
-      userId: token.uid,
-      action: "create" as CandelActionType,
-      targetType: "candel",
-      targetId: instance.id,
-      details: {
-        name,
-        templateId,
-        role: instance.customization?.role ?? template.role,
-        tools: instance.customization?.tools ?? template.tools,
-      },
-      timestamp: Date.now(),
-    };
-    await saveCandelActivity(activity);
-
-    return NextResponse.json({ success: true, instance }, { status: 201 });
+    return NextResponse.json({ success: true, instance: created.instance }, { status: 201 });
   } catch (error) {
     console.error("[candel/candel POST]", error);
     return NextResponse.json({ success: false, error: "Failed to create Candel" }, { status: 500 });

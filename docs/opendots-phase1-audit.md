@@ -211,3 +211,46 @@ candelSubscriptionEntitlements        # cached subscription flags (admin-maintai
 7. Tests + security audit + production verification
 
 **Full details:** source-tree implementation plan in `docs/opendots-to-algovault-opencode-map.md` (to be expanded as Phases progress).
+
+---
+
+## 13. Phase 1.5 — Candel product layer (delivered)
+
+**Updated:** 2026-10-10
+
+The OpenDots capabilities that were listed as *to implement* in §12 are now in the
+product, inside `lib/candel/*`, `app/api/candel/*`, `app/account/candels/*` and
+`components/candel/*`. No second workspace, sidebar, agent runtime or trading
+engine was created.
+
+| OpenDots capability | AlgoVault Candel implementation | Verification |
+|---|---|---|
+| Dots → Candels | `lib/candel/roles.ts` (curated, closed role catalog) + `lib/candel/templates/defaults.ts` (10 seeded templates) + instance rows in RTDB; every entry point creates through `lib/candel/workspace/create.ts` so validation cannot fork | role/catalog + single-creation-path checks in `tests/lib/candel/run-candel-customization-checks.ts` |
+| Per-dot instructions / tool allowlist | `lib/candel/config.ts` — `sanitizeCandelCustomization` + `resolveCandelConfig`: an instance may only **narrow** the template's tools/capabilities | tool-ceiling checks (widen attempts dropped) |
+| Conversations | `app/api/candel/candel/conversation/message/route.ts` — real per-turn endpoint, owner-proven, memory injected as context | chat-endpoint checks |
+| Memory | `candelMemory/{userId}/{candelId}` + panel; memory is read back into the system prompt, not write-only | memory-context checks in the harness suite |
+| Human-in-the-loop approvals | `lib/candel/approvals.ts` + `…/approval/decide/route.ts` — the agent emits a fenced `approval` directive, the server admits it fail-closed and the user decides; approvals render as cards in the chat and in the Approvals inbox | 30 approval checks: parsing, admission, single-decision, expiry |
+| Per-agent permissions | `candelPermissions/{userId}/{candelId}`; execution defaults OFF and any enabled execution keeps its approval requirement ON | `sanitizeCandelPermissions` checks |
+| Account binding | `candelAccountBindings/{userId}/{candelId}`; a live action must name a bound account that carries the `execute` context | approval admission checks |
+| Permanent delete | `purgeCandelInstance` removes every per-Candel namespace, owner-only | purge-coverage checks |
+| AG-UI style generative UI | `components/candel/*` — studio with chat, memory, activity, approvals, permissions, automations and accounts; role avatars/chips, risk-posture badge | rendered on the dev server; tsc + eslint clean |
+
+**Fail-closed invariants now enforced in code:**
+
+1. A read-only Candel cannot raise an approval request at all.
+2. A live action without a bound, execution-enabled, named account is refused — and the refusal is shown to the user.
+3. An approval can be decided exactly once, never after expiry.
+4. The client can never supply its own risk level or permission string; both are hardcoded server-side.
+5. The raw `approval` directive is stripped from the stored message; only prose plus an explicit queued/rejected line reaches the transcript.
+
+**Verification (2026-10-10):**
+
+| Check | Result |
+|---|---|
+| `npx tsc --noEmit` (whole repo) | ✅ 0 errors |
+| `eslint` on the Candel surface | ✅ 0 errors (warnings only, all pre-existing) |
+| Candel harness suite (`tests/lib/candel/run-candel-verification.ts`) | ✅ 22/22 PASS |
+| Customization + approval checks (`…/run-candel-customization-checks.ts`) | ✅ 79/79 PASS |
+| Pages `/account/candels`, `/builder`, `/memory`, `/activity`, `/automations`, `/approvals`, `/account/candels/[id]` | ✅ HTTP 200 on the dev server |
+| `POST /api/candel/candel`, `POST /api/candel/candel/builder`, `POST …/approval/decide` | ✅ 401 JSON for an unauthenticated caller (auth enforced, module compiles) |
+| `tests/lib/candel/workspace-database.test.ts` | ⚠️ Not runnable: vitest cannot resolve the `@/` alias and it needs live Firebase credentials. Excluded from the checks above; it has never been part of this repo's jiti test pipeline. |

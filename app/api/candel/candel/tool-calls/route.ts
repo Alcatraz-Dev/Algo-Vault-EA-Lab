@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticate } from "@/lib/admin-auth";
-import { adminDatabase } from "@/lib/firebase-admin";
 import { getCandelToolCalls, saveCandelToolCall } from "@/lib/candel/workspace/database";
 import { requireCandelOwner, requireCandelReadable } from "@/lib/candel/authorization";
 import type { CandelToolCall } from "@/lib/candel/types";

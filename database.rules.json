@@ -157,6 +157,26 @@
         }
       }
     },
+    "candelToolCalls": {
+      "$userId": {
+        "$candelId": {
+          "$callId": {
+            ".read": "auth != null && (auth.uid === $userId || auth.token.admin === true)",
+            ".write": "auth != null && (auth.uid === $userId || auth.token.admin === true)"
+          }
+        }
+      }
+    },
+    "candelProposals": {
+      "$userId": {
+        "$candelId": {
+          "$proposalId": {
+            ".read": "auth != null && (auth.uid === $userId || auth.token.admin === true)",
+            ".write": "auth != null && (auth.uid === $userId || auth.token.admin === true)"
+          }
+        }
+      }
+    },
     "plugins": {
       ".read": true,
       ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",

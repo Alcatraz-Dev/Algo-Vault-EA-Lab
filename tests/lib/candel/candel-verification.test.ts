@@ -272,7 +272,9 @@ describe("Candel SDK — verification", () => {
         dataQuality: undefined,
         sessions: undefined,
       };
-      const evidence = marketContextToEvidence(mi as any);
+      const evidence = marketContextToEvidence(
+        mi as Parameters<typeof marketContextToEvidence>[0]
+      );
       expect(evidence.length).toBeGreaterThan(0);
     });
   });

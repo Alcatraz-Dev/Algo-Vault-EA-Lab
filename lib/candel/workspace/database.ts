@@ -172,6 +172,8 @@ const CANDEL_CHILD_PATHS = [
   "candelAutomation",
   "candelApprovals",
   "candelToolActions",
+  "candelToolCalls",
+  "candelProposals",
   "candelWorkspace",
 ] as const;
 

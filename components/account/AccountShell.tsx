@@ -38,6 +38,7 @@ import {
   Cpu,
   RotateCcw,
   Shield,
+  ShieldCheck,
   Target,
   Tag,
   Trophy,
@@ -66,6 +67,7 @@ const CANDEL_NAV: NavGroup[] = [
     items: [
       { href: "/account/candels", label: "My Candels", icon: Bot },
       { href: "/account/candels/builder", label: "Builder", icon: Zap },
+      { href: "/account/candels/approvals", label: "Approvals", icon: ShieldCheck },
       { href: "/account/candels/memory", label: "Memory", icon: Brain },
       { href: "/account/candels/activity", label: "Activity", icon: Activity },
       { href: "/account/candels/automations", label: "Automations", icon: GitBranch },

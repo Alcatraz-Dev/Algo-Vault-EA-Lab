@@ -79,7 +79,8 @@ import { FakeRtdb, createFakeRtdb, FakeSnapshot } from "@/lib/candel/test/rtdb";
 let currentTree: FakeRtdb | null = null;
 let currentAuth: FakeAdminAuth | null = null;
 
-export function useFakeRtdb(tree: FakeRtdb, auth: FakeAdminAuth) {
+/** Point the fake admin surface at a tree/auth pair (not a React hook). */
+export function installFakeRtdb(tree: FakeRtdb, auth: FakeAdminAuth) {
   currentTree = tree;
   currentAuth = auth;
 }
@@ -92,8 +93,12 @@ export function resetFakeRtdb() {
 export function setupHarness() {
   const tree = new FakeRtdb();
   const auth = new FakeAdminAuth("test-user");
-  useFakeRtdb(tree, auth);
-  return { tree, auth, dispose: () => useFakeRtdb(new FakeRtdb(), new FakeAdminAuth("test-user")) };
+  installFakeRtdb(tree, auth);
+  return {
+    tree,
+    auth,
+    dispose: () => installFakeRtdb(new FakeRtdb(), new FakeAdminAuth("test-user")),
+  };
 }
 
 /** Query order-by-child helper (orderByChild().equalTo()). */

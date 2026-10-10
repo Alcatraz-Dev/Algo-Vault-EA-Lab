@@ -240,7 +240,7 @@ export function CandelChat({
                     onClick={() => setActiveId(conversation.id)}
                   >
                     <span className="block truncate">{conversation.title || "Untitled"}</span>
-                    <span className="block text-[10px] text-muted-foreground">
+                    <span className="block text-xs text-muted-foreground">
                       {timeAgo(conversation.updatedAt)}
                     </span>
                   </button>

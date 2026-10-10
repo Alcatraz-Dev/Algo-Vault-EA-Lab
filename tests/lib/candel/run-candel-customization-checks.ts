@@ -227,6 +227,8 @@ console.log("\n=== 5. Purge coverage ===");
     "candelAutomation",
     "candelApprovals",
     "candelToolActions",
+    "candelToolCalls",
+    "candelProposals",
     "candelWorkspace",
   ];
 
@@ -298,6 +300,30 @@ console.log("\n=== 6. Chat endpoint wiring ===");
 
   const configSource = readFileSync(join(root, "lib/candel/config.ts"), "utf8");
   check("the tool ceiling is enforced in one place", configSource.includes("function narrow("));
+
+  // Creation must not fork: the main route and the builder route both go through
+  // the shared helper, so neither can grow its own weaker validation.
+  const createRoute = readFileSync(join(root, "app/api/candel/candel/route.ts"), "utf8");
+  const builderSource = readFileSync(join(root, "app/api/candel/candel/builder/route.ts"), "utf8");
+  const createSource = readFileSync(
+    join(root, "lib/candel/workspace/create.ts"),
+    "utf8"
+  );
+  check(
+    "both creation routes share one validated helper",
+    createRoute.includes("createCandelForUser") &&
+      builderSource.includes("createCandelForUser") &&
+      !builderSource.includes("saveCandelInstance(")
+  );
+  check(
+    "the shared helper seeds permissions and the audit entry",
+    createSource.includes("defaultCandelPermissions()") &&
+      createSource.includes("saveCandelActivity(")
+  );
+  check(
+    "the shared helper refuses an unknown template",
+    createSource.includes("Unknown template")
+  );
 }
 
 // ── 7. Approvals: the human gate ────────────────────────────────────────────
