@@ -18,8 +18,8 @@ export default function AccountShell({
   headerActions: extraHeaderActions,
 }: {
   children: React.ReactNode;
-  title?: string;
-  subtitle?: string;
+  title?: React.ReactNode;
+  subtitle?: React.ReactNode;
   eyebrow?: React.ReactNode;
   onBack?: () => void;
   headerActions?: React.ReactNode;

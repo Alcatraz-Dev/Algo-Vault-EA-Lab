@@ -110,7 +110,7 @@ export default function AccountLiveMapPage() {
         <div className="rounded-lg border border-border bg-muted/30 p-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-foreground leading-tight">
-              AlgoVault <span className="text-[#2563eb]">Live Map</span>
+              AlgoVault <span className="text-primary">Live Map</span>
             </h1>
             <p className="text-sm text-muted-foreground mt-1.5 max-w-2xl">
               Aggregated public activity across countries and markets, alongside live heartbeat

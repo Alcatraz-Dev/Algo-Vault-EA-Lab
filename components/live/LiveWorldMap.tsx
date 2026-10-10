@@ -90,7 +90,7 @@ export default function LiveWorldMap({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full h-[420px] md:h-[540px] overflow-hidden rounded-lg border shadow-xl shadow-black/10 ${light ? "bg-[#f4f7fb] border-border/40" : "bg-[#071018] border-border/60"} ${className}`}
+      className={`relative w-full h-[420px] md:h-[540px] overflow-hidden rounded-lg border border-border/60 ${light ? "bg-background" : "bg-card"} ${className}`}
     >
       <svg
         viewBox={`${MAP_X0} ${MAP_Y0} ${MAP_W} ${MAP_H}`}
@@ -211,7 +211,7 @@ export default function LiveWorldMap({
       {hovered && (
         <div
           className={`pointer-events-none absolute top-3 left-3 z-10 w-56 rounded-lg border p-3 backdrop-blur-md shadow-lg ${
-            light ? "bg-white/90 border-border" : "bg-[#0b1622]/90 border-border/70"
+            light ? "bg-popover/95 border-border" : "bg-popover/90 border-border/70"
           }`}
         >
           <div className="flex items-center gap-2">

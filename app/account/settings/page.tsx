@@ -1642,7 +1642,7 @@ export default function AccountSettingsPage() {
                                                     href={discordBotInviteUrl}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="flex w-full items-center justify-center gap-2 rounded-md border border-[#5865F2]/30 bg-info/10 px-4 py-2.5 text-xs font-semibold text-[#8b94ff] transition hover:bg-info/20"
+                                                    className="flex w-full items-center justify-center gap-2 rounded-md border border-info/30 bg-info/10 px-4 py-2.5 text-xs font-semibold text-info transition hover:bg-info/20"
                                                 >
                                                     <ExternalLink size={13} />
                                                     Step 1 — Add AlgoVault Bot to your server

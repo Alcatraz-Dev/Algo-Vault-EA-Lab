@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import AccountShell from "@/components/account/AccountShell";
 import ProGate from "@/components/subscription/ProGate";
 import { ProWidget } from "@/components/subscription/ProWidget";
 import {
@@ -180,28 +181,13 @@ export default function SubscribePage() {
   }
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-5xl px-6 py-12">
-        <Link
-          href="/account"
-          className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground"
-        >
-          <ArrowLeft size={16} />
-          Back to Account
-        </Link>
-
-        <div className="mt-6" data-guide="page-header">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground">
-            <Sparkles size={13} />
-            Subscription Management
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight mt-4">
-            Your Subscription
-          </h1>
-          <p className="mt-2 max-w-xl text-sm leading-7 text-muted-foreground">
-            Manage your plan, billing, and Pro features.
-          </p>
-        </div>
+    <AccountShell
+      title="Your Subscription"
+      subtitle="Manage your plan, billing, and Pro features."
+      eyebrow="Subscription Management"
+      onBack={() => router.push("/account")}
+    >
+      <div className="space-y-8" data-guide="page-header">
 
         {/* Subscription Status Card */}
         <div className="mt-8 rounded-lg border border-border bg-card p-6">
@@ -467,6 +453,6 @@ export default function SubscribePage() {
           </div>
         </div>
       </div>
-    </main>
+    </AccountShell>
   );
 }

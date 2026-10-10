@@ -10,6 +10,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Activity,
   ArrowUpRight,
@@ -24,6 +25,7 @@ import {
 } from "lucide-react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import AccountShell from "@/components/account/AccountShell";
 import BarCompareChart from "@/components/charts/BarCompareChart";
 import type { LiveAccountSnapshot } from "@/lib/live/live-types";
 
@@ -61,6 +63,7 @@ function StatusPill({ online }: { online: boolean }) {
 }
 
 export default function AccountLivePage() {
+  const router = useRouter();
   const [accounts, setAccounts] = useState<LiveAccountSnapshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -148,38 +151,31 @@ export default function AccountLivePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border/40 bg-background/80">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-          <div>
-            <p className="text-micro font-semibold uppercase tracking-widest text-muted-foreground">Your account</p>
-            <h1 className="text-2xl font-semibold tracking-tight mt-1">
-              Live <span className="text-[#2563eb]">Accounts</span>
-            </h1>
-            <p className="mt-1.5 text-sm text-muted-foreground">
-              Real-time heartbeat monitoring across your connected MT5 accounts.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-positive/20 bg-positive/10 px-3 py-1.5 text-xs font-semibold text-positive">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-positive" />
-              </span>
-              {online.length} live
+    <AccountShell
+      title="Live Accounts"
+      subtitle="Real-time heartbeat monitoring across your connected MT5 accounts."
+      eyebrow="Your account"
+      onBack={() => router.push("/account")}
+      headerActions={
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-positive/20 bg-positive/10 px-3 py-1.5 text-xs font-semibold text-positive">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-positive" />
             </span>
-            <button
-              type="button"
-              onClick={() => void fetchAccounts()}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition"
-            >
-              <RefreshCw size={12} className={loading ? "animate-spin" : ""} /> Refresh
-            </button>
-          </div>
+            {online.length} live
+          </span>
+          <button
+            type="button"
+            onClick={() => void fetchAccounts()}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <RefreshCw size={12} className={loading ? "animate-spin" : ""} /> Refresh
+          </button>
         </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 md:px-6 py-6 space-y-6">
+      }
+    >
+      <div className="space-y-6">
         {/* Summary */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
@@ -303,7 +299,7 @@ export default function AccountLivePage() {
             </div>
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </AccountShell>
   );
 }

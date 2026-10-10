@@ -1283,7 +1283,7 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                         data-guide="canvas"
                         onDragOver={onDragOver}
                         onDrop={onDrop}
-                        className="relative mt-4 min-h-[580px] h-[600px] w-full rounded-lg border border-border bg-[#030712] overflow-hidden shadow-md"
+                        className="relative mt-4 min-h-[580px] h-[600px] w-full rounded-lg border border-border bg-background overflow-hidden"
                         aria-label="Visual Pine strategy builder"
                     >
                         <ReactFlow
@@ -1304,8 +1304,8 @@ export default function PineWorkspace({ scope }: PineWorkspaceProps) {
                             minZoom={0.2}
                             maxZoom={2.5}
                             defaultEdgeOptions={RF_EDGE_DEF}
-                            connectionLineStyle={{ stroke: "#6366f1", strokeWidth: 2, strokeDasharray: "6 3" }}
-                            className="bg-[#030712]"
+                            connectionLineStyle={{ stroke: "var(--chart-1)", strokeWidth: 2, strokeDasharray: "6 3" }}
+                            className="bg-background"
                         >
                             <Background color="#334155" gap={24} size={1.2} />
                             <Controls className="!bg-card !border-border !fill-foreground" />

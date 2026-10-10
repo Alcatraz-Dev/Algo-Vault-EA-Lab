@@ -177,7 +177,7 @@ export default function LivePage() {
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-foreground leading-[1.1]">
-              AlgoVault <span className="text-[#2563eb]">Live</span>
+              AlgoVault <span className="text-primary">Live</span>
             </h1>
             <p className="mt-3 text-sm md:text-base text-muted-foreground max-w-2xl leading-relaxed">
               Real-time trading intelligence around the world. See where market analysis, smart money,
