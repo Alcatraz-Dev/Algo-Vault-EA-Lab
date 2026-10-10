@@ -4,12 +4,22 @@ import { adminDatabase } from "@/lib/firebase-admin";
 import {
   getCandelInstance,
   getCandelInstancesByUser,
+  getCandelTemplate,
   saveCandelInstance,
+  saveCandelPermissions,
   updateCandelInstance,
-  deleteCandelInstance,
+  purgeCandelInstance,
   saveCandelActivity,
 } from "@/lib/candel/workspace/database";
-import { requireCandelOwner, requireCandelReadable } from "@/lib/candel/authorization";
+import { requireCandelOwner } from "@/lib/candel/authorization";
+import {
+  CANDEL_LIMITS,
+  cleanText,
+  customizationFromCreateBody,
+  sanitizeCandelCustomization,
+  mergeCandelCustomization,
+  defaultCandelPermissions,
+} from "@/lib/candel/config";
 import type { CandelActivity, CandelActionType, CandelInstance } from "@/lib/candel/types";
 
 // GET /api/candel/candel — list Candel instances for the authenticated user
@@ -21,7 +31,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const instances = await getCandelInstancesByUser(token.uid);
     const archived = searchParams.get("archived") === "true";
-    const data = archived ? instances : instances.filter((i: any) => i.status !== "archived");
+    const data = archived
+      ? instances
+      : instances.filter((instance) => instance.status !== "archived");
     return NextResponse.json({ success: true, instances: data });
   } catch (error) {
     console.error("[candel/candel GET]", error);
@@ -36,14 +48,25 @@ export async function POST(request: NextRequest) {
     if (!token) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
     const body = await request.json();
-    const { templateId, name, instructions, role, avatar, capabilities, tools, model, mcpConnections, memoryPolicy, workspaceAccess, tradingAccess, accountAccess, approvalRequirements, backgroundPermissions, proOnly, status, version } = body;
+    const templateId = cleanText(body.templateId, 120);
+    const name = cleanText(body.name, CANDEL_LIMITS.name);
+    const description = cleanText(
+      body.description ?? body.instructions ?? "",
+      CANDEL_LIMITS.description,
+    );
 
     if (!name || !templateId) {
       return NextResponse.json({ success: false, error: "'name' and 'templateId' are required" }, { status: 400 });
     }
 
-    // Execution/trading access is never granted at creation time — it must be
-    // configured explicitly (permissions + account bindings) afterwards.
+    // The template is the tool/permission ceiling — a Candel cannot exist
+    // without one, and cannot exceed it (see lib/candel/config.ts).
+    const template = await getCandelTemplate(templateId);
+    if (!template) {
+      return NextResponse.json({ success: false, error: "Unknown template" }, { status: 400 });
+    }
+
+    const now = Date.now();
     const instance: CandelInstance = {
       id: crypto.randomUUID(),
       templateId,
@@ -51,15 +74,19 @@ export async function POST(request: NextRequest) {
       createdBy: token.uid,
       name,
       displayName: name,
-      description: instructions || "",
-      status: status || "active",
+      description,
+      status: "active",
       accountBindings: [],
       createdByAdmin: false,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+      customization: customizationFromCreateBody(body, template),
+      createdAt: now,
+      updatedAt: now,
     };
 
+    // Execution/trading access is never granted at creation time — it must be
+    // configured explicitly (permissions + account bindings) afterwards.
     await saveCandelInstance(instance);
+    await saveCandelPermissions(instance.id, token.uid, defaultCandelPermissions());
 
     const activity: CandelActivity = {
       id: crypto.randomUUID(),
@@ -68,7 +95,12 @@ export async function POST(request: NextRequest) {
       action: "create" as CandelActionType,
       targetType: "candel",
       targetId: instance.id,
-      details: { name, templateId, role: instance.status },
+      details: {
+        name,
+        templateId,
+        role: instance.customization?.role ?? template.role,
+        tools: instance.customization?.tools ?? template.tools,
+      },
       timestamp: Date.now(),
     };
     await saveCandelActivity(activity);
@@ -92,16 +124,48 @@ export async function PATCH(request: NextRequest) {
 
     await requireCandelOwner(candelId, token.uid);
 
+    const existing = await getCandelInstance(candelId);
+    if (!existing) {
+      return NextResponse.json({ success: false, error: "Candel not found" }, { status: 404 });
+    }
+
     const body = await request.json();
     const patch: Record<string, unknown> = {};
-    if (typeof body.name === "string" && body.name.trim()) {
-      patch.name = body.name.trim();
-      patch.displayName = body.name.trim();
+    if (typeof body.name === "string") {
+      const name = cleanText(body.name, CANDEL_LIMITS.name);
+      if (name) {
+        patch.name = name;
+        patch.displayName = name;
+      }
     }
-    if (typeof body.description === "string") patch.description = body.description;
+    if (typeof body.description === "string") {
+      patch.description = cleanText(body.description, CANDEL_LIMITS.description);
+    }
     if (["active", "paused", "disabled", "archived"].includes(body.status)) {
       patch.status = body.status;
     }
+
+    // Customization overrides are validated against the template ceiling, so a
+    // Candel can narrow its tools but never widen them.
+    const wantsCustomization = [
+      "role",
+      "avatar",
+      "instructions",
+      "capabilities",
+      "tools",
+      "model",
+      "memoryPolicy",
+    ].some((key) => body[key] !== undefined);
+
+    if (wantsCustomization) {
+      const template = await getCandelTemplate(existing.templateId);
+      if (!template) {
+        return NextResponse.json({ success: false, error: "Unknown template" }, { status: 400 });
+      }
+      const sanitized = sanitizeCandelCustomization(body, template);
+      patch.customization = mergeCandelCustomization(existing.customization, sanitized);
+    }
+
     if (Object.keys(patch).length === 0) {
       return NextResponse.json({ success: false, error: "Nothing to update" }, { status: 400 });
     }
@@ -118,7 +182,9 @@ export async function PATCH(request: NextRequest) {
       action: "update" as CandelActionType,
       targetType: "candel",
       targetId: candelId,
-      details: patch,
+      details: wantsCustomization
+        ? { ...patch, customization: "updated" }
+        : patch,
       timestamp: Date.now(),
     });
 
@@ -145,6 +211,24 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Candel not found" }, { status: 404 });
     }
 
+    const hard = searchParams.get("hard") === "true";
+
+    if (hard) {
+      // Permanent: the instance and every per-Candel sub-tree are removed.
+      await saveCandelActivity({
+        id: crypto.randomUUID(),
+        candelId,
+        userId: token.uid,
+        action: "delete" as CandelActionType,
+        targetType: "candel",
+        targetId: candelId,
+        details: { mode: "purge", name: existing.name },
+        timestamp: Date.now(),
+      });
+      await purgeCandelInstance(candelId, token.uid);
+      return NextResponse.json({ success: true, archived: false, purged: true });
+    }
+
     await updateCandelInstance(candelId, { status: "archived" });
 
     await saveCandelActivity({
@@ -161,7 +245,7 @@ export async function DELETE(request: NextRequest) {
       timestamp: Date.now(),
     });
 
-    return NextResponse.json({ success: true, archived: true });
+    return NextResponse.json({ success: true, archived: true, purged: false });
   } catch (error) {
     console.error("[candel/candel DELETE]", error);
     return NextResponse.json({ success: false, error: "Failed to archive Candel" }, { status: 500 });

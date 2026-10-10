@@ -56,13 +56,16 @@ import { cn } from "@/lib/utils";
 import { AppShell, type NavGroup } from "@/components/layout/AppShell";
 import { ACCOUNT_NAV } from "./account-nav";
 
-// Local Candel workspace navigation (subset for the Candel pages)
+/**
+ * Candel workspace navigation. The Candel area is its own product surface, so
+ * it gets its own nav group instead of the generic account menu.
+ */
 const CANDEL_NAV: NavGroup[] = [
   {
     label: "Candels",
     items: [
       { href: "/account/candels", label: "My Candels", icon: Bot },
-      { href: "/account/candels/workspace", label: "Workspace", icon: FileText },
+      { href: "/account/candels/builder", label: "Builder", icon: Zap },
       { href: "/account/candels/memory", label: "Memory", icon: Brain },
       { href: "/account/candels/activity", label: "Activity", icon: Activity },
       { href: "/account/candels/automations", label: "Automations", icon: GitBranch },
@@ -129,14 +132,19 @@ export default function AccountShell({
     </div>
   );
 
+  // The Candel pages live inside the account shell but use the Candel nav.
+  const navGroups = pathname?.startsWith("/account/candels") ? CANDEL_NAV : ACCOUNT_NAV;
+
   const filteredNav = navSearch.trim()
-    ? ACCOUNT_NAV.map((group) => ({
-        ...group,
-        items: group.items.filter((item) =>
-          item.label.toLowerCase().includes(navSearch.toLowerCase())
-        ),
-      })).filter((group) => group.items.length > 0)
-    : ACCOUNT_NAV;
+    ? navGroups
+        .map((group) => ({
+          ...group,
+          items: group.items.filter((item) =>
+            item.label.toLowerCase().includes(navSearch.toLowerCase())
+          ),
+        }))
+        .filter((group) => group.items.length > 0)
+    : navGroups;
 
   return (
     <AppShell

@@ -35,7 +35,13 @@ export type CandelActionType =
   | "memory_read"
   | "memory_write"
   | "page_create"
-  | "page_update";
+  | "page_update"
+  // Live trading actions a Candel can only ever *request* (see approvals.ts).
+  // They appear on approval requests and proposals, never as a committed action.
+  | "createOrder"
+  | "modifyOrder"
+  | "closePosition"
+  | "cancelOrder";
 
 // ─── Approval decision ─────────────────────────────────────────────────────
 export type ApprovalDecision = "approved" | "rejected" | "expired" | "blocked";
@@ -79,7 +85,7 @@ export interface CandelTemplate {
 }
 
 export type CandelRole =
-  | "market"
+  | "market-analyst"
   | "hunter"
   | "quant"
   | "sentinel"
@@ -87,203 +93,39 @@ export type CandelRole =
   | "executor"
   | "tradingview"
   | "ea"
-  | "research"
   | "writer"
-  | "developer"
-  | "marketing"
-  | "web-research"
-  | "custom"
   | "general-assistant"
-  | "market-analyst"
-  | "trading-bot"
-  | "strategy-optimizer"
-  | "risk-guard"
-  | "execution-planner"
-  | "journal-analyst"
-  | "tv-research"
-  | "ea-tester"
-  | "backtest-scout"
-  | "sentinel-watch"
-  | "market-briefing"
-  | "setup-scanner"
-  | "strategy-comparison"
-  | "trade-analyst"
-  | "execution-advisor"
-  | "market-regime"
-  | "setup-validator"
-  | "performance-arena"
-  | "challenge-watcher"
-  | "trade-journal"
-  | "setup-memory"
-  | "risk-manager"
-  | "execution-route"
-  | "account-health"
-  | "market-consensus"
-  | "position-sizing"
-  | "strategy-health"
-  | "trade-logic"
-  | "order-routing"
-  | "risk-alert"
-  | "market-brief"
-  | "executor-dispatch"
-  | "position-track"
-  | "strategy-run"
-  | "market-scan"
-  | "order-exec"
-  | "trading-state"
-  | "account-state"
-  | "order-book"
-  | "risk-check"
-  | "setup-check"
-  | "exec-status"
-  | "trade-state"
-  | "strat-state"
-  | "market-state"
-  | "position-status"
-  | "strategy-status"
-  | "market-status"
-  | "trade-report"
-  | "strategy-report"
-  | "order-report"
-  | "risk-report"
-  | "account-report"
-  | "setup-report"
-  | "exec-report"
-  | "trade-feedback"
-  | "strategy-feedback"
-  | "order-feedback"
-  | "risk-feedback"
-  | "account-feedback"
-  | "setup-feedback"
-  | "exec-feedback"
-  | "trade-comment"
-  | "strategy-comment"
-  | "order-comment"
-  | "risk-comment"
-  | "account-comment"
-  | "setup-comment"
-  | "exec-comment"
-  | "trade-note"
-  | "strategy-note"
-  | "order-note"
-  | "risk-note"
-  | "account-note"
-  | "setup-note"
-  | "exec-note"
-  | "trade-log"
-  | "strategy-log"
-  | "order-log"
-  | "risk-log"
-  | "account-log"
-  | "setup-log"
-  | "exec-log"
-  | "trade-entry"
-  | "strategy-entry"
-  | "order-entry"
-  | "risk-entry"
-  | "account-entry"
-  | "setup-entry"
-  | "exec-entry"
-  | "trade-output"
-  | "strategy-output"
-  | "order-output"
-  | "risk-output"
-  | "account-output"
-  | "setup-output"
-  | "exec-output"
-  | "trade-result"
-  | "strategy-result"
-  | "order-result"
-  | "risk-result"
-  | "account-result"
-  | "setup-result"
-  | "exec-result"
-  | "trade-summary"
-  | "strategy-summary"
-  | "order-summary"
-  | "risk-summary"
-  | "account-summary"
-  | "setup-summary"
-  | "exec-summary"
-  | "trade-view"
-  | "strategy-view"
-  | "order-view"
-  | "risk-view"
-  | "account-view"
-  | "setup-view"
-  | "exec-view"
-  | "trade-panel"
-  | "strategy-panel"
-  | "order-panel"
-  | "risk-panel"
-  | "account-panel"
-  | "setup-panel"
-  | "exec-panel"
-  | "trade-window"
-  | "strategy-window"
-  | "order-window"
-  | "risk-window"
-  | "account-window"
-  | "setup-window"
-  | "exec-window"
-  | "trade-modal"
-  | "strategy-modal"
-  | "order-modal"
-  | "risk-modal"
-  | "account-modal"
-  | "setup-modal"
-  | "exec-modal"
-  | "trade-dialog"
-  | "strategy-dialog"
-  | "order-dialog"
-  | "risk-dialog"
-  | "account-dialog"
-  | "setup-dialog"
-  | "exec-dialog"
-  | "trade-form"
-  | "strategy-form"
-  | "order-form"
-  | "risk-form"
-  | "account-form"
-  | "setup-form"
-  | "exec-form"
-  | "trade-input"
-  | "strategy-input"
-  | "order-input"
-  | "risk-input"
-  | "account-input"
-  | "setup-input"
-  | "exec-input"
-  | "trade-output"
-  | "strategy-output"
-  | "order-output"
-  | "risk-output"
-  | "account-output"
-  | "setup-output"
-  | "exec-output"
-  | "trade-response"
-  | "strategy-response"
-  | "order-response"
-  | "risk-response"
-  | "account-response"
-  | "setup-response"
-  | "exec-response"
-  | "trade-result"
-  | "strategy-result"
-  | "order-result"
-  | "risk-result"
-  | "account-result"
-  | "setup-result"
-  | "exec-result"
-  | "trade-summary"
-  | "strategy-summary"
-  | "order-summary"
-  | "risk-summary"
-  | "account-summary"
-  | "setup-summary"
-  | "exec-summary";
+  /** Legacy alias kept so older rows keep type-checking; normalized on write. */
+  | "general";
 
 // ─── Candel instance (user-owned) ──────────────────────────────────────────
+
+/**
+ * Per-Candel customization. Every field is an *override* of the template the
+ * Candel was created from, and every override is fail-closed:
+ *
+ *   - `role` must exist in the role catalog (`lib/candel/roles.ts`)
+ *   - `tools` / `capabilities` may only NARROW the template's set — a Candel can
+ *     never grant itself a tool its template did not ship with
+ *   - `instructions` override the template system prompt (length-capped)
+ *
+ * A missing/undefined field means "inherit from the template".
+ */
+export interface CandelCustomization {
+  role?: CandelRole;
+  /** Emoji or icon key shown as the Candel avatar. */
+  avatar?: string;
+  /** Overrides the template system instructions when non-empty. */
+  instructions?: string;
+  /** Overrides the template capability list (subset enforced server-side). */
+  capabilities?: string[];
+  /** Overrides the template tool list (subset enforced server-side). */
+  tools?: string[];
+  /** Preferred model id, or "" to use the router default. */
+  model?: string;
+  memoryPolicy?: "owner" | "shared" | "none";
+}
+
 export interface CandelInstance {
   id: CandelId;
   templateId: TemplateId;
@@ -296,12 +138,19 @@ export interface CandelInstance {
   createdByAdmin: boolean;
   /** Server-derived owner uid. Mirrors `userId`; kept for RTDB rules + legacy rows. */
   createdBy?: string;
+  /** User-facing customization overrides resolved against the template. */
+  customization?: CandelCustomization;
   createdAt: number;
   updatedAt: number;
 }
 
 export interface AccountBinding {
+  /** Owner-scoped id of the bound account (`trading_accounts/{userId}/{id}`). */
   tradingAccountId: string;
+  /** Human-facing account reference (e.g. the MT5 login) captured at bind time. */
+  accountRef?: string;
+  /** Optional display label, e.g. "MT5 123456 · IC Markets". */
+  label?: string;
   allowedSymbols?: string[];
   allowedContexts: AccountContext[];
   permissions: CandelPermissions;

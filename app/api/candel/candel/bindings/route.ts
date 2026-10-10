@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticate } from "@/lib/admin-auth";
 import { adminDatabase } from "@/lib/firebase-admin";
-import { getCandelAccountBindings, saveCandelAccountBindings, deleteCandelAccountBinding, getCandelInstance } from "@/lib/candel/workspace/database";
+import { getCandelAccountBindings, saveCandelAccountBindings, deleteCandelAccountBinding } from "@/lib/candel/workspace/database";
 import { requireCandelOwner, requireCandelReadable } from "@/lib/candel/authorization";
-import type { AccountBinding } from "@/lib/candel/types";
+import type { AccountBinding, AccountContext } from "@/lib/candel/types";
 
 // GET /api/candel/candel/bindings/[candelId] — list authorized trading accounts for a Candel
 export async function GET(request: NextRequest) {
@@ -36,26 +36,53 @@ export async function POST(request: NextRequest) {
     await requireCandelOwner(candelId, token.uid);
 
     const body = await request.json();
-    const { accountId, accountRef, allowedContexts } = body;
+    const { accountId, allowedContexts, allowedSymbols } = body;
 
-    if (!accountId || !accountRef) {
-      return NextResponse.json({ success: false, error: "accountId and accountRef required" }, { status: 400 });
+    if (!accountId || typeof accountId !== "string") {
+      return NextResponse.json({ success: false, error: "accountId required" }, { status: 400 });
     }
 
-    const ctx = Array.isArray(allowedContexts) && allowedContexts.length > 0 ? allowedContexts : ["read"];
+    // The account must genuinely belong to the caller — a Candel can never be
+    // pointed at someone else's account by crafting a request body.
+    const accountSnap = await adminDatabase.ref(`trading_accounts/${token.uid}/${accountId}`).get();
+    if (!accountSnap.exists()) {
+      return NextResponse.json(
+        { success: false, error: "Trading account not found for this user" },
+        { status: 404 }
+      );
+    }
+    const accountData = (accountSnap.val() ?? {}) as Record<string, unknown>;
+    const accountRef = String(accountData.mt5Account ?? accountData.accountId ?? accountId);
+    const broker = String(accountData.broker ?? "");
+
+    const ALLOWED_CONTEXTS: AccountContext[] = [
+      "read",
+      "read_positions",
+      "read_orders",
+      "read_performance",
+      "read_risk",
+      "execute",
+    ];
+    const ctx = (Array.isArray(allowedContexts) ? allowedContexts : []).filter(
+      (c: unknown): c is AccountContext => ALLOWED_CONTEXTS.includes(c as AccountContext)
+    );
+    const contexts: AccountContext[] = ctx.length > 0 ? ctx : ["read"];
+
     const binding: AccountBinding = {
       tradingAccountId: accountId,
-      allowedSymbols: accountRef ? [accountRef] : [],
-      allowedContexts: ctx as AccountBinding["allowedContexts"],
+      accountRef,
+      label: broker ? `${accountRef} · ${broker}` : accountRef,
+      allowedSymbols: Array.isArray(allowedSymbols) ? allowedSymbols.filter((s: unknown) => typeof s === "string") : [],
+      allowedContexts: contexts,
       permissions: {
         workspace: { readPages: true, createPages: true, editPages: true, saveResearch: true },
         market: { readMarketData: true, analyzeChart: true, scanSymbols: false, createWatchlists: false, createAlerts: true },
         tradingAccount: {
-          readAccount: ctx.includes("read") || ctx.includes("read_risk") || ctx.includes("read_positions"),
-          readPositions: ctx.includes("read_positions"),
-          readOrders: ctx.includes("read_orders"),
-          readPerformance: ctx.includes("read_performance"),
-          readRisk: ctx.includes("read_risk") || ctx.includes("read"),
+          readAccount: contexts.includes("read") || contexts.includes("read_risk") || contexts.includes("read_positions"),
+          readPositions: contexts.includes("read_positions"),
+          readOrders: contexts.includes("read_orders"),
+          readPerformance: contexts.includes("read_performance"),
+          readRisk: contexts.includes("read_risk") || contexts.includes("read"),
         },
         execution: { createOrder: false, modifyOrder: false, closePosition: false, cancelOrder: false },
         external: { tradingviewMcp: false, telegram: false, discord: false },

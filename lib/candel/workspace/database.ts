@@ -155,6 +155,56 @@ export async function deleteCandelInstance(id: string, userId: string): Promise<
   await adminDatabase.ref(`candel/${id}`).remove();
 }
 
+/**
+ * Every per-Candel sub-tree that must be purged with the instance itself.
+ * Keep this list in sync with the namespaces in `docs/opendots-phase1-audit.md`
+ * — a path added there but forgotten here would leak orphaned user data.
+ */
+const CANDEL_CHILD_PATHS = [
+  "candelConversations",
+  "candelMessages",
+  "candelMemory",
+  "candelActivity",
+  "candelPermissions",
+  "candelAccountBindings",
+  "candelToolBindings",
+  "candelAccountContext",
+  "candelAutomation",
+  "candelApprovals",
+  "candelToolActions",
+  "candelWorkspace",
+] as const;
+
+/**
+ * Permanently delete a Candel and everything it owns.
+ *
+ * Ordering matters: the instance row is removed LAST. If the process dies
+ * half-way, the orphaned child rows are unreachable garbage, whereas removing
+ * the instance first would leave a live-looking Candel whose data is already
+ * gone. The caller must have established ownership before calling this.
+ */
+export async function purgeCandelInstance(
+  id: string,
+  userId: string
+): Promise<{ removed: string[] }> {
+  const snap = await adminDatabase.ref(`candel/${id}`).get();
+  if (!snap.exists()) throw new Error("Candel not found.");
+  const data = snap.val() as { userId?: string; createdBy?: string };
+  const owner = data.userId || data.createdBy;
+  if (owner !== userId && !(await isAdmin(userId))) {
+    throw new Error("Candel deletion denied.");
+  }
+
+  const removed: string[] = [];
+  for (const path of CANDEL_CHILD_PATHS) {
+    await adminDatabase.ref(`${path}/${userId}/${id}`).remove();
+    removed.push(`${path}/${userId}/${id}`);
+  }
+  await adminDatabase.ref(`candel/${id}`).remove();
+  removed.push(`candel/${id}`);
+  return { removed };
+}
+
 // ─── Account bindings ───────────────────────────────────────────────────────
 
 export async function getCandelAccountBindings(candelId: string): Promise<AccountBinding[]> {

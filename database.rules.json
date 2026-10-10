@@ -55,6 +55,16 @@
         }
       }
     },
+    "candelMessages": {
+      "$userId": {
+        "$candelId": {
+          "$conversationId": {
+            ".read": "auth != null && (auth.uid === $userId || auth.token.admin === true)",
+            ".write": "auth != null && (auth.uid === $userId || auth.token.admin === true)"
+          }
+        }
+      }
+    },
     "candelWorkspace": {
       "$userId": {
         ".read": "auth != null && auth.uid === $userId",
