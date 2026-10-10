@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -47,6 +47,7 @@ import { ref, onValue } from "firebase/database";
 import SiteLogo from "@/components/ui/site-logo";
 import ThemeToggle from "@/components/theme/theme-toggle";
 import { NotificationsMenu } from "@/components/layout/NotificationsMenu";
+import { useShellHeaderHeight, shellHeaderStyle } from "@/components/layout/use-shell-header-height";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -110,6 +111,8 @@ export default function AdminShell({
     const [mobileOpen, setMobileOpen] = useState(false);
     const [siteName, setSiteName] = useState("AlgoVault");
     const [navSearch, setNavSearch] = useState("");
+    const headerRef = useRef<HTMLElement | null>(null);
+    const headerHeight = useShellHeaderHeight(headerRef);
 
     // Same control language as the account-shell topbar (see AppShell): hairline
     // chip on the card surface, muted icon that brightens on hover, a bigger
@@ -261,7 +264,10 @@ export default function AdminShell({
     );
 
     return (
-        <div className="flex min-h-screen bg-background text-foreground">
+        <div
+            className="flex min-h-screen bg-background text-foreground"
+            style={shellHeaderStyle(headerHeight)}
+        >
             {/* ── Sidebar (desktop) ── */}
             <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-card md:flex">
                 {sidebarInner}
@@ -298,6 +304,7 @@ export default function AdminShell({
                     Translucent + blurred instead of a bottom border, so the title stands
                     on its own (the sticky chrome may blur content passing underneath). */}
                 <header
+                    ref={headerRef}
                     data-guide="page-header"
                     className="sticky top-0 z-40 bg-background/85 px-4 py-3 backdrop-blur-xl sm:px-6 sm:py-4 md:px-8"
                 >

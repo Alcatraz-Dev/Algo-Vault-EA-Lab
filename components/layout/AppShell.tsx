@@ -21,6 +21,7 @@ import SiteLogo from "@/components/ui/site-logo";
 import ThemeToggle from "@/components/theme/theme-toggle";
 import { NotificationsMenu } from "@/components/layout/NotificationsMenu";
 import { CommandPalette } from "@/components/layout/CommandPalette";
+import { useShellHeaderHeight, shellHeaderStyle } from "@/components/layout/use-shell-header-height";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -86,6 +87,8 @@ export function AppShell({
   const [commandOpen, setCommandOpen] = useState(false);
   const [siteName, setSiteName] = useState("AlgoVault");
   const accountRef = useRef<HTMLDivElement | null>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
+  const headerHeight = useShellHeaderHeight(headerRef);
   const [internalNavSearch, setInternalNavSearch] = useState("");
   const searchValue = navSearch !== undefined ? navSearch : internalNavSearch;
   const handleSearch = onNavSearch ?? setInternalNavSearch;
@@ -515,7 +518,10 @@ export function AppShell({
   );
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div
+      className="flex min-h-screen bg-background text-foreground"
+      style={shellHeaderStyle(headerHeight)}
+    >
       {/* Desktop sidebar */}
       {hideSidebar || fullscreen ? null : (
         <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-card lg:flex">
@@ -566,6 +572,7 @@ export function AppShell({
             Translucent + blurred instead of a bottom border, so the title stands on
             its own (the sticky chrome may blur content passing underneath). */}
         <header
+          ref={headerRef}
           data-guide="page-header"
           className={cn(
             "sticky top-0 z-40 bg-background/85 backdrop-blur-xl",

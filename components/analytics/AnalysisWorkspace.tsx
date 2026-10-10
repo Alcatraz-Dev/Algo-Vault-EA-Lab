@@ -160,7 +160,7 @@ function CollapsiblePanel({ panel, isOpen, onToggle, children }: { panel: PanelC
  * chart, positions, analytics panels). Rendered inside any shell (AppShell or
  * AdminShell) via the /analysis and /admin/analysis routes.
  */
-export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?: string }) {
+export default function AnalysisWorkspace({ stickyTop = "top-[var(--shell-header-h,3.5rem)]" }: { stickyTop?: string }) {
     const [user, setUser] = useState<User | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
     const [symbol, setSymbol] = useState<SupportedSymbol>("XAUUSD");
@@ -525,7 +525,7 @@ export default function AnalysisWorkspace({ stickyTop = "top-14" }: { stickyTop?
                 </div>
 
                 {/* Analytics panels sidebar */}
-                <aside className="w-full shrink-0 border-t border-border bg-card/40 xl:sticky xl:top-14 xl:max-h-[calc(100vh-3.5rem)] xl:w-80 xl:self-start xl:overflow-y-auto xl:border-l xl:border-t-0">
+                <aside className="w-full shrink-0 border-t border-border bg-card/40 xl:sticky xl:top-[var(--shell-header-h,3.5rem)] xl:max-h-[calc(100vh-var(--shell-header-h,3.5rem))] xl:w-80 xl:self-start xl:overflow-y-auto xl:border-l xl:border-t-0">
                     {data ? (
                         <div>
                             {PANELS.map((panel) => (
