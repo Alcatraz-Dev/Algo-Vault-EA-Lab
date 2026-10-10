@@ -48,14 +48,14 @@ export default function MarketplaceSection({ featured = [] }: { featured: HomePr
  </p>
  </div>
  {product.pricing?.price !== undefined && (
- <span className="rounded-xl bg-primary/10 px-3 py-1 text-xs font-extrabold text-primary border border-primary/20 font-numeric">
+ <span className="rounded-md bg-primary/10 px-3 py-1 text-xs font-extrabold text-primary border border-primary/20 font-numeric">
  ${product.pricing.price}
  </span>
  )}
  </div>
 
  {product.performance && (
- <div className="mt-5 grid grid-cols-3 gap-2 rounded-xl bg-background/80 p-3 text-center font-numeric border border-border/40">
+ <div className="mt-5 grid grid-cols-3 gap-2 rounded-lg bg-background/80 p-3 text-center font-numeric border border-border/40">
  <div>
  <p className="text-micro text-muted-foreground">Return</p>
  <p className="text-xs font-bold text-positive">{product.performance.profit ? `+${product.performance.profit}%` : "—"}</p>
@@ -98,11 +98,11 @@ export default function MarketplaceSection({ featured = [] }: { featured: HomePr
  </h3>
  <p className="mt-1 text-xs text-muted-foreground font-numeric">{item.symbol}</p>
  </div>
- <span className="rounded-xl bg-primary/10 px-3 py-1 text-xs font-extrabold text-primary border border-primary/20 font-numeric">
+ <span className="rounded-md bg-primary/10 px-3 py-1 text-xs font-extrabold text-primary border border-primary/20 font-numeric">
  {item.price}
  </span>
  </div>
- <div className="mt-5 grid grid-cols-2 gap-2 rounded-xl bg-background/80 p-3 text-center font-numeric border border-border/40">
+ <div className="mt-5 grid grid-cols-2 gap-2 rounded-lg bg-background/80 p-3 text-center font-numeric border border-border/40">
  <div>
  <p className="text-micro text-muted-foreground">Historical Return</p>
  <p className="text-xs font-bold text-positive">{item.return}</p>

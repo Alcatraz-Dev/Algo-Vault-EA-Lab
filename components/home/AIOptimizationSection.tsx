@@ -29,23 +29,23 @@ export default function AIOptimizationSection() {
  </div>
 
  <div className="space-y-2 font-numeric text-xs">
- <div className="flex items-center justify-between rounded-xl bg-background/80 p-3 border border-border/40">
+ <div className="flex items-center justify-between rounded-lg bg-background/80 p-3 border border-border/40">
  <span>1. Parameter Sampling</span>
  <span className="text-muted-foreground">SL ATR: [1.2 - 2.5] | TP R: [1.5 - 3.5]</span>
  </div>
- <div className="flex items-center justify-between rounded-xl bg-background/80 p-3 border border-border/40">
+ <div className="flex items-center justify-between rounded-lg bg-background/80 p-3 border border-border/40">
  <span>2. Deterministic Backtest Pass</span>
  <span className="text-positive font-bold">240 Iterations Complete</span>
  </div>
- <div className="flex items-center justify-between rounded-xl bg-background/80 p-3 border border-border/40">
+ <div className="flex items-center justify-between rounded-lg bg-background/80 p-3 border border-border/40">
  <span>3. Out-Of-Sample Split</span>
  <span className="text-info font-bold">Degradation: &lt; 4.2%</span>
  </div>
- <div className="flex items-center justify-between rounded-xl bg-background/80 p-3 border border-border/40">
+ <div className="flex items-center justify-between rounded-lg bg-background/80 p-3 border border-border/40">
  <span>4. Walk-Forward Windows</span>
  <span className="text-positive font-bold">Stable Across 6 Months</span>
  </div>
- <div className="flex items-center justify-between rounded-xl bg-background/80 p-3 border border-border/40">
+ <div className="flex items-center justify-between rounded-lg bg-background/80 p-3 border border-border/40">
  <span>5. Monte Carlo Shuffling</span>
  <span className="text-primary font-bold">95% Confidence Pass</span>
  </div>

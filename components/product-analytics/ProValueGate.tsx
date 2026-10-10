@@ -79,7 +79,7 @@ export function ProValueGate({
                 <ul className="space-y-1.5">
                     {value.adds.map((item) => (
                         <li key={item} className="flex items-start gap-2 text-sm text-foreground">
-                            <span aria-hidden className="mt-0.5 text-emerald-500">
+                            <span aria-hidden className="mt-0.5 text-positive">
                                 ✓
                             </span>
                             <span>{item}</span>

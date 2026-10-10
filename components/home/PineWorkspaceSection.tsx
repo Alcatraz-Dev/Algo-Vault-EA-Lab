@@ -74,7 +74,7 @@ export default function PineWorkspaceSection() {
  <span className="text-positive font-bold">Execution Time: 4ms</span>
  </div>
 
- <div className="h-44 rounded-xl bg-gradient-to-r from-primary/10 via-info/10 to-positive/10 border border-dashed border-border/60 p-4 flex flex-col justify-between">
+ <div className="h-44 rounded-lg bg-muted/40 border border-dashed border-border/60 p-4 flex flex-col justify-between">
  <div className="flex justify-between text-micro">
  <span className="text-info">Fast EMA (12): 2,654.40</span>
  <span className="text-primary">Slow EMA (26): 2,648.10</span>
@@ -89,7 +89,7 @@ export default function PineWorkspaceSection() {
  </div>
  </div>
 
- <div className="rounded-xl bg-muted/40 p-3 border border-border/40 flex items-center justify-between">
+ <div className="rounded-lg bg-muted/40 p-3 border border-border/40 flex items-center justify-between">
  <div className="flex items-center gap-2 text-muted-foreground">
  <Bell size={15} className="text-warning shrink-0" />
  <span>Alert Target: Webhook & Telegram Dispatch</span>

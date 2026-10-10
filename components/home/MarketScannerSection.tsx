@@ -63,7 +63,7 @@ export default function MarketScannerSection() {
  key={cat}
  type="button"
  onClick={() => setSelectedCategory(cat)}
- className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${
+ className={`rounded-lg px-4 py-2 text-xs font-semibold transition ${
  selectedCategory === cat
  ? "bg-primary text-white "
  : "bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground border border-border/40"

@@ -118,16 +118,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                 <TickerStrip />
 
                 {/* ── Hero (trigger.dev-style: centered copy above a light-lit full-width console) ── */}
-                <section className="relative overflow-hidden border-b border-border bg-background">
-                    {/* Ambient light rig — brand-orange auroras, masked grid, twin sweep beams */}
-                    <div aria-hidden="true" className="absolute inset-0">
-                        <div className="av-aurora av-aurora-a left-1/2 top-[-340px] h-[640px] w-[1150px] -translate-x-1/2" />
-                        <div className="av-aurora av-aurora-b right-[-280px] top-[-200px] h-[540px] w-[720px]" />
-                        <div className="absolute inset-0 bg-grid-pattern opacity-40 [mask-image:radial-gradient(ellipse_75%_70%_at_50%_30%,black,transparent)]" />
-                        <div className="av-beam left-[4%]" />
-                        <div className="av-beam left-[60%]" style={{ animationDelay: "-5.5s" }} />
-                    </div>
-
+                <section className="relative border-b border-border bg-background">
                     <div className="page-container relative">
                         <Reveal className="pt-16 text-center md:pt-24">
                             <div>
@@ -450,11 +441,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                 </section>
 
                 {/* ── Final CTA (trigger.dev-style centered) ── */}
-                <section className="relative overflow-hidden bg-background">
-                    <div aria-hidden="true" className="absolute inset-0">
-                        <div className="av-aurora av-aurora-a left-1/2 top-1/2 h-[520px] w-[820px] -translate-x-1/2 -translate-y-1/2" />
-                        <div className="absolute inset-0 bg-grid-pattern opacity-30 [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,black,transparent)]" />
-                    </div>
+                <section className="relative bg-background">
                     <div className="page-container relative py-20 md:py-28">
                         <Reveal>
                             <div className="mx-auto max-w-3xl text-center">

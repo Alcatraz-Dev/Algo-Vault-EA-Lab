@@ -58,7 +58,7 @@ export default function LifecycleSection() {
  key={s.id}
  type="button"
  onClick={() => setSelectedStage(idx)}
- className={`flex items-center gap-2 shrink-0 rounded-xl border px-3.5 py-2 text-xs font-semibold transition active:scale-95 ${
+ className={`flex items-center gap-2 shrink-0 rounded-lg border px-3.5 py-2 text-xs font-semibold transition active:scale-95 ${
  isSelected
  ? "border-primary bg-primary/15 text-primary "
  : "border-border/60 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -87,7 +87,7 @@ export default function LifecycleSection() {
  </div>
  </div>
 
- <div className="md:col-span-5 rounded-xl border border-border/60 bg-background/80 p-5 font-numeric text-xs space-y-3">
+ <div className="md:col-span-5 rounded-lg border border-border/60 bg-background/80 p-5 font-numeric text-xs space-y-3">
  <div className="flex justify-between border-b border-border/40 pb-2 text-muted-foreground">
  <span>Lifecycle Node</span>
  <span className="text-primary">{active.id.toUpperCase()}</span>

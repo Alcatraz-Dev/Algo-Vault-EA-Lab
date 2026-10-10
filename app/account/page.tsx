@@ -217,7 +217,11 @@ export default function AccountPage() {
     return (
         <AccountShell
             title="Account Dashboard"
-            subtitle={`Welcome back, ${displayName}`}
+            subtitle={
+                <>
+                    Welcome back, <span className="font-medium text-foreground">{displayName}</span>
+                </>
+            }
         >
             <div className="space-y-8 px-1">
                 {/* Stats */}

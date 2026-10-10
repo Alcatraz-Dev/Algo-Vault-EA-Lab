@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import {
+  ArrowLeft,
   ChevronDown,
   LogOut,
   Menu,
@@ -168,10 +169,20 @@ export function AppShell({
     router.push("/");
   };
 
+  const navHrefs = navGroups.flatMap((group) => group.items.map((item) => item.href));
+
   const isActive = (href: string) => {
-    if (href === "/account") return pathname === "/account";
-    if (href === "/admin") return pathname === "/admin";
-    return pathname?.startsWith(href) ?? false;
+    if (pathname === href) return true;
+    if (href === "/account" || href === "/admin") return false;
+    if (!(pathname?.startsWith(`${href}/`) ?? false)) return false;
+    // A more specific entry inside this one owns the current page (e.g. "Tool
+    // calls" inside the Candel library), so the parent must not also light up.
+    return !navHrefs.some(
+      (other) =>
+        other !== href &&
+        other.startsWith(`${href}/`) &&
+        (pathname === other || pathname?.startsWith(`${other}/`) === true)
+    );
   };
 
   const displayedGroups = searchValue.trim()
@@ -403,6 +414,10 @@ export function AppShell({
     </>
   );
 
+  // Terminal surfaces (fullscreen / sidebar-less) keep the topbar compact so the
+  // chart keeps its vertical space; every other page gets the full title band.
+  const compactHeader = Boolean(fullscreen || hideSidebar);
+
   const headerRight = (
     <div className="flex items-center gap-1.5">
       {headerActions}
@@ -541,56 +556,88 @@ export function AppShell({
 
       {/* Content column */}
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-        {/* Topbar */}
-        <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-3 border-b border-border bg-background px-4 md:px-6" data-guide="page-header">
-          <div className="flex min-w-0 items-center gap-3">
-            {hideSidebar || fullscreen ? null : (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => setMobileOpen(true)}
-                className="lg:hidden"
-                aria-label="Open navigation menu"
-              >
-                <Menu size={16} />
-              </Button>
+        {/* Topbar — page header: back/menu controls, title block, global actions.
+            Translucent + blurred instead of a bottom border, so the title stands on
+            its own (the sticky chrome may blur content passing underneath). */}
+        <header
+          data-guide="page-header"
+          className={cn(
+            "sticky top-0 z-40 bg-background/85 backdrop-blur-xl",
+            compactHeader ? "px-3 py-2.5 sm:px-4" : "px-4 py-3 sm:px-6 sm:py-4"
+          )}
+        >
+          <div
+            className={cn(
+              "flex items-center gap-2",
+              !compactHeader && "flex-wrap gap-x-3 gap-y-2.5 lg:flex-nowrap"
             )}
-            {onBack ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={onBack}
-                aria-label="Go back"
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M19 12H5" />
-                  <path d="m12 19-7-7 7-7" />
-                </svg>
-              </Button>
-            ) : null}
-            <div className="min-w-0">
-              {title || eyebrow ? (
-                <div className="flex min-w-0 items-center gap-2">
-                  {title ? (
-                    <h1 className="truncate text-xl font-medium tracking-tight text-foreground">
-                      {title}
-                    </h1>
-                  ) : null}
-                  {eyebrow ? (
-                    <span className="shrink-0 text-micro font-medium uppercase tracking-wider text-muted-foreground">
-                      {eyebrow}
-                    </span>
-                  ) : null}
-                </div>
-              ) : null}
-              {subtitle ? (
-                <p className="hidden truncate text-body-sm text-muted-foreground sm:block">{subtitle}</p>
+          >
+            <div className="flex shrink-0 items-center gap-1.5">
+              {compactHeader ? null : (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setMobileOpen(true)}
+                  className="lg:hidden"
+                  aria-label="Open navigation menu"
+                >
+                  <Menu size={16} />
+                </Button>
+              )}
+              {onBack ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={onBack}
+                  aria-label="Go back"
+                  className="h-8 w-8 shrink-0 rounded-button border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:h-9 sm:w-9"
+                >
+                  <ArrowLeft size={16} aria-hidden="true" />
+                </Button>
               ) : null}
             </div>
+
+            {title || subtitle || eyebrow ? (
+              <div
+                className={cn(
+                  "min-w-0",
+                  // On small screens the title takes its own full-width row under the
+                  // controls, so a long page name never collapses into an ellipsis.
+                  !compactHeader && "order-last w-full lg:order-none lg:w-auto lg:flex-1"
+                )}
+              >
+                {eyebrow ? (
+                  <div className="mb-1 flex min-w-0 items-center gap-2 text-micro font-medium uppercase tracking-wider text-muted-foreground">
+                    {eyebrow}
+                  </div>
+                ) : null}
+                {title ? (
+                  <h1
+                    className={cn(
+                      "truncate font-semibold tracking-tight text-foreground",
+                      compactHeader ? "text-base sm:text-lg" : "text-xl sm:text-2xl"
+                    )}
+                  >
+                    {title}
+                  </h1>
+                ) : null}
+                {subtitle ? (
+                  <p
+                    className={cn(
+                      "truncate text-muted-foreground",
+                      compactHeader ? "hidden text-meta sm:block" : "mt-1 text-body-sm"
+                    )}
+                  >
+                    {subtitle}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+
+            <div className="ml-auto flex items-center gap-1.5">{headerRight}</div>
           </div>
-          {headerRight}
         </header>
 
         {/* Page content */}

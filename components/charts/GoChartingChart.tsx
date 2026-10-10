@@ -507,7 +507,7 @@ export default function GoCharting({
     if (sdkError) {
         return (
             <div
-                className="rounded-xl border border-destructive/30 bg-destructive/5 flex items-center justify-center"
+                className="rounded-lg border border-destructive/30 bg-destructive/5 flex items-center justify-center"
                 style={{ height }}
             >
                 <span className="text-sm text-destructive">{sdkError}</span>
@@ -519,7 +519,7 @@ export default function GoCharting({
 
     return (
         <div
-            className="rounded-xl border border-border bg-card overflow-hidden"
+            className="rounded-lg border border-border bg-card overflow-hidden"
             style={{ height }}
         >
             <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2 bg-muted/30">

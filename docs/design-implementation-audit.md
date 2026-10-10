@@ -39,9 +39,9 @@ data logic (DESIGN.md §17).
 | Files using raw Tailwind colour families (`emerald-*`, `violet-*`, `rose-*`, `slate-*`, …) | 50 files | **0** |
 | Files with `text-[9px]`/`[10px]`/`[11px]` | 1 (globals note) | 1 (documentation comment only) |
 | Files with `rounded-2xl`/`rounded-3xl` | 1 (`TourGuide.tsx`) | **0** (globals comment only) |
-| Files with decorative glow orbs (`rounded-full … blur-[Npx]`) | 30 files | **0** |
+| Files with decorative glow orbs (`rounded-full … blur-[Npx]`) | 30 files | **0** raw `blur-[Npx]` orbs — but **corrected in §8**: custom `.hero-radial` / `.av-aurora` / `.av-beam` decorative layers survived in 6 files until the continuation pass |
 | Files with glass-card `backdrop-blur` on non-overlay surfaces | 40 files | 33 (all remaining are legitimate overlays/drawers/scrims) |
-| Files with decorative `bg-gradient-to-*` / `bg-linear-to-*` / gradient text | 40 files | **0** (globals comment only) |
+| Files with decorative `bg-gradient-to-*` / `bg-linear-to-*` / gradient text | 40 files | **0** raw gradient utilities — but **corrected in §8**: 5 gradient-gradient utilities (incl. gradient text and a `blur-3xl` orb) survived in 3 files until the continuation pass |
 | Colored glow shadows (`shadow-<semantic>/n`, `shadow-[0…]`) | 12+ files | **0** |
 | `font-mono` on values (replaced with `font-numeric`) | 226 files / 1076 occurrences | **0** |
 | Undefined `bg-brand-*` / raw `#ff4d00` accent (rendered no background) | 42 occurrences in 7 files | **0** |
@@ -117,7 +117,7 @@ build for auth-gated routes). `IMPLEMENTED` = changed by the sweep and type/buil
 | Semantic trading colours fixed | VERIFIED | `--positive/--negative/--warning/--info/--destructive` mapped into `@theme inline` |
 | Chart palette excludes gold | VERIFIED | `--chart-1..5` |
 | `font-numeric` utility | VERIFIED | Now the sole numeric utility; `font-mono` removed from app/components |
-| Radius system | VERIFIED | `rounded-xl/2xl/3xl` gone from surfaces (globals comment only) |
+| Radius system | **CORRECTED in §8** | `rounded-2xl/3xl` gone, but 53 `rounded-xl` occurrences remained across 16 files — off-system per DESIGN.md §6 (cards `rounded-lg`, controls `rounded-md`). Now 0. |
 | No banned gradients / glow / orbs | VERIFIED | 0 files |
 | No raw colour families | VERIFIED | 0 files |
 | Micro type (`text-[9–11px]`) | VERIFIED | 0 files |
@@ -174,3 +174,118 @@ build for auth-gated routes). `IMPLEMENTED` = changed by the sweep and type/buil
 - Standardised page containers on `/copy-trading`, `/cross-asset`, `/economic-calendar`.
 - Added contextual back-navigation to `/workflows/[workflowId]`.
 - Repaired 78 JSX lines that the sweep's greedy regexes had damaged, then re-verified.
+
+---
+
+## 8. Continuation pass — 2026-10-10 (later session)
+
+This section is the honest record of the second pass. It **supersedes** two claims in §1
+and §4 that were incorrect (decorative decoration, radius) and documents a self-inflicted
+incident and its recovery.
+
+### 8.1 What was actually wrong (verified, not assumed)
+
+| # | Defect | Evidence | Fix |
+|---|---|---|---|
+| 1 | **Solid gold CTAs used near-white ink.** Class strings paired a solid `bg-primary` fill with `text-foreground`: gold `rgb(218,186,107)` on ink `rgb(244,245,246)` ≈ **1.4:1**. DESIGN.md §2.2 requires `--primary-foreground` (`#1d1406`) on solid fills. | Rendered computed styles on `/goals`: the shell's own buttons resolved `rgb(29,20,6)`; the page's own gate CTA resolved `rgb(244,245,246)`. | Token-level rewrite in **30 files** (`text-foreground` → the matching `text-*-foreground` on solid `bg-primary/negative/positive/destructive`). Also: 45 dead `hover:bg-primary` no-ops → `hover:bg-primary/90`; 4 dead `hover:from-primary hover:to-info` gradient remnants removed. |
+| 2 | **Sign-in dead ends.** 12 gated pages rendered "Sign in required" with **no way to sign in**. | `grep '"Sign in required"'` files with no `/login` href. | New shared `components/ui/auth-required.tsx` — same message plus a real CTA that returns the user to the page they wanted (`/login?redirect=…`, which the login page already honours). Adopted in 12 pages. |
+| 3 | **Banned decoration still shipped** (contradicting §1). | `hero-radial`, `av-aurora`, `av-beam`, `bg-gradient-to-*`, `bg-clip-text`, `blur-3xl` found in live files. | Removed the hero light-rig (2 masked-grid + twin-beam + aurora layers) from `HomePage`, the gradient orb + gradient text + gradient `text-white` CTA from `HeroSection`, and the `hero-radial` orbs from `/login`, `/register` and `EcosystemSection`. **0** gradient/orb/glow utilities remain in `app/` + `components/`. |
+| 4 | **Radius off-system.** 53 `rounded-xl` (12px) across 16 files; DESIGN.md §6 allows `rounded-lg` (surfaces) / `rounded-md` (controls) / `rounded-full` (pills). | `grep -ro rounded-xl` | Normalised to `rounded-md` for control-shaped class strings (have `px-` + `py-`/`h-*`) and `rounded-lg` otherwise. **0** remain. |
+
+### 8.2 Incident — self-inflicted whitespace damage, and recovery
+
+The first attempt at defect 1 used a regex sweep that replaced runs of 2+ spaces/tabs with a
+single space **across whole files**, not just inside class strings. That collapsed indentation
+in **555 `.tsx` files** (+141 507 / −141 429 lines).
+
+Recovery, in order:
+
+1. **502 files** restored exactly from Next's build sourcemaps (`.next/server/chunks/**.map`
+   carry `sourcesContent` for bundled app modules), validated with a *transform-invariant
+   oracle*: re-applying the exact sweep to a candidate had to reproduce the damaged file byte
+   for byte.
+2. **25 files** restored from `git HEAD` after proving the diff against HEAD was
+   whitespace-only (token streams identical once whitespace was normalised).
+3. **35 files** had genuine prior edits. HEAD was probed first and found to be **already
+   token-clean** (0 raw colour families); its only difference was `font-mono`. They were
+   restored from HEAD and the `font-mono` → `font-numeric` rule re-applied, so nothing
+   substantive was lost.
+
+Result: the tree returned to **358 files changed, +3 779 / −3 700** against the pre-incident
+baseline of 364 / +3 858 / −3 780, with `npx tsc --noEmit` **exit 0**. During the session
+another process committed the working tree (`4307045`); that commit contains the recovered
+state and was not rewritten.
+
+The corrected sweep (defect 1, §8.1) was then re-done **className-token-only**, with no
+whole-file whitespace rewriting, and type-checked.
+
+### 8.3 Verification (what was actually run)
+
+| Check | Command / method | Result |
+|---|---|---|
+| Types | `npx tsc --noEmit` | **exit 0** |
+| Production build | `npx next build` | **exit 0**, re-run on the final tree after the last code edit (`/tmp/agv/build-final.log`, line 1059); only pre-existing Turbopack tracing warnings, no errors |
+| Route smoke test | `curl` on ~90 routes incl. every top-level family | **all 200** |
+| Contrast (dark) | computed styles, `/goals` CTA | gold fill + `rgb(29,20,6)` ink ✓ |
+| Contrast (light) | computed styles with `html.light` | body `rgb(249,250,251)` bg / `rgb(28,32,36)` text ≈ **16:1**; muted `rgb(95,100,106)` ≈ **5.7:1** (AA) ✓ |
+| Banned decoration | grep for `hero-radial`, `av-aurora`, `av-beam`, `av-panel-sweep`, `av-edge-glow`, `bg-gradient*`, `bg-clip-text`, `blur-[` | **0** in `app/` + `components/` |
+| Off-system radius | grep `rounded-xl` | **0** |
+| Raw colour families / `font-mono` | grep | **0** (last one, `text-emerald-500` in `product-analytics/ProValueGate.tsx`, fixed in this pass) |
+
+### 8.4 Honest limitations of this pass
+
+1. **Pixel review was not possible.** The preview panel returns **stale frames**: CSS
+   transitions report `playState: "running"` but never advance, and screenshots did not
+   update after navigation or `getAnimations().finish()`. The landing page therefore appears
+   blank in screenshots *even though* the DOM is correctly laid out (`main h1` at y=201,
+   575×75, `rgb(244,245,246)` on `rgb(11,12,14)`, `opacity: 1`, `visibility: visible`).
+   All visual claims above are DOM-geometry + computed-style claims, **not** eyeballed pixels.
+   A human should still review the dense surfaces.
+2. **Not every route was individually re-reviewed in this pass.** This pass fixed the four
+   systemic defects above and verified a ~90-route smoke set. The per-page bespoke tuning of
+   all 253 routes is **not** complete; §2's per-family statuses are inherited from the first
+   pass and are type/build/HTTP-verified, not design-reviewed page by page.
+3. **19 files keep collapsed (single-space) indentation.** This predates this session — it is
+   present in `HEAD` and in **every** earlier commit, and no properly-indented revision exists
+   anywhere in history. Of those 19, **16 are dead code** (0 references). Not reformatted:
+   the repo has no Prettier config, so any reformat would impose a foreign style. Cosmetic
+   code quality only; no UI effect.
+4. **Large dead-code surface.** Most `components/home/*Section.tsx`
+   (`HeroSection`, `PineWorkspaceSection`, `MarketScannerSection`, `RiskEngineSection`,
+   `LifecycleSection`, `CopyTradingSection`, …) have **zero** references. The landing page
+   renders `HomePage` → `TickerStrip`/`Reveal`/`CountUp`/`HeroConsoleChart`/
+   `EvidenceAnalytics`/`EcosystemSection`/`SiteFooter` only. Removing the rest is a product
+   decision, not a design fix, so it was left in place.
+5. **`/terminal/[symbol]` and `/store/[accountId]` return 404 for a bare path** — they are
+   dynamic segments with no default; expected, not a defect.
+6. **Pre-existing console noise:** the landing page calls `scanner.tradingview.com` directly
+   from the browser and is CORS-blocked. Untouched.
+7. **Pre-existing build warnings (not errors).** `npx next build` exits 0 but warns that
+   `lib/marketing-agent/hypit/provider.ts` uses dynamically-scoped `child_process.spawn`,
+   which makes Turbopack trace the whole project into the server bundle. Unrelated to this
+   design pass and outside its scope; flagged here because it affects deploy size.
+
+### 8.5 Changelog (this pass)
+
+- Re-applied, correctly this time, the solid-fill ink fix across 30 files.
+- Added `components/ui/auth-required.tsx`; adopted in 12 gated pages (removes 12 dead ends).
+- Removed all remaining banned decoration from 6 live surfaces (hero rig, gradient orb,
+  gradient text, gradient CTA, auth-page radial orbs).
+- Normalised 53 off-system `rounded-xl` radii across 16 files.
+- Fixed the last raw-colour-family usage (`text-emerald-500` → `text-positive`).
+- Recovered 555 files from an accidental whitespace-collapsing sweep (§8.2).
+
+### 8.6 Open conflicts — needs a human decision
+
+Other agents were editing this same checkout during this pass (commits `4307045` and
+`eb00eea` landed mid-session, and `app/globals.css` / `components/layout/AppShell.tsx` carry
+uncommitted edits that are **not** this pass's). Two of those changes are worth a decision:
+
+1. **Brand gold token changed away from DESIGN.md.** An uncommitted edit in `app/globals.css`
+   moves `--primary` / `--primary-text` / `--ring` from `#daba6b` to `#f28f39` in both themes.
+   DESIGN.md §2.2 names `#daba6b` as the restrained accent. Code and the design authority now
+   disagree — either revert the token or amend DESIGN.md with a recorded decision. Not
+   reverted here, because it is live work by another agent, not this pass's damage.
+2. **A `components/layout/AppShell.tsx` nav-active fix is uncommitted.** It makes the most
+   specific nav entry own the active state (e.g. "Tool calls" inside the Candel library).
+   It reads as a genuine improvement and was left untouched.

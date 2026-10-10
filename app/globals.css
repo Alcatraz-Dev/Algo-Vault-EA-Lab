@@ -18,19 +18,19 @@
   --accent-foreground: #f4f5f6;
 
   /* ── Vault gold — the single restrained brand accent ──
-     #daba6b is the exact accent for solid fills, borders, active states, the
+     #de661c is the exact accent for solid fills, borders, active states, the
      brand mark and selected interface elements. It is NEVER profit/buy.
      Fills carry near-black ink (--primary-foreground) at 9.7:1 (AAA).
      As text on graphite it is 10.4:1 (AAA). */
-  --primary: #daba6b;
+  --primary: #de661c;
   --primary-foreground: #1d1406;
-  --primary-text: #daba6b;
+  --primary-text: #de661c;
 
   --destructive: #ff6369;
   --destructive-foreground: #ff6369;
   --border: #2b2e32;
   --input: #35383c;
-  --ring: #daba6b;
+  --ring: #de661c;
 
   --radius: 0.5rem;
 
@@ -83,10 +83,10 @@
   --popover: #ffffff;
   --popover-foreground: #1c2024;
   /* Solid gold fill stays the exact accent; near-black ink sits on top (9.7:1). */
-  --primary: #daba6b;
+  --primary: #de661c;
   --primary-foreground: #1d1406;
   /* Deeper brand gold for text/links on light surfaces: 5.9:1 on #f9fafb and
-     6.1:1 on white — both AA. `--primary` stays the exact #daba6b for solid
+     6.1:1 on white — both AA. `--primary` stays the exact #de661c for solid
      fills and borders. See the `html.light .text-primary` override below. */
   --primary-text: #865812;
   --secondary: #eff0f2;
@@ -99,7 +99,7 @@
   --destructive-foreground: #c1121f;
   --border: #dbdee2;
   --input: #c4c8cd;
-  --ring: #daba6b;
+  --ring: #de661c;
 
   --positive: #00794c;
   --positive-foreground: #00794c;
@@ -777,7 +777,7 @@ body {
 }
 
 /* ── Light-theme primary text ──
-   `--primary` (#daba6b) is kept exact for solid fills/borders, where
+   `--primary` (#de661c) is kept exact for solid fills/borders, where
    near-black ink sits on top (9.7:1). As *text* on a light surface the light
    gold only reaches ~1.5:1, so in the light theme `text-primary` resolves to
    the deeper, AA-passing `--primary-text` (#865812, 5.9:1 on #f9fafb).

@@ -36,7 +36,7 @@ export default function BacktestingSection() {
 
  {/* Left Settings & Controls */}
  <div className="lg:col-span-4 space-y-4 text-xs font-numeric">
- <div className="rounded-xl bg-background/80 p-4 border border-border/40 space-y-3">
+ <div className="rounded-lg bg-background/80 p-4 border border-border/40 space-y-3">
  <div className="flex items-center justify-between text-muted-foreground font-bold">
  <span>Simulation Config</span>
  <span className="text-primary">XAUUSD H1</span>
@@ -70,14 +70,14 @@ export default function BacktestingSection() {
 
  {/* Key Simulation Outcome Cards */}
  <div className="grid grid-cols-2 gap-3">
- <div className="rounded-xl bg-positive/10 p-3.5 border border-positive/20 text-center">
+ <div className="rounded-lg bg-positive/10 p-3.5 border border-positive/20 text-center">
  <div className="text-micro text-muted-foreground uppercase font-bold">Net Profit</div>
  <div className="text-lg font-extrabold text-positive mt-0.5">
  +${(2480 * (simulatedRisk / 1.0)).toFixed(0)}
  </div>
  <div className="text-micro text-positive/80 font-bold">+{ (24.8 * simulatedRisk).toFixed(1) }% Return</div>
  </div>
- <div className="rounded-xl bg-negative/10 p-3.5 border border-negative/20 text-center">
+ <div className="rounded-lg bg-negative/10 p-3.5 border border-negative/20 text-center">
  <div className="text-micro text-muted-foreground uppercase font-bold">Max Drawdown</div>
  <div className="text-lg font-extrabold text-negative mt-0.5">
  {(6.4 * simulatedRisk).toFixed(1)}%
@@ -86,7 +86,7 @@ export default function BacktestingSection() {
  </div>
  </div>
 
- <div className="rounded-xl bg-background/80 p-3 border border-border/40 space-y-1 text-micro text-muted-foreground">
+ <div className="rounded-lg bg-background/80 p-3 border border-border/40 space-y-1 text-micro text-muted-foreground">
  <div className="flex justify-between"><span>Win Rate:</span><strong className="text-foreground">64.2% (142 / 221 Trades)</strong></div>
  <div className="flex justify-between"><span>Profit Factor:</span><strong className="text-positive">1.84</strong></div>
  <div className="flex justify-between"><span>Expectancy:</span><strong className="text-info">0.38 R / Trade</strong></div>

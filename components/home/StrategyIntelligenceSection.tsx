@@ -44,7 +44,7 @@ export default function StrategyIntelligenceSection() {
  { name: "Trend Filter", label: "H4/D1 Alignment" },
  { name: "Rule Set", label: "Strategy Output" },
  ].map((step, idx) => (
- <div key={step.name} className="flex flex-col items-center rounded-xl bg-background/60 p-3 border border-border/40">
+ <div key={step.name} className="flex flex-col items-center rounded-lg bg-background/60 p-3 border border-border/40">
  <span className="text-micro text-primary font-bold">0{idx + 1}</span>
  <span className="font-bold text-foreground mt-1">{step.name}</span>
  <span className="text-micro text-muted-foreground mt-0.5">{step.label}</span>
@@ -60,7 +60,7 @@ export default function StrategyIntelligenceSection() {
  <button
  type="button"
  onClick={() => setActivePattern("sweep")}
- className={`w-full text-left rounded-xl p-4 border transition ${
+ className={`w-full text-left rounded-lg p-4 border transition ${
  activePattern === "sweep"
  ? "border-primary bg-primary/10 "
  : "border-border/40 bg-background/40 hover:bg-muted"
@@ -78,7 +78,7 @@ export default function StrategyIntelligenceSection() {
  <button
  type="button"
  onClick={() => setActivePattern("fvg")}
- className={`w-full text-left rounded-xl p-4 border transition ${
+ className={`w-full text-left rounded-lg p-4 border transition ${
  activePattern === "fvg"
  ? "border-primary bg-primary/10 "
  : "border-border/40 bg-background/40 hover:bg-muted"
@@ -96,7 +96,7 @@ export default function StrategyIntelligenceSection() {
  <button
  type="button"
  onClick={() => setActivePattern("ob")}
- className={`w-full text-left rounded-xl p-4 border transition ${
+ className={`w-full text-left rounded-lg p-4 border transition ${
  activePattern === "ob"
  ? "border-primary bg-primary/10 "
  : "border-border/40 bg-background/40 hover:bg-muted"

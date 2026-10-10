@@ -158,7 +158,6 @@ const CONNECTOR_PATHS = [
 function ConnectorLayer({ active }: { active: number | null }) {
     return (
         <div className="pointer-events-none absolute inset-x-0 top-1/2 z-0 hidden -translate-y-1/2 lg:block" aria-hidden="true">
-            <div className="hero-radial left-1/2 top-1/2 h-[420px] w-[720px] -translate-x-1/2 -translate-y-1/2" />
             <svg
                 className="relative h-36 w-full"
                 viewBox="0 0 1000 160"

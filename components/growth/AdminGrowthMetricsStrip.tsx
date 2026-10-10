@@ -64,7 +64,7 @@ export default function AdminGrowthMetricsStrip() {
                     item.label.includes("Affiliate") ? CreditCard :
                     item.label.includes("Ad") ? Zap : Users;
                 return (
-                    <div key={item.label} className="rounded-xl border border-border bg-muted/30 p-3">
+                    <div key={item.label} className="rounded-lg border border-border bg-muted/30 p-3">
                         <div className="flex items-center gap-1.5 text-muted-foreground">
                             <Icon size={12} />
                             <p className="text-micro uppercase tracking-wide">{item.label}</p>

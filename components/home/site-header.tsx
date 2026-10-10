@@ -96,11 +96,11 @@ export default function SiteHeader() {
     }
 
     return (
-        <header className="sticky top-0 z-50 border-b border-border bg-background">
+        <header className="sticky top-0 z-50 border-b border-border bg-background text-foreground">
             <div className="mx-auto flex min-h-14 w-full max-w-350 items-center justify-between gap-6">
                 <Link href="/" className="flex shrink-0 items-center gap-3">
                     <SiteLogo size={19} />
-                    <div className="flex items-center gap-2 font-semibold tracking-tight">
+                    <div className="flex items-center gap-2 font-semibold tracking-tight text-foreground">
                         {siteName}
                         {hasPro && (
                             <span className="rounded-full border border-primary/40 bg-accent-muted px-2 py-0.5 text-xs font-bold text-primary">

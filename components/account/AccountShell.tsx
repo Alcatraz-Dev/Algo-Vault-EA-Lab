@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { AppShell } from "@/components/layout/AppShell";
@@ -25,8 +26,24 @@ export default function AccountShell({
   hideSidebar?: boolean;
   fullscreen?: boolean;
 }) {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [navSearch, setNavSearch] = useState("");
+
+  // Every account page is a sub-page, so the header always offers a way back:
+  // the caller's explicit destination when given, otherwise real history, with
+  // the account dashboard as the fallback for deep links opened in a fresh tab.
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+      return;
+    }
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+    router.push("/account");
+  };
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (currentUser) => {
@@ -70,7 +87,7 @@ export default function AccountShell({
       title={title}
       subtitle={subtitle}
       eyebrow={eyebrow}
-      onBack={onBack}
+      onBack={handleBack}
       headerActions={headerActions}
       role="account"
       maxWidth="max-w-7xl"

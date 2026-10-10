@@ -51,14 +51,14 @@ export default function CopyTradingSection() {
  </div>
 
  <div className="space-y-2">
- <div className="rounded-xl border border-border/60 bg-background/80 p-3 flex justify-between items-center">
+ <div className="rounded-lg border border-border/60 bg-background/80 p-3 flex justify-between items-center">
  <div>
  <div className="font-bold text-foreground">Follower A (Risk: 0.5×)</div>
  <div className="text-micro text-muted-foreground">Lot Sizing: 0.50 Lots</div>
  </div>
  <span className="text-positive font-bold">MIRRORED</span>
  </div>
- <div className="rounded-xl border border-border/60 bg-background/80 p-3 flex justify-between items-center">
+ <div className="rounded-lg border border-border/60 bg-background/80 p-3 flex justify-between items-center">
  <div>
  <div className="font-bold text-foreground">Follower B (Risk: 1.0×)</div>
  <div className="text-micro text-muted-foreground">Lot Sizing: 1.00 Lot</div>
@@ -70,13 +70,13 @@ export default function CopyTradingSection() {
 
  {/* Right Key Features */}
  <div className="lg:col-span-6 space-y-4 text-xs font-numeric">
- <div className="rounded-xl border border-border/60 bg-background/80 p-4 space-y-1">
+ <div className="rounded-lg border border-border/60 bg-background/80 p-4 space-y-1">
  <span className="font-bold text-foreground flex items-center gap-1.5"><Copy size={14} className="text-primary" /> Sub-Second Execution Latency</span>
  <p className="text-muted-foreground text-micro leading-relaxed">
  Direct gateway route mirrors master account orders to follower terminals within milliseconds.
  </p>
  </div>
- <div className="rounded-xl border border-border/60 bg-background/80 p-4 space-y-1">
+ <div className="rounded-lg border border-border/60 bg-background/80 p-4 space-y-1">
  <span className="font-bold text-foreground flex items-center gap-1.5"><Shield size={14} className="text-positive" /> Individual Follower Protection</span>
  <p className="text-muted-foreground text-micro leading-relaxed">
  Followers set their own max daily loss limits and equity protection caps independent of master strategy settings.

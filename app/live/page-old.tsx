@@ -282,7 +282,7 @@ function StatCard({
                     )}
                 </div>
 
-                <div className="rounded-xl border border-border/30 bg-muted/5 p-2.5">
+                <div className="rounded-lg border border-border/30 bg-muted/5 p-2.5">
                     <Icon className="h-5 w-5 text-muted-foreground" />
                 </div>
             </div>
@@ -783,7 +783,7 @@ export default function LivePerformancePage() {
 
                     <Link
                         href="/login?redirect=/live"
-                        className="mt-7 inline-flex rounded-xl bg-background px-5 py-3 font-semibold text-foreground"
+                        className="mt-7 inline-flex rounded-md bg-background px-5 py-3 font-semibold text-foreground"
                     >
                         Sign In
                     </Link>
@@ -827,7 +827,7 @@ export default function LivePerformancePage() {
                     <div className="flex flex-wrap items-center gap-3">
                         <Link
                             href="/backtests"
-                            className="inline-flex items-center gap-2 rounded-xl border border-warning/20 bg-warning/10 px-4 py-2.5 text-sm font-medium text-warning hover:bg-warning/20 transition-colors"
+                            className="inline-flex items-center gap-2 rounded-md border border-warning/20 bg-warning/10 px-4 py-2.5 text-sm font-medium text-warning hover:bg-warning/20 transition-colors"
                         >
                             <FileText className="h-4 w-4" />
                             <span>Backtest Reports</span>
@@ -835,7 +835,7 @@ export default function LivePerformancePage() {
 
                         <Link
                             href="/marketplace"
-                            className="rounded-xl border border-border/30 px-4 py-2.5 text-sm text-muted-foreground hover:bg-muted/5"
+                            className="rounded-md border border-border/30 px-4 py-2.5 text-sm text-muted-foreground hover:bg-muted/5"
                         >
                             Marketplace
                         </Link>
@@ -850,7 +850,7 @@ export default function LivePerformancePage() {
                                 refreshing ||
                                 !selectedLicense
                             }
-                            className="inline-flex items-center gap-2 rounded-xl border border-border/30 px-4 py-2.5 text-sm text-foreground hover:bg-muted/5 disabled:opacity-50"
+                            className="inline-flex items-center gap-2 rounded-md border border-border/30 px-4 py-2.5 text-sm text-foreground hover:bg-muted/5 disabled:opacity-50"
                         >
                             <RefreshCw
                                 className={`h-4 w-4 ${refreshing
@@ -898,7 +898,7 @@ export default function LivePerformancePage() {
                                             )
                                         )
                                     }
-                                    className="rounded-xl border border-border/30 bg-background px-4 py-2.5 text-sm text-foreground outline-none"
+                                    className="rounded-md border border-border/30 bg-background px-4 py-2.5 text-sm text-foreground outline-none"
                                 >
                                     {activeLicenses.map(
                                         (
@@ -957,7 +957,7 @@ export default function LivePerformancePage() {
 
                             <Link
                                 href="/marketplace"
-                                className="mt-6 inline-flex rounded-xl bg-background px-5 py-3 font-semibold text-foreground"
+                                className="mt-6 inline-flex rounded-md bg-background px-5 py-3 font-semibold text-foreground"
                             >
                                 Browse Marketplace
                             </Link>
@@ -970,11 +970,11 @@ export default function LivePerformancePage() {
                         <>
                             {/* PRODUCT HEADER */}
 
-                            <div className="mt-8 rounded-lg border border-border/30 bg-gradient-to-br from-white/[0.07] to-white/[0.02] p-6">
+                            <div className="mt-8 rounded-lg border border-border/60 bg-card p-6">
                                 <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
 
                                     <div className="flex items-center gap-4">
-                                        <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-border/30 bg-muted/5">
+                                        <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border border-border/30 bg-muted/5">
                                             {botLogo ? (
                                                 <img
                                                     src={botLogo}
@@ -1089,7 +1089,7 @@ export default function LivePerformancePage() {
                                                 <button
                                                     key={range}
                                                     onClick={() => setDateRange(range)}
-                                                    className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors ${dateRange === range ? "bg-muted/10 text-foreground border border-border/50" : "text-muted-foreground hover:text-foreground hover:bg-muted/5"}`}
+                                                    className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${dateRange === range ? "bg-muted/10 text-foreground border border-border/50" : "text-muted-foreground hover:text-foreground hover:bg-muted/5"}`}
                                                 >
                                                     {range}
                                                 </button>
@@ -1368,7 +1368,7 @@ export default function LivePerformancePage() {
                                                         </AreaChart>
                                                     </ResponsiveContainer>
                                                 ) : (
-                                                    <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-border/30">
+                                                    <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-border/30">
                                                         <div className="text-center">
                                                             <Activity className="mx-auto h-8 w-8 text-muted-foreground" />
 
@@ -1430,7 +1430,7 @@ export default function LivePerformancePage() {
                                                                 </PieChart>
                                                             </ResponsiveContainer>
                                                         ) : (
-                                                            <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-border/30">
+                                                            <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-border/30">
                                                                 <div className="text-center">
                                                                     <Trophy className="mx-auto h-8 w-8 text-muted-foreground" />
                                                                     <p className="mt-3 text-sm text-muted-foreground">No trades yet</p>

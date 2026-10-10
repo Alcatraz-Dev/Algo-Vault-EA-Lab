@@ -125,7 +125,7 @@ export default function SiteNavbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <SiteLogo size={18} />
-          <span className="text-lg font-bold tracking-tight">{siteName}</span>
+          <span className="text-lg font-bold tracking-tight text-foreground">{siteName}</span>
           {hasPro && (
             <span className="ml-2 rounded-full border border-primary/40 bg-accent-muted px-1.5 py-0.5 text-[9px] font-bold text-primary leading-none">
               PRO

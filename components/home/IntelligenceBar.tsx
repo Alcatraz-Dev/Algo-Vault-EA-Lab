@@ -48,7 +48,7 @@ export default function IntelligenceBar() {
  {DEFAULT_ITEMS.map((item) => (
  <div
  key={item.symbol}
- className="flex items-center gap-3 shrink-0 rounded-xl border border-border/50 bg-background/60 px-3.5 py-1.5 font-numeric hover:border-primary/40 transition"
+ className="flex items-center gap-3 shrink-0 rounded-md border border-border/50 bg-background/60 px-3.5 py-1.5 font-numeric hover:border-primary/40 transition"
  >
  <span className="font-bold text-foreground">{item.symbol}</span>
  <span className={item.status === "bullish" ? "text-positive" : item.status === "bearish" ? "text-negative" : "text-muted-foreground"}>

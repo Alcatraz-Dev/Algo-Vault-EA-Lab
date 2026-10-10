@@ -24,7 +24,7 @@ export default function RiskEngineSection() {
 
  {/* Risk Metrics Cards */}
  <div className="lg:col-span-6 space-y-3 font-numeric text-xs">
- <div className="flex items-center justify-between rounded-xl bg-background/80 p-3.5 border border-border/40">
+ <div className="flex items-center justify-between rounded-lg bg-background/80 p-3.5 border border-border/40">
  <div>
  <div className="font-bold text-foreground">Risk Per Trade</div>
  <div className="text-micro text-muted-foreground">Fixed % allocation per order</div>
@@ -32,7 +32,7 @@ export default function RiskEngineSection() {
  <span className="rounded bg-primary/10 px-2.5 py-1 font-bold text-primary border border-primary/20">1.0% Capital</span>
  </div>
 
- <div className="flex items-center justify-between rounded-xl bg-background/80 p-3.5 border border-border/40">
+ <div className="flex items-center justify-between rounded-lg bg-background/80 p-3.5 border border-border/40">
  <div>
  <div className="font-bold text-foreground">Max Daily Loss Limit</div>
  <div className="text-micro text-muted-foreground">Halts new trades if breached</div>
@@ -40,7 +40,7 @@ export default function RiskEngineSection() {
  <span className="rounded bg-negative/10 px-2.5 py-1 font-bold text-negative border border-negative/20">3.0% Max Daily</span>
  </div>
 
- <div className="flex items-center justify-between rounded-xl bg-background/80 p-3.5 border border-border/40">
+ <div className="flex items-center justify-between rounded-lg bg-background/80 p-3.5 border border-border/40">
  <div>
  <div className="font-bold text-foreground">Max Open Positions</div>
  <div className="text-micro text-muted-foreground">Prevents over-exposure</div>
@@ -48,7 +48,7 @@ export default function RiskEngineSection() {
  <span className="rounded bg-info/10 px-2.5 py-1 font-bold text-info border border-info/20">2 / 5 Active</span>
  </div>
 
- <div className="flex items-center justify-between rounded-xl bg-background/80 p-3.5 border border-border/40">
+ <div className="flex items-center justify-between rounded-lg bg-background/80 p-3.5 border border-border/40">
  <div>
  <div className="font-bold text-foreground">Symbol Exposure Limit</div>
  <div className="text-micro text-muted-foreground">Cap on single symbol lots</div>

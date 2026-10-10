@@ -65,7 +65,7 @@ export default function GrowthMetricsStrip() {
     return (
         <div className="grid gap-3 sm:grid-cols-5">
             {cards.map((c) => (
-                <div key={c.title} className="rounded-xl border border-border bg-muted/30 p-3">
+                <div key={c.title} className="rounded-lg border border-border bg-muted/30 p-3">
                     <div className="flex items-center gap-1.5 text-muted-foreground">
                         <c.icon size={12} />
                         <span className="text-micro uppercase tracking-wide">{c.title}</span>

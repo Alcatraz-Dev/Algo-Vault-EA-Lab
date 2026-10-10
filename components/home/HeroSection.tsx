@@ -72,8 +72,6 @@ export default function HeroSection({
 
  return (
  <section className="relative overflow-hidden pt-10 pb-16 md:pt-16 md:pb-24 border-b border-border/40">
- {/* Background Radial Glow */}
- <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[650px] w-[1100px] -translate-x-1/2 rounded-full bg-gradient-to-tr from-primary/20 via-info/10 to-positive/10 blur-3xl opacity-70" />
  <div className="pointer-events-none absolute inset-0 -z-10 bg-grid-pattern opacity-40" />
 
  <div className="mx-auto max-w-7xl px-6 md:px-8">
@@ -91,7 +89,7 @@ export default function HeroSection({
  <h1 className="mt-5 text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl text-foreground">
  {siteName}
  <br />
- <span className="bg-gradient-to-r from-primary via-info to-positive bg-clip-text text-transparent">
+ <span className="text-primary">
  Build. Backtest. Optimize. Execute.
  </span>
  </h1>
@@ -105,14 +103,14 @@ export default function HeroSection({
  <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
  <Link
  href="/register"
- className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-info px-7 py-3.5 text-sm font-semibold text-white transition hover:opacity-95 active:scale-95"
+ className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 active:scale-[0.99]"
  >
  Explore Platform
  <ArrowRight size={16} />
  </Link>
  <Link
  href="/strategy-lab"
- className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card/60 px-7 py-3.5 text-sm font-semibold transition hover:bg-muted active:scale-95"
+ className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-card/60 px-7 py-3.5 text-sm font-semibold transition hover:bg-muted active:scale-95"
  >
  Open Strategy Lab
  </Link>
@@ -178,7 +176,7 @@ export default function HeroSection({
  <div className="p-5 min-h-[360px]">
  {activeTab === "chart" && (
  <div className="space-y-4 animate-in fade-in-0 duration-200">
- <div className="flex items-center justify-between rounded-xl bg-muted/30 p-3 border border-border/40 text-xs">
+ <div className="flex items-center justify-between rounded-lg bg-muted/30 p-3 border border-border/40 text-xs">
  <div className="flex items-center gap-3">
  <span className="rounded-lg bg-warning/20 px-2 py-1 font-numeric font-bold text-warning">XAUUSD</span>
  <div>
@@ -193,7 +191,7 @@ export default function HeroSection({
  </div>
 
  {/* Animated Visual Price Candles Canvas Representation */}
- <div className="relative h-48 rounded-xl border border-border/40 bg-background/80 p-3 overflow-hidden flex flex-col justify-between">
+ <div className="relative h-48 rounded-lg border border-border/40 bg-background/80 p-3 overflow-hidden flex flex-col justify-between">
 
  {/* Liquidity Zone & VWAP Line Overlay */}
  <div className="absolute inset-x-0 top-1/3 h-8 bg-warning/10 border-y border-warning/20 pointer-events-none flex items-center justify-between px-3 text-micro font-numeric text-warning/80">
@@ -291,7 +289,7 @@ export default function HeroSection({
 
  {activeTab === "ai" && (
  <div className="space-y-3 animate-in fade-in-0 duration-200">
- <div className="flex items-center gap-2.5 rounded-xl bg-primary/10 p-3.5 border border-primary/20 text-xs">
+ <div className="flex items-center gap-2.5 rounded-lg bg-primary/10 p-3.5 border border-primary/20 text-xs">
  <Brain size={20} className="text-primary shrink-0" />
  <div>
  <p className="font-bold text-foreground">AI Intelligence Model (Gemini 3.6)</p>
@@ -300,7 +298,7 @@ export default function HeroSection({
  </p>
  </div>
  </div>
- <div className="rounded-xl border border-border/40 bg-background/80 p-3 text-xs space-y-2">
+ <div className="rounded-lg border border-border/40 bg-background/80 p-3 text-xs space-y-2">
  <div className="flex justify-between font-numeric"><span>AI Confidence Score</span><span className="text-positive font-bold">92 / 100</span></div>
  <div className="flex justify-between font-numeric"><span>Recommended Action</span><span className="text-info font-bold">Execute via MT5 Gateway</span></div>
  </div>
@@ -309,7 +307,7 @@ export default function HeroSection({
 
  {activeTab === "ticket" && (
  <div className="space-y-3 animate-in fade-in-0 duration-200 text-xs">
- <div className="p-3 rounded-xl bg-background/80 border border-border/40 space-y-2 font-numeric">
+ <div className="p-3 rounded-lg bg-background/80 border border-border/40 space-y-2 font-numeric">
  <div className="flex justify-between"><span>Setup ID</span><span className="text-foreground">Gold SMC · M15</span></div>
  <div className="flex justify-between"><span>Order Type</span><span className="text-positive">BUY MARKET</span></div>
  <div className="flex justify-between"><span>Volume</span><span>0.50 Lots</span></div>

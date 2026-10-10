@@ -33,7 +33,7 @@ export default function TelegramPipelineSection() {
  { name: "AlgoVault", desc: "Central Hub", color: "text-primary" },
  { name: "MT5 Gateway", desc: "EA Execution", color: "text-positive" },
  ].map((node, i) => (
- <div key={node.name} className="flex flex-col items-center rounded-xl bg-background/80 p-3 border border-border/40">
+ <div key={node.name} className="flex flex-col items-center rounded-lg bg-background/80 p-3 border border-border/40">
  <span className="text-micro text-muted-foreground font-bold">STEP {i + 1}</span>
  <span className={`font-bold mt-1 ${node.color}`}>{node.name}</span>
  <span className="text-micro text-muted-foreground mt-0.5">{node.desc}</span>
@@ -69,7 +69,7 @@ export default function TelegramPipelineSection() {
  </div>
  </div>
 
- <div className="rounded-xl bg-background/60 p-3 border border-border/40 flex items-center justify-between text-xs font-numeric text-muted-foreground">
+ <div className="rounded-lg bg-background/60 p-3 border border-border/40 flex items-center justify-between text-xs font-numeric text-muted-foreground">
  <span className="flex items-center gap-1.5"><Lock size={13} className="text-primary" /> Telegram Channel Management & MTProto Session storage is strictly ADMIN-ONLY.</span>
  <span className="text-positive font-bold">RBAC Enforced</span>
  </div>

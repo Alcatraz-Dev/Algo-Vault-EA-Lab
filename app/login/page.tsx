@@ -189,13 +189,7 @@ function LoginForm() {
 
     return (
         <main className="min-h-screen bg-background text-foreground">
-            {/* Ambient background, brand-toned like the home hero */}
-            <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                <div className="hero-radial left-1/2 top-[-320px] h-[560px] w-[820px] -translate-x-1/2" />
-                <div className="hero-radial hero-radial-positive bottom-[-260px] right-[-160px] h-[420px] w-[420px]" />
-            </div>
-
-            <div className="relative flex min-h-screen items-center justify-center px-4 py-12">
+            <div className="flex min-h-screen items-center justify-center px-4 py-12">
                 <div className="w-full max-w-md animate-page-enter">
                     {/* Logo */}
                     <div className="mb-8 text-center">
