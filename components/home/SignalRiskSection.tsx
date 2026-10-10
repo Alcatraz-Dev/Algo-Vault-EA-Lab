@@ -118,7 +118,7 @@ export default function SignalRiskSection() {
  <p className="font-numeric text-xs font-semibold uppercase tracking-widest text-primary">
  Execution Pipeline
  </p>
- <h2 className="mt-3 font-display text-4xl font-normal leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-6xl">
+ <h2 className="mt-3 font-sans text-4xl font-normal leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-6xl">
  Signal Lifecycle
  <br />
  <span className="text-primary">&amp; Risk Validation</span>

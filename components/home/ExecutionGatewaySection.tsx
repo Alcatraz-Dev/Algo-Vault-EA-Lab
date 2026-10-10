@@ -71,7 +71,7 @@ export default function ExecutionGatewaySection() {
  <p className="font-numeric text-xs font-semibold uppercase tracking-widest text-primary">
  Execution Infrastructure
  </p>
- <h2 className="mt-3 font-display text-4xl font-normal leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-6xl">
+ <h2 className="mt-3 font-sans text-4xl font-normal leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-6xl">
  The MT5 Gateway
  <br />
  <span className="text-primary">Arms-Length by Design</span>

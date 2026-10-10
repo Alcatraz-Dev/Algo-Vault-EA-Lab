@@ -85,7 +85,7 @@ export default function AIIntelligenceSection() {
             <p className="font-numeric text-xs font-semibold uppercase tracking-widest text-accent">
               Intelligence Stack
             </p>
-            <h2 className="mt-3 font-display text-4xl md:text-5xl lg:text-6xl font-medium leading-[1.05] tracking-tight text-text-primary">
+            <h2 className="mt-3 font-sans text-4xl md:text-5xl lg:text-6xl font-medium leading-[1.05] tracking-tight text-text-primary">
               Deterministic First.
               <br />
               <span className="text-accent">AI Interpreted on Top.</span>
@@ -111,7 +111,7 @@ export default function AIIntelligenceSection() {
           <Card variant="elevated" size="lg">
             <CardHeader>
               <div className="flex items-start gap-3">
-                <Badge variant="success" className="h-9 w-9 shrink-0 flex items-center justify-center rounded-input px-0">
+                <Badge variant="success" className="h-9 w-9 shrink-0 flex items-center justify-center rounded-md px-0">
                   <FunctionSquare size={16} />
                 </Badge>
                 <div>
@@ -128,7 +128,7 @@ export default function AIIntelligenceSection() {
                 {DETERMINISTIC_ENGINES.map((engine) => (
                   <li
                     key={engine.name}
-                    className="flex items-start justify-between gap-4 rounded-input border border-border bg-surface-muted p-3"
+                    className="flex items-start justify-between gap-4 rounded-md border border-border bg-surface-muted p-3"
                   >
                     <span className="text-body-sm font-medium text-text-primary">{engine.name}</span>
                     <span className="max-w-[46%] text-right text-meta leading-relaxed text-text-secondary">
@@ -148,7 +148,7 @@ export default function AIIntelligenceSection() {
           <Card variant="elevated" size="lg">
             <CardHeader>
               <div className="flex items-start gap-3">
-                <Badge variant="warning" className="h-9 w-9 shrink-0 flex items-center justify-center rounded-input px-0">
+                <Badge variant="warning" className="h-9 w-9 shrink-0 flex items-center justify-center rounded-md px-0">
                   <Brain size={16} />
                 </Badge>
                 <div>
@@ -165,7 +165,7 @@ export default function AIIntelligenceSection() {
                 {AI_CAPABILITIES.map((cap) => (
                   <li
                     key={cap.title}
-                    className="rounded-input border border-border bg-surface-muted p-3"
+                    className="rounded-md border border-border bg-surface-muted p-3"
                   >
                     <p className="flex items-center gap-2 text-body-sm font-semibold text-text-primary">
                       <GitBranch size={13} className="text-warning" />
@@ -189,7 +189,7 @@ export default function AIIntelligenceSection() {
         <Card variant="danger" size="lg" className="mt-6">
           <CardHeader>
             <div className="flex items-start gap-3">
-              <Badge variant="destructive" className="h-9 w-9 shrink-0 flex items-center justify-center rounded-input px-0">
+              <Badge variant="destructive" className="h-9 w-9 shrink-0 flex items-center justify-center rounded-md px-0">
                 <EyeOff size={16} />
               </Badge>
               <div>
@@ -204,7 +204,7 @@ export default function AIIntelligenceSection() {
                   key={rule}
                   className="flex items-start gap-2 text-body-sm leading-relaxed text-text-secondary"
                 >
-                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-text-muted/60" />
+                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-muted/60" />
                   {rule}
                 </li>
               ))}

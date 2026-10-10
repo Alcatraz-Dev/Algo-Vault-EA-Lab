@@ -289,3 +289,71 @@ uncommitted edits that are **not** this pass's). Two of those changes are worth 
 2. **A `components/layout/AppShell.tsx` nav-active fix is uncommitted.** It makes the most
    specific nav entry own the active state (e.g. "Tool calls" inside the Candel library).
    It reads as a genuine improvement and was left untouched.
+
+---
+
+## 9. Account-family page pass — 2026-10-10 (third session)
+
+Scope: the **48 `/account/**` routes**, worked page by page. Method: a per-page structural
+diagnostic (shell used, title/subtitle/eyebrow, back navigation, `<h1>` scale), then targeted
+fixes, then verification. Shims (12 of the 48 are ≤25-line redirect/re-export shims, e.g.
+`/account/candels/*`, `/account/dashboard`) were checked and left alone — they are intentional.
+
+### 9.1 Systemic defect found: undefined utility classes (new checker)
+
+A new check was built: extract every `bg-*` / `text-*` / `border-*` / `ring-*` / `animate-*` /
+`font-*` / `rounded-*` … token used in `app/` + `components/`, and test it against the compiled
+CSS (**199 appearance tokens**). Any token absent from the CSS contributes no style at all.
+
+| Location | Undefined tokens | Rendered effect | Fix |
+|---|---|---|---|
+| `app/account/pro-trading-extension/page.tsx` | `border-edge` (15), `text-ink-mute` (12), `bg-base` (7), `text-brand-300` (6), `bg-raised` (6), `text-ink` (5), `text-ink-faint` (4), `bg-ink-faint` (2), `animate-pulse-dot` (2) | A **parallel vocabulary that does not exist**: borders invisible, secondary text inheriting its parent colour, "raised" surfaces with no background | Mapped to `border-border`, `text-muted-foreground`, `bg-muted`, `text-primary`, `text-foreground`, `bg-muted-foreground`, `animate-pulse`. Verified afterwards: **25 bordered elements, 0 transparent borders** |
+| `components/home/site-header.tsx` | `bg-primary-action`, `text-primary-action-foreground`, `hover:bg-primary-action-hover` | The signed-out **"Get Started" CTA in the site header had no background and inherited ink** — effectively invisible to every new visitor | → `bg-primary` / `text-primary-foreground` / `hover:bg-primary/90`. Verified in an incognito tab: `rgb(222,102,28)` fill + `rgb(29,20,6)` ink |
+| `components/admin/AdminShell.tsx` | `bg-sidebar` | The **desktop admin sidebar had no surface**, so all 79 admin routes lost the sidebar/page separation (its own mobile drawer already used `bg-card`) | → `bg-card` |
+| `components/home/*Section.tsx` (dead code) | `rounded-input`, `font-display`, `bg-text-muted` | none (0 references) | → `rounded-md`, `font-sans`, `bg-muted` |
+
+This is the same defect class the first pass recorded as fixed for `bg-brand-500`
+(§1) — a token sweep replaces *known* families but never proves the *result* resolves.
+The compiled-CSS checker is the missing verification and should run after any token sweep.
+
+### 9.2 Raw hex colours
+
+| Location | Before | After |
+|---|---|---|
+| `app/account/live`, `app/account/livemap`, `app/live`, `app/admin/livemap` | decorative blue `text-[#2563eb]` on half the page title | `text-primary` (the sanctioned accent; resolves to `#865812` as text in light theme) |
+| `app/account/settings` (Discord connect) | `border-[#5865F2]/30 … text-[#8b94ff]` | `border-info/30 … text-info` (matches the pass-1 decision to map Discord/Telegram to `bg-info`, which had been applied to the fill but not the border/text) |
+| `components/live/LiveWorldMap.tsx` | `bg-[#f4f7fb]`, `bg-[#071018]`, `bg-[#0b1622]/90`, and a coloured `shadow-xl shadow-black/10` | `bg-background` / `bg-card` / `bg-popover/90`; neutral shadow dropped |
+| `components/tradingview/PineWorkspace.tsx` | `bg-[#030712]` ×2, flow connection line `#6366f1` | `bg-background`; `var(--chart-1)` |
+
+### 9.3 Two `/account` pages rendered outside the account shell
+
+`/account/subscribe` and `/account/live` each rendered their own `<main>` + `<header>` with a
+hand-rolled title, **no sidebar, no topbar** — unlike all 46 sibling pages. Both now render
+through `AccountShell` (title, subtitle, eyebrow, back-to-account, and — for `/account/live` —
+the live-count badge and Refresh moved into `headerActions`). Their duplicated in-page headers
+were removed, so there is exactly one page title.
+
+Verified via the rendered DOM: sidebar `nav[aria-label="Primary"]` present, **exactly 1 `<h1>`**,
+back control present, and the topbar reading
+`SUBSCRIPTION MANAGEMENT · Your Subscription · Manage your plan, billing, and Pro features.`
+(resp. `YOUR ACCOUNT · Live Accounts · Real-time heartbeat monitoring…`).
+
+### 9.4 Remaining, deliberately not "fixed"
+
+- **`animate-in` (13 usages) is inert.** It and `fade-in` / `slide-in-from-top-*` come from
+  `tailwindcss-animate`, which is **not** a dependency and not imported. Those toasts currently
+  appear without their intended entrance animation. Left in place: removing them changes nothing
+  visually, and installing the plugin is a dependency decision, not a design fix.
+- **Known-good tokens confirmed present** and left alone: `font-heading` (defined as
+  `var(--font-geist-sans)`), `bg-surface-muted`, `text-micro`, `font-numeric`.
+
+### 9.5 Verification & limitations
+
+| Check | Result |
+|---|---|
+| `npx tsc --noEmit` | **exit 0** (re-run after the last edit) |
+| Routes | `/account/subscribe`, `/account/live`, `/account/livemap`, `/account/pro-trading-extension`, `/account/settings` → **all 200** |
+| Undefined-token checker | 11 → **5** (only the inert `animate-*` family + 4 SVG attribute false positives) |
+| Rendered DOM checks | shell + single `<h1>` on both converted pages; 0 transparent borders on the Pro page; header CTA ink verified incognito |
+| **Not verified** | The admin sidebar fix is a token change (`bg-sidebar` → `bg-card`) proven by CSS presence and types, **not** rendered — the signed-in session has no admin rights, so `/admin` redirects to `/`. |
+| **Not reviewed** | The remaining `/account` pages were structurally diagnosed (shell/title/back/`h1`) but only the defective ones were changed. Pages such as `/account/settings`, `/account/purchases`, `/account/plugins`, `/account/agents`, `/account/performance-arena/**` were checked, not redesigned. |

@@ -155,7 +155,7 @@ export default function MarketReplaySection() {
  <p className="font-numeric text-xs font-semibold uppercase tracking-widest text-primary">
  Market Replay
  </p>
- <h2 className="mt-3 font-display text-4xl font-normal leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-6xl">
+ <h2 className="mt-3 font-sans text-4xl font-normal leading-[1.05] tracking-tight text-foreground md:text-5xl lg:text-6xl">
  Replay Real History
  <br />
  <span className="text-primary">Bar by Bar</span>

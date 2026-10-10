@@ -49,8 +49,8 @@
   --positive-foreground: #30d697;
   --negative: #ff645f;
   --negative-foreground: #ff645f;
-  --warning: #f2af48;
-  --warning-foreground: #f2af48;
+  --warning: #de661c;
+  --warning-foreground: #de661c;
   --info: #3faff3;
   --info-foreground: #3faff3;
   --success: var(--positive);
@@ -72,7 +72,7 @@
   --chart-2: #3fd0c0; /* teal */
   --chart-3: #b79dff; /* violet */
   --chart-4: #f08fbf; /* pink */
-  --chart-5: #e0a83c; /* amber */
+  --chart-5: #de661c; /* amber */
 }
 
 .light {
@@ -88,7 +88,7 @@
   /* Deeper brand gold for text/links on light surfaces: 5.9:1 on #f9fafb and
      6.1:1 on white — both AA. `--primary` stays the exact #de661c for solid
      fills and borders. See the `html.light .text-primary` override below. */
-  --primary-text: #865812;
+  --primary-text: #de661c;
   --secondary: #eff0f2;
   --secondary-foreground: #1c2024;
   --muted: #eff0f2;
@@ -105,8 +105,8 @@
   --positive-foreground: #00794c;
   --negative: #bb0916;
   --negative-foreground: #bb0916;
-  --warning: #9a5500;
-  --warning-foreground: #9a5500;
+  --warning: #de661c;
+  --warning-foreground: #de661c;
   --info: #0065b4;
   --info-foreground: #0065b4;
   --success: var(--positive);
@@ -116,7 +116,7 @@
   --chart-2: #0c7a6a; /* teal */
   --chart-3: #6d4bd0; /* violet */
   --chart-4: #c2478a; /* pink */
-  --chart-5: #9a6a12; /* amber */
+  --chart-5: #de661c; /* amber */
 }
 
 @theme inline {
