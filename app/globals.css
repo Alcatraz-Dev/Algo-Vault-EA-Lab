@@ -1,4 +1,7 @@
 @import "tailwindcss";
+/* Tailwind v4 replacement for the (v3-only) tailwindcss-animate plugin.
+   Provides the animate-in/animate-out/fade-in/slide-in-from-*/
+@import "tw-animate-css";
 
 :root {
   /* ── Graphite neutral scale (dark-first, cool gray-blue cast — never purple) ──
@@ -437,17 +440,15 @@ body {
   animation-play-state: paused;
 }
 
-.reveal {
-  opacity: 0;
-  transform: translateY(16px);
-  transition:
-    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: opacity, transform;
-}
-.reveal.is-visible {
-  opacity: 1;
-  transform: none;
+/* Entrance reveal, driven by Motion (<Reveal /> in components/home). Motion writes
+   the animated values as inline styles, so honouring prefers-reduced-motion has to
+   beat inline styles — hence !important on the settled state. This keeps the guard
+   out of the render path, so server and client markup stay identical. */
+@media (prefers-reduced-motion: reduce) {
+  [data-motion-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 @keyframes flow-dot {

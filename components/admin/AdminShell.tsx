@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
     HeartPulse,
     Activity,
@@ -47,6 +47,7 @@ import { ref, onValue } from "firebase/database";
 import SiteLogo from "@/components/ui/site-logo";
 import ThemeToggle from "@/components/theme/theme-toggle";
 import { NotificationsMenu } from "@/components/layout/NotificationsMenu";
+import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
@@ -104,10 +105,32 @@ export default function AdminShell({
     onBack?: () => void;
 }) {
     const pathname = usePathname();
+    const router = useRouter();
     const [user, setUser] = useState<FirebaseUser | null>(null);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [siteName, setSiteName] = useState("AlgoVault");
     const [navSearch, setNavSearch] = useState("");
+
+    // Same control language as the account-shell topbar (see AppShell): hairline
+    // chip on the card surface, muted icon that brightens on hover, a bigger
+    // touch target on phones and a visible keyboard focus ring.
+    const controlChip =
+        "h-10 w-10 shrink-0 rounded-full border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 sm:h-9 sm:w-9";
+
+    // Every admin page is a sub-page, so the header always offers a way back: the
+    // caller's explicit destination when given, otherwise real history, with the
+    // admin dashboard as the fallback for deep links opened in a fresh tab.
+    const handleBack = () => {
+        if (onBack) {
+            onBack();
+            return;
+        }
+        if (typeof window !== "undefined" && window.history.length > 1) {
+            router.back();
+            return;
+        }
+        router.push("/admin");
+    };
 
     useEffect(() => {
         const unsub = onAuthStateChanged(auth, (currentUser) => setUser(currentUser));
@@ -255,7 +278,7 @@ export default function AdminShell({
                         <button
                             type="button"
                             onClick={() => setMobileOpen(false)}
-                            className="absolute right-3 top-4 flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground"
+                            className="absolute right-3 top-4 flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground"
                             aria-label="Close navigation menu"
                         >
                             <X size={16} />
@@ -265,44 +288,65 @@ export default function AdminShell({
                 </div>
             )}
 
-            {/* ── Content ── */}
-            <div className="flex flex-1 flex-col overflow-auto">
-                {/* Header */}
-                <header className="flex items-center justify-between border-b border-border bg-background px-4 py-3.5 sm:px-6 md:px-8">
-                    <div className="flex items-center gap-3">
-                        <button
-                            type="button"
-                            onClick={() => setMobileOpen(true)}
-                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground md:hidden"
-                            aria-label="Open navigation menu"
-                        >
-                            <Menu size={17} />
-                        </button>
-                        {onBack ? (
+            {/* ── Content ──
+                 No `overflow-auto` here: an unbounded overflow box never scrolls, but it
+                 still becomes the sticky containing box, which pinned the page header to
+                 a container that moves with the page. The window scrolls instead, exactly
+                 like the account shell (see AppShell). */}
+            <div className="flex flex-1 flex-col">
+                {/* Header — page header: back/menu controls, title block, global actions.
+                    Translucent + blurred instead of a bottom border, so the title stands
+                    on its own (the sticky chrome may blur content passing underneath). */}
+                <header
+                    data-guide="page-header"
+                    className="sticky top-0 z-40 bg-background/85 px-4 py-3 backdrop-blur-xl sm:px-6 sm:py-4 md:px-8"
+                >
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5 lg:flex-nowrap">
+                        <div className="flex shrink-0 items-center gap-1.5">
                             <button
                                 type="button"
-                                onClick={onBack}
-                                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                                aria-label="Go back"
+                                onClick={() => setMobileOpen(true)}
+                                className={cn("md:hidden", controlChip, "flex items-center justify-center")}
+                                aria-label="Open navigation menu"
+                                title="Open navigation menu"
                             >
-                                <ArrowLeft size={17} />
+                                <Menu size={17} />
                             </button>
-                        ) : null}
-                        <div data-guide="page-header">
-                            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                            <button
+                                type="button"
+                                onClick={handleBack}
+                                className={cn(controlChip, "flex items-center justify-center")}
+                                aria-label="Go back"
+                                title="Go back"
+                            >
+                                <ArrowLeft size={16} aria-hidden="true" />
+                            </button>
+                        </div>
+
+                        {/* On small screens the title takes its own full-width row under the
+                            controls, so a long page name never collapses into an ellipsis. */}
+                        <div className="order-last w-full min-w-0 lg:order-none lg:w-auto lg:flex-1">
+                            <p className="mb-1 text-micro font-medium uppercase tracking-wider text-muted-foreground">
                                 Administration
                             </p>
-                            <h1 className="mt-0.5 text-lg font-semibold">{title}</h1>
-                            {subtitle && (
-                                <p className="mt-0.5 hidden text-sm text-muted-foreground sm:block">
+                            <h1 className="truncate text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+                                {title}
+                            </h1>
+                            {subtitle ? (
+                                <p className="mt-1 truncate text-body-sm text-muted-foreground">
                                     {subtitle}
                                 </p>
-                            )}
+                            ) : null}
                         </div>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <NotificationsMenu key={user?.uid ?? "signed-out"} user={user} />
-                        <ThemeToggle />
+
+                        <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
+                            <NotificationsMenu
+                                key={user?.uid ?? "signed-out"}
+                                user={user}
+                                compact
+                            />
+                            <ThemeToggle compact />
+                        </div>
                     </div>
                 </header>
 

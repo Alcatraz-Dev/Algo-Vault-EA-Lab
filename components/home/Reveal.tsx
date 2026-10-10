@@ -1,11 +1,23 @@
 "use client";
 
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode } from "react";
+import { motion } from "motion/react";
 
 /**
  * Fades and lifts its children into view once they enter the viewport.
- * Respects prefers-reduced-motion by rendering visible immediately.
+ *
+ * Previously this was a hand-rolled IntersectionObserver writing the
+ * `.reveal` / `.is-visible` classes by hand. It now uses Motion's `whileInView`,
+ * which is the same effect (opacity 0 → 1 with a 16px lift, 0.7s on
+ * cubic-bezier(0.22, 1, 0.36, 1)) but driven by the library, so it composes with
+ * other Motion features and cleans itself up on unmount.
+ *
+ * Reduced motion is honoured by the `[data-motion-reveal]` rule in globals.css
+ * instead of reading a media query during render, so server and client markup
+ * stay identical and there is no hydration mismatch.
  */
+const EASE = [0.22, 1, 0.36, 1] as const;
+
 export default function Reveal({
     children,
     delay = 0,
@@ -15,41 +27,16 @@ export default function Reveal({
     delay?: number;
     className?: string;
 }) {
-    const ref = useRef<HTMLDivElement>(null);
-    const [visible, setVisible] = useState(false);
-
-    useEffect(() => {
-        const el = ref.current;
-        if (!el) return;
-
-        if (
-            typeof window !== "undefined" &&
-            window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        ) {
-            const raf = requestAnimationFrame(() => setVisible(true));
-            return () => cancelAnimationFrame(raf);
-        }
-
-        const io = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting) {
-                    setVisible(true);
-                    io.disconnect();
-                }
-            },
-            { threshold: 0.12 }
-        );
-        io.observe(el);
-        return () => io.disconnect();
-    }, []);
-
     return (
-        <div
-            ref={ref}
-            className={`reveal ${visible ? "is-visible" : ""} ${className}`}
-            style={delay ? { transitionDelay: `${delay}ms` } : undefined}
+        <motion.div
+            data-motion-reveal=""
+            className={className}
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.12 }}
+            transition={{ duration: 0.7, ease: EASE, delay: delay / 1000 }}
         >
             {children}
-        </div>
+        </motion.div>
     );
 }

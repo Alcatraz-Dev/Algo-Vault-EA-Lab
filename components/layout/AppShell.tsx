@@ -422,7 +422,7 @@ export function AppShell({
   // muted icon that brightens on hover, a bigger touch target on phones and a
   // visible keyboard focus ring (DESIGN §14).
   const controlChip =
-    "h-10 w-10 shrink-0 rounded-button border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 sm:h-9 sm:w-9";
+    "h-10 w-10 shrink-0 rounded-full border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 sm:h-9 sm:w-9";
 
   const headerRight = (
     <div className="flex items-center gap-1.5 sm:gap-2">

@@ -127,7 +127,7 @@ export function NotificationsMenu({ user, compact = false }: NotificationsMenuPr
         aria-expanded={open}
         title={compact ? "Notifications" : undefined}
         className={cn(
-          "rounded-button transition-colors",
+          "rounded-full transition-colors",
           compact
             ? "h-10 w-10 shrink-0 border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground sm:h-9 sm:w-9"
             : "h-9 w-9",
@@ -143,7 +143,7 @@ export function NotificationsMenu({ user, compact = false }: NotificationsMenuPr
       </Button>
 
       {open ? (
-        <div className="absolute right-0 z-50 mt-1.5 w-80 overflow-hidden rounded-card-lg border border-border bg-popover shadow-lg">
+        <div className="absolute left-1/2 z-50 mt-1.5 w-[calc(100vw-2rem)] -translate-x-1/2 overflow-hidden rounded-card-lg border border-border bg-popover shadow-lg sm:left-auto sm:right-0 sm:w-80 sm:translate-x-0">
           <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
             <div className="min-w-0">
               <p className="text-body-sm font-semibold text-foreground">Notifications</p>

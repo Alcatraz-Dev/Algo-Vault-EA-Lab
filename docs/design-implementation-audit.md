@@ -357,3 +357,64 @@ back control present, and the topbar reading
 | Rendered DOM checks | shell + single `<h1>` on both converted pages; 0 transparent borders on the Pro page; header CTA ink verified incognito |
 | **Not verified** | The admin sidebar fix is a token change (`bg-sidebar` → `bg-card`) proven by CSS presence and types, **not** rendered — the signed-in session has no admin rights, so `/admin` redirects to `/`. |
 | **Not reviewed** | The remaining `/account` pages were structurally diagnosed (shell/title/back/`h1`) but only the defective ones were changed. Pages such as `/account/settings`, `/account/purchases`, `/account/plugins`, `/account/agents`, `/account/performance-arena/**` were checked, not redesigned. |
+
+---
+
+## 10. Stale brand colour in the home backtests charts — 2026-10-10 (fourth session)
+
+### 10.1 The defect
+
+`components/home/EvidenceAnalytics.tsx` (the *"Backtests with numbers anyone can check"*
+section) hardcoded the **old** brand gold `#daba6b` in five places: both
+`<linearGradient>` stop pairs (`recordedEquity`, `winRateGradient`) and the equity
+`<Area>` stroke. `globals.css` had since moved `--primary` to **`#de661c`**, so the home
+page's showcase charts rendered in a colour that no longer existed anywhere in the design
+system — the equity curve and the win-rate bars were the last old-gold artifacts on the page.
+
+This is the *same* failure mode as §9.2: a literal that a token sweep can't reach because it
+was written as a hex, not as a utility class.
+
+### 10.2 The fix
+
+All five literals now read `var(--primary)`, matching the pattern
+`app/equity-curve/page.tsx` already used (`stopColor="var(--chart-1)"`), so the charts
+follow the token instead of pinning a stale copy of it.
+
+| File | Change |
+|---|---|
+| `components/home/EvidenceAnalytics.tsx` | `#daba6b` → `var(--primary)` ×5 (2 gradient stop pairs + area stroke); removed two dangling `hover:` classes |
+| `app/layout.tsx` | `mask-icon` colour `#daba6b` → `#de661c` (PWA bookmark icon) |
+| `components/analysis/advanced/AdvancedChart.tsx` | `readPalette()` fallback for `--primary` → `#de661c` |
+
+`grep -rn "daba6b" app components lib` → **0 matches**.
+
+### 10.3 Verification (rendered, not assumed)
+
+Read back from the live DOM on `/`:
+
+| Element | Computed |
+|---|---|
+| `--primary` | `#de661c` |
+| `#recordedEquity` stops ×2 | `rgb(222, 102, 28)` (was old gold) |
+| `#winRateGradient` stops ×2 | `rgb(222, 102, 28)` (was old gold) |
+| Equity area curve stroke | `rgb(222, 102, 28)` |
+| Quality-profile line (drawdown) | `rgb(187, 9, 22)` — `--negative`, still semantically red, untouched |
+| Win-rate bars fill | `url(#winRateGradient)` → the corrected gradient |
+
+`npx tsc --noEmit` → **exit 0**.
+
+### 10.4 Note on semantics
+
+DESIGN.md says `--primary` "is NEVER profit/buy" and that directional series should use
+`--positive`/`--negative`. The home charts now deliberately use the brand accent as a
+**brand-forward marketing** choice (this exact colour was requested), while the one
+directional series (drawdown) stays `--negative`. On a landing-page illustration this reads
+as intentional; on an in-product P&L surface the semantic rule should win instead.
+
+### 10.5 Inert animation utilities (expanded finding)
+
+The §9.4 note that `animate-in` is inert is broader than first recorded. **16 usages across
+10 files** compile to nothing because no animation plugin is installed in this Tailwind v4
+project — including `components/ui/dropdown-menu.tsx` and `components/ui/tooltip.tsx`, which
+means **every Radix dropdown and tooltip in the app currently has no enter/exit animation**.
+Fixes and the researched library options are in §11.

@@ -53,7 +53,7 @@ export default function ThemeToggle({ compact = false }: { compact?: boolean }) 
             className={cn(
                 "inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
                 compact
-                    ? "h-10 w-10 shrink-0 justify-center rounded-button border border-border bg-card hover:bg-muted sm:h-9 sm:w-9"
+                    ? "h-10 w-10 shrink-0 justify-center rounded-full border border-border bg-card hover:bg-muted sm:h-9 sm:w-9"
                     : "h-8 rounded-full border border-border bg-card px-2.5 hover:border-primary/50"
             )}
         >
