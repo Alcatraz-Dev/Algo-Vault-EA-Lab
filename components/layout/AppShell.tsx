@@ -19,6 +19,7 @@ import { auth, database } from "@/lib/firebase";
 import SiteLogo from "@/components/ui/site-logo";
 import ThemeToggle from "@/components/theme/theme-toggle";
 import { NotificationsMenu } from "@/components/layout/NotificationsMenu";
+import { CommandPalette } from "@/components/layout/CommandPalette";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -81,6 +82,7 @@ export function AppShell({
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
   const [siteName, setSiteName] = useState("AlgoVault");
   const accountRef = useRef<HTMLDivElement | null>(null);
   const [internalNavSearch, setInternalNavSearch] = useState("");
@@ -397,6 +399,28 @@ export function AppShell({
   const headerRight = (
     <div className="flex items-center gap-1.5">
       {headerActions}
+      <button
+        type="button"
+        onClick={() => setCommandOpen(true)}
+        aria-label="Open command palette"
+        className="hidden h-9 items-center gap-2 rounded-button border border-border bg-muted/40 px-2.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:inline-flex"
+      >
+        <Search size={14} aria-hidden="true" />
+        <span>Search</span>
+        <kbd className="ml-1 rounded border border-border bg-background px-1 py-0.5 text-micro font-medium">
+          ⌘K
+        </kbd>
+      </button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={() => setCommandOpen(true)}
+        className="md:hidden"
+        aria-label="Open command palette"
+      >
+        <Search size={16} />
+      </Button>
       <NotificationsMenu key={user?.uid ?? "signed-out"} user={user} />
       <ThemeToggle />
       {/* Account menu */}
@@ -575,6 +599,13 @@ export function AppShell({
           {children}
         </main>
       </div>
+
+      <CommandPalette
+        open={commandOpen}
+        onOpenChange={setCommandOpen}
+        groups={navGroups}
+        role={role}
+      />
     </div>
   );
 }

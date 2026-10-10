@@ -244,3 +244,31 @@ One entry per significant change block, with dates, what changed, what was verif
 - Wider app-wide sweeps remain deferred (see `UI-006`).
 
 **Workspace note:** The concurrent OpenCode session committed this workstream's `app/globals.css` (`--primary-text`) + audit edit + the `app/ui-preview-shell` deletion (`UI-006`), and authored `UI-007`. This entry is numbered `UI-008` to avoid collision. `components/subscription/ProGate.tsx` (in the working tree) is the concurrent session's change, not this workstream's.
+
+---
+
+## UI-009 — Phase 6 (slice): AI-signals card redesign + global command palette (2026-10-10)
+
+**What:** Two bounded, display-only deliverables that raise the visual floor on the trading core without touching any data, math, or handler:
+
+1. **`SignalCard` redesign** — the canonical AI-signal card (rendered by the signals feed and the Telegram realtime feed) moved off the five-colour accent set onto the shared semantic scale: BUY→`positive`, SELL→`negative`, strength tiers → positive/info/warning/neutral, Pro/Top chips → `primary` (was `amber`). Removed gradients, glow, `backdrop-blur`, `rounded-2xl`, and micro type (`text-[9/10px]` → `text-micro`); `font-mono` → `font-numeric` on all prices/percentages. `StatusBadge` (the UI-001-repaired shared component) is now used for signal status. **All math, handlers (`onView`/`onFollow`/`onTrade`/`onComplete`), the lot-size calculator, `formatPrice`, `calculateProfitUSD` and the risk-track geometry are unchanged** — the diff is class names only.
+2. **Global command palette (`⌘K` / `Ctrl-K`)** — a new keyboard-first navigation surface built from the existing Base UI dialog primitive + `lucide-react` only (**no new dependency**). Type to filter every sidebar destination, ↑/↓ to move, Enter to open, Esc to dismiss. Wired into `AppShell` with a visible `Search ⌘K` trigger (desktop) and a search icon (mobile). Purely additive: it only performs navigation the sidebar already offers.
+
+**Files changed (presentational only):**
+- `components/signals/SignalCard.tsx` — semantic-token redesign (see above); no logic/copy/data-flow change.
+- `components/layout/CommandPalette.tsx` — **new**; dialog primitive + filter/selection state; list state lives in a child so each open starts clean (no state-syncing effect).
+- `components/layout/AppShell.tsx` — additive: `commandOpen` state, desktop trigger + mobile icon in the topbar, `<CommandPalette>` render.
+- `app/globals.css` — registered `--font-heading: var(--font-geist-sans)` in `@theme inline`; `card.tsx`/`dialog.tsx` referenced an undefined `font-heading` class, which this fixes globally.
+
+**Verified:**
+- `npx tsc --noEmit`: exit 0.
+- `npx eslint components/layout/CommandPalette.tsx components/layout/AppShell.tsx components/signals/SignalCard.tsx`: **0 errors**.
+- `npx next build`: **exit 0** (all routes prerender; built into an isolated `distDir` so the running dev server was untouched).
+- Live (`/signals`, dev server): palette opens on `⌘K`; **57 destinations across 9 groups**; `aria-activedescendant` tracks the active option; filter/arrow/Enter/Escape behaviour confirmed in the prior pass; the temporary `data-command-open` debug attribute is removed and absent in the DOM.
+
+**Remaining limitation:**
+- No pixel-screenshot review (no image tooling in this environment); verified via DOM/computed styles.
+- Note: the wider Phase 6 mechanical sweeps (micro type ≈1,400, raw colour families ≈5,900, `rounded-2xl` ≈796, `font-mono` ≈1,234) remain deferred as bounded follow-ups (see `UI-006`); this slice only covers the two surfaces above.
+- `app/signals/page.tsx` (63) and `app/signals/history/page.tsx` (70) still carry raw-colour/micro-type drift around the redesigned card; a bounded follow-up can extend the same pass to the signals pages/feed.
+
+**Workspace note:** all four files are **uncommitted** in the working tree (`components/layout/CommandPalette.tsx` untracked). Entry numbered `UI-009` after the latest committed entry (`UI-008`).

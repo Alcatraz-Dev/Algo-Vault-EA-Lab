@@ -1,28 +1,36 @@
 @import "tailwindcss";
 
 :root {
-  --background: #111111;
-  --foreground: #f9f9f9;
-  --card: #181818;
-  --card-foreground: #f9f9f9;
-  --popover: #1f1f1f;
-  --popover-foreground: #f9f9f9;
-  --primary: #ff4d00;
-  /* Dark ink on the vivid orange: 5.3:1 (AA) vs the 3.33:1 white previously. */
-  --primary-foreground: #1a1204;
-  /* Text/link orange. On dark it is the exact brand orange (passes AA on #111). */
-  --primary-text: #ff4d00;
-  --secondary: #232323;
-  --secondary-foreground: #f9f9f9;
-  --muted: #232323;
-  --muted-foreground: #a3a3a3;
-  --accent: #232323;
-  --accent-foreground: #f9f9f9;
-  --destructive: #f85149;
-  --destructive-foreground: #f85149;
-  --border: #383838;
-  --input: #444444;
-  --ring: #ff4d00;
+  /* ── Graphite neutral scale (dark-first, cool gray-blue cast — never purple) ──
+     Matches DESIGN.md `oklch(0.155 0.005 255)`. Structure comes from surface
+     tone + hairline borders, not shadow or glow. */
+  --background: #0b0c0e;
+  --foreground: #f4f5f6;
+  --card: #111315; /* one step above the page */
+  --card-foreground: #f4f5f6;
+  --popover: #15171a;
+  --popover-foreground: #f4f5f6;
+  --secondary: #1c1e21;
+  --secondary-foreground: #f4f5f6;
+  --muted: #1c1e21;
+  --muted-foreground: #9a9fa6;
+  --accent: #1c1e21;
+  --accent-foreground: #f4f5f6;
+
+  /* ── Vault gold — the single restrained brand accent ──
+     #daba6b is the exact accent for solid fills, borders, active states, the
+     brand mark and selected interface elements. It is NEVER profit/buy.
+     Fills carry near-black ink (--primary-foreground) at 9.7:1 (AAA).
+     As text on graphite it is 10.4:1 (AAA). */
+  --primary: #daba6b;
+  --primary-foreground: #1d1406;
+  --primary-text: #daba6b;
+
+  --destructive: #ff6369;
+  --destructive-foreground: #ff6369;
+  --border: #2b2e32;
+  --input: #35383c;
+  --ring: #daba6b;
 
   --radius: 0.5rem;
 
@@ -30,18 +38,21 @@
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-emphasized: cubic-bezier(0.32, 0.72, 0, 1);
 
-  /* Semantic colors. Verified >= 4.5:1 as text on --background, --card and
-     --muted (WCAG AA). The `-foreground` tokens are the legible text color for
-     the matching low-opacity tint (e.g. bg-positive/10 text-positive-foreground).
-     For solid semantic fills use `text-background` (adaptive ink) instead. */
-  --positive: #3fb950;
-  --positive-foreground: #3fb950;
-  --negative: #f85149;
-  --negative-foreground: #f85149;
-  --warning: #ff922b;
-  --warning-foreground: #ff922b;
-  --info: #58a6ff;
-  --info-foreground: #58a6ff;
+  /* Fixed semantic trading colors — never swapped per page. Verified >= 4.5:1
+     as text on --background, --card and --muted (WCAG AA). The `-foreground`
+     tokens are the legible text color for the matching low-opacity tint
+     (e.g. bg-positive/10 text-positive-foreground). For solid semantic fills
+     use `text-background` (adaptive ink) instead.
+     positive/profit/buy/long = emerald · negative/loss/sell/short = red ·
+     warning/risk = amber · info = sky · destructive = red. */
+  --positive: #30d697;
+  --positive-foreground: #30d697;
+  --negative: #ff645f;
+  --negative-foreground: #ff645f;
+  --warning: #f2af48;
+  --warning-foreground: #f2af48;
+  --info: #3faff3;
+  --info-foreground: #3faff3;
   --success: var(--positive);
   --success-foreground: var(--positive-foreground);
 
@@ -60,38 +71,39 @@
 }
 
 .light {
-  --background: #f9f9f9;
-  --foreground: #262626;
+  --background: #f9fafb;
+  --foreground: #1c2024;
   --card: #ffffff;
-  --card-foreground: #262626;
+  --card-foreground: #1c2024;
   --popover: #ffffff;
-  --popover-foreground: #262626;
-  --primary: #ff4d00;
-  --primary-foreground: #1a1204;
-  /* Deeper brand orange for text/links on light surfaces: 4.9:1 on #f9f9f9,
-     5.2:1 on white, 4.6:1 on the 10%-primary tint — all AA. `--primary`
-     stays the exact #ff4d00 for solid fills and borders. */
-  --primary-text: #c2410c;
-  --secondary: #f1f1f1;
-  --secondary-foreground: #262626;
-  --muted: #f1f1f1;
-  --muted-foreground: #6b6b6b;
-  --accent: #f1f1f1;
-  --accent-foreground: #262626;
-  --destructive: #991b1b;
-  --destructive-foreground: #991b1b;
-  --border: #e5e7eb;
-  --input: #c7c7c7;
-  --ring: #ff4d00;
+  --popover-foreground: #1c2024;
+  /* Solid gold fill stays the exact accent; near-black ink sits on top (9.7:1). */
+  --primary: #daba6b;
+  --primary-foreground: #1d1406;
+  /* Deeper brand gold for text/links on light surfaces: 5.9:1 on #f9fafb and
+     6.1:1 on white — both AA. `--primary` stays the exact #daba6b for solid
+     fills and borders. See the `html.light .text-primary` override below. */
+  --primary-text: #865812;
+  --secondary: #eff0f2;
+  --secondary-foreground: #1c2024;
+  --muted: #eff0f2;
+  --muted-foreground: #5f646a;
+  --accent: #eff0f2;
+  --accent-foreground: #1c2024;
+  --destructive: #c1121f;
+  --destructive-foreground: #c1121f;
+  --border: #dbdee2;
+  --input: #c4c8cd;
+  --ring: #daba6b;
 
-  --positive: #166534;
-  --positive-foreground: #166534;
-  --negative: #991b1b;
-  --negative-foreground: #991b1b;
-  --warning: #9a3412;
-  --warning-foreground: #9a3412;
-  --info: #1d4ed8;
-  --info-foreground: #1d4ed8;
+  --positive: #00794c;
+  --positive-foreground: #00794c;
+  --negative: #bb0916;
+  --negative-foreground: #bb0916;
+  --warning: #9a5500;
+  --warning-foreground: #9a5500;
+  --info: #0065b4;
+  --info-foreground: #0065b4;
   --success: var(--positive);
   --success-foreground: var(--positive-foreground);
 }
@@ -140,6 +152,7 @@
   --color-chart-5: var(--chart-5);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-geist-sans);
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 2px);
@@ -227,63 +240,6 @@
   display: none;
 }
 
-/* ── Gemini-inspired Gradient System ── */
-:root {
-  --gemini-gradient: linear-gradient(
-    135deg,
-    #ff4d00 0%,
-    #ff8c42 25%,
-    #ff6b6b 50%,
-    #e85d04 75%,
-    #ff4d00 100%
-  );
-  --gemini-gradient-alt: linear-gradient(
-    135deg,
-    #00d4aa 0%,
-    #00b4d8 35%,
-    #0077b6 65%,
-    #003049 100%
-  );
-  --gemini-glow: radial-gradient(
-    ellipse at center,
-    color-mix(in oklch, var(--primary) 25%, transparent) 0%,
-    transparent 70%
-  );
-  --gemini-glow-cyan: radial-gradient(
-    ellipse at center,
-    color-mix(in oklch, #00d4aa 25%, transparent) 0%,
-    transparent 70%
-  );
-}
-
-.light {
-  --gemini-gradient: linear-gradient(
-    135deg,
-    #ff4d00 0%,
-    #ff8c42 25%,
-    #ff6b6b 50%,
-    #e85d04 75%,
-    #ff4d00 100%
-  );
-  --gemini-gradient-alt: linear-gradient(
-    135deg,
-    #00b4d8 0%,
-    #0096c7 35%,
-    #0077b6 65%,
-    #003049 100%
-  );
-  --gemini-glow: radial-gradient(
-    ellipse at center,
-    color-mix(in oklch, var(--primary) 20%, transparent) 0%,
-    transparent 70%
-  );
-  --gemini-glow-cyan: radial-gradient(
-    ellipse at center,
-    color-mix(in oklch, #00b4d8 20%, transparent) 0%,
-    transparent 70%
-  );
-}
-
 /* ── Glassmorphism / Frosted Glass ── */
 .glass {
   background: rgba(24, 24, 24, 0.7);
@@ -318,90 +274,11 @@
 }
 
 /* ── Iridescent Light Trail / Flow Animation ── */
-@keyframes flow-trail {
-  0% { 
-    stroke-dashoffset: 0; 
-    opacity: 0; 
-  }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { 
-    stroke-dashoffset: -120; 
-    opacity: 0; 
-  }
-}
-
-@keyframes flow-pulse {
-  0%, 100% { 
-    stroke-opacity: 0.3; 
-    filter: drop-shadow(0 0 4px currentColor);
-  }
-  50% { 
-    stroke-opacity: 1; 
-    filter: drop-shadow(0 0 12px currentColor) drop-shadow(0 0 24px currentColor);
-  }
-}
-
-@keyframes node-pulse {
-  0%, 100% { 
-    transform: translate(-50%, -50%) scale(0.8); 
-    opacity: 0.4;
-    box-shadow: 0 0 8px currentColor;
-  }
-  50% { 
-    transform: translate(-50%, -50%) scale(1.4); 
-    opacity: 1;
-    box-shadow: 0 0 24px currentColor, 0 0 48px currentColor;
-  }
-}
-
-@keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
 @keyframes shimmer-sweep {
   0% { transform: translateX(-100%) skewX(-15deg); opacity: 0; }
   20% { opacity: 1; }
   80% { opacity: 1; }
   100% { transform: translateX(200%) skewX(-15deg); opacity: 0; }
-}
-
-@keyframes card-glow {
-  0%, 100% { 
-    box-shadow: 
-      0 0 0 1px rgba(255, 255, 255, 0.06),
-      0 4px 24px -4px rgba(0, 0, 0, 0.4);
-  }
-  50% { 
-    box-shadow: 
-      0 0 0 1px color-mix(in oklch, var(--primary) 40%, transparent),
-      0 8px 48px -8px color-mix(in oklch, var(--primary) 30%, transparent),
-      0 0 60px -12px color-mix(in oklch, var(--primary) 20%, transparent);
-  }
-}
-
-.flow-trail {
-  stroke-dasharray: 8 16;
-  animation: flow-trail 3s linear infinite;
-}
-
-.flow-pulse {
-  animation: flow-pulse 2s ease-in-out infinite;
-}
-
-.pipeline-node {
-  animation: node-pulse 2.5s ease-in-out infinite;
-}
-
-.gradient-text {
-  background: var(--gemini-gradient);
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: gradient-shift 4s ease-in-out infinite;
 }
 
 .shimmer-overlay::before {
@@ -420,227 +297,14 @@
   border-radius: inherit;
 }
 
-.card-glow:hover {
-  animation: card-glow 3s ease-in-out infinite;
-}
-
-/* ── Pipeline Connector ── */
-.pipeline-connector {
-  position: relative;
-  overflow: visible;
-}
-
-.pipeline-connector::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    color-mix(in oklch, var(--primary) 30%, transparent) 20%,
-    var(--primary) 50%,
-    color-mix(in oklch, var(--primary) 30%, transparent) 80%,
-    transparent 100%
-  );
-  transform: translateY(-50%);
-  opacity: 0.4;
-}
-
-.pipeline-connector .flow-path {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-
-/* ── Stage Card Orbit Ring (Gemini-style) ── */
-@keyframes orbit-spin {
-  to { transform: rotate(360deg); }
-}
-
-.stage-orbit {
-  position: relative;
-}
-
-.stage-orbit::before {
-  content: '';
-  position: absolute;
-  inset: -6px;
-  border-radius: 16px;
-  border: 1.5px solid transparent;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    color-mix(in oklch, var(--primary) 60%, transparent) 90deg,
-    transparent 180deg,
-    color-mix(in oklch, #00d4aa 50%, transparent) 270deg,
-    transparent 360deg
-  ) border-box;
-  -webkit-mask: 
-    linear-gradient(#000 0 0) padding-box, 
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: 
-    linear-gradient(#000 0 0) padding-box, 
-    linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  opacity: 0;
-  animation: orbit-spin 4s linear infinite;
-  transition: opacity 0.3s ease;
-}
-
-.stage-card:hover .stage-orbit::before {
-  opacity: 0.8;
-  animation-duration: 1.5s;
-}
-
-.stage-orbit-dot {
-  position: absolute;
-  top: -4px;
-  left: 50%;
-  width: 6px;
-  height: 6px;
-  margin-left: -3px;
-  border-radius: 9999px;
-  background: var(--primary);
-  box-shadow: 0 0 12px var(--primary);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.stage-card:hover .stage-orbit-dot {
-  opacity: 1;
-}
-
-/* ── Integration Web ── */
-.integration-web {
-  position: relative;
-}
-
-.integration-web::before {
-  content: '';
-  position: absolute;
-  inset: -40px;
-  background: 
-    radial-gradient(circle at 20% 20%, color-mix(in oklch, var(--primary) 8%, transparent) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, color-mix(in oklch, #00d4aa 8%, transparent) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, color-mix(in oklch, var(--primary) 4%, transparent) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: -1;
-}
-
-.integration-node {
-  position: relative;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.integration-node:hover {
-  transform: scale(1.08) translateY(-4px);
-  z-index: 10;
-}
-
-.integration-node::after {
-  content: '';
-  position: absolute;
-  inset: -8px;
-  border-radius: 16px;
-  background: var(--gemini-gradient);
-  opacity: 0;
-  filter: blur(12px);
-  transition: opacity 0.3s ease;
-  z-index: -1;
-}
-
-.integration-node:hover::after {
-  opacity: 0.3;
-}
-
-.integration-connection {
-  position: absolute;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    color-mix(in oklch, var(--primary) 40%, transparent),
-    transparent
-  );
-  opacity: 0.3;
-  pointer-events: none;
-}
-
-.integration-connection.active {
-  animation: flow-trail 2s linear infinite;
-  background: var(--gemini-gradient);
-  opacity: 0.8;
-}
-
-/* ── Utility Classes ── */
-.text-gradient {
-  background: var(--gemini-gradient);
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: gradient-shift 4s ease-in-out infinite;
-}
-
-.text-gradient-cyan {
-  background: var(--gemini-gradient-alt);
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: gradient-shift 4s ease-in-out infinite;
-}
-
-.bg-glass {
-  background: rgba(24, 24, 24, 0.7);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-}
-
-.bg-glass-strong {
-  background: rgba(24, 24, 24, 0.85);
-  backdrop-filter: blur(30px) saturate(200%);
-  -webkit-backdrop-filter: blur(30px) saturate(200%);
-}
-
-.border-glass {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.glow-primary {
-  box-shadow: 
-    0 0 20px -4px color-mix(in oklch, var(--primary) 40%, transparent),
-    0 0 40px -8px color-mix(in oklch, var(--primary) 20%, transparent);
-}
-
-.glow-cyan {
-  box-shadow: 
-    0 0 20px -4px color-mix(in oklch, #00d4aa 40%, transparent),
-    0 0 40px -8px color-mix(in oklch, #00d4aa 20%, transparent);
-}
+/* Decorative gradient / glow / glass / pipeline-orbit helpers (Gemini
+   gradients, integration web, stage orbit) were removed with the
+   Institutional Command redesign. Structure comes from tone + hairline
+   borders; the only blur allowed is on overlays/drawers above content. */
 
 @media (prefers-reduced-motion: reduce) {
-  .flow-trail,
-  .flow-pulse,
   .animate-core-ping,
-  .pipeline-node,
-  .stage-orbit::before,
-  .shimmer-overlay::before,
-  .card-glow,
-  .integration-connection.active {
-    animation: none !important;
-  }
-  .gradient-text,
-  .text-gradient,
-  .text-gradient-cyan {
+  .shimmer-overlay::before {
     animation: none !important;
   }
 }
@@ -1154,10 +818,11 @@ body {
 }
 
 /* ── Light-theme primary text ──
-   `--primary` (#ff4d00) is kept exact for solid fills/borders, where white or
-   dark ink sits on top. As *text* on a light surface it only reaches ~3.3:1, so
-   in the light theme `text-primary` resolves to the deeper, AA-passing
-   `--primary-text` (#c2410c). Unlayered, so it wins over the Tailwind utility.
+   `--primary` (#daba6b) is kept exact for solid fills/borders, where
+   near-black ink sits on top (9.7:1). As *text* on a light surface the light
+   gold only reaches ~1.5:1, so in the light theme `text-primary` resolves to
+   the deeper, AA-passing `--primary-text` (#865812, 5.9:1 on #f9fafb).
+   Unlayered, so it wins over the Tailwind utility.
    Note: this covers the base `.text-primary` class only — state/opacity variants
    (`hover:text-primary`, `text-primary/70`) and other `text-primary-*` tokens
    are intentionally untouched. */

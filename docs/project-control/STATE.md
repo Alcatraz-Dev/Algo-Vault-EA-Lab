@@ -68,6 +68,8 @@ This file records what exists today, in one place. It is updated after every sig
 | SEC-001 | 2026-10-10 | Application-layer security suite (B-009/B-010): `tests/security/route-auth-negative.test.ts` (25 checks, exit 0), `tests/security/firebase-admin-stub.ts` (in-memory Auth + RTDB seam), `scripts/jiti-tsrun.mjs` alias, `package.json` `test:security`. Full gate: 25 checks pass; `tsc` 0; `next build` 478/478 green. |
 | BR-000c | 2026-10-10 | Verified candels workspace repair; full gate green. |
 | UI-001..UI-006 | 2026-10-10 | Phases 2/3/4/5a/5b/6 design-system slices, tokens, shared shell components, Pro terminal token pass, marketplace premium discovery, account surfaces, light-theme primary-text AA. |
+| UI-007..UI-008 | 2026-10-10 | Phase 6 slices: ProGate radii; live marketing surfaces (ReplaySection/GatewaySection/pricing/home shell) premium pass + dead-code finding. Committed as `a8e2981`. |
+| UI-009 | 2026-10-10 | Phase 6 slice: `SignalCard` semantic-token redesign + new ⌘K `CommandPalette` wired into `AppShell`; registered missing `--font-heading` token. Verified `tsc` 0 / per-file eslint 0 / `next build` 0. **Uncommitted.** |
 
 ## Pending work
 
