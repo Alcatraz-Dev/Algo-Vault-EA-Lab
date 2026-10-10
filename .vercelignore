@@ -1,0 +1,14 @@
+# Vercel's CLI excludes .git, .next, node_modules and .env.local by default, but it
+# does NOT honour .gitignore rules. The entries below are local-only artifacts
+# (gitignored in .gitignore) that would otherwise be uploaded with the deployment.
+#
+# Measured effect: with these excluded a CLI deploy uploads ~77 MB / ~2.7k files
+# instead of ~936 MB / ~28.7k files (.worktrees alone is ~858 MB).
+.worktrees/
+.next-build/
+marketing-video/
+graphify-out/
+.freebuff/
+.agents/
+.kilo/
+.impeccable/

@@ -30,7 +30,7 @@
     },
     {
       "path": "/api/growth/cron/optimization",
-      "schedule": "0 7 * * 7"
+      "schedule": "0 7 * * 0"
     },
     {
       "path": "/api/growth/cron/marketing-agent",
