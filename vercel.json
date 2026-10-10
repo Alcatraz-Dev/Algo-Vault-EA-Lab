@@ -2,15 +2,15 @@
   "crons": [
     {
       "path": "/api/signals/auto-update",
-      "schedule": "*/2 * * * *"
+      "schedule": "0 4 * * *"
     },
     {
       "path": "/api/pro-signals/auto-update",
-      "schedule": "*/2 * * * *"
+      "schedule": "0 5 * * *"
     },
     {
       "path": "/api/plugins/runtime/tick",
-      "schedule": "* * * * *"
+      "schedule": "0 3 * * *"
     },
     {
       "path": "/api/growth/cron/reports",
@@ -34,7 +34,7 @@
     },
     {
       "path": "/api/growth/cron/marketing-agent",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 10 * * *"
     }
   ]
 }
