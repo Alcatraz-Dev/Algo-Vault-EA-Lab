@@ -7,6 +7,7 @@ import {
   deleteCandelWorkspacePage,
   getCandelInstance,
   getCandelInstancesByUser,
+  ensureDefaultCandelTemplates,
 } from "@/lib/candel/workspace/database";
 import { requireCandelOwner, requireCandelReadable } from "@/lib/candel/authorization";
 import type { CandelPage } from "@/lib/candel/types";

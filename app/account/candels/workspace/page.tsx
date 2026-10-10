@@ -5,20 +5,24 @@ import AccountShell from "@/components/account/AccountShell";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+interface CandelInstanceResponse {
+  success: boolean;
+  instances: Array<{ id: string; name: string; role: string; status: string }>;
+}
+
 export default function CandelWorkspace() {
   const router = useRouter();
-  const [candels, setCandels] = useState<any[]>([]);
-  const [selectedCandel, setSelectedCandel] = useState(null);
+  const [candels, setCandels] = useState<CandelInstanceResponse["instances"]>([]);
+  const [selectedCandel, setSelectedCandel] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchCandels();
-  }, []);
 
   async function fetchCandels() {
     try {
       const res = await fetch("/api/candel/candel");
-      const data: { success: boolean; instances: any[] } = await res.json();
+      if (!res.ok) {
+        throw new Error(`Failed to load Candels: ${res.status}`);
+      }
+      const data: CandelInstanceResponse = await res.json();
       if (data.success) {
         setCandels(data.instances);
         if (data.instances.length > 0) {
@@ -31,6 +35,12 @@ export default function CandelWorkspace() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    (async () => {
+      await fetchCandels();
+    })();
+  }, []);
 
   async function createCandel(name: string, templateId: string) {
     try {
