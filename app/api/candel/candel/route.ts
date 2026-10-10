@@ -5,6 +5,7 @@ import {
   getCandelInstance,
   getCandelInstancesByUser,
   saveCandelInstance,
+  updateCandelInstance,
   deleteCandelInstance,
   saveCandelActivity,
 } from "@/lib/candel/workspace/database";
@@ -41,10 +42,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "'name' and 'templateId' are required" }, { status: 400 });
     }
 
-    const instance = {
+    // Execution/trading access is never granted at creation time — it must be
+    // configured explicitly (permissions + account bindings) afterwards.
+    const instance: CandelInstance = {
       id: crypto.randomUUID(),
       templateId,
       userId: token.uid,
+      createdBy: token.uid,
       name,
       displayName: name,
       description: instructions || "",
@@ -76,7 +80,56 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE /api/candel/candel/[candelId] — archive Candel
+// PATCH /api/candel/candel — rename / pause / resume a Candel
+export async function PATCH(request: NextRequest) {
+  try {
+    const token = await authenticate(request);
+    if (!token) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+
+    const { searchParams } = new URL(request.url);
+    const candelId = searchParams.get("candelId");
+    if (!candelId) return NextResponse.json({ success: false, error: "candelId required" }, { status: 400 });
+
+    await requireCandelOwner(candelId, token.uid);
+
+    const body = await request.json();
+    const patch: Record<string, unknown> = {};
+    if (typeof body.name === "string" && body.name.trim()) {
+      patch.name = body.name.trim();
+      patch.displayName = body.name.trim();
+    }
+    if (typeof body.description === "string") patch.description = body.description;
+    if (["active", "paused", "disabled", "archived"].includes(body.status)) {
+      patch.status = body.status;
+    }
+    if (Object.keys(patch).length === 0) {
+      return NextResponse.json({ success: false, error: "Nothing to update" }, { status: 400 });
+    }
+
+    const instance = await updateCandelInstance(candelId, patch);
+    if (!instance) {
+      return NextResponse.json({ success: false, error: "Candel not found" }, { status: 404 });
+    }
+
+    await saveCandelActivity({
+      id: crypto.randomUUID(),
+      candelId,
+      userId: token.uid,
+      action: "update" as CandelActionType,
+      targetType: "candel",
+      targetId: candelId,
+      details: patch,
+      timestamp: Date.now(),
+    });
+
+    return NextResponse.json({ success: true, instance });
+  } catch (error) {
+    console.error("[candel/candel PATCH]", error);
+    return NextResponse.json({ success: false, error: "Failed to update Candel" }, { status: 500 });
+  }
+}
+
+// DELETE /api/candel/candel?candelId=... — archive a Candel (soft delete)
 export async function DELETE(request: NextRequest) {
   try {
     const token = await authenticate(request);
@@ -87,23 +140,30 @@ export async function DELETE(request: NextRequest) {
     if (!candelId) return NextResponse.json({ success: false, error: "candelId required" }, { status: 400 });
 
     await requireCandelOwner(candelId, token.uid);
-    await getCandelInstance(candelId);
+    const existing = await getCandelInstance(candelId);
+    if (!existing) {
+      return NextResponse.json({ success: false, error: "Candel not found" }, { status: 404 });
+    }
 
-    const activity: CandelActivity = {
+    await updateCandelInstance(candelId, { status: "archived" });
+
+    await saveCandelActivity({
       id: crypto.randomUUID(),
       candelId,
       userId: token.uid,
       action: "delete" as CandelActionType,
       targetType: "candel",
       targetId: candelId,
-      details: {},
+      details: {
+        mode: "archive",
+        previousStatus: existing.status,
+      },
       timestamp: Date.now(),
-    };
-    await saveCandelActivity(activity);
+    });
 
     return NextResponse.json({ success: true, archived: true });
   } catch (error) {
-    console.error("[candel/candel/[candelId] DELETE]", error);
+    console.error("[candel/candel DELETE]", error);
     return NextResponse.json({ success: false, error: "Failed to archive Candel" }, { status: 500 });
   }
 }

@@ -13,6 +13,7 @@ import {
   saveCandelConversation,
   saveCandelActivity,
   getCandelAccountBindings,
+  ensureDefaultCandelTemplates,
 } from "@/lib/candel/workspace/database";
 import { isAdmin } from "@/lib/candel/authorization";
 import type { CandelActivity, CandelActionType, CandelProposal, CandelToolCall, CandelConversation, CandelInstance, CandelTemplate, AccountBinding, CandelPermissions, CandelJob, CandelMemoryEntry, CandelApprovalRequest, CandelAutomation, AccountContext } from "@/lib/candel/types";
@@ -23,10 +24,9 @@ export async function GET(request: NextRequest) {
     const token = await authenticate(request);
     if (!token) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
+    await ensureDefaultCandelTemplates();
     const templates = await getAllCandelTemplates();
-    const personal = token.uid !== "admin"
-      ? await getCandelInstancesByUser(token.uid)
-      : [];
+    const personal = await getCandelInstancesByUser(token.uid);
 
     return NextResponse.json({
       success: true,
@@ -57,7 +57,9 @@ export async function POST(request: NextRequest) {
       id: crypto.randomUUID(),
       templateId,
       userId: token.uid,
+      createdBy: token.uid,
       name,
+      displayName: name,
       description: instructions || "",
       status: status || "active",
       accountBindings: [],

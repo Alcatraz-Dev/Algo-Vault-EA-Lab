@@ -6,11 +6,14 @@ import {
   saveCandelConversation,
   deleteCandelConversation,
   saveCandelActivity,
+  getCandelMessages,
+  saveCandelMessage,
 } from "@/lib/candel/workspace/database";
+import type { CandelMessage } from "@/lib/candel/types";
 import { requireCandelOwner, requireCandelReadable } from "@/lib/candel/authorization";
 import type { CandelActivity, CandelActionType, CandelConversation } from "@/lib/candel/types";
 
-// GET /api/candel/candel/conversation/[candelId] — list conversations
+// GET /api/candel/candel/conversation/[candelId] — list conversations (optionally with messages)
 export async function GET(request: NextRequest) {
   try {
     const token = await authenticate(request);
@@ -19,8 +22,22 @@ export async function GET(request: NextRequest) {
     const candelId = searchParams.get("candelId");
     if (!candelId) return NextResponse.json({ success: false, error: "candelId required" }, { status: 400 });
     await requireCandelReadable(candelId, token.uid);
+    const includeMessages = searchParams.get("includeMessages") === "true";
     const conversations = await getCandelConversations(candelId, token.uid);
-    return NextResponse.json({ success: true, conversations });
+    if (!includeMessages) {
+      return NextResponse.json({ success: true, conversations });
+    }
+    const messages = await getCandelMessages(candelId, token.uid);
+    const messagesByConv: Record<string, CandelMessage[]> = {};
+    for (const m of messages) {
+      if (!messagesByConv[m.conversationId]) messagesByConv[m.conversationId] = [];
+      messagesByConv[m.conversationId].push(m);
+    }
+    return NextResponse.json({
+      success: true,
+      conversations,
+      messagesByConversation: messagesByConv,
+    });
   } catch (error) {
     console.error("[candel/conversation GET]", error);
     return NextResponse.json({ success: false, error: "Failed to load conversations" }, { status: 500 });
@@ -42,13 +59,29 @@ export async function POST(request: NextRequest) {
       id: crypto.randomUUID(),
       candelId,
       userId: token.uid,
-      title: initialMessage ? initialMessage.slice(0, 120) : "General Candel",
+      title: initialMessage ? initialMessage.slice(0, 120) : "New conversation",
       status: "active",
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
     await saveCandelConversation(conversation);
-    const activity: CandelActivity = {
+
+    // If the caller supplied an initial message, persist it and prepare context
+    if (initialMessage) {
+      const userMsg: CandelMessage = {
+        id: crypto.randomUUID(),
+        candelId,
+        conversationId: conversation.id,
+        userId: token.uid,
+        role: "user",
+        content: initialMessage,
+        status: "delivered",
+        createdAt: Date.now(),
+      };
+      await saveCandelMessage(userMsg);
+    }
+
+    await saveCandelActivity({
       id: crypto.randomUUID(),
       candelId,
       userId: token.uid,
@@ -57,7 +90,7 @@ export async function POST(request: NextRequest) {
       targetId: conversation.id,
       details: { conversationId: conversation.id },
       timestamp: Date.now(),
-    };
+    });
     return NextResponse.json({ success: true, conversation }, { status: 201 });
   } catch (error) {
     console.error("[candel/conversation POST]", error);
@@ -75,37 +108,76 @@ export async function POST_message(request: NextRequest) {
     if (!candelId || !content) return NextResponse.json({ success: false, error: "candelId and content required" }, { status: 400 });
     await requireCandelOwner(candelId, token.uid);
 
-    const conversation = conversationId
-      ? await getCandelConversations(candelId, token.uid).then(list => list.find(c => c.id === conversationId))
-      : null;
+    const conversations = await getCandelConversations(candelId, token.uid);
+    let conversation = conversationId
+      ? conversations.find((c) => c.id === conversationId)
+      : conversations[conversations.length - 1] || null;
 
     if (!conversation) {
-      return NextResponse.json({ success: false, error: "Conversation not found" }, { status: 404 });
+      conversation = {
+        id: crypto.randomUUID(),
+        candelId,
+        userId: token.uid,
+        title: content.slice(0, 120) || "New conversation",
+        status: "active",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+      await saveCandelConversation(conversation);
     }
+
+    const userMsg: CandelMessage = {
+      id: crypto.randomUUID(),
+      candelId,
+      conversationId: conversation.id,
+      userId: token.uid,
+      role: "user",
+      content,
+      status: "delivered",
+      createdAt: Date.now(),
+    };
+    await saveCandelMessage(userMsg);
 
     const { runCandelAgent } = await import("@/lib/candel/dot/adapter");
     const adapter = await runCandelAgent(token.uid, candelId);
     if (!adapter) {
-      return NextResponse.json({ success: true, status: "no_adapter", content: "Candel agent not found for this instance." });
+      return NextResponse.json({
+        success: true,
+        status: "no_adapter",
+        response: "Candel agent not found for this instance. Set up permissions or select a valid template.",
+      });
     }
     const response = await adapter.handleMessage(content);
 
-    const activity: CandelActivity = {
+    const candelMsg: CandelMessage = {
+      id: crypto.randomUUID(),
+      candelId,
+      conversationId: conversation.id,
+      userId: token.uid,
+      role: "candel",
+      content: response,
+      status: "delivered",
+      createdAt: Date.now(),
+    };
+    await saveCandelMessage(candelMsg);
+
+    await saveCandelActivity({
       id: crypto.randomUUID(),
       candelId,
       userId: token.uid,
       action: "message_sent" as CandelActionType,
       targetType: "message",
-      targetId: content,
-      details: { responseLength: response.length },
+      targetId: userMsg.id,
+      details: { responseLength: response.length, conversationId: conversation.id },
       timestamp: Date.now(),
-    };
-    await saveCandelActivity(activity);
+    });
 
     return NextResponse.json({
       success: true,
       status: "completed",
       response,
+      conversation,
+      messages: [userMsg, candelMsg],
     });
   } catch (error) {
     console.error("[candel/conversation/message POST]", error);

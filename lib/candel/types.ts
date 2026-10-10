@@ -289,10 +289,13 @@ export interface CandelInstance {
   templateId: TemplateId;
   userId: string;
   name: string;
+  displayName?: string;
   description: string;
-  status: "active" | "paused" | "disabled";
+  status: "active" | "paused" | "disabled" | "archived";
   accountBindings: AccountBinding[];
   createdByAdmin: boolean;
+  /** Server-derived owner uid. Mirrors `userId`; kept for RTDB rules + legacy rows. */
+  createdBy?: string;
   createdAt: number;
   updatedAt: number;
 }

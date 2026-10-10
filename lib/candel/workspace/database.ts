@@ -14,6 +14,7 @@ import type {
   CandelPage,
   CandelMemoryEntry,
   CandelConversation,
+  CandelMessage,
   CandelActivity,
   CandelApprovalRequest,
   CandelJob,
@@ -24,6 +25,7 @@ import type {
   CandelProposal,
   CandelAccountContext,
 } from "../types";
+import { DEFAULT_CANDEL_TEMPLATES } from "../templates/defaults";
 
 // ─── Deep-clean for RTDB (undefined → null; arrays sanitized) ─────────────
 function deepClean(value: unknown): unknown {
@@ -59,6 +61,32 @@ export async function saveCandelTemplate(template: CandelTemplate): Promise<void
     ...template,
     updatedAt: Date.now(),
   });
+}
+
+/**
+ * Seed the product-defined template catalog on first use.
+ * Idempotent: only writes templates whose id is missing.
+ * Returns true when at least one template was created.
+ */
+export async function ensureDefaultCandelTemplates(): Promise<boolean> {
+  const snap = await adminDatabase.ref("candelTemplates").get();
+  const existing = snap.exists()
+    ? (snap.val() as Record<string, CandelTemplate>)
+    : {};
+  const now = Date.now();
+  let created = false;
+  for (const t of DEFAULT_CANDEL_TEMPLATES) {
+    if (existing[t.id]) continue;
+    const template: CandelTemplate = {
+      ...t,
+      createdAt: now,
+      updatedAt: now,
+      createdBy: "system",
+    };
+    await adminDatabase.ref(`candelTemplates/${template.id}`).set(deepClean(template));
+    created = true;
+  }
+  return created;
 }
 
 export async function deleteCandelTemplate(id: string, userId: string): Promise<void> {
@@ -98,11 +126,30 @@ export async function saveCandelInstance(instance: CandelInstance): Promise<void
   await adminDatabase.ref(`candel/${instance.id}`).set(deepClean(instance));
 }
 
+export async function updateCandelInstance(
+  id: string,
+  patch: Partial<CandelInstance>
+): Promise<CandelInstance | null> {
+  const snap = await adminDatabase.ref(`candel/${id}`).get();
+  if (!snap.exists()) return null;
+  const current = snap.val() as CandelInstance;
+  const next: CandelInstance = {
+    ...current,
+    ...patch,
+    id: current.id,
+    userId: current.userId,
+    updatedAt: Date.now(),
+  };
+  await adminDatabase.ref(`candel/${id}`).set(deepClean(next));
+  return next;
+}
+
 export async function deleteCandelInstance(id: string, userId: string): Promise<void> {
   const snap = await adminDatabase.ref(`candel/${id}`).get();
   if (!snap.exists()) throw new Error("Candel not found.");
-  const data = snap.val() as { createdBy?: string };
-  if (data.createdBy !== userId && !isAdmin(userId)) {
+  const data = snap.val() as { userId?: string; createdBy?: string };
+  const owner = data.userId || data.createdBy;
+  if (owner !== userId && !(await isAdmin(userId))) {
     throw new Error("Candel deletion denied.");
   }
   await adminDatabase.ref(`candel/${id}`).remove();
@@ -186,6 +233,53 @@ export async function saveCandelConversation(conv: CandelConversation): Promise<
 export async function deleteCandelConversation(convId: string, userId: string, candelId: string): Promise<void> {
   await adminDatabase
     .ref(`candelConversations/${userId}/${candelId}/${convId}`)
+    .remove();
+  // Messages live under the conversation — remove them with it.
+  await adminDatabase
+    .ref(`candelMessages/${userId}/${candelId}/${convId}`)
+    .remove()
+    .catch(() => {
+      // best-effort cleanup
+    });
+}
+
+// ─── Conversation messages ──────────────────────────────────────────────────
+
+export async function getCandelMessages(
+  candelId: string,
+  userId: string,
+  conversationId?: string
+): Promise<CandelMessage[]> {
+  const snap = await adminDatabase
+    .ref(`candelMessages/${userId}/${candelId}`)
+    .get();
+  if (!snap.exists()) return [];
+  const val = snap.val() as Record<string, Record<string, CandelMessage>>;
+  const out: CandelMessage[] = [];
+  for (const [convId, messages] of Object.entries(val)) {
+    if (conversationId && convId !== conversationId) continue;
+    out.push(...Object.values(messages ?? {}));
+  }
+  out.sort((a, b) => (a.createdAt ?? 0) - (b.createdAt ?? 0));
+  return out;
+}
+
+export async function saveCandelMessage(message: CandelMessage): Promise<void> {
+  await adminDatabase
+    .ref(
+      `candelMessages/${message.userId}/${message.candelId}/${message.conversationId}/${message.id}`
+    )
+    .set(deepClean(message));
+}
+
+export async function deleteCandelMessage(
+  messageId: string,
+  conversationId: string,
+  candelId: string,
+  userId: string
+): Promise<void> {
+  await adminDatabase
+    .ref(`candelMessages/${userId}/${candelId}/${conversationId}/${messageId}`)
     .remove();
 }
 

@@ -35,7 +35,10 @@ function assertServerSide(): void {
 export async function resolveCandelOwner(candelId: string): Promise<string | null> {
   const snap = await adminDatabase.ref(`candel/${candelId}`).get();
   if (!snap.exists()) return null;
-  return (snap.val().createdBy as string) || null;
+  const data = snap.val() as { userId?: string; createdBy?: string };
+  // Instances are owned by `userId` (server-derived on create). `createdBy` is
+  // kept for legacy/admin-created rows and RTDB rule compatibility.
+  return data.userId || data.createdBy || null;
 }
 
 export async function requireCandelOwner(candelId: string, requestedUserId: string): Promise<void> {
@@ -50,8 +53,9 @@ export async function requireCandelReadable(candelId: string, userId: string): P
   assertServerSide();
   const snap = await adminDatabase.ref(`candel/${candelId}`).get();
   if (!snap.exists()) throw new Error("Candel not found.");
-  const data = snap.val() as { createdBy?: string };
-  if (data.createdBy !== userId && !isAdmin(userId)) {
+  const data = snap.val() as { userId?: string; createdBy?: string };
+  const owner = data.userId || data.createdBy;
+  if (owner !== userId && !(await isAdmin(userId))) {
     throw new Error("Candel access denied.");
   }
 }
@@ -307,7 +311,11 @@ export async function requireAdminOrCandelOwner(
 ): Promise<void> {
   assertServerSide();
   const owner = await resolveCandelOwner(candelId);
-  if (!owner || !isAdmin(userId) || owner !== userId) {
+  if (!owner) {
+    throw new Error("Candel not found.");
+  }
+  const admin = await isAdmin(userId);
+  if (!admin && owner !== userId) {
     throw new Error("Admin or Candel owner access required.");
   }
 }

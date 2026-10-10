@@ -275,7 +275,7 @@ export function isLayerOn(
 }
 
 /** Execution timeframes offered in the terminal toolbar. */
-export const TERMINAL_TIMEFRAMES: Timeframe[] = ["M1", "M5", "M15", "M30", "H1"];
+export const TERMINAL_TIMEFRAMES: Timeframe[] = ["M1", "M5", "M15", "M30", "H1", "H4"];
 
 /** Timeframe → lightweight-charts interval used by the chart fetcher. */
 export const TIMEFRAME_TO_INTERVAL: Record<Timeframe, string> = {

@@ -6,6 +6,7 @@ import {
   saveCandelTemplate,
   getCandelTemplate,
   deleteCandelTemplate,
+  ensureDefaultCandelTemplates,
 } from "@/lib/candel/workspace/database";
 import { isAdmin } from "@/lib/candel/authorization";
 import type { CandelTemplate } from "@/lib/candel/types";
@@ -16,16 +17,15 @@ export async function GET(request: NextRequest) {
     const token = await authenticate(request);
     if (!token) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
+    await ensureDefaultCandelTemplates();
+
     const { searchParams } = new URL(request.url);
     const all = searchParams.get("all") === "true";
 
-    let templates: CandelTemplate[];
-    if (all) {
-      templates = await getAllCandelTemplates();
-    } else {
-      templates = await getAllCandelTemplates();
-      templates = templates.filter((t: CandelTemplate) =>
-        t.status === "active" || t.status === "draft"
+    let templates = await getAllCandelTemplates();
+    if (!all) {
+      templates = templates.filter(
+        (t: CandelTemplate) => t.status === "active" || t.status === "draft"
       );
     }
 

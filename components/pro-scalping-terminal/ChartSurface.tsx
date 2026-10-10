@@ -94,6 +94,16 @@ export type ChartSurfaceProps = {
      * viewport authority (`ViewportController.handleResize()`).
      */
     onResize: (size: { w: number; h: number }) => void;
+    /**
+     * Fired once the instance exists, and again with `null` on teardown.
+     *
+     * The caller uses this instead of reading `chartRef.current` from its own
+     * mount effect: the surface is the *only* owner of the instance lifecycle,
+     * so this is the single deterministic signal that series / renderers /
+     * viewport wiring may run. Without it the caller would depend on child-before-parent
+     * effect ordering to ever see a chart.
+     */
+    onReady?: (chart: IChartApi | null) => void;
 };
 
 export function ChartSurface({
@@ -104,6 +114,7 @@ export function ChartSurface({
     chartRef,
     containerRef,
     onResize,
+    onReady,
 }: ChartSurfaceProps) {
     // Latest-handler mirror so the observer below subscribes once while still
     // calling the current callback (no re-subscription churn per render).
@@ -111,6 +122,13 @@ export function ChartSurface({
     useEffect(() => {
         onResizeRef.current = onResize;
     }, [onResize]);
+
+    // Same mirror for the readiness signal, so the creation effect can stay
+    // dependency-free without capturing a stale callback.
+    const onReadyRef = useRef(onReady);
+    useEffect(() => {
+        onReadyRef.current = onReady;
+    }, [onReady]);
 
     // Created once, at mount (`useRef`'s initial value), so the chart instance
     // can never be rebuilt by a later settings/theme change.
@@ -186,11 +204,13 @@ export function ChartSurface({
         }
 
         chartRef.current = chart;
+        onReadyRef.current?.(chart);
 
         return () => {
             // The surface owns the instance lifecycle: clear the caller's
             // accessor and remove the chart exactly once.
             chartRef.current = null;
+            onReadyRef.current?.(null);
             chart.remove();
         };
         // Creation-once by design — see the block comment above.
