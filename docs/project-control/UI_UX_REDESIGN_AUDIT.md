@@ -117,6 +117,15 @@ Complete for the premium-SaaS scope (`UI-004`, `UI-005`):
 - **Account**: purchases/licenses onto semantic status tokens; **Auth**: login/register notices to AA positive tokens.
 - Untouched by rule: Stripe/licensing/entitlement logic, Candel data flow, chart engine. Admin tables remain a tracked follow-up (operational, no fake data added).
 
-## Phase 5 — Marketplace / Candel / Account / Admin
+## Phase 6 — Consistency + verification
 
-See `UI-004`.
+Started (`UI-006`): closed the light-theme `text-primary` contrast failure (`#ff4d00` ≈3.3:1 → new `--primary-text` `#c2410c`, 4.56–5.18:1 AA) without a 129-file sweep, via one unlayered `html.light .text-primary` override. Dark theme unchanged.
+
+Remaining, deliberately deferred as bounded follow-ups (large mechanical sweeps; not landed while a concurrent session is committing the tree):
+- Micro type: `text-[9px]` (193) and `text-[10px]` (~1,228) → `text-micro` (11px floor).
+- Raw colour families (~5,900) → semantic tokens.
+- `rounded-2xl`/`rounded-3xl` (796/31) on app surfaces → `rounded-lg`/`rounded-md`.
+- `font-mono` on UI numerics (1,234) → `font-numeric`.
+- `backdrop-blur-*` (247) and `shadow-2xl` on cards (43) cleanup.
+- Page-body `data-guide="page-header"` dedupe (~60 marketing pages).
+- `glass`/`glow`/`gemini-*` helper removal — NOT fully dead (2/7/11 live TSX usages); needs per-usage review first.

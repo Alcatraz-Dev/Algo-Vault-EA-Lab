@@ -10,6 +10,8 @@
   --primary: #ff4d00;
   /* Dark ink on the vivid orange: 5.3:1 (AA) vs the 3.33:1 white previously. */
   --primary-foreground: #1a1204;
+  /* Text/link orange. On dark it is the exact brand orange (passes AA on #111). */
+  --primary-text: #ff4d00;
   --secondary: #232323;
   --secondary-foreground: #f9f9f9;
   --muted: #232323;
@@ -66,6 +68,10 @@
   --popover-foreground: #262626;
   --primary: #ff4d00;
   --primary-foreground: #1a1204;
+  /* Deeper brand orange for text/links on light surfaces: 4.9:1 on #f9f9f9,
+     5.2:1 on white, 4.6:1 on the 10%-primary tint — all AA. `--primary`
+     stays the exact #ff4d00 for solid fills and borders. */
+  --primary-text: #c2410c;
   --secondary: #f1f1f1;
   --secondary-foreground: #262626;
   --muted: #f1f1f1;
@@ -99,6 +105,7 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-text: var(--primary-text);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -1144,6 +1151,18 @@ body {
 :focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
+}
+
+/* ── Light-theme primary text ──
+   `--primary` (#ff4d00) is kept exact for solid fills/borders, where white or
+   dark ink sits on top. As *text* on a light surface it only reaches ~3.3:1, so
+   in the light theme `text-primary` resolves to the deeper, AA-passing
+   `--primary-text` (#c2410c). Unlayered, so it wins over the Tailwind utility.
+   Note: this covers the base `.text-primary` class only — state/opacity variants
+   (`hover:text-primary`, `text-primary/70`) and other `text-primary-*` tokens
+   are intentionally untouched. */
+html.light .text-primary {
+  color: var(--primary-text);
 }
 
 /* ── Selection ── */

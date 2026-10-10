@@ -202,3 +202,28 @@ One entry per significant change block, with dates, what changed, what was verif
 - The suite drives the guards directly rather than through `route.ts` handlers; the 150+ route inventory in `AUTHORIZATION_MATRIX.md` remains a static audit.
 - Firebase rules are still statically audited only; emulator/deploy evidence is unchanged (§7 BLOCKED).
 - `tests/security/probe2.mjs` remains as an untracked scratch probe superseded by the suite (its `adminAuth.verifyIdToken = …` reassignment cannot work on an ESM binding). Left in place rather than deleted unilaterally.
+
+---
+
+## UI-006 — Phase 6 (slice): light-theme primary *text* contrast (AA) (2026-10-10)
+
+**What:** Closed the deferred light-theme contrast failure from UI-001 — `text-primary` (`#ff4d00`) reached only ~3.3:1 on light surfaces. Split the brand colour into two roles: `--primary` stays the exact `#ff4d00` for solid fills, borders and rings (identity preserved), while a new `--primary-text` token supplies the text/link colour. In the light theme `text-primary` now resolves to `#c2410c` (a deeper, brand-faithful orange); in the dark theme it is unchanged (`#ff4d00`).
+
+**Approach (bounded, no 129-file sweep):** rather than renaming ~360 `text-primary` call sites across 129 files (large, conflict-prone diff while a concurrent session is committing), the fix is a single unlayered rule — `html.light .text-primary { color: var(--primary-text); }` — which wins over the layered Tailwind utility and fixes every base `.text-primary` usage at once.
+
+**Files changed:**
+- `app/globals.css` — `--primary-text` in `:root` (`#ff4d00`) and `.light` (`#c2410c`); registered `--color-primary-text` in `@theme inline`; added the `html.light .text-primary` override with rationale.
+
+**Verified (DOM/computed styles, live dev server):**
+- Dark: `.text-primary` computes `rgb(255, 77, 0)` (unchanged); `--primary-text` = `#ff4d00`.
+- Light: `.text-primary` computes `rgb(194, 65, 12)` (`#c2410c`); `--primary-text` = `#c2410c`.
+- `#c2410c` contrast: **5.18** on white, **4.92** on `#f9f9f9`, **4.58** on `#f1f1f1`, **4.56** on the 10%-primary tint — all AA (was 3.33).
+- Homepage: 63 live `.text-primary` elements now corrected in light theme; console 0 warnings/errors.
+- `npx next build`: see the build log for this session (CSS-only change; no TS touched).
+
+**Remaining limitation:**
+- The override covers the base `.text-primary` class only. State/opacity variants (`hover:text-primary`, `group-hover:text-primary`, `text-primary/70`) and other `text-primary-*` tokens are intentionally untouched; a future bounded sweep can convert those to `text-primary-text` directly if needed.
+- No pixel-screenshot review (no image tooling); verified via computed styles.
+- The wider Phase 6 consistency sweeps (`text-[9/10px]` ≈1,400, raw colour families ≈5,900, `rounded-2xl` ≈796, `font-mono` ≈1,234) remain deferred as bounded follow-ups — too large to land safely alongside the concurrent session. `glass`/`glow`/`gemini-*` helpers are NOT fully dead (glass 2, glow 7, gemini 11 TSX usages), so removal is unsafe without per-usage review.
+
+**Workspace note:** commit `078933c` (another OpenCode session, `git add -A`) swept the whole tree, including this workstream's Phase 2/3 edits *and* an untracked QA route `app/ui-preview-shell/page.tsx`. That route has been deleted in the working tree (pending commit) and should not be restored.
