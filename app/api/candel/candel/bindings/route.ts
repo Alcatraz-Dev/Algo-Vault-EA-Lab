@@ -42,14 +42,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "accountId and accountRef required" }, { status: 400 });
     }
 
+    const ctx = Array.isArray(allowedContexts) && allowedContexts.length > 0 ? allowedContexts : ["read"];
     const binding: AccountBinding = {
       tradingAccountId: accountId,
-      allowedSymbols: [accountRef],
-      allowedContexts: allowedContexts || ["read"],
+      allowedSymbols: accountRef ? [accountRef] : [],
+      allowedContexts: ctx as AccountBinding["allowedContexts"],
       permissions: {
         workspace: { readPages: true, createPages: true, editPages: true, saveResearch: true },
         market: { readMarketData: true, analyzeChart: true, scanSymbols: false, createWatchlists: false, createAlerts: true },
-        tradingAccount: { readAccount: true, readPositions: true, readOrders: true, readPerformance: true, readRisk: true },
+        tradingAccount: {
+          readAccount: ctx.includes("read") || ctx.includes("read_risk") || ctx.includes("read_positions"),
+          readPositions: ctx.includes("read_positions"),
+          readOrders: ctx.includes("read_orders"),
+          readPerformance: ctx.includes("read_performance"),
+          readRisk: ctx.includes("read_risk") || ctx.includes("read"),
+        },
         execution: { createOrder: false, modifyOrder: false, closePosition: false, cancelOrder: false },
         external: { tradingviewMcp: false, telegram: false, discord: false },
         approvalRequirements: { createOrder: false, modifyOrder: false, closePosition: false, cancelOrder: false, tradeJournalWrite: false },
@@ -79,8 +86,9 @@ export async function DELETE(request: NextRequest) {
     if (!candelId) return NextResponse.json({ success: false, error: "candelId required" }, { status: 400 });
 
     await requireCandelOwner(candelId, token.uid);
+    if (!accountId) return NextResponse.json({ success: false, error: "accountId required" }, { status: 400 });
 
-    await deleteCandelAccountBinding(candelId, accountId || "", token.uid);
+    await deleteCandelAccountBinding(candelId, token.uid, accountId);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[candel/bindings DELETE]", error);

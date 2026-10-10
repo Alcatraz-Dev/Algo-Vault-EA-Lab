@@ -2,23 +2,40 @@
 "use client";
 
 import AccountShell from "@/components/account/AccountShell";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+
+interface CandelSummary {
+  id: string;
+  name: string;
+  role?: string;
+  status: string;
+}
+
+interface CandelListResponse {
+  success: boolean;
+  instances: CandelSummary[];
+  error?: string;
+}
 
 export default function CandelIndex() {
   const router = useRouter();
-  const [candels, setCandels] = useState<any[]>([]);
+  const [candels, setCandels] = useState<CandelSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchCandels();
-  }, []);
-
-  async function fetchCandels() {
+  const fetchCandels = useCallback(async () => {
     try {
-      const res = await fetch("/api/candel/candel");
-      const data: { success: boolean; instances: any[] } = await res.json();
-      if (data.success) {
+      // Candel API routes require a verified Firebase ID token.
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) return;
+      const res = await fetch("/api/candel/candel", {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      const data: CandelListResponse = await res.json();
+      if (res.ok && data.success) {
         setCandels(data.instances);
       }
     } catch (e) {
@@ -26,13 +43,34 @@ export default function CandelIndex() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  // Wait for Firebase to restore the session before fetching — an immediate
+  // call on mount races auth restoration and returns 401.
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      void fetchCandels();
+    });
+    return () => unsubscribe();
+  }, [fetchCandels]);
 
   async function createCandel(name: string, templateId: string) {
     try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) {
+        alert("Your session has expired. Please sign in again.");
+        return;
+      }
       const res = await fetch("/api/candel/candel", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ name, templateId }),
       });
       const data = await res.json();

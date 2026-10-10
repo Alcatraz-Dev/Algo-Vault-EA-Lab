@@ -41,6 +41,7 @@
       }
     },
     "candel": {
+      ".indexOn": ["userId"],
       "$candelId": {
         ".read": "auth != null && (auth.uid === $candelId || root.child('candel').child($candelId).child('createdBy').val() === auth.uid || auth.token.admin === true)",
         ".write": "auth != null && root.child('candel').child($candelId).child('createdBy').val() === auth.uid"
