@@ -443,7 +443,7 @@ export default function TradeManagementPage() {
                 <Shield size={40} className="text-muted-foreground" />
                 <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
                 <p className="text-sm text-muted-foreground">Sign in to manage your open trades.</p>
-                <Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-primary transition">Sign In</Link>
+                <Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Sign In</Link>
             </div>
         );
     }
@@ -473,7 +473,7 @@ export default function TradeManagementPage() {
                         <button type="button" onClick={() => void fetchData()} className="flex items-center gap-1.5 rounded-lg border border-border/40 bg-muted/30 px-3 py-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition">
                             <RefreshCw size={13} className={cn(refreshing && "animate-spin")} /> Refresh
                         </button>
-                        <button type="button" onClick={() => { setShowCreate(true); setStep(1); }} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-primary transition shadow-lg ">
+                        <button type="button" onClick={() => { setShowCreate(true); setStep(1); }} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition shadow-lg ">
                             <Plus size={13} /> Manage Trade
                         </button>
                     </div>
@@ -506,7 +506,7 @@ export default function TradeManagementPage() {
                         <Target size={32} className="mx-auto text-muted-foreground" />
                         <p className="mt-3 text-sm font-medium text-foreground">No managed trades</p>
                         <p className="mt-1 text-xs text-muted-foreground">Add an open position to start scaling out with automatic targets.</p>
-                        <button type="button" onClick={() => { setShowCreate(true); setStep(1); }} className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-foreground hover:bg-primary transition">
+                        <button type="button" onClick={() => { setShowCreate(true); setStep(1); }} className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition">
                             <Plus size={13} /> Manage your first trade
                         </button>
                     </div>
@@ -766,7 +766,7 @@ export default function TradeManagementPage() {
                         </p>
                         <div className="mt-5 flex gap-2">
                             <button type="button" onClick={() => setConfirmClose(null)} className="flex-1 rounded-lg border border-border/40 bg-muted/20 px-4 py-2.5 text-xs font-medium text-foreground hover:bg-muted/40 transition">Cancel</button>
-                            <button type="button" onClick={() => void handleCloseAtMarket()} disabled={busyTrade === confirmClose.tradeId} className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-negative px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-negative transition disabled:opacity-50">
+                            <button type="button" onClick={() => void handleCloseAtMarket()} disabled={busyTrade === confirmClose.tradeId} className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-negative px-4 py-2.5 text-xs font-semibold text-negative-foreground hover:bg-negative transition disabled:opacity-50">
                                 {busyTrade === confirmClose.tradeId && <Loader2 size={12} className="animate-spin" />} Close position
                             </button>
                         </div>
@@ -895,7 +895,7 @@ function StepFooter({ backLabel, onBack, nextLabel, onNext, nextDisabled, hint, 
                     type="button"
                     onClick={onNext}
                     disabled={nextDisabled || busy}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-foreground transition hover:bg-primary disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     {busy && <Loader2 size={12} className="animate-spin" />}
                     {nextLabel}

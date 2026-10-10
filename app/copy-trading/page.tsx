@@ -432,7 +432,7 @@ export default function CopyTradingPage() {
                             onClick={() => {
                                 if (masterAccounts.length > 0) openSetupModal(masterAccounts[0]);
                             }}
-                            className="flex shrink-0 items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-foreground transition hover:bg-primary"
+                            className="flex shrink-0 items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition hover:bg-primary/90"
                         >
                             <Plus size={16} />
                             Add Follower
@@ -694,7 +694,7 @@ export default function CopyTradingPage() {
                                             onClick={() => openSetupModal(master)}
                                             className={`mt-4 w-full flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-bold transition ${alreadyFollowing
                                                 ? "border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
-                                                : "bg-primary text-foreground hover:from-primary hover:to-info"}`}
+                                                : "bg-primary text-foreground "}`}
                                         >
                                             {alreadyFollowing ? (
                                                 <>
@@ -1022,7 +1022,7 @@ export default function CopyTradingPage() {
                                 type="button"
                                 onClick={saveFollowerConfig}
                                 disabled={savingSetup}
-                                className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-bold text-foreground transition hover:from-primary hover:to-info disabled:opacity-50"
+                                className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-bold text-primary-foreground transition disabled:opacity-50"
                             >
                                 {savingSetup ? (
                                     <>

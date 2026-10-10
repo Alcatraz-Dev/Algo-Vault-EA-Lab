@@ -23,16 +23,14 @@ export function ToolBadge({
         return (
             <span
                 className={cn(
-                    "inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 font-bold uppercase tracking-wider text-primary",
-                    size === "sm"
-                        ? "px-1.5 py-0.5 text-micro"
-                        : "px-2 py-1 text-xs",
+                    "inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 font-bold uppercase tracking-wider text-primary px-1 py-0 text-[9px] leading-none",
+                    size === "md" ? "px-1.5 py-0 text-[9px]" : "",
                     className,
                 )}
                 aria-label="Pro feature"
             >
-                <Crown className="size-2.5" />
-                Pro
+                <Crown className="size-2.5 shrink-0" />
+                <span className="px-0.5">Pro</span>
             </span>
         );
     }
@@ -41,15 +39,13 @@ export function ToolBadge({
         return (
             <span
                 className={cn(
-                  "inline-flex items-center gap-1 rounded-full border border-border bg-muted font-semibold uppercase tracking-wider text-muted-foreground",
-                    size === "sm"
-                        ? "px-1.5 py-0.5 text-micro"
-                        : "px-2 py-1 text-xs",
+                  "inline-flex items-center gap-1 rounded-full border border-border bg-muted font-semibold uppercase tracking-wider text-muted-foreground px-1 py-0 text-[9px] leading-none",
+                    size === "md" ? "px-1.5 py-0 text-[9px]" : "",
                     className,
                 )}
                 aria-label="Free / Lite feature"
             >
-                Lite
+                <span className="px-0.5">Lite</span>
             </span>
         );
     }
@@ -57,15 +53,13 @@ export function ToolBadge({
     return (
         <span
             className={cn(
-              "inline-flex items-center gap-1 rounded-full border border-border bg-muted font-semibold uppercase tracking-wider text-muted-foreground",
-                size === "sm"
-                    ? "px-1.5 py-0.5 text-micro"
-                    : "px-2 py-1 text-xs",
+              "inline-flex items-center gap-1 rounded-full border border-border bg-muted font-semibold uppercase tracking-wider text-muted-foreground px-1 py-0 text-[9px] leading-none",
+                size === "md" ? "px-1.5 py-0.5 text-[11px]" : "",
                 className,
             )}
         >
-            <Sparkles className="size-2.5" />
-            Free
+            <Sparkles className="size-2.5 shrink-0" />
+            <span className="px-0.5">Free</span>
         </span>
     );
 }

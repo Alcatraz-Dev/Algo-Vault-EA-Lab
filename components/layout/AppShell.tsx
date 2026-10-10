@@ -190,7 +190,7 @@ export function AppShell({
   const renderChip = (item: NavItem) => {
     if (item.pro) {
       return (
-        <span className="ml-auto inline-flex h-3 shrink-0 items-center rounded-md border border-primary/30 bg-primary/10 px-1 text-micro font-bold uppercase leading-none tracking-wide text-foreground">
+        <span className="ml-auto inline-flex h-2.5 shrink-0 items-center rounded-md border border-primary/30 bg-primary/10 px-0.5 text-[8px] font-bold uppercase leading-none tracking-wide text-foreground">
           Pro
         </span>
       );
@@ -205,7 +205,7 @@ export function AppShell({
     return (
       <span
         className={cn(
-          "ml-auto inline-flex h-3 shrink-0 items-center rounded-md border px-1 text-micro font-bold uppercase leading-none tracking-wide",
+          "ml-auto inline-flex h-2.5 shrink-0 items-center rounded-md border px-0.5 text-[8px] font-bold uppercase leading-none tracking-wide",
           tone
         )}
       >

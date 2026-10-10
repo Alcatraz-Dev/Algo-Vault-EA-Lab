@@ -62,10 +62,12 @@ export function CandelCard({
             role="presentation"
           >
             <DropdownMenu>
-              <DropdownMenuTrigger>
-                <Button type="button" variant="ghost" size="icon-sm" aria-label="Candel actions">
-                  <Settings2 />
-                </Button>
+              <DropdownMenuTrigger
+                render={
+                  <Button type="button" variant="ghost" size="icon-sm" aria-label="Candel actions" />
+                }
+              >
+                <Settings2 />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onSelect={() => onOpen(instance.id)}>

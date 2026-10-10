@@ -75,7 +75,7 @@ export function ProWidget({
         <div className="flex items-center gap-2">
           <Button
             size="sm"
-            className="flex-1 bg-primary text-primary-foreground hover:bg-primary"
+            className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={() => router.push("/pricing")}
           >
             Upgrade Now

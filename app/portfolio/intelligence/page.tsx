@@ -14,6 +14,8 @@ import { auth } from "@/lib/firebase";
 import AccountShell from "@/components/account/AccountShell";
 import PortfolioIntelligence from "@/components/portfolio/PortfolioIntelligence";
 
+import { AuthRequired } from "@/components/ui/auth-required";
+
 export default function PortfolioIntelligencePage() {
     const [user, setUser] = useState<User | null>(null);
     const [ready, setReady] = useState(false);
@@ -40,18 +42,7 @@ export default function PortfolioIntelligencePage() {
 
     if (!user) {
         return (
-            <div className="flex min-h-screen flex-col bg-background text-foreground">
-                <AccountShell title="Portfolio Intelligence">
-                    <div className="flex flex-1 flex-col items-center justify-center gap-3">
-                        <Shield className="size-8 text-muted-foreground" />
-                        <h1 className="text-sm font-semibold text-foreground">Sign in required</h1>
-                        <p className="max-w-sm text-center text-xs text-muted-foreground">
-                            Portfolio intelligence is computed server-side from your connected accounts. Nothing about your
-                            portfolio is available without authentication.
-                        </p>
-                    </div>
-                </AccountShell>
-            </div>
+            <AccountShell title="Portfolio Intelligence"><AuthRequired /></AccountShell>
         );
     }
 

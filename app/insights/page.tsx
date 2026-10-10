@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { AuthRequired } from "@/components/ui/auth-required";
+
 const SECTIONS = [
     { id: "market", label: "Market Insight", icon: Activity, description: "Current market regime, volatility, and trend analysis" },
     { id: "account", label: "Account Insight", icon: Shield, description: "Your account health, risk exposure, and drawdown analysis" },
@@ -71,7 +73,7 @@ export default function AIInsightsPage() {
         return (<div className="flex min-h-screen flex-col bg-background"><AccountShell title="AI Insights Center"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></AccountShell></div>);
     }
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background"><AccountShell title="AI Insights Center"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Brain size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1></div></AccountShell></div>);
+        return (<AccountShell title="AI Insights Center"><AuthRequired /></AccountShell>);
     }
 
     return (
@@ -85,7 +87,7 @@ export default function AIInsightsPage() {
                                 <h2 className="text-lg font-bold text-foreground">Insights</h2>
                                 {generatedAt > 0 && <span className="text-micro text-muted-foreground">Last: {new Date(generatedAt).toLocaleTimeString()}</span>}
                             </div>
-                            <button type="button" onClick={generateAll} disabled={loading} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-foreground hover:bg-primary transition disabled:opacity-50">
+                            <button type="button" onClick={generateAll} disabled={loading} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50">
                                 {loading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} Generate All Insights
                             </button>
                         </div>

@@ -134,7 +134,7 @@ export default function AlertsPage() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                     <Bell size={40} className="text-muted-foreground" />
                     <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
-                    <a href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-primary transition">Sign In</a>
+                    <a href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Sign In</a>
                 </div>
             </div>
         );
@@ -159,7 +159,7 @@ export default function AlertsPage() {
                         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Alerts</h1>
                         <p className="mt-1 text-sm text-muted-foreground">Price, structure, and zone alerts with Discord/Telegram notifications</p>
                     </div>
-                    <button type="button" onClick={() => setShowCreate(true)} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-primary transition">
+                    <button type="button" onClick={() => setShowCreate(true)} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition">
                         <Plus size={14} /> New Alert
                     </button>
                 </div>
@@ -233,7 +233,7 @@ export default function AlertsPage() {
                                         <input type="checkbox" checked={newTelegram} onChange={(e) => setNewTelegram(e.target.checked)} className="rounded border-border/50 bg-muted/10 text-primary" /> Telegram
                                     </label>
                                 </div>
-                                <button type="button" onClick={createAlert} disabled={creating || (newType.startsWith("price") && !newPrice)} className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-primary transition disabled:opacity-50">
+                                <button type="button" onClick={createAlert} disabled={creating || (newType.startsWith("price") && !newPrice)} className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50">
                                     {creating ? <Loader2 size={15} className="animate-spin" /> : <BellRing size={15} />} Create Alert
                                 </button>
                             </div>

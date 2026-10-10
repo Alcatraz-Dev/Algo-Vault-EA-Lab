@@ -6,6 +6,8 @@ import AccountShell from "@/components/account/AccountShell";
 import { RefreshCw, Loader2, BarChart3, TrendingUp, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { AuthRequired } from "@/components/ui/auth-required";
+
 export default function StrategyComparePage() {
     const [user, setUser] = useState<User | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
@@ -48,7 +50,7 @@ export default function StrategyComparePage() {
     };
 
     if (authLoading) return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Strategy Comparison"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div></AccountShell></div>);
-    if (!user) return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Strategy Comparison"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Target size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1></div></AccountShell></div>);
+    if (!user) return (<AccountShell title="Strategy Comparison"><AuthRequired /></AccountShell>);
 
     return (
         <div className="min-h-screen bg-background text-foreground">

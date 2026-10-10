@@ -100,7 +100,7 @@ export default function SocialPage() {
     }
 
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><SiteNavbar /><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><a href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary transition">Sign In</a></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><SiteNavbar /><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><a href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Sign In</a></div></div>);
     }
 
     return (
@@ -112,7 +112,7 @@ export default function SocialPage() {
                         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Social Feed</h1>
                         <p className="mt-1 text-sm text-muted-foreground">Share ideas, analysis, and trade setups</p>
                     </div>
-                    <button type="button" onClick={() => setShowCreate(true)} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary transition">
+                    <button type="button" onClick={() => setShowCreate(true)} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition">
                         <Plus size={14} /> New Post
                     </button>
                 </div>
@@ -150,7 +150,7 @@ export default function SocialPage() {
                                 <input type="text" value={formTags} onChange={(e) => setFormTags(e.target.value)} placeholder="Tags (comma-separated)" className="w-full rounded-lg border border-border/40 bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" />
                                 <div className="flex gap-3">
                                     <button type="button" onClick={() => setShowCreate(false)} className="flex-1 rounded-lg border border-border/30 px-4 py-2.5 text-sm text-muted-foreground hover:bg-muted">Cancel</button>
-                                    <button type="button" onClick={createPost} disabled={creating || !formTitle || !formContent} className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary transition disabled:opacity-50">
+                                    <button type="button" onClick={createPost} disabled={creating || !formTitle || !formContent} className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50">
                                         {creating ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} Post
                                     </button>
                                 </div>

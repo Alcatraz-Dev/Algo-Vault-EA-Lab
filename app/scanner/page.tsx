@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { AuthRequired } from "@/components/ui/auth-required";
+
 interface ScannerResultRow {
     symbol: string;
     error?: string;
@@ -131,14 +133,14 @@ export default function ScannerPage() {
         return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Market Scanner"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></AccountShell></div>);
     }
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Market Scanner"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1></div></AccountShell></div>);
+        return (<AccountShell title="Market Scanner"><AuthRequired /></AccountShell>);
     }
 
     return (
         <AccountShell title="Professional Market Scanner" subtitle="Multi-asset market scanner with real-time signals" onBack={() => router.push("/account")}>
             <div className="space-y-4" data-guide="scanner">
                 <div className="flex flex-wrap items-center gap-3" data-guide="controls">
-                    <button type="button" onClick={scan} disabled={loading} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-primary transition disabled:opacity-50">
+                    <button type="button" onClick={scan} disabled={loading} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50">
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />} Scan Markets
                     </button>
                     <span className="text-xs text-muted-foreground">{filteredResults.length} symbols scanned</span>

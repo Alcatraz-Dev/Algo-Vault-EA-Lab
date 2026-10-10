@@ -102,7 +102,7 @@ export default function ComparePage() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                     <Shield size={40} className="text-muted-foreground" />
                     <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
-                    <Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary transition">
+                    <Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">
                         Sign In
                     </Link>
                 </div>
@@ -160,7 +160,7 @@ export default function ComparePage() {
                         </div>
                         <h3 className="mt-4 text-base font-semibold text-foreground">No accounts to compare</h3>
                         <p className="mt-1.5 text-sm text-muted-foreground">Connect your MT5 accounts to see a side-by-side comparison.</p>
-                        <Link href="/admin/trading-accounts" className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary transition">
+                        <Link href="/admin/trading-accounts" className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">
                             Connect Account
                         </Link>
                     </div>

@@ -112,7 +112,7 @@ export default function HomePage({ data }: { data: HomeData }) {
     const dataOnline = stats.strategies > 0 || stats.backtests > 0;
 
     return (
-        <div className="min-h-screen overflow-x-clip bg-background font-sans text-foreground selection:bg-primary selection:text-primary-foreground">
+        <div className="min-h-screen overflow-x-clip bg-background font-sans text-primary-foreground selection:bg-primary selection:text-primary-foreground">
             <SiteHeader />
             <main>
                 <TickerStrip />

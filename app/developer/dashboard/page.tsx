@@ -123,7 +123,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  type="button"
  onClick={submitRequest}
  disabled={submitting}
-        className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary transition disabled:opacity-50"
+        className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50"
  >
  {submitting ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
  {submitting ? "Submitting..." : "Request Developer Access"}
@@ -327,7 +327,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
                           }
 
  if (!user) {
-                            return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary transition">Sign In</Link></div></div>);
+                            return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Sign In</Link></div></div>);
                               }
 
  if (role && role !== "developer" && role !== "admin") {
@@ -399,7 +399,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  type="button"
  onClick={startOnboarding}
  disabled={onboarding}
-                                          className="flex items-center gap-2 rounded-lg bg-negative/80 px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-negative transition disabled:opacity-50"
+                                          className="flex items-center gap-2 rounded-lg bg-negative/80 px-4 py-2.5 text-xs font-semibold text-negative-foreground hover:bg-negative transition disabled:opacity-50"
  >
  {onboarding ? <Loader2 size={13} className="animate-spin" /> : <ExternalLink size={13} />}
  Resume Onboarding
@@ -703,7 +703,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  type="button"
  onClick={createProduct}
  disabled={!formName.trim() || creating}
-                                                                                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary transition disabled:opacity-50"
+                                                                                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50"
  >
  {creating ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />} Create Product
  </button>

@@ -240,7 +240,7 @@ export default function AffiliatePage() {
                                     href={shareLink}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-primary"
+                                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
                                 >
                                     <Globe size={14} /> Preview Link
                                 </a>

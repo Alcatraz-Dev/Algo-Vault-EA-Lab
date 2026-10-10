@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { AppShell } from "@/components/layout/AppShell";
 import { ACCOUNT_NAV } from "./account-nav";
-import { CANDEL_NAV } from "@/components/candel/candel-nav";
 
 export default function AccountShell({
   children,
@@ -27,7 +25,6 @@ export default function AccountShell({
   hideSidebar?: boolean;
   fullscreen?: boolean;
 }) {
-  const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [navSearch, setNavSearch] = useState("");
 
@@ -51,8 +48,10 @@ export default function AccountShell({
     </div>
   );
 
-  // The Candel pages live inside the account shell but use the Candel nav.
-  const navGroups = pathname?.startsWith("/account/candels") ? CANDEL_NAV : ACCOUNT_NAV;
+  // Candel pages share the account sidebar instead of swapping it out: their
+  // links are the "AI Workspace" group, so entering a Candel keeps the whole
+  // navigation available (AppShell expands the group holding the active page).
+  const navGroups = ACCOUNT_NAV;
 
   const filteredNav = navSearch.trim()
     ? navGroups

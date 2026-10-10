@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { AuthRequired } from "@/components/ui/auth-required";
+
 export default function AICopilotPage() {
     const [user, setUser] = useState<User | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
@@ -64,7 +66,7 @@ export default function AICopilotPage() {
         return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="AI Trading Copilot" subtitle="Ask about your market, account, and strategies"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></AccountShell></div>);
     }
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="AI Trading Copilot"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><a href="/login" className="rounded-md bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground">Sign In</a></div></AccountShell></div>);
+        return (<AccountShell title="AI Trading Copilot"><AuthRequired /></AccountShell>);
     }
 
     return (

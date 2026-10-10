@@ -73,7 +73,7 @@ export default function TradeTagsPage() {
     }
 
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-primary transition">Sign In</Link></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Sign In</Link></div></div>);
     }
 
     return (
@@ -95,7 +95,7 @@ export default function TradeTagsPage() {
                     <button
                         type="button"
                         onClick={() => setShowForm(!showForm)}
-                        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-primary transition"
+                        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition"
                     >
                         {showForm ? <X size={13} /> : <Plus size={13} />} {showForm ? "Cancel" : "New Tag"}
                     </button>
@@ -134,7 +134,7 @@ export default function TradeTagsPage() {
                                 type="button"
                                 onClick={createTag}
                                 disabled={!newName.trim() || creating}
-                                className="rounded-lg bg-primary px-6 py-2.5 text-xs font-semibold text-foreground hover:bg-primary transition disabled:opacity-50"
+                                className="rounded-lg bg-primary px-6 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50"
                             >
                                 {creating ? "Creating..." : "Create Tag"}
                             </button>

@@ -127,7 +127,7 @@ export default function SiteNavbar() {
           <SiteLogo size={18} />
           <span className="text-lg font-bold tracking-tight">{siteName}</span>
           {hasPro && (
-            <span className="ml-2 rounded-full border border-primary/40 bg-accent-muted px-2 py-0.5 text-xs font-bold text-primary">
+            <span className="ml-2 rounded-full border border-primary/40 bg-accent-muted px-1.5 py-0.5 text-[9px] font-bold text-primary leading-none">
               PRO
             </span>
           )}
@@ -149,7 +149,7 @@ export default function SiteNavbar() {
               <span className="inline-flex items-center gap-1.5">
                 {label}
                 {pro ? (
-                  <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0 text-micro font-bold uppercase tracking-wider text-primary">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1 py-0 text-[9px] font-bold uppercase tracking-wider text-primary leading-none">
                     Pro
                   </span>
                 ) : null}
@@ -230,7 +230,7 @@ export default function SiteNavbar() {
                     {label}
                   </span>
                   {pro ? (
-                    <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0 text-micro font-bold uppercase tracking-wider text-primary">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1 py-0 text-[9px] font-bold uppercase tracking-wider text-primary leading-none">
                       Pro
                     </span>
                   ) : null}

@@ -704,7 +704,7 @@ export default function SetFilesPage() {
                                 <button
                                     type="submit"
                                     disabled={pubSaving || !pubProductId || !pubFile}
-                                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-positive px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-positive disabled:opacity-50"
+                                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-positive px-4 py-2.5 text-sm font-semibold text-positive-foreground transition hover:bg-positive disabled:opacity-50"
                                 >
                                     {pubSaving ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
                                     Publish Set File

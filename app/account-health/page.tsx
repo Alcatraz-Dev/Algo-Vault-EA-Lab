@@ -20,6 +20,8 @@ import AccountShell from "@/components/account/AccountShell";
 import { AccountHealthReportView } from "@/components/account-health/report-view";
 import type { AccountHealthReport } from "@/lib/account-health/types";
 
+import { AuthRequired } from "@/components/ui/auth-required";
+
 export default function AccountHealthPage() {
     const [user, setUser] = useState<User | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
@@ -87,15 +89,7 @@ export default function AccountHealthPage() {
 
     if (!user) {
         return (
-            <div className="flex min-h-screen flex-col bg-background text-foreground">
-                <AccountShell title="Account Health">
-                    <div className="flex flex-1 flex-col items-center justify-center gap-3">
-                        <Shield size={32} className="text-muted-foreground" />
-                        <h1 className="text-sm font-semibold text-foreground">Sign in required</h1>
-                        <p className="text-micro text-muted-foreground">Your health report is tied to your account.</p>
-                    </div>
-                </AccountShell>
-            </div>
+            <AccountShell title="Account Health"><AuthRequired /></AccountShell>
         );
     }
 

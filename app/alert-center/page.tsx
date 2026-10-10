@@ -169,7 +169,7 @@ export default function AlertCenterPage() {
     };
 
     if (authLoading) return <div className="flex min-h-screen bg-background items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
-    if (!user) return <div className="flex min-h-screen bg-background items-center justify-center gap-4 flex-col"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-foreground">Sign In</Link></div>;
+    if (!user) return <div className="flex min-h-screen bg-background items-center justify-center gap-4 flex-col"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground">Sign In</Link></div>;
 
     const filtered = notifications.filter((n) => {
         if (filter === "unread") return !n.read;

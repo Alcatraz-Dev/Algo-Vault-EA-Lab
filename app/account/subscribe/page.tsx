@@ -354,7 +354,7 @@ export default function SubscribePage() {
               }`}
             >
               {matchUrl && (
-                <div className="absolute -top-3 right-4 rounded-full bg-primary px-3 py-1 text-micro font-bold text-foreground">
+                <div className="absolute -top-3 right-4 rounded-full bg-primary px-3 py-1 text-micro font-bold text-primary-foreground">
                   Selected
                 </div>
               )}

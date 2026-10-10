@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { AuthRequired } from "@/components/ui/auth-required";
 // ─────────────────────────────────────────────────────────────────────────────
 // Types mirroring the API payload
 // ─────────────────────────────────────────────────────────────────────────────
@@ -231,11 +232,7 @@ export default function AiExecutionPage() {
     if (!user) {
         return (
             <AccountShell title="AI Execution">
-                <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-border bg-muted/30 py-24 text-center">
-                    <Shield className="h-10 w-10 text-muted-foreground" />
-                    <h1 className="text-lg font-semibold">Sign in required</h1>
-                    <Link href="/login?redirect=/account/ai-execution" className="rounded-lg bg-foreground px-5 py-2 text-sm font-medium text-background">Sign In</Link>
-                </div>
+                <AuthRequired description="AI execution is tied to your own accounts and risk policy, so it needs an authenticated session." />
             </AccountShell>
         );
     }

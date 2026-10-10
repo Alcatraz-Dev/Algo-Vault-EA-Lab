@@ -275,10 +275,10 @@ export default function AdminGrowthExperimentsPage() {
                                         </TableCell>
                                         <TableCell>
                                             <DropdownMenu>
-                                                <DropdownMenuTrigger>
-                                                    <Button type="button" variant="ghost" size="xs">
-                                                        <MoreVertical size={14} />
-                                                    </Button>
+                                                <DropdownMenuTrigger
+                                                    render={<Button type="button" variant="ghost" size="xs" />}
+                                                >
+                                                    <MoreVertical size={14} />
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem onSelect={() => setDetailOpen(e)}>

@@ -231,7 +231,7 @@ export default function DeveloperSubscription() {
                                   }
 
  if (!user) {
-                                    return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary transition">Sign In</Link></div></div>);
+                                    return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Sign In</Link></div></div>);
                                       }
 
  if (role && role !== "developer" && role !== "admin") {
@@ -368,7 +368,7 @@ export default function DeveloperSubscription() {
  className={cn(
                                                 "flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition disabled:opacity-50",
  plan.highlighted
- ? "bg-primary text-primary-foreground hover:bg-primary"
+ ? "bg-primary text-primary-foreground hover:bg-primary/90"
  : "bg-muted/30 text-foreground hover:bg-muted/20"
  )}
  >

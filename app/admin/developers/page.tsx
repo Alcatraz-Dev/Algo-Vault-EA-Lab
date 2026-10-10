@@ -301,7 +301,7 @@ export default function AdminDevelopersPage() {
                                             type="button"
                                             onClick={() => handleRequestAction(req.uid, "approve")}
                                             disabled={actionLoading === req.uid}
-                                            className="flex items-center gap-1.5 rounded-lg bg-positive px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-positive disabled:opacity-50"
+                                            className="flex items-center gap-1.5 rounded-lg bg-positive px-4 py-2 text-xs font-semibold text-positive-foreground transition hover:bg-positive disabled:opacity-50"
                                         >
                                                 {actionLoading === req.uid ? (
                                                     <Loader2 size={13} className="animate-spin" />

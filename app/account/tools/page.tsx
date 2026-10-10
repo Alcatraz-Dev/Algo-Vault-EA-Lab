@@ -415,7 +415,7 @@ function NotebookView() {
                             </div>
                             <div><label className="mb-1 block text-xs font-medium text-muted-foreground">Notes (Markdown supported)</label>
                                 <RichTextEditor value={body} onChange={setBody} placeholder="Write your trade idea, analysis, or lessons learned..." className="min-h-50" /></div>
-                            <button type="submit" disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-primary disabled:opacity-50">
+                            <button type="submit" disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50">
                                 {saving ? <Loader2 size={15} className="animate-spin" /> : <StickyNote size={15} />} Save Entry
                             </button>
                         </form>

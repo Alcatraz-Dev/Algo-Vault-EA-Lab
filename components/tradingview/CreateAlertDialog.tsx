@@ -834,7 +834,7 @@ export default function CreateAlertDialog({
                                                 type="button"
                                                 onClick={handleAiWrite}
                                                 disabled={aiLoading}
-                                                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-micro font-semibold text-primary-foreground transition hover:bg-primary disabled:opacity-60"
+                                                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-micro font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
                                             >
                                                 {aiLoading ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />}
                                                 {aiLoading ? "Generating..." : "Generate"}
@@ -914,7 +914,7 @@ export default function CreateAlertDialog({
                             type="button"
                             onClick={handleCreate}
                             disabled={isSubmitting}
-                            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-lg  transition hover:bg-primary disabled:opacity-50"
+                            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-lg  transition hover:bg-primary/90 disabled:opacity-50"
                         >
                             {isSubmitting ? (
                                 <>

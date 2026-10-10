@@ -328,7 +328,7 @@ export function StrategyOptimizer() {
                         <button
                             onClick={runOptimization}
                             disabled={optimizationRunning || !user}
-                            className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-primary disabled:opacity-50"
+                            className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
                         >
                             {optimizationRunning ? (
                                 <>
@@ -379,7 +379,7 @@ export function StrategyOptimizer() {
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm font-medium">{activeParam.label} = {String(comboValue ?? "—")}</span>
                                             <span className="flex items-center gap-1.5">
-                                                {i === 0 && <span className="rounded-full bg-positive px-2 py-0.5 text-micro font-bold text-foreground">BEST</span>}
+                                                {i === 0 && <span className="rounded-full bg-positive px-2 py-0.5 text-micro font-bold text-positive-foreground">BEST</span>}
                                                 <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-micro text-muted-foreground">score {result.score?.toFixed(1) ?? "—"}</span>
                                             </span>
                                         </div>
@@ -435,7 +435,7 @@ export function StrategyOptimizer() {
                             {Number.isFinite(best.metrics?.profitFactor) ? best.metrics.profitFactor.toFixed(2) : "—"} over{" "}
                             {best.metrics?.totalTrades ?? 0} trades.
                         </p>
-                        <button className="mt-4 flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-primary">
+                        <button className="mt-4 flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">
                             <Zap size={14} />
                             Apply to Strategy
                         </button>

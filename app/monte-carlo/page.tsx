@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { AuthRequired } from "@/components/ui/auth-required";
+
 export default function MonteCarloPage() {
     const [user, setUser] = useState<User | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
@@ -44,7 +46,7 @@ export default function MonteCarloPage() {
         return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Monte Carlo Simulation"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div></AccountShell></div>);
     }
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Monte Carlo Simulation"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Dices size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1></div></AccountShell></div>);
+        return (<AccountShell title="Monte Carlo Simulation"><AuthRequired /></AccountShell>);
     }
 
     return (

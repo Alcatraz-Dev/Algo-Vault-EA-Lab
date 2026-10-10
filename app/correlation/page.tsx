@@ -6,6 +6,8 @@ import AccountShell from "@/components/account/AccountShell";
 import { RefreshCw, Loader2, AlertTriangle, Shield, Activity, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { AuthRequired } from "@/components/ui/auth-required";
+
 interface PositionRow {
     symbol: string;
     type: string;
@@ -58,7 +60,7 @@ export default function CorrelationPage() {
     }, [authLoading, user, fetchData]);
 
     if (authLoading) return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Correlation & Exposure"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></AccountShell></div>);
-    if (!user) return (<div className="flex min-h-screen flex-col bg-background text-foreground"><AccountShell title="Correlation & Exposure"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1></div></AccountShell></div>);
+    if (!user) return (<AccountShell title="Correlation & Exposure"><AuthRequired /></AccountShell>);
 
     return (
         <div className="min-h-screen bg-background text-foreground">

@@ -1,4 +1,4 @@
-import type { NavGroup, NavItem } from "@/components/layout/AppShell";
+import type { NavItem } from "@/components/layout/AppShell";
 import {
   Activity,
   Bot,
@@ -15,11 +15,11 @@ import {
 /**
  * CANDEL_NAV_ITEMS — the complete Candel navigation surface.
  *
- * This is the single source of truth for the Candel area: `AccountShell` uses
- * it to replace the account sidebar while inside `/account/candels/*`, and the
- * account sidebar's "AI Workspace" group embeds the same list so the two navs
- * can never drift apart (they previously disagreed — a dead `Workspace` link on
- * one side, `Builder`/`Approvals` only on the other).
+ * This is the single source of truth for the Candel area: the account
+ * sidebar's "AI Workspace" group embeds this list, so Candel pages keep the
+ * full account sidebar and the two navs can never drift apart (they previously
+ * disagreed — a dead `Workspace` link on one side, `Builder`/`Approvals` only
+ * on the other).
  */
 export const CANDEL_NAV_ITEMS: NavItem[] = [
   { href: "/account/candels", label: "My Candels", icon: Bot },
@@ -32,12 +32,4 @@ export const CANDEL_NAV_ITEMS: NavItem[] = [
   { href: "/account/candels/jobs", label: "Background jobs", icon: CalendarClock },
   { href: "/account/candels/automations", label: "Automations", icon: GitBranch },
   { href: "/account/candels/memory", label: "Memory", icon: Brain },
-];
-
-/** The Candel sidebar group shown inside the Candel area. */
-export const CANDEL_NAV: NavGroup[] = [
-  {
-    label: "Candels",
-    items: CANDEL_NAV_ITEMS,
-  },
 ];
