@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { IntelligenceOSContext } from "@/lib/intelligence-os/types";
 
 type ContextState =
@@ -11,7 +11,11 @@ type ContextState =
 export function useIntelligenceOS(refreshKey = 0) {
   const [state, setState] = useState<ContextState>({ status: "loading" });
   const mountedRef = useRef(true);
-  const loadRef = useRef<ReturnType<typeof setTimeout> | null>(null);    const load = async () => {
+  // Defined via useCallback so its identity is stable: the loading effect below
+  // depends on it, and a fresh function every render would clear and re-arm the
+  // 0 ms timer on every parent render — the initial load could be deferred
+  // indefinitely and each parent render would trigger another fetch.
+  const load = useCallback(async () => {
     if (!mountedRef.current) return;
     setState((s) => (s.status === "loading" ? s : { status: "loading" }));
 
@@ -47,25 +51,27 @@ export function useIntelligenceOS(refreshKey = 0) {
       if (!mountedRef.current) return;
       setState({ status: "unavailable", reason: "Could not reach AlgoVault Intelligence OS." });
     }
-  };
+  }, []);
+
+  // Re-arm the ref in the setup phase. React Strict Mode (on by default with
+  // the app router in development) runs setup → cleanup → setup on the SAME
+  // component instance, so a ref that is only cleared on unmount stays false
+  // for the rest of the mount: every guarded `load()` then bails out and the
+  // panel sits on its skeleton forever without issuing a request.
+  // (Same pattern as components/tradingview/TradingViewChart.tsx.)
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (!mountedRef.current) return;
       void load();
     }, 0);
-    return () => {
-      clearTimeout(timer);
-      if (loadRef.current) clearTimeout(loadRef.current);
-    };
+    return () => clearTimeout(timer);
   }, [refreshKey, load]);
-
-  useEffect(() => {
-    return () => {
-      mountedRef.current = false;
-      if (loadRef.current) clearTimeout(loadRef.current);
-    };
-  }, []);
 
   return state;
 }

@@ -169,22 +169,22 @@ export default function HomePage({ data }: { data: HomeData }) {
                                         </span>
                                     </div>
                                     <div className="grid grid-cols-2 gap-px bg-border md:grid-cols-4">
-                                        <div className="bg-card p-5">
+                                        <div className="bg-card/80 backdrop-blur p-5 shadow-md">
                                             <p className="text-xs text-muted-foreground">Strategies</p>
                                             <p className="mt-3 text-3xl font-semibold text-foreground"><CountUp value={stats.strategies} format={formatNumber} /></p>
                                             <p className="mt-2 text-xs text-muted-foreground">Marketplace records</p>
                                         </div>
-                                        <div className="bg-card p-5">
+                                        <div className="bg-card/80 backdrop-blur p-5 shadow-md">
                                             <p className="text-xs text-muted-foreground">Backtests</p>
                                             <p className="mt-3 text-3xl font-semibold text-foreground"><CountUp value={stats.backtests} format={formatNumber} /></p>
                                             <p className="mt-2 text-xs text-muted-foreground">Recorded runs</p>
                                         </div>
-                                        <div className="bg-card p-5">
+                                        <div className="bg-card/80 backdrop-blur p-5 shadow-md">
                                             <p className="text-xs text-muted-foreground">Deterministic engines</p>
                                             <p className="mt-3 text-3xl font-semibold text-foreground"><CountUp value={ENGINES.length} format={formatNumber} /></p>
                                             <p className="mt-2 text-xs text-muted-foreground">Computed from candles</p>
                                         </div>
-                                        <div className="bg-card p-5">
+                                        <div className="bg-card/80 backdrop-blur p-5 shadow-md">
                                             <p className="text-xs text-muted-foreground">Rated strategies</p>
                                             <p className="mt-3 text-3xl font-semibold text-foreground"><CountUp value={stats.reviewCount} format={formatNumber} /></p>
                                             <p className="mt-2 text-xs text-muted-foreground">Average {stats.averageRating > 0 ? `${stats.averageRating}/5` : "unavailable"}</p>
@@ -216,7 +216,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                                     { icon: Gauge, title: "Validate", copy: "Backtest, optimize, and inspect robustness." },
                                     { icon: Wallet, title: "Execute", copy: "Queue orders behind risk and gateway checks." },
                                 ].map(({ icon: Icon, title, copy }, index) => (
-                                    <div key={title} className="group bg-card p-5 transition-colors hover:bg-muted/40">
+                                    <div key={title} className="group bg-card/80 backdrop-blur p-5 shadow-md transition-colors hover:bg-muted/40">
                                         <div className="flex items-center justify-between">
                                             <Icon size={18} className="text-primary transition-transform duration-300 group-hover:-translate-y-0.5" />
                                             <span className="text-xs text-muted-foreground">0{index + 1}</span>
@@ -246,7 +246,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                         <Reveal delay={120}>
                             <div className="mt-10 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
                                 {MODULES.map(({ icon: Icon, title, href, copy }) => (
-                                    <Link key={href} href={href} className="group relative bg-card p-5 transition-colors hover:bg-muted/60">
+                                    <Link key={href} href={href} className="group relative bg-card/80 backdrop-blur p-5 shadow-md transition-colors hover:bg-muted/60">
                                         <div className="flex items-center justify-between">
                                             <Icon size={18} className="text-primary transition-transform duration-300 group-hover:-translate-y-0.5" />
                                             <ChevronRight size={15} className="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
@@ -418,7 +418,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                         </Reveal>
                         <Reveal delay={120}>
                             <div className="mt-10 grid gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-3">
-                                <div className="group bg-card p-5 transition-colors hover:bg-muted/40">
+                                <div className="group bg-card/80 backdrop-blur p-5 shadow-md transition-colors hover:bg-muted/40">
                                     <div className="flex items-center justify-between">
                                         <History size={18} className="text-primary transition-transform duration-300 group-hover:-translate-y-0.5" />
                                         <span className="text-xs text-muted-foreground">01</span>
@@ -427,7 +427,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                                     <p className="mt-2 text-xs leading-5 text-muted-foreground">Single-pass historical simulations with realistic costs, plus bar-by-bar replay on real candles.</p>
                                     <Link href="/backtests" className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">Open backtests <ArrowRight size={13} /></Link>
                                 </div>
-                                <div className="group bg-card p-5 transition-colors hover:bg-muted/40">
+                                <div className="group bg-card/80 backdrop-blur p-5 shadow-md transition-colors hover:bg-muted/40">
                                     <div className="flex items-center justify-between">
                                         <Sliders size={18} className="text-primary transition-transform duration-300 group-hover:-translate-y-0.5" />
                                         <span className="text-xs text-muted-foreground">02</span>
@@ -436,7 +436,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                                     <p className="mt-2 text-xs leading-5 text-muted-foreground">Parameter grid search, walk-forward windows, and Monte Carlo robustness checks on recorded results.</p>
                                     <Link href="/monte-carlo" className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">Open Monte Carlo <ArrowRight size={13} /></Link>
                                 </div>
-                                <div className="group bg-card p-5 transition-colors hover:bg-muted/40">
+                                <div className="group bg-card/80 backdrop-blur p-5 shadow-md transition-colors hover:bg-muted/40">
                                     <div className="flex items-center justify-between">
                                         <Send size={18} className="text-primary transition-transform duration-300 group-hover:-translate-y-0.5" />
                                         <span className="text-xs text-muted-foreground">03</span>
