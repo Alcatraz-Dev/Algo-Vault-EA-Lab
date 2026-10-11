@@ -24,6 +24,7 @@ import { CommandPalette } from "@/components/layout/CommandPalette";
 import { useShellHeaderHeight, shellHeaderStyle } from "@/components/layout/use-shell-header-height";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 export type NavItem = {
   href: string;
@@ -216,27 +217,27 @@ export function AppShell({
   const renderChip = (item: NavItem) => {
     if (item.pro) {
       return (
-        <span className="ml-auto inline-flex h-2.5 shrink-0 items-center rounded-md border border-primary/30 bg-primary/10 px-0.5 text-[8px] font-bold uppercase leading-none tracking-wide text-foreground">
+        <Badge
+          variant="outline"
+          className="ml-auto border-primary/30 bg-primary/10 font-bold tracking-wide text-foreground uppercase"
+        >
           Pro
-        </span>
+        </Badge>
       );
     }
     if (!item.badge) return null;
-    const tone =
-      item.badge.toUpperCase() === "PRO"
-        ? "border-warning/40 bg-warning/10 text-warning-foreground"
-        : item.badge.toUpperCase() === "LITE"
-          ? "border-primary/30 bg-primary/10 text-foreground"
-          : "border-border bg-secondary text-muted-foreground";
+    const upper = item.badge.toUpperCase();
+    const variant = upper === "PRO" ? "warning" : upper === "LITE" ? "outline" : "ghost";
     return (
-      <span
+      <Badge
+        variant={variant}
         className={cn(
-          "ml-auto inline-flex h-2.5 shrink-0 items-center rounded-md border px-0.5 text-[8px] font-bold uppercase leading-none tracking-wide",
-          tone
+          "ml-auto font-bold tracking-wide uppercase",
+          upper === "LITE" && "border-primary/30 bg-primary/10 text-foreground"
         )}
       >
         {item.badge}
-      </span>
+      </Badge>
     );
   };
 
@@ -410,7 +411,7 @@ export function AppShell({
             value={searchValue}
             onChange={(e) => handleSearch(e.target.value)}
             placeholder="Search navigation…"
-            className="h-7 w-full rounded-full border border-border bg-muted/40 pl-7 pr-2 text-xs placeholder:text-muted-foreground focus:outline-none"
+            className="input h-7 w-full rounded-full border-border bg-muted/40 pl-7 pr-2 text-xs placeholder:text-muted-foreground"
           />
           {searchValue ? (
             <button
@@ -443,18 +444,20 @@ export function AppShell({
     <div className="flex items-center gap-1.5 sm:gap-2">
       {headerActions}
       {/* Command palette: labelled control from md up, icon chip on phones. */}
-      <button
+      <Button
         type="button"
+        variant="outline"
+        size="sm"
         onClick={() => setCommandOpen(true)}
         aria-label="Open command palette"
-        className="hidden h-9 items-center gap-2 rounded-pill border border-border bg-card px-3 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 md:inline-flex"
+        className="hidden h-9 gap-2 rounded-pill border-border bg-card px-3 text-xs font-normal text-muted-foreground hover:border-primary/50 hover:bg-muted hover:text-foreground md:inline-flex"
       >
         <Search size={14} aria-hidden="true" />
         <span>Search</span>
         <kbd className="ml-1 rounded border border-border bg-background px-1 py-0.5 text-micro font-medium">
           ⌘K
         </kbd>
-      </button>
+      </Button>
       <Button
         type="button"
         variant="ghost"
@@ -483,46 +486,49 @@ export function AppShell({
           </span>
         </Button>
         {accountOpen ? (
-          <div className="absolute right-0 z-50 mt-1.5 w-56 overflow-hidden rounded-card-lg border border-border bg-popover py-1 shadow-lg">
+          <div className="absolute right-0 z-50 mt-1.5 w-56 overflow-hidden rounded-card-lg border border-border bg-popover shadow-lg">
             <div className="border-b border-border px-3 py-3">
               <p className="truncate text-meta font-semibold text-foreground">
                 {user?.displayName || "Account"}
               </p>
               <p className="truncate text-micro text-muted-foreground">{user?.email}</p>
             </div>
-            <div className="p-1">
-              <Link
-                href={role === "admin" ? "/admin" : "/account"}
-                onClick={() => setAccountOpen(false)}
-                className="flex items-center gap-2 rounded-button px-2.5 py-2 text-body-sm text-foreground transition-colors hover:bg-muted"
-              >
-                <Settings size={14} className="text-muted-foreground" />
-                {role === "admin" ? "Admin home" : "Account home"}
-              </Link>
-              {user ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full justify-start text-negative hover:bg-negative/10"
-                  onClick={() => {
-                    setAccountOpen(false);
-                    handleSignOut();
-                  }}
-                >
-                  <LogOut size={14} className="mr-2" />
-                  Sign out
-                </Button>
-              ) : (
+            <ul className="menu menu-xs w-full">
+              <li>
                 <Link
-                  href="/login"
+                  href={role === "admin" ? "/admin" : "/account"}
                   onClick={() => setAccountOpen(false)}
-                  className="flex items-center gap-2 rounded-button px-2.5 py-2 text-body-sm text-foreground transition-colors hover:bg-muted"
+                  className="text-body-sm font-medium text-foreground"
                 >
-                  <LogOut size={14} className="text-muted-foreground" />
-                  Sign in
+                  <Settings size={14} className="text-muted-foreground" />
+                  {role === "admin" ? "Admin home" : "Account home"}
                 </Link>
-              )}
-            </div>
+              </li>
+              <li>
+                {user ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAccountOpen(false);
+                      handleSignOut();
+                    }}
+                    className="text-body-sm font-medium text-negative hover:bg-negative/10 hover:text-negative"
+                  >
+                    <LogOut size={14} />
+                    Sign out
+                  </button>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setAccountOpen(false)}
+                    className="text-body-sm font-medium text-foreground"
+                  >
+                    <LogOut size={14} className="text-muted-foreground" />
+                    Sign in
+                  </Link>
+                )}
+              </li>
+            </ul>
           </div>
         ) : null}
       </div>

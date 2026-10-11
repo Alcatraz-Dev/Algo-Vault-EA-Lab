@@ -30,8 +30,8 @@ export default function SiteFooter() {
                 <FooterAffiliateLink />
             </div>
             <div className="mx-auto max-w-7xl px-6 py-12 md:px-8">
-                <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-                    <div className="col-span-2 md:col-span-1">
+                <div className="footer">
+                    <div>
                         <div className="flex items-center gap-2">
                             <SiteLogo size={22} />
                             <span className="text-sm font-bold">{siteName}</span>

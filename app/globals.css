@@ -42,7 +42,10 @@
 
   --destructive: #ff6369;
   --destructive-foreground: #ff6369;
-  --border: #2b2e32;
+  /* Border colour token. Backed by `--border-color` (not `--border`) because
+     FlyonUI claims `--border` for its 1px border *width* — see the theme bridge
+     below. `border-border` → `var(--color-border)` → `var(--border-color)`. */
+  --border-color: #2b2e32;
   --input: #35383c;
   --ring: #de661c;
 
@@ -111,7 +114,7 @@
   --accent-foreground: #1c2024;
   --destructive: #c1121f;
   --destructive-foreground: #c1121f;
-  --border: #dbdee2;
+  --border-color: #dbdee2;
   --input: #c4c8cd;
   --ring: #de661c;
 
@@ -170,7 +173,8 @@
   --radius-field: 0.375rem;
   --radius-box: 0.5rem;
 
-  /* Component base sizing. */
+  /* Component base sizing. `--border` is FlyonUI's border *width* (a length),
+     which is why the AlgoVault border colour lives in `--border-color`. */
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
   --border: 1px;
@@ -196,7 +200,7 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
+  --color-border: var(--border-color);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-positive: var(--positive);
@@ -516,7 +520,7 @@ body {
 .flow-track {
   position: relative;
   height: 1px;
-  background: var(--border);
+  background: var(--border-color);
   overflow: hidden;
 }
 .flow-dot {
@@ -820,7 +824,7 @@ body {
   background: var(--muted);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: var(--border-color);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -904,7 +908,7 @@ html.dark .react-flow__minimap {
 /* MiniMap theming */
 .react-flow__minimap {
   background-color: var(--card) !important;
-  border: 1px solid var(--border) !important;
+  border: 1px solid var(--border-color) !important;
 }
 .react-flow__minimap-mask {
   fill: color-mix(in oklch, var(--primary) 12%, transparent);

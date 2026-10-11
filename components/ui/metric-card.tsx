@@ -2,8 +2,9 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * MetricCard — canonical metric display. No gradients, no glow.
- * The value always renders in mono (trading numbers) unless overridden.
+ * MetricCard — canonical metric display. FlyonUI `.card` surface (radius +
+ * soft depth) with the dense AlgoVault type scale. The value always renders in
+ * mono (trading numbers) unless overridden. No gradients, no glow.
  */
 export function MetricCard({
   label,
@@ -29,7 +30,7 @@ export function MetricCard({
   return (
     <div
       className={cn(
-        "rounded-lg border border-border bg-card p-4",
+        "card rounded-lg border border-border bg-card p-4",
         className
       )}
     >

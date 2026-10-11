@@ -2,8 +2,15 @@ import * as React from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "cn";
 
+/**
+ * Select / Textarea — FlyonUI `.select` / `.textarea` controls.
+ *
+ * FlyonUI's `.select` ships its own chevron background-image; `bg-none`
+ * suppresses it so the single AlgoVault `ChevronDown` affordance stays. Brand
+ * border (`border-input`) and dense sizing are pinned on top.
+ */
 const selectCls =
-    "h-9 w-full min-w-0 appearance-none rounded-md border border-input bg-transparent py-2 pl-3 pr-9 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40";
+    "select h-9 w-full min-w-0 bg-none border-input py-2 pl-3 pr-9 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 md:text-sm dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40";
 
 export function Select({
     className,
@@ -42,7 +49,7 @@ export function Textarea({
     return (
         <textarea
             className={cn(
-                "resize-y min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80",
+                "textarea resize-y min-h-[80px] w-full border-input px-3 py-2 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 md:text-sm dark:disabled:bg-input/80",
                 className
             )}
             rows={4}

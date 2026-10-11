@@ -142,11 +142,11 @@ export default function EquityCurvePage() {
                                             <stop offset="95%" stopColor="var(--chart-2)" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                                     <XAxis dataKey="date" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
                                     <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} tickFormatter={(v) => `$${Number(v).toLocaleString()}`} />
                                     <Tooltip
-                                        contentStyle={{ backgroundColor: "var(--card)", border: "1px solid var(--border)", borderRadius: "8px", fontSize: "11px" }}
+                                        contentStyle={{ backgroundColor: "var(--card)", border: "1px solid var(--border-color)", borderRadius: "8px", fontSize: "11px" }}
                                         labelStyle={{ color: "var(--muted-foreground)" }}
                                         formatter={(value, name) => [`$${Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 })}`, name === "equity" ? "Equity" : "Balance"]}
                                     />

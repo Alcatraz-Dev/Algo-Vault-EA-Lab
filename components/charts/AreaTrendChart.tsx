@@ -69,7 +69,7 @@ export default function AreaTrendChart({
 
                 <CartesianGrid
                     strokeDasharray="3 3"
-                    stroke="var(--border)"
+                    stroke="var(--border-color)"
                     strokeOpacity={0.5}
                 />
 
@@ -92,7 +92,7 @@ export default function AreaTrendChart({
                 <Tooltip
                     contentStyle={{
                         background: "var(--card)",
-                        border: "1px solid var(--border)",
+                        border: "1px solid var(--border-color)",
                         borderRadius: 12,
                         color: "var(--foreground)",
                         fontSize: 13,

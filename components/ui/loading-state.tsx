@@ -1,13 +1,14 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Skeleton — shimmering placeholder for loading states.
+ * Skeleton — FlyonUI `.skeleton` shimmer (animated gradient sweep) over the
+ * AlgoVault `--muted` base so it stays legible on card and page surfaces.
  */
 export function Skeleton({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "animate-pulse rounded-md bg-muted",
+        "skeleton skeleton-animated rounded-md bg-muted",
         className
       )}
       aria-hidden="true"
@@ -54,7 +55,10 @@ export function FullPageLoader({ label = "Loading" }: { label?: string }) {
   return (
     <div className="flex min-h-[60vh] items-center justify-center" role="status">
       <div className="flex flex-col items-center gap-3">
-        <div className="h-7 w-7 animate-spin rounded-full border-2 border-border border-t-foreground" />
+        <span
+          className="loading loading-spinner loading-lg text-primary"
+          aria-hidden="true"
+        />
         <span className="text-xs text-muted-foreground">{label}</span>
       </div>
     </div>

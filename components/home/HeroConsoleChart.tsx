@@ -79,7 +79,7 @@ export default function HeroConsoleChart() {
                             </linearGradient>
                         </defs>
                         <CartesianGrid
-                            stroke="var(--border)"
+                            stroke="var(--border-color)"
                             strokeDasharray="3 3"
                             strokeOpacity={0.35}
                             vertical={false}

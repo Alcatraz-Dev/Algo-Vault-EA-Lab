@@ -72,7 +72,7 @@ export function PerformancePanel({
                     {hasCurve ? (
                         <ResponsiveContainer width="100%" height={200}>
                             <LineChart data={curve} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-                                <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
+                                <CartesianGrid stroke="var(--border-color)" strokeDasharray="3 3" vertical={false} />
                                 <XAxis
                                     dataKey="t"
                                     type="number"
@@ -133,7 +133,7 @@ export function PerformancePanel({
                     {hasDaily ? (
                         <ResponsiveContainer width="100%" height={140}>
                             <BarChart data={daily} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-                                <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
+                                <CartesianGrid stroke="var(--border-color)" strokeDasharray="3 3" vertical={false} />
                                 <XAxis
                                     dataKey="dayKey"
                                     tickFormatter={(v) => String(v).slice(5)}

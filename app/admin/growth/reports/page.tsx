@@ -317,7 +317,7 @@ export default function AdminGrowthReportsPage() {
                                                     <XAxis dataKey="date" tick={{ fontSize: 10 }} />
                                                     <YAxis tick={{ fontSize: 10 }} />
                                                     <Tooltip
-                                                        contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+                                                        contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border-color))" }}
                                                         formatter={(value: unknown) => [fmtCurrency(Number(value)), "Revenue"]}
                                                     />
                                                     <Legend />

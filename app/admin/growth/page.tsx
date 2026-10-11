@@ -272,7 +272,7 @@ export default function AdminGrowthOverviewPage() {
                                         <XAxis dataKey="date" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
                                         <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
                                         <Tooltip
-                                            contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+                                            contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border-color))" }}
                                             formatter={(value) => [fmtCurrency(Number(value) || 0), "Revenue"]}
                                             labelStyle={{ fontSize: 11 }}
                                         />

@@ -37,6 +37,8 @@ import SiteLogo from "@/components/ui/site-logo";
 import { useRouter } from "next/navigation";
 import { onSubscriptionChange } from "@/lib/subscription";
 import ThemeToggle from "@/components/theme/theme-toggle";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const NAV_ITEMS = [
   { icon: Zap, label: "AI Signals", href: "/signals" },
@@ -127,9 +129,12 @@ export default function SiteNavbar() {
           <SiteLogo size={18} />
           <span className="text-lg font-bold tracking-tight text-foreground">{siteName}</span>
           {hasPro && (
-            <span className="ml-2 rounded-full border border-primary/40 bg-accent-muted px-1.5 py-0.5 text-[9px] font-bold text-primary leading-none">
-              PRO
-            </span>
+            <Badge
+              variant="outline"
+              className="ml-2 border-primary/40 bg-primary/10 font-bold tracking-wider text-primary uppercase"
+            >
+              Pro
+            </Badge>
           )}
         </Link>
 
@@ -149,11 +154,14 @@ export default function SiteNavbar() {
               <span className="inline-flex items-center gap-1.5">
                 {label}
                 {pro ? (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1 py-0 text-[9px] font-bold uppercase tracking-wider text-primary leading-none">
+                  <Badge
+                    variant="outline"
+                    className="border-primary/40 bg-primary/10 font-bold tracking-wider text-primary uppercase"
+                  >
                     Pro
-                  </span>
+                  </Badge>
                 ) : null}
-                {badge && <span className="w-1.5 h-1.5 rounded-full bg-positive animate-pulse" />}
+                {badge && <span className="h-1.5 w-1.5 rounded-full bg-positive animate-pulse" />}
               </span>
             </Link>
           ))}
@@ -186,14 +194,16 @@ export default function SiteNavbar() {
             </div>
           )}
           <ThemeToggle />
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="icon"
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground md:hidden"
+            className="h-9 w-9 rounded-full border-border text-muted-foreground hover:border-primary/50 hover:text-foreground md:hidden"
             aria-label="Toggle menu"
           >
             {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -213,57 +223,69 @@ export default function SiteNavbar() {
             >
               <X size={16} />
             </button>
-            <nav className="space-y-1">
-              {NAV_ITEMS.map(({ icon: Icon, label, href, pro }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
-                    isActive(href)
-                      ? "bg-accent-muted font-semibold text-primary"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
-                >
-                  <span className="flex items-center gap-3">
-                    <Icon size={16} />
-                    {label}
-                  </span>
-                  {pro ? (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1 py-0 text-[9px] font-bold uppercase tracking-wider text-primary leading-none">
-                      Pro
-                    </span>
-                  ) : null}
-                </Link>
-              ))}
-              {PRO_NAV_ITEMS.map(({ icon: Icon, label, href }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-primary transition-colors hover:bg-muted"
-                >
-                  <Icon size={16} />
-                  {label}
-                </Link>
-              ))}
+            <nav>
+              <ul className="menu menu-sm w-full p-0">
+                {NAV_ITEMS.map(({ icon: Icon, label, href, pro }) => (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      onClick={() => setMobileOpen(false)}
+                      aria-current={isActive(href) ? "page" : undefined}
+                      className={
+                        isActive(href)
+                          ? "menu-active font-semibold"
+                          : "text-muted-foreground"
+                      }
+                    >
+                      <Icon size={16} />
+                      <span>{label}</span>
+                      {pro ? (
+                        <Badge
+                          variant="outline"
+                          className="border-primary/40 bg-primary/10 font-bold tracking-wider text-primary uppercase"
+                        >
+                          Pro
+                        </Badge>
+                      ) : null}
+                    </Link>
+                  </li>
+                ))}
+                {PRO_NAV_ITEMS.map(({ icon: Icon, label, href }) => (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      onClick={() => setMobileOpen(false)}
+                      aria-current={isActive(href) ? "page" : undefined}
+                      className={isActive(href) ? "menu-active font-semibold" : "text-primary"}
+                    >
+                      <Icon size={16} />
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
               {user && (
-                <>
-                  <div className="my-3 border-t border-border pt-3">
-                    <div className="flex items-center gap-2 px-3 text-sm text-muted-foreground">
-                      <div className="h-6 w-6 rounded-full bg-muted" />
-                      <span className="truncate">{user.email}</span>
-                    </div>
+                <div className="mt-2 border-t border-border pt-2">
+                  <div className="flex items-center gap-2 px-3 py-1 text-sm text-muted-foreground">
+                    <div className="h-6 w-6 rounded-full bg-muted" />
+                    <span className="truncate">{user.email}</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => { handleSignOut(); setMobileOpen(false); }}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                  >
-                    <LogOut size={16} />
-                    Sign Out
-                  </button>
-                </>
+                  <ul className="menu menu-sm w-full p-0">
+                    <li>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleSignOut();
+                          setMobileOpen(false);
+                        }}
+                        className="text-muted-foreground"
+                      >
+                        <LogOut size={16} />
+                        Sign Out
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               )}
             </nav>
           </aside>

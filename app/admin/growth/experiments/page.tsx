@@ -451,7 +451,7 @@ function ExperimentDetailDialog({
                                 <XAxis type="number" tick={{ fontSize: 10 }} />
                                 <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={80} />
                                 <Tooltip
-                                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+                                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border-color))" }}
                                     formatter={(value: unknown) => [fmtNumber(Number(value)), "Value"]}
                                 />
                                 <Legend />

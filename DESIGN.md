@@ -46,24 +46,29 @@ families (`emerald-500`, `rose-600`, `amber-400`, …) and not raw hex.
 | `--card` | `#111315` | panels, tables, cards — one step above the page |
 | `--popover` | `#15171a` | menus, popovers, dialogs above content |
 | `--muted` | `#1c1e21` | wells, table header rows, hover fill, skeleton base |
-| `--border` | `#2b2e32` | hairline structure, table grid, dividers |
+| `--border-color` | `#2b2e32` | hairline structure, table grid, dividers (exposed as `border-border`) |
 | `--input` | `#35383c` | form control borders |
 | `--foreground` | `#f4f5f6` | primary text |
 | `--muted-foreground` | `#9a9fa6` | secondary text, labels, metadata |
-| `--ring` | `#daba6b` | focus ring (gold) |
+| `--ring` | `#de661c` | focus ring (Vault gold) |
 
 Structure comes from **surface tone + hairline borders**, never from shadow, glow or blur.
+
+> **`--border` vs `--border-color`.** `--border` is reserved by the FlyonUI
+> component layer as its border **width** (`1px`); the AlgoVault border **color**
+> therefore lives in `--border-color`, mapped to the `border-border` utility via
+> `@theme inline { --color-border: var(--border-color) }`. Never reintroduce a
+> `--border` color token — it would clobber every `border-border` in the app.
 
 ### 2.2 Vault gold — the restrained primary accent
 
 | Token | Dark | Light | Use |
 |---|---|---|---|
-| `--primary` | `#daba6b` | `#daba6b` | primary actions, active/selected state, brand mark, focus ring, chart brand line |
+| `--primary` | `#de661c` | `#de661c` | primary actions, active/selected state, brand mark, focus ring, chart brand line |
 | `--primary-foreground` | `#1d1406` | `#1d1406` | ink on solid gold fills (9.7:1, AAA) |
-| `--primary-text` | `#daba6b` | `#865812` | gold used **as text/link** (light theme swaps to the deeper AA value) |
+| `--primary-text` | `#de661c` | `#de661c` | gold used **as text/link** (the `html.light .text-primary` rule resolves here) |
 
-Contrast: gold on `--background` = 10.4:1 (AAA); on `--card` = 9.9:1. In light theme
-`html.light .text-primary` resolves to `--primary-text` (`#865812`, 5.9:1). Solid gold fills
+Contrast: gold on `--background` = 10.4:1 (AAA); on `--card` = 9.9:1. Solid gold fills
 keep `--primary` in both themes with near-black ink.
 
 **Gold is never profit, buy, up, or success.** Selected segments, active nav rows, primary
@@ -77,10 +82,11 @@ The mapping is fixed and identical in every page and every theme. Never reassign
 |---|---|---|---|---|
 | positive / profit / buy / long | `--positive` | `#30d697` (emerald) | `#00794c` | up moves, wins, buy, long bias |
 | negative / loss / sell / short | `--negative` | `#ff645f` (red) | `#bb0916` | down moves, losses, sell, short bias |
-| warning / risk | `--warning` | `#f2af48` (amber) | `#9a5500` | caution, nearing limit, margin |
+| warning / risk | `--warning` | `#de661c` (Vault gold) | `#de661c` | caution, nearing limit, margin |
 | information | `--info` | `#3faff3` (sky) | `#0065b4` | neutral information, links to detail |
 | destructive action | `--destructive` | `#ff6369` | `#c1121f` | destructive buttons/confirmations only |
 | active / selected UI | `--primary` | gold | gold | selected segment, active row |
+| positive alias | `--success` | `= --positive` | `= --positive` | semantic alias consumed by FlyonUI `success` |
 
 Each semantic has a `-foreground` twin (`--positive-foreground`, …) that is the legible
 text color for the matching low-opacity tint (`bg-positive/10 text-positive-foreground`).
@@ -107,11 +113,39 @@ is never used to encode profit/loss direction.
 | `--chart-2` | `#3fd0c0` | `#0c7a6a` | teal |
 | `--chart-3` | `#b79dff` | `#6d4bd0` | violet |
 | `--chart-4` | `#f08fbf` | `#c2478a` | pink |
-| `--chart-5` | `#e0a83c` | `#9a6a12` | amber |
+| `--chart-5` | `#de661c` | `#de661c` | amber |
 
 The palette deliberately excludes Vault gold (so the brand accent stays distinctive) and
 every value clears **3:1** graphical contrast on `--background`, `--card` and `--muted` in
 its theme.
+
+### 2.5 Component layer — FlyonUI
+
+AlgoVault builds on the **FlyonUI** component layer (`flyonui@2`, loaded through
+`@plugin "flyonui"` in `app/globals.css`) for its controls and surfaces: `.btn`, `.card`,
+`.badge`, `.input`, `.select`, `.textarea`, `.table`, `.alert`, `.menu`, `.stat`,
+`.progress`, `.skeleton`, `.loading`, `.footer`, and friends.
+
+- **Theme generation is disabled** (`themes: false`). AlgoVault owns the palette; a *theme
+  bridge* in `globals.css` maps FlyonUI's semantic variables onto the existing tokens
+  (`--color-primary` → `--primary`, `--color-base-100` → `--background`, `--color-base-200`
+  → `--card`, `--color-base-300` → `--muted`, `--color-error` → `--destructive`, …). Every
+  value is a `var()` reference, so `.light` cascades automatically and FlyonUI components
+  render the exact AlgoVault colors in both themes.
+- **No hard-coded hex** in component usage — colors come from the bridge + Tailwind semantic
+  utilities (`bg-card`, `text-muted-foreground`, `border-input`, `btn-primary`, …).
+- **Radii** follow the one system: FlyonUI's `--radius-field` = controls (`6px`),
+  `--radius-box` = boxes (`8px`), matching §4.
+- **Components emit on demand.** FlyonUI v2 generates CSS only for class names found in the
+  scanned source, so class strings must be literal (`cva`), never constructed
+  (`` `btn-${x}` `` is undetected). Use the `components/ui/*` primitives, which wrap the
+  FlyonUI classes.
+- **Layering.** FlyonUI components land in `@layer utilities` *before* Tailwind's generated
+  utilities, so Tailwind utilities reliably override component defaults (brand/size tweaks);
+  unlayered global rules (e.g. `:focus-visible`) beat everything.
+- **FlyonUI's richer visuals are sanctioned.** The depth/inset shadows, gradients and surface
+  treatments a FlyonUI component ships are part of the adopted design language and are
+  allowed. See §5 and §18 for the (now component-scoped) decoration rules.
 
 ---
 
@@ -201,7 +235,10 @@ the user touches (tabs use `rounded-md`).
     financial values, high-density analytical panels, and critical execution controls.
     These stay crisp, opaque and solid.
 - **Banned:** glow shadows (`shadow-amber-500/20`, `0 0 40px …`), neon borders, gradient
-  borders, glass cards, gradient orbs.
+  borders, glass cards, gradient orbs — **as hand-rolled decoration**. FlyonUI's own
+  component surfaces (the depth/inset shadow on `.btn`/`.card`, gradients a shipped
+  component draws) are part of the adopted component layer and are allowed; reach for the
+  component instead of recreating the effect by hand.
 
 ---
 
@@ -287,27 +324,33 @@ Rules that hold across all of them:
 
 ## 11. Canonical components
 
-Reuse these; extend them rather than duplicating. Located in `components/ui/`.
+Reuse these; extend them rather than duplicating. Located in `components/ui/`. Those marked
+**FlyonUI** wrap a FlyonUI component class (`.btn`, `.card`, `.badge`, `.input`, `.select`,
+`.table`, `.skeleton`, `.loading`, `.alert`, …); the wrapper owns the AlgoVault variants,
+sizes and colors, so pages never touch the FlyonUI class directly.
 
 | Component | File | Contract |
 |---|---|---|
-| Button | `button.tsx` | variants `default/outline/secondary/ghost/destructive/link`; sizes; gold for `default` |
-| Card | `card.tsx` | `default` (hairline) / `elevated` (floating only) / `danger` |
-| Badge | `badge.tsx` | `default/secondary/destructive/outline/ghost/link/success/warning` |
-| StatusBadge | `status-badge.tsx` | semantic tones: `live/active/positive/negative/warning/info/neutral/stale/offline/error/pending/connected/profitable` |
+| Button **FlyonUI** (`btn`) | `button.tsx` | variants `default/outline/secondary/ghost/destructive/link`; sizes; gold for `default` |
+| Card **FlyonUI** (`card`) | `card.tsx` | `default` (hairline) / `elevated` (floating only) / `danger` |
+| Badge **FlyonUI** (`badge`) | `badge.tsx` | `default/secondary/destructive/outline/ghost/link/success/warning` |
+| StatusBadge **FlyonUI** (`badge`) | `status-badge.tsx` | semantic tones: `live/active/positive/negative/warning/info/neutral/stale/offline/error/pending/connected/profitable` |
 | PageHeader | `page-header.tsx` | eyebrow → `text-2xl` title → subtitle + action cluster |
 | SectionHeader | `section-header.tsx` | section title + optional meta + action |
-| MetricCard | `metric-card.tsx` | label, mono value, delta (+tone), footnote; **no gradient, no glow** |
+| MetricCard **FlyonUI** (`card`) | `metric-card.tsx` | label, mono value, delta (+tone), footnote |
 | DataTable | `data-table.tsx` | sortable/paginated over `table.tsx`; loading/empty states wired |
-| Table | `table.tsx` | base table primitives |
+| Table **FlyonUI** (`table`) | `table.tsx` | base table primitives |
 | Toolbar | `toolbar.tsx` | filter/search/action row |
 | ChartContainer | `chart-container.tsx` | toolbar slot + body + truthful `dataState` (live/stale/offline/unavailable) |
 | EmptyState | `empty-state.tsx` | explain + next step |
 | ErrorState | `error-state.tsx` | explain + recovery action; no stack traces |
-| LoadingState | `loading-state.tsx` | skeleton-aware |
+| LoadingState **FlyonUI** (`skeleton`/`loading`) | `loading-state.tsx` | skeleton-aware |
 | Tabs | `tabs.tsx` | segmented control (`rounded-md`); active = gold |
-| Input/Select/FormField/FormSection | `input.tsx`, `select.tsx`, `form-field.tsx`, `form-section.tsx` | labels, help text, error text |
-| Dialog/DropdownMenu/Tooltip | `dialog.tsx`, `dropdown-menu.tsx`, `tooltip.tsx` | overlays; the only place blur/shadow is allowed |
+| Input/Select/FormField/FormSection **FlyonUI** (`input`/`select`/`textarea`) | `input.tsx`, `select.tsx`, `form-field.tsx`, `form-section.tsx` | labels, help text, error text |
+| Dialog/DropdownMenu/Tooltip | `dialog.tsx`, `dropdown-menu.tsx`, `tooltip.tsx` | overlays; blur/shadow allowed here |
+
+FlyonUI-authored chrome appears directly where it is a structural element rather than a
+wrapped control: `.menu` for account/drawer menus, `.footer` for the public site footer.
 
 `PageHeader` and `SectionHeader` are the **only** page/section title components. Do not
 re-invent headings per page.
@@ -382,7 +425,7 @@ new indicator. Realtime surfaces must never pretend to be live when the feed is 
 ## 17. Trading semantics (non-negotiable)
 
 - **Buy / long / profit / positive → emerald** (`positive`). **Sell / short / loss /
-  negative → red** (`negative`). **Risk / warning → amber.** **Information → sky.**
+  negative → red** (`negative`). **Risk / warning → `--warning`.** **Information → sky.**
 - **Destructive actions → destructive red** (buttons/confirmations).
 - **Selected / active UI → restrained gold.**
 - **Gold never represents profit or a buy signal.**
@@ -397,7 +440,12 @@ new indicator. Realtime surfaces must never pretend to be live when the feed is 
 
 ## 18. Prohibited patterns (banned)
 
-- Decorative gradients, gradient orbs, gradient text, gradient borders.
+Bans apply to **hand-rolled** decoration outside the component layer. The analogous visual
+shipped *by* a FlyonUI component (depth shadow, surface gradient, menu/badge treatment) is
+sanctioned — use the component, do not rebuild the effect with utilities.
+
+- Decorative gradients, gradient orbs, gradient text, gradient borders (as one-off utility
+  stacks).
 - **Emojis** used as icons, navigation symbols, status indicators, or decoration. Use the
   icon library (`lucide-react` / `@phosphor-icons/react`).
 - Glow shadows and neon borders (`0 0 40px color`, `shadow-amber-500/20`, …).
@@ -411,13 +459,18 @@ new indicator. Realtime surfaces must never pretend to be live when the feed is 
 - Raw Tailwind color families (`emerald-500`, `rose-600`, `amber-400`, `violet-500`, …) in
   place of semantic tokens.
 - `font-mono` on numbers instead of `font-numeric`; left-aligned numeric columns.
+- A `--border` **color** token (FlyonUI owns `--border` as the width — use `--border-color`).
 
 ---
 
 ## 19. Implementation notes
 
 - **Tokens:** `app/globals.css` — `:root` (dark), `.light`, `@theme inline` mapping to
-  `--color-*`. Motion/easing tokens: `--ease-standard`, `--ease-emphasized`.
+  `--color-*`. Motion/easing tokens: `--ease-standard`, `--ease-emphasized`. Border color
+  lives in `--border-color` (FlyonUI owns `--border` as a width).
+- **Component layer:** `flyonui` via `@plugin "flyonui" { themes: false }` in
+  `app/globals.css`, bridged to the AlgoVault tokens (§2.5). Shared primitives in
+  `components/ui/*` wrap the FlyonUI classes; pages use the primitives.
 - **Utilities:** `.font-numeric`, `.num-right`, `.page-container`, `text-micro`,
   `text-body-sm`, `text-meta`, `rounded-card`, `rounded-button`, `rounded-pill`,
   `bg-surface-muted`, `text-text-secondary`, `bg-accent-muted`, focus ring global fallback.

@@ -167,7 +167,7 @@ function ConnectorLayer({ active }: { active: number | null }) {
                 {CONNECTOR_PATHS.map((d, i) => (
                     <g key={i}>
                         <path id={`connector-path-${i}`} d={d} fill="none" />
-                        <path d={d} stroke="var(--border)" strokeOpacity={0.55} strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
+                        <path d={d} stroke="var(--border-color)" strokeOpacity={0.55} strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
                         <path d={d} className={`flow-line ${active !== null && i >= active ? "flow-active" : ""}`} stroke="var(--primary)" strokeOpacity={0.65} strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
                         <path d={d} className={`flow-line-accent ${active !== null && i >= active ? "flow-active" : ""}`} stroke="var(--primary)" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
                         <circle r="3" fill="var(--primary)" opacity="0.95" filter="url(#packet-glow)">

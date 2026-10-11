@@ -27,7 +27,7 @@ import type { HomeBacktestAnalytics } from "@/lib/home-data";
 
 const TOOLTIP_STYLE = {
     background: "var(--card)",
-    border: "1px solid var(--border)",
+    border: "1px solid var(--border-color)",
     borderRadius: 12,
     color: "var(--foreground)",
     fontSize: 12,
@@ -192,10 +192,10 @@ export default function EvidenceAnalytics({
                                                             <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                                                         </linearGradient>
                                                     </defs>
-                                                    <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
+                                                    <CartesianGrid stroke="var(--border-color)" strokeDasharray="3 3" vertical={false} />
                                                     <XAxis dataKey="label" tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} axisLine={false} tickLine={false} interval={0} />
                                                     <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} axisLine={false} tickLine={false} width={52} tickFormatter={(v: number) => formatUsd(v)} />
-                                                    <Tooltip cursor={{ stroke: "var(--border)", strokeDasharray: "3 3" }} contentStyle={TOOLTIP_STYLE} formatter={(value) => [formatSignedUsd(Number(value)), "Equity"]} />
+                                                    <Tooltip cursor={{ stroke: "var(--border-color)", strokeDasharray: "3 3" }} contentStyle={TOOLTIP_STYLE} formatter={(value) => [formatSignedUsd(Number(value)), "Equity"]} />
                                                     <Area type="monotone" dataKey="equity" stroke="var(--primary)" strokeWidth={2.5} fillOpacity={1} fill="url(#recordedEquity)" />
                                                 </AreaChart>
                                             </ResponsiveContainer>
@@ -223,10 +223,10 @@ export default function EvidenceAnalytics({
                                                             <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.2} />
                                                         </linearGradient>
                                                     </defs>
-                                                    <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
+                                                    <CartesianGrid stroke="var(--border-color)" strokeDasharray="3 3" vertical={false} />
                                                     <XAxis dataKey="label" tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} axisLine={false} tickLine={false} interval={0} />
                                                     <YAxis domain={[0, 100]} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} axisLine={false} tickLine={false} width={36} tickFormatter={(v: number) => `${v}%`} />
-                                                    <Tooltip cursor={{ stroke: "var(--border)", strokeDasharray: "3 3" }} content={<QualityTooltip />} />
+                                                    <Tooltip cursor={{ stroke: "var(--border-color)", strokeDasharray: "3 3" }} content={<QualityTooltip />} />
                                                     <ReferenceLine y={50} stroke="var(--muted-foreground)" strokeOpacity={0.45} strokeDasharray="4 4" label={{ value: "50%", position: "insideTopLeft", fontSize: 10, fill: "var(--muted-foreground)" }} />
                                                     <Bar dataKey="winRate" name="Win rate" fill="url(#winRateGradient)" radius={[4, 4, 0, 0]} maxBarSize={28} />
                                                     <Line type="monotone" dataKey="maxDrawdown" name="Max drawdown" stroke="var(--negative)" strokeWidth={2} dot={{ r: 3, fill: "var(--negative)", strokeWidth: 0 }} activeDot={{ r: 5 }} />

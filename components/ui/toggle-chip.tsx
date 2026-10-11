@@ -27,10 +27,10 @@ export function ToggleChip({
             disabled={disabled}
             onClick={onClick}
             className={cn(
-                "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
+                "btn h-auto inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
                 active
-                    ? "border-primary/40 bg-primary/10 text-primary"
-                    : "border-border text-muted-foreground hover:bg-muted hover:text-foreground",
+                    ? "btn-soft btn-primary"
+                    : "btn-outline border-border text-muted-foreground hover:bg-muted hover:text-foreground",
                 className
             )}
             {...props}
