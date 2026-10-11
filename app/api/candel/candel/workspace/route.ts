@@ -69,6 +69,60 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// PATCH /api/candel/candel/workspace/[candelId] — revise a workspace page
+//
+// The client sends the revision it last read. If the stored page has moved on
+// (an agent saved a newer draft, or another tab edited it) we refuse the write
+// and hand the current page back, so a stale editor can never silently
+// overwrite newer content. The editor shows that page and the user re-applies.
+export async function PATCH(request: NextRequest) {
+  try {
+    const token = await authenticate(request);
+    if (!token) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    const { searchParams } = new URL(request.url);
+    const candelId = searchParams.get("candelId");
+    const pageId = searchParams.get("pageId");
+    if (!candelId || !pageId) {
+      return NextResponse.json({ success: false, error: "candelId and pageId required" }, { status: 400 });
+    }
+
+    await requireCandelOwner(candelId, token.uid);
+
+    const body = await request.json();
+    const { title, content, baseRevision } = body;
+    if (title === undefined && content === undefined) {
+      return NextResponse.json({ success: false, error: "title or content required" }, { status: 400 });
+    }
+
+    const pages = await getCandelWorkspacePages(candelId, token.uid);
+    const existing = pages.find((page) => page.id === pageId);
+    if (!existing) {
+      return NextResponse.json({ success: false, error: "Page not found" }, { status: 404 });
+    }
+
+    if (typeof baseRevision === "number" && baseRevision !== existing.revision) {
+      return NextResponse.json(
+        { success: false, error: "This page changed since you opened it.", conflict: true, page: existing },
+        { status: 409 },
+      );
+    }
+
+    const page: CandelPage = {
+      ...existing,
+      title: typeof title === "string" && title.trim() ? title.trim() : existing.title,
+      content: typeof content === "string" ? content : existing.content,
+      revision: existing.revision + 1,
+      updatedAt: Date.now(),
+    };
+
+    await saveCandelWorkspacePage(page);
+    return NextResponse.json({ success: true, page });
+  } catch (error) {
+    console.error("[candel/workspace PATCH]", error);
+    return NextResponse.json({ success: false, error: "Failed to save workspace page" }, { status: 500 });
+  }
+}
+
 // DELETE /api/candel/candel/workspace/[candelId] — delete a workspace page
 export async function DELETE(request: NextRequest) {
   try {
@@ -77,11 +131,13 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const candelId = searchParams.get("candelId");
     const pageId = searchParams.get("pageId");
-    if (!candelId) return NextResponse.json({ success: false, error: "candelId required" }, { status: 400 });
+    if (!candelId || !pageId) {
+      return NextResponse.json({ success: false, error: "candelId and pageId required" }, { status: 400 });
+    }
 
     await requireCandelOwner(candelId, token.uid);
 
-    await deleteCandelWorkspacePage(pageId || "", candelId, token.uid);
+    await deleteCandelWorkspacePage(pageId, candelId, token.uid);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[candel/workspace DELETE]", error);

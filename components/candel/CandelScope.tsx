@@ -1,22 +1,48 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Bot, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Select } from "@/components/ui/select";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { FormError } from "@/components/ui/form-field";
-import AccountShell from "@/components/account/AccountShell";
+import { RoleChip } from "@/components/candel/role-visuals";
 import { CandelAvatar } from "@/components/candel/role-visuals";
+import { CandelSwitcher } from "@/components/candel/CandelSwitcher";
+import AccountShell from "@/components/account/AccountShell";
 import { candelApi, candelErrorMessage } from "@/lib/candel/client";
 import type { CandelInstance } from "@/lib/candel/types";
 
 /**
- * Focused Candel pages (memory, activity, automations) share this shell: it
+ * Remembers which Candel the user was last working in, so the focused pages
+ * (memory, activity, automations, …) open on that one instead of silently
+ * jumping back to the first Candel in the roster.
+ */
+const LAST_CANDEL_KEY = "algovault.candel.last";
+
+function readLastCandel(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    return window.localStorage.getItem(LAST_CANDEL_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function writeLastCandel(candelId: string) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(LAST_CANDEL_KEY, candelId);
+  } catch {
+    // Private browsing or a full quota — the URL still carries the selection.
+  }
+}
+
+/**
+ * Focused Candel pages (memory, activity, automations, …) share this shell: it
  * loads the roster, keeps the selected Candel in the URL so a view is
- * shareable/reloadable, and hands the id to the panel.
+ * shareable and reloadable, and hands the id to the panel.
  */
 export function CandelScope({
   title,
@@ -54,10 +80,29 @@ export function CandelScope({
     };
   }, []);
 
+  // URL wins, then the last Candel the user actually worked in, then the
+  // newest one. Archived Candels stay selectable if they were chosen directly.
   const selected = useMemo(() => {
     if (candels.length === 0) return null;
-    return candels.find((candel) => candel.id === requestedId) ?? candels[0];
+    const byUrl = candels.find((candel) => candel.id === requestedId);
+    if (byUrl) return byUrl;
+    const last = readLastCandel();
+    const byMemory = candels.find((candel) => candel.id === last);
+    if (byMemory) return byMemory;
+    return candels[0];
   }, [candels, requestedId]);
+
+  const select = useCallback(
+    (candelId: string) => {
+      writeLastCandel(candelId);
+      router.push(`?candelId=${encodeURIComponent(candelId)}`);
+    },
+    [router]
+  );
+
+  useEffect(() => {
+    if (selected) writeLastCandel(selected.id);
+  }, [selected]);
 
   if (loading) {
     return (
@@ -89,31 +134,22 @@ export function CandelScope({
       title={title}
       subtitle={subtitle}
       headerActions={
-        <Select
-          className="w-56"
-          value={selected.id}
-          onChange={(event) =>
-            router.push(`?candelId=${encodeURIComponent(event.target.value)}`)
-          }
-        >
-          {candels.map((candel) => (
-            <option key={candel.id} value={candel.id}>
-              {candel.displayName || candel.name}
-            </option>
-          ))}
-        </Select>
+        <CandelSwitcher candels={candels} activeId={selected.id} onSelect={select} />
       }
     >
       <div className="space-y-4">
-        <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3">
+        <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2.5 sm:px-4">
           <CandelAvatar
             role={selected.customization?.role}
             avatar={selected.customization?.avatar}
           />
-          <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-foreground">
-              {selected.displayName || selected.name}
-            </p>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="truncate text-sm font-medium text-foreground">
+                {selected.displayName || selected.name}
+              </p>
+              <RoleChip role={selected.customization?.role} />
+            </div>
             <p className="truncate text-xs text-muted-foreground">
               {selected.description || selected.templateId}
             </p>

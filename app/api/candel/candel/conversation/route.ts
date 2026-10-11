@@ -106,16 +106,21 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const candelId = searchParams.get("candelId");
     const conversationId = searchParams.get("conversationId");
-    if (!candelId) return NextResponse.json({ success: false, error: "candelId required" }, { status: 400 });
+    if (!candelId || !conversationId) {
+      return NextResponse.json(
+        { success: false, error: "candelId and conversationId required" },
+        { status: 400 },
+      );
+    }
     await requireCandelOwner(candelId, token.uid);
-    await deleteCandelConversation(conversationId || "", candelId, token.uid);
+    await deleteCandelConversation(conversationId, candelId, token.uid);
     await saveCandelActivity({
       id: crypto.randomUUID(),
       candelId,
       userId: token.uid,
       action: "delete" as CandelActionType,
       targetType: "conversation",
-      targetId: conversationId || "",
+      targetId: conversationId,
       details: { conversationId },
       timestamp: Date.now(),
     });

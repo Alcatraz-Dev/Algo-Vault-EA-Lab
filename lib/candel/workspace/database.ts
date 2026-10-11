@@ -41,6 +41,20 @@ function deepClean(value: unknown): unknown {
   return value;
 }
 
+/**
+ * Guard for every `remove()` that targets a child of a per-Candel collection.
+ *
+ * RTDB normalizes a trailing slash, so `ref("…/pages/").remove()` deletes the
+ * whole `pages` node — a single request missing its id would wipe the entire
+ * collection. An empty id is a programming error, never a valid delete, so we
+ * refuse it instead of degrading into "delete everything".
+ */
+function requireChildId(id: string | undefined | null, label: string): asserts id is string {
+  if (!id || !id.trim()) {
+    throw new Error(`Refusing to delete without a ${label}.`);
+  }
+}
+
 // ─── Template operations (admin + owner) ───────────────────────────────────
 
 export async function getCandelTemplate(id: string): Promise<CandelTemplate | null> {
@@ -283,6 +297,9 @@ export async function saveCandelConversation(conv: CandelConversation): Promise<
 }
 
 export async function deleteCandelConversation(convId: string, userId: string, candelId: string): Promise<void> {
+  // Fail closed on an empty id: `.../${candelId}/` normalizes to the parent
+  // node, so `.remove()` would wipe every conversation this Candel owns.
+  requireChildId(convId, "conversationId");
   await adminDatabase
     .ref(`candelConversations/${userId}/${candelId}/${convId}`)
     .remove();
@@ -353,6 +370,7 @@ export async function saveCandelWorkspacePage(page: CandelPage): Promise<void> {
 }
 
 export async function deleteCandelWorkspacePage(pageId: string, candelId: string, userId: string): Promise<void> {
+  requireChildId(pageId, "pageId");
   await adminDatabase
     .ref(`candelWorkspace/${userId}/${candelId}/pages/${pageId}`)
     .remove();
@@ -376,6 +394,7 @@ export async function saveCandelMemoryEntry(entry: CandelMemoryEntry): Promise<v
 }
 
 export async function deleteCandelMemoryEntry(entryId: string, candelId: string, userId: string): Promise<void> {
+  requireChildId(entryId, "entryId");
   await adminDatabase
     .ref(`candelMemory/${userId}/${candelId}/${entryId}`)
     .remove();
@@ -410,6 +429,7 @@ export async function saveApprovalRequest(request: CandelApprovalRequest): Promi
 }
 
 export async function deleteApprovalRequest(id: string, candelId: string, userId: string): Promise<void> {
+  requireChildId(id, "approvalId");
   await adminDatabase
     .ref(`candelApprovals/${userId}/${candelId}/${id}`)
     .remove();
@@ -433,6 +453,7 @@ export async function saveCandelJob(job: CandelJob): Promise<void> {
 }
 
 export async function deleteCandelJob(jobId: string, candelId: string, userId: string): Promise<void> {
+  requireChildId(jobId, "jobId");
   await adminDatabase
     .ref(`candelAutomation/${userId}/${candelId}/jobs/${jobId}`)
     .remove();
@@ -456,6 +477,7 @@ export async function saveCandelAutomation(auto: CandelAutomation): Promise<void
 }
 
 export async function deleteCandelAutomation(autoId: string, candelId: string, userId: string): Promise<void> {
+  requireChildId(autoId, "automationId");
   await adminDatabase
     .ref(`candelAutomation/${userId}/${candelId}/${autoId}`)
     .remove();
@@ -496,6 +518,7 @@ export async function saveCandelProposal(proposal: CandelProposal): Promise<void
 }
 
 export async function deleteCandelProposal(proposalId: string, candelId: string, userId: string): Promise<void> {
+  requireChildId(proposalId, "proposalId");
   await adminDatabase
     .ref(`candelProposals/${userId}/${candelId}/${proposalId}`)
     .remove();

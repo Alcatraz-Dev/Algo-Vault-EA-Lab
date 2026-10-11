@@ -161,3 +161,33 @@ export function timeAgo(timestamp?: number): string {
   if (days < 30) return `${days}d ago`;
   return new Date(timestamp).toLocaleDateString();
 }
+
+/**
+ * Forward-looking relative time, e.g. "in 4m".
+ *
+ * `timeAgo` clamps a future timestamp to zero, so using it on `nextRunAt`
+ * rendered every upcoming run as "just now" — a scheduled job looked like it
+ * had fired. Countdowns must be formatted in the other direction.
+ */
+export function timeUntil(timestamp?: number): string {
+  if (!timestamp) return "—";
+  const seconds = Math.floor((timestamp - Date.now()) / 1000);
+  if (seconds <= 0) return "due now";
+  if (seconds < 60) return `in ${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `in ${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `in ${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `in ${days}d`;
+  return `on ${new Date(timestamp).toLocaleDateString()}`;
+}
+
+/**
+ * Direction-aware relative time: past timestamps read "3m ago", future ones
+ * "in 3m". Use this whenever a field can legitimately be in either direction.
+ */
+export function relativeTime(timestamp?: number): string {
+  if (!timestamp) return "—";
+  return timestamp > Date.now() ? timeUntil(timestamp) : timeAgo(timestamp);
+}

@@ -68,6 +68,51 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// PATCH /api/candel/candel/automations/[candelId] — pause or resume an automation
+//
+// Only the status is patchable: the trigger and action are the automation's
+// definition, and silently mutating them from this route would let a paused
+// rule come back with a different behaviour than the one that was reviewed.
+export async function PATCH(request: NextRequest) {
+  try {
+    const token = await authenticate(request);
+    if (!token) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    const { searchParams } = new URL(request.url);
+    const candelId = searchParams.get("candelId");
+    const automationId = searchParams.get("automationId");
+    if (!candelId || !automationId) {
+      return NextResponse.json(
+        { success: false, error: "candelId and automationId required" },
+        { status: 400 },
+      );
+    }
+
+    await requireCandelOwner(candelId, token.uid);
+
+    const body = await request.json();
+    const { status } = body as { status?: CandelAutomation["status"] };
+    if (status !== "active" && status !== "paused" && status !== "disabled") {
+      return NextResponse.json(
+        { success: false, error: "status must be active, paused or disabled" },
+        { status: 400 },
+      );
+    }
+
+    const automations = await getCandelAutomations(candelId, token.uid);
+    const existing = automations.find((auto) => auto.id === automationId);
+    if (!existing) {
+      return NextResponse.json({ success: false, error: "Automation not found" }, { status: 404 });
+    }
+
+    const automation: CandelAutomation = { ...existing, status, updatedAt: Date.now() };
+    await saveCandelAutomation(automation);
+    return NextResponse.json({ success: true, automation });
+  } catch (error) {
+    console.error("[candel/automations PATCH]", error);
+    return NextResponse.json({ success: false, error: "Failed to update automation" }, { status: 500 });
+  }
+}
+
 // DELETE /api/candel/candel/automations/[candelId] — cancel an automation
 export async function DELETE(request: NextRequest) {
   try {
@@ -76,11 +121,16 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const candelId = searchParams.get("candelId");
     const automationId = searchParams.get("automationId");
-    if (!candelId) return NextResponse.json({ success: false, error: "candelId required" }, { status: 400 });
+    if (!candelId || !automationId) {
+      return NextResponse.json(
+        { success: false, error: "candelId and automationId required" },
+        { status: 400 },
+      );
+    }
 
     await requireCandelOwner(candelId, token.uid);
 
-    await deleteCandelAutomation(automationId || "", candelId, token.uid);
+    await deleteCandelAutomation(automationId, candelId, token.uid);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[candel/automations DELETE]", error);

@@ -245,6 +245,19 @@ export const candelApi = {
     return data.entry;
   },
 
+  /** Correct a remembered entry in place. */
+  async updateMemory(
+    candelId: string,
+    entryId: string,
+    patch: { text?: string; kind?: CandelMemoryEntry["kind"] },
+  ): Promise<CandelMemoryEntry> {
+    const data = await candelFetch<{ entry: CandelMemoryEntry }>(
+      `${BASE}/memory${query({ candelId, entryId })}`,
+      { method: "PATCH", json: patch },
+    );
+    return data.entry;
+  },
+
   async forget(candelId: string, entryId: string): Promise<void> {
     await candelFetch(`${BASE}/memory${query({ candelId, entryId })}`, { method: "DELETE" });
   },
@@ -365,6 +378,19 @@ export const candelApi = {
     return data.automation;
   },
 
+  /** Pause / resume an automation without losing its definition. */
+  async updateAutomation(
+    candelId: string,
+    automationId: string,
+    status: CandelAutomation["status"],
+  ): Promise<CandelAutomation> {
+    const data = await candelFetch<{ automation: CandelAutomation }>(
+      `${BASE}/automations${query({ candelId, automationId })}`,
+      { method: "PATCH", json: { status } },
+    );
+    return data.automation;
+  },
+
   async deleteAutomation(candelId: string, automationId: string): Promise<void> {
     await candelFetch(`${BASE}/automations${query({ candelId, automationId })}`, {
       method: "DELETE",
@@ -386,6 +412,25 @@ export const candelApi = {
     const data = await candelFetch<{ page: CandelPage }>(
       `${BASE}/workspace${query({ candelId })}`,
       { method: "POST", json: input },
+    );
+    return data.page;
+  },
+
+  /**
+   * Revise a workspace page.
+   *
+   * `baseRevision` is the revision the editor last read. The server refuses the
+   * write with a 409 when the stored page has moved on, so a stale editor can
+   * never overwrite newer content; callers handle that by reloading.
+   */
+  async updateWorkspacePage(
+    candelId: string,
+    pageId: string,
+    patch: { title?: string; content?: string; baseRevision?: number },
+  ): Promise<CandelPage> {
+    const data = await candelFetch<{ page: CandelPage }>(
+      `${BASE}/workspace${query({ candelId, pageId })}`,
+      { method: "PATCH", json: patch },
     );
     return data.page;
   },
@@ -419,6 +464,15 @@ export const candelApi = {
     const data = await candelFetch<{ job: CandelJob }>(
       `${BASE}/jobs${query({ candelId })}`,
       { method: "POST", json: input },
+    );
+    return data.job;
+  },
+
+  /** Pause / resume a scheduled job without cancelling it. */
+  async updateJob(candelId: string, jobId: string, enabled: boolean): Promise<CandelJob> {
+    const data = await candelFetch<{ job: CandelJob }>(
+      `${BASE}/jobs${query({ candelId, jobId })}`,
+      { method: "PATCH", json: { enabled } },
     );
     return data.job;
   },

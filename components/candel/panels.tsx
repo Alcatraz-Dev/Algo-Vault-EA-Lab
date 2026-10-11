@@ -1,24 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Activity as ActivityIcon,
   AlertTriangle,
+  ArrowLeft,
   Brain,
   CalendarClock,
   Check,
   FileText,
   GitBranch,
+  LayoutGrid,
   Link2,
   ListChecks,
   Loader2,
+  Pause,
+  Pencil,
+  Play,
   Plus,
+  Rows3,
+  Search,
   ShieldCheck,
   Trash2,
   Wallet,
   Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/select";
@@ -26,10 +34,10 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { FormError, FormField } from "@/components/ui/form-field";
 import { SectionHeader } from "@/components/ui/section-header";
-import { timeAgo } from "@/components/candel/role-visuals";
+import { relativeTime, timeAgo } from "@/components/candel/role-visuals";
 import { ApprovalCard } from "@/components/candel/ApprovalCard";
 import { isApprovalExpired, isApprovalPending } from "@/lib/candel/approvals";
-import { candelApi, candelErrorMessage, type BindableAccount } from "@/lib/candel/client";
+import { CandelApiError, candelApi, candelErrorMessage, type BindableAccount } from "@/lib/candel/client";
 import type {
   AccountBinding,
   AccountContext,
@@ -78,6 +86,10 @@ export function MemoryPanel({ candelId }: { candelId: string }) {
   const [valueInput, setValueInput] = useState("");
   const [kind, setKind] = useState<CandelMemoryEntry["kind"]>("preference");
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const [editKind, setEditKind] = useState<CandelMemoryEntry["kind"]>("preference");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -123,6 +135,32 @@ export function MemoryPanel({ candelId }: { candelId: string }) {
       setEntries((prev) => (prev ?? []).filter((entry) => entry.id !== entryId));
     } catch (err) {
       setError(candelErrorMessage(err));
+    }
+  }
+
+  function startEdit(entry: CandelMemoryEntry) {
+    setEditingId(entry.id);
+    setEditText(entry.text);
+    setEditKind(entry.kind);
+  }
+
+  async function saveEdit() {
+    if (!editingId || !editText.trim()) return;
+    setSavingEdit(true);
+    setError("");
+    try {
+      const updated = await candelApi.updateMemory(candelId, editingId, {
+        text: editText.trim(),
+        kind: editKind,
+      });
+      setEntries((prev) =>
+        (prev ?? []).map((entry) => (entry.id === updated.id ? updated : entry))
+      );
+      setEditingId(null);
+    } catch (err) {
+      setError(candelErrorMessage(err));
+    } finally {
+      setSavingEdit(false);
     }
   }
 
@@ -184,28 +222,92 @@ export function MemoryPanel({ candelId }: { candelId: string }) {
       >
         {list.length === 0 ? null : (
           <ul className="divide-y divide-border rounded-lg border border-border">
-            {list.map((entry) => (
-              <li key={entry.id} className="flex items-start gap-3 px-3 py-2">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">{entry.kind}</Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {entry.source} · {timeAgo(entry.updatedAt || entry.createdAt)}
-                    </span>
+            {list.map((entry) => {
+              const editing = editingId === entry.id;
+              return (
+                <li key={entry.id} className="flex items-start gap-3 px-3 py-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{editing ? editKind : entry.kind}</Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {entry.source} · {timeAgo(entry.updatedAt || entry.createdAt)}
+                      </span>
+                    </div>
+                    {editing ? (
+                      <div className="mt-1.5 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
+                        <Input
+                          value={editText}
+                          autoFocus
+                          onChange={(event) => setEditText(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") void saveEdit();
+                            if (event.key === "Escape") setEditingId(null);
+                          }}
+                        />
+                        <Select
+                          value={editKind}
+                          onChange={(event) =>
+                            setEditKind(event.target.value as CandelMemoryEntry["kind"])
+                          }
+                        >
+                          {MEMORY_KINDS.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </Select>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => void saveEdit()}
+                            disabled={savingEdit || !editText.trim()}
+                          >
+                            {savingEdit ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <Check className="size-3.5" />
+                            )}
+                            Save
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setEditingId(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="mt-1 text-sm text-foreground">{entry.text}</p>
+                    )}
                   </div>
-                  <p className="mt-1 text-sm text-foreground">{entry.text}</p>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-xs"
-                  aria-label="Forget entry"
-                  onClick={() => void remove(entry.id)}
-                >
-                  <Trash2 className="size-3.5" />
-                </Button>
-              </li>
-            ))}
+                  <div className="flex shrink-0 items-center gap-0.5">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      aria-label="Edit memory entry"
+                      disabled={editing}
+                      onClick={() => startEdit(entry)}
+                    >
+                      <Pencil className="size-3.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      aria-label="Forget entry"
+                      onClick={() => void remove(entry.id)}
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </PanelBody>
@@ -509,6 +611,7 @@ export function AutomationsPanel({ candelId }: { candelId: string }) {
   const [type, setType] = useState<"cron" | "event">("cron");
   const [schedule, setSchedule] = useState("0 8 * * 1-5");
   const [saving, setSaving] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -553,6 +656,23 @@ export function AutomationsPanel({ candelId }: { candelId: string }) {
       setAutomations((prev) => (prev ?? []).filter((a) => a.id !== automationId));
     } catch (err) {
       setError(candelErrorMessage(err));
+    }
+  }
+
+  /** Pause keeps the rule and its history; only the schedule stops firing. */
+  async function toggle(automation: CandelAutomation) {
+    const next = automation.status === "active" ? "paused" : "active";
+    setBusyId(automation.id);
+    setError("");
+    try {
+      const updated = await candelApi.updateAutomation(candelId, automation.id, next);
+      setAutomations((prev) =>
+        (prev ?? []).map((entry) => (entry.id === updated.id ? updated : entry))
+      );
+    } catch (err) {
+      setError(candelErrorMessage(err));
+    } finally {
+      setBusyId(null);
     }
   }
 
@@ -603,30 +723,51 @@ export function AutomationsPanel({ candelId }: { candelId: string }) {
       >
         {list.length === 0 ? null : (
           <ul className="divide-y divide-border rounded-lg border border-border">
-            {list.map((automation) => (
-              <li key={automation.id} className="flex items-center gap-3 px-3 py-2">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm text-foreground">{automation.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {automation.trigger.kind === "cron"
-                      ? `cron ${automation.trigger.cron ?? ""}`
-                      : `on ${automation.trigger.event ?? ""}`}
-                  </p>
-                </div>
-                <Badge variant={automation.status === "active" ? "success" : "outline"}>
-                  {automation.status}
-                </Badge>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-xs"
-                  aria-label="Delete automation"
-                  onClick={() => void remove(automation.id)}
-                >
-                  <Trash2 className="size-3.5" />
-                </Button>
-              </li>
-            ))}
+            {list.map((automation) => {
+              const active = automation.status === "active";
+              const busy = busyId === automation.id;
+              return (
+                <li key={automation.id} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-2">
+                  <div className="min-w-40 flex-1">
+                    <p className="truncate text-sm text-foreground">{automation.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {automation.trigger.kind === "cron"
+                        ? `cron ${automation.trigger.cron ?? ""}`
+                        : `on ${automation.trigger.event ?? ""}`}
+                      {automation.updatedAt ? ` · updated ${timeAgo(automation.updatedAt)}` : ""}
+                    </p>
+                  </div>
+                  <Badge variant={active ? "success" : "outline"}>{automation.status}</Badge>
+                  <div className="flex items-center gap-0.5">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="xs"
+                      disabled={busy}
+                      onClick={() => void toggle(automation)}
+                    >
+                      {busy ? (
+                        <Loader2 className="size-3 animate-spin" />
+                      ) : active ? (
+                        <Pause className="size-3" />
+                      ) : (
+                        <Play className="size-3" />
+                      )}
+                      {active ? "Pause" : "Resume"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      aria-label="Delete automation"
+                      onClick={() => void remove(automation.id)}
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </PanelBody>
@@ -987,28 +1128,53 @@ function summarize(value: unknown, max = 140): string {
 const TEXTAREA_CLASS =
   "min-h-24 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm text-foreground transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 dark:bg-input/30";
 
+/** Editor draft: the title, body and revision the editor opened from, as one
+ *  unit. They must move together — a save with a fresh title and a stale
+ *  revision is exactly the write the server is supposed to refuse. */
+interface PageDraft {
+  id: string;
+  title: string;
+  content: string;
+  baseRevision: number;
+}
+
+const AUTOSAVE_DELAY_MS = 900;
+
 /**
- * Workspace pages — the notes, research and plans a Candel keeps. Creation and
- * deletion are owner-scoped server-side; this panel only ever renders what the
- * server returned for the selected Candel.
+ * Workspace pages — the notes, research and plans a Candel keeps, laid out the
+ * way OpenDots treats Spaces: a searchable library (list or grid) that opens
+ * into a focused editor which autosaves as you write.
+ *
+ * Saves are revision-checked. If the stored page moved on while the editor was
+ * open (an agent saved over it, or another tab did) the write is refused and we
+ * stop autosaving rather than retry blindly — a retry loop would either lose
+ * the newer revision or spin forever, so the user resolves it explicitly.
  */
 export function WorkspacePanel({ candelId }: { candelId: string }) {
   const [pages, setPages] = useState<CandelPage[] | null>(null);
   const [error, setError] = useState("");
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [view, setView] = useState<"list" | "grid">("list");
+  const [draft, setDraft] = useState<PageDraft | null>(null);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [conflict, setConflict] = useState(false);
+  const [creating, setCreating] = useState(false);
+
+  const reload = useCallback(async () => {
+    const next = await candelApi.workspacePages(candelId);
+    setPages(next);
+    return next;
+  }, [candelId]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const next = await candelApi.workspacePages(candelId);
-        if (!cancelled) {
-          setPages(next);
-          setError("");
-        }
+        if (cancelled) return;
+        setPages(next);
+        setError("");
       } catch (err) {
         if (!cancelled) setError(candelErrorMessage(err));
       }
@@ -1018,23 +1184,88 @@ export function WorkspacePanel({ candelId }: { candelId: string }) {
     };
   }, [candelId]);
 
-  async function create() {
-    if (!title.trim()) return;
-    setSaving(true);
+  const stored = draft ? (pages ?? []).find((page) => page.id === draft.id) ?? null : null;
+  const dirty =
+    draft !== null &&
+    stored !== null &&
+    (draft.title !== stored.title || draft.content !== stored.content);
+
+  /**
+   * Write one draft snapshot. Returns nothing: the caller decides how to react,
+   * and a failure always leaves the draft intact so nothing is lost.
+   */
+  const commitDraft = useCallback(
+    async (snapshot: PageDraft) => {
+      setSaveState("saving");
+      try {
+        const updated = await candelApi.updateWorkspacePage(candelId, snapshot.id, {
+          title: snapshot.title,
+          content: snapshot.content,
+          baseRevision: snapshot.baseRevision,
+        });
+        setPages((prev) =>
+          (prev ?? []).map((page) => (page.id === updated.id ? updated : page))
+        );
+        setDraft((current) =>
+          current && current.id === updated.id
+            ? { ...current, baseRevision: updated.revision }
+            : current
+        );
+        setSavedAt(Date.now());
+        setSaveState("saved");
+        setError("");
+      } catch (err) {
+        setSaveState("error");
+        if (err instanceof CandelApiError && err.status === 409) {
+          setConflict(true);
+          setError(
+            "This page changed while you were editing it. The newer revision is loaded — choose which version to keep."
+          );
+          try {
+            await reload();
+          } catch {
+            // the conflict banner already explains the state
+          }
+        } else {
+          setError(candelErrorMessage(err));
+        }
+      }
+    },
+    [candelId, reload]
+  );
+
+  // Autosave: debounce the draft, then write it with the revision it was built
+  // on. A conflict pauses autosave so this never becomes a retry loop.
+  useEffect(() => {
+    if (!draft || !stored || conflict) return;
+    if (draft.title === stored.title && draft.content === stored.content) return;
+    const snapshot = draft;
+    const handle = window.setTimeout(() => void commitDraft(snapshot), AUTOSAVE_DELAY_MS);
+    return () => window.clearTimeout(handle);
+  }, [draft, stored, conflict, commitDraft]);
+
+  async function createPage() {
+    setCreating(true);
     setError("");
     try {
       const page = await candelApi.createWorkspacePage(candelId, {
-        title: title.trim(),
-        content: content.trim(),
+        title: "Untitled page",
+        content: "",
       });
       setPages((prev) => [...(prev ?? []), page]);
-      setOpenId(page.id);
-      setTitle("");
-      setContent("");
+      setDraft({
+        id: page.id,
+        title: page.title,
+        content: page.content,
+        baseRevision: page.revision,
+      });
+      setSaveState("idle");
+      setSavedAt(null);
+      setConflict(false);
     } catch (err) {
       setError(candelErrorMessage(err));
     } finally {
-      setSaving(false);
+      setCreating(false);
     }
   }
 
@@ -1042,14 +1273,155 @@ export function WorkspacePanel({ candelId }: { candelId: string }) {
     try {
       await candelApi.deleteWorkspacePage(candelId, pageId);
       setPages((prev) => (prev ?? []).filter((page) => page.id !== pageId));
+      if (draft?.id === pageId) setDraft(null);
     } catch (err) {
       setError(candelErrorMessage(err));
     }
   }
 
-  const list = pages ?? [];
-  const ordered = [...list].sort((a, b) => b.updatedAt - a.updatedAt);
+  function openPage(page: CandelPage) {
+    setDraft({
+      id: page.id,
+      title: page.title,
+      content: page.content,
+      baseRevision: page.revision,
+    });
+    setSaveState("idle");
+    setSavedAt(null);
+    setConflict(false);
+    setError("");
+  }
 
+  /** Accept the newer server revision as the base while keeping local text. */
+  function keepMine() {
+    if (!stored) return;
+    setConflict(false);
+    setDraft((current) =>
+      current ? { ...current, baseRevision: stored.revision } : current
+    );
+  }
+
+  function useTheirs() {
+    if (!stored) return;
+    setConflict(false);
+    setError("");
+    setDraft({
+      id: stored.id,
+      title: stored.title,
+      content: stored.content,
+      baseRevision: stored.revision,
+    });
+    setSaveState("idle");
+  }
+
+  const list = pages ?? [];
+  const needle = query.trim().toLowerCase();
+  const visible = [...list]
+    .filter((page) =>
+      needle ? `${page.title} ${page.content}`.toLowerCase().includes(needle) : true
+    )
+    .sort((a, b) => b.updatedAt - a.updatedAt);
+
+  // ── Focused editor ───────────────────────────────────────────────────────
+  if (draft) {
+    const status = conflict
+      ? { label: "Needs your decision", tone: "text-warning" }
+      : saveState === "saving"
+        ? { label: "Saving…", tone: "text-muted-foreground" }
+        : saveState === "saved"
+          ? { label: `Saved ${timeAgo(savedAt ?? undefined)}`, tone: "text-muted-foreground" }
+          : saveState === "error"
+            ? { label: "Draft kept — not saved", tone: "text-destructive" }
+            : dirty
+              ? { label: "Unsaved changes", tone: "text-warning" }
+              : { label: "Autosave on", tone: "text-muted-foreground" };
+
+    return (
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="button" variant="ghost" size="sm" onClick={() => setDraft(null)}>
+            <ArrowLeft className="size-3.5" /> All pages
+          </Button>
+          <Badge variant="outline">rev {draft.baseRevision}</Badge>
+          <span className={`text-xs ${status.tone}`}>{status.label}</span>
+          <div className="ml-auto flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-label="Delete page"
+              onClick={() => void remove(draft.id)}
+            >
+              <Trash2 className="size-3.5" /> Delete
+            </Button>
+          </div>
+        </div>
+
+        {error ? <FormError>{error}</FormError> : null}
+
+        {conflict ? (
+          <div className="flex flex-wrap items-center gap-2 rounded-md border border-warning/40 bg-warning/5 px-3 py-2 text-xs text-warning">
+            <AlertTriangle className="size-3.5 shrink-0" />
+            <span className="min-w-40 flex-1">
+              Another revision of this page exists. Keep your text, or load the other one.
+            </span>
+            <Button type="button" size="xs" variant="outline" onClick={keepMine}>
+              Keep my version
+            </Button>
+            <Button type="button" size="xs" variant="ghost" onClick={useTheirs}>
+              Use newer revision
+            </Button>
+          </div>
+        ) : null}
+
+        <div className="space-y-3 rounded-lg border border-border p-3">
+          <Input
+            value={draft.title}
+            onChange={(event) =>
+              setDraft((current) =>
+                current ? { ...current, title: event.target.value } : current
+              )
+            }
+            placeholder="Page title"
+            aria-label="Page title"
+            className="border-transparent bg-transparent font-heading text-base font-semibold shadow-none"
+          />
+          <textarea
+            value={draft.content}
+            onChange={(event) =>
+              setDraft((current) =>
+                current ? { ...current, content: event.target.value } : current
+              )
+            }
+            placeholder="What should this page hold? Markdown is fine."
+            aria-label="Page content"
+            spellCheck={false}
+            className={`${TEXTAREA_CLASS} min-h-[40vh] font-mono text-xs leading-relaxed`}
+          />
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => void commitDraft(draft)}
+              disabled={saveState === "saving"}
+            >
+              {saveState === "saving" ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Check className="size-3.5" />
+              )}
+              Save now
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              Markdown source. Saves carry the revision they were written against.
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Library ──────────────────────────────────────────────────────────────
   return (
     <div className="space-y-4">
       <SectionHeader
@@ -1059,71 +1431,143 @@ export function WorkspacePanel({ candelId }: { candelId: string }) {
         meta={<span className="text-xs text-muted-foreground">{list.length} pages</span>}
       />
 
-      <div className="space-y-2 rounded-lg border border-border p-3">
-        <Input
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          placeholder="Page title (e.g. XAUUSD weekly plan)"
-        />
-        <textarea
-          value={content}
-          onChange={(event) => setContent(event.target.value)}
-          className={TEXTAREA_CLASS}
-          placeholder="What should this page hold? Markdown is fine."
-        />
-        <Button type="button" onClick={() => void create()} disabled={saving || !title.trim()}>
-          {saving ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
-          Create page
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative min-w-48 flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search pages…"
+            aria-label="Search pages"
+            className="pl-8"
+          />
+        </div>
+        <div className="flex items-center gap-0.5 rounded-md border border-border p-0.5">
+          <Button
+            type="button"
+            variant={view === "list" ? "secondary" : "ghost"}
+            size="icon-xs"
+            aria-label="List view"
+            aria-pressed={view === "list"}
+            onClick={() => setView("list")}
+          >
+            <Rows3 className="size-3.5" />
+          </Button>
+          <Button
+            type="button"
+            variant={view === "grid" ? "secondary" : "ghost"}
+            size="icon-xs"
+            aria-label="Grid view"
+            aria-pressed={view === "grid"}
+            onClick={() => setView("grid")}
+          >
+            <LayoutGrid className="size-3.5" />
+          </Button>
+        </div>
+        <Button type="button" size="sm" onClick={() => void createPage()} disabled={creating}>
+          {creating ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}
+          New page
         </Button>
       </div>
 
+      {error ? <FormError>{error}</FormError> : null}
+
       <PanelBody
         data={pages}
-        error={error}
+        error=""
         empty={
           <EmptyState
             compact
             icon={<FileText className="size-4" />}
             title="No workspace pages"
-            description="Create a page above, or let this Candel save research here as it works."
+            description="Create a page, or let this Candel save research here as it works."
+            action={
+              <Button type="button" size="sm" onClick={() => void createPage()} disabled={creating}>
+                <Plus className="size-3.5" /> New page
+              </Button>
+            }
           />
         }
       >
-        <ul className="divide-y divide-border rounded-lg border border-border">
-          {ordered.map((page) => {
-            const open = openId === page.id;
-            return (
-              <li key={page.id} className="px-3 py-2">
-                <div className="flex items-center gap-3">
+        {visible.length === 0 ? (
+          <EmptyState
+            compact
+            icon={<Search className="size-4" />}
+            title="No pages match that search"
+            description="Try a shorter term — titles and page content are both searched."
+            action={
+              <Button type="button" variant="outline" size="sm" onClick={() => setQuery("")}>
+                Clear search
+              </Button>
+            }
+          />
+        ) : view === "grid" ? (
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {visible.map((page) => (
+              <Card key={page.id} className="h-full">
+                <CardContent className="flex h-full flex-col gap-2">
+                  <div className="flex items-start gap-2">
+                    <button
+                      type="button"
+                      className="min-w-0 flex-1 text-left"
+                      onClick={() => openPage(page)}
+                    >
+                      <p className="truncate text-sm font-medium text-foreground">{page.title}</p>
+                    </button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      aria-label={`Delete ${page.title}`}
+                      onClick={() => void remove(page.id)}
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  </div>
                   <button
                     type="button"
-                    className="min-w-0 flex-1 text-left"
-                    onClick={() => setOpenId(open ? null : page.id)}
+                    className="min-h-8 flex-1 text-left"
+                    onClick={() => openPage(page)}
                   >
-                    <p className="truncate text-sm text-foreground">{page.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      rev {page.revision} · updated {timeAgo(page.updatedAt)}
+                    <p className="line-clamp-3 text-xs text-muted-foreground">
+                      {page.content.trim() || "Empty page"}
                     </p>
                   </button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-xs"
-                    aria-label="Delete workspace page"
-                    onClick={() => void remove(page.id)}
-                  >
-                    <Trash2 className="size-3.5" />
-                  </Button>
-                </div>
-                {open ? (
-                  <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-md border border-border bg-muted/40 p-3 text-xs text-foreground">
-                    {page.content || "(empty page)"}
-                  </pre>
-                ) : null}
+                  <p className="text-xs text-muted-foreground">
+                    rev {page.revision} · {timeAgo(page.updatedAt)}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <ul className="divide-y divide-border rounded-lg border border-border">
+            {visible.map((page) => (
+              <li key={page.id} className="flex items-center gap-3 px-3 py-2">
+                <button
+                  type="button"
+                  className="min-w-0 flex-1 text-left"
+                  onClick={() => openPage(page)}
+                >
+                  <p className="truncate text-sm text-foreground">{page.title}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    rev {page.revision} · updated {timeAgo(page.updatedAt)}
+                    {page.content.trim() ? ` · ${page.content.trim().slice(0, 60)}` : ""}
+                  </p>
+                </button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label={`Delete ${page.title}`}
+                  onClick={() => void remove(page.id)}
+                >
+                  <Trash2 className="size-3.5" />
+                </Button>
               </li>
-            );
-          })}
-        </ul>
+            ))}
+          </ul>
+        )}
       </PanelBody>
     </div>
   );
@@ -1261,6 +1705,7 @@ export function JobsPanel({ candelId }: { candelId: string }) {
   const [cron, setCron] = useState("0 8 * * 1-5");
   const [action, setAction] = useState("");
   const [saving, setSaving] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -1306,6 +1751,20 @@ export function JobsPanel({ candelId }: { candelId: string }) {
       setJobs((prev) => (prev ?? []).filter((job) => job.id !== jobId));
     } catch (err) {
       setError(candelErrorMessage(err));
+    }
+  }
+
+  /** Pausing a job keeps its run history and stops it being scheduled. */
+  async function toggle(job: CandelJob) {
+    setBusyId(job.id);
+    setError("");
+    try {
+      const updated = await candelApi.updateJob(candelId, job.id, !job.enabled);
+      setJobs((prev) => (prev ?? []).map((entry) => (entry.id === updated.id ? updated : entry)));
+    } catch (err) {
+      setError(candelErrorMessage(err));
+    } finally {
+      setBusyId(null);
     }
   }
 
@@ -1360,28 +1819,48 @@ export function JobsPanel({ candelId }: { candelId: string }) {
       >
         <ul className="divide-y divide-border rounded-lg border border-border">
           {list.map((job) => (
-            <li key={job.id} className="flex items-center gap-3 px-3 py-2">
-              <div className="min-w-0 flex-1">
+            <li key={job.id} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-2">
+              <div className="min-w-40 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="truncate text-sm text-foreground">{job.spec}</span>
+                  <span className="truncate font-numeric text-sm text-foreground">{job.spec}</span>
                   <Badge variant={JOB_STATUS_VARIANT[job.status]}>{job.status}</Badge>
                   {!job.enabled ? <Badge variant="outline">paused</Badge> : null}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {job.lastRunAt ? `last ${timeAgo(job.lastRunAt)} · ` : "never run · "}
-                  next {timeAgo(job.nextRunAt)}
+                  {job.enabled && job.nextRunAt
+                    ? `next ${relativeTime(job.nextRunAt)}`
+                    : "not scheduled"}
                   {job.error ? ` · ${job.error}` : ""}
                 </p>
               </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                aria-label="Cancel job"
-                onClick={() => void cancel(job.id)}
-              >
-                <Trash2 className="size-3.5" />
-              </Button>
+              <div className="flex items-center gap-0.5">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="xs"
+                  disabled={busyId === job.id}
+                  onClick={() => void toggle(job)}
+                >
+                  {busyId === job.id ? (
+                    <Loader2 className="size-3 animate-spin" />
+                  ) : job.enabled ? (
+                    <Pause className="size-3" />
+                  ) : (
+                    <Play className="size-3" />
+                  )}
+                  {job.enabled ? "Pause" : "Resume"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label="Cancel job"
+                  onClick={() => void cancel(job.id)}
+                >
+                  <Trash2 className="size-3.5" />
+                </Button>
+              </div>
             </li>
           ))}
         </ul>
