@@ -63,6 +63,7 @@
     "cn": "^0.3.0",
     "firebase": "^12.19.0",
     "firebase-admin": "^14.4.0",
+    "flyonui": "^2.4.1",
     "jiti": "^2.7.0",
     "lightweight-charts": "^5.2.1",
     "lucide-react": "^1.46.0",
