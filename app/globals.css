@@ -3,6 +3,17 @@
    Provides the animate-in/animate-out/fade-in/slide-in-from-*/
 @import "tw-animate-css";
 
+/* ── FlyonUI ──
+   FlyonUI supplies the component layer (btn / card / badge / input / stat /
+   alert / table / progress / …). Theme generation is disabled because
+   AlgoVault owns its palette: the bridge block below maps FlyonUI's semantic
+   theme variables onto the existing tokens, so FlyonUI components render in
+   the exact AlgoVault colors in both dark and light themes. */
+@plugin "flyonui" {
+  themes: false;
+  logs: false;
+}
+
 :root {
   /* ── Graphite neutral scale (dark-first, cool gray-blue cast — never purple) ──
      Matches DESIGN.md `oklch(0.155 0.005 255)`. Structure comes from surface
@@ -120,6 +131,51 @@
   --chart-3: #6d4bd0; /* violet */
   --chart-4: #c2478a; /* pink */
   --chart-5: #de661c; /* amber */
+}
+
+/* ── FlyonUI theme bridge ──
+   Maps FlyonUI's semantic theme variables onto AlgoVault's existing tokens.
+   Every value is a var() reference, so the `.light` overrides cascade
+   automatically and FlyonUI components (btn, card, stat, alert, input, …)
+   inherit the exact AlgoVault palette in both themes. `-content` is the ink
+   used on a solid fill: our `--background` is the adaptive contrast color
+   (near-black in dark, near-white in light) that the semantic tokens are
+   tuned against. */
+:root {
+  --color-base-100: var(--background);
+  --color-base-200: var(--card);
+  --color-base-300: var(--muted);
+  --color-base-content: var(--foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-content: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-content: var(--secondary-foreground);
+  --color-accent: var(--primary);
+  --color-accent-content: var(--primary-foreground);
+  --color-neutral: var(--muted);
+  --color-neutral-content: var(--foreground);
+
+  --color-info: var(--info);
+  --color-info-content: var(--background);
+  --color-success: var(--positive);
+  --color-success-content: var(--background);
+  --color-warning: var(--warning);
+  --color-warning-content: var(--background);
+  --color-error: var(--destructive);
+  --color-error-content: var(--background);
+
+  /* Radii follow the one-system rule: controls = 6px, boxes = 8px. */
+  --radius-selector: 0.375rem;
+  --radius-field: 0.375rem;
+  --radius-box: 0.5rem;
+
+  /* Component base sizing. */
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
 }
 
 @theme inline {
