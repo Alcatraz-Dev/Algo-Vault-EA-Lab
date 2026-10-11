@@ -229,6 +229,7 @@ export default function AccountPage() {
             <div className="space-y-8 px-1">
                 {/* Stats */}
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <Card variant="elevated" className="group/card gap-0 overflow-hidden rounded-xl bg-card/80 backdrop-blur py-0 transition hover:shadow-xl hover:-translate-y-0.5">
                     <Card className="gap-0 py-0">
                         <div className="border-b border-border px-5 py-4">
                             <div className="flex items-center justify-between">
@@ -298,7 +299,7 @@ export default function AccountPage() {
                     </Card>
 
                     {/* Profile summary */}
-                    <Card className="gap-0 p-6" data-guide="licenses-card">
+                    <Card variant="elevated" className="group/card gap-0 overflow-hidden rounded-xl bg-card/80 backdrop-blur p-6 lg:col-span-2 transition hover:shadow-lg hover:-translate-y-0.5" data-guide="licenses-card">
                         <div className="flex items-center gap-4">
                             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
                                 <User className="h-7 w-7 text-muted-foreground" />
