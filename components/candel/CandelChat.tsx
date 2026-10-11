@@ -191,17 +191,38 @@ export function CandelChat({
         onTurnComplete?.();
       } catch (err) {
         setError(candelErrorMessage(err));
-        setState((prev) => {
-          if (!prev || !activeId) return prev;
-          return {
-            ...prev,
-            messages: {
-              ...prev.messages,
-              [activeId]: (prev.messages[activeId] ?? []).filter((m) => m.id !== pendingId),
-            },
-          };
-        });
         setInput(content);
+        // A turn can fail *after* the server stored the user message (for
+        // example when the Candel's template is missing), so dropping the
+        // optimistic echo left the transcript disagreeing with the store until
+        // a reload. Re-read the thread instead of guessing what was written.
+        try {
+          const { conversations, messagesByConversation } = await candelApi.conversations(
+            candelId,
+            { includeMessages: true },
+          );
+          setState({ conversations, messages: messagesByConversation });
+          setActiveId((current) =>
+            current && conversations.some((c) => c.id === current)
+              ? current
+              : conversations.length > 0
+                ? conversations[conversations.length - 1].id
+                : null
+          );
+        } catch {
+          // Keep the current thread on screen if the refresh itself fails;
+          // the composer error already tells the user what went wrong.
+          setState((prev) => {
+            if (!prev || !activeId) return prev;
+            return {
+              ...prev,
+              messages: {
+                ...prev.messages,
+                [activeId]: (prev.messages[activeId] ?? []).filter((m) => m.id !== pendingId),
+              },
+            };
+          });
+        }
       } finally {
         setSending(false);
       }
