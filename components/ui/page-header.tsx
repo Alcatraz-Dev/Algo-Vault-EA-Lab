@@ -34,18 +34,18 @@ export function PageHeader({
       {/* No data-guide here: AppShell/AdminShell topbars own the page-header anchor. */}
       <div className="min-w-0">
         {backHref ? (
-          <Link href={backHref} className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground hover:text-foreground transition-colors mb-2">
-            <ArrowLeft size={14} /> Back
+          <Link href={backHref} className="mb-2 inline-flex min-h-[32px] items-center gap-1.5 rounded-md text-xs font-medium uppercase tracking-wide text-muted-foreground transition-colors motion-reduce:transition-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+            <ArrowLeft size={14} aria-hidden="true" /> Back
           </Link>
         ) : null}
         {eyebrow ? (
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <p className="text-micro font-medium uppercase tracking-wider text-muted-foreground">
             {eyebrow}
           </p>
         ) : null}
         <h1
           className={cn(
-            "mt-1 text-2xl font-semibold tracking-tight text-foreground",
+            "mt-1 text-balance text-2xl font-semibold tracking-tight text-foreground",
             titleClassName
           )}
         >

@@ -430,6 +430,17 @@ body {
   .animate-page-enter {
     animation: page-enter 240ms ease-out both;
   }
+  /* ── Calm entrance choreography (GetLayers-inspired, purposeful) ──
+     Staggers the arrival of sibling cards/panels so dense grids settle in
+     reading order instead of flashing in at once. Transform/opacity only
+     (compositor-friendly); set --enter-index (0, 1, 2, …) per child to
+     stagger, capped at a short delay so content never feels withheld.
+     Purely progressive enhancement: content is fully legible without it,
+     and prefers-reduced-motion renders the final state instantly. */
+  .animate-enter-stagger {
+    animation: page-enter 280ms var(--ease-standard) both;
+    animation-delay: calc(min(var(--enter-index, 0), 8) * 36ms);
+  }
   .animate-core-ping {
     animation: core-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
   }

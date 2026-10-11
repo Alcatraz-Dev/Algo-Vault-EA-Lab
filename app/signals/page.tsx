@@ -30,6 +30,7 @@ import { auth, database } from "@/lib/firebase";
 
 import SignalFeed from "@/components/signals/SignalFeed";
 import MarketOverview from "@/components/signals/MarketOverview";
+import { Card } from "@/components/ui/card";
 import ProGate from "@/components/subscription/ProGate";
 import { useLivePrices } from "@/hooks/useLivePrices";
 import { formatPrice } from "@/lib/ai-signals/symbol-specs";
@@ -414,7 +415,7 @@ export default function AiSignalsPage() {
                 </div>
 
                 {/* DAILY LIMIT INDICATOR */}
-                <Card className="mt-6 gap-0 p-4 bg-card/80 backdrop-blur rounded-xl" data-guide="daily-limit">
+                <Card className="mt-6 gap-0 p-4" data-guide="daily-limit">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card">
@@ -442,7 +443,7 @@ export default function AiSignalsPage() {
                             </span>
                         </div>
                     </div>
-                </div>
+                </Card>
 
                 {/* SCAN RESULT FEEDBACK */}
                 {scanResult && (
@@ -500,10 +501,10 @@ export default function AiSignalsPage() {
                     {sentiments.length > 0 ? (
                         <MarketOverview sentiments={sentiments} prices={topPrices} />
                     ) : (
-                        <Card className="rounded-xl bg-card/80 backdrop-blur p-8 text-center">
+                        <Card className="p-8 text-center">
                             <BarChart3 className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                             <p className="text-sm text-muted-foreground">Market overview data loading...</p>
-                        </div>
+                        </Card>
                     )}
                 </div>
 
@@ -666,10 +667,10 @@ export default function AiSignalsPage() {
                     </div>
 
                     {loading ? (
-                        <Card className="rounded-xl bg-card/80 backdrop-blur p-16 text-center">
+                        <Card className="p-16 text-center">
                             <span className="loading loading-spinner mx-auto h-8 w-8 text-muted-foreground mb-3" />
                             <p className="text-sm text-muted-foreground">Loading signals...</p>
-                        </div>
+                        </Card>
                     ) : (
                         <>
                             {/* FREE SECTION — M5/M15 */}

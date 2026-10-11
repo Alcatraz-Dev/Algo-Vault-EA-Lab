@@ -124,7 +124,7 @@ export default function MarketHeader({
                         <ChevronDown size={14} className={cn("text-muted-foreground transition-transform", showSymbolDropdown && "rotate-180")} />
                     </button>
                     {showSymbolDropdown && (
-                        <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-lg border border-border bg-popover p-1 shadow-2xl">
+                        <div className="absolute top-full left-0 z-50 mt-1 w-48 rounded-lg border border-border bg-popover p-1 shadow-lg">
                             {SUPPORTED_SYMBOLS.map((s) => (
                                 <button
                                     key={s}

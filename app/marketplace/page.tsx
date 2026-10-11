@@ -288,7 +288,7 @@ export default function MarketplacePage() {
 
                             <Link
                                 href="/account"
-                                className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground"
+                                className="mb-6 inline-flex min-h-[32px] items-center gap-2 rounded-md text-sm text-muted-foreground transition-colors motion-reduce:transition-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                             >
                                 <ArrowLeft size={16} />
                                 Back to Account

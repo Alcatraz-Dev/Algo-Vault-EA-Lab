@@ -1642,7 +1642,7 @@ export default function AdminAffiliatesPage() {
     {
         showModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/75 p-4 backdrop-blur-sm">
-                <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-border bg-card shadow-2xl">
+                <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-border bg-card shadow-lg">
                     <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card px-6 py-5">
                         <div>
                             <h2 className="text-lg font-semibold">

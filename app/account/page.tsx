@@ -298,7 +298,7 @@ export default function AccountPage() {
                     </Card>
 
                     {/* Profile summary */}
-                    <Card variant="elevated" className="group/card gap-0 overflow-hidden rounded-xl bg-card/80 backdrop-blur p-6 lg:col-span-2 transition hover:shadow-lg hover:-translate-y-0.5" data-guide="licenses-card">
+                    <Card variant="default" className="gap-0 overflow-hidden p-6 lg:col-span-2" data-guide="licenses-card">
                         <div className="flex items-center gap-4">
                             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
                                 <User className="h-7 w-7 text-muted-foreground" />

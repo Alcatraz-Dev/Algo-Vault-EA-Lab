@@ -25,7 +25,7 @@ export function SectionHeader({
       <div className="flex min-w-0 items-center gap-2">
         {icon ? <span className="text-muted-foreground">{icon}</span> : null}
         <div className="min-w-0">
-          <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+          <h2 className="text-balance text-sm font-semibold tracking-tight text-foreground">{title}</h2>
           {description ? (
             <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
           ) : null}

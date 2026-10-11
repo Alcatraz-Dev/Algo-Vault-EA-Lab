@@ -811,7 +811,7 @@ function AdminTelegramDashboard() {
             {/* Toast */}
             {toast && (
                 <div className="fixed top-4 right-4 z-50 animate-in fade-in slide-in-from-top-4">
-                    <div className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium shadow-2xl backdrop-blur-xl ${
+                    <div className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium shadow-lg backdrop-blur-xl ${
                         toast.type === "success"
                             ? "border-positive/30 bg-positive/10 text-positive"
                             : "border-negative/30 bg-negative/10 text-negative"

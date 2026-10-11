@@ -108,6 +108,14 @@ export function DataTable<T>({
               {visibleColumns.map((col) => (
                 <TableHead
                   key={col.id}
+                  scope="col"
+                  aria-sort={
+                    col.sortable && col.sortValue && sort?.id === col.id
+                      ? sort.dir === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : undefined
+                  }
                   className={cn(
                     col.align === "right" && "text-right",
                     col.align === "center" && "text-center",
@@ -129,8 +137,13 @@ export function DataTable<T>({
                             : { id: col.id, dir: "asc" }
                         )
                       }
+                      aria-label={
+                        typeof col.header === "string"
+                          ? `Sort by ${col.header}`
+                          : "Toggle sort order"
+                      }
                       className={cn(
-                        "inline-flex items-center gap-1 transition-colors hover:text-foreground",
+                        "inline-flex items-center gap-1 rounded-md transition-colors motion-reduce:transition-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
                         col.align === "right" && "flex-row-reverse"
                       )}
                     >
@@ -181,8 +194,8 @@ export function DataTable<T>({
         </Table>
       </div>
       {pagination && pages > 1 ? (
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>
+        <nav aria-label="Table pages" className="flex items-center justify-between text-xs text-muted-foreground">
+          <span aria-live="polite">
             {sorted.length} results · page {page + 1} of {pages}
           </span>
           <div className="flex items-center gap-1">
@@ -190,7 +203,7 @@ export function DataTable<T>({
               type="button"
               disabled={page === 0}
               onClick={() => setPage((p) => Math.max(0, p - 1))}
-              className="rounded-md border border-border px-2.5 py-1 transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+              className="rounded-md border border-border px-2.5 py-1 transition-colors motion-reduce:transition-none hover:bg-muted disabled:pointer-events-none disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               Previous
             </button>
@@ -198,12 +211,12 @@ export function DataTable<T>({
               type="button"
               disabled={page >= pages - 1}
               onClick={() => setPage((p) => Math.min(pages - 1, p + 1))}
-              className="rounded-md border border-border px-2.5 py-1 transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+              className="rounded-md border border-border px-2.5 py-1 transition-colors motion-reduce:transition-none hover:bg-muted disabled:pointer-events-none disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               Next
             </button>
           </div>
-        </div>
+        </nav>
       ) : null}
     </div>
   );
