@@ -33,16 +33,29 @@ import Stripe from "stripe";
  * imported by API route handlers / server code. Do NOT create a
  * `NEXT_PUBLIC_STRIPE_SECRET_KEY` or similar.
  */
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+let _stripe: Stripe | null = null;
 
-if (!stripeSecretKey) {
-    throw new Error(
-        "Stripe is not configured. Please set STRIPE_SECRET_KEY on the server."
-    );
+function getStripe(): Stripe {
+    if (!_stripe) {
+        const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+        if (!stripeSecretKey) {
+            throw new Error(
+                "Stripe is not configured. Please set STRIPE_SECRET_KEY on the server."
+            );
+        }
+        _stripe = new Stripe(stripeSecretKey);
+    }
+    return _stripe;
 }
 
 /** The one Stripe client. Use this everywhere; never call `new Stripe(...)` elsewhere. */
-export const stripeClient = new Stripe(stripeSecretKey);
+export const stripeClient = new Proxy({} as Stripe, {
+    get(_target, prop) {
+        const client = getStripe();
+        const val = (client as any)[prop];
+        return typeof val === "function" ? val.bind(client) : val;
+    },
+});
 
 /**
  * Human-readable message from a Stripe/unknown error, safe for client

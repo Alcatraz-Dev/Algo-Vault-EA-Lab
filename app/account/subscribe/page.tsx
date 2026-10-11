@@ -65,7 +65,8 @@ export default function SubscribePage() {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) {
-          console.warn(`[subscription-status] Request returned status ${res.status}`);
+          const errText = await res.text();
+          console.warn(`[subscription-status] Request returned status ${res.status}:`, errText);
           return;
         }
         const data = await res.json();
@@ -113,10 +114,16 @@ export default function SubscribePage() {
       if (!res.ok) {
         let errorMsg = `Checkout failed (${res.status})`;
         try {
-          const errData = await res.json();
-          if (errData?.error) errorMsg = errData.error;
+          const rawText = await res.text();
+          try {
+            const errData = JSON.parse(rawText);
+            if (errData?.error) errorMsg = errData.error;
+            else if (rawText) errorMsg = `${errorMsg}: ${rawText}`;
+          } catch {
+            if (rawText) errorMsg = `${errorMsg}: ${rawText.slice(0, 150)}`;
+          }
         } catch {
-          // Non-JSON or empty response
+          // ignore read failure
         }
         throw new Error(errorMsg);
       }
