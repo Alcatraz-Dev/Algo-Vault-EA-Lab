@@ -88,6 +88,8 @@ export function AppShell({
   const [siteName, setSiteName] = useState("AlgoVault");
   const accountRef = useRef<HTMLDivElement | null>(null);
   const headerRef = useRef<HTMLElement | null>(null);
+  const mobileDrawerRef = useRef<HTMLDivElement | null>(null);
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
   const headerHeight = useShellHeaderHeight(headerRef);
   const [internalNavSearch, setInternalNavSearch] = useState("");
   const searchValue = navSearch !== undefined ? navSearch : internalNavSearch;
@@ -140,9 +142,19 @@ export function AppShell({
     });
   };
 
-  // Lock body scroll while the mobile drawer is open.
+  // Lock body scroll and manage focus for the mobile drawer.
   useEffect(() => {
-    if (!mobileOpen) return;
+    if (!mobileOpen) {
+      if (
+        typeof document !== "undefined" &&
+        document.activeElement &&
+        mobileDrawerRef.current?.contains(document.activeElement)
+      ) {
+        (document.activeElement as HTMLElement).blur();
+        menuButtonRef.current?.focus();
+      }
+      return;
+    }
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
@@ -532,11 +544,12 @@ export function AppShell({
       {/* Mobile drawer */}
       {hideSidebar || fullscreen ? null : (
         <div
+          ref={mobileDrawerRef}
           className={cn(
             "fixed inset-0 z-50 transition-[visibility] duration-200 motion-reduce:transition-none lg:hidden",
             mobileOpen ? "visible" : "invisible pointer-events-none"
           )}
-          aria-hidden={!mobileOpen}
+          inert={!mobileOpen}
         >
           <div
             className={cn(
@@ -588,6 +601,7 @@ export function AppShell({
             <div className="flex shrink-0 items-center gap-1.5">
               {compactHeader ? null : (
                 <Button
+                  ref={menuButtonRef}
                   type="button"
                   variant="ghost"
                   size="icon"

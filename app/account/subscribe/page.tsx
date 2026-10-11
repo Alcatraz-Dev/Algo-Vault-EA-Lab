@@ -64,6 +64,10 @@ export default function SubscribePage() {
         const res = await fetch("/api/subscription-status", {
           headers: { Authorization: `Bearer ${token}` },
         });
+        if (!res.ok) {
+          console.warn(`[subscription-status] Request returned status ${res.status}`);
+          return;
+        }
         const data = await res.json();
         setSubscription({
           plan: data.plan || "free",
@@ -106,6 +110,16 @@ export default function SubscribePage() {
         },
         body: JSON.stringify({ orderId: `sub_${plan}_${Date.now()}` }),
       });
+      if (!res.ok) {
+        let errorMsg = `Checkout failed (${res.status})`;
+        try {
+          const errData = await res.json();
+          if (errData?.error) errorMsg = errData.error;
+        } catch {
+          // Non-JSON or empty response
+        }
+        throw new Error(errorMsg);
+      }
       const data = await res.json();
       if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
@@ -124,6 +138,16 @@ export default function SubscribePage() {
       const res = await fetch("/api/billing/portal", {
         headers: { Authorization: `Bearer ${idToken}` },
       });
+      if (!res.ok) {
+        let errorMsg = `Billing portal failed (${res.status})`;
+        try {
+          const errData = await res.json();
+          if (errData?.error) errorMsg = errData.error;
+        } catch {
+          // Non-JSON or empty response
+        }
+        throw new Error(errorMsg);
+      }
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
