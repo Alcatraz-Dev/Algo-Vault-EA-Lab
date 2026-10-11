@@ -6,7 +6,7 @@ import {
     SlidersHorizontal,
     ArrowUpDown,
     ChevronDown,
-    Loader2,
+    
     Radio,
     Activity,
 } from "lucide-react";
