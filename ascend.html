@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ascend — Scale Smarter, Not Harder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{ --bg:#04060f; --bg-2:#060a18; --ink:#f3f6ff; --muted:#9aa6c4; --muted-2:#6b7796; --line:rgba(150,175,230,.12); --line-strong:rgba(150,175,230,.22); --accent:#5df0a8; --accent-2:#2fd38a; --accent-ink:#032018; --glass:rgba(12,18,38,.55); --glass-2:rgba(16,24,48,.65); --radius:18px; --radius-lg:26px; --maxw:1180px; --font:'Inter',system-ui,sans-serif; --shadow:0 30px 80px -30px rgba(0,0,0,.75); }
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.page{position:relative;z-index:1}
+.section{max-width:var(--maxw);margin:0 auto;padding:clamp(80px,12vw,160px) 24px}
+.eyebrow{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:18px}
+.section-head{max-width:680px;margin:0 auto clamp(48px,6vw,80px);text-align:center}
+.section-head h2{font-size:clamp(30px,4.4vw,50px);font-weight:800;line-height:1.05;letter-spacing:-.02em;text-shadow:0 2px 40px rgba(0,0,0,.6)}
+.section-head p{margin-top:18px;color:var(--muted);font-size:18px;line-height:1.65}
+.btn{display:inline-flex;align-items:center;gap:9px;font-size:15px;font-weight:600;padding:13px 22px;border-radius:999px;border:1px solid transparent;cursor:pointer;transition:transform .18s ease,box-shadow .25s ease,background .2s ease,border-color .2s ease;white-space:nowrap}
+.btn-primary{color:var(--accent-ink);background:linear-gradient(180deg,var(--accent),var(--accent-2));box-shadow:0 10px 30px -8px rgba(93,240,168,.55),inset 0 1px 0 rgba(255,255,255,.4)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 16px 38px -8px rgba(93,240,168,.7)}
+.btn-outline{color:var(--ink);background:rgba(255,255,255,.04);border-color:var(--line-strong);backdrop-filter:blur(10px)}
+.btn-outline:hover{background:rgba(255,255,255,.09);transform:translateY(-2px)}
+.card{border-radius:var(--radius);background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(14px);transition:transform .2s ease,border-color .2s ease,background .2s ease}
+.card:hover{transform:translateY(-4px);border-color:var(--line-strong);background:var(--glass-2)}
+.hero{min-height:100vh;display:flex;flex-direction:column;position:relative;background:radial-gradient(125% 62% at 50% -10%,rgba(4,6,15,.82) 0%,rgba(4,6,15,.28) 44%,transparent 68%)}
+.nav{position:relative;z-index:10;max-width:var(--maxw);margin:0 auto;padding:22px 24px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:19px;letter-spacing:.16em;color:var(--ink)}
+.brand-mark{color:var(--accent);font-size:14px;transform:translateY(-1px)}
+.nav-links{display:flex;gap:30px;font-size:14.5px;color:var(--muted)}
+.nav-links a:hover{color:var(--ink)}
+.hero-inner{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;transform:translateY(-10vh)}
+.hero-title{font-size:clamp(34px,5.2vw,62px);font-weight:800;line-height:1.04;letter-spacing:-.03em;max-width:15ch;text-shadow:0 2px 50px rgba(0,0,0,.55)}
+.hero-title em{font-style:normal;background:linear-gradient(180deg,var(--accent),var(--accent-2));-webkit-background-clip:text;color:transparent}
+.hero-sub{margin-top:24px;max-width:560px;font-size:clamp(16px,2vw,19px);line-height:1.6;color:var(--muted);text-shadow:0 1px 24px rgba(0,0,0,.55)}
+.hero-actions{margin-top:38px;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+.logos{padding:0 24px clamp(36px,6vw,64px);text-align:center}
+.logos-label{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted-2);margin-bottom:18px}
+.logos-row{display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(24px,5vw,56px)}
+.logo{font-size:17px;font-weight:700;color:var(--muted-2);opacity:.8;transition:opacity .2s,color .2s}
+.logo:hover{color:var(--ink);opacity:1}
+.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:var(--maxw);margin:0 auto}
+@media(max-width:980px){.feature-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.feature-grid{grid-template-columns:1fr}}
+.feature-card{padding:30px;border-radius:var(--radius);background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(14px);transition:transform .2s ease,border-color .2s ease,background .2s ease}
+.feature-card:hover{transform:translateY(-4px);border-color:var(--line-strong);background:var(--glass-2)}
+.feature-card h3{font-size:19px;font-weight:700;margin-top:0}
+.feature-card p{margin-top:10px;font-size:15px;color:var(--muted);line-height:1.55}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;max-width:var(--maxw);margin:0 auto}
+@media(max-width:980px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:380px){.stat-grid{grid-template-columns:1fr}}
+.stat{padding:30px 18px;border-radius:var(--radius);background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(12px);text-align:center}
+.stat-value{font-size:clamp(30px,4vw,44px);font-weight:800;background:linear-gradient(180deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{margin-top:8px;font-size:14px;color:var(--muted)}
+.cta-card{max-width:760px;margin:0 auto;padding:clamp(48px,7vw,80px) clamp(28px,5vw,64px);border-radius:var(--radius-lg);background:radial-gradient(120% 140% at 50% 0%,rgba(93,240,168,.12),transparent 55%),var(--glass-2);border:1px solid var(--line-strong);box-shadow:var(--shadow);backdrop-filter:blur(18px);text-align:center}
+.cta-card h2{font-size:clamp(30px,4.4vw,50px);font-weight:800;line-height:1.05;letter-spacing:-.02em;color:var(--ink);text-shadow:0 2px 40px rgba(0,0,0,.6)}
+.cta-card p{margin-top:18px;color:var(--muted);font-size:18px;line-height:1.65}
+.footer{max-width:var(--maxw);margin:0 auto;padding:48px 24px 0;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:48px;flex-wrap:wrap}
+.footer-brand h3{font-weight:800;letter-spacing:.16em}
+.footer-cols{display:flex;gap:48px;flex-wrap:wrap}
+.footer-cols h4{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted-2);margin-bottom:10px}
+.footer-cols a{display:block;font-size:14px;color:var(--muted);margin-bottom:6px;transition:color .2s}
+.footer-cols a:hover{color:var(--ink)}
+.copyright{text-align:center;margin-top:56px;font-size:13px;color:var(--muted-2)}
+</style>
+</head>
+<body>
+<canvas id="planet" class="planet-canvas"></canvas>
+<div class="page" id="top">
+  <header class="hero" role="banner">
+    <nav class="nav" aria-label="Primary">
+      <a href="#" class="brand" aria-label="Ascend home"><span class="brand-mark">▲</span> Ascend</a>
+      <div class="nav-links">
+        <a href="#features">Features</a><a href="#solutions">Solutions</a><a href="#cta">Plans</a><a href="#">Learning</a>
+      </div>
+      <a href="#cta" class="btn btn-ghost">Sign Up</a>
+    </nav>
+    <div class="hero-inner">
+      <h1 class="hero-title" data-reveal>Scale Smarter,<br><em>Not Harder</em></h1>
+      <p class="hero-sub" data-reveal>Drive your funnel forward with clever workflows, analytics, and seamless lead management — all in one immersive command center.</p>
+      <div class="hero-actions" data-reveal>
+        <a href="#cta" class="btn btn-primary">Start Free Right Now <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+        <a href="#" class="btn btn-outline">Schedule a Consult</a>
+      </div>
+    </div>
+    <div class="logos" aria-label="Trusted by">
+      <p class="logos-label">Trusted by fast-moving teams</p>
+      <div class="logos-row">
+        <a href="#" class="logo">Nimbus</a><a href="#" class="logo">Pluma</a><a href="#" class="logo">Citrus</a><a href="#" class="logo">Spider</a><a href="#" class="logo">Helod</a><a href="#" class="logo">Vertx</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="section features" id="features">
+    <div class="section-head" data-reveal>
+      <p class="eyebrow">Everything in orbit</p>
+      <h2>One platform to run the entire revenue engine</h2>
+      <p>Stop stitching tools together. Ascend unifies capture, automation, and insight into a single surface your whole team actually enjoys using.</p>
+    </div>
+    <div class="feature-grid">
+      <article class="feature-card" data-reveal style="--rd:0ms"><div class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="15" width="6" height="6" rx="1"/><path d="M6 9v3a3 3 0 0 0 3 3h3"/></svg></div><h3>Clever workflows</h3><p>Automate every hand-off with visual, branching pipelines that move deals forward while you sleep.</p></article>
+      <article class="feature-card" data-reveal style="--rd:90ms"><div class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19V5"/><path d="M4 19h16"/><rect x="8" y="16" width="4" height="4" rx="1"/><rect x="13" y="8" width="4" height="4" rx="1"/><rect x="8" y="3" width="4" height="4" rx="1"/></svg></div><h3>Live analytics</h3><p>Real-time dashboards turn raw funnel data into the one number that tells you what to do next.</p></article>
+      <article class="feature-card" data-reveal style="--rd:180ms"><div class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="16" cy="3.13" r="4"/></svg></div><h3>Seamless leads</h3><p>Capture, score, and route every lead automatically — no spreadsheet, no leak, no lag.</p></article>
+      <article class="feature-card" data-reveal style="--rd:270ms"><div class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div><h3>Instant triggers</h3><p>Fire actions across your stack the moment intent appears, in milliseconds not minutes.</p></article>
+      <article class="feature-card" data-reveal style="--rd:360ms"><div class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><polyline points="9 12 11 14 15 10"/></svg></div><h3>Enterprise-grade</h3><p>SOC 2, SSO, and granular roles baked in — security that scales quietly with your team.</p></article>
+      <article class="feature-card" data-reveal style="--rd:450ms"><div class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20Z"/></svg></div><h3>Global by default</h3><p>Multi-region, multi-currency, and low-latency everywhere your customers happen to be.</p></article>
+    </div>
+  </section>
+
+  <section class="section showcase" id="solutions">
+    <div class="showcase-grid">
+      <div class="showcase-copy" data-reveal>
+        <p class="eyebrow">Built for momentum</p>
+        <h2>See the whole funnel move in real time</h2>
+        <p>Every stage, every signal, every dollar — rendered live. Ascend gives operators the altitude to spot what’s working and the controls to double down instantly.</p>
+        <a href="#cta" class="btn btn-primary">Explore the platform <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+      </div>
+      <div class="dashboard" data-reveal>
+        <div style="padding:24px;border-radius:26px;background:rgba(16,24,48,.65);border:1px solid rgba(150,175,230,.22);backdrop-filter:blur(18px);box-shadow:var(--shadow)">
+          <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(150,175,230,.12);padding-bottom:12px;margin-bottom:16px">
+            <div><h3 style="font-size:15px;font-weight:700;margin:0">Pipeline · Q3</h3><span style="font-size:11px;color:#6b7796">Live</span></div>
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.6s infinite"></span>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:10px;height:150px;background:rgba(0,0,0,.25);border:1px solid rgba(150,175,230,.12);border-radius:14px;padding:8px 6px">
+            <div style="flex:1;height:62%;background:linear-gradient(180deg,var(--accent),rgba(47,211,138,.25));border-radius:6px 6px 3px 3px"></div>
+            <div style="flex:1;height:88%;background:linear-gradient(180deg,var(--accent),rgba(47,211,138,.25));border-radius:6px 6px 3px 3px"></div>
+            <div style="flex:1;height:47%;background:linear-gradient(180deg,var(--accent),rgba(47,211,138,.25));border-radius:6px 6px 3px 3px"></div>
+            <div style="flex:1;height:95%;background:linear-gradient(180deg,var(--accent),rgba(47,211,138,.25));border-radius:6px 6px 3px 3px"></div>
+            <div style="flex:1;height:71%;background:linear-gradient(180deg,var(--accent),rgba(47,211,138,.25));border-radius:6px 6px 3px 3px"></div>
+            <div style="flex:1;height:80%;background:linear-gradient(180deg,var(--accent),rgba(47,211,138,.25));border-radius:6px 6px 3px 3px"></div>
+            <div style="flex:1;height:58%;background:linear-gradient(180deg,var(--accent),rgba(47,211,138,.25));border-radius:6px 6px 3px 3px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats" style="margin-top:clamp(56px,8vw,96px);display:grid;grid-template-columns:repeat(4,1fr);gap:18px;max-width:var(--maxw);margin-left:auto;margin-right:auto">
+      <div class="stat" style="padding:30px 18px;border-radius:var(--radius);background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(12px);text-align:center">
+        <div class="stat-value" style="font-size:clamp(30px,4vw,44px);font-weight:800;background:linear-gradient(180deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">3.4×</div>
+        <div class="stat-label" style="margin-top:8px;font-size:14px;color:var(--muted)">Faster pipeline velocity</div>
+      </div>
+      <div class="stat" style="padding:30px 18px;border-radius:var(--radius);background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(12px);text-align:center">
+        <div class="stat-value" style="font-size:clamp(30px,4vw,44px);font-weight:800;background:linear-gradient(180deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">92%</div>
+        <div class="stat-label" style="margin-top:8px;font-size:14px;color:var(--muted)">Lead capture accuracy</div>
+      </div>
+      <div class="stat" style="padding:30px 18px;border-radius:var(--radius);background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(12px);text-align:center">
+        <div class="stat-value" style="font-size:clamp(30px,4vw,44px);font-weight:800;background:linear-gradient(180deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">11k+</div>
+        <div class="stat-label" style="margin-top:8px;font-size:14px;color:var(--muted)">Teams scaling on Ascend</div>
+      </div>
+      <div class="stat" style="padding:30px 18px;border-radius:var(--radius);background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(12px);text-align:center">
+        <div class="stat-value" style="font-size:clamp(30px,4vw,44px);font-weight:800;background:linear-gradient(180deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">$2.1B</div>
+        <div class="stat-label" style="margin-top:8px;font-size:14px;color:var(--muted)">Revenue influenced</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cta" id="cta" style="text-align:center">
+    <div class="cta-card" style="max-width:760px;margin:0 auto;padding:clamp(48px,7vw,80px) clamp(28px,5vw,64px);border-radius:var(--radius-lg);background:radial-gradient(120% 140% at 50% 0%,rgba(93,240,168,.12),transparent 55%),var(--glass-2);border:1px solid var(--line-strong);box-shadow:var(--shadow);backdrop-filter:blur(18px);text-align:center">
+      <p class="eyebrow" style="margin-bottom:10px">Ready when you are</p>
+      <h2 style="font-size:clamp(30px,4.4vw,50px);font-weight:800;line-height:1.05;letter-spacing:-.02em;color:var(--ink);text-shadow:0 2px 40px rgba(0,0,0,.6)">Put your growth on a new trajectory</h2>
+      <p style="margin-top:18px;color:var(--muted);font-size:18px;line-height:1.65">Launch in minutes. No credit card. Cancel anytime. Join thousands of teams compounding revenue on Ascend.</p>
+      <div class="hero-actions" style="margin-top:38px;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap">
+        <a href="#" class="btn btn-primary">Start Free Right Now <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+        <a href="#" class="btn btn-outline">Talk to Sales</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer" style="max-width:var(--maxw);margin:0 auto;padding:48px 24px 0;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:48px;flex-wrap:wrap">
+    <div class="footer-brand">
+      <a href="#" class="brand" style="font-size:19px"><span class="brand-mark">▲</span> Ascend</a>
+      <p style="margin-top:6px;color:var(--muted);font-size:14px">The revenue command center for ambitious teams.</p>
+    </div>
+    <div class="footer-cols">
+      <div><h4>Product</h4><a href="#">Features</a><a href="#">Solutions</a><a href="#">Plans</a></div>
+      <div><h4>Company</h4><a href="#">About</a><a href="#">Careers</a><a href="#">Blog</a></div>
+      <div><h4>Legal</h4><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Security</a></div>
+    </div>
+  </footer>
+  <div class="copyright">© 2026 Ascend, Inc. — Built among the stars.</div>
+</div>
+</body>
+</html>
