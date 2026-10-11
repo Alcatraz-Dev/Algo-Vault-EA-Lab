@@ -10,6 +10,7 @@
  * across the whole Candel surface) cannot come back.
  */
 
+import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import type {
   AccountBinding,
@@ -44,12 +45,31 @@ interface ApiEnvelope {
   [key: string]: unknown;
 }
 
+/**
+ * The signed-in user, waiting for Firebase to restore the session if needed.
+ *
+ * On a cold page load the first render (and its data effects) run before
+ * Firebase has rehydrated the persisted session, so `auth.currentUser` is still
+ * null — reading it directly reported "You are signed out" on a perfectly valid
+ * session and every Candel page showed an error until a manual reload. Wait for
+ * the first auth state instead of guessing.
+ */
+function waitForUser(): Promise<User | null> {
+  if (auth.currentUser) return Promise.resolve(auth.currentUser);
+  return new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe();
+      resolve(user);
+    });
+  });
+}
+
 /** Attach the ID token and normalize the response envelope. */
 async function candelFetch<T extends ApiEnvelope>(
   path: string,
   init: RequestInit & { json?: unknown } = {},
 ): Promise<T> {
-  const user = auth.currentUser;
+  const user = await waitForUser();
   if (!user) {
     throw new CandelApiError("You are signed out. Sign in again to use Candels.", 401);
   }

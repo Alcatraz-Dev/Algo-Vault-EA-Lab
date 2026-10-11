@@ -258,14 +258,20 @@ export default function CandelStudioPage() {
         </>
       }
     >
-      <div className="flex flex-col gap-4">
+      {/* The studio is a fixed-height canvas: the conversation and the open
+          panel share the leftover viewport, and only the panel area scrolls.
+          Reserving the space up front (rather than measuring after paint) is
+          what keeps the composer above the fold on a phone. */}
+      <div className="flex h-[calc(100svh-11rem)] min-h-[32rem] flex-col gap-3 sm:gap-4">
         {/* Identity — avatar, role, posture and what it may touch, in one line
             that wraps instead of overflowing on narrow screens. */}
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-border bg-card px-3 py-2.5 sm:px-4">
-          <CandelAvatar role={role} avatar={instance.customization?.avatar} size="lg" />
-          <div className="min-w-40 flex-1">
+        <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2.5 sm:px-4">
+          <CandelAvatar role={role} avatar={instance.customization?.avatar} />
+          <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-heading text-base font-semibold text-foreground">{name}</h1>
+              <h1 className="min-w-0 truncate font-heading text-base font-semibold text-foreground">
+                {name}
+              </h1>
               <RoleChip role={role} />
               <CandelStatusBadge status={instance.status} />
               {posture ? (
@@ -274,12 +280,13 @@ export default function CandelStudioPage() {
                 </Badge>
               ) : null}
             </div>
-            <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+            <p className="mt-1 line-clamp-1 text-xs text-muted-foreground sm:line-clamp-2">
               {instance.description || spec.description}
             </p>
           </div>
-          <div className="text-left text-xs text-muted-foreground sm:text-right">
-            <p>{template?.displayName ?? instance.templateId}</p>
+          {/* Secondary provenance — kept out of the way on narrow screens. */}
+          <div className="hidden text-right text-xs text-muted-foreground md:block">
+            <p className="truncate">{template?.displayName ?? instance.templateId}</p>
             <p>updated {timeAgo(instance.updatedAt)}</p>
           </div>
         </div>
@@ -289,12 +296,12 @@ export default function CandelStudioPage() {
         {/* Canvas + inspector. On `lg` the panel nav is a column on the right;
             below that it is a single scrollable strip so eleven destinations
             never wrap into a wall of text. */}
-        <div className="flex min-h-0 flex-col gap-3 lg:flex-row-reverse">
+        <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row-reverse">
           <div
             role="tablist"
             aria-label="Candel panels"
             aria-orientation="vertical"
-            className="-mx-1 flex shrink-0 gap-1 overflow-x-auto px-1 pb-1 lg:mx-0 lg:w-52 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0"
+            className="scrollbar-hide -mx-1 flex shrink-0 gap-1 overflow-x-auto px-1 pb-1 lg:mx-0 lg:w-52 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0"
           >
             {PANELS.map((entry) => {
               const Icon = entry.icon;
@@ -339,10 +346,10 @@ export default function CandelStudioPage() {
             id="candel-panel"
             role="tabpanel"
             aria-labelledby={`candel-tab-${activePanel.id}`}
-            className="min-w-0 flex-1"
+            className="min-h-0 min-w-0 flex-1 overflow-y-auto"
           >
             {panel === "chat" ? (
-              <div className="h-[calc(100svh-17rem)] min-h-[26rem] lg:h-[calc(100svh-14rem)]">
+              <div className="h-full min-h-24">
                 <CandelChat
                   candelId={instance.id}
                   candelName={name}
