@@ -12,7 +12,7 @@ import {
     Globe,
     History,
     Layers,
-    Loader2,
+    
     Lock,
     Radar,
     Radio,
@@ -378,7 +378,7 @@ export default function AiSignalsPage() {
                             }`}
                         >
                             {scanning ? (
-                                <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
+                                <span className="loading loading-spinner h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             ) : limitReached ? (
                                 <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             ) : (
@@ -414,7 +414,7 @@ export default function AiSignalsPage() {
                 </div>
 
                 {/* DAILY LIMIT INDICATOR */}
-                <div className="mt-6 rounded-lg border border-border bg-card p-4" data-guide="daily-limit">
+                <Card className="mt-6 gap-0 p-4 bg-card/80 backdrop-blur rounded-xl" data-guide="daily-limit">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card">
@@ -500,7 +500,7 @@ export default function AiSignalsPage() {
                     {sentiments.length > 0 ? (
                         <MarketOverview sentiments={sentiments} prices={topPrices} />
                     ) : (
-                        <div className="rounded-lg border border-border bg-card p-8 text-center">
+                        <Card className="rounded-xl bg-card/80 backdrop-blur p-8 text-center">
                             <BarChart3 className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                             <p className="text-sm text-muted-foreground">Market overview data loading...</p>
                         </div>
@@ -666,8 +666,8 @@ export default function AiSignalsPage() {
                     </div>
 
                     {loading ? (
-                        <div className="rounded-lg border border-border/30 bg-card/60 p-16 text-center">
-                            <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground mb-3" />
+                        <Card className="rounded-xl bg-card/80 backdrop-blur p-16 text-center">
+                            <span className="loading loading-spinner mx-auto h-8 w-8 text-muted-foreground mb-3" />
                             <p className="text-sm text-muted-foreground">Loading signals...</p>
                         </div>
                     ) : (
