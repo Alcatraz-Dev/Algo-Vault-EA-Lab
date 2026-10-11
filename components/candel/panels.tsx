@@ -57,6 +57,11 @@ import type {
  * their slice only after the request resolves, so nothing calls setState
  * synchronously inside an effect and a slow response can never resurrect a
  * stale Candel's data.
+ *
+ * `empty` is the *zero-row* state, not an override: it is shown only when the
+ * loaded collection is actually empty. Treating the mere presence of the prop
+ * as "show empty" meant every list panel rendered "no entries yet" over real
+ * data — every caller passes an array, so the length is the honest test.
  */
 function PanelBody({
   data,
@@ -71,7 +76,7 @@ function PanelBody({
 }) {
   if (error) return <FormError>{error}</FormError>;
   if (data === null) return <LoadingState rows={3} />;
-  if (empty) return <>{empty}</>;
+  if (empty && Array.isArray(data) && data.length === 0) return <>{empty}</>;
   return <>{children}</>;
 }
 
