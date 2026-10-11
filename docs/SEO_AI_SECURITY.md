@@ -82,7 +82,7 @@ All server responses carry defense-in-depth HTTP headers:
 - `X-Content-Type-Options`: `nosniff`
 - `X-Frame-Options`: `SAMEORIGIN`
 - `Referrer-Policy`: `strict-origin-when-cross-origin`
-- `Permissions-Policy`: `camera=(), microphone=(), geolocation=(), interest-cohort=()`
+- `Permissions-Policy`: `camera=(), microphone=(), geolocation=()`
 
 ### B. Server-Side Rate Limiting (`lib/security/rate-limiter.ts`)
 - Sliding window token bucket rate limiter tracking requests per IP identifier.
