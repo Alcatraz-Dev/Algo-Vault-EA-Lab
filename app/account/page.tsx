@@ -39,6 +39,9 @@ import {
 import AccountShell from "@/components/account/AccountShell";
 import BarCompareChart from "@/components/charts/BarCompareChart";
 import MiniSparkline from "@/components/charts/MiniSparkline";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 
 type UserProfile = {
     uid?: string;
@@ -199,7 +202,7 @@ export default function AccountPage() {
         return (
             <AccountShell title="Dashboard">
                 <div className="flex h-[50vh] items-center justify-center">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-foreground" />
+                    <div className="loading loading-spinner h-8 w-8 text-foreground" />
                 </div>
             </AccountShell>
         );
@@ -226,54 +229,54 @@ export default function AccountPage() {
             <div className="space-y-8 px-1">
                 {/* Stats */}
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    <StatCard
-                        icon={<Package className="h-5 w-5 text-muted-foreground" />}
-                        label="Orders"
-                        value={`${paidOrders.length}`}
-                        spark={paidOrders.map((o, i) => i + 1)}
-                        sparkColor="var(--chart-1)"
-                    />
-                    <StatCard
-                        icon={<CreditCard className="h-5 w-5 text-muted-foreground" />}
-                        label="Total Spent"
-                        value={formatMoney(totalSpent, paidCurrencies[0] || currencyCode)}
-                        spark={monthlySpend.map((m) => m.value)}
-                        sparkColor="var(--chart-1)"
-                    />
-                    <StatCard
-                        icon={<ShieldCheck className="h-5 w-5 text-muted-foreground" />}
-                        label="Active Licenses"
-                        value={`${activeCount}`}
-                        spark={licenseState ? [licenseState.total - activeCount, activeCount] : [0, 0]}
-                        sparkColor="var(--chart-1)"
-                    />
-                    <StatCard
-                        icon={<TrendingUp className="h-5 w-5 text-muted-foreground" />}
-                        label="Total Licenses"
-                        value={`${licenseState?.total ?? 0}`}
-                        spark={[]}
-                        sparkColor="var(--chart-1)"
-                    />
+                    <Card className="gap-0 py-0">
+                        <div className="border-b border-border px-5 py-4">
+                            <div className="flex items-center justify-between">
+                                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Orders</p>
+                                <Package className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                            <p className="text-2xl font-semibold tracking-tight">{paidOrders.length}</p>
+                        </div>
+                    </Card>
+                    <Card className="gap-0 py-0">
+                        <div className="border-b border-border px-5 py-4">
+                            <div className="flex items-center justify-between">
+                                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Total Spent</p>
+                                <CreditCard className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                            <p className="text-2xl font-semibold tracking-tight">{formatMoney(totalSpent, paidCurrencies[0] || currencyCode)}</p>
+                        </div>
+                    </Card>
+                    <Card className="gap-0 py-0">
+                        <div className="border-b border-border px-5 py-4">
+                            <div className="flex items-center justify-between">
+                                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Active Licenses</p>
+                                <ShieldCheck className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                            <p className="text-2xl font-semibold tracking-tight">{activeCount}</p>
+                        </div>
+                    </Card>
+                    <Card className="gap-0 py-0">
+                        <div className="border-b border-border px-5 py-4">
+                            <div className="flex items-center justify-between">
+                                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Total Licenses</p>
+                                <TrendingUp className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                            <p className="text-2xl font-semibold tracking-tight">{licenseState?.total ?? 0}</p>
+                        </div>
+                    </Card>
                 </div>
 
                 {/* Chart + Profile */}
                 <div className="grid gap-6 lg:grid-cols-3">
                     {/* Activity chart */}
-                    <div className="rounded-lg border border-border bg-muted/30 p-6 lg:col-span-2">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h2 className="font-semibold">Spending Overview</h2>
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    Your purchases over the last 6 months
-                                </p>
-                            </div>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-muted">
-                                <BarChart3 className="h-5 w-5 text-muted-foreground" />
-                            </div>
+                    <Card className="gap-0 p-6 lg:col-span-2">
+                        <div className="border-b border-border px-5 py-4">
+                            <h2 className="font-semibold">Spending Overview</h2>
+                            <p className="text-sm text-muted-foreground">Your purchases over the last 6 months</p>
                         </div>
-
-                        {paidOrders.length > 0 ? (
-                            <div className="mt-6">
+                        <div className="mt-6 px-5">
+                            {paidOrders.length > 0 ? (
                                 <BarCompareChart
                                     data={monthlySpend}
                                     xKey="label"
@@ -282,24 +285,20 @@ export default function AccountPage() {
                                     colorVar="var(--chart-1)"
                                     formatValue={(v) => formatMoney(v, currencyCode)}
                                 />
-                            </div>
-                        ) : (
-                            <div className="mt-6 flex h-[240px] items-center justify-center rounded-lg border border-dashed border-border">
-                                <div className="text-center">
-                                    <CreditCard className="mx-auto h-8 w-8 text-muted-foreground" />
-                                    <p className="mt-3 text-sm font-medium">
-                                        No purchase activity yet
-                                    </p>
-                                    <p className="mt-1 text-xs text-muted-foreground">
-                                        Your spending appears here after your first purchase.
-                                    </p>
+                            ) : (
+                                <div className="flex h-[240px] items-center justify-center rounded-lg border border-dashed border-border">
+                                    <div className="text-center">
+                                        <CreditCard className="mx-auto h-8 w-8 text-muted-foreground" />
+                                        <p className="mt-3 text-sm font-medium">No purchase activity yet</p>
+                                        <p className="mt-1 text-xs text-muted-foreground">Your spending appears here after your first purchase.</p>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
+                            )}
+                        </div>
+                    </Card>
 
                     {/* Profile summary */}
-                    <div className="rounded-lg border border-border bg-muted/30 p-6" data-guide="licenses-card">
+                    <Card className="gap-0 p-6" data-guide="licenses-card">
                         <div className="flex items-center gap-4">
                             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
                                 <User className="h-7 w-7 text-muted-foreground" />
@@ -351,14 +350,14 @@ export default function AccountPage() {
                             )}
                         </div>
 
-                        <Link
-                            href="/marketplace"
-                            className="mt-6 flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/80"
+                        <Button
+                            render={<Link href="/marketplace" />}
+                            className="mt-6 h-10 w-full"
                         >
                             Browse Marketplace
-                            <ChevronRight size={15} />
-                        </Link>
-                    </div>
+                            <ChevronRight size={15} data-icon="inline-end" />
+                        </Button>
+                    </Card>
                 </div>
 
                 {/* Quick cards */}
@@ -436,7 +435,7 @@ export default function AccountPage() {
                 </div>
 
                 {/* Trading tools */}
-                <div className="rounded-lg border border-border bg-muted/30 p-6" data-guide="tools-card">
+                <Card className="gap-0 p-6" data-guide="tools-card">
                     <h2 className="font-semibold">Trading Tools & Market Utilities</h2>
 
                     <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -561,7 +560,7 @@ export default function AccountPage() {
                             text="Real-time MT5 execution & AI signal engine"
                         />
                     </div>
-                </div>
+                </Card>
 
                 {/* Risk */}
                 <div className="rounded-lg border border-warning/30 bg-warning-muted p-5">
@@ -624,19 +623,20 @@ function QuickCard({
     text: string;
 }) {
     return (
-        <Link
-            href={href}
-            className="group rounded-lg border border-border bg-muted/30 p-5 transition hover:bg-muted/60"
-        >
-            <div className="flex items-center justify-between">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-md ${iconClass}`}>
-                    {icon}
+        <Card className="gap-0 py-3 hover:bg-muted/60 transition">
+            <Link href={href} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className={`flex h-10 w-10 items-center justify-center rounded-md ${iconClass}`}>
+                        {icon}
+                    </div>
+                    <div>
+                        <h3 className="font-semibold">{title}</h3>
+                        <p className="text-xs text-muted-foreground">{text}</p>
+                    </div>
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-foreground" />
-            </div>
-            <h3 className="mt-5 font-semibold">{title}</h3>
-            <p className="mt-1 text-sm text-muted-foreground">{text}</p>
-        </Link>
+            </Link>
+        </Card>
     );
 }
 
@@ -654,19 +654,18 @@ function ToolLink({
     className?: string;
 }) {
     return (
-        <Link
-            href={href}
-            className={`flex items-center justify-between rounded-lg border border-border bg-muted px-4 py-4 transition hover:bg-muted/60 ${className}`}
-        >
-            <div className="flex items-center gap-3">
-                {icon}
-                <div>
-                    <p className="text-sm font-medium">{title}</p>
-                    <p className="text-xs text-muted-foreground">{text}</p>
+        <Card className={`gap-0 ${className}`}>
+            <Link href={href} className="flex items-center justify-between rounded-lg px-4 py-4 transition hover:bg-muted/60">
+                <div className="flex items-center gap-3">
+                    {icon}
+                    <div>
+                        <p className="text-sm font-medium">{title}</p>
+                        <p className="text-xs text-muted-foreground">{text}</p>
+                    </div>
                 </div>
-            </div>
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </Link>
+        </Card>
     );
 }
 
