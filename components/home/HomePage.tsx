@@ -30,6 +30,9 @@ import { onValue, ref } from "firebase/database";
 import type { HomeData, HomeBacktest, HomeProduct } from "@/lib/home-data";
 import SiteHeader from "./site-header";
 import SiteFooter from "@/components/footer/SiteFooter";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import Reveal from "./Reveal";
 import CountUp from "./CountUp";
 import TickerStrip from "./TickerStrip";
@@ -122,20 +125,27 @@ export default function HomePage({ data }: { data: HomeData }) {
                     <div className="page-container relative">
                         <Reveal className="pt-16 text-center md:pt-24">
                             <div>
-                                <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                                <Badge
+                                    variant="outline"
+                                    className="h-auto gap-2 border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-primary"
+                                >
                                     <span className="relative flex h-1.5 w-1.5">
                                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" />
                                         <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
                                     </span>
                                     Real market infrastructure
-                                </div>
+                                </Badge>
                                 <h1 className="mx-auto mt-6 max-w-4xl text-4xl font-semibold leading-[1.04] tracking-[-0.04em] text-foreground sm:text-6xl lg:text-7xl">Build conviction before you place the trade.</h1>
                                 <p className="mx-auto mt-6 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
                                     {siteName} connects market data, deterministic analysis, strategy research, risk controls, and MT5 execution in one calm operating surface. What you see is what was recorded — no fabricated numbers.
                                 </p>
                                 <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                                    <Link href="/register" className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/85">Start building <ArrowRight size={16} /></Link>
-                                    <Link href="/strategy-lab" className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-border px-5 text-sm font-semibold text-foreground transition-colors hover:bg-muted">Open Strategy Lab</Link>
+                                    <Button render={<Link href="/register" />} size="lg" className="h-11 px-5">
+                                        Start building <ArrowRight data-icon="inline-end" />
+                                    </Button>
+                                    <Button render={<Link href="/strategy-lab" />} variant="outline" size="lg" className="h-11 px-5">
+                                        Open Strategy Lab
+                                    </Button>
                                 </div>
                                 <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-xs text-muted-foreground">
                                     <span className="flex items-center gap-2"><ShieldCheck size={14} className="text-positive" />Deterministic first</span>
@@ -263,7 +273,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                         </Reveal>
                         <div className="mt-10 grid gap-6 lg:grid-cols-2">
                             <Reveal delay={80}>
-                            <div className="rounded-lg border border-border bg-card">
+                            <Card className="gap-0 py-0">
                                 <div className="border-b border-border px-5 py-4">
                                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Deterministic layer</p>
                                     <h3 className="mt-2 text-xl font-semibold text-foreground">Eight pure engines on the market feed</h3>
@@ -279,10 +289,10 @@ export default function HomePage({ data }: { data: HomeData }) {
                                 <div className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
                                     <span className="flex items-center gap-2"><ShieldCheck size={14} className="text-positive" />Deterministic — same candles in, same result out</span>
                                 </div>
-                            </div>
+                            </Card>
                             </Reveal>
                             <Reveal delay={180}>
-                            <div className="rounded-lg border border-border bg-card">
+                            <Card className="gap-0 py-0">
                                 <div className="border-b border-border px-5 py-4">
                                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">AI interpretation layer</p>
                                     <h3 className="mt-2 text-xl font-semibold text-foreground">Applied on top, kept honest</h3>
@@ -298,7 +308,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                                 <div className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
                                     <span className="flex items-center gap-2"><CircleAlert size={14} className="text-warning" />AI cannot override the deterministic risk validator</span>
                                 </div>
-                            </div>
+                            </Card>
                             </Reveal>
                         </div>
                     </div>
@@ -308,13 +318,13 @@ export default function HomePage({ data }: { data: HomeData }) {
                 <section className="border-b border-border bg-background">
                     <div className="page-container grid gap-6 py-14 md:py-20 lg:grid-cols-[1.2fr_0.8fr]">
                         <Reveal>
-                        <div className="rounded-lg border border-border bg-card">
+                        <Card className="gap-0 py-0">
                             <div className="flex items-center justify-between border-b border-border px-5 py-4">
                                 <div>
                                     <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
                                         Verified workspace
                                         {previewBacktests && (
-                                            <span className="rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 font-numeric text-micro font-medium normal-case tracking-normal text-warning">Sample preview</span>
+                                            <Badge variant="warning" className="font-numeric text-micro normal-case tracking-normal">Sample preview</Badge>
                                         )}
                                     </p>
                                     <h2 className="mt-2 text-2xl font-semibold text-foreground">Recent research</h2>
@@ -336,11 +346,11 @@ export default function HomePage({ data }: { data: HomeData }) {
                                     ? "Sample preview runs — publish recorded backtests in the studio to replace them."
                                     : "Stored simulation runs — no live account numbers or user details."}
                             </div>
-                        </div>
+                        </Card>
                         </Reveal>
 
                         <Reveal delay={140}>
-                        <div className="rounded-lg border border-border bg-card">
+                        <Card className="gap-0 py-0">
                             <div className="border-b border-border px-5 py-4">
                                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Execution pipeline</p>
                                 <h2 className="mt-2 text-2xl font-semibold text-foreground">Risk-gated lifecycle</h2>
@@ -349,10 +359,10 @@ export default function HomePage({ data }: { data: HomeData }) {
                                 <p className="text-xs font-semibold uppercase tracking-widest text-positive">Active path</p>
                                 <div className="mt-2 flex flex-wrap gap-1.5">
                                     {LIVE_PATH.map((state, idx) => (
-                                        <span key={state} className="inline-flex items-center gap-1 rounded-full border border-positive/30 bg-positive/10 px-2.5 py-0.5 text-xs font-medium text-positive">
+                                        <Badge key={state} variant="success" className="text-xs">
                                             {idx < LIVE_PATH.length - 1 && <span className="text-positive/40">→</span>}
                                             {state}
-                                        </span>
+                                        </Badge>
                                     ))}
                                 </div>
                                 <div className="flow-track mt-4">
@@ -361,7 +371,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                                 <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-warning">Terminal states</p>
                                 <div className="mt-2 flex flex-wrap gap-1.5">
                                     {TERMINAL_STATES.map((state) => (
-                                        <span key={state} className="inline-flex items-center gap-1 rounded-full border border-warning/30 bg-warning/10 px-2.5 py-0.5 text-xs font-medium text-warning">{state}</span>
+                                        <Badge key={state} variant="warning" className="text-xs">{state}</Badge>
                                     ))}
                                 </div>
                                 <p className="mt-5 flex items-start gap-2 text-xs leading-5 text-muted-foreground">
@@ -370,7 +380,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                                 </p>
                             </div>
                             <Link href="/signals" className="flex items-center justify-between border-t border-border px-5 py-4 text-xs font-semibold text-primary hover:bg-muted">Open signal console <ArrowRight size={14} /></Link>
-                        </div>
+                        </Card>
                         </Reveal>
                     </div>
                 </section>
@@ -389,9 +399,9 @@ export default function HomePage({ data }: { data: HomeData }) {
                             </div>
                         </Reveal>
                         <Reveal delay={100}>
-                            <div className="mt-10 overflow-hidden rounded-lg border border-border bg-card">
+                            <Card className="mt-10 gap-0 overflow-hidden py-0">
                                 {featured.length > 0 ? featured.slice(0, 5).map((product) => <ProductRow key={product.id} product={product} />) : <div className="px-5 py-12 text-center text-sm text-muted-foreground">No marketplace listings available.</div>}
-                            </div>
+                            </Card>
                         </Reveal>
                     </div>
                 </section>
@@ -449,8 +459,12 @@ export default function HomePage({ data }: { data: HomeData }) {
                                 <h2 className="mt-4 text-4xl font-semibold leading-[1.06] tracking-[-0.04em] text-foreground md:text-6xl">Ready to research with conviction?</h2>
                                 <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">Create a workspace and run your first deterministic backtest in minutes — no fabricated numbers, no forced subscriptions.</p>
                                 <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                                    <Link href="/register" className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/85">Create workspace <ArrowRight size={16} /></Link>
-                                    <Link href="/pricing" className="inline-flex h-11 items-center justify-center rounded-md border border-border px-5 text-sm font-semibold text-foreground transition-colors hover:bg-muted">See plans</Link>
+                                    <Button render={<Link href="/register" />} size="lg" className="h-11 px-5">
+                                        Create workspace <ArrowRight data-icon="inline-end" />
+                                    </Button>
+                                    <Button render={<Link href="/pricing" />} variant="outline" size="lg" className="h-11 px-5">
+                                        See plans
+                                    </Button>
                                 </div>
                             </div>
                         </Reveal>

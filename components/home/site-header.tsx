@@ -22,12 +22,14 @@ import { onValue, ref } from "firebase/database";
 import { onSubscriptionChange } from "@/lib/subscription";
 import SiteLogo from "@/components/ui/site-logo";
 import ThemeToggle from "@/components/theme/theme-toggle";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 type SiteSettings = {
     siteName?: string;
 };
 
-const publicLinks = [
+const publicLinks: { href: string; label: string; badge?: string }[] = [
     { href: "/marketplace", label: "Marketplace" },
     { href: "/backtests", label: "Backtests" },
     { href: "/live", label: "Live", badge: "●" },
@@ -103,9 +105,12 @@ export default function SiteHeader() {
                     <div className="flex items-center gap-2 font-semibold tracking-tight text-foreground">
                         {siteName}
                         {hasPro && (
-                            <span className="rounded-full border border-primary/40 bg-accent-muted px-2 py-0.5 text-xs font-bold text-primary">
+                            <Badge
+                                variant="outline"
+                                className="border-primary/40 bg-accent-muted px-2 font-bold text-primary"
+                            >
                                 PRO
-                            </span>
+                            </Badge>
                         )}
                     </div>
                 </Link>
@@ -118,116 +123,130 @@ export default function SiteHeader() {
                             className={`transition hover:text-foreground ${isActive(link.href) ? "text-foreground font-medium" : ""} inline-flex items-center gap-1`}
                         >
                             {link.label}
-                            {(link as any).badge && (
+                            {link.badge && (
                                 <span className="h-1.5 w-1.5 rounded-full bg-positive animate-pulse motion-reduce:animate-none" />
                             )}
                         </Link>
                     ))}
                 </nav>
-
                 <div className="flex shrink-0 items-center gap-2">
                     <ThemeToggle />
                     {user ? (
                         <div className="hidden items-center gap-2 md:flex">
-                            <Link href="/account" className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                            <Button render={<Link href="/account" />} variant="ghost" className="text-muted-foreground hover:text-foreground">
                                 Account
-                            </Link>
-                            <button
+                            </Button>
+                            <Button
                                 type="button"
+                                variant="ghost"
                                 onClick={handleSignOut}
-                                className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                                className="text-muted-foreground hover:text-foreground"
                             >
                                 Sign out
-                            </button>
+                            </Button>
                         </div>
                     ) : (
                         <>
-                            <Link
-                                href="/login"
-                                className="hidden rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:block"
+                            <Button
+                                render={<Link href="/login" />}
+                                variant="ghost"
+                                className="hidden text-muted-foreground hover:text-foreground md:inline-flex"
                             >
                                 Sign in
-                            </Link>
-                            <Link
-                                href="/register"
-                                className="hidden rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 md:block"
+                            </Button>
+                            <Button
+                                render={<Link href="/register" />}
+                                className="hidden md:inline-flex"
                             >
                                 Get Started
-                            </Link>
+                            </Button>
                         </>
                     )}
-                    <button
+                    <Button
                         type="button"
+                        variant="outline"
+                        size="icon"
                         onClick={() => setOpen((v) => !v)}
-                        className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground xl:hidden"
+                        className="h-9 w-9 rounded-full border-border text-muted-foreground hover:border-primary/50 hover:text-foreground xl:hidden"
                         aria-label="Toggle navigation menu"
                     >
                         {open ? <X size={18} /> : <Menu size={18} />}
-                    </button>
+                    </Button>
                 </div>
             </div>
 
             {open && (
-                <div className="border-t border-border bg-background px-6 py-4 lg:hidden">
-                    <nav className="flex flex-col gap-1">
-                        {publicLinks.map((link) => (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                onClick={() => setOpen(false)}
-                                className={`rounded-md px-3 py-2.5 text-sm transition-colors hover:bg-muted hover:text-foreground ${isActive(link.href) ? "bg-accent-muted text-primary font-medium" : "text-muted-foreground"} inline-flex items-center gap-1.5`}
-                            >
-                                {link.label}
-                                {(link as any).badge && (
-                                    <span className="h-1.5 w-1.5 rounded-full bg-positive animate-pulse motion-reduce:animate-none" />
-                                )}
-                            </Link>
-                        ))}
+                <div className="border-t border-border bg-background px-6 py-4 xl:hidden">
+                    <nav>
+                        <ul className="menu menu-sm w-full p-0">
+                            {publicLinks.map((link) => (
+                                <li key={link.href}>
+                                    <Link
+                                        href={link.href}
+                                        onClick={() => setOpen(false)}
+                                        aria-current={isActive(link.href) ? "page" : undefined}
+                                        className={isActive(link.href) ? "menu-active font-medium" : "text-muted-foreground"}
+                                    >
+                                        <span>{link.label}</span>
+                                        {link.badge && (
+                                            <span className="h-1.5 w-1.5 rounded-full bg-positive animate-pulse motion-reduce:animate-none" />
+                                        )}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
                         {user && (
                             <>
-                                <div className="my-2 border-t border-border pt-2">
+                                <div className="mt-2 border-t border-border pt-2">
                                     <p className="px-3 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                                         Account
                                     </p>
                                 </div>
-                                {accountLinks.map((link) => (
-                                    <Link
-                                        key={link.href}
-                                        href={link.href}
-                                        onClick={() => setOpen(false)}
-                                        className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors hover:bg-muted hover:text-foreground ${isActive(link.href) ? "bg-accent-muted text-primary font-medium" : "text-muted-foreground"}`}
-                                    >
-                                        <link.icon size={15} />
-                                        {link.label}
-                                    </Link>
-                                ))}
-                                <div className="my-2 border-t border-border pt-2" />
+                                <ul className="menu menu-sm w-full p-0">
+                                    {accountLinks.map((link) => (
+                                        <li key={link.href}>
+                                            <Link
+                                                href={link.href}
+                                                onClick={() => setOpen(false)}
+                                                aria-current={isActive(link.href) ? "page" : undefined}
+                                                className={isActive(link.href) ? "menu-active font-medium" : "text-muted-foreground"}
+                                            >
+                                                <link.icon size={15} />
+                                                <span>{link.label}</span>
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
                             </>
                         )}
-                        <div className="mt-2 flex gap-2">
+                        <div className="mt-3 flex gap-2 px-1">
                             {user ? (
-                                <button
+                                <Button
                                     type="button"
+                                    variant="outline"
                                     onClick={handleSignOut}
-                                    className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border px-3 py-2.5 text-sm text-muted-foreground"
+                                    className="h-10 flex-1"
                                 >
                                     <LogOut size={15} />
                                     Sign out
-                                </button>
+                                </Button>
                             ) : (
                                 <>
-                                    <Link
-                                        href="/login"
-                                        className="flex-1 rounded-md border border-border px-3 py-2.5 text-center text-sm text-muted-foreground"
+                                    <Button
+                                        render={<Link href="/login" />}
+                                        variant="outline"
+                                        onClick={() => setOpen(false)}
+                                        className="h-10 flex-1"
                                     >
                                         Sign in
-                                    </Link>
-                                    <Link
-                                        href="/register"
-                                        className="flex-1 rounded-md bg-primary px-3 py-2.5 text-center text-sm font-semibold text-primary-foreground"
+                                    </Button>
+                                    <Button
+                                        render={<Link href="/register" />}
+                                        onClick={() => setOpen(false)}
+                                        className="h-10 flex-1"
                                     >
                                         Get Started
-                                    </Link>
+                                    </Button>
                                 </>
                             )}
                         </div>

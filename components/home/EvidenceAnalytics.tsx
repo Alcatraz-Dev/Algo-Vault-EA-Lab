@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import Reveal from "./Reveal";
 import CountUp from "./CountUp";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import type { HomeBacktestAnalytics } from "@/lib/home-data";
 
 const TOOLTIP_STYLE = {
@@ -153,7 +155,7 @@ export default function EvidenceAnalytics({
                             <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
                                 Recorded evidence
                                 {preview && (
-                                    <span className="rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 font-numeric text-micro font-medium normal-case tracking-normal text-warning">Sample preview</span>
+                                    <Badge variant="warning" className="font-numeric text-micro normal-case tracking-normal">Sample preview</Badge>
                                 )}
                             </p>
                             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-foreground md:text-5xl">Backtests with numbers anyone can check.</h2>
@@ -177,7 +179,7 @@ export default function EvidenceAnalytics({
                     <>
                         <div className="mt-10 grid gap-6 lg:grid-cols-2">
                             <Reveal delay={120}>
-                                <div className="group rounded-lg border border-border bg-card transition-all duration-300 hover:border-primary/40">
+                                <Card className="group gap-0 py-0 transition-all duration-300 hover:border-primary/40">
                                     <div className="border-b border-border px-5 py-4">
                                         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Equity curve</p>
                                         <h3 className="mt-2 text-xl font-semibold text-foreground">Recent recorded backtests</h3>
@@ -204,11 +206,11 @@ export default function EvidenceAnalytics({
                                     <div className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
                                         <span className="flex items-center gap-2"><Sigma size={14} className="text-primary" />Cumulative net of spread, slippage and commission — deterministic simulation</span>
                                     </div>
-                                </div>
+                                </Card>
                             </Reveal>
 
                             <Reveal delay={180}>
-                                <div className="group rounded-lg border border-border bg-card transition-all duration-300 hover:border-primary/40">
+                                <Card className="group gap-0 py-0 transition-all duration-300 hover:border-primary/40">
                                     <div className="border-b border-border px-5 py-4">
                                         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Quality profile</p>
                                         <h3 className="mt-2 text-xl font-semibold text-foreground">Win rate vs drawdown per run</h3>
@@ -238,7 +240,7 @@ export default function EvidenceAnalytics({
                                         <span className="flex items-center gap-2"><Gauge size={14} className="text-primary" />Win rate</span>
                                         <span className="flex items-center gap-2"><ShieldCheck size={14} className="text-negative" />Max drawdown</span>
                                     </div>
-                                </div>
+                                </Card>
                             </Reveal>
                         </div>
 
@@ -264,13 +266,13 @@ export default function EvidenceAnalytics({
                     </>
                 ) : (
                     <Reveal delay={120}>
-                        <div className="mt-10 rounded-lg border border-dashed border-border bg-card px-5 py-14 text-center">
+                        <Card className="mt-10 gap-0 border-dashed px-5 py-14 text-center">
                             <p className="text-sm font-semibold text-foreground">No recorded runs yet</p>
                             <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-muted-foreground">
                                 Published backtests appear here with their numbers — initial balance, net result, win rate and max drawdown. Nothing is simulated or claimed until it is recorded.
                             </p>
                             <Link href="/backtests" className="mt-5 inline-flex items-center gap-2 text-xs font-semibold text-primary hover:underline">Open backtest studio <ArrowRight size={13} /></Link>
-                        </div>
+                        </Card>
                     </Reveal>
                 )}
             </div>
