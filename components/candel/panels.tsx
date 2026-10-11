@@ -34,7 +34,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { FormError, FormField } from "@/components/ui/form-field";
 import { SectionHeader } from "@/components/ui/section-header";
-import { relativeTime, timeAgo } from "@/components/candel/role-visuals";
+import { timeAgo, timeUntil } from "@/components/candel/role-visuals";
 import { ApprovalCard } from "@/components/candel/ApprovalCard";
 import { isApprovalExpired, isApprovalPending } from "@/lib/candel/approvals";
 import { CandelApiError, candelApi, candelErrorMessage, type BindableAccount } from "@/lib/candel/client";
@@ -1834,7 +1834,7 @@ export function JobsPanel({ candelId }: { candelId: string }) {
                 <p className="text-xs text-muted-foreground">
                   {job.lastRunAt ? `last ${timeAgo(job.lastRunAt)} · ` : "never run · "}
                   {job.enabled && job.nextRunAt
-                    ? `next ${relativeTime(job.nextRunAt)}`
+                    ? `next ${timeUntil(job.nextRunAt)}`
                     : "not scheduled"}
                   {job.error ? ` · ${job.error}` : ""}
                 </p>

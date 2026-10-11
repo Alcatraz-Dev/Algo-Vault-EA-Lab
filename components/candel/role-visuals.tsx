@@ -183,11 +183,3 @@ export function timeUntil(timestamp?: number): string {
   return `on ${new Date(timestamp).toLocaleDateString()}`;
 }
 
-/**
- * Direction-aware relative time: past timestamps read "3m ago", future ones
- * "in 3m". Use this whenever a field can legitimately be in either direction.
- */
-export function relativeTime(timestamp?: number): string {
-  if (!timestamp) return "—";
-  return timestamp > Date.now() ? timeUntil(timestamp) : timeAgo(timestamp);
-}

@@ -94,13 +94,19 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Job not found" }, { status: 404 });
     }
 
+    // Only scheduling changes. `status` keeps reporting the last real outcome:
+    // the JobStatus enum has no "paused", and tagging a paused job `cancelled`
+    // reads as "this job is gone" when it is only asleep. The UI pairs the
+    // unchanged status with a `paused` badge off `enabled`.
     const job: CandelJob = {
       ...existing,
       enabled,
-      // A paused job is not queued: the status must not promise a run that the
-      // scheduler will skip. Resuming returns it to the queue.
-      status: enabled ? (existing.status === "running" ? "running" : "queued") : "cancelled",
-      nextRunAt: enabled ? existing.nextRunAt : 0,
+      // A pause keeps the stored slot, so the schedule survives the round trip
+      // instead of being wiped (the earlier version zeroed it, which left a
+      // resumed job permanently unscheduled). Resuming a slot that already
+      // passed makes the job due now rather than silently skipping it.
+      nextRunAt:
+        enabled && existing.nextRunAt <= Date.now() ? Date.now() : existing.nextRunAt,
       updatedAt: Date.now(),
     };
 
