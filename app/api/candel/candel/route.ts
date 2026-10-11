@@ -91,6 +91,22 @@ export async function PATCH(request: NextRequest) {
       patch.status = body.status;
     }
 
+    // Rebinding: a Candel points at a template, and templates can be retired or
+    // renamed. Without this the instance was permanently dead — chat failed with
+    // "its template is missing" and customization failed with "Unknown template",
+    // leaving no way back. Rebinding is explicit and never widens authority:
+    // stored tools/capabilities are re-clipped to the new ceiling below.
+    const requestedTemplateId = cleanText(body.templateId, 120);
+    let ceiling = await getCandelTemplate(existing.templateId);
+    if (requestedTemplateId && requestedTemplateId !== existing.templateId) {
+      const rebound = await getCandelTemplate(requestedTemplateId);
+      if (!rebound) {
+        return NextResponse.json({ success: false, error: "Unknown template" }, { status: 400 });
+      }
+      patch.templateId = requestedTemplateId;
+      ceiling = rebound;
+    }
+
     // Customization overrides are validated against the template ceiling, so a
     // Candel can narrow its tools but never widen them.
     const wantsCustomization = [
@@ -104,12 +120,23 @@ export async function PATCH(request: NextRequest) {
     ].some((key) => body[key] !== undefined);
 
     if (wantsCustomization) {
-      const template = await getCandelTemplate(existing.templateId);
-      if (!template) {
+      if (!ceiling) {
         return NextResponse.json({ success: false, error: "Unknown template" }, { status: 400 });
       }
-      const sanitized = sanitizeCandelCustomization(body, template);
+      const sanitized = sanitizeCandelCustomization(body, ceiling);
       patch.customization = mergeCandelCustomization(existing.customization, sanitized);
+    }
+
+    // On a rebind, re-clip whatever the instance already carried against the new
+    // template: tools and capabilities the new template does not grant are
+    // dropped rather than silently kept. Permissions are deliberately untouched
+    // — they live in their own document and default to execution OFF.
+    if (patch.templateId && ceiling) {
+      const clipped = sanitizeCandelCustomization(existing.customization ?? {}, ceiling);
+      patch.customization = mergeCandelCustomization(
+        (patch.customization ?? existing.customization) as typeof existing.customization,
+        clipped,
+      );
     }
 
     if (Object.keys(patch).length === 0) {
@@ -128,8 +155,12 @@ export async function PATCH(request: NextRequest) {
       action: "update" as CandelActionType,
       targetType: "candel",
       targetId: candelId,
-      details: wantsCustomization
-        ? { ...patch, customization: "updated" }
+      details: wantsCustomization || patch.templateId
+        ? {
+            ...patch,
+            ...(patch.customization ? { customization: "updated" } : {}),
+            ...(patch.templateId ? { reboundFrom: existing.templateId } : {}),
+          }
         : patch,
       timestamp: Date.now(),
     });

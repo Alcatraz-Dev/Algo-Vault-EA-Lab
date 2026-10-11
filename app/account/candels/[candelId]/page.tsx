@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Activity as ActivityIcon,
+  AlertTriangle,
   ArrowLeft,
   Brain,
   CalendarClock,
@@ -24,6 +25,14 @@ import {
 import AccountShell from "@/components/account/AccountShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { FormError } from "@/components/ui/form-field";
@@ -100,6 +109,9 @@ export default function CandelStudioPage() {
   const [activityReload, setActivityReload] = useState(0);
   const [approvals, setApprovals] = useState<CandelApprovalRequest[]>([]);
   const [panel, setPanel] = useState<PanelId>("chat");
+  const [memoryCount, setMemoryCount] = useState(0);
+  const [rebindOpen, setRebindOpen] = useState(false);
+  const [rebindingId, setRebindingId] = useState<string | null>(null);
   const tabRefs = useRef<Partial<Record<PanelId, HTMLButtonElement | null>>>({});
 
   useEffect(() => {
@@ -107,16 +119,20 @@ export default function CandelStudioPage() {
     let cancelled = false;
     (async () => {
       try {
-        const [candel, templateList, approvalList, instances] = await Promise.all([
+        const [candel, templateList, approvalList, instances, memory] = await Promise.all([
           candelApi.get(candelId),
           candelApi.templates(),
           candelApi.approvals(candelId),
           candelApi.list(),
+          // Counts only: the identity strip reports what this Candel carries, the
+          // Memory panel renders the entries themselves.
+          candelApi.memory(candelId).catch(() => []),
         ]);
         if (cancelled) return;
         setInstance(candel);
         setTemplates(templateList);
         setApprovals(approvalList);
+        setMemoryCount(memory.length);
         // Archived Candels stay in the switcher only while they are the ones
         // being viewed; otherwise the roster is the active set.
         setRoster(instances.filter((entry) => entry.id === candelId || entry.status !== "archived"));
@@ -145,6 +161,27 @@ export default function CandelStudioPage() {
     () => approvals.filter((request) => isApprovalPending(request)).length,
     [approvals]
   );
+
+  /**
+   * Rebind this Candel to a template that actually exists. The server re-clips
+   * the stored tools/capabilities to the new ceiling, so this can only narrow
+   * what the Candel may touch — never widen it.
+   */
+  async function rebind(templateId: string) {
+    setRebindingId(templateId);
+    setError("");
+    try {
+      const updated = await candelApi.update(instance!.id, { templateId });
+      setInstance(updated);
+      setRoster((prev) => prev.map((entry) => (entry.id === updated.id ? updated : entry)));
+      setRebindOpen(false);
+      setActivityReload((value) => value + 1);
+    } catch (err) {
+      setError(candelErrorMessage(err));
+    } finally {
+      setRebindingId(null);
+    }
+  }
 
   async function toggleStatus() {
     if (!instance) return;
@@ -211,8 +248,27 @@ export default function CandelStudioPage() {
   const spec = getCandelRole(role);
   const name = instance.displayName || instance.name;
   const paused = instance.status === "paused" || instance.status === "disabled";
-  const posture = template ? riskPostureLabel(resolveCandelConfig(instance, template)) : null;
+  const config = template ? resolveCandelConfig(instance, template) : null;
+  const posture = config ? riskPostureLabel(config) : null;
   const activePanel = PANELS.find((entry) => entry.id === panel) ?? PANELS[0];
+
+  /**
+   * A Candel whose template no longer exists cannot run a single turn or be
+   * customized — the reference behaviour is an agent that is always ready, so
+   * the studio offers the one action that fixes it instead of a dead end.
+   */
+  const repairPrompt = template ? null : (
+    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-warning/40 bg-warning/5 px-3 py-2.5 text-xs text-warning">
+      <AlertTriangle className="size-3.5 shrink-0" />
+      <span className="min-w-40 flex-1">
+        This Candel points at a template that no longer exists ({instance.templateId}), so it cannot
+        answer or be customized. Rebind it to a current template to bring it back.
+      </span>
+      <Button type="button" size="xs" variant="outline" onClick={() => setRebindOpen(true)}>
+        Rebind template
+      </Button>
+    </div>
+  );
 
   return (
     <AccountShell
@@ -233,6 +289,10 @@ export default function CandelStudioPage() {
             variant="outline"
             size="sm"
             aria-label="Customize Candel"
+            // Customization is validated against the template ceiling, so with a
+            // missing template there is nothing to validate against yet.
+            disabled={!template}
+            title={template ? undefined : "Rebind a template first"}
             onClick={() => setCustomizeOpen(true)}
           >
             <Settings2 className="size-3.5" />
@@ -284,12 +344,27 @@ export default function CandelStudioPage() {
               {instance.description || spec.description}
             </p>
           </div>
-          {/* Secondary provenance — kept out of the way on narrow screens. */}
-          <div className="hidden text-right text-xs text-muted-foreground md:block">
-            <p className="truncate">{template?.displayName ?? instance.templateId}</p>
-            <p>updated {timeAgo(instance.updatedAt)}</p>
+          {/* Live readout: the tools this Candel may actually call, what it
+              remembers and what is waiting on the user. Counts come from the
+              resolved config and the stores — nothing here is decorative. */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1" title={config?.tools.join(", ") || "No tools enabled"}>
+              <Wrench className="size-3" />
+              <span className="font-numeric text-foreground">{config?.tools.length ?? 0}</span> tools
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <Brain className="size-3" />
+              <span className="font-numeric text-foreground">{memoryCount}</span> memories
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <ShieldCheck className="size-3" />
+              <span className="font-numeric text-foreground">{pendingApprovalCount}</span> pending
+            </span>
+            <span className="hidden text-right md:inline">updated {timeAgo(instance.updatedAt)}</span>
           </div>
         </div>
+
+        {repairPrompt}
 
         {error ? <FormError>{error}</FormError> : null}
 
@@ -390,6 +465,54 @@ export default function CandelStudioPage() {
           </div>
         </div>
       </div>
+
+      {rebindOpen ? (
+        <Dialog open onOpenChange={setRebindOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Rebind {name}</DialogTitle>
+              <DialogDescription>
+                The template fixes this Candel&apos;s role, instructions and tool ceiling. Rebinding
+                clips its tools and capabilities to the template you pick — permissions, its
+                conversation and its memory are left untouched, and execution stays off.
+              </DialogDescription>
+            </DialogHeader>
+            <ul className="max-h-[50vh] space-y-2 overflow-y-auto">
+              {templates.map((candidate) => (
+                <li
+                  key={candidate.id}
+                  className="flex flex-wrap items-center gap-3 rounded-lg border border-border px-3 py-2"
+                >
+                  <CandelAvatar role={candidate.role} avatar={candidate.avatar} size="sm" />
+                  <div className="min-w-40 flex-1">
+                    <p className="truncate text-sm text-foreground">{candidate.displayName}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {candidate.tools.length} tools · {getCandelRole(candidate.role).label}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={rebindingId !== null}
+                    onClick={() => void rebind(candidate.id)}
+                  >
+                    {rebindingId === candidate.id ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : null}
+                    Bind
+                  </Button>
+                </li>
+              ))}
+            </ul>
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => setRebindOpen(false)}>
+                Cancel
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      ) : null}
 
       {customizeOpen ? (
         <CandelFormDialog

@@ -179,6 +179,8 @@ export const candelApi = {
       name?: string;
       description?: string;
       status?: CandelInstance["status"];
+      /** Rebind a Candel whose template was retired. Never widens authority. */
+      templateId?: string;
       role?: string;
       avatar?: string;
       instructions?: string;
