@@ -32,7 +32,27 @@ const nextConfig: NextConfig = {
   // provider (lib/marketing-agent/browser/providers.ts): the code probes for
   // it inside try/catch and degrades to NOT_CONFIGURED when absent. Marking it
   // external keeps Turbopack from statically resolving (and failing on) an
-  serverExternalPackages: ["playwright", "firebase-admin", "stripe"],
+  serverExternalPackages: [
+    // Direct server-side packages
+    "playwright",
+    "firebase-admin",
+    "stripe",
+    // firebase-admin transitive deps that are pure-ESM or use dynamic require().
+    // Turbopack must NOT bundle these — let Node.js resolve them natively.
+    "firebase-admin/app",
+    "firebase-admin/auth",
+    "firebase-admin/database",
+    "firebase-admin/firestore",
+    "firebase-admin/storage",
+    "jwks-rsa",
+    "jose",
+    "google-auth-library",
+    "google-gax",
+    "node-fetch",
+    "@google-cloud/firestore",
+    "@google-cloud/storage",
+    "lru-memoizer",
+  ],
   headers: async () => [
     {
       source: "/:path*",
