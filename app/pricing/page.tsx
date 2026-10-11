@@ -10,6 +10,9 @@ import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { ToolBadge } from "@/components/tools/tier-ui";
 import { TOOL_CATALOG } from "@/lib/tools-catalog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 
 type Tier = {
     id: string;
@@ -182,10 +185,13 @@ export default function PricingPage() {
 
                 {/* Header */}
                 <div className="text-center mt-4" data-guide="page-header">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground">
-                        <Sparkles size={13} />
+                    <Badge
+                        variant="outline"
+                        className="h-7 gap-1.5 px-3 text-muted-foreground"
+                    >
+                        <Sparkles />
                         Free / Lite vs Pro, side by side
-                    </div>
+                    </Badge>
                     <h1 className="mt-6 text-4xl font-semibold tracking-tight md:text-5xl">
                         Tools that earn the upgrade.
                     </h1>
@@ -201,20 +207,21 @@ export default function PricingPage() {
                     {TIERS.map((tier) => {
                         const Icon = tier.icon;
                         return (
-                            <div
+                            <Card
                                 key={tier.id}
-                                className={`relative flex flex-col rounded-lg border p-6 transition  ${
-                                    tier.highlighted
-                                        ? "border-primary bg-card "
-                                        : "border-border bg-card"
+                                className={`relative gap-0 overflow-visible p-6 transition ${
+                                    tier.highlighted ? "border-primary" : ""
                                 }`}
                             >
                                 {tier.highlighted && (
                                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                                        <span className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-micro font-semibold text-primary-foreground">
-                                            <Zap size={11} />
+                                        <Badge
+                                            variant="default"
+                                            className="h-6 gap-1 px-2.5 text-micro font-semibold"
+                                        >
+                                            <Zap />
                                             Most Popular
-                                        </span>
+                                        </Badge>
                                     </div>
                                 )}
 
@@ -244,19 +251,17 @@ export default function PricingPage() {
                                     ))}
                                 </div>
 
-                                <button
+                                <Button
                                     type="button"
+                                    size="lg"
+                                    variant={tier.highlighted ? "default" : "outline"}
                                     onClick={() => handleCta(tier)}
-                                    className={`mt-8 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition ${
-                                        tier.highlighted
-                                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                                            : "border border-border hover:bg-muted"
-                                    }`}
+                                    className="mt-8 h-11 w-full"
                                 >
                                     {tier.cta}
-                                    <ArrowRight size={14} />
-                                </button>
-                            </div>
+                                    <ArrowRight data-icon="inline-end" />
+                                </Button>
+                            </Card>
                         );
                     })}
                 </div>
@@ -271,7 +276,7 @@ export default function PricingPage() {
                     </div>
 
                     <div className="mt-8 grid gap-3 md:grid-cols-2">
-                        <div className="rounded-lg border border-border bg-card p-5">
+                        <Card className="gap-0 p-5">
                             <div className="mb-3 flex items-center justify-between">
                                 <ToolBadge kind="lite" size="md" />
                                 <span className="text-micro uppercase tracking-wider text-muted-foreground">{freeTools.length} tools</span>
@@ -285,9 +290,9 @@ export default function PricingPage() {
                                     </li>
                                 ))}
                             </ul>
-                        </div>
+                        </Card>
 
-                        <div className="rounded-lg border border-primary/30 bg-primary/5 p-5">
+                        <Card className="gap-0 border-primary/30 bg-primary/5 p-5">
                             <div className="mb-3 flex items-center justify-between">
                                 <ToolBadge kind="pro" size="md" />
                                 <span className="text-micro uppercase tracking-wider text-muted-foreground">{proTools.length} tools</span>
@@ -301,7 +306,7 @@ export default function PricingPage() {
                                     </li>
                                 ))}
                             </ul>
-                        </div>
+                        </Card>
                     </div>
 
                     <div className="mt-4 text-center text-xs text-muted-foreground">
@@ -321,8 +326,8 @@ export default function PricingPage() {
                     </p>
 
                     <div className="mt-8 overflow-x-auto rounded-lg border border-border">
-                        <table className="w-full text-left text-sm">
-                            <thead className="border-b border-border bg-muted/30">
+                        <table className="table w-full overflow-visible text-left text-sm">
+                            <thead className="border-b border-border bg-muted/30 normal-case tracking-normal">
                                 <tr>
                                     <th className="px-5 py-4 font-medium text-muted-foreground">Feature</th>
                                     <th className="px-5 py-4 text-center font-medium text-muted-foreground">Free</th>
@@ -365,10 +370,10 @@ export default function PricingPage() {
                         { q: "What payment methods do you accept?", a: "All major credit cards via Stripe. Enterprise plans support invoice billing." },
                         { q: "Do you offer refunds?", a: "Yes — within 14 days of purchase for monthly subscriptions, no questions asked." },
                     ].map((item, i) => (
-                        <div key={i} className="rounded-lg border border-border bg-card p-5">
+                        <Card key={i} className="gap-0 p-5">
                             <h3 className="font-semibold">{item.q}</h3>
                             <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.a}</p>
-                        </div>
+                        </Card>
                     ))}
                 </div>
             </div>

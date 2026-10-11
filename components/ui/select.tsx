@@ -14,11 +14,12 @@ const selectCls =
 
 export function Select({
     className,
+    containerClassName,
     children,
     ...props
-}: React.ComponentProps<"select">) {
+}: React.ComponentProps<"select"> & { containerClassName?: string }) {
     return (
-        <div className="relative min-w-0 w-full" data-slot="select">
+        <div className={cn("relative min-w-0 w-full", containerClassName)} data-slot="select">
             <select className={cn(selectCls, className)} {...props}>
                 {children}
             </select>
@@ -32,11 +33,12 @@ export function Select({
 
 export function SelectTrigger({
     className,
+    containerClassName,
     children,
     ...props
-}: React.ComponentProps<"select">) {
+}: React.ComponentProps<"select"> & { containerClassName?: string }) {
     return (
-        <Select className={className} {...props}>
+        <Select className={className} containerClassName={containerClassName} {...props}>
             {children}
         </Select>
     );

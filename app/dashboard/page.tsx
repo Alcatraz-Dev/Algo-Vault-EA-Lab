@@ -10,7 +10,6 @@ import {
     Crown,
     GripVertical,
     LayoutDashboard,
-    Loader2,
     Plus,
     RefreshCw,
     RotateCcw,
@@ -21,6 +20,9 @@ import {
 import AccountShell from "@/components/account/AccountShell";
 import { AITeamsEntryCard } from "@/components/ai-trading-teams/entry-card";
 import { DashboardNativeAd } from "@/components/growth/DashboardNativeAd";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Select } from "@/components/ui/select";
 import {
     WIDGET_CATALOG,
     WIDGET_SPEC_BY_TYPE,
@@ -419,7 +421,7 @@ export default function DashboardBuilderPage() {
         return (
             <AccountShell title="Dashboard" onBack={() => router.push("/account")}>
                 <div className="flex h-[50vh] items-center justify-center">
-                    <Loader2 size={22} className="animate-spin text-primary" />
+                    <span className="loading loading-spinner loading-lg text-primary" aria-label="Loading" />
                 </div>
             </AccountShell>
         );
@@ -431,12 +433,7 @@ export default function DashboardBuilderPage() {
                 <div className="flex h-[50vh] flex-col items-center justify-center gap-4">
                     <Shield size={32} className="text-muted-foreground" />
                     <h1 className="text-lg font-semibold text-foreground">Sign in required</h1>
-                    <a
-                        href="/login"
-                        className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/80"
-                    >
-                        Sign in
-                    </a>
+                    <Button render={<a href="/login" />}>Sign in</Button>
                 </div>
             </AccountShell>
         );
@@ -451,48 +448,52 @@ export default function DashboardBuilderPage() {
             <div className="space-y-5" data-guide="dashboard">
                 {/* Controls */}
                 <div className="flex flex-wrap items-center gap-2.5" data-guide="controls">
-                    <button
+                    <Button
                         type="button"
+                        variant="outline"
+                        size="xs"
                         onClick={refreshData}
                         disabled={layoutLoading}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-2 text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-50"
+                        className="gap-1.5 border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
                     >
                         <RefreshCw size={13} className={layoutLoading ? "animate-spin" : ""} />
                         Refresh
-                    </button>
+                    </Button>
 
-                    <button
+                    <Button
                         type="button"
+                        variant="outline"
+                        size="xs"
                         onClick={() => setEditMode((m) => !m)}
                         aria-pressed={editMode}
                         className={cn(
-                            "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-2 text-xs font-medium transition",
-                            editMode
-                                ? "border-primary/40 bg-primary/10 text-primary"
-                                : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
+                            "gap-1.5 border-border bg-background font-medium text-muted-foreground hover:bg-muted hover:text-foreground",
+                            editMode && "border-primary/40 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
                         )}
                     >
                         {editMode ? "Done editing" : "Edit layout"}
-                    </button>
+                    </Button>
 
                     {editMode && (
                         <>
-                            <button
+                            <Button
                                 type="button"
+                                size="xs"
                                 onClick={() => setShowAddWidget(true)}
-                                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-2.5 py-2 text-xs font-medium text-primary-foreground transition hover:bg-primary/80"
+                                className="gap-1.5 font-medium"
                             >
                                 <Plus size={13} /> Add widget
-                            </button>
-                            <label className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1.5 text-xs text-muted-foreground">
+                            </Button>
+                            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                                 <LayoutDashboard size={13} />
-                                <span className="sr-only">Layout preset</span>
-                                <select
+                                <Select
+                                    aria-label="Layout preset"
                                     value=""
                                     onChange={(e) => {
                                         if (e.target.value) applyPreset(e.target.value);
                                     }}
-                                    className="bg-transparent text-xs text-foreground outline-none"
+                                    containerClassName="w-auto"
+                                    className="h-auto w-auto py-1.5 pr-8 pl-2.5 text-xs"
                                 >
                                     <option value="">Apply preset…</option>
                                     {DASHBOARD_PRESETS.map((p) => (
@@ -500,15 +501,17 @@ export default function DashboardBuilderPage() {
                                             {p.label}
                                         </option>
                                     ))}
-                                </select>
-                            </label>
-                            <button
+                                </Select>
+                            </span>
+                            <Button
                                 type="button"
+                                variant="outline"
+                                size="xs"
                                 onClick={resetLayout}
-                                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-2 text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                                className="gap-1.5 border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
                             >
                                 <RotateCcw size={13} /> Reset
-                            </button>
+                            </Button>
                         </>
                     )}
 
@@ -532,11 +535,12 @@ export default function DashboardBuilderPage() {
                         >
                             Account
                         </label>
-                        <select
+                        <Select
                             id="dashboard-account"
                             value={selectedAccountId}
                             onChange={(e) => setSelectedAccountId(e.target.value)}
-                            className="rounded-md border border-border bg-background px-2.5 py-1.5 text-xs text-foreground outline-none transition focus:border-primary"
+                            containerClassName="w-auto"
+                            className="h-auto w-auto py-1.5 pr-8 pl-2.5 text-xs"
                         >
                             {accounts.map((acc) => (
                                 <option key={acc.accountId} value={acc.accountId}>
@@ -544,7 +548,7 @@ export default function DashboardBuilderPage() {
                                     {acc.mt5Account ? ` · #${acc.mt5Account}` : ""}
                                 </option>
                             ))}
-                        </select>
+                        </Select>
                         <span className="text-micro text-muted-foreground">
                             Risk, positions and equity widgets follow this selection.
                         </span>
@@ -556,11 +560,12 @@ export default function DashboardBuilderPage() {
                     <label htmlFor="dashboard-symbol" className="text-micro uppercase tracking-wide text-muted-foreground">
                         Market
                     </label>
-                    <select
+                    <Select
                         id="dashboard-symbol"
                         value={market.symbol}
                         onChange={(e) => setMarket((m) => ({ ...m, symbol: e.target.value }))}
-                        className="rounded-md border border-border bg-background px-2.5 py-1.5 text-xs text-foreground outline-none transition focus:border-primary"
+                        containerClassName="w-auto"
+                        className="h-auto w-auto py-1.5 pr-8 pl-2.5 text-xs"
                     >
                         {SYMBOL_GROUPS.map((group) => (
                             <optgroup key={group.label} label={group.label}>
@@ -571,19 +576,20 @@ export default function DashboardBuilderPage() {
                                 ))}
                             </optgroup>
                         ))}
-                    </select>
-                    <select
+                    </Select>
+                    <Select
                         aria-label="Market timeframe"
                         value={market.timeframe}
                         onChange={(e) => setMarket((m) => ({ ...m, timeframe: e.target.value }))}
-                        className="rounded-md border border-border bg-background px-2.5 py-1.5 text-xs text-foreground outline-none transition focus:border-primary"
+                        containerClassName="w-auto"
+                        className="h-auto w-auto py-1.5 pr-8 pl-2.5 text-xs"
                     >
                         {(Object.keys(TIMEFRAME_LABELS) as (keyof typeof TIMEFRAME_LABELS)[]).map((tf) => (
                             <option key={tf} value={tf}>
                                 {tf} · {TIMEFRAME_LABELS[tf]}
                             </option>
                         ))}
-                    </select>
+                    </Select>
                     <span className="text-micro text-muted-foreground">
                         {scopedWidgetCount === 0
                             ? "No symbol widgets on this layout yet."
@@ -598,16 +604,18 @@ export default function DashboardBuilderPage() {
                     >
                         <AlertTriangle size={15} className="mt-0.5 shrink-0 text-negative" />
                         <div className="min-w-0 flex-1">
-                            <p className="text-[13px] font-medium text-foreground">Dashboard unavailable</p>
+                            <p className="text-body-sm font-medium text-foreground">Dashboard unavailable</p>
                             <p className="mt-0.5 text-xs text-muted-foreground">{layoutError}</p>
                         </div>
-                        <button
+                        <Button
                             type="button"
+                            variant="outline"
+                            size="xs"
                             onClick={refreshData}
-                            className="shrink-0 rounded-md border border-border px-2 py-1 text-micro text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                            className="shrink-0 border-border text-muted-foreground hover:bg-muted hover:text-foreground"
                         >
                             Retry
-                        </button>
+                        </Button>
                     </div>
                 )}
 
@@ -629,7 +637,7 @@ export default function DashboardBuilderPage() {
                 {/* Widgets */}
                 {layoutLoading && widgets.length === 0 ? (
                     <div className="flex h-64 items-center justify-center">
-                        <Loader2 size={20} className="animate-spin text-primary" />
+                        <span className="loading loading-spinner loading-md text-primary" aria-label="Loading widgets" />
                     </div>
                 ) : widgets.length === 0 ? (
                     <div className="rounded-lg border border-dashed border-border px-6 py-14 text-center">
@@ -640,13 +648,14 @@ export default function DashboardBuilderPage() {
                                 : "Turn on Edit layout to add widgets for your portfolio, positions, alerts and market scores."}
                         </p>
                         {editMode && (
-                            <button
+                            <Button
                                 type="button"
+                                size="xs"
                                 onClick={() => setShowAddWidget(true)}
-                                className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground transition hover:bg-primary/80"
+                                className="mt-4 gap-1.5 font-medium"
                             >
                                 <Plus size={13} /> Add widget
-                            </button>
+                            </Button>
                         )}
                     </div>
                 ) : (
@@ -666,7 +675,7 @@ export default function DashboardBuilderPage() {
                                     }}
                                     onDragEnd={() => setDraggingId(null)}
                                     className={cn(
-                                        "flex animate-page-enter flex-col rounded-lg border border-border bg-card shadow-sm",
+                                        "flex animate-page-enter flex-col rounded-lg border border-border bg-card",
                                         widget.h === 2 && "sm:row-span-2",
                                         SPAN_BY_WIDTH[widget.w] ?? "sm:col-span-1",
                                         editMode && "border-dashed border-primary/40",
@@ -694,56 +703,69 @@ export default function DashboardBuilderPage() {
                                             </span>
                                         ) : null}
                                         <Icon size={14} className="shrink-0 text-primary" />
-                                        <h2 className="min-w-0 flex-1 truncate text-[13px] font-medium text-foreground">
+                                        <h2 className="min-w-0 flex-1 truncate text-body-sm font-medium text-foreground">
                                             {widget.title}
                                         </h2>
                                         {editMode ? (
                                             <div className="flex shrink-0 items-center gap-1">
-                                                <button
+                                                <Button
                                                     type="button"
+                                                    variant="outline"
+                                                    size="xs"
                                                     onClick={() => cycleWidth(widget.id)}
-                                                    className="rounded-md border border-border px-1.5 py-0.5 text-micro text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                                                    className="h-5 gap-0 border-border px-1.5 text-micro text-muted-foreground hover:bg-muted hover:text-foreground"
                                                     title="Change width"
                                                 >
                                                     W
-                                                </button>
-                                                <button
+                                                </Button>
+                                                <Button
                                                     type="button"
+                                                    variant="outline"
+                                                    size="xs"
                                                     onClick={() => cycleHeight(widget.id)}
-                                                    className="rounded-md border border-border px-1.5 py-0.5 text-micro text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                                                    className="h-5 gap-0 border-border px-1.5 text-micro text-muted-foreground hover:bg-muted hover:text-foreground"
                                                     title="Change height"
                                                 >
                                                     H
-                                                </button>
-                                                <button
+                                                </Button>
+                                                <Button
                                                     type="button"
+                                                    variant="outline"
+                                                    size="icon-xs"
                                                     onClick={() => removeWidget(widget.id)}
-                                                    className="rounded-md border border-negative/30 p-1 text-negative transition hover:bg-negative/10"
+                                                    className="h-5 w-5 border-negative/30 p-0 text-negative hover:bg-negative/10 hover:text-negative"
                                                     title="Remove widget"
                                                 >
                                                     <Trash2 size={12} />
-                                                </button>
+                                                </Button>
                                             </div>
                                         ) : (
                                             <span className="flex shrink-0 items-center gap-1.5">
                                                 {spec?.pro && (
-                                                    <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-primary">
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="gap-1 border-primary/40 bg-primary/10 font-medium tracking-wide text-primary uppercase"
+                                                    >
                                                         <Crown size={9} />
                                                         Pro
-                                                    </span>
+                                                    </Badge>
                                                 )}
                                                 {spec?.needsAccount && (
-                                                    <span className="rounded-full border border-border bg-muted px-1.5 py-0.5 text-micro text-muted-foreground">
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="border-border bg-muted text-muted-foreground"
+                                                    >
                                                         per account
-                                                    </span>
+                                                    </Badge>
                                                 )}
                                                 {isMarketScoped(widget.type) && (
-                                                    <span
-                                                        className="font-numeric rounded-full border border-border bg-muted px-1.5 py-0.5 text-micro text-muted-foreground"
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="font-numeric border-border bg-muted text-muted-foreground"
                                                         title="Follows the Market selector above"
                                                     >
                                                         {market.symbol} · {market.timeframe}
-                                                    </span>
+                                                    </Badge>
                                                 )}
                                             </span>
                                         )}
@@ -786,9 +808,10 @@ export default function DashboardBuilderPage() {
                                             <span className="flex flex-wrap items-center gap-1.5">
                                                 <span className="font-medium text-foreground">{spec.label}</span>
                                                 {spec.pro && (
-                                                    <span
+                                                    <Badge
+                                                        variant="outline"
                                                         className={cn(
-                                                            "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide",
+                                                            "gap-1 font-medium tracking-wide uppercase",
                                                             isPro
                                                                 ? "border-positive/30 bg-positive/10 text-positive"
                                                                 : "border-primary/40 bg-primary/10 text-primary"
@@ -796,7 +819,7 @@ export default function DashboardBuilderPage() {
                                                     >
                                                         <Crown size={9} />
                                                         {isPro ? "Pro · unlocked" : "Pro"}
-                                                    </span>
+                                                    </Badge>
                                                 )}
                                             </span>
                                             <span className="text-muted-foreground">

@@ -17,7 +17,8 @@ import Link from "next/link";
 import SiteLogo from "@/components/ui/site-logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FormError } from "@/components/ui/form-field";
+import { Card } from "@/components/ui/card";
+import { FormError, FormSuccess } from "@/components/ui/form-field";
 
 export default function LoginPage() {
     return (
@@ -213,7 +214,7 @@ function LoginForm() {
                     </div>
 
                     {/* Card */}
-                    <div className="rounded-lg border border-border bg-card p-6 sm:p-8">
+                    <Card className="gap-6 p-6 sm:p-8">
                         <form onSubmit={handleLogin} className="space-y-5">
                             {/* Email */}
                             <div className="space-y-1.5">
@@ -250,16 +251,18 @@ function LoginForm() {
                                         Password
                                     </label>
 
-                                    <button
+                                    <Button
                                         type="button"
+                                        variant="link"
+                                        size="xs"
                                         onClick={handleForgotPassword}
                                         disabled={resetting}
-                                        className="text-xs text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                                        className="h-auto px-0 text-xs text-muted-foreground hover:text-foreground"
                                     >
                                         {resetting
                                             ? "Sending..."
                                             : "Forgot password?"}
-                                    </button>
+                                    </Button>
                                 </div>
 
                                 <div className="relative">
@@ -281,12 +284,14 @@ function LoginForm() {
                                         className="h-11 pl-9 pr-10"
                                     />
 
-                                    <button
+                                    <Button
                                         type="button"
+                                        variant="ghost"
+                                        size="icon-xs"
                                         onClick={() =>
                                             setShowPassword(!showPassword)
                                         }
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
+                                        className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                                         aria-label={
                                             showPassword
                                                 ? "Hide password"
@@ -294,11 +299,11 @@ function LoginForm() {
                                         }
                                     >
                                         {showPassword ? (
-                                            <EyeOff className="h-4 w-4" />
+                                            <EyeOff className="size-4" />
                                         ) : (
-                                            <Eye className="h-4 w-4" />
+                                            <Eye className="size-4" />
                                         )}
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
 
@@ -310,7 +315,7 @@ function LoginForm() {
                                     onChange={(e) =>
                                         setRememberMe(e.target.checked)
                                     }
-                                    className="h-3.5 w-3.5 rounded accent-primary"
+                                    className="checkbox checkbox-primary checkbox-xs"
                                 />
 
                                 <span>Remember me on this device</span>
@@ -320,14 +325,7 @@ function LoginForm() {
                             {error && <FormError>{error}</FormError>}
 
                             {/* Success */}
-                            {message && (
-                                <div
-                                    role="status"
-                                    className="rounded-md border border-positive/30 bg-positive-muted px-3 py-2 text-xs text-positive-foreground"
-                                >
-                                    {message}
-                                </div>
-                            )}
+                            {message && <FormSuccess>{message}</FormSuccess>}
 
                             {/* Login */}
                             <Button
@@ -348,7 +346,7 @@ function LoginForm() {
                         </form>
 
                         {/* Register */}
-                        <div className="mt-6 border-t border-border pt-5 text-center text-xs text-muted-foreground">
+                        <div className="border-t border-border pt-5 text-center text-xs text-muted-foreground">
                             Don&apos;t have an account?{" "}
                             <Link
                                 href="/register"
@@ -357,7 +355,7 @@ function LoginForm() {
                                 Create account
                             </Link>
                         </div>
-                    </div>
+                    </Card>
 
                     {/* Security */}
                     <div className="mt-6 flex items-center justify-center gap-2 text-micro text-muted-foreground">
