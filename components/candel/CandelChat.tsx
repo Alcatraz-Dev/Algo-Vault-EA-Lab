@@ -11,6 +11,8 @@ import { ApprovalCard } from "@/components/candel/ApprovalCard";
 import { isApprovalPending } from "@/lib/candel/approvals";
 import { candelApi, candelErrorMessage } from "@/lib/candel/client";
 import { getCandelRole } from "@/lib/candel/roles";
+import { useInteraction, useChatSubmission } from "@/components/interaction/system";
+import { PanelSet } from "@/components/interaction/PanelSet";
 import type { CandelApprovalRequest, CandelConversation, CandelMessage } from "@/lib/candel/types";
 
 interface ChatState {
@@ -22,6 +24,16 @@ interface ChatState {
  * The interactive half of a Candel: conversation list, message thread and
  * composer. Every turn goes through `POST /conversation/message`, which runs the
  * agent server-side under the Candel's effective config.
+ *
+ * Shared interaction system:
+ *   - `useChatSubmission()` provides `sending` (typing/optimistic indicator)
+ *     and the `beginSending` / `endSending` steps that drive it.
+ *   - The thread panel is wrapped in `PanelSet` so the list + thread contract
+ *     collapses/expands together (DESIGN.md §4: transitions 150–200ms,
+ *     `prefers-reduced-motion` disabled).
+ *   - Per-message status grows out of `message.status` (`pending` →
+ *     `delivered`/`sent`), and the sending indicator is driven by the shared
+ *     machine rather than a local `useState` held in two places.
  */
 export function CandelChat({
   candelId,
@@ -43,9 +55,13 @@ export function CandelChat({
   const [decidingId, setDecidingId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [input, setInput] = useState("");
-  const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  const { sending: chatSending, beginSending, endSending } = useChatSubmission();
+  // The conversation topic stays in the shared machine when the route carries
+  // one (the workspace/page shells read it from the URL); the chat thread
+  // itself still owns `activeId` for internal tab focus.
 
   useEffect(() => {
     let cancelled = false;
@@ -99,14 +115,14 @@ export function CandelChat({
   useEffect(() => {
     const node = scrollRef.current;
     if (node) node.scrollTop = node.scrollHeight;
-  }, [activeMessages.length, activeId, sending]);
+  }, [activeMessages.length, activeId, chatSending]);
 
   const handleSend = useCallback(
     async (text?: string) => {
       const content = (text ?? input).trim();
-      if (!content || sending || disabled) return;
+      if (!content || chatSending || disabled) return;
 
-      setSending(true);
+      beginSending();
       setError("");
       setInput("");
 
@@ -171,10 +187,10 @@ export function CandelChat({
         });
         setInput(content);
       } finally {
-        setSending(false);
+        endSending();
       }
     },
-    [activeId, candelId, disabled, input, onTurnComplete, sending]
+    [activeId, candelId, disabled, input, onTurnComplete, chatSending, beginSending, endSending]
   );
 
   const handleDeleteConversation = useCallback(
@@ -258,116 +274,118 @@ export function CandelChat({
         </div>
       </div>
 
-      {/* Thread */}
-      <div className="flex min-h-0 flex-1 flex-col rounded-lg border border-border bg-card">
-        <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-4">
-          {state === null ? (
-            <LoadingState label="Loading conversation" rows={3} />
-          ) : activeMessages.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center gap-4">
-              <EmptyState
-                compact
-                icon={<Sparkles className="size-4" />}
-                title={`Talk to ${candelName}`}
-                description={spec.tagline}
-              />
-              <div className="flex flex-wrap justify-center gap-2">
-                {starters.map((starter) => (
-                  <button
-                    key={starter}
-                    type="button"
-                    onClick={() => void handleSend(starter)}
-                    className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition hover:border-foreground/25 hover:text-foreground"
-                  >
-                    {starter}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : (
-            activeMessages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex gap-2.5 ${message.role === "user" ? "justify-end" : ""}`}
-              >
-                {message.role !== "user" ? (
-                  <CandelAvatar role={role} avatar={avatar} size="sm" />
-                ) : null}
-                <div
-                  className={`max-w-[80%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${
-                    message.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-foreground"
-                  } ${message.status === "pending" ? "opacity-60" : ""}`}
-                >
-                  {message.content}
+      {/* Thread — wrapped in the shared panel set so the shell contracts/expands together. */}
+      <PanelSet expanded={true}>
+        <div className="flex min-h-0 flex-1 flex-col rounded-lg border border-border bg-card">
+          <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-4">
+            {state === null ? (
+              <LoadingState label="Loading conversation" rows={3} />
+            ) : activeMessages.length === 0 ? (
+              <div className="flex h-full flex-col items-center justify-center gap-4">
+                <EmptyState
+                  compact
+                  icon={<Sparkles className="size-4" />}
+                  title={`Talk to ${candelName}`}
+                  description={spec.tagline}
+                />
+                <div className="flex flex-wrap justify-center gap-2">
+                  {starters.map((starter) => (
+                    <button
+                      key={starter}
+                      type="button"
+                      onClick={() => void handleSend(starter)}
+                      className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition hover:border-foreground/25 hover:text-foreground"
+                    >
+                      {starter}
+                    </button>
+                  ))}
                 </div>
               </div>
-            ))
-          )}
-          {sending ? (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <CandelAvatar role={role} avatar={avatar} size="sm" />
-              <span className="flex items-center gap-1.5">
-                <Loader2 className="size-3.5 animate-spin" /> {candelName} is thinking…
-              </span>
-            </div>
-          ) : null}
+            ) : (
+              activeMessages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex gap-2.5 ${message.role === "user" ? "justify-end" : ""}`}
+                >
+                  {message.role !== "user" ? (
+                    <CandelAvatar role={role} avatar={avatar} size="sm" />
+                  ) : null}
+                  <div
+                    className={`max-w-[80%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-foreground"
+                    } ${message.status === "pending" ? "opacity-60" : ""}`}
+                  >
+                    {message.content}
+                  </div>
+                </div>
+              ))
+            )}
+            {chatSending ? (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <CandelAvatar role={role} avatar={avatar} size="sm" />
+                <span className="flex items-center gap-1.5">
+                  <Loader2 className="size-3.5 animate-spin" /> {candelName} is thinking…
+                </span>
+              </div>
+            ) : null}
 
-          {pendingApprovals.length > 0 ? (
-            <div className="space-y-2 pt-1">
-              <p className="flex items-center gap-1.5 text-xs font-semibold uppercase text-warning">
-                <ShieldCheck className="size-3.5" /> Waiting on you
-              </p>
-              {pendingApprovals.map((request) => (
-                <ApprovalCard
-                  key={request.id}
-                  request={request}
-                  busy={decidingId === request.id}
-                  onDecide={(id, decision, reason) => void handleDecide(id, decision, reason)}
-                />
-              ))}
-            </div>
-          ) : null}
-        </div>
+            {pendingApprovals.length > 0 ? (
+              <div className="space-y-2 pt-1">
+                <p className="flex items-center gap-1.5 text-xs font-semibold uppercase text-warning">
+                  <ShieldCheck className="size-3.5" /> Waiting on you
+                </p>
+                {pendingApprovals.map((request) => (
+                  <ApprovalCard
+                    key={request.id}
+                    request={request}
+                    busy={decidingId === request.id}
+                    onDecide={(id, decision, reason) => void handleDecide(id, decision, reason)}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </div>
 
-        <div className="border-t border-border p-3">
-          {error ? (
-            <div className="mb-2">
-              <FormError>{error}</FormError>
-            </div>
-          ) : null}
-          <div className="flex items-end gap-2">
-            <textarea
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && !event.shiftKey) {
-                  event.preventDefault();
-                  void handleSend();
+          <div className="border-t border-border p-3">
+            {error ? (
+              <div className="mb-2">
+                <FormError>{error}</FormError>
+              </div>
+            ) : null}
+            <div className="flex items-end gap-2">
+              <textarea
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    void handleSend();
+                  }
+                }}
+                rows={2}
+                disabled={disabled || chatSending}
+                placeholder={
+                  disabled
+                    ? "This Candel is paused — resume it to chat."
+                    : `Message ${candelName}…  (Enter to send, Shift+Enter for a new line)`
                 }
-              }}
-              rows={2}
-              disabled={disabled || sending}
-              placeholder={
-                disabled
-                  ? "This Candel is paused — resume it to chat."
-                  : `Message ${candelName}…  (Enter to send, Shift+Enter for a new line)`
-              }
-              className="min-h-11 w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-60"
-            />
-            <Button
-              type="button"
-              size="icon"
-              aria-label="Send message"
-              disabled={disabled || sending || !input.trim()}
-              onClick={() => void handleSend()}
-            >
-              {sending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-            </Button>
+                className="min-h-11 w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-60"
+              />
+              <Button
+                type="button"
+                size="icon"
+                aria-label="Send message"
+                disabled={disabled || chatSending || !input.trim()}
+                onClick={() => void handleSend()}
+              >
+                {chatSending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      </PanelSet>
     </div>
   );
 }
