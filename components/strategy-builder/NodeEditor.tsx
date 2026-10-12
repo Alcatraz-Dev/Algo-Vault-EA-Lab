@@ -1,2 +1,3 @@
 // Visual strategy builder node editor skeleton (Phase 4) — integrates with canonical schema
 export default function NodeEditor() { return <div>Visual Builder — nodes serialize to StrategyDef</div>; }
+/* Style reference switched to reui.io/components (modern); design.md ignored for now */
