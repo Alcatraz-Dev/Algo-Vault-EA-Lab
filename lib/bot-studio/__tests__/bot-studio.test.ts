@@ -15,6 +15,8 @@ import { canTransitionTo, validateTransition } from "../lifecycle";
 import { compileNodeGraph } from "../compiler/visual-to-strategy";
 import { compileAvScript } from "../compiler/avscript-to-strategy";
 import type { NodeGraph } from "../compiler/types";
+import { backtestStrategy, defaultBacktestConfig } from "@/lib/strategy-lab/backtest";
+import type { MarketCandle } from "@/lib/market-data/types";
 
 function assert(condition: boolean, msg: string) {
     if (!condition) {
@@ -177,6 +179,51 @@ eval("alert(1)");
     const evilResult = compileAvScript(evilScript, "STRAT_EVIL");
     assert(!evilResult.ok, "Unsafe AvScript constructs must be rejected");
     console.log("  ✓ AvScript Compiler passed.");
+
+    // ── 5. Backtest Simulation Integration ──
+    console.log("• Testing Backtest Engine Integration with Compiled Strategies...");
+    const baseTime = Date.now() - 100 * 3600 * 1000;
+    const testCandles: MarketCandle[] = [];
+    let price = 1.0800;
+    for (let i = 0; i < 100; i++) {
+        const delta = (i % 2 === 0 ? 0.0010 : -0.0005);
+        price += delta;
+        testCandles.push({
+            timestamp: baseTime + i * 3600 * 1000,
+            open: price,
+            high: price + 0.0015,
+            low: price - 0.0010,
+            close: price + delta,
+            volume: 1000 + i * 10,
+        });
+    }
+
+    // Run backtest on Visual compiled strategy
+    const visualBacktest = backtestStrategy(
+        visualResult.value!,
+        "EURUSD",
+        { H1: testCandles },
+        defaultBacktestConfig(),
+        0,
+        Date.now()
+    );
+    assert(typeof visualBacktest.id === "string", "Backtest result must produce valid ID");
+    assert(visualBacktest.metrics !== undefined, "Backtest must calculate metrics");
+    assert(Array.isArray(visualBacktest.trades), "Trades must be an array");
+    assert(Array.isArray(visualBacktest.equity), "Equity curve must exist");
+
+    // Run backtest on AvScript compiled strategy
+    const avBacktest = backtestStrategy(
+        avResult.value!,
+        "EURUSD",
+        { H1: testCandles },
+        defaultBacktestConfig(),
+        0,
+        Date.now()
+    );
+    assert(typeof avBacktest.id === "string", "AvScript backtest result must produce valid ID");
+    assert(avBacktest.metrics !== undefined, "AvScript backtest must calculate metrics");
+    console.log("  ✓ Backtest simulation on compiled strategies passed.");
 
     console.log("\n========================================");
     console.log("  ALL BOT STUDIO TESTS PASSED (100%)    ");
