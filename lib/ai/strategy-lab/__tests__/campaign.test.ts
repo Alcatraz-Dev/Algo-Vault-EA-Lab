@@ -1,6 +1,7 @@
 import { buildCampaignDraft, advanceCampaign, markCampaignCancelRequested, passportId } from "@/lib/ai/strategy-lab/campaign";
+import { SURVIVOR_THRESHOLDS } from "@/lib/ai/strategy-lab/evolution-constants";
 import type { Campaign, CampaignStore, CampaignSurvivor, CampaignStatus } from "@/lib/ai/strategy-lab/campaign";
-import type { DataBundle } from "@/lib/strategy-lab/types";
+import type { DataBundle, DataCoverage } from "@/lib/strategy-lab/types";
 
 // ── in-memory CampaignStore (tests stay offline; never import campaign-storage.ts) ──
 function makeMemStore(): CampaignStore {
@@ -24,7 +25,7 @@ function makeMemStore(): CampaignStore {
         async update(uid: string, id: string, patch: Partial<Campaign>) {
             const key = makeKey(uid, id);
             const cur = campaigns.get(key);
-            if (cur) campaigns.set(key, { ...cur, ...patch, version: (patch.version ?? cur.version + 1) }) as Campaign;
+            if (cur) campaigns.set(key, { ...cur, ...patch, version: (patch.version ?? cur.version + 1) } as Campaign);
         },
         async delete(uid: string, id: string) {
             campaigns.delete(makeKey(uid, id));
@@ -76,14 +77,39 @@ function syntheticBundle(n = 1800): DataBundle {
         }
         cycles += 1;
     }
+    const requestedTo = BASE + out.length * STEP_MS;
+    const spanDays = (out.length * STEP_MS) / 86400000;
+    const coverage: DataCoverage[] = [{
+        timeframe: "M15",
+        availableBars: out.length,
+        requestedFrom: BASE,
+        requestedTo,
+        availableFrom: BASE,
+        availableTo: requestedTo,
+        fullyCoversRequest: true,
+        spanDays,
+        source: "local_export",
+        maxSourceBars: out.length,
+    }];
     return {
         symbol: "XAUUSD",
+        period: "3M",
         candles: { M15: out },
-        coverage: [{ timeframe: "M15", availableBars: out.length, requestedFrom: BASE, requestedTo: BASE + out.length * STEP_MS, fullyCoversRequest: true, spanDays: (out.length * STEP_MS) / 86400000, source: "synthetic", maxSourceBars: out.length }],
-    } as DataBundle;
+        coverage,
+        requestedFrom: BASE,
+        requestedTo,
+        dataSource: {
+            name: "synthetic-zigzag",
+            kind: "local_export",
+            brokerInstrumentNote: "Synthetic test series — not broker data.",
+            sourceLimits: { M15: out.length },
+            symbolsAreExchangePrices: false,
+        },
+        overallCoversRequest: true,
+    };
 }
 
-function loadSynthetic(spec: any) {
+function loadSynthetic(_spec: unknown) {
     return Promise.resolve(syntheticBundle(1800));
 }
 
@@ -118,7 +144,9 @@ describe("Campaign (Batch 1 Strategy Factory)", () => {
     });
 
     it("cancel_request → cancel at generation boundary", async () => {
-        const updated = markCampaignCancelRequested(await store.get("u1", "c1")!);
+        const current = await store.get("u1", "c1");
+        expect(current).not.toBeNull();
+        const updated = markCampaignCancelRequested(current!);
         await store.update("u1", "c1", { status: updated.status, cancelRequestedAt: updated.cancelRequestedAt, version: updated.version, updatedAt: updated.updatedAt });
         const res = await advanceCampaign({ campaignId: "c1", uid: "u1", workerId: "w1", store, loadData: loadSynthetic, maxWorkMs: 45_000 });
         expect(res.ok).toBe(true);
@@ -140,7 +168,6 @@ describe("Campaign (Batch 1 Strategy Factory)", () => {
     it("campaign uses runEvolutionGeneration (same evaluation path as one-shot)", () => {
         // Spec-level verification: advanceCampaign delegates to runEvolutionGeneration (code inspection verified; not mocked).
         // Survivor thresholds (SURVIVOR_THRESHOLDS) apply exactly.
-        const { SURVIVOR_THRESHOLDS } = require("@/lib/ai/strategy-lab/evolution-constants");
         expect(SURVIVOR_THRESHOLDS.minTrades).toBe(20);
     });
 });

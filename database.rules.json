@@ -1172,6 +1172,56 @@
         ".read": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
         ".write": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
+    },
+    "bot_strategies": {
+      ".indexOn": ["authorId", "updatedAt"],
+      ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+      ".write": false
+    },
+    "bot_deployments": {
+      ".indexOn": ["ownerId", "strategyId", "runtimeState", "updatedAt"],
+      ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+      ".write": false
+    },
+    "bot_logs": {
+      "$botId": {
+        ".indexOn": ["timestamp", "level"],
+        ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": false
+      }
+    },
+    "bot_signals": {
+      "$botId": {
+        ".indexOn": ["timestamp"],
+        ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": false
+      }
+    },
+    "bot_executions": {
+      "$botId": {
+        ".indexOn": ["timestamp"],
+        ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": false
+      }
+    },
+    "bot_audit": {
+      "$botId": {
+        ".indexOn": ["timestamp"],
+        ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": false
+      }
+    },
+    "bot_strategies_index": {
+      "$authorId": {
+        ".read": "auth != null && (auth.uid === $authorId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": false
+      }
+    },
+    "bot_deployments_index": {
+      "$ownerId": {
+        ".read": "auth != null && (auth.uid === $ownerId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": false
+      }
     }
   }
 }

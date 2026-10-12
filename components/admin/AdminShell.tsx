@@ -57,6 +57,7 @@ const NAV_ITEMS = [
     { icon: DollarSign, label: "Monetization", href: "/admin/monetization" },
     { icon: Radio, label: "Telegram Signals", href: "/admin/telegram" },
     { icon: Bot, label: "Bots / Products", href: "/admin/bots" },
+    { icon: Code2, label: "Bot Studio", href: "/admin/bot-studio" },
     { icon: Activity, label: "Live Accounts", href: "/admin/live" },
     { icon: Sparkles, label: "Live Map", href: "/admin/livemap" },
     { icon: Zap, label: "Scalping Terminal", href: "/admin/scalping" },

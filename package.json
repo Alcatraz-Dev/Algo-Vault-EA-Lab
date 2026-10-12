@@ -26,6 +26,7 @@
     "sieve:smoke": "node scripts/sieve-smoke.mjs",
     "test:ea": "jiti lib/strategy-lab/ea/tests/run-tests.ts",
     "test:strategy-engine": "node scripts/jiti-tsrun.mjs lib/strategy-engine/__tests__/run-strategy-engine-tests.ts",
+    "test:bot-studio": "node scripts/jiti-tsrun.mjs lib/bot-studio/__tests__/bot-studio.test.ts",
     "test:research": "node scripts/jiti-tsrun.mjs lib/strategy-research/__tests__/run-research-tests.ts",
     "test:workflows": "node scripts/jiti-tsrun.mjs lib/workflows/__tests__/run-workflow-tests.ts",
     "test:growth": "JITI_TSCONFIG_PATHS=1 jiti lib/growth/__tests__/run-growth-tests.ts",
@@ -76,6 +77,7 @@
     "react-markdown": "^10.1.0",
     "recharts": "^3.10.1",
     "remark-gfm": "^4.0.1",
+    "reui": "^0.5.0",
     "stripe": "^22.6.2",
     "tailwind-merge": "^3.7.0",
     "telegram": "^2.26.22"

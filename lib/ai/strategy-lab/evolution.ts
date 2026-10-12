@@ -892,3 +892,290 @@ export async function runEvolution(input: EvolutionRunInput): Promise<EvolutionR
         dataAsOf,
     };
 }
+
+export type EvolutionTotals = {
+    candidates: number;
+    evaluated: number;
+    unevaluated: number;
+    survivors: number;
+};
+
+export type EvolutionContext = {
+    runId: string;
+    uid: string;
+    symbol: SupportedSymbol;
+    timeframe: Timeframe;
+    hierarchy: TimeframeHierarchy;
+    candlesByTF: Partial<Record<Timeframe, MarketCandle[]>>;
+    setupTimeframe: Timeframe;
+    from: number;
+    to: number;
+    generations: number;
+    seedPopulation: number;
+    seed: string;
+    usableFeatures: number;
+    seedSize: number;
+    totalGenerations: number;
+};
+
+export function buildEvolutionContext(input: {
+    runId: string;
+    uid: string;
+    symbol: SupportedSymbol;
+    timeframe: Timeframe;
+    hierarchy: TimeframeHierarchy;
+    candlesByTF: Partial<Record<Timeframe, MarketCandle[]>>;
+    setupTimeframe: Timeframe;
+    from: number;
+    to: number;
+    generations?: number;
+    seedPopulation?: number;
+    seed?: string;
+}): EvolutionContext {
+    const setupCandles = input.candlesByTF[input.setupTimeframe] ?? [];
+    const features = computeFeatures(setupCandles);
+    // computeFeatures returns one row per candle (never null rows) — every
+    // computed row is usable for evolution seeding.
+    const usableFeatures = features.length;
+    const generations = Math.max(1, Math.min(input.generations ?? 4, LIMITS.maxGenerations));
+    const seedSize = Math.max(2, Math.min(input.seedPopulation ?? 12, LIMITS.maxSeeds));
+    return {
+        runId: input.runId,
+        uid: input.uid,
+        symbol: input.symbol,
+        timeframe: input.timeframe,
+        hierarchy: input.hierarchy,
+        candlesByTF: input.candlesByTF,
+        setupTimeframe: input.setupTimeframe,
+        from: input.from,
+        to: input.to,
+        generations,
+        seedPopulation: seedSize,
+        seed: input.seed ?? `${input.uid}:${input.runId}`,
+        usableFeatures,
+        seedSize,
+        totalGenerations: generations,
+    };
+}
+
+export type EvolutionGenerationOutcome = {
+    report: GenerationReport;
+    nextPopulation: StrategyDna[];
+    totals: EvolutionTotals;
+    finished: boolean;
+    survivors: CandidateEvaluation[];
+};
+
+export function runEvolutionGeneration(
+    ctx: EvolutionContext,
+    input: {
+        generation: number;
+        population: StrategyDna[];
+        totals: EvolutionTotals;
+    }
+): EvolutionGenerationOutcome {
+    const start = Date.now();
+    const generation = input.generation;
+    const population = input.population;
+    const totals = { ...input.totals };
+    const evaluations: CandidateEvaluation[] = [];
+    let evaluated = 0;
+    let unevaluated = 0;
+    const baseConfig = defaultBacktestConfig();
+    const setupCandles = ctx.candlesByTF[ctx.setupTimeframe] ?? [];
+    const seed = ctx.seed;
+
+    for (const dna of population) {
+        const schemaErrors = validateDna(dna);
+        if (schemaErrors.length > 0) {
+            unevaluated += 1;
+            evaluations.push({
+                dna,
+                signature: dnaSignature(dna),
+                backtest: null,
+                validation: null,
+                metrics: null,
+                score: null,
+                robustnessScore: null,
+                grade: null,
+                survivor: false,
+                rejectionReason: `Schema validation failed: ${schemaErrors.join(" ")}`,
+                error: null,
+            });
+            continue;
+        }
+        try {
+            const strategy = dnaToStrategy(dna, ctx.hierarchy);
+            const backtest = backtestStrategy(
+                strategy,
+                ctx.symbol,
+                ctx.candlesByTF,
+                baseConfig,
+                ctx.from,
+                ctx.to
+            );
+            const span = ctx.to - ctx.from;
+            const split = ctx.from + span * 0.7;
+            const validation = validateStrategy(
+                strategy,
+                ctx.symbol,
+                ctx.setupTimeframe,
+                baseConfig,
+                setupCandles,
+                { from: ctx.from, to: split },
+                { from: split, to: ctx.to },
+                { enabled: false, trainMonths: 1, testMonths: 1 },
+                ctx.from,
+                ctx.to
+            );
+            const metrics = backtest.metrics ?? null;
+            const score = scoreCandidate(metrics);
+            const robustness = computeRobustness(metrics, validation, null);
+            const decision = survivorDecision(metrics, score);
+            evaluated += 1;
+            evaluations.push({
+                dna,
+                signature: dnaSignature(dna),
+                backtest,
+                validation,
+                metrics,
+                score,
+                robustnessScore: robustness.score,
+                grade: robustness.grade,
+                survivor: decision.survivor,
+                rejectionReason: decision.reason,
+                error: null,
+            });
+        } catch (err) {
+            unevaluated += 1;
+            evaluations.push({
+                dna,
+                signature: dnaSignature(dna),
+                backtest: null,
+                validation: null,
+                metrics: null,
+                score: null,
+                robustnessScore: null,
+                grade: null,
+                survivor: false,
+                rejectionReason: "Backtest threw an error.",
+                error: err instanceof Error ? err.message : String(err),
+            });
+        }
+    }
+
+    const survivors = evaluations.filter((e) => e.survivor);
+    const parents = generation === 1 ? 0 : population.length;
+    const nextChildren =
+        generation < ctx.totalGenerations && survivors.length > 0
+            ? mutatePopulation(
+                  survivors.map((s) => s.dna),
+                  generation + 1,
+                  Math.min(ctx.seedSize, LIMITS.maxChildrenPerGeneration),
+                  seed
+              )
+            : [];
+
+    totals.candidates += population.length;
+    totals.evaluated += evaluated;
+    totals.unevaluated += unevaluated;
+    totals.survivors += survivors.length;
+
+    const stages: StageReport[] = [
+        {
+            stage: "market_data",
+            label: STAGE_LABELS.market_data,
+            status: "completed",
+            count: setupCandles.length,
+            detail: `${setupCandles.length} bars loaded for ${ctx.setupTimeframe}.`,
+        },
+        {
+            stage: "feature_extraction",
+            label: STAGE_LABELS.feature_extraction,
+            status: "completed",
+            count: ctx.usableFeatures,
+            detail: `${ctx.usableFeatures} feature rows extracted (3-bar confirmation lag).`,
+        },
+        {
+            stage: "strategy_generator",
+            label: STAGE_LABELS.strategy_generator,
+            status: population.length > 0 ? "completed" : "skipped",
+            count: population.length,
+            detail:
+                generation === 1
+                    ? `${population.length} seed candidates generated.`
+                    : `${population.length} children mutated from ${survivors.length} survivors.`,
+        },
+        {
+            stage: "backtest",
+            label: STAGE_LABELS.backtest,
+            status: evaluated > 0 ? "completed" : "skipped",
+            count: evaluated,
+            detail: `${evaluated} candidates backtested; ${unevaluated} could not be evaluated.`,
+        },
+        {
+            stage: "risk_evaluation",
+            label: STAGE_LABELS.risk_evaluation,
+            status: evaluated > 0 ? "completed" : "skipped",
+            count: evaluated,
+            detail: `Risk metrics computed for ${evaluated} candidates.`,
+        },
+        {
+            stage: "out_of_sample",
+            label: STAGE_LABELS.out_of_sample,
+            status: evaluated > 0 ? "completed" : "skipped",
+            count: evaluated,
+            detail: `In/out-of-sample split at 70% of the window for ${evaluated} candidates.`,
+        },
+        {
+            stage: "survivor_selection",
+            label: STAGE_LABELS.survivor_selection,
+            status: evaluated > 0 ? "completed" : "skipped",
+            count: survivors.length,
+            detail: `${survivors.length} candidates passed min ${SURVIVOR_THRESHOLDS.minTrades} trades, PF ≥ ${SURVIVOR_THRESHOLDS.minProfitFactor}, expectancy ≥ ${SURVIVOR_THRESHOLDS.minExpectancyR}R, DD ≤ ${SURVIVOR_THRESHOLDS.maxDrawdownPct}%.`,
+        },
+        {
+            stage: "mutation",
+            label: STAGE_LABELS.mutation,
+            status: nextChildren.length > 0 ? "completed" : "skipped",
+            count: nextChildren.length,
+            detail:
+                nextChildren.length > 0
+                    ? `${nextChildren.length} children mutated.`
+                    : "No survivors to mutate; evolution stopped for this generation.",
+        },
+        {
+            stage: "next_generation",
+            label: STAGE_LABELS.next_generation,
+            status: nextChildren.length > 0 ? "completed" : "skipped",
+            count: nextChildren.length,
+            detail:
+                nextChildren.length > 0
+                    ? `Generation ${generation + 1} queued with ${nextChildren.length} candidates.`
+                    : `No next generation produced.`,
+        },
+    ];
+
+    const report: GenerationReport = {
+        generation,
+        candidates: population.length,
+        evaluated,
+        unevaluated,
+        survivors: survivors.length,
+        mutations: nextChildren.length,
+        parents,
+        stages,
+        ...(generation === ctx.totalGenerations ? { details: evaluations } : {}),
+        asOf: Date.now(),
+        durationMs: Date.now() - start,
+        unavailable: evaluated === 0 ? "No candidate produced a backtest in this generation." : null,
+    };
+
+    return {
+        report,
+        nextPopulation: nextChildren,
+        totals,
+        finished: nextChildren.length === 0 || generation >= ctx.totalGenerations,
+        survivors,
+    };
+}
