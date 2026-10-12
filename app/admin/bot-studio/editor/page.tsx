@@ -16,6 +16,8 @@ import {
     Sparkles,
     Zap,
     Copy,
+    BarChart3,
+    X,
 } from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
 import { auth } from "@/lib/firebase";
@@ -67,6 +69,9 @@ export default function AvScriptEditorPage() {
     const [strategyName, setStrategyName] = useState("EMA Trend Crossover");
     const [compiling, setCompiling] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [backtesting, setBacktesting] = useState(false);
+    const [backtestResult, setBacktestResult] = useState<any>(null);
+    const [backtestModalOpen, setBacktestModalOpen] = useState(false);
     const [compiledStrategy, setCompiledStrategy] = useState<Strategy | null>(null);
     const [diagnostics, setDiagnostics] = useState<CompilerDiagnostic[]>([]);
     const [compileError, setCompileError] = useState<string | null>(null);
@@ -138,7 +143,7 @@ export default function AvScriptEditorPage() {
         handleCompile();
     }, [handleCompile]);
 
-    const handleSave = async () => {
+    const handleSave = async (): Promise<string | null> => {
         if (!compiledStrategy) {
             await handleCompile();
         }
@@ -155,7 +160,7 @@ export default function AvScriptEditorPage() {
             const compData = await compRes.json();
             if (!compData.ok || !compData.value) {
                 alert(`Cannot save: compiler errors exist.\n${compData.diagnostics?.map((d: any) => d.message).join("\n")}`);
-                return;
+                return null;
             }
 
             const res = await fetch("/api/bot-studio/strategies", {
@@ -176,13 +181,44 @@ export default function AvScriptEditorPage() {
                 if (!strategyId) {
                     router.push(`/admin/bot-studio/editor?id=${data.strategy.id}`);
                 }
+                return data.strategy.id;
             } else {
                 alert(`Failed to save: ${data.error}`);
+                return null;
             }
         } catch (e) {
             alert(`Error saving strategy: ${e instanceof Error ? e.message : String(e)}`);
+            return null;
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleBacktest = async () => {
+        let targetId = strategyId;
+        if (!targetId) {
+            targetId = await handleSave();
+            if (!targetId) return;
+        }
+        setBacktesting(true);
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch(`/api/bot-studio/strategies/${targetId}/backtest`, {
+                method: "POST",
+                headers,
+                body: JSON.stringify({ period: "1Y" }),
+            });
+            const data = await res.json();
+            if (data.ok) {
+                setBacktestResult(data.backtest);
+                setBacktestModalOpen(true);
+            } else {
+                alert(`Backtest failed: ${data.error}`);
+            }
+        } catch (e) {
+            alert(`Backtest error: ${e instanceof Error ? e.message : String(e)}`);
+        } finally {
+            setBacktesting(false);
         }
     };
 
@@ -223,6 +259,14 @@ export default function AvScriptEditorPage() {
                         >
                             <RefreshCw className={`h-4 w-4 ${compiling ? "animate-spin" : ""}`} />
                             Compile
+                        </button>
+                        <button
+                            onClick={handleBacktest}
+                            disabled={backtesting || compiling}
+                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold shadow-sm transition"
+                        >
+                            <BarChart3 className={`h-4 w-4 ${backtesting ? "animate-spin" : ""}`} />
+                            {backtesting ? "Backtesting..." : "Run Backtest"}
                         </button>
                         <button
                             onClick={handleSave}
@@ -368,6 +412,162 @@ export default function AvScriptEditorPage() {
                         )}
                     </div>
                 </div>
+
+                {/* Backtest Results Modal */}
+                {backtestModalOpen && backtestResult && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto">
+                        <div className="bg-card border border-border rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200 my-8 max-h-[90vh] flex flex-col">
+                            <div className="flex items-center justify-between pb-3 border-b border-border">
+                                <div className="flex items-center gap-2">
+                                    <BarChart3 className="h-5 w-5 text-emerald-400" />
+                                    <div>
+                                        <h3 className="text-lg font-bold">Backtest Simulation Report</h3>
+                                        <p className="text-xs text-muted-foreground">
+                                            {backtestResult.symbol} · {backtestResult.timeframe} · {backtestResult.strategyName || strategyName}
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setBacktestModalOpen(false)}
+                                    className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted"
+                                >
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
+
+                            <div className="overflow-y-auto space-y-5 flex-1 pr-1">
+                                {/* Key Metrics Cards */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <div className="p-3.5 rounded-xl border border-border bg-muted/20">
+                                        <span className="text-[11px] font-medium text-muted-foreground">Net PnL</span>
+                                        <div className={`text-xl font-bold mt-1 ${
+                                            backtestResult.metrics.netProfit >= 0 ? "text-emerald-400" : "text-rose-400"
+                                        }`}>
+                                            ${backtestResult.metrics.netProfit.toFixed(2)}
+                                        </div>
+                                        <span className="text-[10px] text-muted-foreground">
+                                            Return: {backtestResult.metrics.returnPct?.toFixed(2)}%
+                                        </span>
+                                    </div>
+
+                                    <div className="p-3.5 rounded-xl border border-border bg-muted/20">
+                                        <span className="text-[11px] font-medium text-muted-foreground">Win Rate</span>
+                                        <div className="text-xl font-bold mt-1 text-foreground">
+                                            {backtestResult.metrics.winRate?.toFixed(1)}%
+                                        </div>
+                                        <span className="text-[10px] text-muted-foreground">
+                                            {backtestResult.metrics.longTrades + backtestResult.metrics.shortTrades} total trades
+                                        </span>
+                                    </div>
+
+                                    <div className="p-3.5 rounded-xl border border-border bg-muted/20">
+                                        <span className="text-[11px] font-medium text-muted-foreground">Profit Factor</span>
+                                        <div className="text-xl font-bold mt-1 text-foreground">
+                                            {backtestResult.metrics.profitFactor?.toFixed(2)}
+                                        </div>
+                                        <span className="text-[10px] text-muted-foreground">
+                                            Exp: {backtestResult.metrics.expectancy?.toFixed(2)}
+                                        </span>
+                                    </div>
+
+                                    <div className="p-3.5 rounded-xl border border-border bg-muted/20">
+                                        <span className="text-[11px] font-medium text-muted-foreground">Max Drawdown</span>
+                                        <div className="text-xl font-bold mt-1 text-rose-400">
+                                            {backtestResult.metrics.maxDrawdownPct?.toFixed(2)}%
+                                        </div>
+                                        <span className="text-[10px] text-muted-foreground">
+                                            ${backtestResult.metrics.maxDrawdownAbs?.toFixed(2)}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Rule Diagnostics */}
+                                {backtestResult.diagnostics && (
+                                    <div className="p-4 rounded-xl border border-border bg-muted/10 space-y-2">
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                            Bar Diagnostics & Rule Evaluator
+                                        </span>
+                                        <div className="grid grid-cols-3 gap-2 text-xs">
+                                            <div className="p-2 rounded bg-card border border-border/40">
+                                                <span className="text-muted-foreground">Scanned Bars:</span>
+                                                <div className="font-bold">{backtestResult.diagnostics.loopBars}</div>
+                                            </div>
+                                            <div className="p-2 rounded bg-card border border-border/40">
+                                                <span className="text-muted-foreground">Session Bars:</span>
+                                                <div className="font-bold">{backtestResult.diagnostics.sessionBars}</div>
+                                            </div>
+                                            <div className="p-2 rounded bg-card border border-border/40">
+                                                <span className="text-muted-foreground">Regime Bars:</span>
+                                                <div className="font-bold">{backtestResult.diagnostics.regimeBars}</div>
+                                            </div>
+                                        </div>
+                                        {backtestResult.diagnostics.blockingRuleIds?.length > 0 && (
+                                            <div className="p-2.5 rounded bg-amber-500/10 border border-amber-500/20 text-xs text-amber-400">
+                                                <strong>Blocking Rules Detected:</strong> {backtestResult.diagnostics.blockingRuleIds.join(", ")}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Recent Trades Snippet */}
+                                <div className="space-y-2">
+                                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                        Executed Trades ({backtestResult.trades?.length || 0})
+                                    </span>
+                                    {(!backtestResult.trades || backtestResult.trades.length === 0) ? (
+                                        <div className="p-4 text-center text-xs text-muted-foreground border border-dashed border-border rounded-xl">
+                                            Zero trades triggered in the tested historical window. Check indicators and threshold conditions.
+                                        </div>
+                                    ) : (
+                                        <div className="border border-border rounded-xl overflow-hidden text-xs">
+                                            <table className="w-full text-left">
+                                                <thead className="bg-muted/40 border-b border-border text-[11px] font-semibold text-muted-foreground">
+                                                    <tr>
+                                                        <th className="p-2.5">Side</th>
+                                                        <th className="p-2.5">Entry Price</th>
+                                                        <th className="p-2.5">Exit Price</th>
+                                                        <th className="p-2.5">Profit</th>
+                                                        <th className="p-2.5">R Return</th>
+                                                        <th className="p-2.5">Exit Reason</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-border/40 font-mono text-[11px]">
+                                                    {backtestResult.trades.slice(0, 8).map((t: any, idx: number) => (
+                                                        <tr key={idx} className="hover:bg-muted/20">
+                                                            <td className="p-2.5">
+                                                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                                                                    t.direction === "long" ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"
+                                                                }`}>
+                                                                    {t.direction.toUpperCase()}
+                                                                </span>
+                                                            </td>
+                                                            <td className="p-2.5">{t.entryPrice?.toFixed(2)}</td>
+                                                            <td className="p-2.5">{t.exitPrice?.toFixed(2)}</td>
+                                                            <td className={`p-2.5 font-bold ${t.pnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                                                                ${t.pnl?.toFixed(2)}
+                                                            </td>
+                                                            <td className="p-2.5">{t.rMultiple ? `${t.rMultiple.toFixed(2)}R` : "-"}</td>
+                                                            <td className="p-2.5 text-muted-foreground font-sans text-[10px]">{t.exitReason || "manual"}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="pt-3 border-t border-border flex justify-end">
+                                <button
+                                    onClick={() => setBacktestModalOpen(false)}
+                                    className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90"
+                                >
+                                    Close Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </AdminShell>
     );
