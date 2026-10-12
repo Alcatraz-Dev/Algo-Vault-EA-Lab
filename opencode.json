@@ -1,0 +1,13 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "reui": {
+      "type": "remote",
+      "url": "https://mcp.reui.io",
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer reui_pat_nk5rmpwQd2MoIgJaYoU_5qxuMvPfbHPEpd0O_pDc3VM"
+      }
+    }
+  }
+}

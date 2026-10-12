@@ -1,0 +1,31 @@
+{
+  "name": "algovault-desktop",
+  "displayName": "AlgoVault",
+  "description": "Desktop shell for AlgoVault: window chrome, native menus, tray, auto-updater and feed-connection overlay on top of the existing Next.js web app.",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "main": "dist/main/main.js",
+  "scripts": {
+    "dev": "tsx src/main/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "electron .",
+    "lint": "eslint src --ext .ts,.tsx",
+    "rebuild-icons": "node scripts/rebuild-icons.js"
+  },
+  "dependencies": {
+    "electron": "^36.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.10",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.6",
+    "eslint": "^9.39.5",
+    "tsx": "^4.19.4",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}

@@ -1,0 +1,1 @@
+Audit (Phase 1): trading-platform exists. Existing: MT5 Gateway, manual trading, Firebase RTDB, auth/roles, UI lib. Reusable directly. Missing: canonical Strategy Definition schema, safe interpreter (no eval), visual node builder, reconciliation layer, backtest extension. Risks: unauthorized live trading, duplicate engine, look-ahead, unisolated Magic Numbers.

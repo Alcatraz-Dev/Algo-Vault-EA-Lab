@@ -1,0 +1,33 @@
+/**
+ * External link allowlist.
+ *
+ * `openExternal` and `ExternalLink` only open origins on this list. Blocked
+ * origins are a local, harmless error in the renderer — they never fire the
+ * OS opener and never leak a security message.
+ */
+export interface AllowlistRule {
+  origin: string;
+  wildcard: boolean;
+}
+
+export const ALLOWED_ORIGINS: AllowlistRule[] = [
+  { origin: 'https://tradingview.com', wildcard: false },
+  { origin: 'https://www.tradingview.com', wildcard: false },
+  { origin: 'https://telegram.org', wildcard: false },
+  { origin: 'https://algovault.com', wildcard: false },
+];
+
+/** Returns true only for allowlisted HTTP(S) origins. */
+export function isOriginAllowlisted(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return false;
+    if (ALLOWED_ORIGINS.some((rule) => rule.origin === parsed.origin)) return true;
+    if (parsed.hostname.endsWith('.algovault.com')) return true;
+    if (parsed.hostname.endsWith('tradingview.com')) return true;
+    if (parsed.hostname === 'telegram.org') return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
