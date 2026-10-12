@@ -30,9 +30,12 @@ import {
     CheckCircle2,
     Sliders,
     TrendingUp,
+    TrendingDown,
     Shield,
     Zap,
     Trash2,
+    BarChart3,
+    X,
 } from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
 import { auth } from "@/lib/firebase";
