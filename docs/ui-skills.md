@@ -31,9 +31,10 @@ outside this pack on demand: `npx ui-skills get <slug>` (e.g.
 
 ## Rules (project conventions)
 
-1. **DESIGN.md wins.** Skills advise; [DESIGN.md](../DESIGN.md) (Institutional Command,
-   dark-first, tokens) is the authority. If a skill suggests something that
-   conflicts with DESIGN.md, follow DESIGN.md.
+1. **DESIGN.md wins.** Skills advise; [DESIGN.md](../DESIGN.md) (AlgoVault design system —
+   tokens, typography, components, motion; supersedes the old "Institutional Command" doc)
+   is the authority. If a skill suggests something that conflicts with DESIGN.md, follow
+   DESIGN.md.
 2. **Max 3 skills per task** (per `ui-skills-root` routing). Prefer 1.
 3. **Audits are read-only.** `improve-ui` / `improve-animations` produce plans;
    a separate step implements them.

@@ -24,6 +24,18 @@ import {
     Terminal,
     Wallet,
     Zap,
+    Layout,
+    Layers,
+    Meter,
+    Rocket,
+    FlowChart,
+    Briefcase,
+    Lightbulb,
+    Globe,
+    Settings,
+    BarChart4,
+    Target,
+    Award,
 } from "lucide-react";
 import { database } from "@/lib/firebase";
 import { onValue, ref } from "firebase/database";
@@ -33,6 +45,9 @@ import SiteFooter from "@/components/footer/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Frame, FramePanel, FrameHeader, FrameTitle, FrameDescription, FrameFooter } from "@/components/reui/frame";
+import { IconTile } from "@/components/reui/icon-tile";
+import { Badge as ReUIBadge } from "@/components/reui/badge";
 import Reveal from "./Reveal";
 import CountUp from "./CountUp";
 import TickerStrip from "./TickerStrip";
@@ -120,22 +135,21 @@ export default function HomePage({ data }: { data: HomeData }) {
             <main>
                 <TickerStrip />
 
-                {/* ── Hero (trigger.dev-style: centered copy above a light-lit full-width console) ── */}
+                {/* ── Hero ── */}
                 <section className="relative border-b border-border bg-background">
                     <div className="page-container relative">
                         <Reveal className="pt-16 text-center md:pt-24">
-                            <div>
-                                <Badge
-                                    variant="outline"
-                                    className="h-auto gap-2 border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-primary"
-                                >
+                            <div className="mx-auto max-w-3xl text-center">
+                                <ReUIBadge variant="outline" className="h-auto gap-2 border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
                                     <span className="relative flex h-1.5 w-1.5">
                                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" />
                                         <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
                                     </span>
                                     Real market infrastructure
-                                </Badge>
-                                <h1 className="mx-auto mt-6 max-w-4xl text-4xl font-semibold leading-[1.04] tracking-[-0.04em] text-foreground sm:text-6xl lg:text-7xl">Build conviction before you place the trade.</h1>
+                                </ReUIBadge>
+                                <h1 className="mx-auto mt-6 max-w-4xl text-4xl font-semibold leading-[1.04] tracking-[-0.04em] text-foreground sm:text-6xl lg:text-7xl">
+                                    Build conviction before you place the trade.
+                                </h1>
                                 <p className="mx-auto mt-6 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
                                     {siteName} connects market data, deterministic analysis, strategy research, risk controls, and MT5 execution in one calm operating surface. What you see is what was recorded — no fabricated numbers.
                                 </p>
@@ -157,42 +171,52 @@ export default function HomePage({ data }: { data: HomeData }) {
 
                         <Reveal delay={140} className="pb-16 md:pb-24">
                             <div className="mt-14">
-                                <div className="av-panel av-edge rounded-xl border border-border bg-card/80 backdrop-blur shadow-md ">
-                                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3 text-xs text-muted-foreground">
-                                        <span className="flex items-center gap-2"><Terminal size={14} className="text-primary" />Operating console</span>
-                                        <span className="flex items-center gap-2">
-                                            <span className="relative flex h-1.5 w-1.5">
-                                                <span className={`absolute inline-flex h-full w-full rounded-full ${dataOnline ? "animate-ping bg-positive/60" : ""}`} />
-                                                <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${dataOnline ? "bg-positive" : "bg-muted-foreground"}`} />
+                                <Frame spacing="lg">
+                                    <FrameHeader className="border-b border-border px-4 py-3 text-xs text-muted-foreground">
+                                        <div className="flex flex-wrap items-center justify-between gap-2">
+                                            <span className="flex items-center gap-2"><Terminal size={14} className="text-primary" />Operating console</span>
+                                            <span className="flex items-center gap-2">
+                                                <span className="relative flex h-1.5 w-1.5">
+                                                    <span className={`absolute inline-flex h-full w-full rounded-full ${dataOnline ? "animate-ping bg-positive/60" : ""}`} />
+                                                    <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${dataOnline ? "bg-positive" : "bg-muted-foreground"}`} />
+                                                </span>
+                                                {dataOnline ? "Data feed online" : "Awaiting data"}
                                             </span>
-                                            {dataOnline ? "Data feed online" : "Awaiting data"}
-                                        </span>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-px bg-border md:grid-cols-4">
-                                        <div className="bg-card/80 backdrop-blur p-5 shadow-md">
+                                        </div>
+                                    </FrameHeader>
+                                    <div className="grid grid-cols-2 gap-px bg-border md:grid-cols-4 p-(--frame-panel-px) py-(--frame-panel-py)">
+                                        <div className="bg-card/80 p-5 shadow-md">
                                             <p className="text-xs text-muted-foreground">Strategies</p>
                                             <p className="mt-3 text-3xl font-semibold text-foreground"><CountUp value={stats.strategies} format={formatNumber} /></p>
                                             <p className="mt-2 text-xs text-muted-foreground">Marketplace records</p>
                                         </div>
-                                        <div className="bg-card/80 backdrop-blur p-5 shadow-md">
+                                        <div className="bg-card/80 p-5 shadow-md">
                                             <p className="text-xs text-muted-foreground">Backtests</p>
                                             <p className="mt-3 text-3xl font-semibold text-foreground"><CountUp value={stats.backtests} format={formatNumber} /></p>
                                             <p className="mt-2 text-xs text-muted-foreground">Recorded runs</p>
                                         </div>
-                                        <div className="bg-card/80 backdrop-blur p-5 shadow-md">
+                                        <div className="bg-card/80 p-5 shadow-md">
                                             <p className="text-xs text-muted-foreground">Deterministic engines</p>
                                             <p className="mt-3 text-3xl font-semibold text-foreground"><CountUp value={ENGINES.length} format={formatNumber} /></p>
                                             <p className="mt-2 text-xs text-muted-foreground">Computed from candles</p>
                                         </div>
-                                        <div className="bg-card/80 backdrop-blur p-5 shadow-md">
+                                        <div className="bg-card/80 p-5 shadow-md">
                                             <p className="text-xs text-muted-foreground">Rated strategies</p>
                                             <p className="mt-3 text-3xl font-semibold text-foreground"><CountUp value={stats.reviewCount} format={formatNumber} /></p>
                                             <p className="mt-2 text-xs text-muted-foreground">Average {stats.averageRating > 0 ? `${stats.averageRating}/5` : "unavailable"}</p>
                                         </div>
                                     </div>
                                     <HeroConsoleChart />
-                                    <div className="border-t border-border px-4 py-3 text-xs text-muted-foreground">Aggregate statistics only — no account numbers or user details on this page. {previewBacktests ? "Backtest figures shown are sample previews until recorded runs are published." : ""}</div>
-                                </div>
+                                    <div className="border-t border-border px-4 py-3 text-xs text-muted-foreground">
+                                        Aggregate statistics only — no account numbers or user details on this page. {previewBacktests ? "Backtest figures shown are sample previews until recorded runs are published." : ""}
+                                    </div>
+                                    <FrameFooter className="border-t border-border px-4 py-3 text-xs text-muted-foreground">
+                                        <div className="flex items-center justify-between">
+                                            <span className="flex items-center gap-2"><ShieldCheck size={13} className="text-positive" />Deterministic first</span>
+                                            <span className="flex items-center gap-2"><Database size={13} className="text-info" />Provider-backed</span>
+                                        </div>
+                                    </FrameFooter>
+                                </Frame>
                             </div>
                         </Reveal>
                     </div>
@@ -273,42 +297,42 @@ export default function HomePage({ data }: { data: HomeData }) {
                         </Reveal>
                         <div className="mt-10 grid gap-6 lg:grid-cols-2">
                             <Reveal delay={80}>
-                            <Card className="gap-0 py-0">
-                                <div className="border-b border-border px-5 py-4">
-                                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Deterministic layer</p>
-                                    <h3 className="mt-2 text-xl font-semibold text-foreground">Eight pure engines on the market feed</h3>
-                                </div>
-                                <ul className="divide-y divide-border">
-                                    {ENGINES.map((engine) => (
-                                        <li key={engine.name} className="flex items-start justify-between gap-4 px-5 py-3">
-                                            <span className="text-sm font-semibold text-foreground">{engine.name}</span>
-                                            <span className="max-w-[55%] text-right text-xs leading-5 text-muted-foreground">{engine.copy}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                                <div className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
-                                    <span className="flex items-center gap-2"><ShieldCheck size={14} className="text-positive" />Deterministic — same candles in, same result out</span>
-                                </div>
-                            </Card>
+                                <Card className="gap-0 py-0">
+                                    <div className="border-b border-border px-5 py-4">
+                                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Deterministic layer</p>
+                                        <h3 className="mt-2 text-xl font-semibold text-foreground">Eight pure engines on the market feed</h3>
+                                    </div>
+                                    <ul className="divide-y divide-border">
+                                        {ENGINES.map((engine) => (
+                                            <li key={engine.name} className="flex items-start justify-between gap-4 px-5 py-3">
+                                                <span className="text-sm font-semibold text-foreground">{engine.name}</span>
+                                                <span className="max-w-[55%] text-right text-xs leading-5 text-muted-foreground">{engine.copy}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <div className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
+                                        <span className="flex items-center gap-2"><ShieldCheck size={14} className="text-positive" />Deterministic — same candles in, same result out</span>
+                                    </div>
+                                </Card>
                             </Reveal>
                             <Reveal delay={180}>
-                            <Card className="gap-0 py-0">
-                                <div className="border-b border-border px-5 py-4">
-                                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">AI interpretation layer</p>
-                                    <h3 className="mt-2 text-xl font-semibold text-foreground">Applied on top, kept honest</h3>
-                                </div>
-                                <ul className="divide-y divide-border">
-                                    {AI_CAPABILITIES.map((cap) => (
-                                        <li key={cap.name} className="px-5 py-3">
-                                            <p className="flex items-center gap-2 text-sm font-semibold text-foreground"><Brain size={14} className="shrink-0 text-primary" />{cap.name}</p>
-                                            <p className="mt-1 pl-6 text-xs leading-5 text-muted-foreground">{cap.copy}</p>
-                                        </li>
-                                    ))}
-                                </ul>
-                                <div className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
-                                    <span className="flex items-center gap-2"><CircleAlert size={14} className="text-warning" />AI cannot override the deterministic risk validator</span>
-                                </div>
-                            </Card>
+                                <Card className="gap-0 py-0">
+                                    <div className="border-b border-border px-5 py-4">
+                                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">AI interpretation layer</p>
+                                        <h3 className="mt-2 text-xl font-semibold text-foreground">Applied on top, kept honest</h3>
+                                    </div>
+                                    <ul className="divide-y divide-border">
+                                        {AI_CAPABILITIES.map((cap) => (
+                                            <li key={cap.name} className="px-5 py-3">
+                                                <p className="flex items-center gap-2 text-sm font-semibold text-foreground"><Brain size={14} className="shrink-0 text-primary" />{cap.name}</p>
+                                                <p className="mt-1 pl-6 text-xs leading-5 text-muted-foreground">{cap.copy}</p>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <div className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
+                                        <span className="flex items-center gap-2"><CircleAlert size={14} className="text-warning" />AI cannot override the deterministic risk validator</span>
+                                    </div>
+                                </Card>
                             </Reveal>
                         </div>
                     </div>
@@ -318,69 +342,69 @@ export default function HomePage({ data }: { data: HomeData }) {
                 <section className="border-b border-border bg-background">
                     <div className="page-container grid gap-6 py-14 md:py-20 lg:grid-cols-[1.2fr_0.8fr]">
                         <Reveal>
-                        <Card className="gap-0 py-0">
-                            <div className="flex items-center justify-between border-b border-border px-5 py-4">
-                                <div>
-                                    <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                                        Verified workspace
-                                        {previewBacktests && (
-                                            <Badge variant="warning" className="font-numeric text-micro normal-case tracking-normal">Sample preview</Badge>
-                                        )}
-                                    </p>
-                                    <h2 className="mt-2 text-2xl font-semibold text-foreground">Recent research</h2>
-                                </div>
-                                <Link href="/backtests" className="text-xs font-semibold text-primary hover:underline">View all</Link>
-                            </div>
-                            {latestBacktests.length > 0 ? latestBacktests.map((backtest: HomeBacktest) => (
-                                <div key={backtest.id} className="grid gap-3 border-b border-border px-5 py-4 last:border-0 sm:grid-cols-[1fr_auto_auto] sm:items-center">
+                            <Card className="gap-0 py-0">
+                                <div className="flex items-center justify-between border-b border-border px-5 py-4">
                                     <div>
-                                        <p className="text-sm font-semibold text-foreground">{backtest.title || "Untitled backtest"}</p>
-                                        <p className="mt-1 text-xs text-muted-foreground">{[backtest.pair, backtest.timeframe, backtest.period].filter(Boolean).join(" · ") || "Configuration unavailable"}</p>
+                                        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                                            Verified workspace
+                                            {previewBacktests && (
+                                                <Badge variant="warning" className="font-numeric text-micro normal-case tracking-normal">Sample preview</Badge>
+                                            )}
+                                        </p>
+                                        <h2 className="mt-2 text-2xl font-semibold text-foreground">Recent research</h2>
                                     </div>
-                                    <span className="text-xs text-muted-foreground">Net result <strong className="ml-1 font-numeric text-foreground">{backtest.netProfit === undefined ? "Unavailable" : backtest.netProfit >= 0 ? `+${backtest.netProfit}` : backtest.netProfit}</strong></span>
-                                    <ChevronRight size={15} className="hidden text-muted-foreground sm:block" />
+                                    <Link href="/backtests" className="text-xs font-semibold text-primary hover:underline">View all</Link>
                                 </div>
-                            )) : <div className="px-5 py-12 text-center text-sm text-muted-foreground">No backtest data available.</div>}
-                            <div className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
-                                {previewBacktests
-                                    ? "Sample preview runs — publish recorded backtests in the studio to replace them."
-                                    : "Stored simulation runs — no live account numbers or user details."}
-                            </div>
-                        </Card>
+                                {latestBacktests.length > 0 ? latestBacktests.map((backtest: HomeBacktest) => (
+                                    <div key={backtest.id} className="grid gap-3 border-b border-border px-5 py-4 last:border-0 sm:grid-cols-[1fr_auto_auto] sm:items-center">
+                                        <div>
+                                            <p className="text-sm font-semibold text-foreground">{backtest.title || "Untitled backtest"}</p>
+                                            <p className="mt-1 text-xs text-muted-foreground">{[backtest.pair, backtest.timeframe, backtest.period].filter(Boolean).join(" · ") || "Configuration unavailable"}</p>
+                                        </div>
+                                        <span className="text-xs text-muted-foreground">Net result <strong className="ml-1 font-numeric text-foreground">{backtest.netProfit === undefined ? "Unavailable" : backtest.netProfit >= 0 ? `+${backtest.netProfit}` : backtest.netProfit}</strong></span>
+                                        <ChevronRight size={15} className="hidden text-muted-foreground sm:block" />
+                                    </div>
+                                )) : <div className="px-5 py-12 text-center text-sm text-muted-foreground">No backtest data available.</div>}
+                                <div className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
+                                    {previewBacktests
+                                        ? "Sample preview runs — publish recorded backtests in the studio to replace them."
+                                        : "Stored simulation runs — no live account numbers or user details."}
+                                </div>
+                            </Card>
                         </Reveal>
 
                         <Reveal delay={140}>
-                        <Card className="gap-0 py-0">
-                            <div className="border-b border-border px-5 py-4">
-                                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Execution pipeline</p>
-                                <h2 className="mt-2 text-2xl font-semibold text-foreground">Risk-gated lifecycle</h2>
-                            </div>
-                            <div className="px-5 py-4">
-                                <p className="text-xs font-semibold uppercase tracking-widest text-positive">Active path</p>
-                                <div className="mt-2 flex flex-wrap gap-1.5">
-                                    {LIVE_PATH.map((state, idx) => (
-                                        <Badge key={state} variant="success" className="text-xs">
-                                            {idx < LIVE_PATH.length - 1 && <span className="text-positive/40">→</span>}
-                                            {state}
-                                        </Badge>
-                                    ))}
+                            <Card className="gap-0 py-0">
+                                <div className="border-b border-border px-5 py-4">
+                                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Execution pipeline</p>
+                                    <h2 className="mt-2 text-2xl font-semibold text-foreground">Risk-gated lifecycle</h2>
                                 </div>
-                                <div className="flow-track mt-4">
-                                    <span className="flow-dot" />
+                                <div className="px-5 py-4">
+                                    <p className="text-xs font-semibold uppercase tracking-widest text-positive">Active path</p>
+                                    <div className="mt-2 flex flex-wrap gap-1.5">
+                                        {LIVE_PATH.map((state, idx) => (
+                                            <Badge key={state} variant="success" className="text-xs">
+                                                {idx < LIVE_PATH.length - 1 && <span className="text-positive/40">→</span>}
+                                                {state}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                    <div className="flow-track mt-4">
+                                        <span className="flow-dot" />
+                                    </div>
+                                    <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-warning">Terminal states</p>
+                                    <div className="mt-2 flex flex-wrap gap-1.5">
+                                        {TERMINAL_STATES.map((state) => (
+                                            <Badge key={state} variant="warning" className="text-xs">{state}</Badge>
+                                        ))}
+                                    </div>
+                                    <p className="mt-5 flex items-start gap-2 text-xs leading-5 text-muted-foreground">
+                                        <ShieldCheck size={14} className="mt-0.5 shrink-0 text-positive" />
+                                        Every signal passes the risk validator before the gateway may act. Rejected intents carry a decision code — surfaced, not hidden.
+                                    </p>
                                 </div>
-                                <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-warning">Terminal states</p>
-                                <div className="mt-2 flex flex-wrap gap-1.5">
-                                    {TERMINAL_STATES.map((state) => (
-                                        <Badge key={state} variant="warning" className="text-xs">{state}</Badge>
-                                    ))}
-                                </div>
-                                <p className="mt-5 flex items-start gap-2 text-xs leading-5 text-muted-foreground">
-                                    <ShieldCheck size={14} className="mt-0.5 shrink-0 text-positive" />
-                                    Every signal passes the risk validator before the gateway may act. Rejected intents carry a decision code — surfaced, not hidden.
-                                </p>
-                            </div>
-                            <Link href="/signals" className="flex items-center justify-between border-t border-border px-5 py-4 text-xs font-semibold text-primary hover:bg-muted">Open signal console <ArrowRight size={14} /></Link>
-                        </Card>
+                                <Link href="/signals" className="flex items-center justify-between border-t border-border px-5 py-4 text-xs font-semibold text-primary hover:bg-muted">Open signal console <ArrowRight size={14} /></Link>
+                            </Card>
                         </Reveal>
                     </div>
                 </section>
@@ -450,7 +474,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                     </div>
                 </section>
 
-                {/* ── Final CTA (trigger.dev-style centered) ── */}
+                {/* ── Final CTA ── */}
                 <section className="relative bg-background">
                     <div className="page-container relative py-20 md:py-28">
                         <Reveal>

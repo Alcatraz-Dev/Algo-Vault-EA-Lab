@@ -49,6 +49,18 @@
   --input: #35383c;
   --ring: #de661c;
 
+  /* ── ReUI-expected tokens ──
+     Components installed from the `@reui` registry read `--focus`,
+     `--focus-foreground`, `--invert` and `--invert-foreground`. AlgoVault maps
+     them onto existing roles instead of inventing new colours: focus = the
+     brand accent (same as --ring); invert = the high-contrast inverse surface
+     (ink on paper / paper on ink). Declared in :root AND .light so the theme
+     override cascades exactly like the rest of the palette. */
+  --focus: #de661c;
+  --focus-foreground: #1d1406;
+  --invert: #f4f5f6;
+  --invert-foreground: #0b0c0e;
+
   --radius: 0.5rem;
 
   /* Motion system — shared easing so timing stays consistent app-wide. */
@@ -117,6 +129,12 @@
   --border-color: #dbdee2;
   --input: #c4c8cd;
   --ring: #de661c;
+
+  /* ReUI-expected tokens, light theme (see the :root note). */
+  --focus: #de661c;
+  --focus-foreground: #1d1406;
+  --invert: #1c2024;
+  --invert-foreground: #f9fafb;
 
   --positive: #00794c;
   --positive-foreground: #00794c;
@@ -203,6 +221,10 @@
   --color-border: var(--border-color);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-focus: var(--focus);
+  --color-focus-foreground: var(--focus-foreground);
+  --color-invert: var(--invert);
+  --color-invert-foreground: var(--invert-foreground);
   --color-positive: var(--positive);
   --color-positive-foreground: var(--positive-foreground);
   --color-negative: var(--negative);
@@ -865,6 +887,22 @@ html.light .text-primary {
 ::selection {
   background-color: color-mix(in oklch, var(--primary) 30%, transparent);
 }
+
+/* ── Marketing landing ladder (defined here; referenced by components/home/*) ──
+   These classes are only meaningful inside the marketing page shell (components/home/*).
+   They are NOT a second app-wide type system — the canonical product scale lives in
+   SectionHeader / PageHeader. Keep this minimal and consistent with the token ladder. */
+.home-eyebrow { @apply text-[11px] font-semibold uppercase tracking-[0.16em] text-primary; }
+.home-title  { @apply text-3xl md:text-5xl font-semibold tracking-[-0.03em] text-foreground; }
+.home-lede  { @apply text-sm leading-6 text-muted-foreground; }
+.home-card-title { @apply text-base font-semibold text-foreground; }
+.home-page { @apply overflow-x-clip; }
+/* Hero headline ladder (landing only — not reused elsewhere) */
+.home-title-lg { @apply text-4xl sm:text-6xl lg:text-7xl font-semibold leading-[1.04] tracking-[-0.04em] text-foreground; }
+.home-title-em { @apply text-primary font-bold; }
+.home-hero { @apply relative; }
+.home-hero-glow, .home-hero-grid, .home-hero-rule { @apply pointer-events-none absolute; }
+.home-section { @apply border-b border-border bg-background; }
 
 /* ── Banned Pattern Helpers (for reference only, not to be used) ── */
 /* .bg-gradient-to-* — banned */

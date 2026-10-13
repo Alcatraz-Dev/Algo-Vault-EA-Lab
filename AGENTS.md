@@ -20,3 +20,28 @@ Rule 3 — Do Not Blindly Follow Old Design Specifications. Inspect current impl
 Rule 4 — Record Stable, Approved Decisions here (visual direction, layout, component reuse, animation, architecture, duplicate-feature prevention). When a decision changes, update this file; remove obsolete rules.
 
 Rule 5 — Keep Focused. Stable broad rules only; task-specific requirements stay with the task unless approved as permanent conventions.
+
+## Design authority
+
+`DESIGN.md` (project root) is the authoritative design system: tokens, typography, layout,
+components, motion, shells, reference-integration workflow and the review checklist. It
+supersedes the deleted "Institutional Command" `DESIGN.md` and any code comment referring to
+`DESIGN.md §…`. For product behaviour, `PRODUCT.md` remains authoritative. Existing
+visual design is replaceable; existing functionality is not — see `PRODUCT.md` "What must
+keep working".
+
+Stable decisions recorded (from Rule 4):
+
+- **Motion engine:** `motion` v14 (`motion/react`) only. CSS transitions for hover/state;
+  Motion for orchestration/entrances. One entrance per view; `transform`/`opacity` only;
+  `prefers-reduced-motion` always honoured.
+- **Radii:** one ladder anchored at `--radius: 0.5rem` (controls 6px, cards/panels 10px,
+  pills full). ReUI's `base-lyra` 0px default is **not** adopted — normalise installed ReUI
+  components to this ladder.
+- **Brand accent:** "Vault gold" `#de661c`, used intentionally for action/active/brand only;
+  never for profit/buy/success. Semantic colours are fixed and single-meaning.
+- **ReUI** is a shadcn registry (`@reui` → `https://reui.io/r/{style}/{name}.json`), not an
+  npm package. Prefer reuse → shadcn primitive → ReUI composed → Aceternity effect
+  (marketing only) → custom.
+- **Numbers** use `font-numeric` (tabular figures); 11px is the type floor; cards stay solid
+  (no blur/glass on data surfaces).
