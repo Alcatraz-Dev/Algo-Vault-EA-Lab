@@ -8,6 +8,15 @@
       "headers": {
         "Authorization": "{env:REUI_MCP_AUTHORIZATION}"
       }
+    },
+    "shadcn": {
+      "type": "local",
+      "command": [
+        "npx",
+        "shadcn@latest",
+        "mcp"
+      ],
+      "enabled": true
     }
   }
 }
