@@ -285,8 +285,8 @@ const tokenColors: Record<TokenType, string> = {
   operator: "text-red-400",
   path: "text-cyan-300",
   variable: "text-pink-400",
-  comment: "text-neutral-500",
-  default: "text-neutral-300",
+  comment: "text-neutral-700 dark:text-neutral-500",
+  default: "text-neutral-800 dark:text-neutral-300",
 };
 
 function SyntaxHighlightedText({ text }: { text: string }) {
@@ -445,11 +445,11 @@ export function Terminal({
   }, [lines, phase]);
 
   const prompt = (
-    <span className="text-neutral-500">
+    <span className="text-neutral-700 dark:text-neutral-500">
       <span className="text-sky-500">{username}</span>
       <span className="text-emerald-600">:</span>
       <span className="text-sky-400">~</span>
-      <span className="text-neutral-500">$</span>{" "}
+      <span className="text-neutral-700 dark:text-neutral-500">$</span>{" "}
     </span>
   );
 
@@ -461,21 +461,21 @@ export function Terminal({
         className,
       )}
     >
-      <div className="overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900 shadow-2xl">
+      <div className="overflow-hidden rounded-lg border border-neutral-800 bg-neutral-50 dark:bg-neutral-900 shadow-2xl">
         {/* Title Bar */}
-        <div className="flex items-center gap-2 bg-neutral-800 px-4 py-3">
+        <div className="flex items-center gap-2 bg-neutral-100 dark:bg-neutral-800 px-4 py-3">
           <div className="flex items-center gap-1.5">
             <div className="h-3 w-3 rounded-full bg-red-500 transition-colors hover:bg-red-600" />
             <div className="h-3 w-3 rounded-full bg-yellow-500 transition-colors hover:bg-yellow-600" />
             <div className="h-3 w-3 rounded-full bg-green-500 transition-colors hover:bg-green-600" />
           </div>
           <div className="flex-1 text-center">
-            <span className="truncate text-xs text-neutral-400">
+            <span className="truncate text-xs text-neutral-600 dark:text-neutral-400">
               {username} — bash
             </span>
           </div>
           <div className="flex items-center gap-1">
-            <button type="button" aria-label="Copy" className="grid size-7 place-items-center rounded-md text-neutral-400 hover:text-white hover:bg-white/10"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
+            <button type="button" aria-label="Copy" className="grid size-7 place-items-center rounded-md text-neutral-600 dark:text-neutral-400 hover:text-white hover:bg-white/10"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
             <button type="button" className="inline-flex items-center gap-1 rounded-md bg-amber-500 px-2 py-1 text-[10px] font-semibold text-white hover:bg-amber-600"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></svg> Run</button>
           </div>
         </div>
@@ -493,7 +493,7 @@ export function Terminal({
                   <SyntaxHighlightedText text={line.content} />
                 </span>
               ) : (
-                <span className="text-neutral-400">{line.content}</span>
+                <span className="text-neutral-600 dark:text-neutral-400">{line.content}</span>
               )}
             </div>
           ))}
@@ -502,7 +502,7 @@ export function Terminal({
             <div className="leading-relaxed whitespace-pre-wrap">
               {prompt}
               <SyntaxHighlightedText text={currentText} />
-              <span className="ml-0.5 inline-block h-4 w-2 bg-neutral-300 align-middle" />
+              <span className="ml-0.5 inline-block h-4 w-2 bg-neutral-400 dark:bg-neutral-300 align-middle" />
             </div>
           )}
 
@@ -513,7 +513,7 @@ export function Terminal({
               {prompt}
               <span
                 className={cn(
-                  "inline-block h-4 w-2 bg-neutral-300 align-middle transition-opacity duration-100",
+                  "inline-block h-4 w-2 bg-neutral-400 dark:bg-neutral-300 align-middle transition-opacity duration-100",
                   !cursorVisible && "opacity-0",
                 )}
               />
