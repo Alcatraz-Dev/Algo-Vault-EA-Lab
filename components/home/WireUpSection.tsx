@@ -68,8 +68,8 @@ const CONSUMERS: Consumer[] = [
 const PLUGINS: BrandLogoName[] = ["tradingview", "pine", "mql5", "mt5", "telegram"];
 
 /* Fixed-stage geometry, laid out exactly like the Aceternity reference. */
-const STAGE_W = 1520;
-const STAGE_H = 560;
+const STAGE_W = 1800;
+const STAGE_H = 640;
 const NODE_W = 232;
 const NODE_H = 144; // 44 header + 52 body + 36 footer + 12 spacer
 const EP_W = 256;
