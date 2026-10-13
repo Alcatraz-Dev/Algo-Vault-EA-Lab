@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
 import { Badge } from "@/components/ui/badge";
 import { IconTile } from "@/components/reui/icon-tile";
@@ -76,19 +77,60 @@ function RiskRows() {
     );
 }
 
-function EngineRows() {
+/** Sample engine scores (0–100) — illustrative, labeled in the UI. */
+const ENGINE_SCORES = [
+    { short: "RG", name: "Regime", score: 84 },
+    { short: "ST", name: "Structure", score: 72 },
+    { short: "ZN", name: "Zones", score: 65 },
+    { short: "LQ", name: "Liquidity", score: 58 },
+    { short: "VW", name: "VWAP", score: 77 },
+    { short: "SS", name: "Sessions", score: 69 },
+    { short: "VL", name: "Volume", score: 61 },
+    { short: "SC", name: "Score", score: 74 },
+] as const;
+
+function EngineBars() {
     return (
-        <ul className="grid h-full min-h-28 grid-cols-2 content-center gap-1.5 p-4 text-[11px]">
-            {["Regime", "Structure", "Zones", "Liquidity", "VWAP", "Sessions", "Volume", "Score"].map((e) => (
-                <li
-                    key={e}
-                    className="flex items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1.5 font-medium text-foreground"
-                >
-                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-positive" aria-hidden />
-                    {e}
-                </li>
-            ))}
-        </ul>
+        <div className="flex h-full min-h-36 flex-col justify-center p-4">
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                <span className="font-semibold uppercase tracking-widest">Sample engine scores</span>
+                <span className="font-numeric font-semibold text-muted-foreground">0–100</span>
+            </div>
+            <div className="mt-2 h-28" role="img" aria-label="Illustrative sample engine scores">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={[...ENGINE_SCORES]} margin={{ top: 2, right: 0, left: 0, bottom: 0 }} barCategoryGap="28%">
+                        <XAxis
+                            dataKey="short"
+                            tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
+                            axisLine={false}
+                            tickLine={false}
+                            interval={0}
+                        />
+                        <YAxis hide domain={[0, 100]} />
+                        <Tooltip
+                            cursor={{ fill: "var(--muted)" }}
+                            contentStyle={{
+                                background: "var(--card)",
+                                border: "1px solid var(--border-color)",
+                                borderRadius: 12,
+                                color: "var(--foreground)",
+                                fontSize: 12,
+                            }}
+                            formatter={(value) => [`${value} / 100`, "Score"]}
+                            labelFormatter={(_, payload) => {
+                                const first = payload?.[0]?.payload as { name?: string } | undefined;
+                                return first?.name ?? "";
+                            }}
+                        />
+                        <Bar dataKey="score" radius={[3, 3, 0, 0]} maxBarSize={18} isAnimationActive={false}>
+                            {ENGINE_SCORES.map((e) => (
+                                <Cell key={e.short} fill="var(--primary)" fillOpacity={0.45 + (e.score / 100) * 0.55} />
+                            ))}
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+        </div>
     );
 }
 
@@ -143,7 +185,7 @@ const ITEMS = [
     {
         title: "Market Scanner",
         description: "Eight deterministic engines read regime, liquidity, and VWAP structure across timeframes.",
-        header: <EngineRows />,
+        header: <EngineBars />,
         icon: null,
         href: "/scanner",
         link: "Open scanner",

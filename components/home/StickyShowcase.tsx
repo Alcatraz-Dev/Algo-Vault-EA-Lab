@@ -2,10 +2,54 @@
 
 import Link from "next/link";
 import { ArrowRight, ShieldCheck } from "lucide-react";
+import { Bar, BarChart, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { StickyScroll } from "@/components/ui/sticky-scroll-reveal";
 import { Badge } from "@/components/ui/badge";
-import HomeCandleChart from "./HomeCandleChart";
 import Reveal from "./Reveal";
+
+/** Sample per-trade outcomes (%) — illustrative, labeled in the UI. */
+const SAMPLE_RETURNS = [2.4, -1.2, 3.1, 0.8, -0.6, 4.2, -2.1, 1.5, 2.8, -0.9, 1.1, 3.6, -1.5, 2.2].map(
+    (r, i) => ({ trade: `T${i + 1}`, ret: r }),
+);
+
+function ReturnsHistogram() {
+    const wins = SAMPLE_RETURNS.filter((t) => t.ret >= 0).length;
+    const losses = SAMPLE_RETURNS.length - wins;
+    return (
+        <div>
+            <div className="h-32" role="img" aria-label="Illustrative sample trade outcomes">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={SAMPLE_RETURNS} margin={{ top: 2, right: 0, left: 0, bottom: 0 }} barCategoryGap="30%">
+                        <XAxis dataKey="trade" hide />
+                        <YAxis hide domain={["dataMin - 0.5", "dataMax + 0.5"]} />
+                        <Tooltip
+                            cursor={{ fill: "var(--muted)" }}
+                            contentStyle={{
+                                background: "var(--card)",
+                                border: "1px solid var(--border-color)",
+                                borderRadius: 12,
+                                color: "var(--foreground)",
+                                fontSize: 12,
+                            }}
+                            formatter={(value) => [`${Number(value) >= 0 ? "+" : ""}${value}%`, "Return"]}
+                            labelFormatter={(label) => `Trade ${String(label).slice(1)} of ${SAMPLE_RETURNS.length}`}
+                        />
+                        <ReferenceLine y={0} stroke="var(--border-color)" strokeWidth={1} />
+                        <Bar dataKey="ret" radius={[2, 2, 2, 2]} maxBarSize={14} isAnimationActive={false}>
+                            {SAMPLE_RETURNS.map((t) => (
+                                <Cell key={t.trade} fill={t.ret >= 0 ? "var(--positive)" : "var(--negative)"} />
+                            ))}
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+            <p className="mt-2 font-numeric text-sm font-semibold text-foreground">
+                {wins}<span className="text-positive">W</span> · {losses}<span className="text-negative">L</span>{" "}
+                <span className="font-sans text-[11px] font-normal text-muted-foreground">sample · {SAMPLE_RETURNS.length} closed trades</span>
+            </p>
+        </div>
+    );
+}
 
 /**
  * Immersive product showcase built on Aceternity `StickyScroll`
@@ -56,10 +100,8 @@ const CONTENT = [
         description:
             "Run deterministic backtests with real costs, stress parameters with walk-forward and Monte Carlo, and replay history bar by bar with no look-ahead bias.",
         content: (
-            <PanelShell label="Backtest studio · sample market">
-                <div className="overflow-hidden rounded-lg border border-border">
-                    <HomeCandleChart seed={42} basePrice={1120} precision={2} count={48} height={150} label="Backtest illustrative sample" />
-                </div>
+            <PanelShell label="Backtest studio · sample outcomes">
+                <ReturnsHistogram />
                 <p className="mt-2 text-xs leading-5 text-muted-foreground">
                     Simulations run on recorded history with spread, slippage, and commission modeled.
                 </p>
