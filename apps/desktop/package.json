@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "UNLICENSED",
-  "main": "compiled/main/main.js",
+  "main": "dist/main/main.js",
   "scripts": {
     "dev": "tsx src/main/main.ts",
     "build": "tsc -p tsconfig.json",
@@ -37,12 +37,12 @@
     "appId": "com.algovault.desktop",
     "productName": "AlgoVault",
     "directories": {
-      "output": "build/desktop-build",
+      "output": "dist/desktop-build",
       "buildResources": "public"
     },
     "files": [
-      "compiled/main/**/*",
-      "compiled/preload/**/*",
+      "dist/main/**/*",
+      "dist/preload/**/*",
       "dist/renderer/**/*",
       "package.json",
       "node_modules/electron/**/*"

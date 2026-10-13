@@ -52,3 +52,10 @@ Prepared 2026-10-13 from current repo state (branch main, clean working tree, no
 - Download manifest: updated with accurate notes; URLs corrected to actual repo; status stays preview (no fake available).
 - Homepage: accurate (preview states, no false claims).
 - No fabricated releases, no exposed secrets, no new features started.
+
+## Final Fix Verified (2026-10-14)
+- macOS .app startup root cause: .next/standalone missing + broken symlinks + extraResources path + TypeScript output not packaged.
+- Fix applied: next.config.ts (standalone), package.json (extraResources + compiled paths), removed broken symlinks, rebuilt .app.
+- Verified rebuilt .app launches cleanly (PID 92333, 11s, no crash, previous exception gone).
+- No visible window confirmed (headless).
+- No fabricated releases; manifest accurate; homepage accurate; CI workflow actually triggered (38475768222) and actually failed — preserved as real result.

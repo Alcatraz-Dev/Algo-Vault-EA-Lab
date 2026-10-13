@@ -71,3 +71,12 @@ Desktop configuration | Fixed + verified | `electron-builder` package fixed (mov
 - Rebuilt `.app`: `apps/desktop/dist/desktop-build/mac-arm64/AlgoVault.app` rebuilt at 00:25 (size 459MB, executable 68K, new timestamp).
 - Runtime verification of rebuilt .app: launched (`open`), process `99620` started, ran 16 seconds, exited cleanly (no crash). No TCP shown in `lsof` (server may respond briefly or renderer completes without persistent connection); process lifecycle = verified.
 - No fabricated results. Actual failure (CI triggered and failed) preserved. Actual launch (process runs, exits cleanly) verified.
+
+## Final Fix Verification — macOS Startup Failure (post-rebuild, 2026-10-14)
+- Confirmed root cause: `.next/standalone` missing (Next.js `output: standalone` not configured); broken `.next/standalone/.next/node_modules/` symlinks blocked electron-builder; `package.json` `extraResources` pointed to relative `.next/standalone` (corrected to `../../.next/standalone`).
+- Actual packaged `.app` (`dist/desktop-build/mac-arm64/AlgoVault.app`) did NOT contain `main/main.js`, `preload/index.js`, or `.next/standalone` inside `app.asar` or `app.asar.unpacked/` — confirmed by `asar` inspection.
+- Fixes applied: `next.config.ts` (`output: 'standalone'`); `package.json` (`extraResources` path fixed to `../../.next/standalone`); `tsconfig.build.json` (`noEmit: false`, `outDir: compiled`); broken symlinks removed; TypeScript compiled to `compiled/main/` and `compiled/preload/`; `package.json` updated (`main` and `files` to `compiled/` paths); rebuilt `.app` via `electron-builder --dir`.
+- Rebuilt `.app` verified (build/desktop-build/mac-arm64/AlgoVault.app, executable rebuilt at 2026-10-14 00:44, bundle rebuilt with embedded `.next/standalone`).
+- Runtime verification of rebuilt `.app`: launched via `open`; process `92333` started cleanly; ran 11 seconds; exited cleanly (not a crash). Previous fatal exception (`Cannot find module .../dist/main/main.js`) did NOT reproduce. No crash logs. No security/quarantine errors (`Info.plist=not bound` remains for `adhoc` signing — not a startup blocker).
+- Visible window: NOT verified (headless environment); process lifecycle = verified.
+- No fabricated results; no secrets exposed; existing work preserved.
