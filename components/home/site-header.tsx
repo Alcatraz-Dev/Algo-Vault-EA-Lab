@@ -57,6 +57,14 @@ export default function SiteHeader() {
     const [settings, setSettings] = useState<SiteSettings>({});
     const [user, setUser] = useState<User | null>(null);
     const [hasPro, setHasPro] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 8);
+        onScroll();
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => window.removeEventListener("scroll", onScroll);
+    }, []);
 
     useEffect(() => {
         const unsubscribe = onValue(ref(database, "settings"), (snapshot) => {
@@ -98,8 +106,9 @@ export default function SiteHeader() {
     }
 
     return (
-        <header className="sticky top-0 z-50 border-b border-border bg-background text-foreground">
-            <div className="mx-auto flex min-h-14 w-full max-w-350 items-center justify-between gap-6">
+        <header
+            className={`sticky top-0 z-50 border-b border-border bg-background/90 text-foreground backdrop-blur-md transition-shadow duration-200 motion-reduce:transition-none ${scrolled ? "shadow-md" : "shadow-none"}`}
+        >            <div className="mx-auto flex min-h-14 w-full max-w-350 items-center justify-between gap-6">
                 <Link href="/" className="flex shrink-0 items-center gap-3">
                     <SiteLogo size={19} />
                     <div className="flex items-center gap-2 font-semibold tracking-tight text-foreground">

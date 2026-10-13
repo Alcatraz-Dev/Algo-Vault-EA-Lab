@@ -37,8 +37,44 @@ export default function SiteFooter() {
                             <span className="text-sm font-bold">{siteName}</span>
                         </div>
                         <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
-                            Algorithmic trading tools and strategies for MetaTrader 5.
+                            Research, validation, and risk-gated execution for MetaTrader 5.
                         </p>
+                        <p className="mt-3 max-w-56 text-xs leading-5 text-muted-foreground">
+                            Trading involves risk. Research tooling — never financial advice or a promise of profit.
+                        </p>
+                    </div>
+
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                            Research
+                        </p>
+                        <ul className="space-y-2">
+                            <li>
+                                <Link href="/strategy-lab" className="text-xs text-muted-foreground hover:text-foreground transition">
+                                    Strategy Lab
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/scanner" className="text-xs text-muted-foreground hover:text-foreground transition">
+                                    Market Scanner
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/market-intelligence" className="text-xs text-muted-foreground hover:text-foreground transition">
+                                    Market Intelligence
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/signals" className="text-xs text-muted-foreground hover:text-foreground transition">
+                                    Signals
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/live" className="text-xs text-muted-foreground hover:text-foreground transition">
+                                    Live Console
+                                </Link>
+                            </li>
+                        </ul>
                     </div>
 
                     <div>
@@ -87,6 +123,34 @@ export default function SiteFooter() {
                             <li>
                                 <Link href="/account/settings" className="text-xs text-muted-foreground hover:text-foreground transition">
                                     Settings
+                                </Link>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                            Resources
+                        </p>
+                        <ul className="space-y-2">
+                            <li>
+                                <Link href="/copy-trading" className="text-xs text-muted-foreground hover:text-foreground transition">
+                                    Copy Trading
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/compare" className="text-xs text-muted-foreground hover:text-foreground transition">
+                                    Compare Brokers
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/affiliates" className="text-xs text-muted-foreground hover:text-foreground transition">
+                                    Affiliates
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/docs" className="text-xs text-muted-foreground hover:text-foreground transition">
+                                    Documentation
                                 </Link>
                             </li>
                         </ul>
