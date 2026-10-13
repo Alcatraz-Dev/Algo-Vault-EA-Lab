@@ -224,71 +224,7 @@ export default function WireUpSection() {
                             graph. Drag from any card&apos;s dot — toggling updates this panel only;
                             nothing executes.
                         </p>
-                        {/* Advanced terminal using shadcn Tabs + Card + chart */}
-                        <Card className="mt-6 overflow-hidden rounded-2xl border-none bg-[#0a0a0a]/90 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)]">
-                            <Tabs defaultValue="pine" className="w-full">
-                                <div className="flex items-center justify-between border-b border-white/[0.06] px-3 py-2">
-                                    <TabsList className="h-7 bg-transparent p-0 gap-1">
-                                        <TabsTrigger value="env" className="h-6 px-2 text-[11px] data-[state=active]:bg-white/[0.08] data-[state=active]:text-foreground">.env</TabsTrigger>
-                                        <TabsTrigger value="pine" className="h-6 px-2 text-[11px] data-[state=active]:bg-white/[0.08] data-[state=active]:text-foreground">pine.v6</TabsTrigger>
-                                        <TabsTrigger value="mql5" className="h-6 px-2 text-[11px] data-[state=active]:bg-white/[0.08] data-[state=active]:text-foreground">mql5</TabsTrigger>
-                                    </TabsList>
-                                    <div className="flex gap-1">
-                                        <button type="button" aria-label="Copy" className="grid size-7 place-items-center rounded-md text-foreground/45 hover:bg-white/5 hover:text-foreground"><Copy size={14} /></button>
-                                        <button type="button" className="inline-flex items-center gap-1 rounded-md bg-emerald-600/20 px-2.5 py-0.5 text-[11px] font-medium text-emerald-300 hover:bg-emerald-600/30">Run <Play size={10} /></button>
-                                    </div>
-                                </div>
-                                <TabsContent value="env" className="m-0 px-3 py-3 font-mono text-[11px] leading-5 text-foreground/80">
-                                    MODEL=qwen-2.5-32b-instruct<br/>API_KEY=sk-...<br/>REGION=sa-east
-                                </TabsContent>
-                                <TabsContent value="pine" className="m-0 px-3 py-3">
-                                    <div className="font-mono text-[11px] leading-5 text-foreground/80">
-                                        <span className="text-[#60a5fa]">strategy</span>(<span className="text-amber-400">"Kestrel"</span>, overlay=<span className="text-rose-400">true</span>){`\n`}len = <span className="text-amber-200">input.int</span>(21, <span className="text-amber-400">"ATR length"</span>){`\n`}mult = <span className="text-amber-200">input.float</span>(1.8, <span className="text-amber-400">"ATR multiple"</span>)
-                                    </div>
-                                </TabsContent>
-                                <TabsContent value="mql5" className="m-0 px-3 py-3">
-                                    <div className="font-mono text-[11px] leading-5 text-foreground/80">
-                                        <span className="text-emerald-400">int</span> OnInit() {`\n`}    Print(<span className="text-amber-400">"MQL5 signal ready"</span>);{`\n`}
-                                    </div>
-                                </TabsContent>
-                            </Tabs>
-                            {/* Multi-chart section using shadcn ChartContainer pattern */}
-                            <div className="border-t border-white/[0.06] bg-[#0f0f11] px-3 py-3">
-                                <div className="mb-2 flex items-center justify-between text-[10px] font-medium text-foreground/50">
-                                    <span>Signal strength · Area · Bar · Line</span>
-                                    <span>+12.4%</span>
-                                </div>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {/* Area chart */}
-                                    <div className="rounded-lg bg-[#0a0a0a]/60 p-2">
-                                        <div className="h-20 w-full rounded bg-gradient-to-b from-amber-900/20 to-transparent flex items-end gap-px px-1 pb-1">
-                                            {[20,35,28,48,42,58,50,62,55,68,60].map((v,i)=>(
-                                                <div key={i} className="flex-1 rounded-t bg-amber-400/50" style={{height:`${v}px`}} />
-                                            ))}
-                                        </div>
-                                        <div className="mt-1 text-[9px] text-foreground/40">Area · live</div>
-                                    </div>
-                                    {/* Bar chart */}
-                                    <div className="rounded-lg bg-[#0a0a0a]/60 p-2">
-                                        <div className="h-20 w-full rounded bg-gradient-to-b from-blue-900/10 to-transparent flex items-end gap-px px-1 pb-1">
-                                            {[15,30,45,25,55,35,60,40,50,30,45].map((v,i)=>(
-                                                <div key={i} className="flex-1 rounded-t bg-blue-400/60" style={{height:`${v}px`}} />
-                                            ))}
-                                        </div>
-                                        <div className="mt-1 text-[9px] text-foreground/40">Bar · volume</div>
-                                    </div>
-                                    {/* Line chart */}
-                                    <div className="rounded-lg bg-[#0a0a0a]/60 p-2">
-                                        <div className="h-20 w-full rounded bg-gradient-to-b from-rose-900/10 to-transparent flex items-end gap-px px-1 pb-1">
-                                            {[25,40,30,55,45,65,50,75,60,80,55].map((v,i)=>(
-                                                <div key={i} className="flex-1 rounded-t bg-rose-400/50" style={{height:`${v}px`}} />
-                                            ))}
-                                        </div>
-                                        <div className="mt-1 text-[9px] text-foreground/40">Line · trend</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </Card>
+
                     </div>
                 </Reveal>
 
@@ -701,7 +637,7 @@ function Port({ className, on, label, onClick }: { className: string; on: boolea
         >
             <span className={cn("block size-3 rounded-full ring-[4px] ring-background shadow-[0_0_12px_var(--border-color)] transition-colors", on ? "bg-[var(--primary)]" : "bg-muted-foreground/30")} />
             {label && on && (
-                <span className="absolute left-1/2 -translate-x-1/2 -top-6 whitespace-nowrap rounded bg-[var(--primary)] px-1.5 py-0.5 text-[9px] font-bold text-white shadow-lg">{label}</span>
+                <span className="absolute left-1/2 -translate-x-1/2 top-full mt-1 whitespace-nowrap rounded bg-[var(--primary)] px-1.5 py-0.5 text-[9px] font-bold text-white shadow-lg z-10">{label}</span>
             )}
         </button>
     );

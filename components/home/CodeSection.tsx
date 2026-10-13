@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, Copy } from "lucide-react";
+import { ArrowRight, Check, Copy, Play } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Terminal } from "@/components/ui/terminal";
 import type { HomeData } from "@/lib/home-data";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -174,9 +175,14 @@ export default function CodeSection({ data }: { data: HomeData }) {
                 </Reveal>
 
                 <Reveal delay={100}>
-                    <div className="mt-10 overflow-hidden rounded-xl border border-border bg-card shadow-md">
+                    <div className="mt-10 overflow-hidden rounded-2xl border-none bg-[#141414] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)]">
                         {/* Sample tabs, inline at the top of the card */}
-                        <div className="flex flex-wrap items-center gap-2 border-b border-border px-2 py-1.5">
+                        <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] px-2 py-1.5">
+                            <span className="flex h-7 items-center gap-2 rounded-lg bg-[#0a0a0a] px-2.5 text-[10px] font-semibold text-foreground/70 shadow-md">
+                                <span>sh</span>
+                                <span className="text-foreground/40">terminal</span>
+                                <span className="text-foreground/30">.env</span>
+                            </span>
                             <div
                                 role="tablist"
                                 aria-label="Code samples"
@@ -219,12 +225,17 @@ export default function CodeSection({ data }: { data: HomeData }) {
                                 >
                                     Open in lab
                                 </Link>
+                                <button type="button" className="inline-flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1 text-xs font-semibold text-foreground hover:bg-muted/80 transition-colors"><Play size={10} /> Run</button>
                             </span>
                         </div>
                         <p className="border-b border-border px-3.5 py-2 text-[13px] leading-5 text-muted-foreground">
                             {active.desc}
                         </p>
 
+                        <div className="flex items-center justify-between border-t border-border px-4 py-1.5">
+                            <span className="truncate font-mono text-[11px] text-muted-foreground">{active.file} · UTF-8 · sample</span>
+                            <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-foreground">{tab === "pine" ? "Pine v6" : tab === "mql5" ? "MQL5" : "Set"}</span>
+                        </div>
                         <div className="grid lg:grid-cols-[1.15fr_1fr] lg:divide-x lg:divide-border">
                             {/* Editor */}
                             <div className="flex min-h-85 min-w-0 flex-col">
@@ -255,43 +266,20 @@ export default function CodeSection({ data }: { data: HomeData }) {
                                         40 closed trades
                                     </span>
                                 </div>
-                                <div className="mt-2 h-44" role="img" aria-label="Illustrative sample equity curve">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <LineChart data={EQUITY} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-                                            <XAxis dataKey="i" hide />
-                                            <YAxis
-                                                domain={["dataMin - 1", "dataMax + 1"]}
-                                                tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
-                                                axisLine={false}
-                                                tickLine={false}
-                                                width={44}
-                                                tickFormatter={(v: number) => v.toFixed(0)}
-                                            />
-                                            <Tooltip
-                                                cursor={{ stroke: "var(--border-color)", strokeDasharray: "3 3" }}
-                                                contentStyle={{
-                                                    background: "var(--card)",
-                                                    border: "1px solid var(--border-color)",
-                                                    borderRadius: 12,
-                                                    color: "var(--foreground)",
-                                                    fontSize: 12,
-                                                }}
-                                                formatter={(value) => [`$${Number(value).toFixed(2)}`, "Equity"]}
-                                                labelFormatter={(label) => `Trade ${Number(label) + 1}`}
-                                            />
-                                            <Line
-                                                type="monotone"
-                                                dataKey="v"
-                                                stroke="var(--primary)"
-                                                strokeWidth={2}
-                                                dot={false}
-                                                isAnimationActive={!reduceMotion}
-                                                animationDuration={1400}
-                                                animationEasing="ease-out"
-                                            />
-                                        </LineChart>
-                                    </ResponsiveContainer>
+                                <div className="h-44" role="img" aria-label="Sample equity curve">
+                                    <div className="h-full rounded-xl bg-[#141414] p-2 shadow-md text-[11px]">
+                                        <div className="mb-1 flex justify-between text-xs font-medium"><span>Live traces</span><span className="text-muted-foreground">ap-northeast</span></div>
+                                        <ul className="space-y-1">
+                                            {[{id:"req_7f4a1f",model:"llama-3.1-70b",done:true,pct:100,color:"#5cb87f"},{id:"req_7f49c1",model:"qwen-2.5-32b",done:false,pct:28,color:"#e2a63f"},{id:"req_7f49e6",model:"whisper-large-v3",done:false,pct:44,color:"#e2a63f"}].map(r=>
+                                            <li key={r.id} className="grid grid-cols-[auto_1fr_2.75rem] items-center gap-3 rounded px-2 py-1 bg-white/[0.03]">
+                                                <span className="size-1.5 rounded-full" style={{backgroundColor:r.color}}/>
+                                                <span className="min-w-0"><span className="block truncate text-xs text-foreground">{r.id}</span><span className="block truncate text-[10px] text-muted-foreground">{r.model}</span></span>
+                                                <div className="relative h-3 rounded-full bg-[#2b2b2b] overflow-hidden"><div className="absolute inset-y-0 left-0" style={{width:`${r.pct}%`,backgroundColor:r.color}}/><span className="absolute inset-y-0 right-0 flex items-center px-1 text-[10px] font-semibold">{r.done?"Done":"Queue"} <span className="opacity-75">{r.pct}%</span></span></div>
+                                            </li>)}
+                                        </ul>
+                                    </div>
                                 </div>
+                                    
                                 <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-border pt-3">
                                     {tiles.map((t) => (
                                         <div key={t.label} className="min-w-0">
@@ -309,6 +297,33 @@ export default function CodeSection({ data }: { data: HomeData }) {
                         </div>
                     </div>
                 </Reveal>
+            </div>
+            {/* Tab-specific right cards matching reference */}
+            <div className="mx-auto max-w-5xl mt-6 grid lg:grid-cols-3 gap-4">
+                {tab === "pine" && (
+                    <div className="rounded-2xl bg-[#141414] p-3 shadow-md text-[11px]">
+                        <div className="mb-2 flex justify-between text-xs font-medium"><span>Training loss</span><span className="text-muted-foreground">Epoch 3 of 3</span></div>
+                        <div className="h-32 w-full rounded-lg bg-[#0a0a0a] flex items-end gap-1 px-1 pb-1">
+                            {[40,55,50,70,65,80,75,90,85,100,95].map((h,i)=><div key={i} className="flex-1 rounded-t bg-amber-400/60" style={{height:`${h}%`}}/>)}
+                        </div>
+                        <div className="mt-2 grid grid-cols-3 gap-2 text-xs"><div><span className="block text-muted-foreground">Step</span><span className="font-semibold">1,240 / 1,500</span></div><div><span className="block text-muted-foreground">Loss</span><span className="font-semibold">0.412</span></div><div><span className="block text-muted-foreground">Time left</span><span className="font-semibold">6 min</span></div></div>
+                    </div>
+                )}
+                {tab === "mql5" && (
+                    <div className="rounded-2xl bg-[#141414] p-3 shadow-md text-[11px]">
+                        <div className="mb-2 flex justify-between text-xs font-medium"><span>Batch jobs</span><span className="text-muted-foreground">Last 24h</span></div>
+                        <div className="space-y-1.5">
+                            {[{id:"batch_21a",req:"120,000",pct:100,status:"Done"},{id:"batch_21b",req:"48,500",pct:72,status:"72%"},{id:"batch_21c",req:"9,200",pct:18,status:"18%"},{id:"batch_21d",req:"250,000",pct:0,status:"Queued"}].map(b=><div key={b.id} className="grid grid-cols-[1fr_auto_1fr_auto] gap-2 text-xs"><span className="font-mono truncate">{b.id}</span><span className="tabular-nums">{b.req}</span><div className="h-1.5 rounded-full bg-white/[0.08] overflow-hidden"><div className="h-full rounded-full bg-[var(--brand)]" style={{width:`${b.pct}%`}}/></div><span className="text-right">{b.status}</span></div>)}
+                        </div>
+                    </div>
+                )}
+                {tab === "env" && (
+                    <div className="rounded-2xl bg-[#141414] p-3 shadow-md text-[11px]">
+                        <div className="mb-2 flex justify-between text-xs font-medium"><span>Tool call</span><span className="text-muted-foreground">Valid</span></div>
+                        <pre className="rounded-lg bg-black/30 p-2 text-[11px] leading-5">{"{\"name\":\"refund_order\",\"arguments\":{\"order_id\":\"4821\"}}"}</pre>
+                        <ul className="mt-2 space-y-1 text-xs text-foreground/80"><li>✓ Matched refund_order</li><li>✓ JSON schema valid</li><li>✓ Ready for handler — 112 ms</li></ul>
+                    </div>
+                )}
             </div>
         </section>
     );
