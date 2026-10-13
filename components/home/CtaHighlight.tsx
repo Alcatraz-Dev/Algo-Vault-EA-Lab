@@ -21,13 +21,13 @@ export default function CtaHighlight() {
                 <Reveal>
                     <HeroHighlight containerClassName="overflow-hidden rounded-2xl border border-border shadow-lg px-6 py-14 md:py-20">
                         <div className="mx-auto max-w-2xl text-center">
-                            <ReUIBadge variant="primary-light" size="lg" className="font-semibold">
-                                Free workspace · No credit card
+                            <ReUIBadge variant="primary-light" size="lg" className="font-semibold shadow-sm">
+                                Free workspace · No credit card · No signup required
                             </ReUIBadge>
-                            <h2 className="mt-5 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-balance text-foreground md:text-5xl">
+                            <h2 className="mt-6 text-4xl font-extrabold leading-[1.05] tracking-[-0.04em] text-balance text-foreground md:text-6xl">
                                 Make your next <Highlight>decision legible.</Highlight>
                             </h2>
-                            <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-pretty text-muted-foreground sm:text-base">
+                            <p className="mx-auto mt-6 max-w-xl text-base leading-7 text-pretty text-muted-foreground sm:text-lg">
                                 Create a workspace, scan your first symbol, and run a
                                 deterministic backtest in minutes — with every number accounted for.
                             </p>
