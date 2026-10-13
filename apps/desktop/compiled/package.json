@@ -1,0 +1,82 @@
+{
+    "name": "algovault-desktop",
+    "displayName": "AlgoVault",
+    "description": "Desktop shell for AlgoVault: window chrome, native menus, tray, auto-updater and feed-connection overlay on top of the existing Next.js web app.",
+    "version": "0.1.0",
+    "private": true,
+    "license": "UNLICENSED",
+    "main": "compiled/main/main.js",
+    "scripts": {
+        "dev": "tsx src/main/main.ts",
+        "build": "tsc -p tsconfig.json",
+        "typecheck": "tsc -p tsconfig.json --noEmit",
+        "start": "electron .",
+        "lint": "eslint src --ext .ts,.tsx",
+        "rebuild-icons": "node scripts/rebuild-icons.js",
+        "dist": "electron-builder --dir",
+        "dist:mac": "electron-builder --mac",
+        "dist:win": "electron-builder --win",
+        "dist:mac-universal": "electron-builder --mac --universal",
+        "package:mac": "electron-builder --mac --publish=never"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "electron": "36.0.0",
+        "@types/node": "^20.17.10",
+        "@types/react": "^19.1.6",
+        "@types/react-dom": "^19.1.6",
+        "eslint": "^9.39.5",
+        "tsx": "^4.19.4",
+        "typescript": "^5.9.3",
+        "electron-builder": "^26.4.5"
+    },
+    "engines": {
+        "node": "22.x"
+    },
+    "build": {
+        "appId": "com.algovault.desktop",
+        "productName": "AlgoVault",
+        "directories": {
+            "output": "build/desktop-build",
+            "buildResources": "public"
+        },
+        "files": [
+            "compiled/main/**/*",
+            "compiled/preload/**/*",
+            "dist/renderer/**/*",
+            "package.json",
+            "node_modules/electron/**/*"
+        ],
+        "extraResources": [
+            {
+                "from": "../../.next/standalone",
+                "to": ".next/standalone"
+            }
+        ],
+        "mac": {
+            "category": "public.app-category.finance",
+            "icon": "public/icons/icon-512x512.png",
+            "target": ["dmg", "zip"],
+            "artifactName": "AlgoVault-${version}-${arch}.${ext}"
+        },
+        "win": {
+            "target": ["nsis"],
+            "icon": "public/icons/icon-512x512.png",
+            "artifactName": "AlgoVault-Setup-${version}-${arch}.${ext}"
+        },
+        "linux": {
+            "target": ["AppImage"],
+            "category": "Finance"
+        },
+        "publish": {
+            "provider": "github",
+            "repo": "Alcatraz-Dev/Algo-Vault-EA-Lab",
+            "releaseType": "release"
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowElevation": true,
+            "perMachine": false
+        }
+    }
+}

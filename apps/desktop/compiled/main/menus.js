@@ -1,0 +1,128 @@
+import { app, BrowserWindow, Menu, globalShortcut } from 'electron';
+import pkg from '../../package.json';
+const APP_NAME = pkg.name;
+const APP_VERSION = pkg.version;
+/** Show the native "About" dialog. */
+function showAbout() {
+    const win = BrowserWindow.getFocusedWindow();
+    const dialog = require('electron').dialog;
+    dialog.showMessageBox(win ?? null, {
+        type: 'info',
+        title: `About ${APP_NAME}`,
+        message: `${APP_NAME} v${APP_VERSION}`,
+        detail: 'Desktop shell for AlgoVault: window chrome, native menus, tray, auto-updater and feed-connection overlay on top of the existing production Next.js web app.',
+        buttons: ['OK'],
+    });
+}
+/**
+ * Build a thin, single source of truth for window actions. The menus and the
+ * connection/updater IPC handlers read from this object so every caller looks
+ * at the same window and never creates a second BrowserWindow.
+ *
+ * Takes a getter (not the window itself) so the actions always resolve the
+ * *current* window at call time. Capturing a `const ... = null` here would
+ * narrow to `never` under `strict` and leave every action permanently dead.
+ */
+export function createWindowActions(getWindow) {
+    const actions = {
+        minimize: () => {
+            getWindow()?.minimize();
+        },
+        maximize: () => {
+            const win = getWindow();
+            if (!win)
+                return;
+            if (win.isMaximized())
+                win.unmaximize();
+            else
+                win.maximize();
+        },
+        close: () => {
+            getWindow()?.close();
+        },
+        isMaximized: () => getWindow()?.isMaximized() ?? false,
+    };
+    return actions;
+}
+export function createApplicationMenu(actions) {
+    const menuTemplate = [
+        {
+            label: 'File',
+            submenu: [
+                { label: 'Undo', accelerator: 'CommandOrControl+Z', role: 'undo' },
+                { label: 'Redo', accelerator: 'Shift+CommandOrControl+Z', role: 'redo' },
+                { type: 'separator' },
+                {
+                    label: 'Restart',
+                    accelerator: 'CommandOrControl+R',
+                    click: () => {
+                        app.relaunch();
+                        app.quit();
+                    },
+                },
+                { type: 'separator' },
+                { label: 'Quit', accelerator: 'CommandOrControl+Q', role: 'quit' },
+            ],
+        },
+        {
+            label: 'Window',
+            submenu: [
+                { label: 'Minimize', accelerator: 'CommandOrControl+M', role: 'minimize' },
+                { label: 'Maximize', accelerator: 'CommandOrControl+Return', role: 'zoom' },
+                { type: 'separator' },
+                { label: 'Frontmost', role: 'front' },
+            ],
+        },
+        {
+            label: 'Edit',
+            submenu: [
+                { label: 'Undo', accelerator: 'CommandOrControl+Z', role: 'undo' },
+                { label: 'Redo', accelerator: 'Shift+CommandOrControl+Z', role: 'redo' },
+                { type: 'separator' },
+                { label: 'Cut', accelerator: 'CommandOrControl+X', role: 'cut' },
+                { label: 'Copy', accelerator: 'CommandOrControl+C', role: 'copy' },
+                { label: 'Paste', accelerator: 'CommandOrControl+V', role: 'paste' },
+                { label: 'Select All', accelerator: 'CommandOrControl+A', role: 'selectAll' },
+            ],
+        },
+        {
+            label: 'View',
+            submenu: [
+                {
+                    label: 'Reload',
+                    accelerator: 'CommandOrControl+R',
+                    click: () => BrowserWindow.getFocusedWindow()?.webContents.reload(),
+                },
+                {
+                    label: 'Toggle Developer Tools',
+                    accelerator: 'Alt+CommandOrControl+I',
+                    click: () => BrowserWindow.getFocusedWindow()?.webContents.toggleDevTools(),
+                },
+            ],
+        },
+        {
+            label: 'Help',
+            submenu: [
+                { label: 'About AlgoVault', click: showAbout },
+            ],
+        },
+    ];
+    const menu = Menu.buildFromTemplate(menuTemplate);
+    Menu.setApplicationMenu(menu);
+}
+export function registerGlobalShortcuts(actions) {
+    const performClose = () => BrowserWindow.getFocusedWindow()?.close();
+    const performReload = () => BrowserWindow.getFocusedWindow()?.webContents.reload();
+    const performToggleFullscreen = () => {
+        const win = BrowserWindow.getFocusedWindow();
+        if (win)
+            win.setFullScreen(!win.isFullScreen());
+    };
+    globalShortcut.register('CommandOrControl+R', performReload);
+    globalShortcut.register('CommandOrControl+W', performClose);
+    globalShortcut.register('CommandOrControl+Shift+F', performToggleFullscreen);
+    // `Cmd+,` is reserved for the (future) settings panel.
+    globalShortcut.register('CommandOrControl+,', () => {
+        // no-op — settings panel not implemented yet.
+    });
+}
