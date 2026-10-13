@@ -1,131 +1,86 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Check } from "@phosphor-icons/react";
-import Reveal from "./Reveal";
-import TacticalCard from "./TacticalCard";
-import HomeSectionHeader from "./HomeSectionHeader";
-import { Badge } from "@/components/reui/badge";
+import { ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-    PRICING_TIERS,
-    tierPeriodLabel,
-    tierPriceLabel,
-} from "@/lib/pricing-tiers";
+import Reveal from "./Reveal";
 
 /**
- * Pricing — the three real plans, quoted on the landing page.
- *
- * The tiers come from `lib/pricing-tiers`, the single source the `/pricing`
- * page also reads, so the numbers here cannot drift from the paid page. Nothing
- * is invented: the Pro tier is the only highlighted one because it is the plan
- * the pricing page highlights (DESIGN.md §17 — no fabricated social proof, and
- * no invented "most popular" claim).
- *
- * Cards, not glass: this is a bounded marketing section (ReUI compose.md puts
- * marketing on Card-led surfaces), so it uses the same solid `Card` + hairline
- * as the rest of the page.
+ * Pricing teaser: Free vs Pro from the documented tier model (PRODUCT.md) —
+ * no prices quoted here; the full plans live on /pricing.
  */
+const TIERS = [
+    {
+        name: "Starter",
+        tagline: "For trying out the workspace.",
+        price: "Free",
+        cta: "Start for free",
+        href: "/register",
+        features: ["Strategy Lab access", "Market scanner", "Recorded backtests", "Community support"],
+    },
+    {
+        name: "Pro",
+        tagline: "For traders who ship live systems.",
+        price: "Pro",
+        cta: "Compare plans",
+        href: "/pricing",
+        features: ["M1 signals", "Higher daily limits", "Advanced analytics", "Priority support"],
+    },
+] as const;
+
 export default function PricingTeaser() {
     return (
-        <section id="pricing" className="home-section border-b border-border bg-card/30 py-20 md:py-28">
-            <div className="page-container">
+        <section className="border-b border-border bg-muted/30">
+            <div className="page-container py-14 md:py-20">
                 <Reveal>
-                    <HomeSectionHeader
-                        align="left"
-                        eyebrow="04 · Pricing"
-                        title="Start free, upgrade when Pro pays for itself"
-                        description="Lite tools stay free forever. Pro unlocks the full workspace, live execution and the marketplace."
-                        action={
-                            <Link
-                                href="/pricing"
-                                className="group inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-primary hover:underline"
-                            >
-                                Compare every feature
-                                <ArrowRight
-                                    size={15}
-                                    className="transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0.5"
-                                    aria-hidden
-                                />
-                            </Link>
-                        }
-                    />
+                    <div className="mx-auto max-w-2xl text-center">
+                        <p className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                            <span aria-hidden className="h-px w-6 bg-primary/60" />
+                            Pricing
+                            <span aria-hidden className="h-px w-6 bg-primary/60" />
+                        </p>
+                        <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-balance text-foreground md:text-[2.75rem] md:leading-[1.08]">
+                            Start free, upgrade when it pays
+                        </h2>
+                    </div>
                 </Reveal>
-
-                <div className="mt-12 grid gap-4 md:grid-cols-3">
-                    {PRICING_TIERS.map((tier, i) => {
-                        const Icon = tier.icon;
-                        const dir: -1 | 1 | 0 = i === 0 ? -1 : i === 2 ? 1 : 0;
-                        return (
-                            <TacticalCard
-                                key={tier.id}
-                                dir={dir}
-                                delay={Math.min(i, 5) * 60}
-                                spotlight={true}
-                                className="h-full"
-                            >
-                                <Card
-                                    className={`h-full p-6 transition-colors duration-200 hover:border-primary/40 ${
-                                        tier.highlighted ? "border-primary/45 shadow-lg shadow-primary/5" : ""
-                                    }`}
+                <div className="mx-auto mt-10 grid max-w-3xl gap-4 sm:grid-cols-2">
+                    {TIERS.map((tier, i) => (
+                        <Reveal key={tier.name} delay={i * 80}>
+                            <Card className="flex h-full flex-col p-6 shadow-sm">
+                                <h3 className="text-base font-semibold text-foreground">{tier.name}</h3>
+                                <p className="mt-1 text-xs text-muted-foreground">{tier.tagline}</p>
+                                <p className="mt-4 font-numeric text-3xl font-semibold tracking-tight text-foreground">
+                                    {tier.price}
+                                </p>
+                                <ul className="mt-5 flex-1 space-y-2.5">
+                                    {tier.features.map((f) => (
+                                        <li key={f} className="flex items-center gap-2.5 text-[13px] text-foreground">
+                                            <span className="flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-positive/12 text-positive">
+                                                <Check size={11} strokeWidth={3} aria-hidden />
+                                            </span>
+                                            {f}
+                                        </li>
+                                    ))}
+                                </ul>
+                                <Button
+                                    render={<Link href={tier.href} />}
+                                    variant={i === 0 ? "outline" : "default"}
+                                    className="mt-6 w-full"
                                 >
-                                    <div className="flex items-center justify-between gap-3">
-                                        <span className="flex size-9 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                                            <Icon size={17} aria-hidden />
-                                        </span>
-                                        {tier.highlighted ? (
-                                            <Badge variant="primary-light" radius="full">
-                                                Most popular
-                                            </Badge>
-                                        ) : null}
-                                    </div>
-
-                                    <h3 className="home-card-title mt-4">{tier.name}</h3>
-                                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                                        {tier.description}
-                                    </p>
-
-                                    <p className="mt-5 flex items-baseline gap-1.5">
-                                        <span className="font-numeric text-3xl font-semibold tracking-tight tabular-nums text-foreground">
-                                            {tierPriceLabel(tier)}
-                                        </span>
-                                        <span className="font-numeric text-xs tabular-nums text-muted-foreground">
-                                            {tierPeriodLabel(tier)}
-                                        </span>
-                                    </p>
-
-                                    <ul className="mt-5 grid gap-2.5 border-t border-border pt-5">
-                                        {tier.features.map((feature) => (
-                                            <li key={feature} className="flex items-start gap-2.5">
-                                                <Check
-                                                    size={15}
-                                                    weight="bold"
-                                                    className="mt-0.5 shrink-0 text-positive"
-                                                    aria-hidden
-                                                />
-                                                <span className="text-sm leading-6 text-muted-foreground">
-                                                    {feature}
-                                                </span>
-                                            </li>
-                                        ))}
-                                    </ul>
-
-                                    <div className="mt-6">
-                                        <Button
-                                            render={<Link href={tier.ctaHref} />}
-                                            variant={tier.highlighted ? "default" : "outline"}
-                                            className="w-full"
-                                        >
-                                            {tier.cta}
-                                            <ArrowRight data-icon="inline-end" />
-                                        </Button>
-                                    </div>
-                                </Card>
-                            </TacticalCard>
-                        );
-                    })}
+                                    {tier.cta} <ArrowRight data-icon="inline-end" />
+                                </Button>
+                            </Card>
+                        </Reveal>
+                    ))}
                 </div>
+                <p className="mt-6 text-center text-xs text-muted-foreground">
+                    Full plan details, billing periods, and checkout live on the pricing page.{" "}
+                    <Link href="/pricing" className="font-semibold text-primary hover:underline">
+                        See all plans
+                    </Link>
+                </p>
             </div>
         </section>
     );
