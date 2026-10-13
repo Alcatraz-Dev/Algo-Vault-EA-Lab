@@ -186,7 +186,7 @@ export default function AdminShell({
                     value={navSearch}
                     onChange={(e) => setNavSearch(e.target.value)}
                     placeholder="Search navigation…"
-                    className="h-7 w-full rounded-full border border-border bg-muted/40 pl-7 pr-7 text-xs placeholder:text-muted-foreground focus:outline-none"
+                    className="h-8 w-full rounded-lg border border-border bg-muted/40 pl-7 pr-7 text-xs placeholder:text-muted-foreground focus:outline-none"
                 />
                 {navSearch ? (
                     <button
@@ -219,16 +219,23 @@ export default function AdminShell({
                             key={href}
                             href={href}
                             onClick={() => setMobileOpen(false)}
-                            className={`flex items-center gap-3 rounded-md px-3 py-2 text-xs transition-colors ${isActive
-                                    ? "bg-accent-muted font-semibold text-primary"
-                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                            aria-current={isActive ? "page" : undefined}
+                            className={`group/item relative flex h-8 items-center gap-2.5 rounded-lg px-2.5 text-xs font-medium transition-colors ${isActive
+                                    ? "border border-border bg-muted text-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
+                                    : "border border-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                                 }`}
                         >
+                            {isActive ? (
+                                <span
+                                    aria-hidden="true"
+                                    className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-primary"
+                                />
+                            ) : null}
                             <Icon
-                                size={16}
-                                className={isActive ? "" : "text-muted-foreground"}
+                                size={15}
+                                className={isActive ? "shrink-0 text-primary" : "shrink-0 text-muted-foreground group-hover/item:text-foreground"}
                             />
-                            {label}
+                            <span className="truncate">{label}</span>
                         </Link>
                     );
                 })
@@ -237,17 +244,17 @@ export default function AdminShell({
     );
 
     const sidebarFooter = (
-        <div className="space-y-1 border-t border-border px-3 py-4">
+        <div className="space-y-0.5 border-t border-border p-3">
             <Link
                 href="/"
-                className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="flex h-8 items-center gap-2.5 rounded-lg px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
             >
                 <ArrowLeft size={15} />
                 Back to Site
             </Link>
             <Link
                 href="/live"
-                className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="flex h-8 items-center gap-2.5 rounded-lg px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
             >
                 <ExternalLink size={15} />
                 View Live Page
@@ -270,7 +277,7 @@ export default function AdminShell({
             style={shellHeaderStyle(headerHeight)}
         >
             {/* ── Sidebar (desktop) ── */}
-            <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-card md:flex">
+            <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card md:flex">
                 {sidebarInner}
             </aside>
 
@@ -359,7 +366,9 @@ export default function AdminShell({
                 </header>
 
                 {/* Page content */}
-                <main className="flex-1 animate-page-enter p-4 sm:p-5 md:p-8">{children}</main>
+                <main className="flex-1 animate-page-enter">
+                    <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">{children}</div>
+                </main>
             </div>
         </div>
     );

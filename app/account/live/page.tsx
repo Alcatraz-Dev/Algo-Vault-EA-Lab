@@ -133,7 +133,7 @@ export default function AccountLivePage() {
   if (!signedIn) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center p-6">
-        <div className="max-w-md w-full rounded-lg border border-border bg-card/60 p-8 text-center">
+        <div className="max-w-md w-full rounded-lg border border-border bg-card p-8 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <Plug className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Sign in to view your live accounts</h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -168,7 +168,7 @@ export default function AccountLivePage() {
           <button
             type="button"
             onClick={() => void fetchAccounts()}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <RefreshCw size={12} className={loading ? "animate-spin" : ""} /> Refresh
           </button>
@@ -199,7 +199,7 @@ export default function AccountLivePage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{label}</p>
-                  <p className={`mt-2 text-2xl font-bold tabular-nums ${tone ?? "text-foreground"}`}>{value}</p>
+                  <p className={`mt-2 text-2xl font-bold font-numeric tabular-nums ${tone ?? "text-foreground"}`}>{value}</p>
                   {sub && <p className="mt-1 text-micro text-muted-foreground">{sub}</p>}
                 </div>
                 <div className="rounded-lg border border-border bg-muted/50 p-2.5">
@@ -252,14 +252,14 @@ export default function AccountLivePage() {
               <table className="w-full min-w-[820px] text-sm">
                 <thead>
                   <tr className="border-b border-border text-xs uppercase tracking-wider text-muted-foreground">
-                    <th className="px-5 py-4 text-left">Status</th>
-                    <th className="px-5 py-4 text-left">Product / Account</th>
-                    <th className="px-5 py-4 text-left">Broker</th>
-                    <th className="px-5 py-4 text-right">Balance</th>
-                    <th className="px-5 py-4 text-right">Equity</th>
-                    <th className="px-5 py-4 text-right">Floating P/L</th>
-                    <th className="px-5 py-4 text-right">Drawdown</th>
-                    <th className="px-5 py-4 text-right">Heartbeat</th>
+                    <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">Status</th>
+                    <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">Product / Account</th>
+                    <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">Broker</th>
+                    <th className="px-5 py-4 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Balance</th>
+                    <th className="px-5 py-4 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Equity</th>
+                    <th className="px-5 py-4 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Floating P/L</th>
+                    <th className="px-5 py-4 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Drawdown</th>
+                    <th className="px-5 py-4 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Heartbeat</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -278,16 +278,16 @@ export default function AccountLivePage() {
                           <p>{a.broker || "—"}</p>
                           {a.server && <p className="text-xs text-muted-foreground">{a.server}</p>}
                         </td>
-                        <td className="px-5 py-4 text-right font-semibold text-foreground tabular-nums">
+                        <td className="px-5 py-4 text-right font-semibold text-foreground font-numeric tabular-nums">
                           {a.balance != null ? formatMoney(a.balance, a.currency) : "—"}
                         </td>
-                        <td className="px-5 py-4 text-right text-foreground tabular-nums">
+                        <td className="px-5 py-4 text-right text-foreground font-numeric tabular-nums">
                           {a.equity != null ? formatMoney(a.equity, a.currency) : "—"}
                         </td>
-                        <td className={`px-5 py-4 text-right font-semibold tabular-nums ${fl >= 0 ? "text-positive" : "text-negative"}`}>
+                        <td className={`px-5 py-4 text-right font-semibold font-numeric tabular-nums ${fl >= 0 ? "text-positive" : "text-negative"}`}>
                           {fl >= 0 ? "+" : ""}{formatMoney(fl, a.currency)}
                         </td>
-                        <td className={`px-5 py-4 text-right tabular-nums ${dd > 20 ? "text-negative font-semibold" : "text-muted-foreground"}`}>
+                        <td className={`px-5 py-4 text-right font-numeric tabular-nums ${dd > 20 ? "text-negative font-semibold" : "text-muted-foreground"}`}>
                           {a.drawdown != null ? `${a.drawdown.toFixed(2)}%` : "—"}
                         </td>
                         <td className="px-5 py-4 text-right text-xs text-muted-foreground">{timeAgo(a.lastHeartbeatAt, now)}</td>

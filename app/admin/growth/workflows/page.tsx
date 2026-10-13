@@ -134,8 +134,8 @@ export default function GrowthWorkflows() {
             {notice && <NoticeBanner variant={notice.kind === "ok" ? "success" : "error"}>{notice.text}</NoticeBanner>}
 
             {/* Run a workflow */}
-            <div className="rounded-lg border border-border bg-card p-4">
-                <h2 className="mb-1 text-sm font-medium text-foreground">Run a content workflow</h2>
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                <h2 className="mb-1 text-[11px] font-medium uppercase tracking-wider text-foreground">Run a content workflow</h2>
                 <p className="mb-4 text-xs text-muted-foreground">
                     Queues an execution of the growth content pipeline (Research → Content → SEO → Social → Compliance → Campaign → Publisher →
                     Analytics → Optimization → Report). Executions show up below.
@@ -189,7 +189,7 @@ export default function GrowthWorkflows() {
             </div>
 
             {/* Pipeline definition */}
-            <div className="rounded-lg border border-border bg-card p-4">
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 <h2 className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
                     <WorkflowIcon size={14} className="text-muted-foreground" />
                     Pipeline stages
@@ -224,7 +224,7 @@ export default function GrowthWorkflows() {
                     description="Run a workflow above — the execution will appear here with its status and current step."
                 />
             ) : (
-                <div className="overflow-hidden rounded-lg border border-border">
+                <div className="overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider [&_td]:tabular-nums">
                     <Table className="min-w-[620px]">
                         <TableHeader>
                             <TableRow>

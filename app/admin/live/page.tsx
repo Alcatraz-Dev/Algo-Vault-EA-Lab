@@ -123,7 +123,7 @@ export default function AdminLivePage() {
                     { label: "Total Balance", value: formatMoney(totalBalance), icon: DollarSign, tone: null },
                     { label: "Floating P/L", value: (totalFloating >= 0 ? "+" : "") + formatMoney(totalFloating), icon: TrendingDown, tone: totalFloating >= 0 ? "text-positive" : "text-negative" },
                 ].map(({ label, value, icon: Icon, tone }) => (
-                    <div key={label} className="rounded-lg border border-border bg-card p-5">
+                    <div key={label} className="rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-muted-foreground">{label}</p>
@@ -144,7 +144,7 @@ export default function AdminLivePage() {
             )}
 
             {!loading && accounts.length > 0 && (
-                <div className="mb-8 rounded-lg border border-border bg-card p-6">
+                <div className="mb-8 rounded-lg border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <div className="flex items-center justify-between">
                         <div>
                             <h2 className="font-semibold">Balance by Account</h2>
@@ -173,7 +173,7 @@ export default function AdminLivePage() {
             )}
 
             {loading ? (
-                <div className="rounded-lg border border-border bg-card p-16 text-center">
+                <div className="rounded-lg border border-border bg-card p-16 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <RefreshCw className="mx-auto h-8 w-8 animate-spin text-muted-foreground mb-3" />
                     <p className="text-sm text-muted-foreground">Loading accounts...</p>
                 </div>
@@ -184,19 +184,19 @@ export default function AdminLivePage() {
                     <p className="mt-2 text-sm text-muted-foreground">Accounts appear here when an EA connects via heartbeat.</p>
                 </div>
             ) : (
-                <div className="rounded-lg border border-border bg-card overflow-hidden">
+                <div className="rounded-lg border border-border bg-card overflow-hidden shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-[900px] text-sm">
                             <thead className="bg-muted/40">
                                 <tr className="border-b border-border text-xs uppercase tracking-wider text-muted-foreground">
-                                    <th className="px-5 py-4 text-left">Status</th>
-                                    <th className="px-5 py-4 text-left">Product / Account</th>
-                                    <th className="px-5 py-4 text-left">Broker</th>
-                                    <th className="px-5 py-4 text-right">Balance</th>
-                                    <th className="px-5 py-4 text-right">Equity</th>
-                                    <th className="px-5 py-4 text-right">Floating P/L</th>
-                                    <th className="px-5 py-4 text-right">Drawdown</th>
-                                    <th className="px-5 py-4 text-left">Last Heartbeat</th>
+                                    <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">Status</th>
+                                    <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">Product / Account</th>
+                                    <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">Broker</th>
+                                    <th className="px-5 py-4 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Balance</th>
+                                    <th className="px-5 py-4 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Equity</th>
+                                    <th className="px-5 py-4 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Floating P/L</th>
+                                    <th className="px-5 py-4 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Drawdown</th>
+                                    <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">Last Heartbeat</th>
                                 </tr>
                             </thead>
                             <tbody>

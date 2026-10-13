@@ -138,7 +138,7 @@ export default function AffiliatePage() {
     if (!user) {
         return (
             <AccountShell title="Affiliates" subtitle="Refer traders and earn">
-                <div className="rounded-lg border border-border bg-card p-12 text-center">
+                <div className="rounded-lg border border-border bg-card p-12 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <p className="text-sm text-muted-foreground">Please sign in to view your referral program.</p>
                 </div>
             </AccountShell>
@@ -161,7 +161,7 @@ export default function AffiliatePage() {
                 )}
 
                 {loading && !summary ? (
-                    <div className="rounded-lg border border-border bg-card p-16 text-center">
+                    <div className="rounded-lg border border-border bg-card p-16 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
                         <p className="mt-3 text-sm text-muted-foreground">Loading your referral link...</p>
                     </div>
@@ -169,12 +169,12 @@ export default function AffiliatePage() {
                     <div className="space-y-6">
                         {/* Stats */}
                         <div className="grid gap-4 sm:grid-cols-4">
-                            <div className="rounded-lg border border-border bg-card p-5">
+                            <div className="rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                 <p className="text-xs text-muted-foreground">Link Clicks</p>
                                 <p className="mt-2 text-3xl font-bold text-foreground">{summary.clicks}</p>
                                 <p className="mt-1 text-xs text-muted-foreground">People who opened your link</p>
                             </div>
-                            <div className="rounded-lg border border-border bg-card p-5">
+                            <div className="rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                 <p className="text-xs text-muted-foreground">New Signups</p>
                                 <p className="mt-2 text-3xl font-bold text-foreground">{summary.signups}</p>
                                 <p className="mt-1 text-xs text-muted-foreground">Accounts created through you</p>
@@ -192,7 +192,7 @@ export default function AffiliatePage() {
                         </div>
 
                         {/* Referral code + link */}
-                        <div className="rounded-lg border border-border bg-card p-6">
+                        <div className="rounded-lg border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h2 className="font-bold text-foreground">Your Referral Link</h2>
@@ -256,7 +256,7 @@ export default function AffiliatePage() {
                         </div>
 
                         {/* Recent events */}
-                        <div className="rounded-lg border border-border bg-card p-6">
+                        <div className="rounded-lg border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <h3 className="font-bold text-foreground">Recent Activity</h3>
                             {summary.recentEvents.length === 0 && summary.recentPurchases.length === 0 ? (
                                 <p className="mt-3 text-sm text-muted-foreground">
@@ -319,7 +319,7 @@ export default function AffiliatePage() {
 
                 {/* Signed out fallback note */}
                 {!loading && !error && !summary && (
-                    <div className="rounded-lg border border-border bg-card p-12 text-center">
+                    <div className="rounded-lg border border-border bg-card p-12 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <Users className="mx-auto h-10 w-10 text-muted-foreground" />
                         <p className="mt-3 text-sm text-muted-foreground">No referral data available.</p>
                     </div>

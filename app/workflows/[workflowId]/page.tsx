@@ -82,8 +82,8 @@ export default function WorkflowEditorPage() {
     }
   }, [user, running]);
 
-  if (loading) return <AppShell navGroups={navGroups} title="Workflow" subtitle="Loading..."><div className="text-sm text-muted-foreground">Loading workflow...</div></AppShell>;
-  if (!wf) return <AppShell navGroups={navGroups} title="Not found" subtitle="Workflow missing"><div className="text-sm text-destructive">Workflow not found.</div></AppShell>;
+  if (loading) return <AppShell navGroups={navGroups} title="Workflow" subtitle="Loading..."><div className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)]">Loading workflow...</div></AppShell>;
+  if (!wf) return <AppShell navGroups={navGroups} title="Not found" subtitle="Workflow missing"><div className="rounded-xl border border-border bg-card p-6 text-sm text-negative shadow-[0_1px_2px_rgb(0_0_0/0.05)]">Workflow not found.</div></AppShell>;
 
   return (
     <AppShell
@@ -100,11 +100,11 @@ export default function WorkflowEditorPage() {
     >
       <div className="grid lg:grid-cols-[250px_1fr_340px] gap-4 h-full min-h-[80vh]">
         {/* Palette */}
-        <div className="border rounded-lg bg-card p-4 space-y-2 overflow-y-auto">
+        <div className="rounded-xl border border-border bg-card p-4 space-y-2 overflow-y-auto shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Node Library</h3>
           {["trigger", "market_data", "technical", "ai", "logic", "risk", "signal", "execution", "notification", "integration", "transform", "simulation", "reports", "marketing"].map((cat) => (
             <div key={cat}>
-              <div className="text-micro font-bold text-muted-foreground uppercase mt-2 mb-1">{cat}</div>
+              <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mt-2 mb-1">{cat}</div>
               <div className="space-y-1">
                 <PaletteItem label="Manual Trigger" type="trigger.manual" />
                 {cat === "market_data" && <><PaletteItem label="Market Quote" type="market_data.quote" /><PaletteItem label="Market Candles" type="market_data.candles" /><PaletteItem label="Symbol Info" type="market_data.symbol_info" /></>}
@@ -123,17 +123,17 @@ export default function WorkflowEditorPage() {
         </div>
 
         {/* Canvas */}
-        <div className="border rounded-lg bg-card p-6 relative overflow-auto min-h-[600px]">
-          <div className="absolute top-3 left-3 text-xs text-muted-foreground">Canvas — drag nodes here</div>
+        <div className="rounded-xl border border-border bg-card p-6 relative overflow-auto min-h-[600px] shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+          <div className="absolute top-3 left-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">Canvas — drag nodes here</div>
           <CanvasArea nodes={wf.nodes || []} edges={wf.edges || []} />
         </div>
 
         {/* Inspector */}
-        <div className="border rounded-lg bg-card p-4 space-y-4 overflow-y-auto">
-          <h3 className="text-sm font-semibold">Inspector</h3>
+        <div className="rounded-xl border border-border bg-card p-4 space-y-4 overflow-y-auto shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+          <h3 className="text-sm font-semibold text-foreground">Inspector</h3>
           <InspectorForm workflow={wf} />
-          <div className="border-t pt-3 mt-3">
-            <h4 className="text-xs font-semibold mb-2">Run History</h4>
+          <div className="border-t border-border pt-3 mt-3">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Run History</h4>
             <RunPanel workflowId={String(workflowId)} refreshTick={runTick} />
           </div>
         </div>
@@ -144,7 +144,7 @@ export default function WorkflowEditorPage() {
 
 function PaletteItem({ label, type }: { label: string; type: string }) {
   return (
-    <button className="w-full text-left px-2 py-1.5 rounded-md text-xs bg-muted hover:bg-warning dark:hover:bg-warning/30 hover:text-warning transition border border-transparent hover:border-warning/50 dark:hover:border-warning/40" title={type}>
+    <button className="w-full text-left px-2 py-1.5 rounded-lg text-xs bg-muted text-foreground hover:bg-muted/70 transition-colors border border-transparent" title={type}>
       <span className="inline-flex items-center gap-1.5"><Zap size={9} className="text-warning" />{label}</span>
     </button>
   );
@@ -181,12 +181,12 @@ function CanvasArea({ nodes, edges }: { nodes: WorkflowNode[]; edges: WorkflowEd
 
 function InspectorForm({ workflow }: { workflow: WorkflowAutomation }) {
   return (
-    <div className="text-xs space-y-2">
-      <div className="flex justify-between"><span>Name</span><span className="font-medium">{workflow.name}</span></div>
-      <div className="flex justify-between"><span>Status</span><span className="font-medium">{workflow.status}</span></div>
-      <div className="flex justify-between"><span>Nodes</span><span className="font-medium">{workflow.nodes?.length ?? 0}</span></div>
-      <div className="flex justify-between"><span>Edges</span><span className="font-medium">{workflow.edges?.length ?? 0}</span></div>
-      <div className="flex justify-between"><span>Permissions</span><span className="font-medium">{workflow.requiredPermissions?.join(", ") || "none"}</span></div>
+    <div className="space-y-2 rounded-xl border border-border bg-muted/20 p-3 text-xs">
+      <div className="flex justify-between gap-2"><span className="text-muted-foreground">Name</span><span className="font-medium text-foreground truncate">{workflow.name}</span></div>
+      <div className="flex justify-between gap-2"><span className="text-muted-foreground">Status</span><span className="font-medium text-foreground">{workflow.status}</span></div>
+      <div className="flex justify-between gap-2"><span className="text-muted-foreground">Nodes</span><span className="font-medium font-numeric text-foreground">{workflow.nodes?.length ?? 0}</span></div>
+      <div className="flex justify-between gap-2"><span className="text-muted-foreground">Edges</span><span className="font-medium font-numeric text-foreground">{workflow.edges?.length ?? 0}</span></div>
+      <div className="flex justify-between gap-2"><span className="text-muted-foreground">Permissions</span><span className="font-medium text-foreground text-right">{workflow.requiredPermissions?.join(", ") || "none"}</span></div>
     </div>
   );
 }
@@ -241,43 +241,43 @@ function RunPanel({ workflowId, refreshTick }: { workflowId: string; refreshTick
 
   return (
     <div className="space-y-2">
-      <button onClick={load} className="inline-flex items-center gap-1 text-micro text-muted-foreground hover:text-warning"><RefreshCw size={10} /> Refresh</button>
-      {error && <div className="text-micro text-destructive">{error}</div>}
+      <button onClick={load} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"><RefreshCw size={10} /> Refresh</button>
+      {error && <div className="rounded-xl border border-negative/30 bg-negative-muted px-3 py-2 text-xs text-negative">{error}</div>}
       {runs.length === 0 ? (
-        <div className="text-xs text-muted-foreground">No runs yet for this workflow.</div>
+        <div className="rounded-xl border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">No runs yet for this workflow.</div>
       ) : (
         runs.slice(0, 8).map((run) => (
-          <div key={run.id} className="border rounded-lg p-2 text-micro space-y-1">
+          <div key={run.id} className="rounded-xl border border-border bg-card p-2.5 text-xs space-y-1 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <button onClick={() => toggle(run.id)} className="flex items-center justify-between w-full text-left gap-1">
-              <span className="inline-flex items-center gap-1 font-medium">
+              <span className="inline-flex items-center gap-1 font-medium text-foreground">
                 {expanded === run.id ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
                 <span className={
-                  run.status === "success" ? "text-positive dark:text-positive"
-                  : run.status === "failed" || run.status === "partial" || run.status === "timeout" ? "text-negative dark:text-negative"
-                  : run.status === "running" ? "text-warning dark:text-warning"
+                  run.status === "success" ? "text-positive"
+                  : run.status === "failed" || run.status === "partial" || run.status === "timeout" ? "text-negative"
+                  : run.status === "running" ? "text-warning"
                   : "text-muted-foreground"
                 }>{run.status}</span>
               </span>
               <span className="text-muted-foreground">{run.trigger}</span>
             </button>
-            <div className="text-micro text-muted-foreground flex justify-between">
+            <div className="text-xs text-muted-foreground font-numeric flex justify-between">
               <span>{new Date(run.startedAt).toLocaleString()}</span>
               <span>{run.durationMs != null ? `${(run.durationMs / 1000).toFixed(1)}s` : "—"}</span>
             </div>
-            {run.error && <div className="text-micro text-negative break-words">⚠ {run.error}</div>}
+            {run.error && <div className="text-xs text-negative break-words">⚠ {run.error}</div>}
             {expanded === run.id && (
-              <div className="border-t pt-1 mt-1 space-y-0.5">
+              <div className="border-t border-border pt-1 mt-1 space-y-0.5">
                 {(nodes[run.id] ?? []).map((n) => (
-                  <div key={n.id} className="flex justify-between text-micro">
-                    <span className="truncate max-w-[150px]">{n.nodeLabel || n.nodeId}</span>
+                  <div key={n.id} className="flex justify-between text-xs">
+                    <span className="truncate max-w-[150px] text-foreground">{n.nodeLabel || n.nodeId}</span>
                     <span className={
-                      n.status === "success" ? "text-positive dark:text-positive"
+                      n.status === "success" ? "text-positive"
                       : n.status === "failed" ? "text-negative" : "text-muted-foreground"
                     }>{n.status}{n.error ? " ✕" : ""}</span>
                   </div>
                 ))}
-                {!nodes[run.id] && loading && <div className="text-micro text-muted-foreground">Loading trace…</div>}
-                {nodes[run.id] && nodes[run.id].length === 0 && <div className="text-micro text-muted-foreground">No node records.</div>}
+                {!nodes[run.id] && loading && <div className="text-xs text-muted-foreground">Loading trace…</div>}
+                {nodes[run.id] && nodes[run.id].length === 0 && <div className="text-xs text-muted-foreground">No node records.</div>}
               </div>
             )}
           </div>

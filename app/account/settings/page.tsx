@@ -798,7 +798,7 @@ export default function AccountSettingsPage() {
             <div className="relative mx-auto max-w-5xl">
                 {/* Sync badge */}
                 <div className="mb-4 flex justify-end">
-                    <div className="flex items-center gap-2 rounded-full border border-border bg-muted/40 px-3.5 py-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 text-xs text-muted-foreground shadow-sm">
                         <ShieldCheck size={14} className="text-positive" />
                         <span>Realtime Database Synced</span>
                     </div>
@@ -896,7 +896,7 @@ export default function AccountSettingsPage() {
                 {/* Toast Notification Alert */}
                 {toastMessage && (
                     <div
-                        className={`mb-8 flex items-center justify-between rounded-lg border p-4 text-sm transition-all ${
+                        className={`mb-8 flex items-center justify-between rounded-lg border p-4 text-sm transition-colors ${
                             toastMessage.type === "success"
                                 ? "border-positive/30 bg-positive-muted text-positive-foreground"
                                 : "border-negative/30 bg-negative-muted text-negative-foreground"
@@ -927,7 +927,7 @@ export default function AccountSettingsPage() {
                 {activeTab === "profile" && (
                     <div className="grid gap-8 lg:grid-cols-3">
                         <div className="lg:col-span-2 space-y-6">
-                            <div className="rounded-lg border border-border bg-card p-6" data-guide="profile-form">
+                            <div className="rounded-xl border border-border bg-card p-6 shadow-sm" data-guide="profile-form">
                                 <h2 className="text-lg font-semibold text-foreground mb-1">
                                     Personal Details
                                 </h2>
@@ -1024,7 +1024,7 @@ export default function AccountSettingsPage() {
                                                     key={lvl}
                                                     type="button"
                                                     onClick={() => setExperience(lvl)}
-                                                    className={`rounded-md border px-3 py-2 text-xs font-medium transition ${
+                                                    className={`rounded-md border px-3 py-2 text-xs font-medium transition-colors ${
                                                         experience === lvl
                                                             ? "border-primary bg-primary/10 text-foreground"
                                                             : "border-border bg-muted/30 text-muted-foreground hover:bg-muted/70"
@@ -1049,11 +1049,11 @@ export default function AccountSettingsPage() {
                                         />
                                     </div>
 
-                                    <div className="pt-2">
+                                    <div className="border-t border-border pt-5">
                                         <button
                                             type="submit"
                                             disabled={savingProfile}
-                                            className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50"
+                                            className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/80 disabled:opacity-50"
                                         >
                                             {savingProfile ? (
                                                 <Loader2 size={16} className="animate-spin" />
@@ -1069,7 +1069,7 @@ export default function AccountSettingsPage() {
 
                         {/* Side Account Overview Card */}
                         <div className="space-y-6">
-                            <div className="rounded-lg border border-border bg-card p-6">
+                            <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
                                 <div className="flex items-center gap-4">
                                     <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted text-foreground font-bold text-xl">
                                         {displayName.substring(0, 2).toUpperCase() || "TR"}
@@ -1121,7 +1121,7 @@ export default function AccountSettingsPage() {
                             <button
                                 type="button"
                                 onClick={() => setShowAddMt5Modal(true)}
-                                className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground transition hover:bg-primary/80"
+                                className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/80"
                             >
                                 <Plus size={15} />
                                 <span>Add MT5 Account</span>
@@ -1129,7 +1129,7 @@ export default function AccountSettingsPage() {
                         </div>
 
                         {mt5Accounts.length === 0 ? (
-                            <div className="rounded-lg border border-border bg-muted/30 p-12 text-center">
+                            <div className="rounded-xl border border-border bg-card p-12 text-center shadow-sm">
                                 <HardDrive className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
                                 <h3 className="text-base font-medium text-foreground">No MT5 Accounts Added</h3>
                                 <p className="mt-1 text-xs text-muted-foreground max-w-md mx-auto">
@@ -1138,7 +1138,7 @@ export default function AccountSettingsPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowAddMt5Modal(true)}
-                                    className="mt-5 inline-flex items-center gap-2 rounded-md border border-border bg-muted/50 px-4 py-2 text-xs text-foreground transition hover:bg-muted hover:text-foreground"
+                                    className="mt-5 inline-flex items-center gap-2 rounded-md border border-border bg-muted/50 px-4 py-2 text-xs text-foreground transition-colors hover:bg-muted hover:text-foreground"
                                 >
                                     <Plus size={14} />
                                     Add First Account
@@ -1149,7 +1149,7 @@ export default function AccountSettingsPage() {
                                 {mt5Accounts.map((acc) => (
                                     <div
                                         key={acc.id}
-                                        className="relative rounded-lg border border-border bg-card p-5 transition hover:border-border"
+                                        className="relative rounded-xl border border-border bg-card p-5 shadow-sm transition-colors hover:border-input"
                                     >
                                         <div className="flex items-start justify-between">
                                             <div className="flex items-center gap-3">
@@ -1191,7 +1191,7 @@ export default function AccountSettingsPage() {
                                                 <button
                                                     type="button"
                                                     onClick={() => handleSetPrimaryMt5(acc.id)}
-                                                    className="text-xs text-muted-foreground hover:text-foreground transition"
+                                                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                                                 >
                                                     Set as Primary
                                                 </button>
@@ -1202,7 +1202,7 @@ export default function AccountSettingsPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => handleDeleteMt5Account(acc.id, acc.accountNumber)}
-                                                className="text-muted-foreground hover:text-destructive transition"
+                                                className="text-muted-foreground hover:text-destructive transition-colors"
                                                 title="Remove Account"
                                             >
                                                 <Trash2 size={15} />
@@ -1216,7 +1216,7 @@ export default function AccountSettingsPage() {
                         {/* ADD MT5 MODAL */}
                         {showAddMt5Modal && (
                             <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
-                                <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-2xl">
+                                <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-2xl">
                                     <h3 className="text-lg font-semibold text-foreground">
                                         Connect New MT5 Account
                                     </h3>
@@ -1312,14 +1312,14 @@ export default function AccountSettingsPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => setShowAddMt5Modal(false)}
-                                                className="rounded-md border border-border px-4 py-2 text-xs text-muted-foreground hover:text-foreground"
+                                                className="rounded-md border border-border px-4 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
                                             >
                                                 Cancel
                                             </button>
                                             <button
                                                 type="submit"
                                                 disabled={addingMt5}
-                                                className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50"
+                                                className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/80 disabled:opacity-50"
                                             >
                                                 {addingMt5 && <Loader2 size={14} className="animate-spin" />}
                                                 <span>Save MT5 Account</span>
@@ -1335,7 +1335,7 @@ export default function AccountSettingsPage() {
                 {/* TAB 3: SECURITY & PASSWORD */}
                 {activeTab === "security" && (
                     <div className="max-w-2xl space-y-6">
-                        <div className="rounded-lg border border-border bg-card p-6">
+                        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
                             <h2 className="text-lg font-semibold text-foreground mb-1">
                                 Change Password
                             </h2>
@@ -1387,11 +1387,11 @@ export default function AccountSettingsPage() {
                                     </div>
                                 </div>
 
-                                <div className="pt-2">
+                                <div className="border-t border-border pt-5">
                                     <button
                                         type="submit"
                                         disabled={updatingPasswordState}
-                                        className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50"
+                                        className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/80 disabled:opacity-50"
                                     >
                                         {updatingPasswordState ? (
                                             <Loader2 size={16} className="animate-spin" />
@@ -1404,7 +1404,7 @@ export default function AccountSettingsPage() {
                             </form>
                         </div>
 
-                        <div className="rounded-lg border border-border bg-card p-6">
+                        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h3 className="font-semibold text-foreground text-sm">
@@ -1419,7 +1419,7 @@ export default function AccountSettingsPage() {
                                     type="button"
                                     onClick={handleSendResetEmail}
                                     disabled={sendingPasswordReset}
-                                    className="inline-flex items-center gap-2 rounded-md border border-border bg-muted/50 px-4 py-2 text-xs font-medium text-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-50"
+                                    className="inline-flex items-center gap-2 rounded-md border border-border bg-muted/50 px-4 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
                                 >
                                     {sendingPasswordReset ? (
                                         <Loader2 size={14} className="animate-spin" />
@@ -1436,7 +1436,7 @@ export default function AccountSettingsPage() {
                 {/* TAB 4: RISK CONTROLS */}
                 {activeTab === "risk" && (
                     <div className="max-w-2xl space-y-6">
-                        <div className="rounded-lg border border-border bg-card p-6">
+                        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
                             <h2 className="text-lg font-semibold text-foreground mb-1">
                                 Automated Risk Parameters
                             </h2>
@@ -1461,7 +1461,7 @@ export default function AccountSettingsPage() {
                                         step={0.25}
                                         value={riskPerTrade}
                                         onChange={(e) => setRiskPerTrade(Number(e.target.value))}
-                                        className="w-full accent-white"
+                                        className="w-full accent-primary"
                                     />
                                     <div className="flex justify-between text-micro text-muted-foreground mt-1">
                                         <span>0.25% (Conservative)</span>
@@ -1486,7 +1486,7 @@ export default function AccountSettingsPage() {
                                         step={1}
                                         value={maxDrawdownAlert}
                                         onChange={(e) => setMaxDrawdownAlert(Number(e.target.value))}
-                                        className="w-full accent-white"
+                                        className="w-full accent-primary"
                                     />
                                 </div>
 
@@ -1506,7 +1506,7 @@ export default function AccountSettingsPage() {
                                         step={0.5}
                                         value={maxDailyLossAlert}
                                         onChange={(e) => setMaxDailyLossAlert(Number(e.target.value))}
-                                        className="w-full accent-white"
+                                        className="w-full accent-primary"
                                     />
                                 </div>
 
@@ -1527,11 +1527,11 @@ export default function AccountSettingsPage() {
                                     />
                                 </label>
 
-                                <div className="pt-2">
+                                <div className="border-t border-border pt-5">
                                     <button
                                         type="submit"
                                         disabled={savingRisk}
-                                        className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50"
+                                        className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/80 disabled:opacity-50"
                                     >
                                         {savingRisk ? (
                                             <Loader2 size={16} className="animate-spin" />
@@ -1549,7 +1549,7 @@ export default function AccountSettingsPage() {
                 {/* TAB 5: NOTIFICATIONS */}
                 {activeTab === "notifications" && (
                     <div className="max-w-2xl space-y-6">
-                        <div className="rounded-lg border border-border bg-card p-6">
+                        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
                             <h2 className="text-lg font-semibold text-foreground mb-1">
                                 Notification Channels
                             </h2>
@@ -1642,7 +1642,7 @@ export default function AccountSettingsPage() {
                                                     href={discordBotInviteUrl}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="flex w-full items-center justify-center gap-2 rounded-md border border-info/30 bg-info/10 px-4 py-2.5 text-xs font-semibold text-info transition hover:bg-info/20"
+                                                    className="flex w-full items-center justify-center gap-2 rounded-md border border-info/30 bg-info/10 px-4 py-2.5 text-xs font-semibold text-info transition-colors hover:bg-info/20"
                                                 >
                                                     <ExternalLink size={13} />
                                                     Step 1 — Add AlgoVault Bot to your server
@@ -1652,7 +1652,7 @@ export default function AccountSettingsPage() {
                                                 type="button"
                                                 onClick={handleConnectDiscord}
                                                 disabled={discordConnecting}
-                                                className="flex w-full items-center justify-center gap-2 rounded-md bg-info px-4 py-2.5 text-xs font-semibold text-background transition hover:bg-info/80 disabled:opacity-50"
+                                                className="flex w-full items-center justify-center gap-2 rounded-md bg-info px-4 py-2.5 text-xs font-semibold text-background transition-colors hover:bg-info/80 disabled:opacity-50"
                                             >
                                                 {discordConnecting ? (
                                                     <Loader2 size={13} className="animate-spin" />
@@ -1667,7 +1667,7 @@ export default function AccountSettingsPage() {
                                                 <button
                                                     type="button"
                                                     onClick={handleDisconnectDiscord}
-                                                    className="w-full rounded-md border border-border px-4 py-2 text-xs font-medium text-muted-foreground transition hover:bg-muted/60"
+                                                    className="w-full rounded-md border border-border px-4 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/60"
                                                 >
                                                     Disconnect Discord
                                                 </button>
@@ -1720,7 +1720,7 @@ export default function AccountSettingsPage() {
                                                 href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME}?start=connect`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex w-full items-center justify-center gap-2 rounded-md bg-info px-4 py-2.5 text-xs font-semibold text-background transition hover:bg-info/80"
+                                                className="flex w-full items-center justify-center gap-2 rounded-md bg-info px-4 py-2.5 text-xs font-semibold text-background transition-colors hover:bg-info/80"
                                             >
                                                 <ExternalLink size={13} />
                                                 {telegramUsername.trim() || telegramChatId.trim()
@@ -1731,7 +1731,7 @@ export default function AccountSettingsPage() {
                                                 <button
                                                     type="button"
                                                     onClick={handleDisconnectTelegram}
-                                                    className="w-full rounded-md border border-border px-4 py-2 text-xs font-medium text-muted-foreground transition hover:bg-muted/60"
+                                                    className="w-full rounded-md border border-border px-4 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/60"
                                                 >
                                                     Disconnect Telegram
                                                 </button>
@@ -1754,7 +1754,7 @@ export default function AccountSettingsPage() {
                                 <details className="group rounded-lg border border-border bg-muted/20 p-4">
                                     <summary className="flex cursor-pointer list-none items-center justify-between text-xs font-medium text-muted-foreground hover:text-foreground">
                                         <span>Advanced — Manual Webhook / Chat ID (optional)</span>
-                                        <ChevronRight size={14} className="transition group-open:rotate-90" />
+                                        <ChevronRight size={14} className="transition-transform group-open:rotate-90" />
                                     </summary>
                                     <div className="mt-4 space-y-4">
                                         <div>
@@ -1784,11 +1784,11 @@ export default function AccountSettingsPage() {
                                     </div>
                                 </details>
 
-                                <div className="flex flex-wrap items-center gap-3 pt-2">
+                                <div className="flex flex-wrap items-center gap-3 border-t border-border pt-5">
                                     <button
                                         type="submit"
                                         disabled={savingNotifications}
-                                        className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50"
+                                        className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/80 disabled:opacity-50"
                                     >
                                         {savingNotifications ? (
                                             <Loader2 size={16} className="animate-spin" />
@@ -1801,7 +1801,7 @@ export default function AccountSettingsPage() {
                                         type="button"
                                         onClick={handleSendTestNotification}
                                         disabled={sendingTest}
-                                        className="inline-flex items-center gap-2 rounded-md border border-border bg-muted/50 px-5 py-2.5 text-sm font-medium text-foreground transition hover:bg-muted disabled:opacity-50"
+                                        className="inline-flex items-center gap-2 rounded-md border border-border bg-muted/50 px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:opacity-50"
                                     >
                                         {sendingTest ? (
                                             <Loader2 size={16} className="animate-spin" />
@@ -1815,7 +1815,7 @@ export default function AccountSettingsPage() {
                         </div>
 
                         {/* Recent Alerts */}
-                        <div className="rounded-lg border border-border bg-card p-6">
+                        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
                             <div className="flex items-center justify-between mb-1">
                                 <h2 className="text-lg font-semibold text-foreground">
                                     Recent Alerts
@@ -1927,7 +1927,7 @@ export default function AccountSettingsPage() {
                         className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 p-4 backdrop-blur-sm"
                         onClick={(e) => e.target === e.currentTarget && setShowDiscordModal(false)}
                     >
-                        <div className="w-full max-w-lg rounded-lg border border-border bg-card p-6 shadow-2xl">
+                        <div className="w-full max-w-lg rounded-xl border border-border bg-card p-6 shadow-2xl">
                             <div className="flex items-start justify-between gap-4">
                                 <div>
                                     <h2 className="text-lg font-semibold text-foreground">Choose Discord Channel</h2>
@@ -1938,7 +1938,7 @@ export default function AccountSettingsPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowDiscordModal(false)}
-                                    className="rounded-lg border border-border px-2 py-1 text-xs text-muted-foreground transition hover:bg-muted"
+                                    className="rounded-lg border border-border px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted"
                                 >
                                     Close
                                 </button>
@@ -2005,7 +2005,7 @@ export default function AccountSettingsPage() {
                                             href={discordBotInviteUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="inline-flex items-center justify-center gap-2 rounded-md border border-border px-4 py-2.5 text-xs font-semibold text-foreground transition hover:bg-muted"
+                                            className="inline-flex items-center justify-center gap-2 rounded-md border border-border px-4 py-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
                                         >
                                             <ExternalLink size={13} />
                                             Add bot
@@ -2015,7 +2015,7 @@ export default function AccountSettingsPage() {
                                         type="button"
                                         onClick={handleCreateDiscordWebhook}
                                         disabled={!selectedChannelId || creatingWebhook}
-                                        className="inline-flex items-center justify-center gap-2 rounded-md bg-info px-4 py-2.5 text-xs font-semibold text-background transition hover:bg-info/80 disabled:opacity-50"
+                                        className="inline-flex items-center justify-center gap-2 rounded-md bg-info px-4 py-2.5 text-xs font-semibold text-background transition-colors hover:bg-info/80 disabled:opacity-50"
                                     >
                                         {creatingWebhook ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
                                         Create webhook

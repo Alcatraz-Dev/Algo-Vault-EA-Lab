@@ -80,13 +80,13 @@ export default function ReportGeneratorPage() {
                         <option value="H4">H4</option>
                         <option value="D1">D1</option>
                     </select>
-                    <button type="button" onClick={generateReport} disabled={loading} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50">
+                    <button type="button" onClick={generateReport} disabled={loading} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
                         {loading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : "Generate Report"}
                     </button>
                 </div>
 
                 {selectedReport && (
-                    <div className="rounded-lg border border-border/30 bg-card p-6" data-guide="stats">
+                    <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-6" data-guide="stats">
                         <h3 className="mb-3 text-sm font-semibold text-foreground">Generated Report</h3>
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                             <div><p className="text-xs text-muted-foreground">Symbol</p><p className="text-foreground font-medium">{selectedReport.symbol}</p></div>
@@ -102,7 +102,7 @@ export default function ReportGeneratorPage() {
                     <div className="space-y-4" data-guide="stats">
                         <h3 className="text-sm font-semibold text-foreground">Previous Reports</h3>
                         {reports.map((r) => (
-                            <div key={r.id} className="rounded-lg border border-border/30 bg-muted/50 p-4 cursor-pointer hover:bg-muted" onClick={() => setSelectedReport(r)}>
+                            <div key={r.id} className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4 cursor-pointer hover:bg-muted" onClick={() => setSelectedReport(r)}>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <FileText className="h-5 w-5 text-muted-foreground" />

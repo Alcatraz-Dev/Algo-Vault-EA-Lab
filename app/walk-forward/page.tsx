@@ -7,6 +7,7 @@ import { RefreshCw, Loader2, BarChart3, TrendingUp, Shield } from "lucide-react"
 import { cn } from "@/lib/utils";
 
 import { AuthRequired } from "@/components/ui/auth-required";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 export default function WalkForwardPage() {
     const [user, setUser] = useState<User | null>(null);
@@ -50,15 +51,15 @@ export default function WalkForwardPage() {
                 <div className="space-y-6" data-guide="page-header">
                     <div className="flex items-center justify-between">
                         <p className="text-sm text-muted-foreground">Split historical data into training (in-sample) and validation (out-of-sample) periods to test strategy robustness.</p>
-                        <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50">
+                        <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
                             {loading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} Run Walk-Forward
                         </button>
                     </div>
                     {data && data.strategies ? (
-                        <div className="overflow-x-auto rounded-lg border border-border/30 bg-muted/50">
+                        <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <table className="w-full text-xs">
                                 <thead>
-                                    <tr className="border-b border-border/20 text-micro uppercase text-muted-foreground">
+                                    <tr className="border-b border-border/20 text-[11px] uppercase tracking-wider text-muted-foreground">
                                         <th className="px-4 py-3 text-left">Strategy</th>
                                         <th className="px-4 py-3 text-right">In-Sample Trades</th>
                                         <th className="px-4 py-3 text-right">Net Profit</th>
@@ -77,7 +78,7 @@ export default function WalkForwardPage() {
                                             <td className="px-4 py-3 text-right font-numeric text-muted-foreground">{s.inSampleMetrics?.winRate?.toFixed(1) || 0}%</td>
                                             <td className="px-4 py-3 text-right font-numeric text-muted-foreground">{s.inSampleMetrics?.maxDrawdownPct?.toFixed(1) || 0}%</td>
                                             <td className="px-4 py-3 text-right font-numeric text-muted-foreground">{s.inSampleMetrics?.profitFactor?.toFixed(2) || 0}</td>
-                                            <td className="px-4 py-3 text-left"><span className={cn("rounded-full px-2 py-0.5 text-micro", s.inSampleMetrics ? "bg-positive/10 text-positive" : "bg-muted text-muted-foreground")}>{(s.inSampleMetrics?.totalTrades || 0) > 0 ? "Validated" : "No Data"}</span></td>
+                                            <td className="px-4 py-3 text-left"><StatusBadge tone={(s.inSampleMetrics?.totalTrades || 0) > 0 ? "positive" : "neutral"} label={(s.inSampleMetrics?.totalTrades || 0) > 0 ? "Validated" : "No Data"} /></td>
                                         </tr>
                                     ))}
                                 </tbody>

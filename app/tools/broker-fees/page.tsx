@@ -90,25 +90,25 @@ export default function BrokerFeeCalcPage() {
             ]}
         >
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <div className="rounded-lg border border-border bg-card p-4">
+                <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                     <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Instrument</label>
                     <select value={instrument} onChange={(e) => setInstrument(e.target.value)} className={inputClass}>
                         {Object.keys(pipValues).map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
                 </div>
-                <div className="rounded-lg border border-border bg-card p-4">
+                <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                     <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Lots</label>
                     <input type="number" step="0.01" min="0.01" value={lots} onChange={(e) => setLots(e.target.value)} className={inputClass} />
                 </div>
-                <div className="rounded-lg border border-border bg-card p-4">
+                <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                     <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Days Held</label>
                     <input type="number" min="1" value={daysHeld} onChange={(e) => setDaysHeld(e.target.value)} className={inputClass} />
                 </div>
-                <div className="rounded-lg border border-border bg-card p-4">
+                <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                     <label className="mb-1.5 block text-micro font-semibold uppercase tracking-wider text-muted-foreground">Direction</label>
                     <div className="grid grid-cols-2 gap-2">
-                        <button type="button" onClick={() => setDirection("long")} className={cn("rounded-md px-3 py-2 text-xs font-medium transition", direction === "long" ? "bg-positive/20 text-positive" : "bg-muted text-muted-foreground")}>Long</button>
-                        <button type="button" onClick={() => setDirection("short")} className={cn("rounded-md px-3 py-2 text-xs font-medium transition", direction === "short" ? "bg-negative/20 text-negative" : "bg-muted text-muted-foreground")}>Short</button>
+                        <button type="button" onClick={() => setDirection("long")} className={cn("rounded-md px-3 py-2 text-xs font-medium transition-colors", direction === "long" ? "bg-positive/20 text-positive" : "bg-muted text-muted-foreground")}>Long</button>
+                        <button type="button" onClick={() => setDirection("short")} className={cn("rounded-md px-3 py-2 text-xs font-medium transition-colors", direction === "short" ? "bg-negative/20 text-negative" : "bg-muted text-muted-foreground")}>Short</button>
                     </div>
                 </div>
             </div>
@@ -153,24 +153,24 @@ export default function BrokerFeeCalcPage() {
                             </div>
                             <div className="flex flex-wrap items-center gap-6">
                                 <div className="text-right">
-                                    <p className="text-micro uppercase text-muted-foreground">Spread</p>
+                                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Spread</p>
                                     <p className="font-numeric text-sm font-bold text-muted-foreground">${r.spreadCost}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-micro uppercase text-muted-foreground">Commission</p>
+                                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Commission</p>
                                     <p className="font-numeric text-sm font-bold text-muted-foreground">${r.commission}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-micro uppercase text-muted-foreground">Swap ({daysHeld}d)</p>
+                                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Swap ({daysHeld}d)</p>
                                     <p className="font-numeric text-sm font-bold text-muted-foreground">${r.swapCost}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-micro uppercase text-muted-foreground">Total</p>
+                                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Total</p>
                                     <p className={cn("font-numeric text-lg font-bold", i === 0 ? "text-positive" : "text-foreground")}>${r.total}</p>
                                 </div>
                                 {cheapest > 0 && r.total > cheapest && (
                                     <div className="text-right">
-                                        <p className="text-micro uppercase text-muted-foreground">Extra</p>
+                                        <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Extra</p>
                                         <p className="font-numeric text-sm font-bold text-negative">+${(r.total - cheapest).toFixed(2)}</p>
                                     </div>
                                 )}
@@ -208,7 +208,7 @@ function ProTile({ title, description }: { title: string; description: string })
     return (
         <Link
             href="/pricing"
-            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
+            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition-colors hover:border-primary/40 hover:bg-primary/[0.05]"
         >
             <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-foreground">{title}</h4>
@@ -218,7 +218,7 @@ function ProTile({ title, description }: { title: string; description: string })
                 </span>
             </div>
             <p className="text-xs text-muted-foreground">{description}</p>
-            <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary transition group-hover:gap-1.5">
+            <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary transition-colors group-hover:gap-1.5">
                 <Sparkles className="size-3" />
                 Unlock
                 <ArrowUpRight className="size-3" />

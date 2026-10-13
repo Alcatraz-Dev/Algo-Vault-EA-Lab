@@ -183,11 +183,11 @@ export default function BotDeploymentMonitorPage() {
                                     {strategy?.name || deployment.strategyId}
                                 </h1>
                                 <span
-                                    className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${
+                                    className={`text-xs px-2.5 py-0.5 rounded-full font-semibold transition-colors ${
                                         isRunning
-                                            ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                                            ? "bg-positive/10 text-positive border border-positive/20"
                                             : isPaused
-                                            ? "bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                                            ? "bg-warning/10 text-warning border border-warning/20"
                                             : "bg-muted text-muted-foreground"
                                     }`}
                                 >
@@ -211,7 +211,7 @@ export default function BotDeploymentMonitorPage() {
                             <button
                                 onClick={() => handleLifecycle("running")}
                                 disabled={actionLoading === "running"}
-                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition"
+                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition-colors"
                             >
                                 <Play className="h-4 w-4" />
                                 Start Bot
@@ -221,7 +221,7 @@ export default function BotDeploymentMonitorPage() {
                             <button
                                 onClick={() => handleLifecycle("paused")}
                                 disabled={actionLoading === "paused"}
-                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold shadow-sm transition"
+                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold shadow-sm transition-colors"
                             >
                                 <Pause className="h-4 w-4" />
                                 Pause Bot
@@ -231,7 +231,7 @@ export default function BotDeploymentMonitorPage() {
                             <button
                                 onClick={() => handleLifecycle("stopped")}
                                 disabled={actionLoading === "stopped"}
-                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold shadow-sm transition"
+                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold shadow-sm transition-colors"
                             >
                                 <Square className="h-4 w-4" />
                                 Stop Bot
@@ -240,7 +240,7 @@ export default function BotDeploymentMonitorPage() {
                         <button
                             onClick={handleTick}
                             disabled={actionLoading === "tick"}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border bg-card hover:bg-muted text-xs font-semibold transition"
+                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border bg-card hover:bg-muted text-xs font-semibold transition-colors"
                         >
                             <Activity className={`h-4 w-4 ${actionLoading === "tick" ? "animate-spin" : ""}`} />
                             Evaluate Tick
@@ -250,33 +250,33 @@ export default function BotDeploymentMonitorPage() {
 
                 {/* Metrics row */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="p-4 rounded-xl border border-border bg-card">
+                    <div className="p-4 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <span className="text-xs font-medium text-muted-foreground">Signals Produced</span>
                         <div className="mt-1 flex items-baseline justify-between">
-                            <span className="text-2xl font-bold">{deployment.signalCount || 0}</span>
+                            <span className="font-numeric text-2xl font-bold">{deployment.signalCount || 0}</span>
                             <span className="text-xs text-muted-foreground">
                                 Last: {deployment.lastSignalAt ? new Date(deployment.lastSignalAt).toLocaleTimeString() : "Never"}
                             </span>
                         </div>
                     </div>
-                    <div className="p-4 rounded-xl border border-border bg-card">
+                    <div className="p-4 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <span className="text-xs font-medium text-muted-foreground">Gateway Orders</span>
                         <div className="mt-1 flex items-baseline justify-between">
-                            <span className="text-2xl font-bold">{deployment.executionCount || 0}</span>
+                            <span className="font-numeric text-2xl font-bold">{deployment.executionCount || 0}</span>
                             <span className="text-xs text-emerald-500 font-medium">ACKed by MT5</span>
                         </div>
                     </div>
-                    <div className="p-4 rounded-xl border border-border bg-card">
+                    <div className="p-4 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <span className="text-xs font-medium text-muted-foreground">Gate Rejections</span>
                         <div className="mt-1 flex items-baseline justify-between">
-                            <span className="text-2xl font-bold">{deployment.rejectionCount || 0}</span>
+                            <span className="font-numeric text-2xl font-bold">{deployment.rejectionCount || 0}</span>
                             <span className="text-xs text-rose-500 font-medium">Fail-closed guards</span>
                         </div>
                     </div>
-                    <div className="p-4 rounded-xl border border-border bg-card">
+                    <div className="p-4 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <span className="text-xs font-medium text-muted-foreground">Last Engine Tick</span>
                         <div className="mt-1 flex items-baseline justify-between">
-                            <span className="text-lg font-bold font-mono">
+                            <span className="font-numeric text-lg font-bold font-mono">
                                 {deployment.lastTickAt ? new Date(deployment.lastTickAt).toLocaleTimeString() : "Never"}
                             </span>
                             <span className="text-xs text-muted-foreground">Live loop</span>
@@ -288,7 +288,7 @@ export default function BotDeploymentMonitorPage() {
                 <div className="flex border-b border-border gap-6">
                     <button
                         onClick={() => setActiveTab("logs")}
-                        className={`pb-3 text-sm font-semibold transition border-b-2 ${
+                        className={`pb-3 text-sm font-semibold transition-colors border-b-2 ${
                             activeTab === "logs"
                                 ? "border-primary text-primary"
                                 : "border-transparent text-muted-foreground hover:text-foreground"
@@ -298,7 +298,7 @@ export default function BotDeploymentMonitorPage() {
                     </button>
                     <button
                         onClick={() => setActiveTab("signals")}
-                        className={`pb-3 text-sm font-semibold transition border-b-2 ${
+                        className={`pb-3 text-sm font-semibold transition-colors border-b-2 ${
                             activeTab === "signals"
                                 ? "border-primary text-primary"
                                 : "border-transparent text-muted-foreground hover:text-foreground"
@@ -308,7 +308,7 @@ export default function BotDeploymentMonitorPage() {
                     </button>
                     <button
                         onClick={() => setActiveTab("executions")}
-                        className={`pb-3 text-sm font-semibold transition border-b-2 ${
+                        className={`pb-3 text-sm font-semibold transition-colors border-b-2 ${
                             activeTab === "executions"
                                 ? "border-primary text-primary"
                                 : "border-transparent text-muted-foreground hover:text-foreground"
@@ -320,7 +320,7 @@ export default function BotDeploymentMonitorPage() {
 
                 {/* Tab: Logs */}
                 {activeTab === "logs" && (
-                    <div className="rounded-xl border border-border bg-card p-4 space-y-2">
+                    <div className="rounded-xl border border-border bg-card p-4 space-y-2 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         {logs.length === 0 ? (
                             <div className="py-8 text-center text-sm text-muted-foreground">
                                 No logs recorded yet.

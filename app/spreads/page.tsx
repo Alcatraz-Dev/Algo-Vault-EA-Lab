@@ -53,7 +53,7 @@ export default function SpreadMonitorPage() {
     }
 
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-md bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/80 transition">Sign In</Link></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-md bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/80 transition-colors">Sign In</Link></div></div>);
     }
 
     const symbols = data ? Object.entries(data).sort((a, b) => b[1].spreadPips - a[1].spreadPips) : [];
@@ -63,7 +63,7 @@ export default function SpreadMonitorPage() {
     return (
         <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
             <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition">
+                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
                     <ArrowLeft size={12} /> Back to Account
                 </Link>
 
@@ -76,12 +76,12 @@ export default function SpreadMonitorPage() {
                         <button
                             type="button"
                             onClick={() => setAutoRefresh((a) => !a)}
-                            className={cn("flex items-center gap-2 rounded-md border px-4 py-2.5 text-xs font-medium transition", autoRefresh ? "border-positive/30 bg-positive/10 text-positive-foreground" : "border-border bg-muted text-muted-foreground")}
+                            className={cn("flex items-center gap-2 rounded-md border px-4 py-2.5 text-xs font-medium transition-colors", autoRefresh ? "border-positive/30 bg-positive/10 text-positive" : "border-border bg-muted text-muted-foreground")}
                         >
                             {autoRefresh ? <Wifi size={13} /> : <WifiOff size={13} />}
                             {autoRefresh ? "Live (10s)" : "Paused"}
                         </button>
-                        <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-md border border-border bg-muted px-4 py-2.5 text-xs text-muted-foreground hover:bg-muted/30 transition disabled:opacity-50">
+                        <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-md border border-border bg-muted px-4 py-2.5 text-xs text-muted-foreground hover:bg-muted/30 transition-colors disabled:opacity-50">
                             <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                         </button>
                     </div>
@@ -89,11 +89,11 @@ export default function SpreadMonitorPage() {
 
                 {/* Stats */}
                 <div className="mb-6 grid grid-cols-3 gap-4" data-guide="stats">
-                    <div className="rounded-lg border border-border bg-muted/50 p-4">
+                    <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                         <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Avg Spread</p>
                         <p className="mt-1 text-xl font-bold font-numeric text-foreground">{avgSpread.toFixed(1)} pips</p>
                     </div>
-                    <div className="rounded-lg border border-border bg-muted/50 p-4">
+                    <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                         <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Instruments</p>
                         <p className="mt-1 text-xl font-bold font-numeric text-foreground">{symbols.length}</p>
                     </div>
@@ -134,7 +134,7 @@ export default function SpreadMonitorPage() {
 
                                         {/* Spread */}
                                         <div className="text-center">
-                                            <p className="text-micro uppercase text-muted-foreground">Spread</p>
+                                            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Spread</p>
                                             <p className={cn("mt-0.5 text-xl font-bold font-numeric", isWide ? "text-warning" : isNormal ? "text-positive" : "text-muted-foreground")}>
                                                 {info.spreadPips}
                                             </p>
@@ -143,7 +143,7 @@ export default function SpreadMonitorPage() {
 
                                         {/* 24h Change */}
                                         <div className="text-center">
-                                            <p className="text-micro uppercase text-muted-foreground">24h</p>
+                                            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">24h</p>
                                             <div className={cn("mt-0.5 flex items-center gap-1", info.change24h >= 0 ? "text-positive" : "text-negative")}>
                                                 {info.change24h > 0 ? <TrendingUp size={13} /> : info.change24h < 0 ? <TrendingDown size={13} /> : <Minus size={13} />}
                                                 <span className="font-numeric text-sm font-bold">{info.change24h >= 0 ? "+" : ""}{info.change24h}%</span>
@@ -152,7 +152,7 @@ export default function SpreadMonitorPage() {
 
                                         {/* High/Low */}
                                         <div className="hidden text-right sm:block">
-                                            <p className="text-micro uppercase text-muted-foreground">24h Range</p>
+                                            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">24h Range</p>
                                             <p className="mt-0.5 font-numeric text-xs text-muted-foreground">{info.high24h} — {info.low24h}</p>
                                         </div>
 

@@ -171,7 +171,7 @@ export default function ToolAlertsPage() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                     <Shield size={40} className="text-muted-foreground" />
                     <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
-                    <Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">
+                    <Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
                         Sign In
                     </Link>
                 </div>
@@ -192,7 +192,7 @@ export default function ToolAlertsPage() {
                 <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
             <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-muted-foreground transition">
+                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
                     <ArrowLeft size={12} /> Back to Account
                 </Link>
 
@@ -207,7 +207,7 @@ export default function ToolAlertsPage() {
                                 type="button"
                                 onClick={bulkDelete}
                                 disabled={deleting}
-                                className="flex items-center gap-2 rounded-lg border border-negative/20 bg-negative/10 px-4 py-2.5 text-xs font-semibold text-negative hover:bg-negative/20 transition disabled:opacity-50"
+                                className="flex items-center gap-2 rounded-lg border border-negative/20 bg-negative/10 px-4 py-2.5 text-xs font-semibold text-negative hover:bg-negative/20 transition-colors disabled:opacity-50"
                             >
                                 {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
                                 Delete ({selected.size})
@@ -217,7 +217,7 @@ export default function ToolAlertsPage() {
                             <button
                                 type="button"
                                 onClick={clearAll}
-                                className="flex items-center gap-2 rounded-lg border border-negative/20 bg-negative/10 px-4 py-2.5 text-xs font-semibold text-negative hover:bg-negative/20 transition"
+                                className="flex items-center gap-2 rounded-lg border border-negative/20 bg-negative/10 px-4 py-2.5 text-xs font-semibold text-negative hover:bg-negative/20 transition-colors"
                             >
                                 <Trash2 size={13} /> Clear all
                             </button>
@@ -227,7 +227,7 @@ export default function ToolAlertsPage() {
 
                 {/* Stats */}
                 <div className="mb-6 grid grid-cols-3 gap-4" data-guide="stats">
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
+                    <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                         <div className="flex items-center gap-2 mb-1">
                             <Bell size={13} className="text-primary" />
                             <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Total</span>
@@ -262,7 +262,7 @@ export default function ToolAlertsPage() {
                                   "rounded-lg px-4 py-2 text-xs font-medium transition-all",
                                     filter === f
                                         ? f === "active" ? "bg-positive/20 text-positive" : f === "expired" ? "bg-negative/20 text-negative" : "bg-primary text-foreground"
-                                        : "text-muted-foreground hover:text-muted-foreground hover:bg-muted"
+                                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
                                 )}
                             >
                                 {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -273,7 +273,7 @@ export default function ToolAlertsPage() {
                         <button
                             type="button"
                             onClick={selected.size === filtered.length ? deselectAll : selectAll}
-                            className="text-micro text-muted-foreground hover:text-foreground transition"
+                            className="text-micro text-muted-foreground hover:text-foreground transition-colors"
                         >
                             {selected.size === filtered.length ? "Deselect all" : "Select all"}
                         </button>

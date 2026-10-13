@@ -409,7 +409,7 @@ export default function ProductDetailsPage() {
 
                 <div className="mx-auto max-w-7xl px-6 py-12">
 
-                    <div className="h-8 w-32 animate-pulse rounded bg-muted/5" />
+                    <div className="h-8 w-32 animate-pulse rounded-lg bg-muted/5" />
 
                     <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_380px]">
 
@@ -448,7 +448,7 @@ export default function ProductDetailsPage() {
 
                     <Link
                         href="/marketplace"
-                        className="mt-6 inline-flex items-center gap-2 rounded-md bg-background px-5 py-3 text-sm font-medium text-foreground"
+                        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-background px-5 py-3 text-sm font-medium text-foreground"
                     >
                         <ArrowLeft size={16} />
                         Back to Marketplace
@@ -578,12 +578,12 @@ export default function ProductDetailsPage() {
 
                                         <div className="flex flex-wrap items-center gap-2">
 
-                                            <span className="rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground">
+                                            <span className="rounded-lg border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground">
                                                 {productTypeLabel}
                                             </span>
 
                                             {product.platform && (
-                                                <span className="rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground">
+                                                <span className="rounded-lg border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground">
                                                     {
                                                         product.platform
                                                     }
@@ -1017,7 +1017,7 @@ export default function ProductDetailsPage() {
                                 disabled={
                                     creatingOrder
                                 }
-                                className="mt-10 flex w-full items-center justify-center gap-2 rounded-md bg-primary px-5 py-3.5 text-sm font-semibold text-background transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="mt-10 flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3.5 text-sm font-semibold text-background transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                             >
 
                                 {isFree ? (

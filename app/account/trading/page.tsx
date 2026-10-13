@@ -761,7 +761,7 @@ export default function AccountTradingPage() {
                 title="Trading Terminal"
                 subtitle="Live account trading, charts & orders"
             >
-                <div className="mx-auto my-8 max-w-xl rounded-lg border border-border bg-card p-8 text-center shadow-lg">
+                <div className="mx-auto my-8 max-w-xl rounded-lg border border-border bg-card p-8 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-lg bg-warning/10 text-warning">
                         <Lock className="size-7" />
                     </div>
@@ -800,7 +800,7 @@ export default function AccountTradingPage() {
                 title="Trading Terminal"
                 subtitle="Live account trading, charts & orders"
             >
-                <div className="mx-auto my-8 max-w-xl rounded-lg border border-border bg-card p-8 text-center shadow-lg">
+                <div className="mx-auto my-8 max-w-xl rounded-lg border border-border bg-card p-8 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                         <Box className="size-7" />
                     </div>
@@ -832,7 +832,7 @@ export default function AccountTradingPage() {
                 title="Trading Terminal"
                 subtitle="Live account trading, charts & orders"
             >
-                <div className="mx-auto my-8 max-w-xl rounded-lg border border-border bg-card p-8 text-center shadow-lg">
+                <div className="mx-auto my-8 max-w-xl rounded-lg border border-border bg-card p-8 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                         <Monitor className="size-7" />
                     </div>
@@ -857,7 +857,7 @@ export default function AccountTradingPage() {
                 {/* Account & Connection Bar */}
                 <div className="grid gap-4 lg:grid-cols-4">
                     <div className="lg:col-span-3">
-                        <div className="rounded-lg border border-border bg-card p-4">
+                        <div className="rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="mb-4 flex items-center justify-between">
                                 <span className="text-xs font-medium text-muted-foreground">
                                     Active Account
@@ -886,7 +886,7 @@ export default function AccountTradingPage() {
                             />
                         </div>
                     </div>
-                    <div className="flex flex-col justify-between rounded-lg border border-border bg-card p-4">
+                    <div className="flex flex-col justify-between rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-medium text-muted-foreground">
                                 Gateway Sync
@@ -995,7 +995,7 @@ export default function AccountTradingPage() {
                     page, fed by live gateway accounting and the closed-trade
                     ledger. */}
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                    <div className="space-y-3 rounded-lg border border-border bg-card p-4">
+                    <div className="space-y-3 rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <LimitBar
                             label="Margin utilization"
                             usedPct={marginUtilPct ?? 0}
@@ -1043,7 +1043,7 @@ export default function AccountTradingPage() {
                         </div>
                     </div>
 
-                    <div className="space-y-3 rounded-lg border border-border bg-card p-4">
+                    <div className="space-y-3 rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <p className="text-xs font-medium text-muted-foreground">
                             Realized performance · live
                         </p>
@@ -1078,7 +1078,7 @@ export default function AccountTradingPage() {
                         </div>
                     </div>
 
-                    <div className="space-y-3 rounded-lg border border-border bg-card p-4">
+                    <div className="space-y-3 rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <p className="text-xs font-medium text-muted-foreground">
                             Open book
                         </p>
@@ -1155,7 +1155,7 @@ export default function AccountTradingPage() {
                 </div>
 
                 {/* Bottom Positions / Orders / History Tabs */}
-                <div className="rounded-lg border border-border bg-card shadow-md">
+                <div className="rounded-lg border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <div className="flex border-b border-border px-4 pt-3">
                         <div className="flex gap-2">
                             <button
@@ -1395,7 +1395,7 @@ function AccountSwitcher({
                         onClick={() => setOpen(false)}
                     />
                     <div
-                        className="absolute left-0 right-0 z-20 mt-1 overflow-auto rounded-lg border border-border bg-card p-2 shadow-xl"
+                        className="absolute left-0 right-0 z-20 mt-1 overflow-auto rounded-lg border border-border bg-card p-2 shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
                         role="listbox"
                     >
                         {accounts.map((acc) => (

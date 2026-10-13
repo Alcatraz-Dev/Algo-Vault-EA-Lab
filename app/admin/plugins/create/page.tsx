@@ -254,7 +254,7 @@ export default function AdminCreatePluginPage() {
                         </div>
                     </Field>
                     {pricingType !== "free" && (
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 gap-4">
                             <Field label="Price">
                                 <input
                                     type="number"
@@ -334,7 +334,7 @@ export default function AdminCreatePluginPage() {
                 <p className="mt-1 text-xs text-muted-foreground">
                     The runtime grants data access ONLY for permissions listed here.
                 </p>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {(Object.keys(PERMISSION_CATALOG) as PluginPermission[]).map((permission) => {
                         const enabled = permissions.includes(permission);
                         return (

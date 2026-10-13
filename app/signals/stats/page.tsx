@@ -433,7 +433,7 @@ export default function SignalStatsPage() {
                     <div>
                         <Link
                             href="/account"
-                            className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground"
+                            className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
                         >
                             <ArrowLeft size={16} />
                             Back to Account
@@ -515,7 +515,7 @@ export default function SignalStatsPage() {
                 </div>
 
                 {/* DAILY LIMIT INDICATOR */}
-                <div className="mt-6 rounded-lg border border-border/30 bg-card p-4" data-guide="daily-limit">
+                <div className="mt-6 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4" data-guide="daily-limit">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-card">

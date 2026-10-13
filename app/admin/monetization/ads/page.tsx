@@ -67,7 +67,7 @@ export default function AdminAdsPage() {
                 actions={<RefreshButton onRefresh={ads.refresh} loading={ads.loading} />}
             />
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 <input
                     aria-label="Search ads"
                     value={q}
@@ -107,7 +107,7 @@ export default function AdminAdsPage() {
                     }
                 />
             ) : (
-                <div className="overflow-x-auto rounded-lg border border-border">
+                <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider [&_td]:tabular-nums">
                     <Table className="min-w-[920px]">
                         <TableHeader>
                             <TableRow>
@@ -158,8 +158,8 @@ export default function AdminAdsPage() {
                                             "—"
                                         )}
                                     </TableCell>
-                                    <TableCell className="text-muted-foreground">{fmtNumber(a.impressions ?? 0)}</TableCell>
-                                    <TableCell className="text-muted-foreground">{fmtNumber(a.clicks ?? 0)}</TableCell>
+                                    <TableCell className="text-right font-numeric tabular-nums text-muted-foreground">{fmtNumber(a.impressions ?? 0)}</TableCell>
+                                    <TableCell className="text-right font-numeric tabular-nums text-muted-foreground">{fmtNumber(a.clicks ?? 0)}</TableCell>
                                     <TableCell>
                                         <GrowthStatusBadge kind="placement" value={a.active ? "ACTIVE" : "INACTIVE"} />
                                     </TableCell>
@@ -175,7 +175,7 @@ export default function AdminAdsPage() {
                 </div>
             )}
 
-            <div className="rounded-lg border border-border bg-card p-4">
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 <h2 className="mb-2 text-sm font-medium text-foreground">About this list</h2>
                 <p className="text-xs text-muted-foreground">
                     eCPM values are labelled estimates used for planning — they are never summed into confirmed revenue. Impressions and clicks are

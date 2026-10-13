@@ -77,7 +77,7 @@ function CalculatorGrid() {
 
     return (
         <div className="grid gap-4 lg:grid-cols-3">
-            <div className="rounded-lg border border-border bg-card p-5">
+            <div className="rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 <h3 className="flex items-center gap-2 font-semibold">
                     <Calculator size={16} className="text-primary" /> Risk Calculator
                 </h3>
@@ -157,7 +157,7 @@ function ProfitSplitCalculator() {
     const inputClass = "w-full rounded-lg border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none";
 
     return (
-        <div className="rounded-lg border border-border bg-card p-5">
+        <div className="rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h3 className="flex items-center gap-2 font-semibold">
                 <Zap size={16} className="text-primary" /> Profit Split Calculator
             </h3>
@@ -212,7 +212,7 @@ function SwapCalculator() {
     const inputClass = "w-full rounded-lg border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none";
 
     return (
-        <div className="rounded-lg border border-border bg-card p-5">
+        <div className="rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h3 className="flex items-center gap-2 font-semibold">
                 <Activity size={16} className="text-primary" /> Swap Calculator
             </h3>
@@ -270,7 +270,7 @@ function SpreadAnalyzer() {
     const inputClass = "w-full rounded-lg border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:outline-none";
 
     return (
-        <div className="rounded-lg border border-border bg-card p-5">
+        <div className="rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h3 className="flex items-center gap-2 font-semibold">
                 <LineChart size={16} className="text-primary" /> Spread Analyzer
             </h3>
@@ -400,7 +400,7 @@ function NotebookView() {
 
             {tab === "entries" ? (
                 <div className="mt-6 grid gap-4 lg:grid-cols-2">
-                    <div className="rounded-lg border border-border bg-card p-5">
+                    <div className="rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <h3 className="flex items-center gap-2 font-semibold"><Plus size={16} className="text-primary" /> New Entry</h3>
                         <form onSubmit={saveNote} className="mt-4 space-y-3">
                             <div><label className="mb-1 block text-xs font-medium text-muted-foreground">Title</label><input type="text" required placeholder="e.g. GBPUSD London breakout setup" value={title} onChange={(e) => setTitle(e.target.value)} className={inputClass} /></div>
@@ -420,7 +420,7 @@ function NotebookView() {
                             </button>
                         </form>
                     </div>
-                    <div className="rounded-lg border border-border bg-card p-5">
+                    <div className="rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <h3 className="flex items-center gap-2 font-semibold"><BookOpen size={16} className="text-primary" /> Your Entries <span className="ml-auto rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">{notes.length}</span></h3>
                         {notesLoading ? (
                             <div className="flex items-center gap-3 py-10 text-sm text-muted-foreground"><Loader2 size={16} className="animate-spin" /> Loading your notebook...</div>
@@ -551,7 +551,7 @@ export default function ToolsPage() {
                             >
                                 <Icon size={13} />
                                 {t.label}
-                                {t.pro && <span className="rounded bg-chart-3/20 px-1 py-0.5 text-micro font-bold text-chart-3">PRO</span>}
+                                {t.pro && <span className="rounded-lg bg-chart-3/20 px-1 py-0.5 text-micro font-bold text-chart-3">PRO</span>}
                             </button>
                         );
                     })}
@@ -580,7 +580,7 @@ export default function ToolsPage() {
                                     <Icon size={16} className={isActive ? "" : "text-muted-foreground"} />
                                     <span className="flex-1 text-left">{t.label}</span>
                                     {t.pro && (
-                                        <span className={`rounded px-1.5 py-0.5 text-micro font-bold ${
+                                        <span className={`rounded-lg px-1.5 py-0.5 text-micro font-bold ${
                                             isActive ? "bg-background/20 text-background" : "bg-chart-3/15 text-chart-3"
                                         }`}>
                                             PRO

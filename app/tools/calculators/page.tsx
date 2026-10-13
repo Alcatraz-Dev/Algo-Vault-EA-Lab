@@ -46,7 +46,7 @@ export default function TradingCalculators() {
             ]}
         >
             {/* Lite tabs (2 free calculators) */}
-            <div className="flex gap-2 rounded-lg border border-border bg-card p-1">
+            <div className="flex gap-2 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-1">
                 {([
                     { key: "position" as const, label: "Position Size", icon: Target },
                     { key: "pip" as const, label: "Pip Value", icon: Coins },
@@ -152,11 +152,11 @@ function PositionSizeCalc() {
     }, [accountBalance, riskPercent, entryPrice, stopLoss, takeProfit, instrument]);
 
     const inputClass =
-        "w-full rounded-md border border-border/40 bg-muted/40 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition";
+        "w-full rounded-md border border-border/40 bg-muted/40 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors";
 
     return (
         <div className="grid gap-6 lg:grid-cols-2">
-            <div className="rounded-lg border border-border bg-card p-5">
+            <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                 <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-foreground">
                     <Target size={15} className="text-primary" /> Trade Parameters
                 </h2>
@@ -194,7 +194,7 @@ function PositionSizeCalc() {
                 </div>
             </div>
 
-            <div className="rounded-lg border border-border bg-card p-5">
+            <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                 <h2 className="mb-4 text-sm font-semibold text-foreground">Result</h2>
                 {result ? (
                     <div className="space-y-3">
@@ -204,24 +204,24 @@ function PositionSizeCalc() {
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="rounded-lg bg-muted p-3">
-                                <p className="text-micro uppercase text-muted-foreground">Risk Amount</p>
+                                <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Risk Amount</p>
                                 <p className="font-numeric text-sm font-bold text-negative">${result.actualRisk}</p>
                             </div>
                             <div className="rounded-lg bg-muted p-3">
-                                <p className="text-micro uppercase text-muted-foreground">Risk:Reward</p>
+                                <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Risk:Reward</p>
                                 <p className={cn("font-numeric text-sm font-bold", result.riskReward >= 2 ? "text-positive" : result.riskReward >= 1 ? "text-warning" : "text-negative")}>1:{result.riskReward}</p>
                             </div>
                             <div className="rounded-lg bg-muted p-3">
-                                <p className="text-micro uppercase text-muted-foreground">Stop Distance</p>
+                                <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Stop Distance</p>
                                 <p className="font-numeric text-sm font-bold text-muted-foreground">{result.stopDistance}</p>
                             </div>
                             <div className="rounded-lg bg-muted p-3">
-                                <p className="text-micro uppercase text-muted-foreground">Pips to SL</p>
+                                <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Pips to SL</p>
                                 <p className="font-numeric text-sm font-bold text-muted-foreground">{result.pipDistance} pips</p>
                             </div>
                             {result.tpPips > 0 && (
                                 <div className="rounded-lg bg-muted p-3">
-                                    <p className="text-micro uppercase text-muted-foreground">Pips to TP</p>
+                                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Pips to TP</p>
                                     <p className="font-numeric text-sm font-bold text-positive">{result.tpPips} pips</p>
                                 </div>
                             )}
@@ -261,11 +261,11 @@ function PipValueCalc() {
     }, [instrument, lotSize, accountCurrency]);
 
     const inputClass =
-        "w-full rounded-md border border-border/40 bg-muted/40 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition";
+        "w-full rounded-md border border-border/40 bg-muted/40 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors";
 
     return (
         <div className="grid gap-6 lg:grid-cols-2">
-            <div className="rounded-lg border border-border bg-card p-5">
+            <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                 <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-foreground">
                     <Coins size={15} className="text-primary" /> Inputs
                 </h2>
@@ -289,7 +289,7 @@ function PipValueCalc() {
                                     type="button"
                                     onClick={() => setAccountCurrency(c)}
                                     className={cn(
-                                        "flex-1 rounded-md border px-3 py-2 text-xs font-medium transition",
+                                        "flex-1 rounded-md border px-3 py-2 text-xs font-medium transition-colors",
                                         accountCurrency === c
                                             ? "border-primary/40 bg-primary/10 text-primary"
                                             : "border-border bg-muted text-muted-foreground hover:text-foreground",
@@ -304,7 +304,7 @@ function PipValueCalc() {
                 </div>
             </div>
 
-            <div className="rounded-lg border border-border bg-card p-5">
+            <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                 <h2 className="mb-4 text-sm font-semibold text-foreground">Pip Math</h2>
                 {result ? (
                     <div className="space-y-3">
@@ -317,11 +317,11 @@ function PipValueCalc() {
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="rounded-lg bg-muted p-3">
-                                <p className="text-micro uppercase text-muted-foreground">Pip Size</p>
+                                <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Pip Size</p>
                                 <p className="font-numeric text-sm font-bold text-foreground">{result.pipSize}</p>
                             </div>
                             <div className="rounded-lg bg-muted p-3">
-                                <p className="text-micro uppercase text-muted-foreground">Contract Size</p>
+                                <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Contract Size</p>
                                 <p className="font-numeric text-sm font-bold text-foreground">{result.contractSize.toLocaleString()}</p>
                             </div>
                         </div>
@@ -348,7 +348,7 @@ function LockedCalcCard({
     return (
         <Link
             href={href}
-            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
+            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition-colors hover:border-primary/40 hover:bg-primary/[0.05]"
         >
             <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-foreground">{title}</h4>
@@ -358,7 +358,7 @@ function LockedCalcCard({
                 </span>
             </div>
             <p className="text-xs text-muted-foreground">{description}</p>
-            <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary transition group-hover:gap-1.5">
+            <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary transition-colors group-hover:gap-1.5">
                 <Sparkles className="size-3" />
                 Unlock
                 <ArrowUpRight className="size-3" />

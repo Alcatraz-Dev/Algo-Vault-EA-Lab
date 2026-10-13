@@ -14,7 +14,7 @@ export default function StrategyCertificationPage() {
         <p className="text-muted-foreground">Transparent, methodology-based verification — not a profit guarantee.</p>
       </header>
 
-      <section className="border rounded-lg p-6 bg-card space-y-6">
+      <section className="border-border rounded-lg p-6 bg-card space-y-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
         <div className="flex items-center gap-3">
           <div className="px-3 py-1 rounded-full bg-warning text-warning text-xs font-bold">CERTIFIED</div>
           <span className="text-xs text-muted-foreground">Verified by AlgoVault — 2026-01-15 — Expires 2026-04-15</span>

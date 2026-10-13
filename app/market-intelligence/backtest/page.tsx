@@ -9,7 +9,7 @@ export default function MarketIntelligenceBacktestPage() {
   const nav = useMemo(() => APP_NAV.map((g) => ({ ...g })), []);
   return (
     <AppShell navGroups={nav} title="Market Intelligence — Backtest Terminal" subtitle="Historical Replay · Execution · Analytics · Replay" maxWidth="max-w-[1600px]">
-      <div className="rounded-lg border border-border bg-card p-6">
+      <div className="rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <h1 className="text-base font-semibold tracking-tight">Backtest Terminal</h1>
@@ -22,7 +22,7 @@ export default function MarketIntelligenceBacktestPage() {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-4 mb-6">
-          <div className="rounded-lg border border-border/20 bg-background p-4">
+          <div className="rounded-xl border border-border/20 bg-background p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h3 className="font-bold text-sm mb-3">Performance Overview</h3>
             <div className="grid grid-cols-2 gap-3 text-xs">
               <MetricCard label="Net P&L" value="—" sub="Historical" />
@@ -34,7 +34,7 @@ export default function MarketIntelligenceBacktestPage() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-border/20 bg-background p-4">
+          <div className="rounded-xl border border-border/20 bg-background p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h3 className="font-bold text-sm mb-3">Execution Model</h3>
             <ul className="text-xs space-y-1 text-muted-foreground">
               <li>Next bar open (default)</li>
@@ -45,7 +45,7 @@ export default function MarketIntelligenceBacktestPage() {
             </ul>
           </div>
 
-          <div className="rounded-lg border border-border/20 bg-background p-4">
+          <div className="rounded-xl border border-border/20 bg-background p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h3 className="font-bold text-sm mb-3">Data Quality</h3>
             <div className="text-xs text-muted-foreground space-y-2">
               <div className="flex justify-between"><span>Source</span><span className="font-semibold">Dataset</span></div>
@@ -70,12 +70,12 @@ export default function MarketIntelligenceBacktestPage() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-border/20 bg-background p-6">
+        <div className="rounded-xl border border-border/20 bg-background p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <h2 className="text-base font-semibold mb-4">Trade Journal</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left border-collapse">
               <thead>
-                <tr className="border-b border-border/30 text-muted-foreground uppercase tracking-wider">
+                <tr className="border-b border-border/30 text-muted-foreground text-[11px] uppercase tracking-wider">
                   <th className="py-2 px-3">#</th>
                   <th className="py-2 px-3">Time</th>
                   <th className="py-2 px-3">Side</th>
@@ -98,9 +98,9 @@ export default function MarketIntelligenceBacktestPage() {
         </div>
 
         <div className="mt-4 flex gap-2 text-xs">
-          <a href="/advanced-analysis" className="rounded-md border border-border/30 px-3 py-1 hover:bg-muted/20">Open in Advanced Analysis</a>
-          <a href="/market-intelligence/research" className="rounded-md border border-border/30 px-3 py-1 hover:bg-muted/20">Continue Research</a>
-          <a href="/trading-studio" className="rounded-md border border-border/30 px-3 py-1 hover:bg-muted/20">Trading Studio</a>
+          <a href="/advanced-analysis" className="rounded-md border border-border/30 px-3 py-1 hover:bg-muted/20 transition-colors">Open in Advanced Analysis</a>
+          <a href="/market-intelligence/research" className="rounded-md border border-border/30 px-3 py-1 hover:bg-muted/20 transition-colors">Continue Research</a>
+          <a href="/strategy-lab" className="rounded-md border border-border/30 px-3 py-1 hover:bg-muted/20 transition-colors">Trading Studio</a>
         </div>
       </div>
     </AppShell>
@@ -109,7 +109,7 @@ export default function MarketIntelligenceBacktestPage() {
 
 function MetricCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="rounded-lg border border-border/20 bg-muted/30 p-3">
+    <div className="rounded-xl border border-border/20 bg-muted/30 p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
       <div className="text-micro uppercase tracking-wider text-muted-foreground">{label}</div>
       <div className="text-xl font-black mt-0.5 font-numeric">{value}</div>
       <div className="text-micro text-muted-foreground">{sub}</div>

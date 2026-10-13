@@ -64,7 +64,7 @@ export default function PublicDocsPage() {
                   <Link
                     key={doc.slug}
                     href={`/docs/${doc.slug}`}
-                    className="group block p-6 bg-card/60 hover:bg-card rounded-lg border border-muted hover:border-warning/50 transition-all duration-200"
+                    className="group block p-6 bg-card hover:bg-card rounded-lg border border-muted hover:border-warning/50 transition-all duration-200 shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
                   >
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="text-xl font-semibold text-foreground group-hover:text-warning transition-colors">

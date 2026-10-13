@@ -8,44 +8,44 @@ export default function BusinessOperationsPage() {
   return (
     <AdminShell title="Business Operations" subtitle="Internal operational visibility — read-only aggregation">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="rounded-lg border border-border bg-card p-4">
+        <div className="rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <div className="text-xs text-muted-foreground">Business Events (Processed)</div>
           <div className="font-semibold">Check /admin/business-events</div>
           <div className="text-xs text-muted-foreground mt-1">Event layer status: Active v1</div>
         </div>
-        <div className="rounded-lg border border-border bg-card p-4">
+        <div className="rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <div className="text-xs text-muted-foreground">ERPNext Adapter</div>
           <div className="font-semibold">Disabled by default</div>
           <div className="text-xs text-muted-foreground mt-1">Enable through deployment config only</div>
         </div>
-        <div className="rounded-lg border border-border bg-card p-4">
+        <div className="rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <div className="text-xs text-muted-foreground">Orders</div>
           <div className="font-semibold">Available via existing admin</div>
         </div>
-        <div className="rounded-lg border border-border bg-card p-4">
+        <div className="rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <div className="text-xs text-muted-foreground">Payments</div>
           <div className="font-semibold">Stripe authoritative</div>
         </div>
       </div>
 
-      <div className="rounded-lg border border-border bg-card p-6 mb-6">
+      <div className="rounded-lg border border-border bg-card p-6 mb-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
         <h3 className="font-semibold mb-4">Operations Navigation</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link href="/admin/orders" className="group block rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50">
+          <Link href="/admin/orders" className="group block rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <div className="flex items-center gap-3 mb-2">
               <ShieldCheck className="w-5 h-5 text-muted-foreground" />
               <span className="font-semibold">Orders</span>
             </div>
             <p className="text-sm text-muted-foreground">Marketplace orders, cancellations, refunds. Source of truth.</p>
           </Link>
-          <Link href="/admin/business-events" className="group block rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50">
+          <Link href="/admin/business-events" className="group block rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <div className="flex items-center gap-3 mb-2">
               <Database className="w-5 h-5 text-muted-foreground" />
               <span className="font-semibold">Business Events</span>
             </div>
             <p className="text-sm text-muted-foreground">Canonical event timeline, retry states, adapter status.</p>
           </Link>
-          <Link href="/admin/erpnext" className="group block rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50">
+          <Link href="/admin/erpnext" className="group block rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <div className="flex items-center gap-3 mb-2">
               <Server className="w-5 h-5 text-muted-foreground" />
               <span className="font-semibold">ERPNext</span>
@@ -55,7 +55,7 @@ export default function BusinessOperationsPage() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-border bg-card p-6 mb-6">
+      <div className="rounded-lg border border-border bg-card p-6 mb-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
         <h3 className="font-semibold mb-2">Source of Truth</h3>
         <ul className="text-sm text-muted-foreground space-y-1">
           <li>Firebase Auth → Authentication (authoritative)</li>
@@ -67,7 +67,7 @@ export default function BusinessOperationsPage() {
         </ul>
       </div>
 
-      <div className="rounded-lg border border-border bg-card p-6">
+      <div className="rounded-lg border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
         <h3 className="font-semibold mb-2">Health & Isolation</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="p-3 bg-positive-muted rounded-lg border border-positive/30">

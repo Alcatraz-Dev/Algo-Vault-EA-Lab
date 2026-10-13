@@ -100,7 +100,7 @@ export default function SocialPage() {
     }
 
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><SiteNavbar /><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><a href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Sign In</a></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><SiteNavbar /><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><a href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">Sign In</a></div></div>);
     }
 
     return (
@@ -112,21 +112,21 @@ export default function SocialPage() {
                         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Social Feed</h1>
                         <p className="mt-1 text-sm text-muted-foreground">Share ideas, analysis, and trade setups</p>
                     </div>
-                    <button type="button" onClick={() => setShowCreate(true)} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition">
+                    <button type="button" onClick={() => setShowCreate(true)} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
                         <Plus size={14} /> New Post
                     </button>
                 </div>
 
                 {showCreate && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-sm">
-                        <div className="w-full max-w-lg rounded-lg border border-border/40 bg-background p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
+                        <div className="w-full max-w-lg rounded-lg border border-border/40 bg-background p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)] max-h-[85vh] overflow-y-auto">
                             <h2 className="mb-4 text-lg font-semibold text-foreground">New Post</h2>
                             <div className="space-y-3">
                                 <div className="flex gap-2">
                                     {(Object.entries(TYPE_CONFIG) as [Post["type"], typeof TYPE_CONFIG.idea][]).map(([key, cfg]) => {
                                         const Icon = cfg.icon;
                                         return (
-                                            <button key={key} type="button" onClick={() => setFormType(key)} className={cn("flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs transition", formType === key ? `border-primary/40 ${cfg.bg} ${cfg.color}` : "border-border/30 bg-muted/50 text-muted-foreground")}>
+                                            <button key={key} type="button" onClick={() => setFormType(key)} className={cn("flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs transition-colors", formType === key ? `border-primary/40 ${cfg.bg} ${cfg.color}` : "border-border/30 bg-muted/50 text-muted-foreground")}>
                                                 <Icon size={13} /> {cfg.label}
                                             </button>
                                         );
@@ -150,7 +150,7 @@ export default function SocialPage() {
                                 <input type="text" value={formTags} onChange={(e) => setFormTags(e.target.value)} placeholder="Tags (comma-separated)" className="w-full rounded-lg border border-border/40 bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" />
                                 <div className="flex gap-3">
                                     <button type="button" onClick={() => setShowCreate(false)} className="flex-1 rounded-lg border border-border/30 px-4 py-2.5 text-sm text-muted-foreground hover:bg-muted">Cancel</button>
-                                    <button type="button" onClick={createPost} disabled={creating || !formTitle || !formContent} className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50">
+                                    <button type="button" onClick={createPost} disabled={creating || !formTitle || !formContent} className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
                                         {creating ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} Post
                                     </button>
                                 </div>
@@ -172,7 +172,7 @@ export default function SocialPage() {
                             const config = TYPE_CONFIG[post.type];
                             const Icon = config.icon;
                             return (
-                                <div key={post.id} className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                                <div key={post.id} className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                                     <div className="flex items-center gap-3 mb-3">
                                         <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary">
                                             {post.displayName.charAt(0).toUpperCase()}
@@ -187,7 +187,7 @@ export default function SocialPage() {
                                     </div>
                                     {post.symbol && (
                                         <div className="mb-3 flex items-center gap-2">
-                                            <span className="rounded bg-muted/30 px-2 py-0.5 font-numeric text-xs text-foreground">{post.symbol}</span>
+                                            <span className="rounded-lg bg-muted/30 px-2 py-0.5 font-numeric text-xs text-foreground">{post.symbol}</span>
                                             <span className={cn("text-xs font-bold", post.direction === "BUY" ? "text-positive" : "text-negative")}>{post.direction}</span>
                                             {post.entryPrice && <span className="text-micro text-muted-foreground">@ {post.entryPrice}</span>}
                                             {post.stopLoss && <span className="text-micro text-negative/60">SL: {post.stopLoss}</span>}
@@ -198,11 +198,11 @@ export default function SocialPage() {
                                     <p className="text-sm text-muted-foreground whitespace-pre-wrap">{post.content}</p>
                                     {post.tags && post.tags.length > 0 && (
                                         <div className="mt-3 flex flex-wrap gap-1.5">
-                                            {post.tags.map((tag) => <span key={tag} className="rounded bg-muted px-2 py-0.5 text-micro text-muted-foreground">#{tag}</span>)}
+                                            {post.tags.map((tag) => <span key={tag} className="rounded-lg bg-muted px-2 py-0.5 text-micro text-muted-foreground">#{tag}</span>)}
                                         </div>
                                     )}
                                     <div className="mt-3 flex items-center gap-4 border-t border-border/20 pt-3">
-                                        <button type="button" onClick={() => toggleLike(post.id)} className={cn("flex items-center gap-1.5 text-xs transition", post.likedByUser ? "text-negative" : "text-muted-foreground hover:text-negative")}>
+                                        <button type="button" onClick={() => toggleLike(post.id)} className={cn("flex items-center gap-1.5 text-xs transition-colors", post.likedByUser ? "text-negative" : "text-muted-foreground hover:text-negative")}>
                                             <Heart size={14} fill={post.likedByUser ? "currentColor" : "none"} /> {post.likes}
                                         </button>
                                         <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><MessageCircle size={14} /> {post.comments}</span>

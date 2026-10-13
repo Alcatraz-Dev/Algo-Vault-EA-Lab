@@ -91,7 +91,7 @@ export default function AdminAIHealthPage() {
                     {report.gatewayImpaired && <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive-muted p-4"><p className="text-xs font-medium text-destructive-foreground">Gateway impaired: no provider is ready to serve.</p></div>}
                     <div className="space-y-3">
                         {report.providers.map((p) => (
-                            <div key={p.provider} className="rounded-lg border border-border/30 bg-muted/5 p-4">
+                            <div key={p.provider} className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                     <div className="flex items-center gap-2">
                                         <p className="text-xs font-medium">{p.name}</p>
@@ -123,5 +123,5 @@ function Metric({ label, value, tone }: { label: string; value: string; tone?: S
         tone === "negative" ? "text-destructive-foreground"
             : tone === "warning" ? "text-warning-foreground"
                 : "";
-    return <div className="rounded-lg border border-border/30 bg-muted/50 p-5"><p className="text-xs text-muted-foreground">{label}</p><p className={`mt-2 text-xl font-semibold ${toneClass}`}>{value}</p></div>;
+    return <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]"><p className="text-xs text-muted-foreground">{label}</p><p className={`mt-2 text-xl font-semibold ${toneClass}`}>{value}</p></div>;
 }

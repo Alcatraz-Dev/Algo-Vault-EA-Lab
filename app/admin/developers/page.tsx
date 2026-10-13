@@ -429,28 +429,28 @@ export default function AdminDevelopersPage() {
                         <table className="w-full min-w-[1000px] text-sm">
                             <thead>
                                 <tr className="border-b border-border text-xs uppercase tracking-wider text-muted-foreground">
-                                    <th className="px-5 py-4 text-left">
+                                    <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">
                                         Developer
                                     </th>
-                                    <th className="px-5 py-4 text-left">
+                                    <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">
                                         Status
                                     </th>
-                                    <th className="px-5 py-4 text-left">
+                                    <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">
                                         Stripe Account
                                     </th>
-                                    <th className="px-5 py-4 text-left">
+                                    <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">
                                         Plan
                                     </th>
-                                    <th className="px-5 py-4 text-left">
+                                    <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">
                                         Requirements
                                     </th>
-                                    <th className="px-5 py-4 text-left">
+                                    <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">
                                         Last Update
                                     </th>
-                                    <th className="px-5 py-4 text-left">
+                                    <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">
                                         Onboarded
                                     </th>
-                                    <th className="px-5 py-4 text-right">
+                                    <th className="px-5 py-4 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">
                                         Actions
                                     </th>
                                 </tr>
@@ -494,7 +494,7 @@ export default function AdminDevelopersPage() {
 
                                             <td className="px-5 py-4">
                                                 <span
-                                                    className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${meta.bg} ${meta.border} ${meta.text}`}
+                                                    className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-numeric font-medium ${meta.bg} ${meta.border} ${meta.text}`}
                                                 >
                                                     <span
                                                         className={`h-1.5 w-1.5 rounded-full ${meta.dot}`}

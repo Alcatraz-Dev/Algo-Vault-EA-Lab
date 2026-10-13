@@ -110,7 +110,7 @@ export default function AdminSettingsPage() {
                 <button
                     onClick={save}
                     disabled={saving}
-                    className="flex shrink-0 items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/80 disabled:opacity-50"
+                    className="flex shrink-0 items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/80 disabled:opacity-50"
                 >
                     {saving ? <RefreshCw size={15} className="animate-spin" /> : <Save size={15} />}
                     {saved ? "Saved!" : "Save Changes"}
@@ -159,7 +159,7 @@ export default function AdminSettingsPage() {
                                             <button
                                                 onClick={() => fileInputRef.current?.click()}
                                                 disabled={uploading}
-                                                className="inline-flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted/70 disabled:opacity-50"
+                                                className="inline-flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted/70 disabled:opacity-50"
                                             >
                                                 {uploading ? <RefreshCw size={13} className="animate-spin" /> : <Upload size={13} />}
                                                 {settings.siteLogo ? "Change logo" : "Upload logo"}
@@ -174,7 +174,7 @@ export default function AdminSettingsPage() {
                                         value={settings.siteName || ""}
                                         onChange={e => set("siteName", e.target.value)}
                                         placeholder="AlgoVault"
-                                        className="w-full rounded-md border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-ring"
+                                        className="w-full rounded-lg border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-ring"
                                     />
                                 </Field>
                                 <Field label="Tagline">
@@ -183,7 +183,7 @@ export default function AdminSettingsPage() {
                                         value={settings.siteTagline || ""}
                                         onChange={e => set("siteTagline", e.target.value)}
                                         placeholder="Automated trading tools for serious traders"
-                                        className="w-full rounded-md border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-ring"
+                                        className="w-full rounded-lg border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-ring"
                                     />
                                 </Field>
                                 <Field label="Support Email">
@@ -193,7 +193,7 @@ export default function AdminSettingsPage() {
                                         onChange={e => set("supportEmail", e.target.value)}
                                         placeholder="support@algovault.io"
                                         suppressHydrationWarning
-                                        className="w-full rounded-md border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-ring"
+                                        className="w-full rounded-lg border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-ring"
                                     />
                                 </Field>
                             </Section>
@@ -249,7 +249,7 @@ export default function AdminSettingsPage() {
                                         step="0.1"
                                         value={settings.commissionRate ?? 20}
                                         onChange={e => set("commissionRate", Number(e.target.value))}
-                                        className="w-32 rounded-md border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-ring"
+                                        className="w-32 rounded-lg border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-ring"
                                     />
                                 </Field>
                                 <Field label="Min Withdrawal (USD)">
@@ -259,7 +259,7 @@ export default function AdminSettingsPage() {
                                         step="1"
                                         value={settings.minWithdrawal ?? 50}
                                         onChange={e => set("minWithdrawal", Number(e.target.value))}
-                                        className="w-32 rounded-md border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-ring"
+                                        className="w-32 rounded-lg border border-border bg-muted px-3.5 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-ring"
                                     />
                                 </Field>
                             </Section>
@@ -277,7 +277,7 @@ export default function AdminSettingsPage() {
                             <button
                                 onClick={save}
                                 disabled={saving}
-                                className="flex items-center gap-2 rounded-md bg-primary px-6 py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/80 disabled:opacity-50"
+                                className="flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/80 disabled:opacity-50"
                             >
                                 {saving ? <RefreshCw size={15} className="animate-spin" /> : <Save size={15} />}
                                 {saved ? "✓ Saved!" : "Save All Settings"}
@@ -290,7 +290,7 @@ export default function AdminSettingsPage() {
 
 function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
     return (
-        <div className="rounded-lg border border-border bg-card p-6">
+        <div className="rounded-lg border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <div className="flex items-center gap-2 mb-5 pb-4 border-b border-border">
                 <span className="text-muted-foreground">{icon}</span>
                 <h2 className="font-semibold text-foreground">{title}</h2>
@@ -321,7 +321,7 @@ function ToggleField({ label, desc, value, onChange, danger }: { label: string; 
                 onClick={() => onChange(!value)}
                 className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${value ? (danger ? "bg-destructive" : "bg-primary") : "bg-muted-foreground/30"}`}
             >
-                <div className={`absolute top-1 h-4 w-4 rounded-full bg-foreground shadow transition-transform ${value ? "translate-x-6" : "translate-x-1"}`} />
+                <div className={`absolute top-1 h-4 w-4 rounded-full bg-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-transform ${value ? "translate-x-6" : "translate-x-1"}`} />
             </button>
         </div>
     );

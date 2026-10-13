@@ -239,7 +239,7 @@ export default function DeveloperSubscription() {
  <div className="flex min-h-screen flex-col bg-background">
  <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
  <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-muted-foreground transition"><ArrowLeft size={12} /> Back to Account</Link>
- <div className="rounded-lg border border-warning/20 bg-warning/[0.04] p-8 text-center">
+ <div className="rounded-xl border border-warning/20 bg-warning/[0.04] p-8 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <Code size={40} className="mx-auto text-warning" />
  <h2 className="mt-4 text-xl font-bold text-foreground">Become a Developer</h2>
  <p className="mt-2 text-sm text-muted-foreground">
@@ -273,7 +273,7 @@ export default function DeveloperSubscription() {
 
  {/* Current Plan Status */}
  {subscription && (
- <div className="mb-6 rounded-lg border border-border/30 bg-muted/50 p-5">
+ <div className="mb-6 rounded-xl border border-border/30 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-4">
                                           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
@@ -326,7 +326,7 @@ export default function DeveloperSubscription() {
  <div
  key={plan.id}
  className={cn(
- "relative rounded-lg border p-6 transition-all",
+ "relative rounded-xl border p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-all",
  plan.highlighted
  ? "border-primary/40 bg-primary/[0.04] "
  : "border-border/30 bg-muted/50",
@@ -366,7 +366,7 @@ export default function DeveloperSubscription() {
  onClick={() => subscribe(plan.id)}
  disabled={isActive || subscribing === plan.id || (subLoading)}
  className={cn(
-                                                "flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition disabled:opacity-50",
+                                                "flex w-full min-h-[44px] items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition disabled:opacity-50",
  plan.highlighted
  ? "bg-primary text-primary-foreground hover:bg-primary/90"
  : "bg-muted/30 text-foreground hover:bg-muted/20"
@@ -384,7 +384,7 @@ export default function DeveloperSubscription() {
  })}
  </div>
 
- <div className="mt-8 rounded-lg border border-border/30 bg-muted/50 p-6">
+ <div className="mt-8 rounded-xl border border-border/30 bg-muted/50 p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <h3 className="mb-4 text-sm font-semibold text-foreground">What are platform fees?</h3>
  <p className="text-xs text-muted-foreground leading-relaxed">
  Platform fees are charged on each sale you make. For example, with the Starter plan at 5% fee, if you sell a product for $100, you receive $95 and the platform keeps $5. Higher-tier plans reduce or eliminate this fee.

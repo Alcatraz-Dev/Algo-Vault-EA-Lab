@@ -192,7 +192,7 @@ export default function AdminCampaignsPage() {
 
             {notice && <NoticeBanner variant={notice.kind === "ok" ? "success" : "error"}>{notice.text}</NoticeBanner>}
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 <div className="relative min-w-52 flex-1 sm:max-w-xs">
                     <Search size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input
@@ -261,7 +261,7 @@ export default function AdminCampaignsPage() {
                     }
                 />
             ) : (
-                <div className="overflow-hidden rounded-lg border border-border">
+                <div className="overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider [&_td]:tabular-nums">
                     <Table className="min-w-[880px]">
                         <TableHeader>
                             <TableRow>
@@ -305,7 +305,7 @@ export default function AdminCampaignsPage() {
                                     <TableCell>
                                         {c.budget ? (
                                             <div className="flex flex-col gap-1">
-                                                <span className="text-sm font-medium text-foreground">{fmtCurrency(c.budget)}</span>
+                                                <span className="font-numeric text-sm font-medium tabular-nums text-foreground">{fmtCurrency(c.budget)}</span>
                                                 {c.spent !== undefined && (
                                                     <>
                                                         <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
@@ -371,8 +371,8 @@ export default function AdminCampaignsPage() {
                 </div>
             )}
 
-            <div className="rounded-lg border border-border bg-card p-4">
-                <h2 className="mb-2 text-sm font-medium text-foreground">What status changes do</h2>
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                <h2 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-foreground">What status changes do</h2>
                 <p className="text-xs text-muted-foreground">
                     <b>Pause</b> stops the campaign from being picked up by the growth engine; <b>Resume</b> sets it back to active;{" "}
                     <b>Archive</b> closes it permanently. Every action is recorded server-side with your identity in the audit trail.

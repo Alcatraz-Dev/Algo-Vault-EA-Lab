@@ -380,7 +380,7 @@ export default function AdminUserDetailsPage() {
                         )}
 
                         {/* Profile */}
-                        <div className="rounded-lg border border-border bg-muted/30 p-6">
+                        <div className="rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
 
                             <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
 
@@ -626,7 +626,7 @@ export default function AdminUserDetailsPage() {
                         </div>
 
                         {/* Orders */}
-                        <div className="mt-8 rounded-lg border border-border bg-muted/30">
+                        <div className="mt-8 overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider [&_td]:tabular-nums">
 
                             <div className="border-b border-border p-5">
 
@@ -766,7 +766,7 @@ export default function AdminUserDetailsPage() {
                         </div>
 
                         {/* Licenses */}
-                        <div className="mt-6 rounded-lg border border-border bg-muted/30">
+                        <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
 
                             <div className="border-b border-border p-5">
 
@@ -897,17 +897,17 @@ function Metric({
     value: string | number;
 }) {
     return (
-        <div className="rounded-lg border border-border bg-muted/30 p-5">
+        <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
 
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/50">
                 {icon}
             </div>
 
-            <p className="mt-4 text-sm text-muted-foreground">
+            <p className="mt-4 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                 {label}
             </p>
 
-            <p className="mt-1 text-2xl font-semibold">
+            <p className="mt-1 font-numeric text-2xl font-semibold tabular-nums">
                 {value}
             </p>
 

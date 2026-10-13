@@ -295,7 +295,7 @@ export default function AvScriptEditorPage() {
                 {/* Editor & Diagnostics Split View */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 min-h-[600px]">
                     {/* Left: Code Editor */}
-                    <div className="lg:col-span-7 flex flex-col rounded-xl border border-border bg-card overflow-hidden shadow-sm">
+                    <div className="lg:col-span-7 flex flex-col rounded-xl border border-border bg-card overflow-hidden shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="px-4 py-2.5 bg-muted/40 border-b border-border flex items-center justify-between text-xs font-mono text-muted-foreground">
                             <span>AvScript Source Code</span>
                             <span>DSL v1.0</span>
@@ -313,7 +313,7 @@ export default function AvScriptEditorPage() {
                     {/* Right: Compiler Output & Canonical Strategy View */}
                     <div className="lg:col-span-5 flex flex-col space-y-4">
                         {/* Diagnostics Banner */}
-                        <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+                        <div className="rounded-xl border border-border bg-card p-4 space-y-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                     Compiler Status
@@ -361,7 +361,7 @@ export default function AvScriptEditorPage() {
 
                         {/* Compiled Canonical Strategy Details */}
                         {compiledStrategy && (
-                            <div className="rounded-xl border border-border bg-card p-4 space-y-4 flex-1">
+                            <div className="rounded-xl border border-border bg-card p-4 space-y-4 flex-1 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                 <div className="flex items-center justify-between border-b border-border pb-2">
                                     <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                         Canonical Strategy Preview
@@ -416,7 +416,7 @@ export default function AvScriptEditorPage() {
                 {/* Backtest Results Modal */}
                 {backtestModalOpen && backtestResult && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto">
-                        <div className="bg-card border border-border rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200 my-8 max-h-[90vh] flex flex-col">
+                        <div className="bg-card border border-border rounded-xl w-full max-w-3xl p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200 my-8 max-h-[90vh] flex flex-col">
                             <div className="flex items-center justify-between pb-3 border-b border-border">
                                 <div className="flex items-center gap-2">
                                     <BarChart3 className="h-5 w-5 text-emerald-400" />
@@ -557,10 +557,10 @@ export default function AvScriptEditorPage() {
                                 </div>
                             </div>
 
-                            <div className="pt-3 border-t border-border flex justify-end">
+                            <div className="pt-3 border-t border-border flex items-center justify-end">
                                 <button
                                     onClick={() => setBacktestModalOpen(false)}
-                                    className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90"
+                                    className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold transition-colors hover:bg-primary/90"
                                 >
                                     Close Report
                                 </button>

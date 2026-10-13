@@ -618,7 +618,7 @@ export default function SetFilesPage() {
                             </div>
 
                             {/* Upload form */}
-                            <form onSubmit={handlePublishSetFile} className="space-y-3">
+                            <form onSubmit={handlePublishSetFile} className="space-y-4">
                                 <div>
                                     <label className="mb-1 block text-xs font-medium text-muted-foreground">Product</label>
                                     <select
@@ -645,7 +645,7 @@ export default function SetFilesPage() {
                                         className="w-full rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-foreground/40 focus:outline-none"
                                     />
                                 </div>
-                                <div className="grid grid-cols-3 gap-3">
+                                <div className="grid grid-cols-3 gap-4">
                                     <div>
                                         <label className="mb-1 block text-xs font-medium text-muted-foreground">Pair</label>
                                         <input

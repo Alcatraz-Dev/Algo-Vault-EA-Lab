@@ -473,7 +473,7 @@ export default function VisualBuilderPage() {
                 </div>
 
                 {/* Node Palette Bar */}
-                <div className="flex flex-wrap items-center gap-2 p-2.5 rounded-xl border border-border bg-card/60 text-xs">
+                <div className="flex flex-wrap items-center gap-2 p-2.5 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] text-xs">
                     <span className="font-semibold text-muted-foreground mr-1">Add Nodes:</span>
                     <button
                         onClick={() => addNode("indicator_ema", "indicator_ema", { period: 20 })}
@@ -527,7 +527,7 @@ export default function VisualBuilderPage() {
                 {/* Main Canvas & Inspector Split */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 h-[620px]">
                     {/* ReactFlow Canvas */}
-                    <div className="lg:col-span-8 rounded-xl border border-border bg-card overflow-hidden relative shadow-inner">
+                    <div className="lg:col-span-8 rounded-xl border border-border bg-card overflow-hidden relative shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <ReactFlow
                             nodes={nodes}
                             edges={edges}
@@ -545,7 +545,7 @@ export default function VisualBuilderPage() {
 
                     {/* Diagnostics & Compiled Output */}
                     <div className="lg:col-span-4 flex flex-col space-y-4 overflow-y-auto">
-                        <div className="p-4 rounded-xl border border-border bg-card space-y-3">
+                        <div className="p-4 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] space-y-3">
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                     Graph Compiler
@@ -588,7 +588,7 @@ export default function VisualBuilderPage() {
                         </div>
 
                         {compiledStrategy && (
-                            <div className="p-4 rounded-xl border border-border bg-card space-y-3 flex-1 text-xs">
+                            <div className="p-4 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] space-y-3 flex-1 text-xs">
                                 <div className="flex items-center justify-between border-b border-border pb-2">
                                     <span className="font-semibold text-muted-foreground uppercase text-[11px]">
                                         Compiled Strategy
@@ -636,7 +636,7 @@ export default function VisualBuilderPage() {
                 {/* Backtest Results Modal */}
                 {backtestModalOpen && backtestResult && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto">
-                        <div className="bg-card border border-border rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200 my-8 max-h-[90vh] flex flex-col">
+                        <div className="bg-card border border-border rounded-xl w-full max-w-3xl p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200 my-8 max-h-[90vh] flex flex-col">
                             <div className="flex items-center justify-between pb-3 border-b border-border">
                                 <div className="flex items-center gap-2">
                                     <BarChart3 className="h-5 w-5 text-emerald-400" />
@@ -777,10 +777,10 @@ export default function VisualBuilderPage() {
                                 </div>
                             </div>
 
-                            <div className="pt-3 border-t border-border flex justify-end">
+                            <div className="pt-3 border-t border-border flex items-center justify-end">
                                 <button
                                     onClick={() => setBacktestModalOpen(false)}
-                                    className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90"
+                                    className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold transition-colors hover:bg-primary/90"
                                 >
                                     Close Report
                                 </button>

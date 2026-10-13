@@ -8,6 +8,7 @@ import { auth } from "@/lib/firebase";
 import AccountShell from "@/components/account/AccountShell";
 import ProGate from "@/components/subscription/ProGate";
 import { ProWidget } from "@/components/subscription/ProWidget";
+import { StatusBadge } from "@/components/ui/status-badge";
 import {
   ArrowLeft,
   Crown,
@@ -221,7 +222,7 @@ export default function SubscribePage() {
       <div className="space-y-8" data-guide="page-header">
 
         {/* Subscription Status Card */}
-        <div className="mt-8 rounded-lg border border-border bg-card p-6">
+        <div className="mt-8 rounded-xl border border-border bg-card p-6 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="flex items-center gap-3">
@@ -229,16 +230,10 @@ export default function SubscribePage() {
                   {subscription.plan === "enterprise" ? "Enterprise" : subscription.plan === "pro" ? "Pro" : "Free"}
                 </span>
                 {subscription.status === "active" && (
-                  <span className="flex items-center gap-1 rounded-full bg-positive/10 px-2.5 py-1 text-xs font-medium text-positive">
-                    <span className="h-1.5 w-1.5 rounded-full bg-positive" />
-                    Active
-                  </span>
+                  <StatusBadge tone="positive" label="Active" dot />
                 )}
                 {subscription.cancelAtPeriodEnd && (
-                  <span className="flex items-center gap-1 rounded-full bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning">
-                    <AlertTriangle size={12} />
-                    Canceling at period end
-                  </span>
+                  <StatusBadge tone="warning" label="Canceling at period end" icon={<AlertTriangle size={12} />} />
                 )}
               </div>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -253,7 +248,7 @@ export default function SubscribePage() {
                   <button
                     onClick={() => handleUpgrade("pro")}
                     disabled={actionLoading}
-                    className="flex items-center gap-2 rounded-lg bg-foreground px-4 py-2.5 text-sm font-semibold text-background transition hover:opacity-90 disabled:opacity-40"
+                    className="flex items-center gap-2 rounded-lg bg-foreground px-4 py-2.5 text-sm font-semibold text-background transition-colors hover:opacity-90 disabled:opacity-40"
                   >
                     {actionLoading ? <Loader2 size={15} className="animate-spin" /> : <Zap size={15} />}
                     Upgrade to Pro
@@ -261,7 +256,7 @@ export default function SubscribePage() {
                   <button
                     onClick={() => handleUpgrade("enterprise")}
                     disabled={actionLoading}
-                    className="flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium transition hover:bg-muted"
+                    className="flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
                   >
                     <Crown size={15} />
                     Enterprise
@@ -271,7 +266,7 @@ export default function SubscribePage() {
                 <>
                   <button
                     onClick={handleManageBilling}
-                    className="flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium transition hover:bg-muted"
+                    className="flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
                   >
                     <CreditCard size={15} />
                     Manage Billing
@@ -280,7 +275,7 @@ export default function SubscribePage() {
                     <button
                       onClick={handleCancel}
                       disabled={actionLoading}
-                      className="flex items-center gap-2 rounded-lg border border-destructive/20 px-4 py-2.5 text-sm font-medium text-destructive transition hover:bg-destructive/10 disabled:opacity-40"
+                      className="flex items-center gap-2 rounded-lg border border-destructive/20 px-4 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-40"
                     >
                       {actionLoading ? <Loader2 size={15} className="animate-spin" /> : <LogOut size={15} />}
                       Cancel
@@ -362,12 +357,12 @@ export default function SubscribePage() {
             <div
               key={tier.name}
               id={`tier-${tier.name.toLowerCase()}`}
-              className={`relative rounded-lg border p-6 transition ${
+              className={`relative rounded-xl border bg-card p-6 shadow-sm transition-colors motion-reduce:transition-none ${
                 tier.highlighted
-                  ? "border-foreground bg-card shadow-xl"
+                  ? "border-primary/40 bg-primary/5 shadow-md"
                   : tier.current
-                  ? "border-positive/50 bg-positive/[0.03]"
-                  : "border-border bg-card"
+                  ? "border-positive/30"
+                  : "border-border"
               }`}
             >
               {matchUrl && (
@@ -377,24 +372,24 @@ export default function SubscribePage() {
               )}
               {tier.highlighted && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="inline-flex items-center gap-1 rounded-full bg-foreground px-3 py-1 text-micro font-semibold text-background">
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-micro font-semibold text-primary-foreground">
                   <Zap size={11} />
                   Most Popular
                 </span>
               </div>
               )}
               <div className="flex items-center gap-3">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${tier.highlighted ? "bg-foreground text-background" : "bg-muted"}`}>
+                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${tier.highlighted ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
                   <tier.icon size={20} />
                 </div>
                 <div>
                   <h3 className="font-semibold">{tier.name}</h3>
-                  <p className="text-xs text-muted-foreground">{tier.price || "Free forever"}</p>
+                  <p className="font-numeric text-xs text-muted-foreground">{tier.price || "Free forever"}</p>
                 </div>
               </div>
               {tier.current && (
-                <div className="mt-3 rounded-lg bg-positive/10 px-3 py-1.5 text-xs font-medium text-positive">
-                  Current Plan
+                <div className="mt-3">
+                  <StatusBadge tone="positive" label="Current Plan" dot />
                 </div>
               )}
               <ul className="mt-4 space-y-2">
@@ -412,7 +407,7 @@ export default function SubscribePage() {
 
         {/* TradingView Benefits */}
         {subscription.plan !== "free" && (
-          <div className="mt-8 rounded-lg border border-chart-3/30 bg-chart-3/10 p-6">
+          <div className="mt-8 rounded-xl border border-border bg-card p-6 shadow-sm">
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <Sparkles size={20} className="text-primary" />
               TradingView Pro Charts
@@ -461,21 +456,21 @@ export default function SubscribePage() {
 
         {/* Trust signals */}
         <div className="mt-10 grid gap-4 sm:grid-cols-3">
-          <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-4">
+          <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-sm">
             <ShieldCheck size={18} className="text-positive shrink-0" />
             <div>
               <p className="text-sm font-medium">Secure Payment</p>
               <p className="text-xs text-muted-foreground">Powered by Stripe</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-4">
+          <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-sm">
             <RefreshCw size={18} className="text-info shrink-0" />
             <div>
               <p className="text-sm font-medium">Cancel Anytime</p>
               <p className="text-xs text-muted-foreground">No long-term commitment</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-4">
+          <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-sm">
             <Gift size={18} className="text-primary shrink-0" />
             <div>
               <p className="text-sm font-medium">14-Day Refund</p>

@@ -257,7 +257,7 @@ export default function AdminCopyTradingPage() {
                                     className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50 ${
                                         globalEnabled
                                             ? "bg-positive text-foreground hover:bg-positive"
-                                            : "border border-border bg-muted text-foreground hover:bg-muted/70"
+                                            : "border-border bg-muted text-foreground hover:bg-muted/70"
                                     }`}
                                 >
                                     {actionId === "global" ? <RefreshCw size={15} className="animate-spin" /> : <Shield size={15} />}
@@ -290,10 +290,10 @@ export default function AdminCopyTradingPage() {
                                     <table className="w-full min-w-[760px] text-sm">
                                         <thead>
                                             <tr className="border-b border-border text-xs uppercase tracking-wider text-muted-foreground">
-                                                <th className="px-5 py-3 text-left">Master</th>
-                                                <th className="px-5 py-3 text-left">Owner</th>
-                                                <th className="px-5 py-3 text-left">State</th>
-                                                <th className="px-5 py-3 text-right">Controls</th>
+                                                <th className="px-5 py-3 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">Master</th>
+                                                <th className="px-5 py-3 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">Owner</th>
+                                                <th className="px-5 py-3 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">State</th>
+                                                <th className="px-5 py-3 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Controls</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -377,14 +377,14 @@ export default function AdminCopyTradingPage() {
                                     <table className="w-full min-w-[800px] text-sm">
                                         <thead>
                                             <tr className="border-b border-border text-xs uppercase tracking-wider text-muted-foreground">
-                                                <th className="px-5 py-4 text-left">Status</th>
-                                                <th className="px-5 py-4 text-left">Follower</th>
-                                                <th className="px-5 py-4 text-left">Master</th>
-                                                <th className="px-5 py-4 text-left">Settings</th>
-                                                <th className="px-5 py-4 text-left">Copied</th>
-                                                <th className="px-5 py-4 text-left">P/L</th>
-                                                <th className="px-5 py-4 text-left">Last Activity</th>
-                                                <th className="px-5 py-4 text-right">Actions</th>
+                                                <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">Status</th>
+                                                <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">Follower</th>
+                                                <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">Master</th>
+                                                <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">Settings</th>
+                                                <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">Copied</th>
+                                                <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">P/L</th>
+                                                <th className="px-5 py-4 text-left text-micro font-semibold uppercase tracking-wider text-muted-foreground">Last Activity</th>
+                                                <th className="px-5 py-4 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -426,7 +426,7 @@ export default function AdminCopyTradingPage() {
                                                         </p>
                                                     </td>
                                                     <td className="px-5 py-4">
-                                                        <p className={`font-semibold tabular-nums ${stats.realized >= 0 ? "text-positive" : "text-negative"}`}>
+                                                        <p className={`font-semibold font-numeric tabular-nums ${stats.realized >= 0 ? "text-positive" : "text-negative"}`}>
                                                             {formatMoney(stats.realized)}
                                                         </p>
                                                     </td>

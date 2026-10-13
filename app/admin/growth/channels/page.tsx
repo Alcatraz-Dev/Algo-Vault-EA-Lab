@@ -170,7 +170,7 @@ export default function AdminGrowthChannelsPage() {
                         const Icon = CHANNEL_ICONS[c.type] || Radio;
                         const setup = CHANNEL_SETUP[c.type];
                         return (
-                            <div key={c.type} className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4">
+                            <div key={c.type} className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors">
                                 <div className="flex items-center justify-between gap-2">
                                     <span className="flex items-center gap-2 font-medium text-foreground">
                                         <span className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
@@ -223,8 +223,8 @@ export default function AdminGrowthChannelsPage() {
                 </div>
             )}
 
-            <div className="rounded-lg border border-border bg-card p-4">
-                <h2 className="mb-2 text-sm font-medium text-foreground">Enable / disable</h2>
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                <h2 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-foreground">Enable / disable</h2>
                 <p className="text-xs text-muted-foreground">
                     Channel availability comes from real server configuration — there is no database-level on/off switch, so no toggle is shown
                     here (a fake switch would just lie about whether content can actually be published). To change a channel, update its
@@ -234,7 +234,7 @@ export default function AdminGrowthChannelsPage() {
 
             {/* Configure dialog */}
             <Dialog open={configureFor !== null} onOpenChange={(o) => { if (!o) setConfigureFor(null); }}>
-                <DialogContent className="sm:max-w-lg md:max-w-2xl lg:max-w-3xl">
+                <DialogContent className="rounded-xl bg-popover sm:max-w-lg md:max-w-2xl lg:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>
                             Configure {configureFor ? CHANNEL_LABELS[configureFor.type as ChannelType] || configureFor.type : ""}
@@ -283,7 +283,7 @@ export default function AdminGrowthChannelsPage() {
 
             {/* Test result dialog */}
             <Dialog open={testDialogOpen} onOpenChange={setTestDialogOpen}>
-                <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl">
+                <DialogContent className="rounded-xl bg-popover sm:max-w-md md:max-w-xl lg:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Connection test</DialogTitle>
                         <DialogDescription>

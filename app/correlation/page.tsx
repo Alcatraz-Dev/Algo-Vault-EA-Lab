@@ -71,7 +71,7 @@ export default function CorrelationPage() {
                             <Activity size={16} />
                             {data?.positions?.length || 0} open positions
                         </div>
-                        <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2 text-xs text-muted-foreground hover:bg-muted/30 transition disabled:opacity-50">
+                        <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2 text-xs text-muted-foreground hover:bg-muted/30 transition-colors disabled:opacity-50">
                             <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                         </button>
                     </div>
@@ -84,7 +84,7 @@ export default function CorrelationPage() {
                     )}
 
                     {data?.correlations && data.correlations.length > 0 && (
-                        <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                        <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                             <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><TrendingUp size={16} className="text-primary" />Correlated Groups</h3>
                             <div className="space-y-3">
                                 {data.correlations.map((c, i) => (
@@ -107,12 +107,12 @@ export default function CorrelationPage() {
                     )}
 
                     {data?.positions && data.positions.length > 0 && (
-                        <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                        <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                             <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><Activity size={16} className="text-primary" />Open Positions</h3>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-xs">
                                     <thead>
-                                        <tr className="border-b border-border/20 text-micro uppercase text-muted-foreground">
+                                        <tr className="border-b border-border/20 text-[11px] uppercase tracking-wider text-muted-foreground">
                                             <th className="px-4 py-2.5 text-left">Symbol</th>
                                             <th className="px-4 py-2.5 text-left">Type</th>
                                             <th className="px-4 py-2.5 text-right">Volume</th>

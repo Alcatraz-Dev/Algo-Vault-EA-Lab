@@ -87,7 +87,7 @@ export default function StatementPage() {
     }
 
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Sign In</Link></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">Sign In</Link></div></div>);
     }
 
     const s = data?.summary;
@@ -99,7 +99,7 @@ export default function StatementPage() {
                 <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-muted-foreground transition">
+                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
                     <ArrowLeft size={12} /> Back to Account
                 </Link>
 
@@ -119,10 +119,10 @@ export default function StatementPage() {
                             <option value="180">6 Months</option>
                             <option value="365">1 Year</option>
                         </select>
-                         <button type="button" onClick={generate} disabled={loading} className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs text-muted-foreground hover:bg-background/15 hover:text-foreground transition disabled:opacity-50">
+                         <button type="button" onClick={generate} disabled={loading} className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs text-muted-foreground hover:bg-background/15 hover:text-foreground transition-colors disabled:opacity-50">
                             <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                         </button>
-                        <button type="button" onClick={printStatement} className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs text-muted-foreground hover:bg-background/15 hover:text-foreground transition">
+                        <button type="button" onClick={printStatement} className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs text-muted-foreground hover:bg-background/15 hover:text-foreground transition-colors">
                             <Download size={13} /> Export
                         </button>
                     </div>
@@ -141,7 +141,7 @@ export default function StatementPage() {
                 ) : data && s ? (
                     <>
                         {/* Account Header */}
-                        <div className="mb-6 rounded-lg border border-border/30 bg-muted/50 p-5">
+                        <div className="mb-6 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-xs text-muted-foreground">Account Statement</p>
@@ -167,7 +167,7 @@ export default function StatementPage() {
 
                         {/* Breakdown */}
                         <div className="mb-6 grid gap-4 lg:grid-cols-2">
-                            <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                            <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                                 <h3 className="mb-3 text-sm font-semibold text-foreground">P/L Breakdown</h3>
                                 <div className="space-y-2">
                                     {[
@@ -186,7 +186,7 @@ export default function StatementPage() {
                                 </div>
                             </div>
 
-                            <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                            <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                                 <h3 className="mb-3 text-sm font-semibold text-foreground">By Symbol</h3>
                                 <div className="space-y-2">
                                     {data.bySymbol.map((sym) => (
@@ -228,7 +228,7 @@ export default function StatementPage() {
                                         {data.trades.map((t) => {
                                             const net = t.profit + t.swap + t.commission;
                                             return (
-                                                <tr key={t.ticket} className="border-b border-border/10 hover:bg-muted/50 transition">
+                                                <tr key={t.ticket} className="border-b border-border/10 hover:bg-muted/50 transition-colors">
                                                     <td className="px-4 py-2.5 font-numeric text-muted-foreground">{t.ticket}</td>
                                                     <td className="px-4 py-2.5 font-numeric font-medium text-foreground">{t.symbol}</td>
                                                     <td className={cn("px-4 py-2.5 font-medium", t.type === "BUY" ? "text-positive" : "text-negative")}>{t.type}</td>
@@ -265,7 +265,7 @@ export default function StatementPage() {
 
 function StatCard({ label, value, color }: { label: string; value: string; color?: string }) {
     return (
-        <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
+        <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
             <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
             <p className={cn("mt-1 text-lg font-bold font-numeric", color || "text-foreground")}>{value}</p>
         </div>

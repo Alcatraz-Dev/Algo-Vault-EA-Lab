@@ -415,7 +415,7 @@ export default function AdminOrdersPage() {
 
                         <Link
                             href="/login"
-                            className="mt-6 inline-flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/80"
+                            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/80"
                         >
                             Sign In
 
@@ -439,7 +439,7 @@ export default function AdminOrdersPage() {
                     type="button"
                     onClick={refresh}
                     disabled={refreshing || loading}
-                    className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-muted/40 px-4 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted/60 disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-muted/40 px-4 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted/60 disabled:opacity-50"
                 >
                     {refreshing ? (
                         <Loader2 size={14} className="animate-spin" />
@@ -568,7 +568,7 @@ export default function AdminOrdersPage() {
                             )
                         }
                         placeholder="Search order, customer, product or Stripe session..."
-                        className="w-full rounded-md border border-border bg-muted/40 py-3 pl-11 pr-4 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-border"
+                        className="w-full rounded-lg border border-border bg-muted/40 py-3 pl-11 pr-4 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-border"
                     />
 
                 </div>
@@ -621,7 +621,7 @@ export default function AdminOrdersPage() {
                                         value
                                     )
                                 }
-                                className={`whitespace-nowrap rounded-md border px-3.5 py-2.5 text-micro transition-colors ${filter ===
+                                className={`whitespace-nowrap rounded-lg border px-3.5 py-2.5 text-micro transition-colors ${filter ===
                                     value
                                     ? "border-primary/40 bg-primary/10 text-foreground"
                                     : "border-border bg-muted/30 text-muted-foreground hover:bg-muted/60"
@@ -718,7 +718,7 @@ export default function AdminOrdersPage() {
             {!loading &&
                 filteredOrders.length >
                 0 && (
-                    <div className="mt-5 overflow-hidden rounded-lg border border-border bg-card">
+                    <div className="mt-5 overflow-hidden rounded-lg border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
 
                         <div className="overflow-x-auto">
 
@@ -790,7 +790,7 @@ export default function AdminOrdersPage() {
             {!loading &&
                 orders.length >
                 0 && (
-                    <div className="mt-6 flex gap-3 rounded-lg border border-border bg-card p-5">
+                    <div className="mt-6 flex gap-3 rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
 
                         <ShieldCheck
                             size={18}
@@ -1042,7 +1042,7 @@ function OrderRow({
                                     ""
                                 )
                             }
-                            className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-muted/30 text-muted-foreground transition-colors hover:text-foreground"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted/30 text-muted-foreground transition-colors hover:text-foreground"
                         >
                             <ExternalLink
                                 size={13}
@@ -1054,7 +1054,7 @@ function OrderRow({
                         <Link
                             href={`/marketplace/${productSlug}`}
                             title="View Product"
-                            className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-muted/30 text-muted-foreground transition-colors hover:text-foreground"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted/30 text-muted-foreground transition-colors hover:text-foreground"
                         >
                             <ArrowRight
                                 size={13}
@@ -1086,7 +1086,7 @@ function AdminStat({
     value: number | string;
 }) {
     return (
-        <div className="rounded-lg border border-border bg-card p-5">
+        <div className="rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
 
             <div className="flex items-center gap-2 text-muted-foreground">
 

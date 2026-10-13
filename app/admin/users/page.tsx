@@ -295,7 +295,7 @@ export default function AdminUsersPage() {
                         </div>
 
                         {/* Filters */}
-                        <div className="mt-8 flex flex-col gap-3 md:flex-row">
+                        <div className="mt-8 flex flex-col gap-3 rounded-xl border border-border bg-card p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)] md:flex-row">
 
                             <div className="relative flex-1">
 
@@ -363,13 +363,13 @@ export default function AdminUsersPage() {
                         </div>
 
                         {/* Users table */}
-                        <div className="mt-6 overflow-hidden rounded-lg border border-border bg-card">
+                        <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider [&_td]:tabular-nums">
 
                             <div className="overflow-x-auto">
 
                                 <table className="w-full min-w-[1050px] text-left">
 
-                                    <thead className="border-b border-border bg-muted/40">
+                                    <thead className="border-b border-border bg-muted/40 [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider">
 
                                         <tr>
 
@@ -621,7 +621,7 @@ function StatCard({
     loading: boolean;
 }) {
     return (
-        <div className="rounded-lg border border-border bg-card p-5">
+        <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
 
             <div className="flex items-center justify-between">
 
@@ -636,11 +636,11 @@ function StatCard({
 
             </div>
 
-            <p className="mt-5 text-sm text-muted-foreground">
+            <p className="mt-5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                 {title}
             </p>
 
-            <p className="mt-1 font-numeric text-2xl font-semibold">
+            <p className="mt-1 font-numeric text-2xl font-semibold tabular-nums">
                 {loading
                     ? "—"
                     : value}

@@ -76,7 +76,7 @@ export default function MarketingStudioPage() {
 
       <div className="grid lg:grid-cols-[320px_1fr] gap-4">
         {/* Campaign List */}
-        <div className="border rounded-lg bg-card p-4 space-y-3 overflow-y-auto max-h-[80vh]">
+        <div className="space-y-3 overflow-y-auto rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)] max-h-[80vh]">
           <div className="flex gap-2">
             <Input placeholder="Search campaigns..." value={query} onChange={(e) => setQuery(e.target.value)} className="h-8 text-xs" />
             <Button size="icon" variant="outline" className="h-8 w-8"><RefreshCw size={14} /></Button>
@@ -85,7 +85,7 @@ export default function MarketingStudioPage() {
             <div className="text-xs text-muted-foreground">No campaigns found.</div>
           ) : (
             (filtered || []).map((c: any) => (
-              <button key={c.id} onClick={() => setActiveCampaignId(c.id)} className={`w-full text-left rounded-lg border px-3 py-2 text-xs transition ${activeCampaignId === c.id ? "bg-muted/60 border-primary" : "bg-card hover:bg-muted/40"}`}>
+              <button key={c.id} onClick={() => setActiveCampaignId(c.id)} className={`w-full text-left rounded-xl border px-3 py-2 text-xs transition-colors ${activeCampaignId === c.id ? "bg-muted/60 border-primary" : "bg-card hover:bg-muted/40"}`}>
                 <div className="font-medium truncate">{c.name || "Untitled"}</div>
                 <div className="flex items-center gap-2 mt-1 text-micro text-muted-foreground">
                   <Badge variant="secondary" className="text-micro px-1.5 py-0">{c.objective || "EDUCATION"}</Badge>
@@ -125,7 +125,7 @@ export default function MarketingStudioPage() {
             </div>
             <div className="grid md:grid-cols-2 gap-3">
               {(concepts || []).map((c: any) => (
-                <Card key={c.id} className="relative hover:shadow-md transition">
+                <Card key={c.id} className="relative rounded-xl shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:shadow-md">
                   <CardContent className="p-4 space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <div>
@@ -187,7 +187,7 @@ export default function MarketingStudioPage() {
 
           <section>
             <h3 className="text-base font-semibold mb-3">Scene Editor</h3>
-            <div className="rounded-lg border bg-muted/20 p-4 text-sm text-muted-foreground">
+            <div className="rounded-xl border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
               <p>Scene editor active for selected concept. Use script generation to populate scenes, then edit duration, narration, visual reference, and overlay per scene.</p>
               <div className="mt-2 flex gap-2 text-xs">
                 <Button size="sm" variant="outline">Add Scene</Button>
@@ -223,7 +223,7 @@ export default function MarketingStudioPage() {
 
       {/* Create Campaign Dialog */}
       <Dialog open={openCampaign} onOpenChange={setOpenCampaign}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="rounded-xl bg-popover max-w-lg">
           <DialogHeader><DialogTitle>Create Marketing Campaign</DialogTitle></DialogHeader>
           <div className="grid gap-3 text-sm">
             <Input placeholder="Campaign name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />

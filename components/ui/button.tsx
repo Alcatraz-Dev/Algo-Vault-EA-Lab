@@ -11,14 +11,14 @@ import { cn } from "cn"
  * the theme bridge in `app/globals.css`, so nothing is hard-coded.
  */
 const buttonVariants = cva(
-  "btn group/button relative inline-flex shrink-0 items-center justify-center font-medium whitespace-nowrap outline-none select-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "btn group/button relative inline-flex shrink-0 items-center justify-center rounded-lg font-medium tracking-[-0.005em] whitespace-nowrap outline-none select-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 motion-reduce:active:scale-100 aria-invalid:border aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default: "btn-primary",
-        outline: "btn-outline border-border text-foreground",
+        outline: "btn-outline border-border bg-card text-foreground hover:border-foreground/20 hover:bg-muted",
         secondary: "btn-secondary",
-        ghost: "btn-text text-foreground",
+        ghost: "btn-text text-foreground hover:bg-muted/70",
         destructive: "btn-soft btn-error",
         link: "btn-text text-primary underline-offset-4 hover:underline",
       },

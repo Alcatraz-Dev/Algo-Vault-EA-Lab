@@ -430,7 +430,7 @@ export default function DashboardBuilderPage() {
     if (!user) {
         return (
             <AccountShell title="Dashboard" onBack={() => router.push("/account")}>
-                <div className="flex h-[50vh] flex-col items-center justify-center gap-4">
+                <div className="flex h-[50vh] flex-col items-center justify-center gap-4 rounded-xl border border-border bg-card px-6 py-14 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <Shield size={32} className="text-muted-foreground" />
                     <h1 className="text-lg font-semibold text-foreground">Sign in required</h1>
                     <Button render={<a href="/login" />}>Sign in</Button>
@@ -445,16 +445,16 @@ export default function DashboardBuilderPage() {
             subtitle="Build a workspace from your live accounts, positions and signals"
             onBack={() => router.push("/account")}
         >
-            <div className="space-y-5" data-guide="dashboard">
+            <div className="flex flex-col gap-4" data-guide="dashboard">
                 {/* Controls */}
-                <div className="flex flex-wrap items-center gap-2.5" data-guide="controls">
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card px-4 py-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]" data-guide="controls">
                     <Button
                         type="button"
                         variant="outline"
                         size="xs"
                         onClick={refreshData}
                         disabled={layoutLoading}
-                        className="gap-1.5 border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
+                        className="gap-1.5 transition-colors"
                     >
                         <RefreshCw size={13} className={layoutLoading ? "animate-spin" : ""} />
                         Refresh
@@ -467,7 +467,7 @@ export default function DashboardBuilderPage() {
                         onClick={() => setEditMode((m) => !m)}
                         aria-pressed={editMode}
                         className={cn(
-                            "gap-1.5 border-border bg-background font-medium text-muted-foreground hover:bg-muted hover:text-foreground",
+                            "gap-1.5 transition-colors",
                             editMode && "border-primary/40 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
                         )}
                     >
@@ -480,7 +480,7 @@ export default function DashboardBuilderPage() {
                                 type="button"
                                 size="xs"
                                 onClick={() => setShowAddWidget(true)}
-                                className="gap-1.5 font-medium"
+                                className="gap-1.5 transition-colors"
                             >
                                 <Plus size={13} /> Add widget
                             </Button>
@@ -508,14 +508,14 @@ export default function DashboardBuilderPage() {
                                 variant="outline"
                                 size="xs"
                                 onClick={resetLayout}
-                                className="gap-1.5 border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
+                                className="gap-1.5 transition-colors"
                             >
                                 <RotateCcw size={13} /> Reset
                             </Button>
                         </>
                     )}
 
-                    <span className="ml-auto text-micro text-muted-foreground" aria-live="polite">
+                    <span className="ml-auto font-numeric text-micro text-muted-foreground" aria-live="polite">
                         {saving
                             ? "Saving layout…"
                             : layoutError
@@ -528,7 +528,7 @@ export default function DashboardBuilderPage() {
 
                 {/* Account selector — account-scoped widgets follow this choice. */}
                 {accounts.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-2" data-guide="account-selector">
+                    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card px-4 py-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]" data-guide="account-selector">
                         <label
                             htmlFor="dashboard-account"
                             className="text-micro uppercase tracking-wide text-muted-foreground"
@@ -556,7 +556,7 @@ export default function DashboardBuilderPage() {
                 )}
 
                 {/* Market selector — every symbol-scoped widget follows this choice. */}
-                <div className="flex flex-wrap items-center gap-2" data-guide="market-selector">
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card px-4 py-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]" data-guide="market-selector">
                     <label htmlFor="dashboard-symbol" className="text-micro uppercase tracking-wide text-muted-foreground">
                         Market
                     </label>
@@ -600,7 +600,7 @@ export default function DashboardBuilderPage() {
                 {layoutError && (
                     <div
                         role="alert"
-                        className="flex items-start gap-2.5 rounded-lg border border-negative/30 bg-negative/5 p-3.5"
+                        className="flex items-start gap-2.5 rounded-xl border border-negative/30 bg-negative-muted p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
                     >
                         <AlertTriangle size={15} className="mt-0.5 shrink-0 text-negative" />
                         <div className="min-w-0 flex-1">
@@ -612,7 +612,7 @@ export default function DashboardBuilderPage() {
                             variant="outline"
                             size="xs"
                             onClick={refreshData}
-                            className="shrink-0 border-border text-muted-foreground hover:bg-muted hover:text-foreground"
+                            className="shrink-0 gap-1.5 transition-colors"
                         >
                             Retry
                         </Button>
@@ -628,7 +628,7 @@ export default function DashboardBuilderPage() {
 
                 {/* Quick access */}
                 <div
-                    className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+                    className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
                     data-guide="quick-links"
                 >
                     <AITeamsEntryCard context="Dashboard" compact className="sm:col-span-2 lg:col-span-4" />
@@ -636,11 +636,27 @@ export default function DashboardBuilderPage() {
 
                 {/* Widgets */}
                 {layoutLoading && widgets.length === 0 ? (
-                    <div className="flex h-64 items-center justify-center">
-                        <span className="loading loading-spinner loading-md text-primary" aria-label="Loading widgets" />
+                    <div
+                        className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
+                        role="status"
+                        aria-label="Loading widgets"
+                    >
+                        <div className="flex items-center justify-between">
+                            <div className="skeleton skeleton-animated h-4 w-32 rounded-md bg-muted" aria-hidden="true" />
+                            <div className="skeleton skeleton-animated h-4 w-16 rounded-md bg-muted" aria-hidden="true" />
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <div className="skeleton skeleton-animated h-3.5 w-24 rounded-md bg-muted" aria-hidden="true" />
+                            <div className="skeleton skeleton-animated h-3.5 w-28 rounded-md bg-muted" aria-hidden="true" />
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <div className="skeleton skeleton-animated h-3.5 w-28 rounded-md bg-muted" aria-hidden="true" />
+                            <div className="skeleton skeleton-animated h-3.5 w-24 rounded-md bg-muted" aria-hidden="true" />
+                        </div>
+                        <span className="text-xs text-muted-foreground">Loading widgets…</span>
                     </div>
                 ) : widgets.length === 0 ? (
-                    <div className="rounded-lg border border-dashed border-border px-6 py-14 text-center">
+                    <div className="rounded-xl border border-dashed border-border bg-card px-6 py-14 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <p className="text-sm font-medium text-foreground">No widgets yet</p>
                         <p className="mx-auto mt-1 max-w-[46ch] text-xs text-muted-foreground">
                             {editMode
@@ -652,7 +668,7 @@ export default function DashboardBuilderPage() {
                                 type="button"
                                 size="xs"
                                 onClick={() => setShowAddWidget(true)}
-                                className="mt-4 gap-1.5 font-medium"
+                                className="mt-4 gap-1.5 transition-colors"
                             >
                                 <Plus size={13} /> Add widget
                             </Button>
@@ -675,14 +691,14 @@ export default function DashboardBuilderPage() {
                                     }}
                                     onDragEnd={() => setDraggingId(null)}
                                     className={cn(
-                                        "flex animate-page-enter flex-col rounded-lg border border-border bg-card",
+                                        "flex animate-page-enter flex-col rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors",
                                         widget.h === 2 && "sm:row-span-2",
                                         SPAN_BY_WIDTH[widget.w] ?? "sm:col-span-1",
                                         editMode && "border-dashed border-primary/40",
                                         draggingId === widget.id && "opacity-50"
                                     )}
                                 >
-                                    <header className="flex items-center gap-2 border-b border-border px-4 py-2.5">
+                                    <header className="flex items-center gap-2 border-b border-border px-4 py-3">
                                         {editMode && (
                                             <GripVertical
                                                 size={13}
@@ -702,8 +718,10 @@ export default function DashboardBuilderPage() {
                                                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-positive" />
                                             </span>
                                         ) : null}
-                                        <Icon size={14} className="shrink-0 text-primary" />
-                                        <h2 className="min-w-0 flex-1 truncate text-body-sm font-medium text-foreground">
+                                        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-border bg-muted/50 text-muted-foreground [&_svg]:size-3.5">
+                                            <Icon size={14} className="shrink-0 text-primary" />
+                                        </span>
+                                        <h2 className="min-w-0 flex-1 truncate text-[13px] font-semibold tracking-tight text-foreground">
                                             {widget.title}
                                         </h2>
                                         {editMode ? (
@@ -713,7 +731,7 @@ export default function DashboardBuilderPage() {
                                                     variant="outline"
                                                     size="xs"
                                                     onClick={() => cycleWidth(widget.id)}
-                                                    className="h-5 gap-0 border-border px-1.5 text-micro text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                    className="h-5 gap-0 px-1.5 font-numeric text-micro transition-colors"
                                                     title="Change width"
                                                 >
                                                     W
@@ -723,7 +741,7 @@ export default function DashboardBuilderPage() {
                                                     variant="outline"
                                                     size="xs"
                                                     onClick={() => cycleHeight(widget.id)}
-                                                    className="h-5 gap-0 border-border px-1.5 text-micro text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                    className="h-5 gap-0 px-1.5 font-numeric text-micro transition-colors"
                                                     title="Change height"
                                                 >
                                                     H
@@ -733,7 +751,7 @@ export default function DashboardBuilderPage() {
                                                     variant="outline"
                                                     size="icon-xs"
                                                     onClick={() => removeWidget(widget.id)}
-                                                    className="h-5 w-5 border-negative/30 p-0 text-negative hover:bg-negative/10 hover:text-negative"
+                                                    className="h-5 w-5 border-negative/30 bg-negative-muted p-0 text-negative transition-colors hover:bg-negative-muted hover:text-negative"
                                                     title="Remove widget"
                                                 >
                                                     <Trash2 size={12} />
@@ -744,7 +762,7 @@ export default function DashboardBuilderPage() {
                                                 {spec?.pro && (
                                                     <Badge
                                                         variant="outline"
-                                                        className="gap-1 border-primary/40 bg-primary/10 font-medium tracking-wide text-primary uppercase"
+                                                        className="gap-1 rounded-full border-primary/40 bg-primary/10 font-medium tracking-wide text-primary uppercase"
                                                     >
                                                         <Crown size={9} />
                                                         Pro
@@ -753,7 +771,7 @@ export default function DashboardBuilderPage() {
                                                 {spec?.needsAccount && (
                                                     <Badge
                                                         variant="outline"
-                                                        className="border-border bg-muted text-muted-foreground"
+                                                        className="rounded-full border-border bg-muted text-muted-foreground"
                                                     >
                                                         per account
                                                     </Badge>
@@ -761,7 +779,7 @@ export default function DashboardBuilderPage() {
                                                 {isMarketScoped(widget.type) && (
                                                     <Badge
                                                         variant="outline"
-                                                        className="font-numeric border-border bg-muted text-muted-foreground"
+                                                        className="rounded-full border-info/30 bg-info-muted font-numeric text-info"
                                                         title="Follows the Market selector above"
                                                     >
                                                         {market.symbol} · {market.timeframe}
@@ -790,7 +808,7 @@ export default function DashboardBuilderPage() {
 
                 {/* Catalogue reference, doubles as discovery while editing */}
                 {editMode && (
-                    <div className="rounded-lg border border-border bg-muted/30 p-4">
+                    <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <h3 className="text-xs font-semibold text-foreground">
                             Available widgets ({WIDGET_CATALOG.length})
                         </h3>
@@ -811,9 +829,9 @@ export default function DashboardBuilderPage() {
                                                     <Badge
                                                         variant="outline"
                                                         className={cn(
-                                                            "gap-1 font-medium tracking-wide uppercase",
+                                                            "gap-1 rounded-full font-medium tracking-wide uppercase",
                                                             isPro
-                                                                ? "border-positive/30 bg-positive/10 text-positive"
+                                                                ? "border-positive/30 bg-positive-muted text-positive"
                                                                 : "border-primary/40 bg-primary/10 text-primary"
                                                         )}
                                                     >

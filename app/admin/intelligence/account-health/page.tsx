@@ -117,7 +117,7 @@ export default function AdminAccountHealthPage() {
 
                 {/* Risk distribution, drawn from the server-computed shares */}
                 {d && t && t.active > 0 && (
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-3.5">
+                    <div className="rounded-xl border border-border bg-card p-3.5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="flex h-1.5 overflow-hidden rounded-full bg-muted/20">
                             {(["HIGH", "MODERATE", "LOW"] as RiskLevel[]).map((level) => {
                                 const share = d[level];
@@ -190,7 +190,7 @@ export default function AdminAccountHealthPage() {
 
                 <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
                     {/* Account list */}
-                    <div className="rounded-lg border border-border/30 bg-muted/50">
+                    <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="flex items-center justify-between border-b border-border/20 px-3.5 py-2.5">
                             <span className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">
                                 Accounts
@@ -269,7 +269,7 @@ export default function AdminAccountHealthPage() {
 
 function Stat({ label, value, tone }: { label: string; value: string; tone?: "negative" | "warning" | "positive" }) {
     return (
-        <div className="rounded-lg border border-border/30 bg-muted/50 px-3 py-2.5">
+        <div className="rounded-xl border border-border bg-card px-3 py-2.5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <p className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
             <p
                 className={cn(

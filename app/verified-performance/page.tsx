@@ -152,7 +152,7 @@ export default function VerifiedPerformancePage() {
                     <div className="flex flex-wrap items-center gap-2">
                         <Link
                             href="/live-performance"
-                            className="inline-flex shrink-0 items-center gap-2 rounded-md border border-border/30 bg-muted/5 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
+                            className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
                         >
                             <Radio className="h-4 w-4 text-muted-foreground" />
                             Live Performance
@@ -161,7 +161,7 @@ export default function VerifiedPerformancePage() {
                             type="button"
                             onClick={() => void fetchPerformance()}
                             disabled={loading}
-                            className="inline-flex shrink-0 items-center gap-2 rounded-md border border-border/30 bg-muted/5 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/10 disabled:opacity-60"
+                            className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/10 disabled:opacity-60"
                         >
                             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
                             {loading ? "Refreshing…" : "Refresh"}

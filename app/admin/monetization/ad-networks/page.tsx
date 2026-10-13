@@ -110,7 +110,7 @@ export default function AdminAdNetworksPage() {
                         const Icon = meta.icon;
                         const anyConfigured = rows.some((r) => r.configured);
                         return (
-                            <div key={type} className="flex flex-col gap-4 rounded-lg border border-border bg-card p-4">
+                            <div key={type} className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                 <div className="flex items-start justify-between gap-2">
                                     <span className="flex items-center gap-2 font-medium text-foreground">
                                         <span className="flex h-9 w-9 items-center justify-center rounded-md bg-muted text-muted-foreground">
@@ -169,7 +169,7 @@ export default function AdminAdNetworksPage() {
                 </div>
             )}
 
-            <div className="rounded-lg border border-border bg-card p-4">
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 <h2 className="mb-2 text-sm font-medium text-foreground">No secrets, no fakes</h2>
                 <p className="text-xs text-muted-foreground">
                     Only boolean configuration state is ever exposed — never API keys or publisher values. When an env value is missing the network

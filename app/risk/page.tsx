@@ -94,7 +94,7 @@ export default function RiskPage() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                     <Shield size={40} className="text-muted-foreground" />
                     <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
-                    <a href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Sign In</a>
+                    <a href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">Sign In</a>
                 </div>
             </div>
         );
@@ -113,7 +113,7 @@ export default function RiskPage() {
                         <select value={selectedAccount} onChange={(e) => setSelectedAccount(e.target.value)} className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none">
                             {accounts.map((a) => <option key={a.id} value={a.id}>{a.broker} — {a.mt5Account}</option>)}
                         </select>
-                        <button type="button" onClick={fetchRisk} disabled={loading} className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition disabled:opacity-50">
+                        <button type="button" onClick={fetchRisk} disabled={loading} className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-50">
                             <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                         </button>
                     </div>
@@ -141,7 +141,7 @@ export default function RiskPage() {
                         </div>
 
                         {/* Margin Bar */}
-                        <div className="mb-6 rounded-lg border border-border/30 bg-muted/50 p-4">
+                        <div className="mb-6 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-semibold text-muted-foreground">Margin Utilization</span>
                                 <span className="text-xs text-muted-foreground">${risk.marginUsed.toFixed(2)} / ${risk.accountBalance.toFixed(2)}</span>
@@ -164,7 +164,7 @@ export default function RiskPage() {
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-xs">
                                         <thead>
-                                            <tr className="border-b border-border/20 text-micro uppercase text-muted-foreground">
+                                            <tr className="border-b border-border/20 text-[11px] uppercase tracking-wider text-muted-foreground">
                                                 <th className="px-4 py-2.5 text-left">Symbol</th>
                                                 <th className="px-4 py-2.5 text-left">Direction</th>
                                                 <th className="px-4 py-2.5 text-right">Volume</th>
@@ -197,7 +197,7 @@ export default function RiskPage() {
                         </div>
                     </>
                 ) : (
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-16 text-center">
+                    <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-16 text-center">
                         <Shield size={32} className="mx-auto text-muted-foreground" />
                         <p className="mt-3 text-sm text-muted-foreground">Select an account to view risk data</p>
                     </div>
@@ -219,7 +219,7 @@ function RiskGauge({ label, value, status }: { label: string; value: string; sta
 
 function MetricCard({ label, value, icon: Icon, color }: { label: string; value: string; icon: React.ElementType; color?: string }) {
     return (
-        <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
+        <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
             <div className="flex items-center gap-2"><Icon size={14} className="text-primary" /><span className="text-micro font-semibold uppercase text-muted-foreground">{label}</span></div>
             <p className={cn("mt-2 font-numeric text-sm font-bold", color || "text-foreground")}>{value}</p>
         </div>

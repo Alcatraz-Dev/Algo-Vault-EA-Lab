@@ -24,16 +24,6 @@ import {
     Terminal,
     Wallet,
     Zap,
-    Layout,
-    Layers,
-    Rocket,
-    Briefcase,
-    Lightbulb,
-    Globe,
-    Settings,
-    BarChart4,
-    Target,
-    Award,
 } from "lucide-react";
 import { database } from "@/lib/firebase";
 import { onValue, ref } from "firebase/database";
@@ -43,8 +33,7 @@ import SiteFooter from "@/components/footer/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Frame, FramePanel, FrameHeader, FrameTitle, FrameDescription, FrameFooter } from "@/components/reui/frame";
-import { IconTile } from "@/components/reui/icon-tile";
+import { Frame, FrameHeader, FrameFooter } from "@/components/reui/frame";
 import { Badge as ReUIBadge } from "@/components/reui/badge";
 import Reveal from "./Reveal";
 import CountUp from "./CountUp";
@@ -128,13 +117,18 @@ export default function HomePage({ data }: { data: HomeData }) {
     const dataOnline = stats.strategies > 0 || stats.backtests > 0;
 
     return (
-        <div className="min-h-screen overflow-x-clip bg-background font-sans text-primary-foreground selection:bg-primary selection:text-primary-foreground">
+        <div className="min-h-screen overflow-x-clip bg-background font-sans text-foreground selection:bg-primary selection:text-primary-foreground">
             <SiteHeader />
             <main>
                 <TickerStrip />
 
                 {/* ── Hero ── */}
-                <section className="relative border-b border-border bg-background">
+                <section className="relative overflow-hidden border-b border-border bg-background">
+                    <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+                        <div className="av-aurora av-aurora-a left-1/2 top-[-320px] h-[480px] w-[720px] -translate-x-1/2" />
+                        <div className="av-aurora av-aurora-b left-[8%] top-[120px] h-[300px] w-[420px]" />
+                        <div className="av-aurora av-aurora-b right-[4%] top-[220px] h-[260px] w-[380px]" />
+                    </div>
                     <div className="page-container relative">
                         <Reveal className="pt-16 text-center md:pt-24">
                             <div className="mx-auto max-w-3xl text-center">
@@ -169,7 +163,7 @@ export default function HomePage({ data }: { data: HomeData }) {
 
                         <Reveal delay={140} className="pb-16 md:pb-24">
                             <div className="mt-14">
-                                <Frame spacing="lg">
+                                <Frame spacing="lg" className="av-panel av-edge">
                                     <FrameHeader className="border-b border-border px-4 py-3 text-xs text-muted-foreground">
                                         <div className="flex flex-wrap items-center justify-between gap-2">
                                             <span className="flex items-center gap-2"><Terminal size={14} className="text-primary" />Operating console</span>
@@ -238,7 +232,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                                     { icon: Gauge, title: "Validate", copy: "Backtest, optimize, and inspect robustness." },
                                     { icon: Wallet, title: "Execute", copy: "Queue orders behind risk and gateway checks." },
                                 ].map(({ icon: Icon, title, copy }, index) => (
-                                    <div key={title} className="group bg-card/80 backdrop-blur p-5 shadow-md transition-colors hover:bg-muted/40">
+                                    <div key={title} className="group bg-card p-5 shadow-md transition-colors hover:bg-muted/40">
                                         <div className="flex items-center justify-between">
                                             <Icon size={18} className="text-primary transition-transform duration-300 group-hover:-translate-y-0.5" />
                                             <span className="text-xs text-muted-foreground">0{index + 1}</span>
@@ -268,7 +262,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                         <Reveal delay={120}>
                             <div className="mt-10 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
                                 {MODULES.map(({ icon: Icon, title, href, copy }) => (
-                                    <Link key={href} href={href} className="group relative bg-card/80 backdrop-blur p-5 shadow-md transition-colors hover:bg-muted/60">
+                                    <Link key={href} href={href} className="group relative bg-card p-5 shadow-md transition-colors hover:bg-muted/60">
                                         <div className="flex items-center justify-between">
                                             <Icon size={18} className="text-primary transition-transform duration-300 group-hover:-translate-y-0.5" />
                                             <ChevronRight size={15} className="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
@@ -440,7 +434,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                         </Reveal>
                         <Reveal delay={120}>
                             <div className="mt-10 grid gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-3">
-                                <div className="group bg-card/80 backdrop-blur p-5 shadow-md transition-colors hover:bg-muted/40">
+                                <div className="group bg-card p-5 shadow-md transition-colors hover:bg-muted/40">
                                     <div className="flex items-center justify-between">
                                         <History size={18} className="text-primary transition-transform duration-300 group-hover:-translate-y-0.5" />
                                         <span className="text-xs text-muted-foreground">01</span>
@@ -449,7 +443,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                                     <p className="mt-2 text-xs leading-5 text-muted-foreground">Single-pass historical simulations with realistic costs, plus bar-by-bar replay on real candles.</p>
                                     <Link href="/backtests" className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">Open backtests <ArrowRight size={13} /></Link>
                                 </div>
-                                <div className="group bg-card/80 backdrop-blur p-5 shadow-md transition-colors hover:bg-muted/40">
+                                <div className="group bg-card p-5 shadow-md transition-colors hover:bg-muted/40">
                                     <div className="flex items-center justify-between">
                                         <Sliders size={18} className="text-primary transition-transform duration-300 group-hover:-translate-y-0.5" />
                                         <span className="text-xs text-muted-foreground">02</span>
@@ -458,7 +452,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                                     <p className="mt-2 text-xs leading-5 text-muted-foreground">Parameter grid search, walk-forward windows, and Monte Carlo robustness checks on recorded results.</p>
                                     <Link href="/monte-carlo" className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">Open Monte Carlo <ArrowRight size={13} /></Link>
                                 </div>
-                                <div className="group bg-card/80 backdrop-blur p-5 shadow-md transition-colors hover:bg-muted/40">
+                                <div className="group bg-card p-5 shadow-md transition-colors hover:bg-muted/40">
                                     <div className="flex items-center justify-between">
                                         <Send size={18} className="text-primary transition-transform duration-300 group-hover:-translate-y-0.5" />
                                         <span className="text-xs text-muted-foreground">03</span>

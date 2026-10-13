@@ -179,7 +179,7 @@ export default function AffiliatesPage() {
                         </Link>
 
                         <Link
-                            href="/rankings"
+                            href="/performance-arena/leaderboard"
                             className="transition hover:text-foreground"
                         >
                             Rankings
@@ -427,7 +427,7 @@ function AffiliateCard({
 
                 {offer.category && (
                     <div className="mt-5">
-                        <span className="rounded-md border border-border/30 bg-muted/5 px-2.5 py-1 text-xs text-foreground/50">
+                        <span className="rounded-lg border border-border/30 bg-muted/5 px-2.5 py-1 text-xs text-foreground/50">
                             {offer.category}
                         </span>
                     </div>

@@ -131,7 +131,7 @@ export default function AdminRevenuePage() {
                         </p>
                     )}
 
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <select aria-label="Filter by revenue type" value={type} onChange={(e) => setType(e.target.value)} className="h-9 rounded-md border border-input bg-transparent px-3 text-sm">
                             <option value="">All types</option>
                             {REVENUE_TYPES.map((t) => (
@@ -150,7 +150,7 @@ export default function AdminRevenuePage() {
                             }
                         />
                     ) : (
-                        <div className="overflow-x-auto rounded-lg border border-border">
+                        <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider [&_td]:tabular-nums">
                             <Table className="min-w-[680px]">
                                 <TableHeader>
                                     <TableRow>
@@ -167,7 +167,7 @@ export default function AdminRevenuePage() {
                                             <TableCell>
                                                 <GrowthStatusBadge kind="revenue" value={e.type} />
                                             </TableCell>
-                                            <TableCell className="font-semibold text-foreground">
+                                            <TableCell className="text-right font-numeric font-semibold tabular-nums text-foreground">
                                                 {fmtCurrency(e.amount, e.currency || "USD")}
                                                 {e.estimated && (
                                                     <span className="ml-2 rounded bg-warning-muted px-1.5 py-0.5 align-middle text-xs font-normal text-warning-foreground">estimate</span>

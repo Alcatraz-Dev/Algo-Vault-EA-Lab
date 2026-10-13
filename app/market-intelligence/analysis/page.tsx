@@ -9,7 +9,7 @@ export default function MarketIntelligenceAnalysisPage() {
   const nav = useMemo(() => APP_NAV.map((g) => ({ ...g })), []);
   return (
     <AppShell navGroups={nav} title="Market Intelligence — Advanced Analysis" subtitle="Indicators · Smart Money · MTF" maxWidth="max-w-[1600px]">
-      <div className="rounded-lg border border-border bg-card p-8">
+      <div className="rounded-xl border border-border bg-card p-8 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-base font-semibold tracking-tight">Advanced Analysis</h1>
           <Badge variant="outline">Phase 1</Badge>
@@ -17,15 +17,15 @@ export default function MarketIntelligenceAnalysisPage() {
         <p className="text-sm text-muted-foreground mb-6">Indicators (real adapter) · Smart Money Engine (Phase 2) · MTF · Sessions. See docs/smart-money-methodology.md for exact detection rules.</p>
 
         <div className="grid md:grid-cols-3 gap-4">
-          <div className="rounded-lg border border-border/20 bg-background p-4 min-h-[200px]">
+          <div className="rounded-xl border border-border/20 bg-background p-4 font-numeric">
             <h3 className="font-bold text-sm mb-2">Indicators</h3>
             <p className="text-xs text-muted-foreground">RSI, EMA, MACD, Bollinger, ATR, Supertrend — configurable parameters only. No hardcoded values.</p>
           </div>
-          <div className="rounded-lg border border-border/20 bg-background p-4 min-h-[200px]">
+          <div className="rounded-xl border border-border/20 bg-background p-4 font-numeric">
             <h3 className="font-bold text-sm mb-2">Smart Money</h3>
             <p className="text-xs text-muted-foreground">Structure, Liquidity, FVG, Order Blocks — proxies only. Only returned when real candle analysis supports it.</p>
           </div>
-          <div className="rounded-lg border border-border/20 bg-background p-4 min-h-[200px]">
+          <div className="rounded-xl border border-border/20 bg-background p-4 font-numeric">
             <h3 className="font-bold text-sm mb-2">MTF Matrix</h3>
             <p className="text-xs text-muted-foreground">Interactive multi-timeframe view linking M1 through W1. Click cell to focus chart.</p>
           </div>

@@ -146,19 +146,19 @@ export default function CandelLibraryPage() {
         </Button>
       }
     >
-      <div className="space-y-5">
+      <div className="flex flex-col gap-4">
         <SectionHeader
           icon={<Bot className="size-4" />}
           title="Candel library"
           description="Each Candel is a specialist you own: pick a role, tune its instructions and decide exactly what it may touch."
           meta={
-            <span className="text-xs text-muted-foreground">
+            <span className="font-numeric text-xs text-muted-foreground">
               {candels.filter((c) => c.status !== "archived").length} active
             </span>
           }
         />
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card px-4 py-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <div className="relative min-w-56 flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -231,7 +231,7 @@ export default function CandelLibraryPage() {
             }
           />
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {visible.map((candel) => (
               <CandelCard
                 key={candel.id}

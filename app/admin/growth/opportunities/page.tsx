@@ -111,7 +111,7 @@ export default function OpportunitiesPage() {
                 </p>
             )}
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 <div className="relative min-w-52 flex-1 sm:max-w-xs">
                     <Search size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input
@@ -177,7 +177,7 @@ export default function OpportunitiesPage() {
             ) : (
                 <div className="space-y-3">
                     {opportunities.map((o) => (
-                        <div key={o.id} className="rounded-lg border border-border bg-card p-4">
+                        <div key={o.id} className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="flex flex-wrap items-start justify-between gap-2">
                                 <div className="min-w-0">
                                     <p className="flex flex-wrap items-center gap-2 font-medium text-foreground">
@@ -196,13 +196,13 @@ export default function OpportunitiesPage() {
 
                             <div className="mt-3 grid gap-3 sm:grid-cols-2">
                                 <div>
-                                    <p className="mb-1 flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    <p className="mb-1 flex items-center gap-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                                         <Target size={10} /> Recommended action
                                     </p>
                                     <p className="text-xs text-foreground">{o.recommendedAction}</p>
                                 </div>
                                 <div>
-                                    <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Evidence</p>
+                                    <p className="mb-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Evidence</p>
                                     <ul className="space-y-0.5">
                                         {(o.evidence || []).map((e, i) => (
                                             <li key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground">

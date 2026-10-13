@@ -101,11 +101,11 @@ export default function StrategyResearchAdminPage() {
             </div>
 
             {loading ? (
-                <div className="rounded-lg border bg-card p-8 text-center text-sm text-muted-foreground">Loading diagnostics…</div>
+                <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)]">Loading diagnostics…</div>
             ) : error ? (
                 <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-6 text-sm text-destructive">{error}</div>
             ) : !data ? (
-                <div className="rounded-lg border bg-card p-8 text-center text-sm text-muted-foreground">No diagnostics available.</div>
+                <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)]">No diagnostics available.</div>
             ) : (
                 <>
                     {/* Queue health */}
@@ -120,7 +120,7 @@ export default function StrategyResearchAdminPage() {
                                 ["Leases held", data.queue.leasesHeld, ""],
                             ] as const
                         ).map(([label, value, tone]) => (
-                            <div key={label} className="rounded-lg border bg-card p-4 shadow-sm">
+                            <div key={label} className="rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                 <div className="text-xs text-muted-foreground">{label}</div>
                                 <div className={`font-semibold ${tone}`}>{value}</div>
                             </div>
@@ -139,7 +139,7 @@ export default function StrategyResearchAdminPage() {
                                 ["AI requests", data.totals.aiRequests, <Zap key="f" className="h-3.5 w-3.5" />],
                             ] as const
                         ).map(([label, value, icon]) => (
-                            <div key={label} className="rounded-lg border bg-card p-4 shadow-sm">
+                            <div key={label} className="rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">{icon} {label}</div>
                                 <div className="font-semibold">{value}</div>
                             </div>
@@ -147,7 +147,7 @@ export default function StrategyResearchAdminPage() {
                     </div>
 
                     <div className="mb-6 grid gap-4 md:grid-cols-2">
-                        <div className="rounded-lg border bg-card p-4 shadow-sm">
+                        <div className="rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
                                 <Coins className="h-4 w-4" /> Research cost totals
                             </div>
@@ -157,7 +157,7 @@ export default function StrategyResearchAdminPage() {
                                 <li>Data quality failures: <span className={`font-semibold ${data.totals.dataQualityFailures > 0 ? "text-negative" : ""}`}>{data.totals.dataQualityFailures}</span></li>
                             </ul>
                         </div>
-                        <div className="rounded-lg border bg-card p-4 shadow-sm">
+                        <div className="rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="mb-2 text-sm font-semibold">Fail-closed states</div>
                             {Object.keys(data.failStates).length === 0 ? (
                                 <p className="text-sm text-muted-foreground">No fail-closed terminations.</p>
@@ -172,14 +172,14 @@ export default function StrategyResearchAdminPage() {
                     </div>
 
                     {/* Failed jobs */}
-                    <div className="mb-6 rounded-lg border bg-card p-4 shadow-sm">
+                    <div className="mb-6 rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <h3 className="mb-2 text-sm font-semibold">Failed research jobs (tail events)</h3>
                         {data.failureDetails.length === 0 ? (
                             <p className="text-sm text-muted-foreground">No failed jobs.</p>
                         ) : (
                             <div className="space-y-3">
                                 {data.failureDetails.map((f) => (
-                                    <div key={f.missionId} className="rounded-lg border border-negative bg-negative-muted p-3 text-xs dark:border-negative dark:bg-negative-muted/30">
+                                    <div key={f.missionId} className="rounded-lg border border-negative bg-negative-muted p-3 text-xs">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <span className="font-semibold">{f.missionId}</span>
                                             <StatusBadge label={f.stage} tone="warning" />
@@ -201,20 +201,20 @@ export default function StrategyResearchAdminPage() {
                     </div>
 
                     {/* Recent missions */}
-                    <div className="rounded-lg border bg-card p-4 shadow-sm">
+                    <div className="rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <h3 className="mb-2 text-sm font-semibold">Recent missions</h3>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-xs">
                                 <thead>
                                     <tr className="border-b text-muted-foreground">
-                                        <th className="px-2 py-1.5 font-medium">Mission</th>
-                                        <th className="px-2 py-1.5 font-medium">User</th>
-                                        <th className="px-2 py-1.5 font-medium">Markets</th>
-                                        <th className="px-2 py-1.5 font-medium">Status</th>
-                                        <th className="px-2 py-1.5 font-medium">Stage</th>
-                                        <th className="px-2 py-1.5 font-medium">Fail state</th>
-                                        <th className="px-2 py-1.5 font-medium">AI / BT</th>
-                                        <th className="px-2 py-1.5 font-medium">Updated</th>
+                                        <th className="px-2 py-1.5 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Mission</th>
+                                        <th className="px-2 py-1.5 font-semibold text-micro uppercase tracking-wider text-muted-foreground">User</th>
+                                        <th className="px-2 py-1.5 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Markets</th>
+                                        <th className="px-2 py-1.5 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Status</th>
+                                        <th className="px-2 py-1.5 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Stage</th>
+                                        <th className="px-2 py-1.5 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Fail state</th>
+                                        <th className="px-2 py-1.5 font-semibold text-micro uppercase tracking-wider text-muted-foreground">AI / BT</th>
+                                        <th className="px-2 py-1.5 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Updated</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -239,7 +239,7 @@ export default function StrategyResearchAdminPage() {
                                             </td>
                                             <td className="px-2 py-1.5">{m.stage}</td>
                                             <td className="px-2 py-1.5 text-negative">{m.failState ?? "—"}</td>
-                                            <td className="px-2 py-1.5">{m.budgetUsed?.aiRequests ?? 0} / {m.budgetUsed?.backtests ?? 0}</td>
+                                            <td className="px-2 py-1.5 font-numeric">{m.budgetUsed?.aiRequests ?? 0} / {m.budgetUsed?.backtests ?? 0}</td>
                                             <td className="px-2 py-1.5 text-muted-foreground">{new Date(m.updatedAt).toLocaleString()}</td>
                                         </tr>
                                     ))}

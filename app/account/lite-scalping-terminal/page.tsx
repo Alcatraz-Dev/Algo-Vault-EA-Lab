@@ -23,7 +23,7 @@ export default function AccountLiteScalpingTerminalPage() {
                 subtitle="Live radar + signals + engine feed — free forever"
                 onBack={() => void router.push("/account")}
             >
-                <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border bg-card p-10 text-center">
+                <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border bg-card p-10 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <Lock className="size-8 text-muted-foreground" />
                     <p className="text-sm font-medium text-foreground">Sign in to open the Lite terminal</p>
                     <a
@@ -52,7 +52,7 @@ export default function AccountLiteScalpingTerminalPage() {
                 </span>
             }
         >
-            <div className="flex h-64 flex-col items-center justify-center gap-3 rounded-lg border border-border bg-card p-8 text-center">
+            <div className="flex h-64 flex-col items-center justify-center gap-3 rounded-lg border border-border bg-card p-8 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 <Terminal className="size-8 text-primary" />
                 <p className="text-sm font-medium text-foreground">Free Scalping Terminal (Lite)</p>
                 <p className="max-w-sm text-sm text-muted-foreground">

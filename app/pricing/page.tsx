@@ -177,7 +177,7 @@ export default function PricingPage() {
             <div className="mx-auto max-w-7xl px-6 pt-4 pb-20">
                 <Link
                     href="/account"
-                    className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground"
+                    className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                     <ArrowLeft size={16} />
                     Back to Account
@@ -209,8 +209,8 @@ export default function PricingPage() {
                         return (
                             <Card
                                 key={tier.id}
-                                className={`relative gap-0 overflow-visible p-6 transition ${
-                                    tier.highlighted ? "border-primary" : ""
+                                className={`relative gap-0 overflow-visible rounded-xl bg-card p-6 shadow-sm transition-colors motion-reduce:transition-none ${
+                                    tier.highlighted ? "border-primary/40 bg-primary/5 shadow-md" : ""
                                 }`}
                             >
                                 {tier.highlighted && (
@@ -236,7 +236,7 @@ export default function PricingPage() {
                                 </div>
 
                                 <div className="mt-6">
-                                    <span className="text-4xl font-bold tracking-tight">
+                                    <span className="font-numeric text-4xl font-bold tracking-tight">
                                         ${tier.price}
                                     </span>
                                     <span className="text-sm text-muted-foreground">/{tier.period}</span>
@@ -276,7 +276,7 @@ export default function PricingPage() {
                     </div>
 
                     <div className="mt-8 grid gap-3 md:grid-cols-2">
-                        <Card className="gap-0 p-5">
+                        <Card className="gap-0 rounded-xl bg-card p-5 shadow-sm">
                             <div className="mb-3 flex items-center justify-between">
                                 <ToolBadge kind="lite" size="md" />
                                 <span className="text-micro uppercase tracking-wider text-muted-foreground">{freeTools.length} tools</span>
@@ -292,7 +292,7 @@ export default function PricingPage() {
                             </ul>
                         </Card>
 
-                        <Card className="gap-0 border-primary/30 bg-primary/5 p-5">
+                        <Card className="gap-0 rounded-xl border-primary/40 bg-primary/5 p-5 shadow-sm">
                             <div className="mb-3 flex items-center justify-between">
                                 <ToolBadge kind="pro" size="md" />
                                 <span className="text-micro uppercase tracking-wider text-muted-foreground">{proTools.length} tools</span>
@@ -325,7 +325,7 @@ export default function PricingPage() {
                         Every feature, side by side.
                     </p>
 
-                    <div className="mt-8 overflow-x-auto rounded-lg border border-border">
+                    <div className="mt-8 overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
                         <table className="table w-full overflow-visible text-left text-sm">
                             <thead className="border-b border-border bg-muted/30 normal-case tracking-normal">
                                 <tr>
@@ -370,7 +370,7 @@ export default function PricingPage() {
                         { q: "What payment methods do you accept?", a: "All major credit cards via Stripe. Enterprise plans support invoice billing." },
                         { q: "Do you offer refunds?", a: "Yes — within 14 days of purchase for monthly subscriptions, no questions asked." },
                     ].map((item, i) => (
-                        <Card key={i} className="gap-0 p-5">
+                        <Card key={i} className="gap-0 rounded-xl bg-card p-5 shadow-sm">
                             <h3 className="font-semibold">{item.q}</h3>
                             <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.a}</p>
                         </Card>

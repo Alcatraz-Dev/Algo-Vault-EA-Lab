@@ -33,7 +33,7 @@ export default function AdminScalpingPage() {
                     Loading terminal…
                 </div>
             ) : !user ? (
-                <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border bg-card p-10 text-center">
+                <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border bg-card p-10 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <Terminal className="size-8 text-muted-foreground" />
                     <p className="text-sm font-medium text-foreground">Admin sign-in required</p>
                     <a

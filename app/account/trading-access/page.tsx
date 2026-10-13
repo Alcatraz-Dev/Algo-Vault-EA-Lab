@@ -423,7 +423,7 @@ export default function TradingAccessPage() {
                                 {accounts.map((acc) => (
                                     <div
                                         key={acc.accountId}
-                                        className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4"
+                                        className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
                                     >
                                         <StatusDot status={acc.status} />
                                         <div className="min-w-0">
@@ -509,7 +509,7 @@ export default function TradingAccessPage() {
                         </div>
 
                         <div className="mt-5 space-y-4">
-                            <div className="rounded-lg border border-border bg-card p-4">
+                            <div className="rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                 <h3 className="text-sm font-semibold">
                                     Step 1: Download the Gateway EA
                                 </h3>
@@ -529,18 +529,18 @@ export default function TradingAccessPage() {
                                 </a>
                             </div>
 
-                            <div className="rounded-lg border border-border bg-card p-4">
+                            <div className="rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                 <h3 className="text-sm font-semibold">
                                     Step 2: Install on MT5
                                 </h3>
                                 <ol className="mt-2 space-y-1.5 text-xs text-muted-foreground">
                                     <li>
                                         1. Copy{" "}
-                                        <code className="rounded bg-muted px-1 py-0.5 font-numeric text-foreground">
+                                        <code className="rounded-lg bg-muted px-1 py-0.5 font-numeric text-foreground">
                                             AlgoVaultGateway.ex5
                                         </code>{" "}
                                         to your MT5{" "}
-                                        <code className="rounded bg-muted px-1 py-0.5 font-numeric text-foreground">
+                                        <code className="rounded-lg bg-muted px-1 py-0.5 font-numeric text-foreground">
                                             Experts/Indicators
                                         </code>{" "}
                                         folder.
@@ -553,13 +553,13 @@ export default function TradingAccessPage() {
                                 </ol>
                             </div>
 
-                            <div className="rounded-lg border border-border bg-card p-4">
+                            <div className="rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                 <h3 className="text-sm font-semibold">
                                     Step 3: Connect
                                 </h3>
                                 <p className="mt-1 text-xs text-muted-foreground">
                                     The Gateway EA needs a token to authenticate. Generate one below, then paste it into the EA&apos;s{" "}
-                                    <code className="rounded bg-muted px-1 py-0.5 font-numeric text-foreground">
+                                    <code className="rounded-lg bg-muted px-1 py-0.5 font-numeric text-foreground">
                                         GatewayToken
                                     </code>{" "}
                                     input field.

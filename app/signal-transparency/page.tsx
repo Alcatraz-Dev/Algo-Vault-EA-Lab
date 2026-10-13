@@ -78,14 +78,14 @@ export default function SignalTransparencyPage() {
                             <p className="mt-1 text-xs text-muted-foreground">Average confidence</p>
                         </div>
                     </div>
-                    <button type="button" onClick={fetchSignals} disabled={loading} aria-label="Refresh signals" className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/80 transition disabled:opacity-50">
+                    <button type="button" onClick={fetchSignals} disabled={loading} aria-label="Refresh signals" className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/80 transition disabled:opacity-50">
                         {loading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : <RefreshCw size={16} />}
                     </button>
                 </div>
 
                 <div className="space-y-3">
                     {signals.map((signal) => (
-                        <div key={signal.id} className="rounded-lg border border-border bg-card p-4">
+                        <div key={signal.id} className="rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <span className={`rounded-full border px-2 py-0.5 text-xs font-bold ${signal.direction === "BUY" ? "border-positive/30 bg-positive/10 text-positive-foreground" : "border-negative/30 bg-negative/10 text-negative-foreground"}`}>{signal.direction}</span>

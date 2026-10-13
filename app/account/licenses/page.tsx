@@ -394,7 +394,7 @@ export default function LicensesPage() {
 
                         <Link
                             href="/login"
-                            className="mt-6 inline-flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/80"
+                            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/80"
                         >
                             Sign In
 
@@ -420,7 +420,7 @@ export default function LicensesPage() {
                     type="button"
                     onClick={handleRefresh}
                     disabled={refreshing}
-                    className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-muted/40 px-4 py-2.5 text-xs text-muted-foreground transition hover:bg-muted/60 disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-muted/40 px-4 py-2.5 text-xs text-muted-foreground transition hover:bg-muted/60 disabled:opacity-50"
                 >
                     {refreshing ? (
                         <Loader2 size={14} className="animate-spin" />
@@ -535,7 +535,7 @@ export default function LicensesPage() {
 
                             <Link
                                 href="/marketplace"
-                                className="mt-6 inline-flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-xs font-medium text-primary-foreground transition hover:bg-primary/80"
+                                className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-xs font-medium text-primary-foreground transition hover:bg-primary/80"
                             >
                                 Browse Marketplace
 
@@ -678,7 +678,7 @@ function LicenseCard({
 
                     <div className="flex min-w-0 items-center gap-3">
 
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-card">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
 
                             {product?.branding
                                 ?.icon
@@ -922,7 +922,7 @@ function LicenseCard({
                     {productSlug && (
                         <Link
                             href={`/marketplace/${productSlug}`}
-                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-border bg-muted/40 px-4 py-3 text-xs font-medium text-foreground transition hover:bg-foreground/[0.07]"
+                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-muted/40 px-4 py-3 text-xs font-medium text-foreground transition hover:bg-foreground/[0.07]"
                         >
                             View Product
 
@@ -941,7 +941,7 @@ function LicenseCard({
                                     license.productId ||
                                     ""
                                 )}`}
-                                className="inline-flex flex-1 items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-xs font-medium text-primary-foreground transition hover:bg-primary/80"
+                                className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-xs font-medium text-primary-foreground transition hover:bg-primary/80"
                                 onClick={(event) => {
                                     /*
                                      * The actual protected download

@@ -96,7 +96,7 @@ export default function AdminIntelligencePage() {
 
             {activeTab === "sandbox" && (
                 <div className="space-y-4">
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                    <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <h3 className="text-sm font-semibold mb-2">Sandbox Tests</h3>
                         <p className="text-xs text-muted-foreground mb-3">Validate agent outputs and plugin specs in isolated environments before publishing.</p>
                         <div className="flex gap-2">
@@ -138,7 +138,7 @@ export default function AdminIntelligencePage() {
                             View API
                         </Link>
                         <Link
-                            href="/api/plugins"
+                            href="/admin/plugins"
                             className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
                         >
                             Plugin API
@@ -162,13 +162,13 @@ function StatCard({
     description: string;
 }) {
     return (
-        <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+        <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
                     {icon}
                 </div>
                 <div>
-                    <p className="text-3xl font-semibold">{value}</p>
+                    <p className="font-numeric text-3xl font-semibold tabular-nums">{value}</p>
                     <p className="text-xs text-muted-foreground">{label}</p>
                 </div>
             </div>

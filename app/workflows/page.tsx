@@ -78,10 +78,10 @@ export default function WorkflowsPage() {
       eyebrow={pro ? <Badge className="bg-warning text-background hover:bg-warning">Pro</Badge> : <Badge variant="outline">Free</Badge>}
     >
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4 border-b border-border pb-5" data-guide="page-header">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">Your Workflows</h2>
-            <p className="text-sm text-muted-foreground">{workflows.length} created · {active} active · {drafts} drafts</p>
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">Your Workflows</h2>
+            <p className="mt-1 text-sm text-muted-foreground font-numeric">{workflows.length} created · {active} active · {drafts} drafts</p>
           </div>
           <Link href={pro ? "/workflows/new" : "/pricing"}>
             <Button className="gap-2"><Plus size={16} /> New Workflow</Button>
@@ -89,7 +89,7 @@ export default function WorkflowsPage() {
         </div>
 
         {!pro ? (
-          <div className="rounded-lg border border-warning/30 bg-warning-muted p-8 text-center">
+          <div className="rounded-xl border border-warning/30 bg-warning-muted p-8 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <Zap className="mx-auto h-10 w-10 text-warning mb-3" />
             <h3 className="text-lg font-semibold">Workflow Automation is a Pro feature</h3>
             <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">Build DAG workflows with market data, AI analysis, signals, and execution. Upgrade to Pro for unlimited nodes, schedules, and AI Builder.</p>
@@ -98,7 +98,7 @@ export default function WorkflowsPage() {
         ) : loading ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="rounded-lg border p-5 animate-pulse bg-muted/30 h-40" />
+              <div key={i} className="h-40 rounded-xl border border-border bg-muted/30 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)] animate-pulse" />
             ))}
           </div>
         ) : workflows.length === 0 ? (
@@ -106,20 +106,20 @@ export default function WorkflowsPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {workflows.map((w) => (
-              <Link key={w.id} href={`/workflows/${w.id}`} className="group block rounded-lg border bg-card p-5 transition hover:shadow hover:-translate-y-0.5">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold leading-snug group-hover:text-warning dark:group-hover:text-warning">{w.name}</h3>
+              <Link key={w.id} href={`/workflows/${w.id}`} className="group block rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:-translate-y-0.5 hover:shadow-md">
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <h3 className="font-semibold leading-snug text-foreground transition-colors group-hover:text-warning">{w.name}</h3>
                    <StatusBadge label={w.status} tone={w.status === "active" ? "positive" : w.status === "paused" ? "warning" : w.status === "disabled" ? "negative" : "neutral"} />
                 </div>
                 <p className="text-xs text-muted-foreground truncate">{w.description || "No description."}</p>
-                <div className="mt-4 flex items-center gap-3 text-xs text-muted-foreground">
+                <div className="mt-4 flex items-center gap-3 text-xs text-muted-foreground font-numeric">
                   <span className="inline-flex items-center gap-1"><Clock size={10} /> {w.updatedAt ? new Date(w.updatedAt).toLocaleDateString() : "—"}</span>
                   <span className="inline-flex items-center gap-1"><Zap size={10} /> {w.nodes?.length ?? 0} nodes</span>
                   <span className="inline-flex items-center gap-1"><CheckCircle2 size={10} /> {w.version}</span>
                 </div>
-                <div className="mt-3 flex gap-2">
-                  <Badge variant="secondary" className="text-micro">{w.requiredPermissions?.join(", ") || "none"}</Badge>
-                  {w.schedule?.enabled && <Badge variant="outline" className="text-micro text-warning dark:text-warning">Scheduled</Badge>}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Badge variant="secondary" className="text-xs">{w.requiredPermissions?.join(", ") || "none"}</Badge>
+                  {w.schedule?.enabled && <Badge variant="outline" className="text-xs text-warning">Scheduled</Badge>}
                 </div>
               </Link>
             ))}

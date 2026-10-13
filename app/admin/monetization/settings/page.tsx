@@ -120,7 +120,7 @@ export default function AdminSettingsPage() {
                 actions={<RefreshButton onRefresh={settings.refresh} loading={settings.loading} />}
             />
 
-            <div className="space-y-6 rounded-lg border border-border bg-card p-4 sm:p-6">
+            <div className="space-y-6 rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)] sm:p-6">
                 {err && <FormError>{err}</FormError>}
                 {ok && <FormSuccess>{ok}</FormSuccess>}
 
@@ -191,7 +191,7 @@ export default function AdminSettingsPage() {
                 </div>
             </div>
 
-            <div className="rounded-lg border border-border bg-card p-4">
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 <h2 className="mb-2 text-sm font-medium text-foreground">Where the defaults apply</h2>
                 <p className="text-xs text-muted-foreground">
                     These values are the engine defaults; a placement or ad can override the premium handling with its own targeting rules. AdMob remains a

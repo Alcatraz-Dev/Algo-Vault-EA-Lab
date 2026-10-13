@@ -89,12 +89,12 @@ export default function AdvancedAnalysisPage() {
 
           {/* Analysis Panels */}
           <div className="flex flex-col gap-4">
-            <div className="rounded-lg border border-border bg-card p-4">
+            <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
               <h3 className="font-bold text-sm mb-3">Performance Overview</h3>
               <div className="grid grid-cols-2 gap-2">
                 {cards.map((c) => (
                   <div key={c.label} className="rounded-lg border border-border/20 bg-muted/20 p-2">
-                    <div className="text-micro uppercase text-muted-foreground">{c.label}</div>
+                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{c.label}</div>
                     <div className="text-sm font-black">{c.value}</div>
                     <div className="text-micro text-muted-foreground">{c.sub}</div>
                   </div>
@@ -102,7 +102,7 @@ export default function AdvancedAnalysisPage() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-border bg-card p-4 flex-1">
+            <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4 flex-1">
               <h3 className="font-bold text-sm mb-3">Intelligence Layer (Phase 7.4)</h3>
               <div className="text-xs space-y-2 text-muted-foreground">
                 <div><strong>Facts</strong> — deterministic outputs from Smart Money / Indicators / MTF / Sessions / Backtest / Replay</div>
@@ -120,7 +120,7 @@ export default function AdvancedAnalysisPage() {
 
         {/* Bottom: Replay + Trade Journal + Limitations */}
         <div className="grid lg:grid-cols-2 gap-4">
-          <div className="rounded-lg border border-border bg-card p-4">
+          <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-bold text-sm">Historical Replay</h3>
               <span className="rounded-md border border-border/30 px-1.5 py-0.5 text-micro text-muted-foreground">Replay Engine</span>
@@ -129,7 +129,7 @@ export default function AdvancedAnalysisPage() {
               Replay workspace — future candles hidden · Smart Money events incrementally calculated · no future leakage (existing ReplayEngine reused)
             </div>
           </div>
-          <div className="rounded-lg border border-border bg-card p-4">
+          <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
             <h3 className="font-bold text-sm mb-3">Limitations</h3>
             <ul className="space-y-1.5 text-xs text-muted-foreground">
               {limitations.length === 0 ? (
@@ -146,7 +146,7 @@ export default function AdvancedAnalysisPage() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-border bg-card p-6">
+        <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-6">
           <h2 className="text-base font-semibold mb-3">Trade Journal</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left border-collapse">
@@ -176,7 +176,7 @@ export default function AdvancedAnalysisPage() {
         <div className="mt-2 flex gap-2 text-xs">
           <a href="/market-intelligence/backtest" className="rounded-md border border-border/30 px-3 py-1 hover:bg-muted/20">Backtest Current Setup</a>
           <a href="/market-intelligence/research" className="rounded-md border border-border/30 px-3 py-1 hover:bg-muted/20">Continue Research</a>
-          <a href="/trading-studio" className="rounded-md border border-border/30 px-3 py-1 hover:bg-muted/20">Trading Studio</a>
+          <a href="/strategy-lab" className="rounded-md border border-border/30 px-3 py-1 hover:bg-muted/20">Trading Studio</a>
         </div>
       </div>
     </AppShell>

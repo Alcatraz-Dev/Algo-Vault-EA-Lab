@@ -54,7 +54,7 @@ export default function MonteCarloPage() {
             <AccountShell title="Monte Carlo Analysis" subtitle="Statistical simulation of your trading outcomes">
                 <div className="space-y-6" data-guide="page-header">
                     <div className="flex items-center gap-4">
-                        <button type="button" onClick={runSimulation} disabled={loading} className="flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50">
+                        <button type="button" onClick={runSimulation} disabled={loading} className="flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
                             {loading ? <Loader2 size={14} className="animate-spin" /> : <Dices size={14} />} Run Simulation ({numSims.toLocaleString()} iterations)
                         </button>
                         <select value={numSims} onChange={(e) => setNumSims(Number(e.target.value))} className="rounded-md border border-border/40 bg-muted px-3 py-2 text-xs text-foreground focus:border-ring focus:outline-none">
@@ -76,7 +76,7 @@ export default function MonteCarloPage() {
                                     { label: "Best Case", value: `+${mcData.bestCaseR?.toFixed(2) || 0}R`, color: "text-positive" },
                                     { label: "Losing Streak", value: `${mcData.losingStreakProbability?.toFixed(1) || 0}%`, color: "text-warning" },
                                 ].map((m) => (
-                                    <div key={m.label} className="rounded-lg border border-border/30 bg-muted/50 p-4">
+                                    <div key={m.label} className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                                         <span className="text-micro font-semibold uppercase text-muted-foreground">{m.label}</span>
                                         <p className={cn("mt-1 font-numeric text-lg font-bold", m.color)}>{m.value}</p>
                                     </div>
@@ -84,12 +84,12 @@ export default function MonteCarloPage() {
                             </div>
 
                             {mcData.confidenceIntervals && (
-                                <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                                <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                                     <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><BarChart3 size={16} className="text-muted-foreground" />Confidence Intervals</h3>
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-xs">
                                             <thead>
-                                                <tr className="border-b border-border/20 text-micro uppercase text-muted-foreground">
+                                                <tr className="border-b border-border/20 text-[11px] uppercase tracking-wider text-muted-foreground">
                                                     <th className="px-4 py-2.5 text-left">Confidence</th>
                                                     <th className="px-4 py-2.5 text-right">Max Drawdown</th>
                                                     <th className="px-4 py-2.5 text-right">Final Return</th>

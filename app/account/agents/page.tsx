@@ -83,7 +83,7 @@ export default function AccountAgentsPage() {
             {loading ? (
                 <div className="grid gap-4">
                     {[1, 2].map((n) => (
-                        <div key={n} className="h-40 animate-pulse rounded-lg border border-border/30 bg-muted/50" />
+                        <div key={n} className="h-40 animate-pulse rounded-xl border border-border/30 bg-muted/50" />
                     ))}
                 </div>
             ) : agents.length === 0 ? (
@@ -103,7 +103,7 @@ export default function AccountAgentsPage() {
                         if (!plugin) return null;
                         const isActive = install.status === "active";
                         return (
-                            <div key={install.pluginId} className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                            <div key={install.pluginId} className="rounded-xl border border-border/30 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                     <div className="flex items-start gap-4">
                                         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
@@ -130,7 +130,7 @@ export default function AccountAgentsPage() {
                                     </div>
                                     <Link
                                         href={`/account/plugins/${install.pluginId}`}
-                                        className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-background px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
+                                        className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-background px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted"
                                     >
                                         <Settings2 size={13} />
                                         Manage Agent
@@ -168,7 +168,7 @@ export default function AccountAgentsPage() {
                     type="button"
                     onClick={load}
                     disabled={refreshing}
-                    className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
                 >
                     {refreshing ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
                     Refresh
@@ -180,7 +180,7 @@ export default function AccountAgentsPage() {
 
 function SummaryCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
     return (
-        <div className="flex items-center gap-4 rounded-lg border border-border/30 bg-muted/50 p-5">
+        <div className="flex items-center gap-4 rounded-xl border border-border/30 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/30 bg-muted/5 text-muted-foreground">
                 {icon}
             </div>

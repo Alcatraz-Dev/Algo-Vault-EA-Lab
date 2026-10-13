@@ -107,7 +107,7 @@ function QuickActionButton({
     description: string;
 }) {
     return (
-        <Button render={<Link href={href} />} variant="outline" className="h-auto flex-col items-start gap-2 p-4">
+        <Button render={<Link href={href} />} variant="outline" className="h-auto flex-col items-start gap-2 rounded-xl p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors">
             <Icon size={18} className="text-primary" />
             <div className="flex flex-col items-start gap-0.5">
                 <span className="font-semibold">{label}</span>
@@ -260,7 +260,7 @@ export default function AdminGrowthOverviewPage() {
 
                     {/* ── Revenue trend chart ── */}
                     {revenueForRange.entries.length > 0 && (
-                        <div className="rounded-lg border border-border bg-card p-4">
+                        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="mb-3 flex items-center justify-between">
                                 <h2 className="text-sm font-medium text-foreground">Revenue trend</h2>
                                 <PieChart size={15} className="text-muted-foreground" />
@@ -293,7 +293,7 @@ export default function AdminGrowthOverviewPage() {
 
                     <div className="grid gap-6 lg:grid-cols-2">
                         {/* ── Traffic ── */}
-                        <div className="rounded-lg border border-border bg-card p-4">
+                        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="mb-3 flex items-center justify-between">
                                 <h2 className="text-sm font-medium text-foreground">Traffic</h2>
                                 <TrendingUp size={15} className="text-muted-foreground" />
@@ -312,9 +312,9 @@ export default function AdminGrowthOverviewPage() {
                                         { label: "Clicks", value: fmtNumber(m?.clicks ?? 0) },
                                         { label: "CTR", value: pct(m?.clicks ?? 0, m?.impressions ?? 0) },
                                     ].map((s) => (
-                                        <div key={s.label} className="rounded-md border border-border bg-background p-3">
-                                            <p className="text-xs text-muted-foreground">{s.label}</p>
-                                            <p className="mt-1 text-lg font-semibold text-foreground">{s.value}</p>
+                                        <div key={s.label} className="rounded-lg border border-border bg-background p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                                            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{s.label}</p>
+                                            <p className="mt-1 font-numeric text-lg font-semibold tabular-nums text-foreground">{s.value}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -322,7 +322,7 @@ export default function AdminGrowthOverviewPage() {
                         </div>
 
                         {/* ── Conversion ── */}
-                        <div className="rounded-lg border border-border bg-card p-4">
+                        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="mb-3 flex items-center justify-between">
                                 <h2 className="text-sm font-medium text-foreground">Conversion</h2>
                                 <Activity size={15} className="text-muted-foreground" />
@@ -341,9 +341,9 @@ export default function AdminGrowthOverviewPage() {
                                         { label: "Affiliate signups", value: fmtNumber(m?.signups ?? 0) },
                                         { label: "Conv. rate", value: pct(m?.conversions ?? 0, m?.impressions ?? 0) },
                                     ].map((s) => (
-                                        <div key={s.label} className="rounded-md border border-border bg-background p-3">
-                                            <p className="text-xs text-muted-foreground">{s.label}</p>
-                                            <p className="mt-1 text-lg font-semibold text-foreground">{s.value}</p>
+                                        <div key={s.label} className="rounded-lg border border-border bg-background p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                                            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{s.label}</p>
+                                            <p className="mt-1 font-numeric text-lg font-semibold tabular-nums text-foreground">{s.value}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -356,7 +356,7 @@ export default function AdminGrowthOverviewPage() {
 
                     <div className="grid gap-6 lg:grid-cols-3">
                         {/* ── Campaign performance ── */}
-                        <section className="rounded-lg border border-border bg-card p-4">
+                        <section className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="mb-3 flex items-center justify-between">
                                 <h2 className="text-sm font-medium text-foreground">Campaign performance</h2>
                                 <Megaphone size={15} className="text-muted-foreground" />
@@ -389,7 +389,7 @@ export default function AdminGrowthOverviewPage() {
                         </section>
 
                         {/* ── Content performance ── */}
-                        <section className="rounded-lg border border-border bg-card p-4">
+                        <section className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="mb-3 flex items-center justify-between">
                                 <h2 className="text-sm font-medium text-foreground">Content performance</h2>
                                 <FileText size={15} className="text-muted-foreground" />
@@ -416,7 +416,7 @@ export default function AdminGrowthOverviewPage() {
                         </section>
 
                         {/* ── Channel performance ── */}
-                        <section className="rounded-lg border border-border bg-card p-4">
+                        <section className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="mb-3 flex items-center justify-between">
                                 <h2 className="text-sm font-medium text-foreground">Channel performance</h2>
                                 <Radio size={15} className="text-muted-foreground" />
@@ -437,7 +437,7 @@ export default function AdminGrowthOverviewPage() {
                     </div>
 
                     {/* ── Revenue summary ── */}
-                    <section className="rounded-lg border border-border bg-card p-4">
+                    <section className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="mb-3 flex items-center justify-between">
                             <h2 className="text-sm font-medium text-foreground">Revenue summary</h2>
                             <Coins size={15} className="text-muted-foreground" />
@@ -464,9 +464,9 @@ export default function AdminGrowthOverviewPage() {
                                                 revenueForRange.ads + revenueForRange.affiliate + revenueForRange.sponsored + revenueForRange.subscriptions + revenueForRange.marketplace,
                                         },
                                     ].map((r) => (
-                                        <div key={r.label} className="rounded-md border border-border bg-background p-3">
-                                            <p className="text-xs text-muted-foreground">{r.label}</p>
-                                            <p className="mt-1 text-lg font-semibold text-foreground">{fmtCurrency(r.value)}</p>
+                                        <div key={r.label} className="rounded-lg border border-border bg-background p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                                            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{r.label}</p>
+                                            <p className="mt-1 font-numeric text-lg font-semibold tabular-nums text-foreground">{fmtCurrency(r.value)}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -489,7 +489,7 @@ export default function AdminGrowthOverviewPage() {
 
                     {/* ── Recent revenue entries ── */}
                     {revenueForRange.entries.length > 0 && (
-                        <section className="rounded-lg border border-border bg-card p-4">
+                        <section className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="mb-3 flex items-center justify-between">
                                 <h2 className="text-sm font-medium text-foreground">Recent revenue</h2>
                                 <span className="text-xs text-muted-foreground">Latest {Math.min(revenueForRange.entries.length, 8)} entries</span>
@@ -508,7 +508,7 @@ export default function AdminGrowthOverviewPage() {
                                                 {e.type === "AFFILIATE" && e.offerId ? `offer ${e.offerId.slice(-6)}` : e.type === "SPONSORED" ? "sponsored contract" : e.type}
                                                 {e.recordedAt ? ` · ${fmtRelative(e.recordedAt)}` : ""}
                                             </span>
-                                            <span className="font-semibold text-foreground">{fmtCurrency(e.amount, e.currency)}</span>
+                                            <span className="font-numeric font-semibold tabular-nums text-foreground">{fmtCurrency(e.amount, e.currency)}</span>
                                         </li>
                                     ))}
                             </ul>

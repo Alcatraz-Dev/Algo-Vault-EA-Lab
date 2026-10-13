@@ -73,7 +73,7 @@ export default function TradeTagsPage() {
     }
 
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Sign In</Link></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">Sign In</Link></div></div>);
     }
 
     return (
@@ -83,7 +83,7 @@ export default function TradeTagsPage() {
                 <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-muted-foreground transition">
+                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
                     <ArrowLeft size={12} /> Back to Account
                 </Link>
 
@@ -95,7 +95,7 @@ export default function TradeTagsPage() {
                     <button
                         type="button"
                         onClick={() => setShowForm(!showForm)}
-                        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition"
+                        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
                     >
                         {showForm ? <X size={13} /> : <Plus size={13} />} {showForm ? "Cancel" : "New Tag"}
                     </button>
@@ -134,7 +134,7 @@ export default function TradeTagsPage() {
                                 type="button"
                                 onClick={createTag}
                                 disabled={!newName.trim() || creating}
-                                className="rounded-lg bg-primary px-6 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50"
+                                className="rounded-lg bg-primary px-6 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
                             >
                                 {creating ? "Creating..." : "Create Tag"}
                             </button>
@@ -155,7 +155,7 @@ export default function TradeTagsPage() {
                         {tags.map((tag) => (
                             <div
                                 key={tag.id}
-                                className="group rounded-lg border border-border/30 bg-muted/50 p-5 transition-all hover:bg-muted"
+                                className="group rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5 transition-all hover:bg-muted"
                             >
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">

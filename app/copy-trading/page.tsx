@@ -155,9 +155,9 @@ function OnlineDot({ online }: { online?: boolean }) {
 
 function StatPill({ label, value, positive }: { label: string; value: string; positive?: boolean }) {
     return (
-        <div className="rounded-lg border border-border/30 bg-muted px-3.5 py-2.5">
-            <p className="text-micro text-muted-foreground">{label}</p>
-            <p className={`mt-0.5 text-sm font-bold ${positive === undefined ? "text-foreground" : positive ? "text-positive" : "text-negative"}`}>
+        <div className="rounded-xl border border-border bg-card px-3.5 py-2.5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+            <p className="text-micro font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+            <p className={`mt-0.5 font-numeric text-sm font-semibold tracking-tight ${positive === undefined ? "text-foreground" : positive ? "text-positive" : "text-negative"}`}>
                 {value}
             </p>
         </div>
@@ -408,7 +408,7 @@ export default function CopyTradingPage() {
             <div className="relative mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
 
                 {/* Back */}
-                <Link href="/account" className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground">
+                <Link href="/account" className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
                     <ArrowLeft size={16} />
                     Back to Account
                 </Link>
@@ -416,12 +416,12 @@ export default function CopyTradingPage() {
                 {/* Header */}
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between" data-guide="page-header">
                     <div>
-                        <div className="inline-flex items-center gap-2 rounded-full border border-border/30 bg-muted/5 px-3.5 py-1.5 text-xs font-medium text-muted-foreground">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-micro font-medium uppercase tracking-wider text-muted-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <Copy size={13} className="text-primary" />
                             Automated Signal Mirroring
                         </div>
-                        <h1 className="text-2xl font-semibold tracking-tight mt-4">Copy Trading</h1>
-                        <p className="mt-2 text-sm leading-6 text-muted-foreground max-w-xl">
+                        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-foreground">Copy Trading</h1>
+                        <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
                             Mirror trades from master MT5 accounts to your own account in real time. Set custom lot sizing, risk limits, and filters.
                         </p>
                     </div>
@@ -432,7 +432,7 @@ export default function CopyTradingPage() {
                             onClick={() => {
                                 if (masterAccounts.length > 0) openSetupModal(masterAccounts[0]);
                             }}
-                            className="flex shrink-0 items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition hover:bg-primary/90"
+                            className="flex shrink-0 items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                         >
                             <Plus size={16} />
                             Add Follower
@@ -460,7 +460,7 @@ export default function CopyTradingPage() {
                 {/* Active Follower Configs */}
                 {followerConfigs.length > 0 && (
                     <div className="mt-10" data-guide="configs">
-                        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                        <h2 className="mb-4 text-micro font-medium uppercase tracking-wider text-muted-foreground">
                             Your Follower Accounts
                         </h2>
 
@@ -472,11 +472,11 @@ export default function CopyTradingPage() {
                                 return (
                                     <div
                                         key={config.id}
-                                        className={`rounded-lg border p-5 transition ${config.isActive ? "border-primary/20 bg-primary/[0.04]" : "border-border/30 bg-muted/50"}`}
+                                        className={`rounded-xl border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors ${config.isActive ? "border-primary/30" : "border-border"}`}
                                     >
                                         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                             <div className="flex items-center gap-4">
-                                                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${config.isActive ? "bg-primary/10" : "bg-muted/5"}`}>
+                                                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${config.isActive ? "bg-primary/10" : "bg-muted"}`}>
                                                     <Copy size={18} className={config.isActive ? "text-primary" : "text-muted-foreground"} />
                                                 </div>
 
@@ -485,7 +485,7 @@ export default function CopyTradingPage() {
                                                         <p className="font-semibold text-foreground">
                                                             MT5 #{config.followerMt5Account}
                                                         </p>
-                                                        <span className={`rounded-full border px-2 py-0.5 text-micro font-medium ${config.isActive ? "border-primary/30 bg-primary/10 text-primary" : "border-border/30 bg-muted/5 text-muted-foreground"}`}>
+                                                        <span className={`rounded-full border px-2 py-0.5 text-micro font-medium ${config.isActive ? "border-primary/30 bg-primary/10 text-primary" : "border-border bg-muted text-muted-foreground"}`}>
                                                             {config.isActive ? "Active" : "Paused"}
                                                         </span>
                                                     </div>
@@ -504,9 +504,9 @@ export default function CopyTradingPage() {
                                                     type="button"
                                                     onClick={() => toggleFollower(config)}
                                                     disabled={isSaving}
-                                                    className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-xs font-semibold transition ${config.isActive
-                                                        ? "border-warning/30 bg-warning/10 text-warning hover:bg-warning/20"
-                                                        : "border-positive/30 bg-positive/10 text-positive hover:bg-positive/20"}`}
+                                                    className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-xs font-semibold transition-colors disabled:opacity-50 ${config.isActive
+                                                        ? "border-warning/30 bg-warning-muted text-warning hover:bg-warning/20"
+                                                        : "border-positive/30 bg-positive-muted text-positive hover:bg-positive/20"}`}
                                                 >
                                                     {isSaving ? <Loader2 size={13} className="animate-spin" /> : config.isActive ? <Pause size={13} /> : <Play size={13} />}
                                                     {config.isActive ? "Pause" : "Resume"}
@@ -516,7 +516,7 @@ export default function CopyTradingPage() {
                                                     type="button"
                                                     onClick={() => deleteFollower(config)}
                                                     disabled={isSaving}
-                                                    className="flex items-center gap-1.5 rounded-lg border border-negative/20 bg-negative/10 px-3 py-2 text-xs font-semibold text-negative transition hover:bg-negative/20 disabled:opacity-50"
+                                                    className="flex items-center gap-1.5 rounded-lg border border-negative/30 bg-negative-muted px-3 py-2 text-xs font-semibold text-negative transition-colors hover:bg-negative/20 disabled:opacity-50"
                                                 >
                                                     <X size={13} />
                                                     Remove
@@ -533,7 +533,7 @@ export default function CopyTradingPage() {
                 {/* Master Accounts Grid */}
                 <div className="mt-10">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                        <h2 className="text-micro font-medium uppercase tracking-wider text-muted-foreground">
                             Available Master Accounts
                         </h2>
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -543,12 +543,12 @@ export default function CopyTradingPage() {
                     </div>
 
                     {loadingMasters ? (
-                        <div className="rounded-lg border border-border/30 bg-muted/50 p-16 text-center">
+                        <div className="rounded-xl border border-border bg-card p-16 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground mb-3" />
                             <p className="text-sm text-muted-foreground">Loading master accounts...</p>
                         </div>
                     ) : masterAccounts.length === 0 ? (
-                        <div className="rounded-lg border border-dashed border-border/30 bg-muted/50 p-14 text-center">
+                        <div className="rounded-xl border border-dashed border-border bg-card p-14 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <Users className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
                             <h3 className="font-semibold text-foreground">No master accounts yet</h3>
                             <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
@@ -564,7 +564,7 @@ export default function CopyTradingPage() {
                                     {unlistedMasters.map((acc) => (
                                         <div
                                             key={acc.id}
-                                            className="flex items-center justify-between gap-3 rounded-lg border border-border/30 bg-muted px-4 py-3"
+                                            className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted px-4 py-3"
                                         >
                                             <div className="min-w-0">
                                                 <p className="text-sm font-semibold text-foreground font-numeric">
@@ -576,8 +576,8 @@ export default function CopyTradingPage() {
                                             </div>
                                             <span className={`shrink-0 rounded-full border px-2.5 py-1 text-micro font-medium ${
                                                 acc.allowCopyTrading
-                                                    ? "border-positive/30 bg-positive/10 text-positive"
-                                                    : "border-warning/30 bg-warning/10 text-warning"
+                                                    ? "border-positive/30 bg-positive-muted text-positive"
+                                                    : "border-warning/30 bg-warning-muted text-warning"
                                             }`}>
                                                 {acc.online ? (acc.allowCopyTrading ? "Listed" : "Copying disabled") : "Offline"}
                                             </span>
@@ -585,7 +585,7 @@ export default function CopyTradingPage() {
                                     ))}
                                     <Link
                                         href="/account/copy-trading"
-                                        className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary/20 border border-primary/30 px-5 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/30"
+                                        className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
                                     >
                                         Manage my master accounts
                                         <ArrowRight size={14} />
@@ -594,7 +594,7 @@ export default function CopyTradingPage() {
                             ) : (
                                 <Link
                                     href="/marketplace"
-                                    className="mt-5 inline-flex items-center gap-2 rounded-lg bg-muted/10 px-5 py-2.5 text-sm font-semibold text-foreground transition hover:bg-foreground/30"
+                                    className="mt-5 inline-flex items-center gap-2 rounded-lg bg-muted px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
                                 >
                                     Browse Marketplace
                                     <ArrowRight size={14} />
@@ -614,19 +614,19 @@ export default function CopyTradingPage() {
                                 return (
                                     <div
                                         key={master.id}
-                                        className="group rounded-lg border border-border/30 bg-muted p-5 transition hover:border-border/50 hover:bg-muted/20"
+                                        className="group rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:shadow-md"
                                     >
                                         {/* Header */}
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="flex items-center gap-3">
-                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted/5 border border-border/30">
+                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-muted">
                                                     <Bot size={18} className="text-primary" />
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-foreground text-sm leading-tight">
+                                                    <p className="text-sm font-semibold tracking-tight text-foreground leading-tight">
                                                         {master.productName || "EA Account"}
                                                     </p>
-                                                    <p className="text-micro text-muted-foreground mt-0.5 font-numeric">
+                                                    <p className="mt-0.5 font-numeric text-micro text-muted-foreground">
                                                         MT5 #{master.mt5Account}
                                                     </p>
                                                 </div>
@@ -651,30 +651,30 @@ export default function CopyTradingPage() {
 
                                         {/* Stats */}
                                         <div className="mt-4 grid grid-cols-3 gap-2">
-                                            <div className="rounded-lg border border-border/30 bg-background/70 px-2.5 py-2 text-center">
-                                                <p className="text-micro text-muted-foreground">Balance</p>
-                                                <p className="mt-0.5 text-xs font-bold text-foreground">
+                                            <div className="rounded-lg border border-border bg-muted px-2.5 py-2 text-center">
+                                                <p className="text-micro font-medium uppercase tracking-wider text-muted-foreground">Balance</p>
+                                                <p className="mt-0.5 font-numeric text-xs font-semibold text-foreground">
                                                     {master.balance != null ? formatMoney(master.balance) : "—"}
                                                 </p>
                                             </div>
-                                            <div className="rounded-lg border border-border/30 bg-background/70 px-2.5 py-2 text-center">
-                                                <p className="text-micro text-muted-foreground">Win Rate</p>
-                                                <p className={`mt-0.5 text-xs font-bold ${winRate != null ? (winRate >= 50 ? "text-positive" : "text-negative") : "text-muted-foreground"}`}>
+                                            <div className="rounded-lg border border-border bg-muted px-2.5 py-2 text-center">
+                                                <p className="text-micro font-medium uppercase tracking-wider text-muted-foreground">Win Rate</p>
+                                                <p className={`mt-0.5 font-numeric text-xs font-semibold ${winRate != null ? (winRate >= 50 ? "text-positive" : "text-negative") : "text-muted-foreground"}`}>
                                                     {winRate != null ? `${Number(winRate).toFixed(1)}%` : "—"}
                                                 </p>
                                             </div>
-                                            <div className="rounded-lg border border-border/30 bg-background/70 px-2.5 py-2 text-center">
-                                                <p className="text-micro text-muted-foreground">Risk (Max DD)</p>
-                                                <p className={`mt-0.5 text-xs font-bold ${riskTone(risk)}`}>
+                                            <div className="rounded-lg border border-border bg-muted px-2.5 py-2 text-center">
+                                                <p className="text-micro font-medium uppercase tracking-wider text-muted-foreground">Risk (Max DD)</p>
+                                                <p className={`mt-0.5 font-numeric text-xs font-semibold ${riskTone(risk)}`}>
                                                     {risk != null ? `${Number(risk).toFixed(1)}%` : "—"}
                                                 </p>
                                             </div>
                                         </div>
 
                                         {/* P/L bar */}
-                                        <div className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-border/30 bg-background/70 px-3 py-2">
-                                            <span className="text-micro text-muted-foreground">Total P/L</span>
-                                            <span className={`text-sm font-bold tabular-nums ${profit != null ? (profit >= 0 ? "text-positive" : "text-negative") : "text-muted-foreground"}`}>
+                                        <div className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-border bg-muted px-3 py-2">
+                                            <span className="text-micro font-medium uppercase tracking-wider text-muted-foreground">Total P/L</span>
+                                            <span className={`font-numeric text-sm font-semibold tracking-tight ${profit != null ? (profit >= 0 ? "text-positive" : "text-negative") : "text-muted-foreground"}`}>
                                                 {profit != null ? `${profit >= 0 ? "+" : ""}${formatMoney(profit)}` : "—"}
                                             </span>
                                             <span className="text-micro text-muted-foreground">
@@ -692,9 +692,9 @@ export default function CopyTradingPage() {
                                         <button
                                             type="button"
                                             onClick={() => openSetupModal(master)}
-                                            className={`mt-4 w-full flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-bold transition ${alreadyFollowing
+                                            className={`mt-4 w-full flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 ${alreadyFollowing
                                                 ? "border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
-                                                : "bg-primary text-foreground "}`}
+                                                : "bg-primary text-primary-foreground hover:bg-primary/90"}`}
                                         >
                                             {alreadyFollowing ? (
                                                 <>
@@ -718,17 +718,17 @@ export default function CopyTradingPage() {
                 {/* Copied Trades Table */}
                 {copiedTrades.length > 0 && (
                     <div className="mt-10">
-                        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                        <h2 className="mb-4 text-micro font-medium uppercase tracking-wider text-muted-foreground">
                             Copied Trade History
                         </h2>
 
-                        <div className="rounded-lg border border-border/30 bg-muted overflow-hidden">
-                            <div className="flex items-center justify-between border-b border-border/30 px-5 py-4">
+                        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                            <div className="flex items-center justify-between border-b border-border px-5 py-4">
                                 <div>
-                                    <h3 className="font-semibold text-foreground">Trade Log</h3>
-                                    <p className="text-xs text-muted-foreground mt-0.5">{copiedTrades.length} trades copied in total</p>
+                                    <h3 className="text-sm font-semibold tracking-tight text-foreground">Trade Log</h3>
+                                    <p className="mt-0.5 font-numeric text-xs text-muted-foreground">{copiedTrades.length} trades copied in total</p>
                                 </div>
-                                <span className={`rounded-full border px-3 py-1 text-xs font-medium ${openCopiedTrades.length > 0 ? "border-positive/20 bg-positive/10 text-positive" : "border-border/30 text-muted-foreground"}`}>
+                                <span className={`rounded-full border px-3 py-1 text-micro font-medium ${openCopiedTrades.length > 0 ? "border-positive/30 bg-positive-muted text-positive" : "border-border bg-muted text-muted-foreground"}`}>
                                     {openCopiedTrades.length} open
                                 </span>
                             </div>
@@ -736,40 +736,40 @@ export default function CopyTradingPage() {
                             <div className="overflow-x-auto">
                                 <table className="w-full min-w-[700px] text-sm">
                                     <thead>
-                                        <tr className="border-b border-border/30 text-xs uppercase tracking-wider text-muted-foreground">
-                                            <th className="px-5 py-3 text-left">Symbol</th>
-                                            <th className="px-5 py-3 text-left">Type</th>
-                                            <th className="px-5 py-3 text-left">Volume</th>
-                                            <th className="px-5 py-3 text-left">Open Price</th>
-                                            <th className="px-5 py-3 text-left">Profit</th>
-                                            <th className="px-5 py-3 text-left">Status</th>
-                                            <th className="px-5 py-3 text-left">Opened</th>
+                                        <tr className="border-b border-border text-micro font-medium uppercase tracking-wider text-muted-foreground">
+                                            <th className="px-5 py-3 text-left font-medium">Symbol</th>
+                                            <th className="px-5 py-3 text-left font-medium">Type</th>
+                                            <th className="px-5 py-3 text-right font-medium">Volume</th>
+                                            <th className="px-5 py-3 text-right font-medium">Open Price</th>
+                                            <th className="px-5 py-3 text-right font-medium">Profit</th>
+                                            <th className="px-5 py-3 text-left font-medium">Status</th>
+                                            <th className="px-5 py-3 text-left font-medium">Opened</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {copiedTrades.slice(0, 50).map((trade) => (
-                                            <tr key={trade.ticket} className="border-b border-border/10 last:border-0">
+                                            <tr key={trade.ticket} className="border-b border-border last:border-0 transition-colors hover:bg-muted">
                                                 <td className="px-5 py-3.5 font-semibold text-foreground">{trade.symbol}</td>
                                                 <td className="px-5 py-3.5">
-                                                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${trade.type === "BUY" ? "bg-positive/10 text-positive" : "bg-negative/10 text-negative"}`}>
+                                                    <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-micro font-medium ${trade.type === "BUY" ? "border-positive/30 bg-positive-muted text-positive" : "border-negative/30 bg-negative-muted text-negative"}`}>
                                                         {trade.type === "BUY" ? <ArrowUp size={11} /> : <ArrowDown size={11} />}
                                                         {trade.type}
                                                     </span>
                                                 </td>
-                                                <td className="px-5 py-3.5 text-muted-foreground">{Number(trade.volume || 0).toFixed(2)}</td>
-                                                <td className="px-5 py-3.5 text-muted-foreground">{trade.openPrice}</td>
-                                                <td className={`px-5 py-3.5 font-semibold tabular-nums ${(trade.status === "closed" ? trade.profit || 0 : trade.currentProfit) >= 0 ? "text-positive" : "text-negative"}`}>
+                                                <td className="px-5 py-3.5 text-right font-numeric text-muted-foreground">{Number(trade.volume || 0).toFixed(2)}</td>
+                                                <td className="px-5 py-3.5 text-right font-numeric text-muted-foreground">{trade.openPrice}</td>
+                                                <td className={`px-5 py-3.5 text-right font-numeric font-semibold ${(trade.status === "closed" ? trade.profit || 0 : trade.currentProfit) >= 0 ? "text-positive" : "text-negative"}`}>
                                                     {(() => {
                                                         const p = trade.status === "closed" ? trade.profit || 0 : trade.currentProfit;
                                                         return `${p >= 0 ? "+" : ""}${formatMoney(p)}`;
                                                     })()}
                                                 </td>
                                                 <td className="px-5 py-3.5">
-                                                    <span className={`rounded-full px-2 py-0.5 text-micro font-medium ${trade.status === "open" ? "bg-positive/10 text-positive" : "bg-border text-muted-foreground"}`}>
+                                                    <span className={`rounded-full border px-2 py-0.5 text-micro font-medium ${trade.status === "open" ? "border-positive/30 bg-positive-muted text-positive" : "border-border bg-muted text-muted-foreground"}`}>
                                                         {trade.status === "open" ? "OPEN" : "CLOSED"}
                                                     </span>
                                                 </td>
-                                                <td className="px-5 py-3.5 text-xs text-muted-foreground">
+                                                <td className="px-5 py-3.5 font-numeric text-xs text-muted-foreground">
                                                     {trade.openedAt ? new Date(trade.openedAt).toLocaleString() : "—"}
                                                 </td>
                                             </tr>
@@ -783,10 +783,10 @@ export default function CopyTradingPage() {
 
                 {/* How It Works */}
                 {followerConfigs.length === 0 && (
-                    <div className="mt-10 rounded-lg border border-border/30 bg-muted p-8">
+                    <div className="mt-10 rounded-xl border border-border bg-card p-8 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="flex items-center gap-2 mb-5">
                             <Info size={16} className="text-primary" />
-                            <h2 className="font-bold text-foreground">How Copy Trading Works</h2>
+                            <h2 className="text-sm font-semibold tracking-tight text-foreground">How Copy Trading Works</h2>
                         </div>
 
                         <div className="grid gap-4 sm:grid-cols-3">
@@ -816,17 +816,17 @@ export default function CopyTradingPage() {
                                     desc: "When the master EA opens or closes a trade, the signal is automatically sent to your MT5 account via the EA.",
                                 },
                             ].map((item) => (
-                                <div key={item.step} className="rounded-lg border border-border/30 bg-background/70 p-4">
-                                    <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${item.bg} mb-3`}>
+                                <div key={item.step} className="rounded-lg border border-border bg-muted p-4">
+                                    <div className={`flex h-9 w-9 items-center justify-center rounded-full ${item.bg} mb-3`}>
                                         <item.icon size={18} className={item.color} />
                                     </div>
-                                    <p className="font-bold text-foreground text-sm">{item.title}</p>
-                                    <p className="mt-1.5 text-xs text-muted-foreground leading-5">{item.desc}</p>
+                                    <p className="text-sm font-semibold tracking-tight text-foreground">{item.title}</p>
+                                    <p className="mt-1.5 text-xs leading-6 text-muted-foreground">{item.desc}</p>
                                 </div>
                             ))}
                         </div>
 
-                        <div className="mt-6 rounded-lg border border-warning/20 bg-warning/[0.06] p-4 text-xs text-warning/80 leading-5">
+                        <div className="mt-6 rounded-lg border border-warning/30 bg-warning-muted p-4 text-xs leading-6 text-muted-foreground">
                             <strong>Note:</strong> Copy trading requires the AlgoVault EA running on your follower MT5 account with the server URL configured correctly. The EA polls for pending orders via the heartbeat endpoint and executes them automatically.
                         </div>
                     </div>
@@ -836,16 +836,16 @@ export default function CopyTradingPage() {
             {/* ── Setup Modal ────────────────────────────────────────────────── */}
             {showSetupModal && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/80 backdrop-blur-sm p-4"
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm p-4"
                     onClick={(e) => e.target === e.currentTarget && setShowSetupModal(false)}
                 >
-                    <div className="w-full max-w-md rounded-lg border border-border/30 bg-background p-6 shadow-2xl">
+                    <div className="w-full max-w-md rounded-xl border border-border bg-popover p-6 shadow-xl">
                         {/* Modal header */}
                         <div className="flex items-center justify-between mb-6">
                             <div>
-                                <h2 className="font-bold text-foreground">Setup Follower Account</h2>
+                                <h2 className="text-sm font-semibold tracking-tight text-foreground">Setup Follower Account</h2>
                                 {setupMaster && (
-                                    <p className="text-xs text-muted-foreground mt-0.5">
+                                    <p className="mt-0.5 font-numeric text-xs text-muted-foreground">
                                         Copying: {setupMaster.productName || "Master"} (#{setupMaster.mt5Account})
                                     </p>
                                 )}
@@ -853,7 +853,7 @@ export default function CopyTradingPage() {
                             <button
                                 type="button"
                                 onClick={() => setShowSetupModal(false)}
-                                className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted/10 hover:text-foreground"
+                                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                             >
                                 <X size={18} />
                             </button>
@@ -870,7 +870,7 @@ export default function CopyTradingPage() {
                                     placeholder="e.g. 12345678"
                                     value={setupForm.followerMt5Account}
                                     onChange={(e) => setSetupForm((f) => ({ ...f, followerMt5Account: e.target.value }))}
-                                    className="w-full rounded-lg border border-border/30 bg-background/950 px-3.5 py-2.5 text-sm text-foreground font-numeric placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none"
+                                    className="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground font-numeric placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                                 />
                             </div>
 
@@ -883,7 +883,7 @@ export default function CopyTradingPage() {
                                     <select
                                         value={setupForm.licenseKey}
                                         onChange={(e) => setSetupForm((f) => ({ ...f, licenseKey: e.target.value }))}
-                                        className="w-full rounded-lg border border-border/30 bg-background/950 px-3.5 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none"
+                                        className="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none"
                                     >
                                         <option value="">None</option>
                                         {licenses.map((l) => (
@@ -906,7 +906,7 @@ export default function CopyTradingPage() {
                                         placeholder="1.0"
                                         value={setupForm.lotMultiplier}
                                         onChange={(e) => setSetupForm((f) => ({ ...f, lotMultiplier: e.target.value }))}
-                                        className="w-full rounded-lg border border-border/30 bg-background/950 px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none"
+                                        className="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm font-numeric text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                                     />
                                     <p className="text-micro text-muted-foreground mt-1">1.0 = same as master</p>
                                 </div>
@@ -919,7 +919,7 @@ export default function CopyTradingPage() {
                                         placeholder="0.10"
                                         value={setupForm.maxLot}
                                         onChange={(e) => setSetupForm((f) => ({ ...f, maxLot: e.target.value }))}
-                                        className="w-full rounded-lg border border-border/30 bg-background/950 px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none"
+                                        className="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm font-numeric text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                                     />
                                 </div>
                             </div>
@@ -933,7 +933,7 @@ export default function CopyTradingPage() {
                                     placeholder="5"
                                     value={setupForm.maxOpenTrades}
                                     onChange={(e) => setSetupForm((f) => ({ ...f, maxOpenTrades: e.target.value }))}
-                                    className="w-full rounded-lg border border-border/30 bg-background/950 px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none"
+                                    className="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm font-numeric text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                                 />
                             </div>
 
@@ -946,15 +946,15 @@ export default function CopyTradingPage() {
                             ].map(({ key, label }) => {
                                 const toggleKey = key as keyof typeof setupForm;
                                 return (
-                                    <label key={key} className="flex cursor-pointer items-center justify-between rounded-lg border border-border/30 bg-background/70 px-4 py-3">
+                                    <label key={key} className="flex cursor-pointer items-center justify-between rounded-lg border border-border bg-muted px-4 py-3">
                                         <span className="text-sm text-muted-foreground">{label}</span>
                                         <div
-                                            className={`relative h-5 w-9 rounded-full transition ${
+                                            className={`relative h-5 w-9 rounded-full transition-colors ${
                                                 setupForm[toggleKey]
                                                     ? key === "reverseSignals"
                                                         ? "bg-warning"
                                                         : "bg-primary"
-                                                    : "bg-muted/50"
+                                                    : "bg-muted-foreground/30"
                                             }`}
                                             onClick={() => setSetupForm((f) => ({ ...f, [key]: !f[toggleKey] }))}
                                         >
@@ -966,7 +966,7 @@ export default function CopyTradingPage() {
                             </div>
 
                             {/* Review before starting */}
-                            <div className="rounded-lg border border-primary/20 bg-primary/[0.05] p-4">
+                            <div className="rounded-lg border border-primary/30 bg-primary/10 p-4">
                                 <div className="flex items-center gap-1.5 mb-3">
                                     <Info size={13} className="text-primary" />
                                     <p className="text-xs font-semibold text-foreground">Copy Trading Summary</p>
@@ -978,27 +978,27 @@ export default function CopyTradingPage() {
                                     </div>
                                     <div className="flex items-center justify-between gap-2">
                                         <span className="text-muted-foreground">Win rate</span>
-                                        <span className={`font-semibold ${setupMaster?.stats?.winRate != null ? (setupMaster.stats.winRate >= 50 ? "text-positive" : "text-negative") : "text-muted-foreground"}`}>
+                                        <span className={`font-numeric font-semibold ${setupMaster?.stats?.winRate != null ? (setupMaster.stats.winRate >= 50 ? "text-positive" : "text-negative") : "text-muted-foreground"}`}>
                                             {setupMaster?.stats?.winRate != null ? `${Number(setupMaster.stats.winRate).toFixed(1)}%` : "—"}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between gap-2">
                                         <span className="text-muted-foreground">Master P/L</span>
-                                        <span className={`font-semibold ${setupMaster?.stats?.totalProfit != null ? (setupMaster.stats.totalProfit >= 0 ? "text-positive" : "text-negative") : "text-muted-foreground"}`}>
+                                        <span className={`font-numeric font-semibold ${setupMaster?.stats?.totalProfit != null ? (setupMaster.stats.totalProfit >= 0 ? "text-positive" : "text-negative") : "text-muted-foreground"}`}>
                                             {setupMaster?.stats?.totalProfit != null ? `${setupMaster.stats.totalProfit >= 0 ? "+" : ""}${formatMoney(setupMaster.stats.totalProfit)}` : "—"}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between gap-2">
                                         <span className="text-muted-foreground">Lot multiplier</span>
-                                        <span className="text-muted-foreground font-semibold">×{setupForm.lotMultiplier}</span>
+                                        <span className="text-muted-foreground font-numeric font-semibold">×{setupForm.lotMultiplier}</span>
                                     </div>
                                     <div className="flex items-center justify-between gap-2">
                                         <span className="text-muted-foreground">Max lot per trade</span>
-                                        <span className="text-muted-foreground font-semibold">{setupForm.maxLot} lots</span>
+                                        <span className="text-muted-foreground font-numeric font-semibold">{setupForm.maxLot} lots</span>
                                     </div>
                                     <div className="flex items-center justify-between gap-2">
                                         <span className="text-muted-foreground">Max open trades</span>
-                                        <span className="text-muted-foreground font-semibold">{setupForm.maxOpenTrades}</span>
+                                        <span className="text-muted-foreground font-numeric font-semibold">{setupForm.maxOpenTrades}</span>
                                     </div>
                                     <div className="flex items-center justify-between gap-2">
                                         <span className="text-muted-foreground">Copy settings</span>
@@ -1013,7 +1013,7 @@ export default function CopyTradingPage() {
                             </div>
 
                             {setupError && (
-                                <div className="rounded-lg border border-negative/20 bg-negative/[0.08] p-3 text-xs text-negative">
+                                <div className="rounded-lg border border-negative/30 bg-negative-muted p-3 text-xs text-negative">
                                     {setupError}
                                 </div>
                             )}
@@ -1022,7 +1022,7 @@ export default function CopyTradingPage() {
                                 type="button"
                                 onClick={saveFollowerConfig}
                                 disabled={savingSetup}
-                                className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-bold text-primary-foreground transition disabled:opacity-50"
+                                className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
                             >
                                 {savingSetup ? (
                                     <>

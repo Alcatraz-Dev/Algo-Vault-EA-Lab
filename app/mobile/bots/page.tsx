@@ -125,7 +125,7 @@ export default function MobileBotsPage() {
           <h1 className="text-lg font-semibold">My Bots</h1>
         </header>
         <div className="flex-1 p-4 space-y-4">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-lg" />)}
+          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
         </div>
       </div>
     );
@@ -136,7 +136,7 @@ export default function MobileBotsPage() {
       <div className="flex flex-col min-h-screen bg-background items-center justify-center p-8 text-center">
         <Bot className="h-16 w-16 text-muted-foreground mb-4" />
         <h1 className="text-xl font-semibold mb-2">Sign in to view your bots</h1>
-        <Link href="/login"><Button className="w-full sm:w-auto">Sign In</Button></Link>
+        <Link href="/login"><Button className="w-full sm:w-auto min-h-[44px]">Sign In</Button></Link>
       </div>
     );
   }
@@ -149,7 +149,7 @@ export default function MobileBotsPage() {
         <div className="h-14 flex items-center justify-between px-4">
           <h1 className="text-lg font-semibold">My Bots</h1>
           <div className="flex items-center gap-2">
-            <Link href="/account/bots/new" className="hidden sm:flex">
+            <Link href="/account/bots" className="hidden sm:flex">
               <Button size="sm" className="gap-1"><Bot className="h-4 w-4" /> Add Bot</Button>
             </Link>
             <Button variant="ghost" size="icon" onClick={handleRefresh} disabled={refreshing} className="h-9 w-9">
@@ -180,19 +180,19 @@ export default function MobileBotsPage() {
       </header>
 
       {/* Bot List */}
-      <div className="flex-1 overflow-auto p-3 pb-20">
+      <div className="flex-1 overflow-auto p-3 pb-[calc(5rem+env(safe-area-inset-bottom))]">
         {loading ? (
           <div className="space-y-3">
-            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-lg" />)}
+            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
           </div>
         ) : bots.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground p-4">
             <Bot className="h-12 w-12 mb-3 opacity-50" />
             <h3 className="font-semibold mb-1">No bots connected</h3>
             <p className="text-sm mb-4 max-w-xs">Connect your MT5 account and add a bot from the marketplace or create a custom one.</p>
-            <div className="flex gap-3">
-              <Link href="/marketplace"><Button>Browse Marketplace</Button></Link>
-              <Link href="/account/bots/new"><Button variant="outline">Add Custom Bot</Button></Link>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link href="/marketplace"><Button className="min-h-[44px]">Browse Marketplace</Button></Link>
+              <Link href="/account/bots"><Button variant="outline" className="min-h-[44px]">Add Custom Bot</Button></Link>
             </div>
           </div>
         ) : (
@@ -209,8 +209,8 @@ export default function MobileBotsPage() {
               const StatusIcon = statusConfig.icon;
 
               return (
-                <Link key={bot.id} href={`/bots/${bot.id}`} className="block">
-                  <Card className={cn("p-3 transition-colors hover:border-primary/30", status === "warning" && "border-warning/30", status === "disconnected" && "border-negative/30")}>
+                <Link key={bot.id} href={`/account/bots/${bot.id}`} className="block">
+                  <Card className={cn("p-3 rounded-xl shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:border-primary/30", status === "warning" && "border-warning/30", status === "disconnected" && "border-negative/30")}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         <div className={cn("p-2 rounded-lg flex-shrink-0", statusConfig.bg)}>
@@ -257,7 +257,7 @@ export default function MobileBotsPage() {
 
         {/* Add bot button for mobile */}
         <div className="pt-4 pb-8 sm:hidden">
-          <Link href="/account/bots/new"><Button className="w-full gap-2"><Bot className="h-4 w-4" /> Add New Bot</Button></Link>
+          <Link href="/account/bots"><Button className="w-full min-h-[44px] gap-2"><Bot className="h-4 w-4" /> Add New Bot</Button></Link>
         </div>
       </div>
     </div>

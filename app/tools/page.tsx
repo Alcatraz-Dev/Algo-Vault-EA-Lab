@@ -39,7 +39,7 @@ export default function ToolsLandingPage() {
                     <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.04] px-2.5 py-1 text-micro font-semibold uppercase tracking-wider text-primary">
                         <Sparkles className="size-3" /> Tool Library
                     </div>
-                    <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+                    <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
                         Every trading tool we ship, side by side.
                     </h1>
                     <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
@@ -50,14 +50,14 @@ export default function ToolsLandingPage() {
                     <div className="mt-5 flex flex-wrap items-center gap-3">
                         <Link
                             href="/pricing"
-                            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                         >
                             <Crown className="size-4" />
                             Compare Pro plans
                         </Link>
                         <Link
                             href="/account/tools"
-                            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
                         >
                             Member tools <ArrowRight className="size-3.5" />
                         </Link>
@@ -80,7 +80,7 @@ export default function ToolsLandingPage() {
                                     </h2>
                                     <p className="mt-1 text-xs text-muted-foreground">{group.description}</p>
                                 </div>
-                                <span className="text-micro uppercase tracking-wider text-muted-foreground">
+                                <span className="font-numeric text-micro uppercase tracking-wider text-muted-foreground">
                                     {tools.length} tool{tools.length > 1 ? "s" : ""}
                                 </span>
                             </div>
@@ -94,7 +94,7 @@ export default function ToolsLandingPage() {
                     );
                 })}
 
-                <section className="rounded-lg border border-primary/20 bg-primary/10 p-6 sm:p-8">
+                <section className="rounded-xl border border-primary/20 bg-primary/10 p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)] sm:p-8">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="max-w-2xl">
                             <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground">
@@ -108,7 +108,7 @@ export default function ToolsLandingPage() {
                         </div>
                         <Link
                             href="/pricing"
-                            className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+                            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                         >
                             See pricing <ArrowRight className="size-3.5" />
                         </Link>
@@ -127,14 +127,14 @@ function ToolCard({ tool }: { tool: ToolCatalogEntry }) {
         <Link
             href={tool.href}
             className={cn(
-                "group relative flex flex-col gap-3 rounded-lg border bg-card p-5 transition-all",
+                "group relative flex flex-col gap-3 rounded-xl border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:-translate-y-px hover:shadow-md",
                 isPro
                     ? "border-primary/15 hover:border-primary/30 hover:bg-card/80"
                     : "border-border hover:border-primary/20 hover:bg-card/80",
             )}
         >
             <div className="flex items-start justify-between gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-muted text-foreground">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted/60 text-foreground">
                     <Icon size={18} />
                 </div>
                 <ToolBadge kind={isPro ? "pro" : "lite"} size="sm" />

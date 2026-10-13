@@ -76,7 +76,7 @@ export default function EconomicCalendarPage() {
                     {/* Back Button matching Purchases page style */}
                     <Link
                         href="/account"
-                        className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground"
+                        className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
                         <ArrowLeft size={16} />
                         Back to Account
@@ -104,7 +104,7 @@ export default function EconomicCalendarPage() {
                                 type="button"
                                 onClick={() => loadCalendar(true)}
                                 disabled={refreshing}
-                                className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:bg-muted/10 hover:text-foreground disabled:opacity-50"
+                                className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/10 hover:text-foreground disabled:opacity-50"
                             >
                                 <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
                                 <span>{refreshing ? "Updating..." : "Refresh Calendar"}</span>
@@ -121,7 +121,7 @@ export default function EconomicCalendarPage() {
                                     key={imp}
                                     type="button"
                                     onClick={() => setSelectedImpact(imp)}
-                                    className={`rounded-lg border px-3.5 py-1.5 text-xs font-medium transition ${
+                                    className={`rounded-lg border px-3.5 py-1.5 text-xs font-medium transition-colors ${
                                         selectedImpact === imp
                                             ? "border-border bg-muted/10 text-foreground font-semibold shadow-md"
                                             : "border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/5"
@@ -165,12 +165,12 @@ export default function EconomicCalendarPage() {
                     <TradingViewEconomicCalendar />
                 </section>
                 {loading ? (
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-16 text-center">
+                    <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-16 text-center">
                         <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground mb-3" />
                         <p className="text-sm text-muted-foreground">Loading economic releases...</p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto rounded-lg border border-border/30 bg-muted/50">
+                    <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <table className="w-full text-left text-xs text-muted-foreground">
                             <thead className="border-b border-border/30 bg-muted/5 font-semibold text-foreground">
                                 <tr>
@@ -186,7 +186,7 @@ export default function EconomicCalendarPage() {
                             </thead>
                             <tbody className="divide-y divide-white/5">
                                 {filteredEvents.map((evt) => (
-                                    <tr key={evt.id} className="hover:bg-muted transition">
+                                    <tr key={evt.id} className="hover:bg-muted transition-colors">
                                         <td className="p-4 font-numeric text-muted-foreground font-medium">
                                             {evt.timeUtc}
                                         </td>

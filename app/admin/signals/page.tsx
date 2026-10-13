@@ -216,7 +216,7 @@ export default function AdminSignalsPage() {
             {/* TOAST */}
             {toast && (
                 <div className="fixed top-4 right-4 z-50 animate-in fade-in slide-in-from-top-4">
-                    <div className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium shadow-2xl backdrop-blur-xl ${
+                    <div className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium shadow-[0_1px_2px_rgb(0_0_0/0.05)] ${
                         toast.type === "success"
                             ? "border-positive/30 bg-positive/10 text-positive"
                             : "border-negative/30 bg-negative/10 text-negative"
@@ -275,7 +275,7 @@ export default function AdminSignalsPage() {
                                 <button
                                     key={sym}
                                     onClick={() => toggleArrayItem("symbols", sym)}
-                                    className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+                                    className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                                         (config.symbols || []).includes(sym)
                                             ? "border-warning/40 bg-warning/15 text-warning"
                                             : "border-border/30 bg-muted/5 text-muted-foreground hover:border-border/50 hover:text-foreground"
@@ -294,7 +294,7 @@ export default function AdminSignalsPage() {
                                 <button
                                     key={tf}
                                     onClick={() => toggleArrayItem("timeframes", tf)}
-                                    className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+                                    className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                                         (config.timeframes || []).includes(tf)
                                             ? "border-info/40 bg-info/15 text-info"
                                             : "border-border/30 bg-muted/5 text-muted-foreground hover:border-border/50 hover:text-foreground"
@@ -313,7 +313,7 @@ export default function AdminSignalsPage() {
                                 <button
                                     key={s.value}
                                     onClick={() => toggleArrayItem("sessions", s.value)}
-                                    className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+                                    className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                                         (config.sessions || []).includes(s.value as MarketSessionName)
                                             ? "border-positive/40 bg-positive/15 text-positive"
                                             : "border-border/30 bg-muted/5 text-muted-foreground hover:border-border/50 hover:text-foreground"
@@ -416,7 +416,7 @@ export default function AdminSignalsPage() {
                                 <div key={key}>
                                     <div className="mb-1 flex items-center justify-between">
                                         <label className="text-xs font-medium text-muted-foreground">{WEIGHT_LABELS[key]}</label>
-                                        <span className="text-xs text-foreground tabular-nums">{(config.weights || DEFAULT_CONFIG.weights!)[key]}</span>
+                                        <span className="font-numeric text-xs tabular-nums text-foreground">{(config.weights || DEFAULT_CONFIG.weights!)[key]}</span>
                                     </div>
                                     <input
                                         type="range"
@@ -477,7 +477,7 @@ function Card({
     children: React.ReactNode;
 }) {
     return (
-        <div className="rounded-lg border border-border/30 bg-background p-6">
+        <div className="rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <div className="mb-4">
                 <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                     {icon}
@@ -515,7 +515,7 @@ function NumberInput({
                 max={max}
                 step={step}
                 onChange={(e) => onChange(Number(e.target.value))}
-                className="w-full rounded-lg border border-border/30 bg-muted/5 px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-warning/50 focus:ring-1 focus:ring-warning/30"
+                className="w-full rounded-xl border border-border bg-card px-3 py-2 font-numeric text-sm tabular-nums text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-ring"
             />
         </div>
     );

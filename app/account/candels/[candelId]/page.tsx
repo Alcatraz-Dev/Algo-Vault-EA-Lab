@@ -258,7 +258,7 @@ export default function CandelStudioPage() {
    * the studio offers the one action that fixes it instead of a dead end.
    */
   const repairPrompt = template ? null : (
-    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-warning/40 bg-warning/5 px-3 py-2.5 text-xs text-warning">
+    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-warning/40 bg-warning/5 px-4 py-3 text-xs text-warning shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
       <AlertTriangle className="size-3.5 shrink-0" />
       <span className="min-w-40 flex-1">
         This Candel points at a template that no longer exists ({instance.templateId}), so it cannot
@@ -322,10 +322,10 @@ export default function CandelStudioPage() {
           panel share the leftover viewport, and only the panel area scrolls.
           Reserving the space up front (rather than measuring after paint) is
           what keeps the composer above the fold on a phone. */}
-      <div className="flex h-[calc(100svh-11rem)] min-h-[32rem] flex-col gap-3 sm:gap-4">
+      <div className="flex h-[calc(100svh-11rem)] min-h-[32rem] flex-col gap-4">
         {/* Identity — avatar, role, posture and what it may touch, in one line
             that wraps instead of overflowing on narrow screens. */}
-        <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2.5 sm:px-4">
+        <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <CandelAvatar role={role} avatar={instance.customization?.avatar} />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
@@ -371,12 +371,12 @@ export default function CandelStudioPage() {
         {/* Canvas + inspector. On `lg` the panel nav is a column on the right;
             below that it is a single scrollable strip so eleven destinations
             never wrap into a wall of text. */}
-        <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row-reverse">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row-reverse">
           <div
             role="tablist"
             aria-label="Candel panels"
             aria-orientation="vertical"
-            className="scrollbar-hide -mx-1 flex shrink-0 gap-1 overflow-x-auto px-1 pb-1 lg:mx-0 lg:w-52 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0"
+            className="scrollbar-hide -mx-1 flex shrink-0 gap-2 overflow-x-auto rounded-xl px-1 pb-1 lg:mx-0 lg:w-52 lg:flex-col lg:gap-1 lg:overflow-visible lg:border lg:border-border lg:bg-card lg:p-2 lg:pb-2 lg:shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
           >
             {PANELS.map((entry) => {
               const Icon = entry.icon;
@@ -396,7 +396,7 @@ export default function CandelStudioPage() {
                   onClick={() => setPanel(entry.id)}
                   onKeyDown={onTabKeyDown}
                   className={cn(
-                    "inline-flex shrink-0 items-center gap-2 rounded-md border border-transparent px-2.5 py-2 text-sm font-medium whitespace-nowrap transition-colors",
+                    "inline-flex shrink-0 items-center gap-2 rounded-lg border border-transparent px-2.5 py-2 text-sm font-medium whitespace-nowrap transition-colors",
                     "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none",
                     "lg:w-full lg:justify-start",
                     selected
@@ -481,7 +481,7 @@ export default function CandelStudioPage() {
               {templates.map((candidate) => (
                 <li
                   key={candidate.id}
-                  className="flex flex-wrap items-center gap-3 rounded-lg border border-border px-3 py-2"
+                  className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
                 >
                   <CandelAvatar role={candidate.role} avatar={candidate.avatar} size="sm" />
                   <div className="min-w-40 flex-1">

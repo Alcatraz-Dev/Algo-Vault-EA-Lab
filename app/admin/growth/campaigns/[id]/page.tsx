@@ -322,8 +322,8 @@ export default function AdminCampaignDetailPage() {
 
             <div className="grid gap-6 lg:grid-cols-3">
                 {/* Overview */}
-                <section className="rounded-lg border border-border bg-card p-4 lg:col-span-1">
-                    <h2 className="mb-3 text-sm font-medium text-foreground">Overview</h2>
+                <section className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)] lg:col-span-1">
+                    <h2 className="mb-3 text-[11px] font-medium uppercase tracking-wider text-foreground">Overview</h2>
                     <dl className="space-y-2 text-xs">
                         <div className="flex items-center justify-between gap-2">
                             <dt className="text-muted-foreground">Status</dt>
@@ -339,14 +339,14 @@ export default function AdminCampaignDetailPage() {
                         </div>
                         <div className="flex items-center justify-between gap-2">
                             <dt className="text-muted-foreground">Budget</dt>
-                            <dd className="font-semibold text-foreground">{campaign.budget ? fmtCurrency(campaign.budget) : "—"}</dd>
+                            <dd className="font-numeric font-semibold tabular-nums text-foreground">{campaign.budget ? fmtCurrency(campaign.budget) : "—"}</dd>
                         </div>
                         <div className="flex items-center justify-between gap-2">
                             <dt className="text-muted-foreground">Owner</dt>
                             <dd className="text-foreground">{campaign.ownerName || "—"}</dd>
                         </div>
                     </dl>
-                    <h3 className="mb-2 mt-5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Channels</h3>
+                    <h3 className="mb-2 mt-5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Channels</h3>
                     <div className="flex flex-wrap gap-1.5">
                         {channelList.length === 0 ? (
                             <span className="text-xs text-muted-foreground">None selected</span>
@@ -360,13 +360,13 @@ export default function AdminCampaignDetailPage() {
                     </div>
                     {(campaign.audience?.countries?.length || 0) > 0 && (
                         <>
-                            <h3 className="mb-2 mt-5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Target countries</h3>
+                            <h3 className="mb-2 mt-5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Target countries</h3>
                             <p className="text-xs text-foreground">{campaign.audience?.countries?.join(", ")}</p>
                         </>
                     )}
                     {(campaign.affiliateOffers?.length || 0) > 0 && (
                         <>
-                            <h3 className="mb-2 mt-5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Affiliate offers</h3>
+                            <h3 className="mb-2 mt-5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Affiliate offers</h3>
                             <ul className="space-y-1 text-xs text-foreground">
                                 {campaign.affiliateOffers?.map((oid) => (
                                     <li key={oid}>
@@ -378,7 +378,7 @@ export default function AdminCampaignDetailPage() {
                     )}
                     {(campaign.monetizationPlacements?.length || 0) > 0 && (
                         <>
-                            <h3 className="mb-2 mt-5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Monetization placements</h3>
+                            <h3 className="mb-2 mt-5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Monetization placements</h3>
                             <div className="flex flex-wrap gap-1.5">
                                 {campaign.monetizationPlacements?.map((p) => (
                                     <span key={p} className="rounded border border-border px-2 py-0.5 text-xs text-foreground">
@@ -392,7 +392,7 @@ export default function AdminCampaignDetailPage() {
 
                 {/* Content + revenue */}
                 <div className="space-y-6 lg:col-span-2">
-                    <section className="rounded-lg border border-border bg-card p-4">
+                    <section className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="mb-3 flex items-center justify-between">
                             <h2 className="flex items-center gap-2 text-sm font-medium text-foreground">
                                 <FileText size={15} className="text-muted-foreground" /> Content
@@ -440,7 +440,7 @@ export default function AdminCampaignDetailPage() {
                         )}
                     </section>
 
-                    <section className="rounded-lg border border-border bg-card p-4">
+                    <section className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="mb-3 flex items-center justify-between">
                             <h2 className="flex items-center gap-2 text-sm font-medium text-foreground">
                                 <Wallet size={15} className="text-muted-foreground" /> Revenue
@@ -469,7 +469,7 @@ export default function AdminCampaignDetailPage() {
                         )}
                     </section>
 
-                    <section className="rounded-lg border border-border bg-card p-4">
+                    <section className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="mb-3 flex items-center justify-between">
                             <h2 className="flex items-center gap-2 text-sm font-medium text-foreground">
                                 <ListChecks size={15} className="text-muted-foreground" /> Activity
@@ -504,7 +504,7 @@ export default function AdminCampaignDetailPage() {
             <CampaignFormDialog open={editOpen} onOpenChange={setEditOpen} campaign={campaign} busy={busyAction === "edit"} onSubmit={saveEdit} />
 
             <Dialog open={genOpen} onOpenChange={setGenOpen}>
-                <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl">
+                <DialogContent className="rounded-xl bg-popover sm:max-w-md md:max-w-xl lg:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Generate content</DialogTitle>
                         <DialogDescription>

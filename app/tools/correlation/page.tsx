@@ -55,7 +55,7 @@ export default function CorrelationPage() {
     }
 
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background"><SiteNavbar /><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><a href="/login" className="rounded-md bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">Sign In</a></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background"><SiteNavbar /><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><a href="/login" className="rounded-md bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Sign In</a></div></div>);
     }
 
     const strongCorrelations: { sym1: string; sym2: string; val: number }[] = [];
@@ -86,7 +86,7 @@ export default function CorrelationPage() {
                 "Heatmap & intraday refresh",
             ]}
         >
-            <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
+            <div className="flex items-center justify-between rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                 <div className="flex items-center gap-3 text-xs">
                     <span className="rounded-full border border-border bg-muted px-2 py-0.5 font-numeric text-muted-foreground">
                         Window: 30d daily
@@ -97,7 +97,7 @@ export default function CorrelationPage() {
                     type="button"
                     onClick={fetchData}
                     disabled={loading}
-                    className="flex items-center gap-2 rounded-md border border-border bg-muted px-4 py-2 text-xs text-muted-foreground transition hover:bg-muted/60 disabled:opacity-50"
+                    className="flex items-center gap-2 rounded-md border border-border bg-muted px-4 py-2 text-xs text-muted-foreground transition-colors hover:bg-muted/60 disabled:opacity-50"
                 >
                     <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                 </button>
@@ -115,7 +115,7 @@ export default function CorrelationPage() {
                         <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded bg-negative/80" /> Strong Negative</span>
                     </div>
 
-                    <div className="rounded-lg border border-border bg-card p-4 overflow-x-auto">
+                    <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4 overflow-x-auto">
                         <table className="w-full text-center">
                             <thead>
                                 <tr>
@@ -134,7 +134,7 @@ export default function CorrelationPage() {
                                                 <td key={sym2}
                                                     onMouseEnter={() => !isDiagonal && setHoveredCell({ sym1, sym2, val })}
                                                     onMouseLeave={() => setHoveredCell(null)}
-                                                    className={cn("p-1 transition", isDiagonal ? "" : "cursor-pointer hover:ring-1 hover:ring-primary/40")}>
+                                                    className={cn("p-1 transition-colors", isDiagonal ? "" : "cursor-pointer hover:ring-1 hover:ring-primary/40")}>
                                                     <div className={cn("flex h-12 w-16 items-center justify-center rounded-md font-numeric text-xs font-bold", getCorrelationColor(val))}>
                                                         {isDiagonal ? "1.0" : val.toFixed(2)}
                                                     </div>

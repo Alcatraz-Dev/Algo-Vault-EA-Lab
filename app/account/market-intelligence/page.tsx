@@ -168,7 +168,7 @@ export default function AccountMarketIntelligencePage() {
       <AccountShell title="Market Intelligence — Command Center" subtitle="Analyze → Detect → Validate → Research → Build">
       <div className="flex flex-col gap-4 px-4 py-6">
         {/* Global Context Bar */}
-        <div className="rounded-lg border border-border/30 bg-card/60 p-3 flex flex-wrap items-center gap-3 text-micro font-numeric">
+        <div className="rounded-xl border border-border bg-card p-3 flex flex-wrap items-center gap-3 text-micro font-numeric shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <div className="font-black text-sm">COMMAND CENTER</div>
           <select value={symbol} onChange={(e) => setSymbol(e.target.value as SupportedSymbol)} className="rounded bg-muted/30 px-2 py-0.5 text-xs outline-none">
             {["XAUUSD", "EURUSD", "GBPUSD", "USDJPY"].map((s) => <option key={s} value={s}>{s}</option>)}
@@ -186,7 +186,7 @@ export default function AccountMarketIntelligencePage() {
 
         <div className="grid lg:grid-cols-[1fr_320px] gap-4">
           {/* Main Chart / Workspace */}
-          <div className="rounded-lg border border-border/30 bg-card/60 p-4">
+          <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <div className="flex items-center justify-between mb-3 text-xs font-numeric uppercase tracking-wider text-muted-foreground">
               <span>Market Workspace</span>
               <span>Overlay adapter · Smart Money · Sessions · Indicators</span>
@@ -242,7 +242,7 @@ export default function AccountMarketIntelligencePage() {
 
           {/* Intelligence / Evidence */}
           <div className="flex flex-col gap-4">
-            <div className="rounded-lg border border-border/30 bg-card/60 p-4">
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
               <h3 className="font-bold text-sm mb-2 flex items-center gap-2"><Zap size={14} /> Intelligence Layer</h3>
               <div className="text-xs space-y-2 text-muted-foreground">
                 <div><strong>Facts</strong> — {data ? "Engine loaded from /api/analysis/intelligence" : "Waiting for engine state"}</div>
@@ -259,7 +259,7 @@ export default function AccountMarketIntelligencePage() {
               )}
             </div>
 
-            <div className="rounded-lg border border-border/30 bg-card/60 p-4">
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
               <h3 className="font-bold text-sm mb-2 flex items-center gap-2"><Activity size={14} /> Smart Money Summary</h3>
               <div className="text-xs text-muted-foreground space-y-1">
                 <div><strong>Structure</strong> — {report.structure?.length ? `${report.structure.length} events` : "Loading..."}</div>
@@ -276,7 +276,7 @@ export default function AccountMarketIntelligencePage() {
         {/* Bottom: Replay / Evidence / Quick Actions / Live Monitor / Watchlist / Setups */}
         <div className="grid lg:grid-cols-3 gap-4">
           {/* Engine Status */}
-          <div className="rounded-lg border border-border/30 bg-card/60 p-4">
+          <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <div className="flex items-center justify-between mb-3 text-xs font-numeric uppercase">
               <span>Engine Status</span>
               <span>Real-time feed</span>
@@ -291,7 +291,7 @@ export default function AccountMarketIntelligencePage() {
           </div>
 
           {/* Evidence Chain */}
-          <div className="rounded-lg border border-border/30 bg-card/60 p-4">
+          <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h3 className="font-bold text-sm mb-2 flex items-center gap-2"><Layers size={14} /> Evidence Chain</h3>
             <div className="text-xs text-muted-foreground space-y-1 mb-2">
               <div>Market Event → Smart Money → Trade → Backtest → Research</div>
@@ -309,20 +309,20 @@ export default function AccountMarketIntelligencePage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="rounded-lg border border-border/30 bg-card/60 p-4">
+          <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h3 className="font-bold text-sm mb-2">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <a href="/advanced-analysis" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20">Advanced Analysis</a>
-              <a href="/market-intelligence/backtest" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20">Backtest</a>
-              <a href="/market-intelligence/research" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20">Research</a>
-              <a href="/trading-studio" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20">Trading Studio</a>
+              <a href="/advanced-analysis" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20 transition-colors">Advanced Analysis</a>
+              <a href="/market-intelligence/backtest" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20 transition-colors">Backtest</a>
+              <a href="/market-intelligence/research" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20 transition-colors">Research</a>
+              <a href="/strategy-lab" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20 transition-colors">Trading Studio</a>
             </div>
           </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-4">
           {/* Live Monitor */}
-          <div className="rounded-lg border border-border/30 bg-card/60 p-4">
+          <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <div className="flex items-center justify-between mb-3 text-xs font-numeric uppercase tracking-wider text-muted-foreground">
               <span>Live Monitor</span>
               <span>Existing data + Smart Money + Indicators + MTF</span>
@@ -337,11 +337,11 @@ export default function AccountMarketIntelligencePage() {
           </div>
 
           {/* Watchlist */}
-          <div className="rounded-lg border border-border/30 bg-card/60 p-4">
+          <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h3 className="font-bold text-sm mb-2">Watchlist (Live)</h3>
-            <table className="w-full text-micro text-left border-collapse">
-              <thead className="text-micro uppercase tracking-wider text-muted-foreground border-b border-border/20"><tr><th>Symbol</th><th>TF</th><th>Data</th><th>Setup</th></tr></thead>
-              <tbody className="divide-y divide-white/5">
+            <table className="w-full text-micro text-left border-collapse font-numeric">
+              <thead className="text-[11px] uppercase tracking-wider text-muted-foreground border-b border-border/20"><tr><th>Symbol</th><th>TF</th><th>Data</th><th>Setup</th></tr></thead>
+              <tbody className="divide-y divide-border/50">
                 {watchlist.map((w: { symbol: string; tf: string; data: string; setup: string }) => (
                   <tr key={w.symbol}><td>{w.symbol}</td><td>{w.tf}</td><td>{w.data}</td><td>{w.setup}</td></tr>
                 ))}
@@ -350,7 +350,7 @@ export default function AccountMarketIntelligencePage() {
           </div>
 
           {/* Active Setups + Setup Memory */}
-          <div className="rounded-lg border border-border/30 bg-card/60 p-4">
+          <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h3 className="font-bold text-sm mb-2">Active Setups</h3>
             <div className="text-xs text-muted-foreground mb-2">{setups.length ? setups.map((s) => <div key={s.id} className="flex items-center gap-2"><span className={cn("h-1.5 w-1.5 rounded-full", s.status === "Active" ? "bg-positive" : "bg-warning")} /><span>{s.symbol} {s.tf}</span><span className="text-muted-foreground">score {s.score}</span></div>) : "No setups configured. Create from existing conditions."}</div>
             <h3 className="font-bold text-sm mb-2 mt-3">Setup Memory</h3>

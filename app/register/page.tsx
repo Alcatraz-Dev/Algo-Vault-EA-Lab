@@ -190,9 +190,13 @@ function RegisterForm() {
     }
 
     return (
-        <main className="min-h-screen bg-background text-foreground">
-            <div className="flex min-h-screen items-center justify-center px-4 py-12">
-                <div className="w-full max-w-md animate-page-enter">
+        <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+                <div className="av-aurora av-aurora-a left-1/2 top-[-12rem] h-[28rem] w-[42rem] -translate-x-1/2" />
+                <div className="av-aurora av-aurora-b left-1/2 top-[6rem] h-[22rem] w-[32rem] -translate-x-1/2" />
+            </div>
+            <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12">
+                <div className="w-full max-w-sm animate-page-enter">
                     {/* Logo */}
                     <div className="mb-8 text-center">
                         <Link
@@ -225,10 +229,10 @@ function RegisterForm() {
                         </div>
                     )}
 
-                    <div className="rounded-lg border border-border bg-card p-6 sm:p-8">
+                    <div className="rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)] sm:p-8">
                         <form
                             onSubmit={handleRegister}
-                            className="space-y-5"
+                            className="flex flex-col gap-4"
                         >
                             {/* Name */}
                             <div className="space-y-1.5">
@@ -314,7 +318,7 @@ function RegisterForm() {
                                         onClick={() =>
                                             setShowPassword(!showPassword)
                                         }
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                                         aria-label={
                                             showPassword
                                                 ? "Hide password"
@@ -367,7 +371,7 @@ function RegisterForm() {
                                                 !showConfirmPassword
                                             )
                                         }
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                                         aria-label={
                                             showConfirmPassword
                                                 ? "Hide password confirmation"
@@ -417,7 +421,8 @@ function RegisterForm() {
                                 type="submit"
                                 size="lg"
                                 disabled={loading}
-                                className="h-11 w-full"
+                                aria-busy={loading}
+                                className="h-11 w-full transition-colors"
                             >
                                 {loading ? (
                                     "Creating account..."
@@ -435,7 +440,7 @@ function RegisterForm() {
                             Already have an account?{" "}
                             <Link
                                 href="/login"
-                                className="font-medium text-foreground hover:underline"
+                                className="font-medium text-foreground transition-colors hover:text-primary hover:underline"
                             >
                                 Sign in
                             </Link>
