@@ -1,7 +1,7 @@
 import { BrowserWindow, screen } from 'electron';
 import { join } from 'node:path';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { APP_USER_DATA, PROD_URL, spawnNextServer, terminateNextServer } from './next-server';
+import { APP_USER_DATA, PROD_URL, spawnNextServer, terminateNextServer } from './next-server.js';
 
 export interface WindowState {
   width: number;

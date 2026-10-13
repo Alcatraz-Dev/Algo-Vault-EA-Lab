@@ -5,10 +5,11 @@
   "version": "0.1.0",
   "private": true,
   "license": "UNLICENSED",
-  "main": "dist/main/main.js",
+  "type": "module",
+  "main": "compiled/main/main.js",
   "scripts": {
     "dev": "tsx src/main/main.ts",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "start": "electron .",
     "lint": "eslint src --ext .ts,.tsx",
@@ -37,15 +38,21 @@
     "appId": "com.algovault.desktop",
     "productName": "AlgoVault",
     "directories": {
-      "output": "dist/desktop-build",
+      "output": "build/desktop-build",
       "buildResources": "public"
     },
     "files": [
-      "dist/main/**/*",
-      "dist/preload/**/*",
-      "dist/renderer/**/*",
+      "compiled/main/**/*",
+      "compiled/preload/**/*",
+      "compiled/renderer/**/*",
       "package.json",
       "node_modules/electron/**/*"
+    ],
+    "asarUnpack": [
+      ".next",
+      ".next/standalone",
+      "node_modules/next",
+      "*.node"
     ],
     "extraResources": [
       {

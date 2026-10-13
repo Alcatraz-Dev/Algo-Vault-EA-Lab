@@ -1,7 +1,7 @@
 import { BrowserWindow, screen } from 'electron';
 import { join } from 'node:path';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { APP_USER_DATA, PROD_URL } from './next-server';
+import { APP_USER_DATA, PROD_URL } from './next-server.js';
 const MIN_WIDTH = 1280;
 const MIN_HEIGHT = 780;
 function readState() {

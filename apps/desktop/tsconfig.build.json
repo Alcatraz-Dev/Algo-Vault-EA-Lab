@@ -5,7 +5,9 @@
     "allowImportingTsExtensions": false,
     "outDir": "compiled",
     "declaration": false,
-    "jsx": "preserve"
+    "jsx": "preserve",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext"
   },
   "include": ["src"]
 }

@@ -1,5 +1,5 @@
 import { app, BrowserWindow, Menu, globalShortcut } from 'electron';
-import pkg from '../../package.json';
+import pkg from '../../package.json' with { type: 'json' };
 const APP_NAME = pkg.name;
 const APP_VERSION = pkg.version;
 /** Show the native "About" dialog. */

@@ -1,13 +1,13 @@
 import { app, BrowserWindow, Menu, nativeImage, Tray, shell } from 'electron';
 import { join } from 'node:path';
-import pkg from '../../package.json';
+import pkg from '../../package.json' with { type: 'json' };
 
 const APP_NAME = (pkg as { name: string }).name;
 const APP_VERSION = (pkg as { version: string }).version;
 
 /**
  * Resolve the tray icon from both the dev tree and the packaged app.
- * `__dirname` is apps/desktop/src/main (dev) or apps/desktop/dist/main (bundle),
+ * `__dirname` is apps/desktop/src/main (dev) or apps/desktop/compiled/main (bundle),
  * so two levels up is apps/desktop in both cases.
  */
 function getIconPath(): string {

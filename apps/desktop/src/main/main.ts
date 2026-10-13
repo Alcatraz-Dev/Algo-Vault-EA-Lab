@@ -1,13 +1,13 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import { join } from 'node:path';
-import { spawnNextServer, terminateNextServer } from './next-server';
-import { createWindow } from './window';
-import { createWindowActions, createApplicationMenu, registerGlobalShortcuts } from './menus';
-import { createTray } from './tray';
-import { connection } from './connection';
-import { updater } from './auto-updater';
-import { isOriginAllowlisted } from '../shared/links';
-import pkg from '../../package.json';
+import { spawnNextServer, terminateNextServer } from './next-server.js';
+import { createWindow } from './window.js';
+import { createWindowActions, createApplicationMenu, registerGlobalShortcuts } from './menus.js';
+import { createTray } from './tray.js';
+import { connection } from './connection.js';
+import { updater } from './auto-updater.js';
+import { isOriginAllowlisted } from '../shared/links.js';
+import pkg from '../../package.json' with { type: 'json' };
 
 const APP_NAME = (pkg as { name: string }).name;
 const APP_VERSION = (pkg as { version: string }).version;
