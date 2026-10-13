@@ -255,7 +255,7 @@ export default function CodeSection({ data }: { data: HomeData }) {
                 </Reveal>
 
                 <Reveal delay={100}>
-                    <div className="mt-10 overflow-hidden rounded-2xl border-none bg-white dark:bg-[#141414] dark:bg-white dark:bg-[#141414] dark:bg-white dark:bg-[#141414] dark:bg-white dark:bg-[#141414] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)]">
+                    <div className="mt-10 overflow-hidden rounded-2xl border-none bg-[#f8f9fa] dark:bg-[#f8f9fa] dark:bg-[#f8f9fa] dark:bg-[#f8f9fa] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)]">
                         {/* Sample tabs, inline at the top of the card */}
                         <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] px-2 py-1.5">
                             <span className="flex h-7 items-center gap-2 rounded-lg bg-neutral-100 dark:bg-[#0a0a0a] px-2.5 text-[10px] font-semibold text-foreground/70 shadow-md">
@@ -308,7 +308,7 @@ export default function CodeSection({ data }: { data: HomeData }) {
                                     typingSpeed={30}
                                     delayBetweenCommands={2000}
                                     initialDelay={500}
-                                    className="min-h-0 flex-1 overflow-auto rounded-xl bg-neutral-50 dark:bg-[#0a0a0a] p-4 shadow-inner"
+                                    className="min-h-0 flex-1 overflow-auto rounded-xl bg-neutral-50 p-4 shadow-inner"
                                   />
                                 <div className="flex h-8 shrink-0 items-center justify-between gap-3 border-t border-border px-4 font-numeric text-[11px] text-muted-foreground">
                                     <span className="truncate">{active.file} · UTF-8 · sample</span>
@@ -326,7 +326,7 @@ export default function CodeSection({ data }: { data: HomeData }) {
                                     </span>
                                 </div>
                                 <div className="h-44" role="img" aria-label={cardData.title + " curve"}>
-                                    <div className="h-full rounded-xl bg-white dark:bg-[#141414] dark:bg-white dark:bg-[#141414] dark:bg-white dark:bg-[#141414] dark:bg-white dark:bg-[#141414] p-2 shadow-md text-[11px]">
+                                    <div className="h-full rounded-xl bg-[#f8f9fa] dark:bg-[#f8f9fa] dark:bg-[#f8f9fa] dark:bg-[#f8f9fa] p-2 shadow-md text-[11px]">
                                         <div className="mb-1 flex justify-between text-xs font-medium"><span className="text-muted-foreground">{cardData.tracesSub}</span></div>
                                         {tab === "pine" ? (
                                             <div className="h-32 w-full rounded-lg overflow-hidden">
