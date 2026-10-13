@@ -539,10 +539,18 @@ body {
    the global reduced-motion guard stills it. */
 .folio-flow {
   stroke-dasharray: 26 220;
-  animation: folio-dash 2.8s linear infinite;
+  animation: 2.8s linear infinite folio-dash;
 }
 @keyframes folio-dash {
   to { stroke-dashoffset: -246; }
+}
+/* Reduced motion: freeze the pulse as static dashes instead of hiding
+   the overlay (hiding left only bare hairlines on reduce-motion systems). */
+@media (prefers-reduced-motion: reduce) {
+  .folio-flow {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
 }
 
 /* ── Aceternity: infinite moving cards ──

@@ -139,7 +139,7 @@ function FlowMap() {
                             <path d={`M 180 248 V 300 H ${x} V 368`} stroke="var(--border-color)" strokeWidth="1.25" strokeLinecap="round" />
                         </g>
                     ))}
-                    <g className="motion-reduce:hidden">
+                    <g>
                         {M_XS.map((x) => (
                             <path key={`fi-${x}`} d={`M ${x} 70 V 140 H 180 V 192`} stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" filter="url(#vault-flow-glow-m)" className="folio-flow" />
                         ))}
@@ -183,7 +183,7 @@ function FlowMap() {
                             <path d={d} stroke="var(--border-color)" strokeWidth="1.25" strokeLinecap="round" />
                         </g>
                     ))}
-                    <g className="motion-reduce:hidden">
+                    <g>
                         {TRUNKS.map((d) => (
                             <path key={`f-${d}`} d={d} stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" filter="url(#vault-flow-glow)" className="folio-flow" />
                         ))}
