@@ -47,8 +47,12 @@ export default function NetworkSection({ data }: { data: HomeData }) {
     ];
 
     return (
-        <section className="border-b border-border bg-background">
-            <div className="page-container grid gap-10 py-14 md:py-20 lg:grid-cols-[0.95fr_1.05fr] lg:gap-14">
+        <section className="relative overflow-hidden border-b border-border bg-background">
+            <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 opacity-50 [background-image:radial-gradient(var(--border-color)_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_55%_60%_at_30%_40%,black_20%,transparent_100%)] motion-reduce:hidden"
+            />
+            <div className="page-container relative grid gap-10 py-14 md:py-20 lg:grid-cols-[0.95fr_1.05fr] lg:gap-14">
                 <Reveal>
                     <div>
                         <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">

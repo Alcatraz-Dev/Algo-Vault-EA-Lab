@@ -1,10 +1,12 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Check, ChevronRight } from "lucide-react";
 import type { HomeProduct } from "@/lib/home-data";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import Reveal from "./Reveal";
 
 /**
@@ -20,6 +22,32 @@ const CHECKLIST = [
     "Free workspace to start",
 ] as const;
 
+function FilterChip({
+    active,
+    onClick,
+    children,
+}: {
+    active: boolean;
+    onClick: () => void;
+    children: React.ReactNode;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            aria-pressed={active}
+            className={cn(
+                "rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors",
+                active
+                    ? "border-primary/50 bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/30 hover:text-foreground",
+            )}
+        >
+            {children}
+        </button>
+    );
+}
+
 function formatPrice(value?: number, currency = "USD"): string {
     if (value === undefined || !Number.isFinite(value)) return "Unavailable";
     return new Intl.NumberFormat("en-US", {
@@ -30,6 +58,14 @@ function formatPrice(value?: number, currency = "USD"): string {
 }
 
 export default function CatalogSection({ featured }: { featured: HomeProduct[] }) {
+    // Provider rail derived from the real records — rendered only when at
+    // least two platforms are present, so it can never filter to nothing.
+    const platforms = useMemo(
+        () => Array.from(new Set(featured.map((p) => p.platform).filter((v): v is string => Boolean(v)))),
+        [featured],
+    );
+    const [platform, setPlatform] = useState<string | null>(null);
+    const visible = platform ? featured.filter((p) => p.platform === platform).slice(0, 5) : featured.slice(0, 5);
     return (
         <section className="border-b border-border bg-background">
             <div className="page-container grid items-center gap-10 py-14 md:py-20 lg:grid-cols-[0.9fr_1.1fr] lg:gap-14">
@@ -69,7 +105,7 @@ export default function CatalogSection({ featured }: { featured: HomeProduct[] }
 
                 <Reveal delay={120}>
                     <Card className="gap-0 overflow-hidden py-0 shadow-md">
-                        <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
                             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
                                 Featured listings
                             </p>
@@ -77,9 +113,21 @@ export default function CatalogSection({ featured }: { featured: HomeProduct[] }
                                 View all
                             </Link>
                         </div>
+                        {platforms.length >= 2 && (
+                            <div className="flex flex-wrap gap-1.5 border-b border-border px-5 py-3" role="group" aria-label="Filter by platform">
+                                <FilterChip active={platform === null} onClick={() => setPlatform(null)}>
+                                    All
+                                </FilterChip>
+                                {platforms.map((name) => (
+                                    <FilterChip key={name} active={platform === name} onClick={() => setPlatform(platform === name ? null : name)}>
+                                        {name}
+                                    </FilterChip>
+                                ))}
+                            </div>
+                        )}
                         <div>
-                            {featured.length > 0 ? (
-                                featured.slice(0, 5).map((product) => (
+                            {visible.length > 0 ? (
+                                visible.map((product) => (
                                     <Link
                                         key={product.id}
                                         href={`/marketplace/${product.slug || product.id}`}

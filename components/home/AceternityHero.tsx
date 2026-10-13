@@ -144,7 +144,7 @@ export default function AceternityHero({ data, siteName }: { data: HomeData; sit
                                 key={name}
                                 title={label}
                                 aria-label={label}
-                                className="opacity-60 transition-opacity duration-200 hover:opacity-100 motion-reduce:transition-none"
+                                className="opacity-70 grayscale transition-all duration-200 hover:opacity-100 hover:grayscale-0 motion-reduce:transition-none"
                             >
                                 <BrandLogo name={name} size={30} />
                             </li>

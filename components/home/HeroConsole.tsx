@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
+import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import {
     Activity,
     BarChart3,
@@ -24,7 +25,6 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import HomeCandleChart from "./HomeCandleChart";
 import { ReturnsHistogram, RiskMini, SignalLifecycle, TelemetryMini } from "./home-visuals";
-import Reveal from "./Reveal";
 
 /**
  * Hero console — an honest take on the reference's perspective dashboard:
@@ -86,9 +86,27 @@ export default function HeroConsole({ data }: { data: HomeData }) {
     const { stats, featured, backtestAnalytics } = data;
     const [view, setView] = useState<ViewId>("overview");
 
+    // Reference-style entrance: the console rises and flattens from a
+    // tilted perspective as it scrolls into view. Static when reduced motion.
+    const wrapRef = useRef<HTMLDivElement>(null);
+    const reduceMotion = useReducedMotion();
+    const { scrollYProgress } = useScroll({
+        target: wrapRef,
+        offset: ["start 0.95", "start 0.45"],
+    });
+    const rotateX = useTransform(scrollYProgress, [0, 1], [22, 0]);
+    const rise = useTransform(scrollYProgress, [0, 1], [70, 0]);
+    const fade = useTransform(scrollYProgress, [0, 0.5], [0.2, 1]);
+
     return (
-        <Reveal delay={150}>
-            <div className="relative mx-auto mt-14 max-w-6xl sm:mt-16" style={{ perspective: "1800px" }}>
+        <div ref={wrapRef} className="relative mx-auto mt-14 max-w-6xl sm:mt-16">
+            <motion.div
+                style={
+                    reduceMotion
+                        ? undefined
+                        : { rotateX, y: rise, opacity: fade, transformPerspective: 1800 }
+                }
+            >
                 <div
                     role="img"
                     aria-label="AlgoVault workspace preview: strategy lab with sample charts, session rows, featured strategies, and recorded aggregates"
@@ -327,7 +345,7 @@ export default function HeroConsole({ data }: { data: HomeData }) {
                         </div>
                     </div>
                 </div>
-            </div>
-        </Reveal>
+            </motion.div>
+        </div>
     );
 }

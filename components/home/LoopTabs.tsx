@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Check, Gauge, History, ScanSearch, Send } from "lucide-react";
 import type { HomeData } from "@/lib/home-data";
@@ -8,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardSpotlight } from "@/components/ui/card-spotlight";
+import { cn } from "@/lib/utils";
 import HomeCandleChart from "./HomeCandleChart";
 import { EngineBars, ReturnsHistogram, RiskMini, SignalLifecycle, TelemetryMini } from "./home-visuals";
 import Reveal from "./Reveal";
@@ -20,6 +22,7 @@ import Reveal from "./Reveal";
  */
 export default function LoopTabs({ data }: { data: HomeData }) {
     const { backtestAnalytics } = data;
+    const [tab, setTab] = useState("discover");
     const tiles = [
         { label: "Recorded runs", value: String(backtestAnalytics.total) },
         {
@@ -98,23 +101,39 @@ export default function LoopTabs({ data }: { data: HomeData }) {
                 </Reveal>
 
                 <Reveal delay={140}>
-                    <Tabs defaultValue="discover" className="mt-10 items-center">
-                        <TabsList className="h-auto flex-wrap rounded-full border border-border bg-card p-1 shadow-sm">
+                    <Tabs value={tab} onValueChange={setTab} className="mt-10 items-stretch">
+                        <TabsList className="grid h-auto grid-cols-2 gap-x-6 gap-y-1 rounded-none border-0 bg-transparent p-0 md:grid-cols-4">
                             {[
-                                { value: "discover", label: "Discover", icon: ScanSearch },
-                                { value: "validate", label: "Validate", icon: History },
-                                { value: "execute", label: "Execute", icon: Send },
-                                { value: "monitor", label: "Monitor", icon: Gauge },
-                            ].map(({ value, label, icon: Icon }) => (
-                                <TabsTrigger
-                                    key={value}
-                                    value={value}
-                                    className="rounded-full px-4 py-1.5 text-[13px] data-active:bg-primary data-active:text-primary-foreground data-active:shadow-sm dark:data-active:bg-primary dark:data-active:text-primary-foreground"
-                                >
-                                    <Icon size={14} aria-hidden />
-                                    {label}
-                                </TabsTrigger>
-                            ))}
+                                { value: "discover", label: "Discover", copy: "Scan the market", icon: ScanSearch },
+                                { value: "validate", label: "Validate", copy: "Prove it first", icon: History },
+                                { value: "execute", label: "Execute", copy: "Through the gate", icon: Send },
+                                { value: "monitor", label: "Monitor", copy: "Watch it honestly", icon: Gauge },
+                            ].map(({ value, label, copy, icon: Icon }) => {
+                                const active = tab === value;
+                                return (
+                                    <TabsTrigger
+                                        key={value}
+                                        value={value}
+                                        className="rounded-none border-0 bg-transparent px-0 py-3 data-active:bg-transparent data-active:shadow-none dark:data-active:bg-transparent"
+                                    >
+                                        <span className="relative flex w-full flex-col items-start gap-0.5 text-left">
+                                            <span aria-hidden className="absolute inset-x-0 -top-3 h-px bg-border" />
+                                            <span
+                                                aria-hidden
+                                                className={cn(
+                                                    "absolute inset-x-0 -top-3 h-px origin-left bg-primary transition-transform duration-300 motion-reduce:transition-none",
+                                                    active ? "scale-x-100" : "scale-x-0",
+                                                )}
+                                            />
+                                            <span className={cn("flex items-center gap-1.5 text-sm font-medium transition-colors", active ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
+                                                <Icon size={14} aria-hidden />
+                                                {label}
+                                            </span>
+                                            <span className="block text-xs text-muted-foreground/70">{copy}</span>
+                                        </span>
+                                    </TabsTrigger>
+                                );
+                            })}
                         </TabsList>
 
                         <TabsContent value="discover" className="w-full">

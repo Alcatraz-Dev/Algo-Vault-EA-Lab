@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 import Reveal from "./Reveal";
 
 /**
@@ -73,6 +74,7 @@ const TABS = [
     {
         id: "pine",
         label: "Pine import",
+        desc: "Pine Script v6, read directly",
         file: "vault-breakout.pine · sample",
         code: PINE_SAMPLE,
         readout: [
@@ -85,6 +87,7 @@ const TABS = [
     {
         id: "mql5",
         label: "MQL5 export",
+        desc: "Terminal-ready experts",
         file: "VaultBreakout.mq5 · sample",
         code: MQL5_SAMPLE,
         readout: [
@@ -97,6 +100,7 @@ const TABS = [
     {
         id: "setfile",
         label: "Set file",
+        desc: "Parameters that travel",
         file: "xauusd-m15.set.json · sample",
         code: SETFILE_SAMPLE,
         readout: [
@@ -109,6 +113,7 @@ const TABS = [
     {
         id: "signal",
         label: "Signal payload",
+        desc: "Normalized lifecycle JSON",
         file: "signal.json · sample",
         code: SIGNAL_SAMPLE,
         readout: [
@@ -165,12 +170,28 @@ export default function CodeSection() {
                     <div className="overflow-hidden rounded-xl border border-border bg-card shadow-md">
                         <Tabs value={tab} onValueChange={(v) => setTab(v as TabId)} className="gap-0">
                             <div className="border-b border-border px-3 pt-2">
-                                <TabsList className="h-8 w-full justify-start gap-1 overflow-x-auto rounded-lg">
-                                    {TABS.map((t) => (
-                                        <TabsTrigger key={t.id} value={t.id} className="flex-1 whitespace-nowrap px-2 text-xs">
-                                            {t.label}
-                                        </TabsTrigger>
-                                    ))}
+                                <TabsList className="h-auto w-full justify-start gap-6 overflow-x-auto rounded-none border-0 bg-transparent p-0">
+                                    {TABS.map((t) => {
+                                        const active = tab === t.id;
+                                        return (
+                                            <TabsTrigger key={t.id} value={t.id} className="shrink-0 rounded-none border-0 bg-transparent px-0 py-3 data-active:bg-transparent data-active:shadow-none dark:data-active:bg-transparent">
+                                                <span className="relative flex flex-col items-start gap-0.5 text-left">
+                                                    <span aria-hidden className="absolute inset-x-0 -top-3 h-px bg-border" />
+                                                    <span
+                                                        aria-hidden
+                                                        className={cn(
+                                                            "absolute inset-x-0 -top-3 h-px origin-left bg-primary transition-transform duration-300 motion-reduce:transition-none",
+                                                            active ? "scale-x-100" : "scale-x-0",
+                                                        )}
+                                                    />
+                                                    <span className={cn("text-sm font-medium transition-colors", active ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
+                                                        {t.label}
+                                                    </span>
+                                                    <span className="block max-w-40 text-xs text-pretty text-muted-foreground/70">{t.desc}</span>
+                                                </span>
+                                            </TabsTrigger>
+                                        );
+                                    })}
                                 </TabsList>
                             </div>
                         </Tabs>

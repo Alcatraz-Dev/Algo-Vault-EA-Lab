@@ -186,7 +186,11 @@ export default function WireUpSection() {
                     </div>
 
                     {/* Desktop: fixed canvas */}
-                    <div ref={ref} className="mx-auto mt-6 hidden max-w-6xl lg:block">
+                    <div ref={ref} className="relative mx-auto mt-6 hidden max-w-6xl lg:block">
+                        <div
+                            aria-hidden
+                            className="pointer-events-none absolute inset-0 opacity-60 [background-image:radial-gradient(var(--border-color)_1px,transparent_1px)] [background-size:22px_22px] [mask-image:radial-gradient(ellipse_70%_80%_at_50%_50%,black_30%,transparent_100%)] motion-reduce:hidden"
+                        />
                         <div style={{ height: STAGE_H * scale }} className="relative w-full overflow-hidden">
                             <div
                                 className="absolute left-0 top-0 origin-top-left"
