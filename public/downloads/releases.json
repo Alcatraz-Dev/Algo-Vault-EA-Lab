@@ -1,0 +1,46 @@
+{
+  "version": "0.1.0-preview",
+  "channel": "preview",
+  "published": "2026-10-13",
+  "source": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases",
+  "platforms": {
+    "windows": {
+      "label": "Windows App",
+      "os": "windows",
+      "arch": ["x64"],
+      "min_version": "Windows 10",
+      "status": "preview",
+      "release_notes_url": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases/tag/v0.1.0-preview",
+      "download_url": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases/download/v0.1.0-preview/AlgoVault-Setup-0.1.0-preview-x64.exe",
+      "file_size_bytes": 0,
+      "file_size_human": "~85 MB (estimated; not yet produced — requires windows-latest CI runner)",
+      "build_target": "nsis",
+      "supported_processors": ["x64"],
+      "notes": "NOT BUILT. Requires windows-latest CI runner or Windows environment. Workflow configured (.github/workflows/desktop-release.yml). No artifact exists at download_url. Status remains preview until CI produces verified .exe."
+    },
+    "macos": {
+      "label": "macOS App",
+      "os": "macos",
+      "arch": ["Apple Silicon", "Intel"],
+      "min_version": "macOS 13",
+      "status": "preview",
+      "release_notes_url": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases/tag/v0.1.0-preview",
+      "download_url": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases/download/v0.1.0-preview/AlgoVault-0.1.0-preview-universal.dmg",
+      "file_size_bytes": 0,
+      "file_size_human": "~92 MB (estimated, final size after build verification)",
+      "build_target": "dmg",
+      "supported_processors": ["Apple Silicon", "Intel"],
+      "notes": "LOCAL .app BUNDLE BUILT (mac-arm64, 457MB asar, executable verified at apps/desktop/dist/desktop-build/mac-arm64/AlgoVault.app). NOT PUBLISHED to GitHub Releases yet — requires macOS CI runner (`dist:mac-universal`) for .dmg/.zip artifacts, or manual upload. Download URL remains configured but points to future published release. Status preview until verified artifact is published."
+    }
+  },
+  "next_stable_version": "0.1.0",
+  "release_notes": {
+    "0.1.0-preview": [
+      "Initial desktop application for Windows and macOS.",
+      "Embedded production Next.js app with native window chrome, menus, tray, and connection overlay.",
+      "Dark/light theme support and persistent non-sensitive preferences.",
+      "Account authentication and subscription entitlement support.",
+      "Preview status: builds configured; final artifacts produced after CI verification."
+    ]
+  }
+}
