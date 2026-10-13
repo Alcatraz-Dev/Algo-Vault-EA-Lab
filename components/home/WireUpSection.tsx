@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Activity, ArrowRight, BarChart3, Check, Gauge, GripVertical, ShieldCheck, type LucideIcon } from "lucide-react";
+import { Activity, ArrowRight, BarChart3, Check, Copy, Gauge, GripVertical, Play, ShieldCheck, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import SiteLogo from "@/components/ui/site-logo";
 import BrandLogo, { type BrandLogoName } from "./BrandLogos";
@@ -68,27 +70,27 @@ const CONSUMERS: Consumer[] = [
 const PLUGINS: BrandLogoName[] = ["tradingview", "pine", "mql5", "mt5", "telegram"];
 
 /* Fixed-stage geometry, laid out exactly like the Aceternity reference. */
-const STAGE_W = 1800;
-const STAGE_H = 640;
-const NODE_W = 232;
-const NODE_H = 144; // 44 header + 52 body + 36 footer + 12 spacer
-const EP_W = 256;
-const EP_H = 324;
-const EP_X = 632;
-const EP_Y = 110;
+const STAGE_W = 1400;
+const STAGE_H = 580;
+const NODE_W = 200;
+const NODE_H = 110;
+const EP_W = 240;
+const EP_H = 200;
+const EP_X = 580;
+const EP_Y = 150;
 
 const INPUT_POS: Record<string, { x: number; y: number }> = {
-    data: { x: 300, y: 32 },
-    strategy: { x: 40, y: 208 },
-    risk: { x: 340, y: 208 },
-    mt5: { x: 320, y: 384 },
+    data: { x: 60, y: 0 },
+    strategy: { x: 60, y: 130 },
+    risk: { x: 60, y: 260 },
+    mt5: { x: 60, y: 390 },
 };
 
 const OUT_POS: { x: number; y: number }[] = [
-    { x: 988, y: 32 },
-    { x: 948, y: 208 },
-    { x: 1248, y: 208 },
-    { x: 968, y: 384 },
+    { x: 1100, y: 0 },
+    { x: 1100, y: 130 },
+    { x: 1100, y: 260 },
+    { x: 1100, y: 390 },
 ];
 
 type Pos = { x: number; y: number };
@@ -205,7 +207,7 @@ export default function WireUpSection() {
                 aria-hidden
                 className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border-color)_1px,transparent_1px),linear-gradient(to_bottom,var(--border-color)_1px,transparent_1px)] bg-[size:56px_56px] opacity-[0.16] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_40%,black_30%,transparent_100%)] motion-reduce:hidden"
             />
-            <div className="page-container relative py-14 md:py-20">
+            <div className="page-container relative py-32 md:py-40">
                 <Reveal>
                     <div className="mx-auto max-w-2xl text-center">
                         <p className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
@@ -214,13 +216,79 @@ export default function WireUpSection() {
                             <span aria-hidden className="h-px w-6 bg-primary/60" />
                         </p>
                         <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-balance text-foreground md:text-[2.75rem] md:leading-[1.08]">
-                            Wire up a strategy in a minute
+                            Wire up an endpoint in a minute
                         </h2>
                         <p className="mt-4 text-sm leading-6 text-pretty text-muted-foreground sm:text-[0.9375rem]">
-                            Connect TradingView quotes, a Pine Script strategy, risk limits, and your
-                            MetaTrader terminal in one graph. Drag from any card&apos;s dot — toggling
-                            updates this panel only; nothing executes.
+                            Speak Pine and MQL5. Keep the tools you have. Connect TradingView quotes,
+                            a Pine Script strategy, risk limits, and your MetaTrader terminal in one
+                            graph. Drag from any card&apos;s dot — toggling updates this panel only;
+                            nothing executes.
                         </p>
+                        {/* Advanced terminal using shadcn Tabs + Card + chart */}
+                        <Card className="mt-6 overflow-hidden rounded-2xl border-none bg-[#0a0a0a]/90 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)]">
+                            <Tabs defaultValue="pine" className="w-full">
+                                <div className="flex items-center justify-between border-b border-white/[0.06] px-3 py-2">
+                                    <TabsList className="h-7 bg-transparent p-0 gap-1">
+                                        <TabsTrigger value="env" className="h-6 px-2 text-[11px] data-[state=active]:bg-white/[0.08] data-[state=active]:text-foreground">.env</TabsTrigger>
+                                        <TabsTrigger value="pine" className="h-6 px-2 text-[11px] data-[state=active]:bg-white/[0.08] data-[state=active]:text-foreground">pine.v6</TabsTrigger>
+                                        <TabsTrigger value="mql5" className="h-6 px-2 text-[11px] data-[state=active]:bg-white/[0.08] data-[state=active]:text-foreground">mql5</TabsTrigger>
+                                    </TabsList>
+                                    <div className="flex gap-1">
+                                        <button type="button" aria-label="Copy" className="grid size-7 place-items-center rounded-md text-foreground/45 hover:bg-white/5 hover:text-foreground"><Copy size={14} /></button>
+                                        <button type="button" className="inline-flex items-center gap-1 rounded-md bg-emerald-600/20 px-2.5 py-0.5 text-[11px] font-medium text-emerald-300 hover:bg-emerald-600/30">Run <Play size={10} /></button>
+                                    </div>
+                                </div>
+                                <TabsContent value="env" className="m-0 px-3 py-3 font-mono text-[11px] leading-5 text-foreground/80">
+                                    MODEL=qwen-2.5-32b-instruct<br/>API_KEY=sk-...<br/>REGION=sa-east
+                                </TabsContent>
+                                <TabsContent value="pine" className="m-0 px-3 py-3">
+                                    <div className="font-mono text-[11px] leading-5 text-foreground/80">
+                                        <span className="text-[#60a5fa]">strategy</span>(<span className="text-amber-400">"Kestrel"</span>, overlay=<span className="text-rose-400">true</span>){`\n`}len = <span className="text-amber-200">input.int</span>(21, <span className="text-amber-400">"ATR length"</span>){`\n`}mult = <span className="text-amber-200">input.float</span>(1.8, <span className="text-amber-400">"ATR multiple"</span>)
+                                    </div>
+                                </TabsContent>
+                                <TabsContent value="mql5" className="m-0 px-3 py-3">
+                                    <div className="font-mono text-[11px] leading-5 text-foreground/80">
+                                        <span className="text-emerald-400">int</span> OnInit() {`\n`}    Print(<span className="text-amber-400">"MQL5 signal ready"</span>);{`\n`}
+                                    </div>
+                                </TabsContent>
+                            </Tabs>
+                            {/* Multi-chart section using shadcn ChartContainer pattern */}
+                            <div className="border-t border-white/[0.06] bg-[#0f0f11] px-3 py-3">
+                                <div className="mb-2 flex items-center justify-between text-[10px] font-medium text-foreground/50">
+                                    <span>Signal strength · Area · Bar · Line</span>
+                                    <span>+12.4%</span>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {/* Area chart */}
+                                    <div className="rounded-lg bg-[#0a0a0a]/60 p-2">
+                                        <div className="h-20 w-full rounded bg-gradient-to-b from-amber-900/20 to-transparent flex items-end gap-px px-1 pb-1">
+                                            {[20,35,28,48,42,58,50,62,55,68,60].map((v,i)=>(
+                                                <div key={i} className="flex-1 rounded-t bg-amber-400/50" style={{height:`${v}px`}} />
+                                            ))}
+                                        </div>
+                                        <div className="mt-1 text-[9px] text-foreground/40">Area · live</div>
+                                    </div>
+                                    {/* Bar chart */}
+                                    <div className="rounded-lg bg-[#0a0a0a]/60 p-2">
+                                        <div className="h-20 w-full rounded bg-gradient-to-b from-blue-900/10 to-transparent flex items-end gap-px px-1 pb-1">
+                                            {[15,30,45,25,55,35,60,40,50,30,45].map((v,i)=>(
+                                                <div key={i} className="flex-1 rounded-t bg-blue-400/60" style={{height:`${v}px`}} />
+                                            ))}
+                                        </div>
+                                        <div className="mt-1 text-[9px] text-foreground/40">Bar · volume</div>
+                                    </div>
+                                    {/* Line chart */}
+                                    <div className="rounded-lg bg-[#0a0a0a]/60 p-2">
+                                        <div className="h-20 w-full rounded bg-gradient-to-b from-rose-900/10 to-transparent flex items-end gap-px px-1 pb-1">
+                                            {[25,40,30,55,45,65,50,75,60,80,55].map((v,i)=>(
+                                                <div key={i} className="flex-1 rounded-t bg-rose-400/50" style={{height:`${v}px`}} />
+                                            ))}
+                                        </div>
+                                        <div className="mt-1 text-[9px] text-foreground/40">Line · trend</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </Card>
                     </div>
                 </Reveal>
 
@@ -248,7 +316,7 @@ export default function WireUpSection() {
 
                     {/* Mobile / tablet: stacked */}
                     <div className="mx-auto mt-6 grid max-w-5xl gap-4 lg:hidden">
-                        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+                        <div className="rounded-2xl bg-card p-4 shadow-[0_0_0_1px_rgba(255,255,255,0.07),0_12px_32px_-12px_rgba(0,0,0,0.7)]">
                             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Inputs</p>
                             <ul className="mt-3 space-y-2">
                                 {INPUTS.map(({ id, name, desc, tag, href, linkLabel, logo, icon }) => {
@@ -297,8 +365,9 @@ export default function WireUpSection() {
                     </div>
 
                     {/* Desktop: draggable canvas */}
-                    <div className="mx-auto mt-6 hidden lg:block">
+                    <div className="mx-auto mt-6 hidden max-w-[100rem] lg:block">
                         <div ref={ref} className="relative w-full overflow-hidden">
+                            <div aria-hidden className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_30%,rgba(96,165,250,0.1),transparent_70%)]" />
                             <div style={{ height: STAGE_H * scale }} className="relative w-full">
                                 <div
                                     className="absolute left-0 top-0 origin-top-left select-none"
@@ -332,8 +401,8 @@ export default function WireUpSection() {
                                                     />
                                                     {on && (
                                                         <>
-                                                            <path d={d} stroke="var(--primary)" strokeWidth={7} opacity={0.45} filter="url(#wire-glow)" />
-                                                            <path d={d} stroke="var(--primary)" strokeWidth={2.5} strokeLinecap="round" />
+                                                            <path d={d} stroke={input.tone === "info" ? "#60a5fa" : input.tone === "positive" ? "#34d399" : input.tone === "warning" ? "#fbbf24" : "#f97316"} strokeWidth={7} opacity={0.45} filter="url(#wire-glow)" />
+                                                            <path d={d} stroke={input.tone === "info" ? "#60a5fa" : input.tone === "positive" ? "#34d399" : input.tone === "warning" ? "#fbbf24" : "#f97316"} strokeWidth={2.5} strokeLinecap="round" />
                                                             <path
                                                                 d={d}
                                                                 stroke="white"
@@ -363,8 +432,8 @@ export default function WireUpSection() {
                                                     />
                                                     {ready && (
                                                         <>
-                                                            <path d={d} stroke="var(--primary)" strokeWidth={7} opacity={0.45} filter="url(#wire-glow)" />
-                                                            <path d={d} stroke="var(--primary)" strokeWidth={2.5} strokeLinecap="round" />
+                                                            <path d={d} stroke="#60a5fa" strokeWidth={7} opacity={0.45} filter="url(#wire-glow)" />
+                                                            <path d={d} stroke="#60a5fa" strokeWidth={2.5} strokeLinecap="round" />
                                                             <path
                                                                 d={d}
                                                                 stroke="white"
@@ -385,25 +454,26 @@ export default function WireUpSection() {
                                         const p = pos[`in-${input.id}`] ?? INPUT_POS[input.id];
                                         const on = connected.has(input.id);
                                         return (
+                                            <Fragment key={input.id}>
                                             <div
                                                 key={input.id}
-                                                className={cn("absolute rounded-2xl bg-card transition-colors", RING, on ? "border-2" : "border border-border")}
-                                                style={{ left: p.x, top: p.y, width: NODE_W, height: NODE_H, borderColor: on ? (input.tone === "primary" ? "#f97316" : input.tone === "positive" ? "#34d399" : input.tone === "warning" ? "#fbbf24" : "#60a5fa") : undefined }}
+                                                className={cn("absolute rounded-2xl bg-card transition-colors shadow-[0_0_0_1px_rgba(255,255,255,0.07),0_12px_32px_-12px_rgba(0,0,0,0.7)]", RING)}
+                                                style={{ left: p.x, top: p.y, width: NODE_W, height: NODE_H }}
                                             >
                                                 <div
                                                     {...cardPointerProps(`in-${input.id}`)}
                                                     className="flex h-11 cursor-grab touch-none items-center gap-2 rounded-t-2xl px-3.5 active:cursor-grabbing"
                                                 >
-                                                    <NodeGlyph logo={input.logo} icon={input.icon} size={20} />
-                                                    <p className="min-w-0 truncate text-sm font-medium text-foreground">{input.name}</p>
+                                                    <NodeGlyph logo={input.logo} icon={input.icon} size={16} />
+                                                    <p className="min-w-0 truncate text-xs font-medium text-foreground">{input.name}</p>
                                                     <MoveButton
                                                         ariaLabel={`Move the ${input.name} card with the arrow keys`}
                                                         onKeyDown={onCardKey(`in-${input.id}`)}
                                                     />
                                                 </div>
                                                 <div className="px-3.5" style={{ height: 52 }}>
-                                                    <p className="truncate text-xs font-medium text-foreground/85">{input.desc}</p>
-                                                    <p className="mt-1 truncate text-xs text-muted-foreground">{input.tag}</p>
+                                                    <p className="truncate text-[10px] font-medium text-foreground/85">{input.desc}</p>
+                                                    <p className="mt-1 truncate text-[9px] text-muted-foreground">{input.tag}</p>
                                                 </div>
                                                 <div className="flex h-9 items-center justify-end gap-3 pr-3.5 text-xs">
                                                     <Link
@@ -428,14 +498,15 @@ export default function WireUpSection() {
                                                     </button>
                                                 </div>
                                                 <div className="h-3" />
-                                                <Port className="right-0 translate-x-1/2" on={on} />
+                                                <Port className="right-0 translate-x-1/2" on={on} label={on ? input.tag : undefined} onClick={() => toggle(input.id)} />
                                             </div>
-                                        );
+                                        </Fragment>
+                                    );
                                     })}
 
                                     <div
-                                        className={cn("absolute rounded-2xl", RING)}
-                                        style={{ left: ep.x, top: ep.y, width: EP_W, height: EP_H }}
+                                        className={cn("absolute rounded-2xl bg-card shadow-[0_1px_2px_rgba(0,0,0,0.5),0_4px_12px_-2px_rgba(0,0,0,0.45),0_16px_32px_-12px_rgba(0,0,0,0.7)]")}
+                                        style={{ left: ep.x, top: ep.y, width: EP_W, height: EP_H, boxShadow: "0 0 0 1px rgba(96,165,250,0.3), 0 0 40px -10px rgba(96,165,250,0.35)" }}
                                     >
                                         <div className="relative h-full rounded-2xl bg-card p-1.5">
                                             <div
@@ -471,7 +542,7 @@ export default function WireUpSection() {
                                                                         on ? "scale-100 opacity-100" : "scale-50 opacity-0",
                                                                     )}
                                                                 >
-                                                                    <Check size={15} strokeWidth={2.5} className="text-primary" />
+                                                                    <Check size={15} strokeWidth={2.5} style={{ color: on ? (INPUTS.find(i=>i.id===id)?.tone === "info" ? "#60a5fa" : INPUTS.find(i=>i.id===id)?.tone === "positive" ? "#34d399" : INPUTS.find(i=>i.id===id)?.tone === "warning" ? "#fbbf24" : "#f97316") : undefined }} />
                                                                 </span>
                                                             </li>
                                                         );
@@ -605,19 +676,34 @@ function MoveButton({ ariaLabel, onKeyDown }: { ariaLabel: string; onKeyDown: (e
 }
 
 function NodeGlyph({ logo, icon: Icon, size = 20 }: { logo?: BrandLogoName; icon?: LucideIcon; size?: number }) {
+    if (logo && Icon) {
+        return (
+            <span className="flex shrink-0 items-center gap-1.5" aria-hidden>
+                <BrandLogo name={logo} size={size} className="shrink-0" />
+                <Icon size={Math.round(size * 0.65)} className="text-muted-foreground" />
+            </span>
+        );
+    }
     if (logo) return <BrandLogo name={logo} size={size} className="shrink-0" />;
     return (
-        <span aria-hidden className="grid shrink-0 place-items-center" style={{ width: size, height: size }}>
-            {Icon ? <Icon size={Math.round(size * 0.8)} className="text-muted-foreground" /> : null}
+        <span aria-hidden className="grid shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground ring-1 ring-border" style={{ width: size, height: size }}>
+            {Icon ? <Icon size={Math.round(size * 0.75)} /> : null}
         </span>
     );
 }
 
-function Port({ className, on }: { className: string; on: boolean }) {
+function Port({ className, on, label, onClick }: { className: string; on: boolean; label?: string; onClick?: () => void }) {
     return (
-        <span aria-hidden className={cn("pointer-events-none absolute top-1/2 grid size-7 -translate-y-1/2 place-items-center", className)}>
-            <span className={cn("block size-3 rounded-full ring-[3px] ring-background transition-colors", on ? "bg-primary" : "bg-muted-foreground/30")} />
-        </span>
+        <button
+            aria-label={label || (on ? "Disconnect" : "Connect")}
+            onClick={onClick}
+            className={cn("pointer-events-auto absolute top-1/2 grid size-7 -translate-y-1/2 place-items-center cursor-pointer", className)}
+        >
+            <span className={cn("block size-3 rounded-full ring-[4px] ring-background shadow-[0_0_12px_var(--border-color)] transition-colors", on ? "bg-[var(--primary)]" : "bg-muted-foreground/30")} />
+            {label && on && (
+                <span className="absolute left-1/2 -translate-x-1/2 -top-6 whitespace-nowrap rounded bg-[var(--primary)] px-1.5 py-0.5 text-[9px] font-bold text-white shadow-lg">{label}</span>
+            )}
+        </button>
     );
 }
 
