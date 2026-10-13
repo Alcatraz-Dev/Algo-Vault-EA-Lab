@@ -278,15 +278,15 @@ function tokenizeBash(text: string): Token[] {
 }
 
 const tokenColors: Record<TokenType, string> = {
-  command: "text-emerald-400",
-  flag: "text-sky-400",
-  string: "text-amber-300",
-  number: "text-purple-400",
-  operator: "text-red-400",
-  path: "text-cyan-300",
-  variable: "text-pink-400",
-  comment: "text-neutral-300",
-  default: "text-neutral-300 dark:text-neutral-400 dark:text-neutral-300",
+  command: "text-emerald-600 dark:text-emerald-400 font-semibold",
+  flag: "text-sky-600 dark:text-sky-400",
+  string: "text-amber-700 dark:text-amber-300",
+  number: "text-purple-600 dark:text-purple-400 font-numeric",
+  operator: "text-red-600 dark:text-red-400",
+  path: "text-cyan-700 dark:text-cyan-300",
+  variable: "text-pink-600 dark:text-pink-400",
+  comment: "text-muted-foreground/80 italic",
+  default: "text-foreground",
 };
 
 function SyntaxHighlightedText({ text }: { text: string }) {

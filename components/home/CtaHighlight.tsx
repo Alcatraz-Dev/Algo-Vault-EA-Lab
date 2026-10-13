@@ -24,7 +24,7 @@ export default function CtaHighlight() {
                             <ReUIBadge variant="primary-light" size="lg" className="font-semibold shadow-sm">
                                 Free workspace · No credit card · No signup required
                             </ReUIBadge>
-                            <h2 className="mt-6 text-4xl font-extrabold leading-[1.05] tracking-[-0.04em] text-balance text-foreground md:text-6xl">
+                            <h2 className="mt-6 mb-2 text-4xl font-extrabold leading-[1.05] tracking-[-0.04em] text-balance text-foreground md:text-6xl">
                                 Make your next <Highlight>decision legible.</Highlight>
                             </h2>
                             <p className="mx-auto mt-8 max-w-xl text-base leading-7 text-pretty text-muted-foreground sm:text-lg">
