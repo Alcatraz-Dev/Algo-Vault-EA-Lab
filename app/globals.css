@@ -534,6 +534,17 @@ body {
   animation-play-state: paused;
 }
 
+/* ── Hub-and-spoke flow dashes (homepage ecosystem map) ──
+   Ember pulse travelling along each connector. stroke-dashoffset only;
+   the global reduced-motion guard stills it. */
+.folio-flow {
+  stroke-dasharray: 26 220;
+  animation: folio-dash 2.8s linear infinite;
+}
+@keyframes folio-dash {
+  to { stroke-dashoffset: -246; }
+}
+
 /* ── Aceternity: infinite moving cards ──
    Registry `animate-scroll` keyframes (upstream ships these as CSS alongside
    the component). One 40s loop, transform-only; the global reduced-motion
