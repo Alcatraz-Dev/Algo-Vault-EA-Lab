@@ -146,7 +146,7 @@ export const StepSlider = ({
         <SliderPrimitive.Control className="relative h-full cursor-pointer touch-none select-none data-disabled:cursor-not-allowed data-disabled:opacity-50">
           <SliderPrimitive.Track className="absolute inset-0 h-full">
             <SliderPrimitive.Indicator
-              className="box-content overflow-hidden rounded-full bg-linear-to-b from-violet-500 to-violet-600 pe-4 shadow-[inset_0_0.0625rem_0_#FFFFFF33] transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+              className="box-content overflow-hidden rounded-full bg-linear-to-b from-[var(--slider-fill-start,#f97316)] to-[var(--slider-fill-end,#f97316)] pe-4 shadow-[inset_0_0.0625rem_0_#FFFFFF33] transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
               data-slot="step-slider-indicator"
             >
               <span className="absolute inset-0 bg-[radial-gradient(circle,#FFFFFF2E_0.75px,transparent_1.25px)] bg-size-[0.375rem_0.375rem] bg-center" />
@@ -196,7 +196,7 @@ export const StepSlider = ({
             }}
           >
             {/* The face scales on its own so Base UI keeps measuring the full thumb. */}
-            <span className="block size-full rounded-full bg-linear-to-b from-white to-[#F2F2F2] shadow-[0_0.0625rem_0.25rem_#28282840,0_0_0_0.0625rem_#1E1E1E0D] transition-[scale,box-shadow] duration-200 ease-out group-has-focus-visible/thumb:ring-[0.1875rem] group-has-focus-visible/thumb:ring-violet-500/40 group-data-dragging/thumb:scale-[0.96]" />
+            <span className="block size-full rounded-full bg-linear-to-b from-white to-[#F2F2F2] shadow-[0_0.0625rem_0.25rem_#28282840,0_0_0_0.0625rem_#1E1E1E0D] transition-[scale,box-shadow] duration-200 ease-out group-has-focus-visible/thumb:ring-[0.1875rem] group-has-focus-visible/thumb:ring-amber-500/40 group-data-dragging/thumb:scale-[0.96]" />
           </SliderPrimitive.Thumb>
         </SliderPrimitive.Control>
       </div>
