@@ -65,7 +65,7 @@ export default function LoopTabs({ data }: { data: HomeData }) {
                         <div className="relative grid place-items-center gap-4 p-5 sm:p-8 lg:grid-cols-[1fr_auto_1fr] lg:gap-8">
                             <div className="hidden w-full max-w-64 justify-self-end lg:block">
                                 <MiniStat
-                                    label="workspace"
+                                    label="workspace · sample"
                                     value={String(backtestAnalytics.total)}
                                     unit="recorded runs"
                                     note="Every run stored with metrics"
@@ -106,7 +106,7 @@ export default function LoopTabs({ data }: { data: HomeData }) {
                             </div>
                             <div className="hidden w-full max-w-64 justify-self-start lg:block">
                                 <MiniStat
-                                    label="validator"
+                                    label="validator · sample"
                                     value={backtestAnalytics.analyzableCount > 0 ? `${backtestAnalytics.positiveCount}/${backtestAnalytics.analyzableCount}` : "—"}
                                     unit="positive runs"
                                     note="Rejected intents carry a code"
@@ -219,7 +219,7 @@ export default function LoopTabs({ data }: { data: HomeData }) {
                             />
                         </TabsContent>
 
-                        <TabsList className="mt-8 flex h-auto w-full gap-6 overflow-x-auto rounded-none border-0 border-b border-border bg-transparent p-0 [scrollbar-width:none] md:grid md:grid-cols-4 md:overflow-visible">
+                        <TabsList className="mt-8 grid h-auto! w-full grid-cols-2 gap-x-4 gap-y-5 rounded-none border-0 bg-transparent p-0 md:grid-cols-4 md:gap-x-6">
                             {[
                                 { value: "discover", label: "Discover", copy: "Scan the market", icon: ScanSearch },
                                 { value: "validate", label: "Validate", copy: "Prove it first", icon: History },
@@ -231,7 +231,7 @@ export default function LoopTabs({ data }: { data: HomeData }) {
                                     <TabsTrigger
                                         key={value}
                                         value={value}
-                                        className="relative w-44 shrink-0 justify-start rounded-none border-0 bg-transparent px-0 pb-3 pt-1 data-active:bg-transparent data-active:shadow-none dark:data-active:bg-transparent md:w-auto"
+                                        className="relative h-auto! w-full justify-start rounded-none border-0 bg-transparent px-0 pb-3 pt-1 data-active:bg-transparent data-active:shadow-none dark:data-active:bg-transparent"
                                     >
                                         <span className="flex w-full flex-col items-start gap-0.5 text-left">
                                             <span className={cn("flex items-center gap-1.5 text-sm font-medium transition-colors", active ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
@@ -240,10 +240,11 @@ export default function LoopTabs({ data }: { data: HomeData }) {
                                             </span>
                                             <span className="block text-xs text-muted-foreground/70">{copy}</span>
                                         </span>
+                                        <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-border" />
                                         <span
                                             aria-hidden
                                             className={cn(
-                                                "absolute inset-x-0 bottom-0 h-px origin-left bg-primary transition-transform duration-300 motion-reduce:transition-none",
+                                                "pointer-events-none absolute inset-x-0 bottom-0 h-px origin-left bg-primary transition-transform duration-300 motion-reduce:transition-none",
                                                 active ? "scale-x-100" : "scale-x-0",
                                             )}
                                         />
@@ -314,7 +315,7 @@ function MiniStat({
 }) {
     return (
         <div className="w-full rounded-xl border border-border bg-card p-4 shadow-md">
-            <p className="truncate font-numeric text-xs text-muted-foreground">{label} · sample</p>
+            <p className="truncate font-numeric text-xs text-muted-foreground">{label}</p>
             <p className={cn("mt-1 font-numeric text-2xl font-semibold tracking-tight", tone ?? "text-foreground")}>
                 {value}
                 <span className="ml-1.5 text-xs font-normal text-muted-foreground">{unit}</span>
