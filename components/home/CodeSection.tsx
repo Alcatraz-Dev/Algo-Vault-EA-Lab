@@ -255,69 +255,100 @@ export default function CodeSection({ data }: { data: HomeData }) {
                 </Reveal>
 
                 <Reveal delay={100}>
-                    <div className="mt-10 overflow-hidden rounded-2xl border-none bg-[#f8f9fa] dark:bg-[#f8f9fa] dark:bg-[#f8f9fa] dark:bg-[#f8f9fa] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)]">
-                        {/* Sample tabs, inline at the top of the card */}
-                        <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] px-2 py-1.5">
-                            <span className="flex h-7 items-center gap-2 rounded-lg bg-neutral-100 dark:bg-[#0a0a0a] px-2.5 text-[10px] font-semibold text-foreground/70 shadow-md">
-                                <span>sh</span>
-                                <span className="text-foreground/40">terminal</span>
-                                <span className="text-foreground/30">.env</span>
-                            </span>
-                            <div
-                                role="tablist"
-                                aria-label="Code samples"
-                                className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto"
+                    <div className="mt-10 overflow-hidden rounded-2xl border border-border bg-card shadow-lg dark:shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)]">
+                        {/* Sample tabs and action tools, inline at the top of the card */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-muted/40 px-3 py-2">
+                            <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
+                                <span className="flex h-7 shrink-0 items-center gap-2 rounded-lg border border-border/60 bg-card px-2.5 text-[11px] font-semibold text-foreground/80 shadow-xs">
+                                    <span>sh</span>
+                                    <span className="text-muted-foreground">terminal</span>
+                                    <span className="text-muted-foreground/60">.env</span>
+                                </span>
+                                <div
+                                    role="tablist"
+                                    aria-label="Code samples"
+                                    className="flex min-w-0 items-center gap-1 overflow-x-auto"
+                                >
+                                    {TABS.map((t) => {
+                                        const selected = tab === t.id;
+                                        return (
+                                            <button
+                                                key={t.id}
+                                                type="button"
+                                                role="tab"
+                                                aria-selected={selected}
+                                                title={t.desc}
+                                                onClick={() => setTab(t.id)}
+                                                className={cn(
+                                                    "shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+                                                    selected
+                                                        ? "bg-card text-foreground font-semibold shadow-xs border border-border/80"
+                                                        : "text-muted-foreground hover:bg-card/50 hover:text-foreground",
+                                                )}
+                                            >
+                                                {t.label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={copy}
+                                aria-label={copied ? "Copied code" : "Copy code"}
+                                className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-lg border border-border/60 bg-card px-2.5 text-[11px] font-medium text-muted-foreground shadow-xs transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
                             >
-                                {TABS.map((t) => {
-                                    const selected = tab === t.id;
-                                    return (
-                                        <button
-                                            key={t.id}
-                                            type="button"
-                                            role="tab"
-                                            aria-selected={selected}
-                                            title={t.desc}
-                                            onClick={() => setTab(t.id)}
-                                            className={cn(
-                                                "shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
-                                                selected
-                                                    ? "bg-muted text-foreground shadow-xs"
-                                                    : "text-muted-foreground hover:text-foreground",
-                                            )}
-                                        >
-                                            {t.label}
-                                        </button>
-                                    );
-                                })}
+                                {copied ? (
+                                    <>
+                                        <Check className="size-3 text-positive" aria-hidden />
+                                        <span className="text-positive font-medium">Copied</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Copy className="size-3" aria-hidden />
+                                        <span>Copy code</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+
+                        {/* File meta and language pill */}
+                        <div className="flex items-center justify-between border-b border-border bg-muted/20 px-4 py-2 text-xs">
+                            <p className="truncate text-muted-foreground">
+                                {active.desc}
+                            </p>
+                            <div className="flex shrink-0 items-center gap-2">
+                                <span className="truncate font-numeric text-[11px] text-muted-foreground">{active.file} · UTF-8</span>
+                                <span className="rounded border border-border/50 bg-muted px-1.5 py-0.5 font-numeric text-[11px] font-medium text-foreground">
+                                    {tab === "pine" ? "Pine v6" : tab === "mql5" ? "MQL5" : tab === "setfile" ? "Set file" : "Signal"}
+                                </span>
                             </div>
                         </div>
-                        <p className="border-b border-border px-3.5 py-2 text-[13px] leading-5 text-muted-foreground">
-                            {active.desc}
-                        </p>
 
-                        <div className="flex items-center justify-between border-t border-border px-4 py-1.5">
-                            <span className="truncate font-mono text-[11px] text-muted-foreground">{active.file} · UTF-8 · sample</span>
-                            <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-foreground">{tab === "pine" ? "Pine v6" : tab === "mql5" ? "MQL5" : "Set"}</span>
-                        </div>
                         <div className="grid lg:grid-cols-[1.15fr_1fr] lg:divide-x lg:divide-border">
                             {/* Editor */}
-                            <div className="flex min-h-85 min-w-0 flex-col">
-                                <Terminal
-                                    commands={[active.code]}
-                                    outputs={{0:["Compiling...","Syntax OK"]}}
-                                    typingSpeed={30}
-                                    delayBetweenCommands={2000}
-                                    initialDelay={500}
-                                    className="min-h-0 flex-1 overflow-auto rounded-xl bg-neutral-50 p-4 shadow-inner"
-                                  />
-                                <div className="flex h-8 shrink-0 items-center justify-between gap-3 border-t border-border px-4 font-numeric text-[11px] text-muted-foreground">
-                                    <span className="truncate">{active.file} · UTF-8 · sample</span>
+                            <div className="flex min-h-85 min-w-0 flex-col bg-card">
+                                <div className="min-h-0 flex-1 overflow-auto p-3">
+                                    <Terminal
+                                        key={tab}
+                                        commands={[active.code]}
+                                        outputs={{ 0: ["Compiling...", "Syntax OK — 0 errors, 0 warnings"] }}
+                                        username="algovault"
+                                        typingSpeed={25}
+                                        delayBetweenCommands={2200}
+                                        initialDelay={350}
+                                        enableSound={false}
+                                        className="w-full max-w-full p-0"
+                                    />
+                                </div>
+                                <div className="flex h-8 shrink-0 items-center justify-between gap-3 border-t border-border bg-muted/20 px-4 font-numeric text-[11px] text-muted-foreground">
+                                    <span className="truncate">{active.file} · UTF-8 · strategy lab compatible</span>
                                     <span>Ln {active.code.split("\n").length}, Col 1</span>
                                 </div>
                             </div>
 
                             {/* Curve + stats */}
-                            <div className="flex min-h-85 flex-col p-4">
+                            <div className="flex min-h-85 flex-col bg-card p-4">
                                 <div className="flex items-center justify-between">
                                     <p className="text-sm font-semibold text-foreground">{cardData.title}</p>
                                     <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
@@ -325,28 +356,102 @@ export default function CodeSection({ data }: { data: HomeData }) {
                                         {cardData.subtitle}
                                     </span>
                                 </div>
-                                <div className="h-44" role="img" aria-label={cardData.title + " curve"}>
-                                    <div className="h-full rounded-xl bg-[#f8f9fa] dark:bg-[#f8f9fa] dark:bg-[#f8f9fa] dark:bg-[#f8f9fa] p-2 shadow-md text-[11px]">
-                                        <div className="mb-1 flex justify-between text-xs font-medium"><span className="text-muted-foreground">{cardData.tracesSub}</span></div>
+                                <div className="mt-3 min-h-44 flex-1" role="img" aria-label={cardData.title + " preview"}>
+                                    <div className="h-full rounded-xl border border-border bg-muted/25 p-3 shadow-xs text-[11px] flex flex-col justify-between">
+                                        <div className="mb-2 flex justify-between text-xs font-medium">
+                                            <span className="text-foreground">{cardData.tracesTitle}</span>
+                                            <span className="text-muted-foreground font-numeric">{cardData.tracesSub}</span>
+                                        </div>
                                         {tab === "pine" ? (
-                                            <div className="h-32 w-full rounded-lg overflow-hidden">
+                                            <div className="h-32 w-full rounded-lg overflow-hidden my-auto">
                                                 <ResponsiveContainer width="100%" height="100%">
-                                                    <AreaChart data={cardData.chartData}><defs><linearGradient id="fill-curve" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={cardData.color} stopOpacity={0.35}/><stop offset="95%" stopColor={cardData.color} stopOpacity={0}/></linearGradient></defs><Area type="monotone" dataKey="v" stroke={cardData.color} strokeWidth={2} fill="url(#fill-curve)" dot={false}/></AreaChart>
+                                                    <AreaChart data={cardData.chartData}>
+                                                        <defs>
+                                                            <linearGradient id="fill-curve" x1="0" y1="0" x2="0" y2="1">
+                                                                <stop offset="5%" stopColor={cardData.color} stopOpacity={0.35} />
+                                                                <stop offset="95%" stopColor={cardData.color} stopOpacity={0} />
+                                                            </linearGradient>
+                                                        </defs>
+                                                        <Area type="monotone" dataKey="v" stroke={cardData.color} strokeWidth={2} fill="url(#fill-curve)" dot={false} />
+                                                    </AreaChart>
                                                 </ResponsiveContainer>
                                             </div>
                                         ) : tab === "mql5" ? (
-                                            <div className="space-y-3"><StepSlider aria-label="Batch progress" value={72} steps={[0,25,50,72,100]} onValueChange={() => {}} formatLabel={(v:number) => v + "%"} /><StepSlider aria-label="Queue depth" value={28} steps={[0,10,25,28,50]} onValueChange={() => {}} formatLabel={(v:number) => v + "%"} /></div>
+                                            <div className="space-y-4 my-auto py-1">
+                                                <div>
+                                                    <div className="flex justify-between text-xs mb-1.5">
+                                                        <span className="font-medium text-foreground">Batch progress</span>
+                                                        <span className="font-numeric text-muted-foreground">72%</span>
+                                                    </div>
+                                                    <StepSlider aria-label="Batch progress" value={72} steps={[0, 25, 50, 72, 100]} onValueChange={() => {}} formatLabel={(v: number) => v + "%"} />
+                                                </div>
+                                                <div>
+                                                    <div className="flex justify-between text-xs mb-1.5">
+                                                        <span className="font-medium text-foreground">Queue depth</span>
+                                                        <span className="font-numeric text-muted-foreground">28%</span>
+                                                    </div>
+                                                    <StepSlider aria-label="Queue depth" value={28} steps={[0, 10, 25, 28, 50]} onValueChange={() => {}} formatLabel={(v: number) => v + "%"} />
+                                                </div>
+                                            </div>
                                         ) : tab === "setfile" ? (
-                                            <div className="grid grid-cols-1 gap-3">
-                                                <div className="flex items-center gap-3 rounded-2xl bg-neutral-100 dark:bg-[#0a0a0a] px-4 py-3.5 shadow-md border border-white/5"><div className="grid size-9 place-items-center rounded-full bg-emerald-400/10"><FileCheck size={18} className="text-emerald-400" /></div><div><p className="text-sm font-semibold">Symbols loaded</p><p className="text-[11px] text-muted-foreground">2 active — XAUUSD, EURUSD</p></div></div>
-                                                <div className="flex items-center gap-3 rounded-2xl bg-neutral-100 dark:bg-[#0a0a0a] px-4 py-3.5 shadow-md border border-white/5"><div className="grid size-9 place-items-center rounded-full bg-amber-400/10"><Settings size={18} className="text-amber-400" /></div><div><p className="text-sm font-semibold">Parameters set</p><p className="text-[11px] text-muted-foreground">21 verified · ATR 21 · Mult 1.8</p></div></div>
-                                                <div className="flex items-center gap-3 rounded-2xl bg-neutral-100 dark:bg-[#0a0a0a] px-4 py-3.5 shadow-md border border-white/5"><div className="grid size-9 place-items-center rounded-full bg-violet-400/10"><Shield size={18} className="text-violet-400" /></div><div><p className="text-sm font-semibold">Risk %</p><p className="text-[11px] text-muted-foreground">1.0 active · License OK</p></div></div>
+                                            <div className="grid grid-cols-1 gap-2.5 my-auto">
+                                                <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-3.5 py-2.5 shadow-xs">
+                                                    <div className="grid size-8 place-items-center rounded-lg bg-positive/10 text-positive">
+                                                        <FileCheck size={16} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs font-semibold text-foreground">Symbols loaded</p>
+                                                        <p className="text-[11px] text-muted-foreground font-numeric">2 active — XAUUSD, EURUSD</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-3.5 py-2.5 shadow-xs">
+                                                    <div className="grid size-8 place-items-center rounded-lg bg-warning/10 text-warning">
+                                                        <Settings size={16} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs font-semibold text-foreground">Parameters set</p>
+                                                        <p className="text-[11px] text-muted-foreground font-numeric">21 verified · ATR 21 · Mult 1.8</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-3.5 py-2.5 shadow-xs">
+                                                    <div className="grid size-8 place-items-center rounded-lg bg-primary/10 text-primary">
+                                                        <Shield size={16} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs font-semibold text-foreground">Risk gate</p>
+                                                        <p className="text-[11px] text-muted-foreground font-numeric">1.0 active · License OK</p>
+                                                    </div>
+                                                </div>
                                             </div>
                                         ) : (
-                                            <div className="rounded-xl bg-[#f8f8fa] dark:bg-[#0a0a0a] p-3 shadow-inner text-[11px] leading-5 font-mono overflow-auto"><div className="text-amber-300/90">{"{"}</div><div className="pl-2"><span className="text-emerald-400">"id"</span>: <span className="text-positive">"sig_sample_01"</span>,</div><div className="pl-2"><span className="text-emerald-400">"symbol"</span>: <span className="text-positive">"XAUUSD"</span>,</div><div className="pl-2"><span className="text-emerald-400">"direction"</span>: <span className="text-positive">"long"</span>,</div><div className="pl-2"><span className="text-emerald-400">"state"</span>: <span className="text-positive">"PENDING_ENTRY"</span>,</div><div className="pl-2"><span className="text-emerald-400">"engines"</span>: <span className="text-amber-300">{"{"}</span></div><div className="pl-4"><span className="text-emerald-400">"regime"</span>: <span className="text-positive">"trend"</span>,</div><div className="pl-4"><span className="text-emerald-400">"score"</span>: <span className="text-info">74</span></div><div className="pl-2"><span className="text-amber-300">{"}"}</span>,</div><div className="pl-2"><span className="text-emerald-400">"risk"</span>: <span className="text-amber-300">{"{"}</span></div><div className="pl-4"><span className="text-emerald-400">"decision"</span>: <span className="text-positive">"approve"</span>,</div><div className="pl-4"><span className="text-emerald-400">"code"</span>: <span className="text-positive">"OK"</span></div><div className="pl-2"><span className="text-amber-300">{"}"}</span></div><div className="text-amber-300/90">{"}"}</div></div>
+                                            <div className="rounded-xl border border-border bg-card p-3 shadow-inner text-[11px] leading-5 font-mono overflow-auto">
+                                                <div className="text-amber-600 dark:text-amber-300">{"{"}</div>
+                                                <div className="pl-2"><span className="text-primary font-semibold">"id"</span>: <span className="text-positive">"sig_sample_01"</span>,</div>
+                                                <div className="pl-2"><span className="text-primary font-semibold">"symbol"</span>: <span className="text-positive">"XAUUSD"</span>,</div>
+                                                <div className="pl-2"><span className="text-primary font-semibold">"direction"</span>: <span className="text-positive">"long"</span>,</div>
+                                                <div className="pl-2"><span className="text-primary font-semibold">"state"</span>: <span className="text-positive">"PENDING_ENTRY"</span>,</div>
+                                                <div className="pl-2"><span className="text-primary font-semibold">"engines"</span>: <span className="text-amber-600 dark:text-amber-300">{"{"}</span></div>
+                                                <div className="pl-4"><span className="text-primary font-semibold">"regime"</span>: <span className="text-positive">"trend"</span>,</div>
+                                                <div className="pl-4"><span className="text-primary font-semibold">"score"</span>: <span className="text-info font-numeric">74</span></div>
+                                                <div className="pl-2"><span className="text-amber-600 dark:text-amber-300">{"}"}</span>,</div>
+                                                <div className="pl-2"><span className="text-primary font-semibold">"risk"</span>: <span className="text-amber-600 dark:text-amber-300">{"{"}</span></div>
+                                                <div className="pl-4"><span className="text-primary font-semibold">"decision"</span>: <span className="text-positive">"approve"</span>,</div>
+                                                <div className="pl-4"><span className="text-primary font-semibold">"code"</span>: <span className="text-positive">"OK"</span></div>
+                                                <div className="pl-2"><span className="text-amber-600 dark:text-amber-300">{"}"}</span></div>
+                                                <div className="text-amber-600 dark:text-amber-300">{"}"}</div>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
+
+                                <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-border pt-3">
+                                    {(cardData.tiles || tiles).map((t: any) => (
+                                        <div key={t.label} className="min-w-0">
+                                            <dt className="truncate text-[11px] text-muted-foreground">{t.label}</dt>
+                                            <dd className="mt-0.5 truncate font-numeric text-base font-semibold tracking-tight text-foreground">{t.value}</dd>
+                                        </div>
+                                    ))}
+                                </dl>
 
                                 <p className="mt-auto pt-2 text-[11px] leading-4 text-muted-foreground">{cardData.note}</p>
                             </div>

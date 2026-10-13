@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 /* Tailwind v4 replacement for the (v3-only) tailwindcss-animate plugin.
    Provides the animate-in/animate-out/fade-in/slide-in-from-*/
 @import "tw-animate-css";

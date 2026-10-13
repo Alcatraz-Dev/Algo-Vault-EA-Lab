@@ -128,7 +128,7 @@ function useStageScale() {
     return { ref, scale };
 }
 
-const RING = "shadow-[0_0_0_1px_rgba(255,255,255,0.07),0_12px_32px_-12px_rgba(0,0,0,0.7)]";
+const RING = "border border-border shadow-md dark:shadow-[0_0_0_1px_rgba(255,255,255,0.07),0_12px_32px_-12px_rgba(0,0,0,0.7)]";
 
 export default function WireUpSection() {
     const [connected, setConnected] = useState<Set<string>>(() => new Set(["data"]));
@@ -252,7 +252,7 @@ export default function WireUpSection() {
 
                     {/* Mobile / tablet: stacked */}
                     <div className="mx-auto mt-6 grid max-w-5xl gap-4 lg:hidden">
-                        <div className="rounded-2xl bg-card p-4 shadow-[0_0_0_1px_rgba(255,255,255,0.07),0_12px_32px_-12px_rgba(0,0,0,0.7)]">
+                        <div className="rounded-2xl border border-border bg-card p-4 shadow-md dark:shadow-[0_0_0_1px_rgba(255,255,255,0.07),0_12px_32px_-12px_rgba(0,0,0,0.7)]">
                             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Inputs</p>
                             <ul className="mt-3 space-y-2">
                                 {INPUTS.map(({ id, name, desc, tag, href, linkLabel, logo, icon }) => {

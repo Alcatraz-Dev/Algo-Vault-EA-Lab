@@ -343,6 +343,17 @@ export function Terminal({
     "idle" | "typing" | "executing" | "outputting" | "pausing" | "done"
   >("idle");
   const [cursorVisible, setCursorVisible] = useState(true);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(commands.join("\n"));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopied(false);
+    }
+  };
 
   const currentCommand = commands[commandIdx] || "";
   const currentOutputs = useMemo(
@@ -445,11 +456,11 @@ export function Terminal({
   }, [lines, phase]);
 
   const prompt = (
-    <span className="text-neutral-300">
-      <span className="text-sky-500">{username}</span>
-      <span className="text-emerald-600">:</span>
-      <span className="text-sky-400">~</span>
-      <span className="text-neutral-300">$</span>{" "}
+    <span className="text-muted-foreground select-none">
+      <span className="text-sky-600 dark:text-sky-400 font-medium">{username}</span>
+      <span className="text-emerald-600 dark:text-emerald-400">:</span>
+      <span className="text-sky-600 dark:text-sky-400">~</span>
+      <span className="text-muted-foreground">$</span>{" "}
     </span>
   );
 
@@ -457,33 +468,46 @@ export function Terminal({
     <div
       ref={containerRef}
       className={cn(
-        "mx-auto w-full max-w-xl px-4 font-mono text-xs",
+        "mx-auto w-full max-w-xl font-mono text-xs",
         className,
       )}
     >
-      <div className="overflow-hidden rounded-lg border border-neutral-800 bg-[#f5f5f7] dark:bg-white dark:bg-[#f5f5f7] shadow-2xl">
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-lg dark:shadow-2xl">
         {/* Title Bar */}
-        <div className="flex items-center gap-2 bg-neutral-100 dark:bg-neutral-100 px-4 py-3">
-          <div className="flex items-center gap-1.5">
-            <div className="h-3 w-3 rounded-full bg-red-500 transition-colors hover:bg-red-600" />
-            <div className="h-3 w-3 rounded-full bg-yellow-500 transition-colors hover:bg-yellow-600" />
-            <div className="h-3 w-3 rounded-full bg-green-500 transition-colors hover:bg-green-600" />
+        <div className="flex items-center gap-2 border-b border-border bg-muted/60 px-4 py-2.5">
+          <div className="flex items-center gap-1.5" aria-hidden="true">
+            <div className="h-3 w-3 rounded-full bg-red-500/90 transition-opacity hover:opacity-100" />
+            <div className="h-3 w-3 rounded-full bg-yellow-500/90 transition-opacity hover:opacity-100" />
+            <div className="h-3 w-3 rounded-full bg-green-500/90 transition-opacity hover:opacity-100" />
           </div>
           <div className="flex-1 text-center">
-            <span className="truncate text-xs text-neutral-600 dark:text-neutral-400">
+            <span className="truncate font-numeric text-xs font-medium text-muted-foreground">
               {username} — bash
             </span>
           </div>
           <div className="flex items-center gap-1">
-            <button type="button" aria-label="Copy" className="grid size-7 place-items-center rounded-md text-neutral-600 dark:text-neutral-400 hover:text-white hover:bg-white/10"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
-            <button type="button" className="inline-flex items-center gap-1 rounded-md bg-amber-500 px-2 py-1 text-[10px] font-semibold text-white hover:bg-amber-600"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></svg> Run</button>
+            <button
+              type="button"
+              aria-label={copied ? "Copied code" : "Copy code"}
+              onClick={handleCopy}
+              className="grid size-7 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              {copied ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-positive"><polyline points="20 6 9 17 4 12"/></svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              )}
+            </button>
+            <span className="inline-flex items-center gap-1 rounded-md bg-primary px-2 py-1 text-[10px] font-semibold text-primary-foreground shadow-xs">
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></svg> Run
+            </span>
           </div>
         </div>
 
         {/* Terminal Content */}
         <div
           ref={contentRef}
-          className="no-visible-scrollbar h-80 overflow-y-auto p-4 font-mono bg-[#f5f5f7] dark:bg-[#0a0a0a]"
+          className="no-visible-scrollbar h-80 overflow-y-auto p-4 font-mono text-xs bg-white dark:bg-[#0a0b0d] text-foreground"
         >
           {lines.map((line, i) => (
             <div key={i} className="leading-relaxed whitespace-pre-wrap">
@@ -493,7 +517,7 @@ export function Terminal({
                   <SyntaxHighlightedText text={line.content} />
                 </span>
               ) : (
-                <span className="text-neutral-600 dark:text-neutral-400">{line.content}</span>
+                <span className="text-muted-foreground">{line.content}</span>
               )}
             </div>
           ))}
@@ -502,7 +526,7 @@ export function Terminal({
             <div className="leading-relaxed whitespace-pre-wrap">
               {prompt}
               <SyntaxHighlightedText text={currentText} />
-              <span className="ml-0.5 inline-block h-4 w-2 bg-neutral-300 dark:bg-[#f5f5f7]0 dark:bg-neutral-300 align-middle" />
+              <span className="ml-0.5 inline-block h-4 w-2 bg-foreground/70 align-middle" />
             </div>
           )}
 
@@ -513,7 +537,7 @@ export function Terminal({
               {prompt}
               <span
                 className={cn(
-                  "inline-block h-4 w-2 bg-neutral-300 dark:bg-[#f5f5f7]0 dark:bg-neutral-300 align-middle transition-opacity duration-100",
+                  "inline-block h-4 w-2 bg-foreground/70 align-middle transition-opacity duration-100",
                   !cursorVisible && "opacity-0",
                 )}
               />

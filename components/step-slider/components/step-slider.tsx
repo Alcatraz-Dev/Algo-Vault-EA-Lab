@@ -1,7 +1,7 @@
 "use client";
 
 import { Slider as SliderPrimitive } from "@base-ui/react/slider";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 
 import { nearestStepIndex, stepRatio } from "../lib/step-slider";
@@ -142,7 +142,7 @@ export const StepSlider = ({
           value={steps[index] ?? current}
         />
       ) : null}
-      <div className="h-10 rounded-full bg-[#F1F1F2] p-1 shadow-[inset_0_0.0625rem_0.125rem_#1E1E1E0F] dark:bg-white/[0.06]">
+      <div className="h-10 rounded-full bg-muted/80 p-1 shadow-inner border border-border/50">
         <SliderPrimitive.Control className="relative h-full cursor-pointer touch-none select-none data-disabled:cursor-not-allowed data-disabled:opacity-50">
           <SliderPrimitive.Track className="absolute inset-0 h-full">
             <SliderPrimitive.Indicator
@@ -174,8 +174,8 @@ export const StepSlider = ({
                   className={cn(
                     "pointer-events-none absolute start-(--stop) top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors duration-300 rtl:translate-x-1/2",
                     stopPosition < ratio
-                      ? "bg-white/70"
-                      : "bg-[#1E1E1E33] dark:bg-white/30"
+                      ? "bg-white/80"
+                      : "bg-muted-foreground/35 dark:bg-white/30"
                   )}
                   key={step}
                   style={
@@ -196,24 +196,24 @@ export const StepSlider = ({
             }}
           >
             {/* The face scales on its own so Base UI keeps measuring the full thumb. */}
-            <span className="block size-full rounded-full bg-linear-to-b from-white to-[#F2F2F2] shadow-[0_0.0625rem_0.25rem_#28282840,0_0_0_0.0625rem_#1E1E1E0D] transition-[scale,box-shadow] duration-200 ease-out group-has-focus-visible/thumb:ring-[0.1875rem] group-has-focus-visible/thumb:ring-amber-500/40 group-data-dragging/thumb:scale-[0.96]" />
+            <span className="block size-full rounded-full bg-white dark:bg-neutral-200 border border-border/40 shadow-[0_0.0625rem_0.25rem_rgba(0,0,0,0.25),0_0_0_0.0625rem_rgba(0,0,0,0.08)] transition-[scale,box-shadow] duration-200 ease-out group-has-focus-visible/thumb:ring-[0.1875rem] group-has-focus-visible/thumb:ring-primary/40 group-data-dragging/thumb:scale-[0.96]" />
           </SliderPrimitive.Thumb>
         </SliderPrimitive.Control>
       </div>
 
       {hideLabels ? null : (
-        <div className="relative mx-1 h-4 text-xs tracking-[-0.01em] text-[#1E1E1E80] tabular-nums dark:text-white/45">
+        <div className="relative mx-1 h-4 text-xs tracking-[-0.01em] text-muted-foreground font-numeric">
           {steps.map((step, stepIndex) => {
             const isMajor = majorStepSet?.has(step) ?? true;
 
             return (
               <button
                 className={cn(
-                  "absolute start-(--stop) top-0 -translate-x-1/2 cursor-pointer transition-colors duration-100 hover:text-[#1E1E1E] disabled:pointer-events-none rtl:translate-x-1/2 dark:hover:text-white",
+                  "absolute start-(--stop) top-0 -translate-x-1/2 cursor-pointer transition-colors duration-100 hover:text-foreground disabled:pointer-events-none rtl:translate-x-1/2",
                   // Narrow containers keep the major labels only.
                   !isMajor && "hidden @lg:block",
                   steps[stepIndex] === current &&
-                    "font-medium text-[#1E1E1E] dark:text-white"
+                    "font-semibold text-foreground"
                 )}
                 disabled={disabled}
                 key={step}
