@@ -134,39 +134,6 @@ export default function LoopTabs({ data }: { data: HomeData }) {
 
                 <Reveal delay={140}>
                     <Tabs value={tab} onValueChange={setTab} className="mt-10 items-stretch">
-                        <TabsList className="flex h-auto w-full gap-6 overflow-x-auto rounded-none border-0 border-b border-border bg-transparent p-0 [scrollbar-width:none] md:grid md:grid-cols-4 md:overflow-visible">
-                            {[
-                                { value: "discover", label: "Discover", copy: "Scan the market", icon: ScanSearch },
-                                { value: "validate", label: "Validate", copy: "Prove it first", icon: History },
-                                { value: "execute", label: "Execute", copy: "Through the gate", icon: Send },
-                                { value: "monitor", label: "Monitor", copy: "Watch it honestly", icon: Gauge },
-                            ].map(({ value, label, copy, icon: Icon }) => {
-                                const active = tab === value;
-                                return (
-                                    <TabsTrigger
-                                        key={value}
-                                        value={value}
-                                        className="relative w-44 shrink-0 justify-start rounded-none border-0 bg-transparent px-0 pb-3 pt-1 data-active:bg-transparent data-active:shadow-none dark:data-active:bg-transparent md:w-auto"
-                                    >
-                                        <span className="flex w-full flex-col items-start gap-0.5 text-left">
-                                            <span className={cn("flex items-center gap-1.5 text-sm font-medium transition-colors", active ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
-                                                <Icon size={14} aria-hidden />
-                                                {label}
-                                            </span>
-                                            <span className="block text-xs text-muted-foreground/70">{copy}</span>
-                                        </span>
-                                        <span
-                                            aria-hidden
-                                            className={cn(
-                                                "absolute inset-x-0 bottom-0 h-px origin-left bg-primary transition-transform duration-300 motion-reduce:transition-none",
-                                                active ? "scale-x-100" : "scale-x-0",
-                                            )}
-                                        />
-                                    </TabsTrigger>
-                                );
-                            })}
-                        </TabsList>
-
                         <TabsContent value="discover" className="w-full">
                             <TabPanel
                                 title="Find the setup worth researching"
@@ -251,6 +218,39 @@ export default function LoopTabs({ data }: { data: HomeData }) {
                                 }
                             />
                         </TabsContent>
+
+                        <TabsList className="mt-8 flex h-auto w-full gap-6 overflow-x-auto rounded-none border-0 border-b border-border bg-transparent p-0 [scrollbar-width:none] md:grid md:grid-cols-4 md:overflow-visible">
+                            {[
+                                { value: "discover", label: "Discover", copy: "Scan the market", icon: ScanSearch },
+                                { value: "validate", label: "Validate", copy: "Prove it first", icon: History },
+                                { value: "execute", label: "Execute", copy: "Through the gate", icon: Send },
+                                { value: "monitor", label: "Monitor", copy: "Watch it honestly", icon: Gauge },
+                            ].map(({ value, label, copy, icon: Icon }) => {
+                                const active = tab === value;
+                                return (
+                                    <TabsTrigger
+                                        key={value}
+                                        value={value}
+                                        className="relative w-44 shrink-0 justify-start rounded-none border-0 bg-transparent px-0 pb-3 pt-1 data-active:bg-transparent data-active:shadow-none dark:data-active:bg-transparent md:w-auto"
+                                    >
+                                        <span className="flex w-full flex-col items-start gap-0.5 text-left">
+                                            <span className={cn("flex items-center gap-1.5 text-sm font-medium transition-colors", active ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
+                                                <Icon size={14} aria-hidden />
+                                                {label}
+                                            </span>
+                                            <span className="block text-xs text-muted-foreground/70">{copy}</span>
+                                        </span>
+                                        <span
+                                            aria-hidden
+                                            className={cn(
+                                                "absolute inset-x-0 bottom-0 h-px origin-left bg-primary transition-transform duration-300 motion-reduce:transition-none",
+                                                active ? "scale-x-100" : "scale-x-0",
+                                            )}
+                                        />
+                                    </TabsTrigger>
+                                );
+                            })}
+                        </TabsList>
                     </Tabs>
                 </Reveal>
             </div>
@@ -272,7 +272,7 @@ function TabPanel({
     visual: React.ReactNode;
 }) {
     return (
-        <Card className="mx-auto mt-6 max-w-5xl gap-0 overflow-hidden py-0 shadow-md">
+        <Card className="mx-auto max-w-5xl gap-0 overflow-hidden py-0 shadow-md">
             <div className="grid md:grid-cols-[0.9fr_1.1fr]">
                 <div className="p-5 sm:p-6 md:p-8">
                     <h3 className="text-xl font-semibold tracking-tight text-foreground md:text-2xl">{title}</h3>
