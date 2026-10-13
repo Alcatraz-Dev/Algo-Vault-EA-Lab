@@ -42,12 +42,36 @@ const OUTPUTS: Spoke[] = [
     { icon: Activity, name: "Live Console", note: "Fills, rejections, and heartbeats live.", href: "/live" },
 ];
 
-/* Desktop geometry (viewBox 1200x400, hub at 600,200). */
-const LEFT_X = 170;
-const RIGHT_X = 1030;
-const ROW_Y = [64, 155, 245, 336];
-const HUB_L = 560;
-const HUB_R = 640;
+/* Desktop geometry (viewBox 1200x400, hub at 600,200): a top intake
+   trunk, a middle trunk through the hub, and two lower destinations —
+   mirroring the reference composition. */
+type Placed = Spoke & { x: number; y: number };
+
+const TOP_ROW: Placed[] = [
+    { ...INPUTS[0], x: 230, y: 80 },
+    { ...INPUTS[1], x: 350, y: 80 },
+    { ...OUTPUTS[0], x: 850, y: 80 },
+    { ...OUTPUTS[1], x: 970, y: 80 },
+];
+const MID_ROW: Placed[] = [
+    { ...INPUTS[3], x: 150, y: 200 },
+    { ...OUTPUTS[3], x: 1050, y: 200 },
+];
+const LOW_ROW: Placed[] = [
+    { ...INPUTS[2], x: 330, y: 320 },
+    { ...OUTPUTS[2], x: 870, y: 320 },
+];
+
+const TRUNKS = [
+    "M 150 80 H 1050",
+    "M 150 200 H 548",
+    "M 652 200 H 1050",
+    "M 150 80 V 200",
+    "M 1050 80 V 200",
+    "M 600 80 V 162",
+    "M 330 200 V 294",
+    "M 870 200 V 294",
+];
 
 /* Mobile geometry (viewBox 360x440, hub at 180,220). */
 const M_XS = [60, 140, 220, 300];
@@ -153,49 +177,35 @@ function FlowMap() {
                             </feMerge>
                         </filter>
                     </defs>
-                    {ROW_Y.map((y) => (
-                        <g key={`in-${y}`}>
-                            <path d={`M ${LEFT_X + 28} ${y} H ${HUB_L}`} stroke="var(--primary)" strokeOpacity="0.16" strokeWidth="7" strokeLinecap="round" />
-                            <path d={`M ${LEFT_X + 28} ${y} H ${HUB_L}`} stroke="var(--border-color)" strokeWidth="1.25" strokeLinecap="round" />
-                            <circle cx={HUB_L} cy={y} r="3" fill="var(--card)" stroke="var(--primary)" strokeWidth="1.25" />
-                        </g>
-                    ))}
-                    {ROW_Y.map((y) => (
-                        <g key={`out-${y}`}>
-                            <path d={`M ${HUB_R} ${y} H ${RIGHT_X - 28}`} stroke="var(--primary)" strokeOpacity="0.16" strokeWidth="7" strokeLinecap="round" />
-                            <path d={`M ${HUB_R} ${y} H ${RIGHT_X - 28}`} stroke="var(--border-color)" strokeWidth="1.25" strokeLinecap="round" />
-                            <circle cx={HUB_R} cy={y} r="3" fill="var(--card)" stroke="var(--primary)" strokeWidth="1.25" />
+                    {TRUNKS.map((d) => (
+                        <g key={d}>
+                            <path d={d} stroke="var(--primary)" strokeOpacity="0.16" strokeWidth="7" strokeLinecap="round" />
+                            <path d={d} stroke="var(--border-color)" strokeWidth="1.25" strokeLinecap="round" />
                         </g>
                     ))}
                     <g className="motion-reduce:hidden">
-                        {ROW_Y.map((y) => (
-                            <path key={`fi-${y}`} d={`M ${LEFT_X + 28} ${y} H ${HUB_L}`} stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" filter="url(#vault-flow-glow)" className="folio-flow" />
-                        ))}
-                        {ROW_Y.map((y) => (
-                            <path key={`fo-${y}`} d={`M ${HUB_R} ${y} H ${RIGHT_X - 28}`} stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" filter="url(#vault-flow-glow)" className="folio-flow" />
+                        {TRUNKS.map((d) => (
+                            <path key={`f-${d}`} d={d} stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" filter="url(#vault-flow-glow)" className="folio-flow" />
                         ))}
                     </g>
                 </svg>
-                <span className="absolute z-10 inline-flex -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground" style={{ left: `${(LEFT_X / 1200) * 100}%`, top: "2%" }}>
+                <span className="absolute z-10 inline-flex -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground" style={{ left: "40%", top: "20%" }}>
                     Feeds in
                 </span>
-                <span className="absolute z-10 inline-flex -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground" style={{ left: `${(RIGHT_X / 1200) * 100}%`, top: "2%" }}>
+                <span className="absolute z-10 inline-flex -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground" style={{ left: "60%", top: "20%" }}>
                     Fills out
                 </span>
-                <p className="absolute -translate-x-1/2 text-[11px] whitespace-nowrap text-muted-foreground" style={{ left: `${(LEFT_X / 1200) * 100}%`, bottom: "0%" }}>
+                <p className="absolute -translate-x-1/2 -translate-y-1/2 text-[11px] whitespace-nowrap text-muted-foreground" style={{ left: "35.5%", top: "50%" }}>
                     Live from the market
                 </p>
-                <p className="absolute -translate-x-1/2 text-[11px] whitespace-nowrap text-muted-foreground" style={{ left: `${(RIGHT_X / 1200) * 100}%`, bottom: "0%" }}>
+                <p className="absolute -translate-x-1/2 -translate-y-1/2 text-[11px] whitespace-nowrap text-muted-foreground" style={{ left: "64.5%", top: "50%" }}>
                     Validated before it moves
                 </p>
                 <div className="absolute z-20 -translate-x-1/2 -translate-y-1/2" style={{ left: "50%", top: "50%" }}>
                     <HubMark />
                 </div>
-                {INPUTS.map((s, i) => (
-                    <SpokeNode key={s.name} spoke={s} style={{ left: `${(LEFT_X / 1200) * 100}%`, top: `${(ROW_Y[i] / 400) * 100}%` }} />
-                ))}
-                {OUTPUTS.map((s, i) => (
-                    <SpokeNode key={s.name} spoke={s} style={{ left: `${(RIGHT_X / 1200) * 100}%`, top: `${(ROW_Y[i] / 400) * 100}%` }} />
+                {[...TOP_ROW, ...MID_ROW, ...LOW_ROW].map((s) => (
+                    <SpokeNode key={s.name} spoke={s} style={{ left: `${(s.x / 1200) * 100}%`, top: `${(s.y / 400) * 100}%` }} />
                 ))}
             </div>
             <figcaption className="sr-only">
