@@ -29,6 +29,9 @@ import {
    Crown,
    Target,
    Trophy,
+  Monitor,
+  BookOpen,
+  Code2,
 } from "lucide-react";
 import { signOut, onAuthStateChanged, User } from "firebase/auth";
 import { auth, database } from "@/lib/firebase";
@@ -62,7 +65,13 @@ const NAV_ITEMS = [
   { icon: Gift, label: "Affiliates", href: "/account/affiliate" },
   { icon: Calculator, label: "Tools", href: "/tools" },
   { icon: Target, label: "Goals", href: "/goals" },
+  { icon: Monitor, label: "Desktop", href: "/" },
+  { icon: BookOpen, label: "How It Works", href: "/how-it-works" },
+  { icon: FileText, label: "Docs", href: "/docs" },
   { icon: Settings, label: "Settings", href: "/account/settings" },
+  { icon: Code2, label: "Developer", href: "/developer", upcoming: true },
+  { icon: Code2, label: "MCP", href: "/mcp", upcoming: true },
+  { icon: Code2, label: "Integrations", href: "/integrations", upcoming: true },
 ];
 
 const PRO_NAV_ITEMS = [
@@ -159,6 +168,14 @@ export default function SiteNavbar() {
                     className="border-primary/40 bg-primary/10 font-bold tracking-wider text-primary uppercase"
                   >
                     Pro
+                  </Badge>
+                ) : null}
+                {(label === "Developer" || label === "MCP" || label === "Integrations") ? (
+                  <Badge
+                    variant="outline"
+                    className="border-muted bg-muted font-bold tracking-wider text-muted-foreground uppercase text-[10px]"
+                  >
+                    Upcoming
                   </Badge>
                 ) : null}
                 {badge && <span className="h-1.5 w-1.5 rounded-full bg-positive animate-pulse" />}

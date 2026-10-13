@@ -15,6 +15,7 @@ import CodeSection from "./CodeSection";
 import CatalogSection from "./CatalogSection";
 import PricingTeaser from "./PricingTeaser";
 import CtaHighlight from "./CtaHighlight";
+import DesktopDownloadSection from "./DesktopDownloadSection";
 
 /**
  * Homepage composition (Kestrel rhythm, AlgoVault content).
@@ -46,6 +47,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                 <NetworkSection data={data} />
                 <CodeSection data={data} />
                 <CatalogSection featured={data.featured} />
+                <DesktopDownloadSection />
                 <PricingTeaser />
                 <CtaHighlight />
             </main>

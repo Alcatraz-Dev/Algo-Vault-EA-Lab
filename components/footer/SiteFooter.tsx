@@ -102,6 +102,41 @@ export default function SiteFooter() {
                                     Pricing
                                 </Link>
                             </li>
+                            <li>
+                                <Link href="/how-it-works" className="text-xs text-muted-foreground hover:text-foreground transition">
+                                    How It Works
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/" className="text-xs text-muted-foreground hover:text-foreground transition">
+                                    Desktop App
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/docs" className="text-xs text-muted-foreground hover:text-foreground transition">
+                                    Documentation
+                                </Link>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                            Roadmap (Upcoming)
+                        </p>
+                        <ul className="space-y-2">
+                            <li>
+                                <span className="text-xs text-muted-foreground">Developer Platform</span>
+                            </li>
+                            <li>
+                                <span className="text-xs text-muted-foreground">MCP Integrations</span>
+                            </li>
+                            <li>
+                                <span className="text-xs text-muted-foreground">SDKs & API</span>
+                            </li>
+                            <li>
+                                <span className="text-xs text-muted-foreground">Automation & Webhooks</span>
+                            </li>
                         </ul>
                     </div>
 
