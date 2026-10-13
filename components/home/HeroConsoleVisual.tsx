@@ -1,21 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
 import Link from "next/link";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, YAxis } from "recharts";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-
-const TOTAL = 28;
-
-/** Deterministic illustrative route — labeled as a sample in the UI, never presented as market data. */
-const SERIES = Array.from({ length: TOTAL }, (_, i) => {
-    const base = i * 0.9;
-    const wave = Math.sin(i / 3.2) * 1.7 + Math.cos(i / 1.8) * 0.7;
-    const breakout = i > 19 ? (i - 19) * 0.6 : 0;
-    return { idx: i, equity: Math.round((100 + base + wave + breakout) * 100) / 100 };
-});
+import HomeCandleChart from "./HomeCandleChart";
 
 const LIFECYCLE = ["NEW", "PENDING_ENTRY", "ENTRY_TRIGGERED", "TP_REACHED", "CLOSED"] as const;
 const TERMINAL = ["STOPPED_OUT", "EXPIRED", "CANCELLED", "INVALIDATED"] as const;
@@ -28,11 +17,6 @@ const RISK_CHECKS = [
 ] as const;
 
 export default function HeroConsoleVisual() {
-    const data = useMemo(() => SERIES, []);
-    const last = data[data.length - 1]?.equity ?? 100;
-    const first = data[0]?.equity ?? 100;
-    const delta = ((last - first) / first) * 100;
-
     return (
         <Tabs defaultValue="overview" className="gap-0">
             <div className="border-b border-border px-3 pt-3">
@@ -51,43 +35,15 @@ export default function HeroConsoleVisual() {
 
             <TabsContent value="overview" className="px-4 py-4">
                 <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-foreground">Workspace equity</span>
-                    <span className="flex items-center gap-2">
-                        <span className="font-numeric font-semibold text-foreground">
-                            ${last.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
-                        <span className="font-numeric font-semibold text-positive">
-                            +{delta.toFixed(1)}%
-                        </span>
+                    <span className="font-semibold text-foreground">
+                        XAUUSD <span className="font-normal text-muted-foreground">· M15 sample</span>
                     </span>
+                    <Badge variant="outline" className="font-numeric text-[11px] normal-case">
+                        Illustrative
+                    </Badge>
                 </div>
-                <div className="mt-2 h-32" role="img" aria-label="Illustrative sample equity curve, not live account data">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={data} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
-                            <defs>
-                                <linearGradient id="heroConsoleEquity" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="var(--positive)" stopOpacity={0.3} />
-                                    <stop offset="100%" stopColor="var(--positive)" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid
-                                stroke="var(--border-color)"
-                                strokeDasharray="3 3"
-                                strokeOpacity={0.35}
-                                vertical={false}
-                            />
-                            <YAxis hide domain={["dataMin - 2", "dataMax + 2"]} />
-                            <Area
-                                type="monotone"
-                                dataKey="equity"
-                                stroke="var(--positive)"
-                                strokeWidth={1.75}
-                                fill="url(#heroConsoleEquity)"
-                                dot={false}
-                                isAnimationActive={false}
-                            />
-                        </AreaChart>
-                    </ResponsiveContainer>
+                <div className="mt-2 overflow-hidden rounded-lg border border-border">
+                    <HomeCandleChart seed={7} basePrice={2650} precision={2} height={210} label="XAUUSD M15 illustrative sample" />
                 </div>
                 <div className="mt-2 grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-border bg-border">
                     {[
@@ -102,7 +58,7 @@ export default function HeroConsoleVisual() {
                     ))}
                 </div>
                 <p className="mt-2 text-[11px] leading-4 text-muted-foreground">
-                    Illustrative sample curve — shows the layout, not account performance.
+                    Sample price action — shows the terminal layout, not live market data.
                 </p>
             </TabsContent>
 

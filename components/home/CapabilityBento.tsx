@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
-import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
 import { Badge } from "@/components/ui/badge";
 import { IconTile } from "@/components/reui/icon-tile";
+import HomeCandleChart from "./HomeCandleChart";
 import Reveal from "./Reveal";
 
 /**
@@ -18,38 +18,15 @@ import Reveal from "./Reveal";
  * module names, routes, and engine lists are real.
  */
 
-const SAMPLE = Array.from({ length: 24 }, (_, i) => ({
-    idx: i,
-    v: 100 + i * 1.1 + Math.sin(i / 2.6) * 2.2 + (i > 16 ? (i - 16) * 0.9 : 0),
-}));
-
-function MiniEquity() {
+function MiniCandles() {
     return (
-        <div className="flex h-full min-h-28 flex-col justify-center p-4">
+        <div className="flex h-full min-h-36 flex-col justify-center p-4">
             <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                <span className="font-semibold uppercase tracking-widest">Sample equity</span>
-                <span className="font-numeric font-semibold text-positive">+18.4%</span>
+                <span className="font-semibold uppercase tracking-widest">Sample price action</span>
+                <span className="font-numeric font-semibold text-muted-foreground">M15</span>
             </div>
-            <div className="mt-2 h-20" role="img" aria-label="Illustrative sample equity curve">
-                <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={SAMPLE} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
-                        <defs>
-                            <linearGradient id="bentoEquity" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="var(--positive)" stopOpacity={0.3} />
-                                <stop offset="100%" stopColor="var(--positive)" stopOpacity={0} />
-                            </linearGradient>
-                        </defs>
-                        <Area
-                            type="monotone"
-                            dataKey="v"
-                            stroke="var(--positive)"
-                            strokeWidth={1.75}
-                            fill="url(#bentoEquity)"
-                            dot={false}
-                            isAnimationActive={false}
-                        />
-                    </AreaChart>
-                </ResponsiveContainer>
+            <div className="mt-2 overflow-hidden rounded-lg border border-border">
+                <HomeCandleChart seed={21} basePrice={1840} precision={2} count={40} height={128} showVolume={false} label="Strategy Lab illustrative sample" />
             </div>
         </div>
     );
@@ -139,7 +116,7 @@ const ITEMS = [
     {
         title: "Strategy Lab",
         description: "Discover structural patterns, assemble visual strategies, and export Pine Script v6 or MQL5.",
-        header: <MiniEquity />,
+        header: <MiniCandles />,
         icon: null,
         href: "/strategy-lab",
         link: "Open Strategy Lab",

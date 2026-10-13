@@ -1,333 +1,300 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import {
     Activity,
-    ArrowUpRight,
     Brain,
+    ChevronDown,
+    ChevronRight,
     Copy,
+    FlaskConical,
     Gauge,
-    Landmark,
     ShieldCheck,
 } from "lucide-react";
+import { CardSpotlight } from "@/components/ui/card-spotlight";
+import { Button as MovingButton } from "@/components/ui/moving-border";
+import { Button } from "@/components/ui/button";
 import Reveal from "./Reveal";
 import BrandLogo, { type BrandLogoName } from "./BrandLogos";
 
 /**
- * "How the platform connects" — real brand marks (TradingView, MetaTrader 5,
- * Pine Script v6, MQL5, Telegram…) wired together with a glowing animated
- * connection flow: live quotes come in from TradingView, are read and
- * validated here, and execute out through MT5 to your broker.
+ * Pipeline console — a complete recomposition of "The tools you already
+ * use, connected as one pipeline."
+ *
+ * Instead of five standalone cards under an SVG arc overlay, the ecosystem
+ * is drawn as one connected console: stage nodes joined by directional,
+ * gently animated flow links that follow the platform's real spine
+ * (market data → intelligence → strategy → risk gate → MT5 execution).
+ * The risk gate is the visual hub (moving ember border); every other node
+ * is a CardSpotlight link with a hover/focus tooltip. Integration chips
+ * below plug the same console into the tools traders already run.
+ *
+ * Aceternity: CardSpotlight (nodes) + moving-border Button (hub).
+ * Copy stays honest about what the connections are: the feed, engine,
+ * validation, and gateway stages the platform actually implements.
  */
 
-type Stage = {
+type Node = {
     logo?: BrandLogoName;
     icon?: typeof Brain;
-    badge: string;
+    step: string;
     name: string;
     sub: string;
-    role: string;
-    tone: "brand" | "primary";
     href: string;
-    /** One-liner shown on hover over the stage's logo/icon chip. */
-    tip: string;
+    detail: string;
 };
 
-const STAGES: Stage[] = [
+const ENTRY_NODES: Node[] = [
     {
         logo: "tradingview",
-        badge: "TV",
-        name: "TradingView",
-        sub: "Live charts & ideas",
-        role: "Live quotes stream into the ticker at the top of this page and fuel every analysis.",
-        tone: "brand",
+        step: "01",
+        name: "Market data",
+        sub: "TradingView quotes in",
         href: "/account/tradingview",
-        tip: "Streams live quotes into this page.",
+        detail: "Watchlist quotes stream into the ticker and feed every engine.",
     },
     {
         icon: Brain,
-        badge: "AI",
-        name: "Analysis engines",
-        sub: "Deterministic + AI",
-        role: "Eight pure engines read the feed; the AI layer explains them — it never overrides them.",
-        tone: "primary",
-        href: "/analysis",
-        tip: "Reads the live feed and builds the plan.",
+        step: "02",
+        name: "Intelligence",
+        sub: "Deterministic + AI read",
+        href: "/market-intelligence",
+        detail: "Eight pure engines read the feed; AI explains, never overrides.",
     },
     {
-        icon: ShieldCheck,
-        badge: "RK",
-        name: "Risk validator",
-        sub: "Pre-trade controls",
-        role: "Rebuilds the plan from history and rejects anything that fails limits or the drawdown guard.",
-        tone: "primary",
-        href: "/account",
-        tip: "Blocks any plan that fails the limits.",
-    },
-    {
-        logo: "mt5",
-        badge: "MT5",
-        name: "MetaTrader 5",
-        sub: "MQL5 Expert Advisor",
-        role: "A risk-gated gateway hands approved orders to a custom EA running in your terminal.",
-        tone: "brand",
-        href: "/account/trading-access",
-        tip: "Executes approved orders via your EA.",
-    },
-    {
-        icon: Landmark,
-        badge: "BK",
-        name: "Your broker",
-        sub: "Order fills",
-        role: "The order reaches the market and the fill confirms back into the console — closed loop.",
-        tone: "primary",
-        href: "/broker-compare",
-        tip: "Fills the order and closes the loop.",
+        icon: FlaskConical,
+        step: "03",
+        name: "Strategy Lab",
+        sub: "Build & validate",
+        href: "/strategy-lab",
+        detail: "Visual strategies, backtests, Pine v6 and MQL5 export.",
     },
 ];
 
-type Integration = {
-    logo?: BrandLogoName;
-    icon?: typeof Copy;
-    mono: string;
-    name: string;
-    /** Tooltip copy shown on hover — what this integration actually does. */
-    note: string;
+const HUB: Node = {
+    icon: ShieldCheck,
+    step: "04",
+    name: "Risk gate",
+    sub: "Pre-trade check",
+    href: "/risk",
+    detail: "Limits and drawdown guards approve or reject — with a decision code.",
 };
 
-const INTEGRATIONS: Integration[] = [
-    {
-        logo: "tradingview",
-        mono: "TV",
-        name: "TradingView",
-        note: "Live quotes from your watchlists stream into the ticker and the analysis engines.",
-    },
-    {
-        logo: "mt5",
-        mono: "MT5",
-        name: "MetaTrader 5",
-        note: "Approved orders execute through a custom MQL5 Expert Advisor in your terminal.",
-    },
-    {
-        logo: "mt4",
-        mono: "MT4",
-        name: "MetaTrader 4",
-        note: "The same risk-gated gateway for legacy MT4 terminals.",
-    },
-    {
-        logo: "pine",
-        mono: "PS",
-        name: "Pine Script v6",
-        note: "Your Pine strategies are read directly — signals, not screenshots.",
-    },
-    {
-        logo: "mql5",
-        mono: "MQ",
-        name: "MQL5",
-        note: "Custom EAs and indicators plug straight into the execution pipeline.",
-    },
-    {
-        logo: "telegram",
-        mono: "TG",
-        name: "Telegram",
-        note: "Signal previews and alerts are mirrored to your channels.",
-    },
-    {
-        icon: Copy,
-        mono: "CT",
-        name: "Copy Trading",
-        note: "Mirror verified strategies to your own account in one click.",
-    },
-    {
-        icon: Activity,
-        mono: "LV",
-        name: "Live Console",
-        note: "See every fill, rejection and risk check as it happens.",
-    },
-];
+const EXIT_NODE: Node = {
+    logo: "mt5",
+    step: "05",
+    name: "MT5 execution",
+    sub: "Orders out to terminal",
+    href: "/account/trading-access",
+    detail: "Approved orders reach your terminal through a custom EA.",
+};
 
-/** Connection arcs drawn between the 5 stage cards (lg layout only). */
-const CONNECTOR_PATHS = [
-    "M 165 60 C 190 150, 210 150, 235 60",
-    "M 365 60 C 390 150, 410 150, 435 60",
-    "M 565 60 C 590 150, 610 150, 635 60",
-    "M 765 60 C 790 150, 810 150, 835 60",
-];
+const FLOW_LABELS = ["streams quotes", "reads edges", "validates plans", "routes orders"];
 
-function ConnectorLayer({ active }: { active: number | null }) {
+function NodeBody({ node }: { node: Node }) {
+    const Icon = node.icon;
     return (
-        <div className="pointer-events-none absolute inset-x-0 top-1/2 z-0 hidden -translate-y-1/2 lg:block" aria-hidden="true">
-            <svg
-                className="relative h-36 w-full"
-                viewBox="0 0 1000 160"
-                preserveAspectRatio="none"
-                fill="none"
+        <>
+            <span className="flex items-center justify-between">
+                <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-border bg-background">
+                    {node.logo ? (
+                        <BrandLogo name={node.logo} size={36} />
+                    ) : (
+                        Icon && <Icon size={17} className="text-primary" aria-hidden />
+                    )}
+                </span>
+                <span className="font-numeric text-[11px] font-semibold tracking-widest text-muted-foreground">
+                    {node.step}
+                </span>
+            </span>
+            <span className="mt-4 block text-sm font-semibold tracking-tight text-foreground">{node.name}</span>
+            <span className="mt-0.5 block text-xs font-medium text-primary">{node.sub}</span>
+            <span
+                role="tooltip"
+                className="pointer-events-none absolute -top-2 left-1/2 z-30 w-52 max-w-[calc(100vw-3rem)] -translate-x-1/2 -translate-y-full rounded-lg border border-border bg-popover px-3 py-2 text-left text-xs leading-5 text-muted-foreground opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
             >
-                {CONNECTOR_PATHS.map((d, i) => (
-                    <g key={i}>
-                        <path id={`connector-path-${i}`} d={d} fill="none" />
-                        <path d={d} stroke="var(--border-color)" strokeOpacity={0.55} strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
-                        <path d={d} className={`flow-line ${active !== null && i >= active ? "flow-active" : ""}`} stroke="var(--primary)" strokeOpacity={0.65} strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
-                        <path d={d} className={`flow-line-accent ${active !== null && i >= active ? "flow-active" : ""}`} stroke="var(--primary)" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
-                        <circle r="3" fill="var(--primary)" opacity="0.95" filter="url(#packet-glow)">
-                            <animateMotion dur={`${2.8 + i * 0.6}s`} repeatCount="indefinite" calcMode="linear">
-                                <mpath href={`#connector-path-${i}`} />
-                            </animateMotion>
-                            <animate attributeName="opacity" values="0.3;1;0.3" dur={`${1.4 + i}s`} repeatCount="indefinite" />
-                        </circle>
-                    </g>
-                ))}
-            </svg>
-            {[20, 40, 60, 80].map((left, i) => (
-                <span
-                    key={left}
-                    className={`eco-node ${i === 1 ? "eco-node-positive" : ""} top-1/2`}
-                    style={{ left: `${left}%`, animationDelay: `${i * 420}ms` }}
-                />
-            ))}
-            {/* Traveling pipeline packet — shows multi-platform agents working together */}
-            <svg
-                className="pointer-events-none absolute inset-0 h-full w-full"
-                viewBox="0 0 1000 160"
-                preserveAspectRatio="none"
-                aria-hidden="true"
+                {node.detail}
+            </span>
+        </>
+    );
+}
+
+function StageNode({ node }: { node: Node }) {
+    return (
+        <CardSpotlight radius={260} className="group w-full flex-1 shadow-sm">
+            <Link
+                href={node.href}
+                aria-label={`${node.name} — ${node.sub}`}
+                className="relative z-10 block rounded-xl p-4 outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-                <circle r="4.5" fill="var(--primary)" filter="url(#packet-glow)">
-                    <animateMotion dur="3.5s" repeatCount="indefinite" calcMode="linear">
-                        <mpath href="#packet-path" />
-                    </animateMotion>
-                    <animate attributeName="opacity" values="0.6;1;0.6" dur="1.4s" repeatCount="indefinite" />
-                </circle>
-                <filter id="packet-glow">
-                    <feDropShadow dx="0" dy="0" stdDeviation="5" floodColor="var(--primary)" floodOpacity="0.9" />
-                </filter>
-                <path id="packet-path" d="M 165 60 C 190 150, 210 150, 235 60" fill="none" />
-            </svg>
+                <NodeBody node={node} />
+            </Link>
+        </CardSpotlight>
+    );
+}
+
+function HubNode({ node }: { node: Node }) {
+    const Icon = node.icon;
+    return (
+        <div className="group relative w-full flex-1">
+            <MovingButton
+                as={Link}
+                href={node.href}
+                aria-label={`${node.name} — ${node.sub}`}
+                borderRadius="0.75rem"
+                duration={2800}
+                containerClassName="h-full min-h-28 w-full"
+                borderClassName="motion-reduce:hidden"
+                className="flex-col items-start gap-0 px-4 py-4 text-left"
+            >
+                <span className="flex w-full items-center justify-between">
+                    <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-primary/30 bg-primary/10">
+                        {Icon && <Icon size={17} className="text-primary" aria-hidden />}
+                    </span>
+                    <span className="font-numeric text-[11px] font-semibold tracking-widest text-primary">
+                        {node.step}
+                    </span>
+                </span>
+                <span className="mt-4 block text-sm font-semibold tracking-tight text-foreground">{node.name}</span>
+                <span className="mt-0.5 block text-xs font-medium text-primary">{node.sub}</span>
+            </MovingButton>
+            <span
+                role="tooltip"
+                className="pointer-events-none absolute -top-2 left-1/2 z-30 w-52 max-w-[calc(100vw-3rem)] -translate-x-1/2 -translate-y-full rounded-lg border border-border bg-popover px-3 py-2 text-left text-xs leading-5 text-muted-foreground opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100"
+            >
+                {node.detail}
+            </span>
         </div>
     );
 }
 
-function StageCard({ stage, index, isActive, onSelect }: { stage: Stage; index: number; isActive: boolean; onSelect: (i: number) => void }) {
-    const Icon = stage.icon;
+function FlowLink({ label }: { label: string }) {
     return (
-        <Link
-            href={stage.href}
-            onClick={() => onSelect(index)}
-            className={isActive ? "eco-card group relative z-10 block overflow-hidden rounded-lg border p-5 border-primary/80 bg-card/80  transition-all duration-300 hover:-translate-y-1" : "eco-card group relative z-10 block overflow-hidden rounded-lg border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:"}
-        >
-            {/* Agent status glow bar */}
-            <span className="absolute inset-x-0 top-0 h-[2px] bg-primary/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-            <div className="flex items-start justify-between">
-                <span className="relative">
-                    <span className="eco-orbit transition-transform duration-300 group-hover:scale-105">
-                        <span className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-lg border border-border bg-background">
-                            {stage.logo ? (
-                                <BrandLogo name={stage.logo} size={40} />
-                            ) : (
-                                Icon && (
-                                    <span className="flex h-full w-full items-center justify-center text-primary">
-                                        <Icon size={18} className="transition-transform duration-300 group-hover:scale-110" />
-                                    </span>
-                                )
-                            )}
-                        </span>
-                        <span aria-hidden="true" className="eco-orbit-spin">
-                            <span className="eco-orbit-ring" />
-                            <span className="eco-orbit-dot" />
-                            <span className="eco-orbit-dot-2" />
-                        </span>
-                    </span>
-                    <span
-                        role="tooltip"
-                        className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs leading-4 text-muted-foreground opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-                    >
-                        {stage.tip}
-                    </span>
-                </span>
-                <span className="flex items-center gap-1 text-xs text-muted-foreground transition-colors duration-300 group-hover:text-primary">
-                    0{index + 1}
-                    <ArrowUpRight size={12} className="opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                </span>
-            </div>
-            <h3 className="mt-5 text-base font-semibold text-foreground">{stage.name}</h3>
-            <p className="mt-0.5 text-xs font-medium text-primary">{stage.sub}</p>
-            <p className="mt-2 text-xs leading-5 text-muted-foreground">{stage.role}</p>
-        </Link>
+        <div aria-hidden className="flex shrink-0 flex-col items-stretch justify-center gap-1.5 px-1 py-1 lg:w-28 lg:px-2">
+            <span className="hidden text-center text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground lg:block">
+                {label}
+            </span>
+            {/* Mobile: vertical drop */}
+            <span className="relative mx-auto block h-7 w-px bg-border lg:hidden">
+                <span className="pipeline-dash-vert absolute inset-0" />
+                <ChevronDown size={13} className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 bg-card text-primary" />
+            </span>
+            {/* Desktop: horizontal run */}
+            <span className="relative hidden h-px flex-1 bg-border lg:block">
+                <span className="pipeline-dash absolute inset-0" />
+                <ChevronRight size={14} className="absolute -right-1 top-1/2 -translate-y-1/2 bg-card text-primary" />
+            </span>
+            <span className="sr-only">{label}</span>
+        </div>
     );
 }
 
+type Integration = {
+    logo?: BrandLogoName;
+    icon?: typeof Copy;
+    name: string;
+    note: string;
+};
+
+const INTEGRATIONS: Integration[] = [
+    { logo: "tradingview", name: "TradingView", note: "Live quotes from your watchlists stream into the ticker and the analysis engines." },
+    { logo: "mt5", name: "MetaTrader 5", note: "Approved orders execute through a custom MQL5 Expert Advisor in your terminal." },
+    { logo: "mt4", name: "MetaTrader 4", note: "The same risk-gated gateway for legacy MT4 terminals." },
+    { logo: "pine", name: "Pine Script v6", note: "Your Pine strategies are read directly — signals, not screenshots." },
+    { logo: "mql5", name: "MQL5", note: "Custom EAs and indicators plug straight into the execution pipeline." },
+    { logo: "telegram", name: "Telegram", note: "Signal previews and alerts are mirrored to your channels." },
+    { icon: Copy, name: "Copy Trading", note: "Mirror verified strategies to your own account in one click." },
+    { icon: Activity, name: "Live Console", note: "See every fill, rejection and risk check as it happens." },
+];
+
 export default function EcosystemSection() {
-    const [active, setActive] = useState<number | null>(null);
     return (
-        <section className="border-b border-border bg-background">
-            <div className="page-container overflow-hidden py-14 md:py-20">
+        <section className="relative overflow-hidden border-b border-border bg-background">
+            <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border-color)_1px,transparent_1px),linear-gradient(to_bottom,var(--border-color)_1px,transparent_1px)] bg-[size:56px_56px] opacity-[0.16] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_40%,black_25%,transparent_100%)] motion-reduce:hidden"
+            />
+            <div className="page-container relative py-14 md:py-20">
                 <Reveal>
                     <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
                         <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Connected ecosystem</p>
-                            <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-[-0.03em] text-foreground md:text-5xl">The tools you already use, connected as one pipeline.</h2>
+                            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                                <span aria-hidden className="h-px w-6 bg-primary/60" />
+                                Connected ecosystem
+                            </p>
+                            <h2 className="mt-4 max-w-2xl text-3xl font-semibold tracking-[-0.03em] text-balance text-foreground md:text-[2.75rem] md:leading-[1.08]">
+                                The tools you already use, connected as one pipeline.
+                            </h2>
                         </div>
                         <p className="max-w-md text-sm leading-6 text-muted-foreground">
-                            Nothing is rebuilt in a silo. Live quotes come in from TradingView, strategies are read and validated here, and execution flows out through MetaTrader to your broker.
+                            One console, five stages: quotes flow in, edges are read,
+                            strategies are validated, risk decides, and MetaTrader executes.
                         </p>
                     </div>
                 </Reveal>
 
                 <Reveal delay={100}>
-                    <div className="eco-stage-wrap relative mt-10">
-                        <ConnectorLayer active={active} />
-                        <div className="relative grid gap-3 lg:grid-cols-5 lg:gap-3">
-                            {STAGES.map((stage, index) => (
-                                <StageCard key={stage.name} stage={stage} index={index} isActive={active === index} onSelect={(i) => setActive(i === active ? null : i)} />
+                    <div className="mt-10 rounded-2xl border border-border bg-card/60 p-4 shadow-sm sm:p-6">
+                        <div className="flex flex-col items-stretch lg:flex-row">
+                            {ENTRY_NODES.map((node, i) => (
+                                <div key={node.name} className="flex flex-col items-stretch lg:flex-1 lg:flex-row">
+                                    <StageNode node={node} />
+                                    <FlowLink label={FLOW_LABELS[i]} />
+                                </div>
                             ))}
+                            <div className="flex flex-col items-stretch lg:flex-1 lg:flex-row">
+                                <HubNode node={HUB} />
+                                <FlowLink label={FLOW_LABELS[3]} />
+                            </div>
+                            <div className="flex flex-col items-stretch lg:flex-1">
+                                <StageNode node={EXIT_NODE} />
+                            </div>
+                        </div>
+                        <div className="mt-4 flex flex-col items-start justify-between gap-3 border-t border-border pt-4 sm:flex-row sm:items-center">
+                            <p className="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
+                                <Gauge size={14} className="mt-0.5 shrink-0 text-primary" aria-hidden />
+                                Follow the flow end to end in the live console — fills, rejections, and heartbeats included.
+                            </p>
+                            <Button render={<Link href="/live" />} size="sm" variant="outline" className="shrink-0">
+                                Open live console
+                            </Button>
                         </div>
                     </div>
                 </Reveal>
 
                 <Reveal delay={180}>
-                    <div className="mt-8 flex flex-wrap items-center gap-2">
-                        {INTEGRATIONS.map(({ logo, icon: Icon, mono, name, note }) => (
+                    <p className="mt-8 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                        Plugs into what you already run
+                    </p>
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                        {INTEGRATIONS.map(({ logo, icon: Icon, name, note }) => (
                             <div
                                 key={name}
-                                className="group/tip relative flex items-center gap-2 rounded-full border border-border bg-card py-1 pl-1 pr-3 text-micro font-medium text-muted-foreground transition-all duration-300 hover:-translate-y-px hover:border-primary/40 hover:text-foreground active:scale-[0.98]"
+                                className="group/tip relative flex items-center gap-2 rounded-full border border-border bg-card py-1 pl-1 pr-3 text-xs font-medium text-muted-foreground transition-colors duration-200 hover:border-primary/40 hover:text-foreground"
                             >
-                                <span className="eco-orbit eco-orbit-sm">
-                                    <span className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
-                                        {logo ? (
-                                            <BrandLogo name={logo} size={24} />
-                                        ) : Icon ? (
-                                            <span className="flex items-center justify-center">
-                                                <Icon size={13} className="text-primary" />
-                                            </span>
-                                        ) : (
-                                            <span className="font-numeric text-micro font-bold text-primary">{mono}</span>
-                                        )}
-                                    </span>
-                                    <span aria-hidden="true" className="eco-orbit-spin">
-                                        <span className="eco-orbit-ring" />
-                                        <span className="eco-orbit-dot" />
-                                        <span className="eco-orbit-dot-2" />
-                                    </span>
+                                <span className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
+                                    {logo ? (
+                                        <BrandLogo name={logo} size={22} />
+                                    ) : (
+                                        Icon && <Icon size={13} className="text-primary" aria-hidden />
+                                    )}
                                 </span>
                                 {name}
                                 <span
                                     role="tooltip"
-                                    className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-56 -translate-x-1/2 rounded-lg border border-border bg-card px-3 py-2 text-left text-xs leading-4 text-muted-foreground opacity-0  transition-opacity duration-200 group-hover/tip:opacity-100"
+                                    className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 w-56 max-w-[calc(100vw-3rem)] -translate-x-1/2 rounded-lg border border-border bg-popover px-3 py-2 text-left text-xs leading-5 text-muted-foreground opacity-0 shadow-lg transition-opacity duration-200 group-hover/tip:opacity-100 group-focus-within/tip:opacity-100"
                                 >
                                     {note}
                                 </span>
                             </div>
                         ))}
-                        <span className="px-1 text-micro text-muted-foreground">…and every broker you already use.</span>
+                        <Link
+                            href="/compare"
+                            className="px-1 text-xs font-semibold text-primary hover:underline"
+                        >
+                            Compare brokers →
+                        </Link>
                     </div>
-                </Reveal>
-
-                <Reveal delay={240}>
-                    <p className="mt-8 flex items-start gap-2 text-xs leading-5 text-muted-foreground">
-                        <Gauge size={14} className="mt-0.5 shrink-0 text-primary" />
-                        The connection is visible end to end: the ticker above is streaming TradingView&apos;s live quotes right now — same feed the analysis engines consume.
-                    </p>
                 </Reveal>
             </div>
         </section>

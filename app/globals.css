@@ -534,6 +534,28 @@ body {
   animation-play-state: paused;
 }
 
+/* ── Pipeline flow links (homepage ecosystem console) ──
+   Ember pulse travelling along the connector track. Background-position
+   animation only (no layout); the global reduced-motion guard stills it. */
+.pipeline-dash {
+  background: linear-gradient(to right, transparent, var(--primary), transparent);
+  background-size: 44px 100%;
+  background-repeat: repeat-x;
+  animation: pipeline-slide 1.8s linear infinite;
+}
+@keyframes pipeline-slide {
+  to { background-position: 44px 0; }
+}
+.pipeline-dash-vert {
+  background: linear-gradient(to bottom, transparent, var(--primary), transparent);
+  background-size: 100% 28px;
+  background-repeat: repeat-y;
+  animation: pipeline-slide-y 1.2s linear infinite;
+}
+@keyframes pipeline-slide-y {
+  to { background-position: 0 28px; }
+}
+
 /* ── Aceternity: infinite moving cards ──
    Registry `animate-scroll` keyframes (upstream ships these as CSS alongside
    the component). One 40s loop, transform-only; the global reduced-motion

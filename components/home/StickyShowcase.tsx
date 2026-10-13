@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { ArrowRight, ShieldCheck } from "lucide-react";
-import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { StickyScroll } from "@/components/ui/sticky-scroll-reveal";
 import { Badge } from "@/components/ui/badge";
+import HomeCandleChart from "./HomeCandleChart";
 import Reveal from "./Reveal";
 
 /**
@@ -15,11 +15,6 @@ import Reveal from "./Reveal";
  * Four real stages, each sticky visual a static, honest panel with a
  * working link into the product. Illustrative figures are labeled.
  */
-
-const VALIDATE_SAMPLE = Array.from({ length: 20 }, (_, i) => ({
-    idx: i,
-    v: 100 + i * 1.3 + Math.sin(i / 2.4) * 2.4,
-}));
 
 function PanelShell({ children, label }: { children: React.ReactNode; label: string }) {
     return (
@@ -61,30 +56,12 @@ const CONTENT = [
         description:
             "Run deterministic backtests with real costs, stress parameters with walk-forward and Monte Carlo, and replay history bar by bar with no look-ahead bias.",
         content: (
-            <PanelShell label="Backtest studio · sample curve">
-                <div className="h-24" role="img" aria-label="Illustrative sample backtest curve">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={VALIDATE_SAMPLE} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
-                            <defs>
-                                <linearGradient id="stickyValidate" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.35} />
-                                    <stop offset="100%" stopColor="var(--primary)" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <Area
-                                type="monotone"
-                                dataKey="v"
-                                stroke="var(--primary)"
-                                strokeWidth={2}
-                                fill="url(#stickyValidate)"
-                                dot={false}
-                                isAnimationActive={false}
-                            />
-                        </AreaChart>
-                    </ResponsiveContainer>
+            <PanelShell label="Backtest studio · sample market">
+                <div className="overflow-hidden rounded-lg border border-border">
+                    <HomeCandleChart seed={42} basePrice={1120} precision={2} count={48} height={150} label="Backtest illustrative sample" />
                 </div>
-                <p className="mt-2 font-numeric text-sm font-semibold text-foreground">
-                    +24.6% <span className="font-sans text-[11px] font-normal text-muted-foreground">sample · costs modeled</span>
+                <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                    Simulations run on recorded history with spread, slippage, and commission modeled.
                 </p>
                 <Link href="/backtests" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
                     Open Backtest Studio <ArrowRight size={12} aria-hidden />
