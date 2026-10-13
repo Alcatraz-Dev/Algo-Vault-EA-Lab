@@ -7,7 +7,7 @@
 >
 > Scope: **visual language, tokens, components, motion, layout and the workflow for
 > bringing in third-party UI.** It does not redefine product behaviour — for what the
-> product *is* and *must keep doing*, [`PRODUCT.md`](./PRODUCT.md) and
+> product _is_ and _must keep doing_, [`PRODUCT.md`](./PRODUCT.md) and
 > [`AGENTS.md`](./AGENTS.md) are authoritative and are not replaced by this file.
 >
 > Read order for any UI task: `AGENTS.md` → `PRODUCT.md` → this file → the code it
@@ -19,7 +19,7 @@
 
 1. **Reuse before you build.** Reuse an existing component → adapt an installed library
    primitive → use a shadcn primitive → use a composed ReUI pattern → apply an Aceternity
-   *effect* (marketing surfaces only) → only then hand-roll. See §13.
+   _effect_ (marketing surfaces only) → only then hand-roll. See §13.
 2. **This is a product, not a landing deck.** Command surfaces (terminals, tables, charts,
    order entry, admin) are dense, calm and solid. Decoration is rationed and never competes
    with data.
@@ -79,21 +79,21 @@ onto ours.
 
 > **Rule:** never hard-code a hex, never use a raw Tailwind colour family
 > (`bg-blue-500`, `text-emerald-400`, …), and never add a new colour to a component. Add a
-> token here and reference it. *(Legacy debt: ~155 raw colour-family usages remain — see §15.)*
+> token here and reference it. _(Legacy debt: ~155 raw colour-family usages remain — see §15.)_
 
 ### 2.1 Surfaces & text
 
-| Token | Tailwind | Dark | Light | Use |
-|---|---|---|---|---|
-| `--background` | `bg-background` | `#0b0c0e` | `#f9fafb` | Page canvas |
-| `--card` | `bg-card` | `#111315` | `#ffffff` | Panels, tables, cards (one step above page) |
-| `--popover` | `bg-popover` | `#15171a` | `#ffffff` | Menus, modals, floating surfaces |
-| `--secondary` / `--muted` / `--accent` | `bg-muted` | `#1c1e21` | `#eff0f2` | Recessed wells, hover rows, toolbars |
-| `--foreground` | `text-foreground` | `#f4f5f6` | `#1c2024` | Primary text |
-| `--muted-foreground` | `text-muted-foreground` | `#9a9fa6` | `#5f646a` | Secondary text, labels, units |
-| `--border-color` | `border-border` | `#2b2e32` | `#dbdee2` | **Border colour** |
-| `--input` | `border-input` | `#35383c` | `#c4c8cd` | Input outlines |
-| `--ring` | `ring-ring` | `#de661c` | `#de661c` | Focus ring |
+| Token                                  | Tailwind                | Dark      | Light     | Use                                         |
+| -------------------------------------- | ----------------------- | --------- | --------- | ------------------------------------------- |
+| `--background`                         | `bg-background`         | `#0b0c0e` | `#f9fafb` | Page canvas                                 |
+| `--card`                               | `bg-card`               | `#111315` | `#ffffff` | Panels, tables, cards (one step above page) |
+| `--popover`                            | `bg-popover`            | `#15171a` | `#ffffff` | Menus, modals, floating surfaces            |
+| `--secondary` / `--muted` / `--accent` | `bg-muted`              | `#1c1e21` | `#eff0f2` | Recessed wells, hover rows, toolbars        |
+| `--foreground`                         | `text-foreground`       | `#f4f5f6` | `#1c2024` | Primary text                                |
+| `--muted-foreground`                   | `text-muted-foreground` | `#9a9fa6` | `#5f646a` | Secondary text, labels, units               |
+| `--border-color`                       | `border-border`         | `#2b2e32` | `#dbdee2` | **Border colour**                           |
+| `--input`                              | `border-input`          | `#35383c` | `#c4c8cd` | Input outlines                              |
+| `--ring`                               | `ring-ring`             | `#de661c` | `#de661c` | Focus ring                                  |
 
 > **Trap:** FlyonUI claims `--border` as a **length** (1px border width). The border
 > **colour** token is therefore `--border-color`, exposed as `border-border`. There is no
@@ -101,11 +101,11 @@ onto ours.
 
 ### 2.2 Brand — "Vault gold"
 
-| Token | Dark | Light | Notes |
-|---|---|---|---|
-| `--primary` | `#de661c` | `#de661c` | Exact brand accent. Solid fills, borders, active states, brand mark, selected UI. |
-| `--primary-foreground` | `#1d1406` | `#1d1406` | Near-black ink on a solid gold fill (9.7:1, AAA). |
-| `--primary-text` | `#de661c` | `#de661c` | Text/links token — see the light-theme override below. |
+| Token                  | Dark      | Light     | Notes                                                                             |
+| ---------------------- | --------- | --------- | --------------------------------------------------------------------------------- |
+| `--primary`            | `#de661c` | `#de661c` | Exact brand accent. Solid fills, borders, active states, brand mark, selected UI. |
+| `--primary-foreground` | `#1d1406` | `#1d1406` | Near-black ink on a solid gold fill (9.7:1, AAA).                                 |
+| `--primary-text`       | `#de661c` | `#de661c` | Text/links token — see the light-theme override below.                            |
 
 Laws for gold:
 
@@ -117,22 +117,22 @@ Laws for gold:
 - **Light theme text:** `#de661c` fails as text on light surfaces (~1.5:1), so
   `html.light .text-primary` (defined unlayered in `globals.css`) resolves to the deeper
   gold for readability. Solid fills/borders still use the exact `--primary`. Do not remove
-  that override; when a new gold-*text* use appears in light theme, verify contrast.
+  that override; when a new gold-_text_ use appears in light theme, verify contrast.
 
 ### 2.3 Radii — one ladder
 
 `--radius: 0.5rem`. Everything is derived from it; do not introduce `rounded-2xl/3xl` on app
 surfaces.
 
-| Class | Computed | Use |
-|---|---|---|
-| `rounded-sm` | 6px | Small chips, dense controls |
-| `rounded-md` | 8px | Inputs, buttons, medium controls |
-| `rounded-lg` | 10px | **Cards, panels, tables, chart frames (canonical container radius)** |
-| `rounded-xl` | 12px | Large overlays / hero surfaces |
-| `rounded-button` | 6px | Named helper for control radius |
-| `rounded-card` / `rounded-card-lg` | 8px / 10px | Named helpers for container radius |
-| `rounded-full` / `rounded-pill` | 9999px | Badges/status pills, avatars, icon chips |
+| Class                              | Computed   | Use                                                                  |
+| ---------------------------------- | ---------- | -------------------------------------------------------------------- |
+| `rounded-sm`                       | 6px        | Small chips, dense controls                                          |
+| `rounded-md`                       | 8px        | Inputs, buttons, medium controls                                     |
+| `rounded-lg`                       | 10px       | **Cards, panels, tables, chart frames (canonical container radius)** |
+| `rounded-xl`                       | 12px       | Large overlays / hero surfaces                                       |
+| `rounded-button`                   | 6px        | Named helper for control radius                                      |
+| `rounded-card` / `rounded-card-lg` | 8px / 10px | Named helpers for container radius                                   |
+| `rounded-full` / `rounded-pill`    | 9999px     | Badges/status pills, avatars, icon chips                             |
 
 FlyonUI's bridge sets `--radius-selector`/`--radius-field` = 6px and `--radius-box` = 8px so
 its components agree with the ladder.
@@ -149,13 +149,13 @@ its components agree with the ladder.
 
 **Directional / status (fixed, never swapped):**
 
-| Token | Dark | Light | Meaning |
-|---|---|---|---|
+| Token                      | Dark      | Light     | Meaning                          |
+| -------------------------- | --------- | --------- | -------------------------------- |
 | `--positive` / `--success` | `#30d697` | `#00794c` | Profit, buy, long, live, success |
-| `--negative` | `#ff645f` | `#bb0916` | Loss, sell, short, error |
-| `--warning` | `#de661c` | `#de661c` | Caution / pending / stale |
-| `--info` | `#3faff3` | `#0065b4` | Informational |
-| `--destructive` | `#ff6369` | `#c1121f` | Destructive action |
+| `--negative`               | `#ff645f` | `#bb0916` | Loss, sell, short, error         |
+| `--warning`                | `#de661c` | `#de661c` | Caution / pending / stale        |
+| `--info`                   | `#3faff3` | `#0065b4` | Informational                    |
+| `--destructive`            | `#ff6369` | `#c1121f` | Destructive action               |
 
 Each has a `-foreground` token (legible text on a low-opacity tint of the same hue) and a
 `-muted` token (`color-mix(in oklch, <hue> 14%, transparent)`) for tinted backgrounds and
@@ -173,7 +173,7 @@ for arbitrary series.
   gold for brand/active. Fixing the hue is a future token task, not a per-page patch.
 - `--destructive` (`#ff6369`) and `--negative` (`#ff645f`) are two near-identical reds. Use
   `--negative` for loss/error in trading context and `--destructive` only for the destructive
-  *action* variant. Do not sprinkle both.
+  _action_ variant. Do not sprinkle both.
 
 ### 2.5 Motion tokens
 
@@ -208,15 +208,15 @@ replace with `font-numeric` when touching those lines.
 
 **Type scale** (dense product scale; nothing below 11px):
 
-| Role | Classes | Notes |
-|---|---|---|
-| Page title (`h1`) | `text-xl sm:text-2xl font-semibold tracking-tight` in `AppShell`; `PageHeader` uses `text-2xl font-semibold tracking-tight` | one `h1` per page |
-| Section title (`h2`) | `SectionHeader`: `text-sm font-semibold tracking-tight` | inside panels |
-| Marketing hero (`h1`) | `text-4xl sm:text-6xl lg:text-7xl font-semibold leading-[1.04] tracking-[-0.04em]` | landing only |
-| Body | `text-sm` (14px) default; prose `leading-6/7` | |
-| Secondary | `text-xs` (12px) `text-muted-foreground` | labels, units, meta |
-| Micro floor | `.text-micro` (11px) and `.text-meta` (12px), `.text-body-sm` (13px) | the floor; never `text-[10px]`/`[9px]` |
-| Numeric emphasis | `font-numeric text-lg/xl font-semibold tracking-tight` | metric values |
+| Role                  | Classes                                                                                                                     | Notes                                  |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| Page title (`h1`)     | `text-xl sm:text-2xl font-semibold tracking-tight` in `AppShell`; `PageHeader` uses `text-2xl font-semibold tracking-tight` | one `h1` per page                      |
+| Section title (`h2`)  | `SectionHeader`: `text-sm font-semibold tracking-tight`                                                                     | inside panels                          |
+| Marketing hero (`h1`) | `text-4xl sm:text-6xl lg:text-7xl font-semibold leading-[1.04] tracking-[-0.04em]`                                          | landing only                           |
+| Body                  | `text-sm` (14px) default; prose `leading-6/7`                                                                               |                                        |
+| Secondary             | `text-xs` (12px) `text-muted-foreground`                                                                                    | labels, units, meta                    |
+| Micro floor           | `.text-micro` (11px) and `.text-meta` (12px), `.text-body-sm` (13px)                                                        | the floor; never `text-[10px]`/`[9px]` |
+| Numeric emphasis      | `font-numeric text-lg/xl font-semibold tracking-tight`                                                                      | metric values                          |
 
 **Rules**
 
@@ -237,7 +237,7 @@ replace with `font-numeric` when touching those lines.
   Common rhythm: `gap-1.5` (tight control cluster), `gap-2`/`gap-3` (component internals),
   `gap-4`/`gap-6` (card content / section grid), `py-14 md:py-20` (marketing bands).
 - **Page container:** `.page-container` = `max-width:1200px; margin-inline:auto;
-  padding-inline:32px` (16px under 640px). Use it for marketing and full-width bands.
+padding-inline:32px` (16px under 640px). Use it for marketing and full-width bands.
 - **Product pages** use the shell's own padding: `AppShell` main is
   `max-w-7xl px-4 py-6 sm:px-6 lg:px-8` (or full-width, padded, for `fullscreen`/terminal).
 - **Grids of panels:** use the hairline-grid idiom — a wrapper with `gap-px bg-border` and
@@ -255,15 +255,15 @@ replace with `font-numeric` when touching those lines.
 
 ### 5.1 Route families (285 page/layout files under `app/`)
 
-| Family | Examples | Shell | Notes |
-|---|---|---|---|
-| Marketing / public | `/`, `/pricing`, `/marketplace`, `/compare`, `/affiliates`, `/history-methodology` pages, legal | `SiteHeader` + `SiteFooter` | Landing composition only; effects allowed here (§13.4) |
-| Auth | `/login`, `/register` | standalone centered | no app chrome |
-| Account / app | `/dashboard`, `/portfolio`, `/account/*`, `/goals`, `/trade-journal`, `/signals`, `/alerts`, `/tools`, `/backtests`, `/statement`, `/economic-calendar`, `/news`, `/copy-trading`, `/cross-asset`, `/compare` | `AccountShell` or `AppSidebarLayout` | dense product surfaces |
-| Admin | `/admin/**` | `AdminShell` (behind `AdminGuard`) | internal ops |
-| Developer | `/developer/**` | `AppShell` + `DEVELOPER_NAV` | internal |
-| Mobile | `/mobile/**` | own layout | slimmed shell |
-| Fullscreen / terminal | `/terminal/[symbol]`, `/account/terminal`, scalping terminals | `AppShell` `fullscreen`/`hideSidebar` | chart owns vertical space |
+| Family                | Examples                                                                                                                                                                                                      | Shell                                 | Notes                                                  |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------ |
+| Marketing / public    | `/`, `/pricing`, `/marketplace`, `/compare`, `/affiliates`, `/history-methodology` pages, legal                                                                                                               | `SiteHeader` + `SiteFooter`           | Landing composition only; effects allowed here (§13.4) |
+| Auth                  | `/login`, `/register`                                                                                                                                                                                         | standalone centered                   | no app chrome                                          |
+| Account / app         | `/dashboard`, `/portfolio`, `/account/*`, `/goals`, `/trade-journal`, `/signals`, `/alerts`, `/tools`, `/backtests`, `/statement`, `/economic-calendar`, `/news`, `/copy-trading`, `/cross-asset`, `/compare` | `AccountShell` or `AppSidebarLayout`  | dense product surfaces                                 |
+| Admin                 | `/admin/**`                                                                                                                                                                                                   | `AdminShell` (behind `AdminGuard`)    | internal ops                                           |
+| Developer             | `/developer/**`                                                                                                                                                                                               | `AppShell` + `DEVELOPER_NAV`          | internal                                               |
+| Mobile                | `/mobile/**`                                                                                                                                                                                                  | own layout                            | slimmed shell                                          |
+| Fullscreen / terminal | `/terminal/[symbol]`, `/account/terminal`, scalping terminals                                                                                                                                                 | `AppShell` `fullscreen`/`hideSidebar` | chart owns vertical space                              |
 
 **Rule:** a page never renders its own top-level chrome. It renders inside a shell
 (§6) and starts its content with a `PageHeader` (§7.1). Marketing pages are the only
@@ -293,13 +293,13 @@ Shell (topbar + sidebar + <main>)
 
 The canonical shells (do not fork them):
 
-| Component | Path | Purpose |
-|---|---|---|
-| `AppShell` | `components/layout/AppShell.tsx` | Base authenticated shell: sticky blurred topbar (title/eyebrow/subtitle, actions, command palette, notifications, theme toggle, account menu), grouped collapsible sidebar with search, mobile drawer, `animate-page-enter` main. |
-| `AccountShell` | `components/account/AccountShell.tsx` | Wraps `AppShell` with `ACCOUNT_NAV`, back-navigation and a live status chip. |
-| `AdminShell` | `components/admin/AdminShell.tsx` | Wraps `AppShell` with `ADMIN_NAV`, admin topbar controls. |
-| `AppSidebarLayout` | `components/layout/AppSidebarLayout.tsx` | Thin wrapper: `AppShell` + `APP_NAV`, for route families that were previously bare. |
-| `SiteHeader` / `SiteFooter` | `components/home/site-header.tsx`, `components/footer/SiteFooter.tsx` | Marketing chrome only. |
+| Component                   | Path                                                                  | Purpose                                                                                                                                                                                                                           |
+| --------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AppShell`                  | `components/layout/AppShell.tsx`                                      | Base authenticated shell: sticky blurred topbar (title/eyebrow/subtitle, actions, command palette, notifications, theme toggle, account menu), grouped collapsible sidebar with search, mobile drawer, `animate-page-enter` main. |
+| `AccountShell`              | `components/account/AccountShell.tsx`                                 | Wraps `AppShell` with `ACCOUNT_NAV`, back-navigation and a live status chip.                                                                                                                                                      |
+| `AdminShell`                | `components/admin/AdminShell.tsx`                                     | Wraps `AppShell` with `ADMIN_NAV`, admin topbar controls.                                                                                                                                                                         |
+| `AppSidebarLayout`          | `components/layout/AppSidebarLayout.tsx`                              | Thin wrapper: `AppShell` + `APP_NAV`, for route families that were previously bare.                                                                                                                                               |
+| `SiteHeader` / `SiteFooter` | `components/home/site-header.tsx`, `components/footer/SiteFooter.tsx` | Marketing chrome only.                                                                                                                                                                                                            |
 
 **Navigation data is data, not markup:** `APP_NAV`, `ADMIN_NAV`, `DEVELOPER_NAV`
 (`components/layout/app-nav.ts`), and `ACCOUNT_NAV`
@@ -352,7 +352,7 @@ component tree.
   `default/secondary/destructive/outline/ghost/link/success/warning`.
 - **`StatusBadge`** (`components/ui/status-badge.tsx`) — **the** status primitive. Tones:
   `live/active/positive/negative/warning/info/neutral/stale/offline/error/pending/
-  connected/expired/profitable`. `dot` + `pulse` for live indicators. Use this instead of
+connected/expired/profitable`. `dot` + `pulse` for live indicators. Use this instead of
   ad-hoc coloured spans.
 - **`Input`**, **`ToggleChip`**, **`Toolbar`**, **`Separator`**, **`Dialog`**, **`Tabs`**,
   **`Tooltip`** — `components/ui/*`, built on Base UI / Radix as installed.
@@ -415,12 +415,12 @@ components. Do not add another animation dependency.
 
 ### 8.2 Canonical easings & durations
 
-| Purpose | Value |
-|---|---|
-| Standard UI | `--ease-standard` `cubic-bezier(0.2,0,0,1)`, ~150–200ms |
-| Emphasized (drawers, sheets) | `--ease-emphasized` `cubic-bezier(0.32,0.72,0,1)`, ~200–240ms |
-| Reveal (entrance) | `cubic-bezier(0.22,1,0.36,1)`, 700ms, 16px lift |
-| ReUI hover/reveal | `transition-colors`; reveals `duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]` |
+| Purpose                      | Value                                                                          |
+| ---------------------------- | ------------------------------------------------------------------------------ |
+| Standard UI                  | `--ease-standard` `cubic-bezier(0.2,0,0,1)`, ~150–200ms                        |
+| Emphasized (drawers, sheets) | `--ease-emphasized` `cubic-bezier(0.32,0.72,0,1)`, ~200–240ms                  |
+| Reveal (entrance)            | `cubic-bezier(0.22,1,0.36,1)`, 700ms, 16px lift                                |
+| ReUI hover/reveal            | `transition-colors`; reveals `duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]` |
 
 ### 8.3 Existing motion utilities (in `globals.css`)
 
@@ -450,7 +450,7 @@ ambient loops (≤3 per view) and honour reduced motion.
   `repeat: Infinity`, random `delay`; static radial `mask` fades the edges.
 - **Card Spotlight**: pointer-tracked radial highlight on a card (`onMouseMove` → CSS vars).
 - **Glowing Effect**: RAF-throttled pointer angle, `animate(currentAngle, newAngle,
-  { duration: movementDuration, ease:[0.16,1,0.3,1] })`, conic-gradient exposed via
+{ duration: movementDuration, ease:[0.16,1,0.3,1] })`, conic-gradient exposed via
   `--start`/`--active` and a mask.
 - **Text Generate Effect**: `useAnimate` with `stagger 0.2s`, per-word `opacity 1` +
   `filter blur(10px)→0`, `duration 0.5`.
@@ -462,8 +462,8 @@ ambient loops (≤3 per view) and honour reduced motion.
 - **Aurora / Timeline**: slow rotating/linear-gradient backdrop; timeline with progressive
   scroll reveal.
 
-**Adaptation rule:** do **not** paste Aceternity components wholesale. Port the *motion
-mechanic* into a ReUI/token-styled surface, swap literal colours for tokens, cap the loops,
+**Adaptation rule:** do **not** paste Aceternity components wholesale. Port the _motion
+mechanic_ into a ReUI/token-styled surface, swap literal colours for tokens, cap the loops,
 and add the reduced-motion guard. If an effect cannot be made accessible and cheap, do not
 ship it.
 
@@ -601,12 +601,14 @@ After adding any ReUI (or third-party) component:
 Before any UI change is considered done:
 
 **Correctness & truth**
+
 - [ ] No fabricated data; states are honest (`live/stale/offline/unavailable`); no fake success.
 - [ ] Existing functionality untouched: Firebase, auth, Stripe, trading logic, routes, charts.
 - [ ] Exactly one `h1`; page renders inside its shell; `PageHeader` present where standard.
 - [ ] Loading / empty / error states exist.
 
 **Tokens & visual**
+
 - [ ] Zero raw hex / raw Tailwind colour families added; every colour is a token.
 - [ ] Radius from the ladder; no `rounded-2xl/3xl` on app surfaces; cards solid (no blur).
 - [ ] `font-numeric` on all comparable numbers; no type below 11px; no `font-mono` added.
@@ -615,20 +617,24 @@ Before any UI change is considered done:
 - [ ] Hierarchy from surface + hairline, not shadow/glow.
 
 **Motion**
+
 - [ ] CSS for hover/state; `motion/react` only where warranted; one entrance per view.
 - [ ] `transform`/`opacity` only; ≤3 ambient loops; reduced-motion honoured.
 - [ ] No `transition-all`.
 
 **Responsive & a11y**
+
 - [ ] Verified at 375/768/1024/1440 in **dark and light**.
 - [ ] Keyboard operable; visible focus; icon-only controls labelled; drawer focus-locked.
 - [ ] Contrast AA for text (4.5:1) and graphics (3:1); meaning not colour-only.
 
 **Performance**
+
 - [ ] Charts/flow remain solid and unblurred; client boundary only where needed.
 - [ ] No new heavy dependency for a micro-interaction; icons from one set.
 
 **Process**
+
 - [ ] `npm run lint` and `npx tsc --noEmit` pass.
 - [ ] Reuse preferred over new code; no duplicate page/feature introduced.
 - [ ] Any required fix to the design system is recorded here (not left in a code comment).
@@ -641,15 +647,17 @@ Documented honestly so the next agent does not mistake debt for intent. None of 
 licences to break behaviour.
 
 **Dead / orphaned (do not extend):**
+
 - `components/home/*` orphaned landing variant + `components/home/charts/*` (see §7.4).
   References **undefined** `.home-eyebrow/.home-title/.home-title-lg/.home-title-em/
-  .home-lede/.home-section/.home-hero*/.home-card-title` classes and ReUI components, none
+.home-lede/.home-section/.home-hero*/.home-card-title` classes and ReUI components, none
   of which are reachable from `app/`. `HomeScrollAnimations.tsx` is a stub.
 - `packages/design-tokens/src/index.ts` — stale green/amber palette (Inter/JetBrains/Cal,
   `#22c55e`). Unused by the web app. Reconcile or remove in a dedicated task.
 - `reui@0.5.0` in `package.json` — unused; ReUI is a registry, not an npm package.
 
 **Drift (fix opportunistically when touching the file):**
+
 - ~155 raw Tailwind colour-family usages; 45 banned micro-text sizes (`text-[9/10/11px]`);
   32 `font-mono`; ~70 `backdrop-blur` usages (cards must be solid); 5 `rounded-2xl/3xl`.
 - Two `Reveal` implementations (`components/home`, `components/layout`) — unify on the
@@ -657,6 +665,7 @@ licences to break behaviour.
 - `--warning === --primary`; `--destructive ≈ --negative` (§2.4).
 
 **Security (not a design matter, but flagged):**
+
 - `opencode.json` contains a committed ReUI PAT. Treat as compromised; move to an env var
   and rotate. Never reproduce the token in docs, commits, or logs.
 
@@ -673,19 +682,19 @@ suite. There is no automated visual/design test — design review is manual agai
 
 ---
 
-## 16. Instructions for future agents
+16. Instructions for Future Agents
 
-1. **Read `AGENTS.md`, `PRODUCT.md`, then this file** before touching UI. Inspect the real
-   component/layout; never redesign from memory or a summary.
-2. **Reuse first (§0).** Extend an existing primitive/route. Do not create a second page,
-   shell, table, badge, or motion system.
-3. **Change the system here, not in comments.** If a rule must change, update this file in
-   the same change and delete obsolete rules.
-4. **Tokens are the contract.** No raw colours, no new radii, no sub-11px text, no
-   `transition-all`, no glass on data.
-5. **Both themes, responsive, keyboard, reduced-motion** — non-negotiable on every change.
-6. **Protect behaviour.** `PRODUCT.md` "What must keep working" is a hard constraint.
-7. **Verify before claiming.** Run lint + typecheck; state actual results. Never claim an
-   effect, fix, or improvement you did not build and observe.
-8. **Keep it focused.** Do not redesign every page in one pass; make the smallest coherent
-   improvement and record it here.
+1. Read the project instructions first. Read AGENTS.md, PRODUCT.md, then DESIGN.md. Inspect the actual components, layouts, routes, and dependencies before making changes.
+1. Reuse first. Extend existing primitives, routes, shells, tables, badges, and animation systems. Do not create duplicate components or parallel implementations without a demonstrated need.
+1. The design system is authoritative for visual decisions. Follow this document for tokens, typography, components, motion, layout, and UI-library integration. Follow PRODUCT.md and AGENTS.md for their respective product, architectural, and behavioral requirements.
+1. Respect the current repository state. Inspect git status and existing diffs before editing. Preserve uncommitted work, user changes, and unrelated modifications. Never blindly reset, stash, revert, or overwrite existing work.
+1. Complete the requested scope. When asked to redesign the entire website, inventory every existing route and review each route individually. Work in manageable route groups, but continue until every route has been reviewed and all substantial outstanding design issues have been addressed. Inheriting global styles alone does not count as an individual redesign.
+1. Avoid unnecessary changes. A route that already meets the design requirements should not be redesigned merely for the sake of changing it. Preserve correct existing implementations and document intentional exceptions.
+1. Tokens are the contract. Do not introduce raw colors, arbitrary radii, text smaller than 11px, transition-all, or glass effects on data surfaces. When an exception is genuinely necessary, evaluate its impact on the design system and document the decision.
+1. Use reference libraries selectively. Prefer existing components, then compatible installed primitives, shadcn/ui, suitable ReUI patterns, and finally carefully adapted Aceternity effects where permitted. Inspect actual APIs and dependencies. Do not invent component props or add redundant libraries.
+1. Protect product behavior. Firebase, authentication, Stripe, permissions, trading logic, chart engines, backtesting, automation, APIs, and existing routes must continue working. Do not substitute mock data or visual simulations for functional features.
+1. Verify every meaningful change. Run relevant lint, type-check, test, and build commands where feasible. Inspect both themes and responsive layouts. Use browser-based visual verification when available. Report actual results and distinguish pre-existing failures from regressions.
+1. Keep documentation consistent. DESIGN.md is the single design authority. Update it when a lasting design-system rule changes. Do not create overlapping design documents or preserve contradictory legacy instructions.
+1. Report completion honestly. Distinguish routes inspected, routes redesigned, routes intentionally unchanged, and routes still incomplete. Never claim full-site completion based solely on global CSS changes.
+1. Handle security issues responsibly. Never reproduce credentials in reports or documentation. If a potentially exposed credential is discovered, verify its status safely and recommend or perform authorized remediation without disturbing unrelated configuration.
+1. Make progress autonomously. For broad redesign tasks, establish a route inventory, prioritize work, implement the changes, verify them, and continue through the remaining scope without repeatedly requesting approval for routine implementation decisions.
