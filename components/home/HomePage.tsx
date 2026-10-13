@@ -44,7 +44,7 @@ export default function HomePage({ data }: { data: HomeData }) {
                 <LoopTabs data={data} />
                 <WireUpSection />
                 <NetworkSection data={data} />
-                <CodeSection />
+                <CodeSection data={data} />
                 <CatalogSection featured={data.featured} />
                 <PricingTeaser />
                 <CtaHighlight />

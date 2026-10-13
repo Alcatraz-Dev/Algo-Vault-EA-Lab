@@ -59,12 +59,21 @@ export default function LoopTabs({ data }: { data: HomeData }) {
                 </Reveal>
 
                 <Reveal delay={100}>
-                    <div aria-hidden className="relative mt-10 overflow-hidden rounded-2xl border border-border bg-muted/40">
-                        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border-color)_1px,transparent_1px),linear-gradient(to_bottom,var(--border-color)_1px,transparent_1px)] bg-[size:44px_44px] opacity-50 [mask-image:radial-gradient(ellipse_60%_80%_at_50%_100%,black_20%,transparent_100%)]" />
-                        <div className="relative grid place-items-center p-6 sm:p-10">
+                    <div aria-hidden className="relative mt-10 overflow-hidden rounded-2xl border border-border bg-muted/40 sm:mt-14">
+                        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border-color)_1px,transparent_1px),linear-gradient(to_bottom,var(--border-color)_1px,transparent_1px)] bg-[size:44px_44px] opacity-60 [mask-image:radial-gradient(ellipse_65%_85%_at_50%_100%,black_25%,transparent_100%)]" />
+                        <div className="pointer-events-none absolute left-1/2 top-1/2 h-64 w-[36rem] max-w-full -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl" />
+                        <div className="relative grid place-items-center gap-4 p-6 sm:p-10 lg:grid-cols-[1fr_auto_1fr] lg:gap-8">
+                            <div className="hidden w-full max-w-64 justify-self-end rounded-xl border border-border bg-card p-4 shadow-md lg:block">
+                                <p className="truncate font-numeric text-xs text-muted-foreground">workspace · sample</p>
+                                <p className="mt-1 font-numeric text-2xl font-semibold tracking-tight text-foreground">
+                                    {backtestAnalytics.total}
+                                    <span className="ml-1.5 text-xs font-normal text-muted-foreground">recorded runs</span>
+                                </p>
+                                <p className="mt-1 text-[11px] text-muted-foreground">Every run stored with metrics</p>
+                            </div>
                             <div className="w-full max-w-xs rounded-xl border border-border bg-card p-4 shadow-lg">
                                 <div className="flex items-center justify-between gap-3">
-                                    <p className="truncate text-xs text-muted-foreground">workspace · sample</p>
+                                    <p className="truncate font-numeric text-xs text-muted-foreground">pipeline · sample</p>
                                     <Badge variant="success" className="h-6 shrink-0 gap-1.5 text-[11px]">
                                         <span className="relative flex h-1.5 w-1.5">
                                             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive/60 motion-reduce:animate-none" />
@@ -74,8 +83,7 @@ export default function LoopTabs({ data }: { data: HomeData }) {
                                     </Badge>
                                 </div>
                                 <p className="mt-2 font-numeric text-3xl font-semibold tracking-tight text-foreground">
-                                    {backtestAnalytics.total}
-                                    <span className="ml-1.5 text-sm font-normal text-muted-foreground">recorded runs</span>
+                                    3<span className="ml-1.5 text-sm font-normal text-muted-foreground">gates passed</span>
                                 </p>
                                 <ul className="mt-3 space-y-1.5">
                                     {[
@@ -95,6 +103,14 @@ export default function LoopTabs({ data }: { data: HomeData }) {
                                 <p className="mt-3 border-t border-border pt-2.5 text-[11px] text-muted-foreground">
                                     From scan to fill
                                 </p>
+                            </div>
+                            <div className="hidden w-full max-w-64 justify-self-start rounded-xl border border-border bg-card p-4 shadow-md lg:block">
+                                <p className="truncate font-numeric text-xs text-muted-foreground">validator · sample</p>
+                                <p className="mt-1 font-numeric text-2xl font-semibold tracking-tight text-positive">
+                                    {backtestAnalytics.analyzableCount > 0 ? `${backtestAnalytics.positiveCount}/${backtestAnalytics.analyzableCount}` : "—"}
+                                    <span className="ml-1.5 text-xs font-normal text-muted-foreground">positive runs</span>
+                                </p>
+                                <p className="mt-1 text-[11px] text-muted-foreground">Rejected intents carry a code</p>
                             </div>
                         </div>
                     </div>
