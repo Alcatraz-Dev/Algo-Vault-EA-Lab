@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, Database, FlaskConical, GripVertical, Plug, ShieldCheck } from "lucide-react";
+import { ArrowRight, Check, Database, FlaskConical, GripVertical, Plug, ShieldCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Reveal from "./Reveal";
@@ -21,6 +21,7 @@ type Input = {
     id: string;
     name: string;
     desc: string;
+    tag: string;
     href: string;
     linkLabel: string;
     icon: typeof Database;
@@ -28,10 +29,10 @@ type Input = {
 };
 
 const INPUTS: Input[] = [
-    { id: "data", name: "Market data", desc: "TradingView quotes", href: "/account/tradingview", linkLabel: "Connect feed", icon: Database, dot: "#fbbf24" },
-    { id: "strategy", name: "Strategy", desc: "Lab-built system", href: "/strategy-lab", linkLabel: "Build one", icon: FlaskConical, dot: "#fb923c" },
-    { id: "risk", name: "Risk limits", desc: "Validator armed", href: "/risk", linkLabel: "Set limits", icon: ShieldCheck, dot: "#34d399" },
-    { id: "mt5", name: "MT5 terminal", desc: "Custom EA bridge", href: "/account/trading-access", linkLabel: "Connect MT5", icon: Plug, dot: "#60a5fa" },
+    { id: "data", name: "Market data", desc: "TradingView quotes", tag: "feed", href: "/account/tradingview", linkLabel: "Connect feed", icon: Database, dot: "#fbbf24" },
+    { id: "strategy", name: "Strategy", desc: "Lab-built system", tag: "logic", href: "/strategy-lab", linkLabel: "Build one", icon: FlaskConical, dot: "#fb923c" },
+    { id: "risk", name: "Risk limits", desc: "Validator armed", tag: "guard", href: "/risk", linkLabel: "Set limits", icon: ShieldCheck, dot: "#34d399" },
+    { id: "mt5", name: "MT5 terminal", desc: "Custom EA bridge", tag: "exec", href: "/account/trading-access", linkLabel: "Connect MT5", icon: Plug, dot: "#60a5fa" },
 ];
 
 type Consumer = { name: string; desc: string; href?: string };
@@ -184,8 +185,8 @@ export default function WireUpSection() {
                             Wire up a strategy in a minute
                         </h2>
                         <p className="mt-4 text-sm leading-6 text-pretty text-muted-foreground sm:text-[0.9375rem]">
-                            Connect a feed, a strategy, risk limits, and a terminal. Drag the
-                            cards anywhere — toggling updates this panel only; nothing executes.
+                            Connect a feed, a strategy, risk limits, and a terminal. Drag from any
+                            card&apos;s dot — toggling updates this panel only; nothing executes.
                         </p>
                     </div>
                 </Reveal>
@@ -217,7 +218,7 @@ export default function WireUpSection() {
                         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
                             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Inputs</p>
                             <ul className="mt-3 space-y-2">
-                                {INPUTS.map(({ id, name, desc, href, linkLabel, icon: Icon }) => {
+                                {INPUTS.map(({ id, name, desc, tag, href, linkLabel, icon: Icon, dot }) => {
                                     const on = connected.has(id);
                                     return (
                                         <li
@@ -240,6 +241,9 @@ export default function WireUpSection() {
                                                 <span className="flex items-center gap-1.5 text-[13px] font-semibold text-foreground">
                                                     <Icon size={13} className="shrink-0 text-primary" aria-hidden />
                                                     {name}
+                                                    <span className="rounded bg-muted px-1.5 py-0.5 font-numeric text-[10px] font-medium text-muted-foreground">
+                                                        {tag}
+                                                    </span>
                                                 </span>
                                                 <span className="block truncate text-[11px] text-muted-foreground">
                                                     {desc} ·{" "}
@@ -248,6 +252,11 @@ export default function WireUpSection() {
                                                     </Link>
                                                 </span>
                                             </span>
+                                            <span
+                                                aria-hidden
+                                                className="h-2 w-2 shrink-0 rounded-full"
+                                                style={{ backgroundColor: on ? dot : "var(--border-color)" }}
+                                            />
                                             <Button
                                                 type="button"
                                                 variant={on ? "secondary" : "outline"}
@@ -267,192 +276,256 @@ export default function WireUpSection() {
                     </div>
 
                     {/* Desktop: draggable canvas */}
-                    <div ref={ref} className="relative mx-auto mt-6 hidden max-w-6xl lg:block">
-                        <div
-                            aria-hidden
-                            className="pointer-events-none absolute inset-0 opacity-60 [background-image:radial-gradient(var(--border-color)_1px,transparent_1px)] [background-size:22px_22px] [mask-image:radial-gradient(ellipse_70%_80%_at_50%_50%,black_30%,transparent_100%)] motion-reduce:hidden"
-                        />
-                        <div style={{ height: STAGE_H * scale }} className="relative w-full overflow-hidden">
+                    <div
+                        className="relative mx-auto mt-6 hidden max-w-6xl rounded-2xl border border-border bg-card p-1.5 shadow-md lg:block"
+                    >
+                        <div ref={ref} className="relative overflow-hidden rounded-xl bg-muted/40">
                             <div
-                                className="absolute left-0 top-0 origin-top-left select-none"
-                                style={{ width: STAGE_W, height: STAGE_H, transform: `scale(${scale})` }}
-                            >
-                                <svg viewBox={`0 0 ${STAGE_W} ${STAGE_H}`} className="pointer-events-none absolute inset-0 size-full" fill="none" aria-hidden="true">
-                                    <defs>
-                                        <filter id="wire-glow" x="-20%" y="-20%" width="140%" height="140%">
-                                            <feGaussianBlur stdDeviation="4" />
-                                        </filter>
-                                    </defs>
-                                    {INPUTS.map((input, i) => {
-                                        const p = pos[`in-${input.id}`] ?? { x: IN_X, y: ROW_Y[i] };
-                                        const on = connected.has(input.id);
-                                        return (
-                                            <g key={`in-${input.id}`}>
-                                                <path
-                                                    d={edge(p.x + IN_W, p.y + ROW_H / 2, ep.x, epMidY)}
-                                                    stroke="var(--border-color)"
-                                                    strokeWidth="1.5"
-                                                />
-                                                {on && (
+                                aria-hidden
+                                className="pointer-events-none absolute inset-0 opacity-70 [background-image:radial-gradient(var(--border-color)_1px,transparent_1px)] [background-size:20px_20px] [mask-image:radial-gradient(ellipse_75%_85%_at_50%_50%,black_30%,transparent_100%)] motion-reduce:hidden"
+                            />
+                            <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 flex h-6 items-end justify-between px-4">
+                                {Array.from({ length: 25 }, (_, i) => (
+                                    <span key={i} className={cn("w-px bg-border", i % 5 === 0 ? "h-2.5" : "h-1.5")} />
+                                ))}
+                            </div>
+                            <div style={{ height: STAGE_H * scale }} className="relative w-full overflow-hidden pt-3">
+                                <div
+                                    className="absolute left-0 top-3 origin-top-left select-none"
+                                    style={{ width: STAGE_W, height: STAGE_H, transform: `scale(${scale})` }}
+                                >
+                                    <svg viewBox={`0 0 ${STAGE_W} ${STAGE_H}`} className="pointer-events-none absolute inset-0 size-full" fill="none" aria-hidden="true">
+                                        <defs>
+                                            <filter id="wire-glow" x="-20%" y="-20%" width="140%" height="140%">
+                                                <feGaussianBlur stdDeviation="4" />
+                                            </filter>
+                                        </defs>
+                                        {INPUTS.map((input, i) => {
+                                            const p = pos[`in-${input.id}`] ?? { x: IN_X, y: ROW_Y[i] };
+                                            const on = connected.has(input.id);
+                                            return (
+                                                <g key={`in-${input.id}`}>
                                                     <path
                                                         d={edge(p.x + IN_W, p.y + ROW_H / 2, ep.x, epMidY)}
-                                                        stroke={input.dot}
-                                                        strokeWidth="2"
-                                                        strokeLinecap="round"
-                                                        filter="url(#wire-glow)"
-                                                        className="wire-flow"
+                                                        stroke="var(--border-color)"
+                                                        strokeWidth={on ? 0 : 1.5}
                                                     />
-                                                )}
-                                                <circle cx={p.x + IN_W} cy={p.y + ROW_H / 2} r="5" fill="var(--card)" stroke={input.dot} strokeWidth="2" opacity={on ? 1 : 0.35} />
-                                            </g>
-                                        );
-                                    })}
-                                    {CONSUMERS.map((c, i) => {
-                                        const p = pos[`out-${i}`] ?? { x: OUT_X, y: ROW_Y[i] };
-                                        return (
-                                            <path
-                                                key={`out-${i}`}
-                                                d={edge(ep.x + EP_W, epMidY, p.x, p.y + ROW_H / 2)}
-                                                stroke={ready ? "var(--info)" : "var(--border-color)"}
-                                                strokeWidth={ready ? 2 : 1.5}
-                                                strokeDasharray={ready ? undefined : "4 5"}
-                                                strokeLinecap="round"
-                                                opacity={ready ? 0.9 : 0.7}
-                                            />
-                                        );
-                                    })}
-                                    <circle cx={ep.x} cy={epMidY} r="5" fill="var(--primary)" />
-                                    <circle cx={ep.x + EP_W} cy={epMidY} r="5" fill="var(--card)" stroke="var(--primary)" strokeWidth="2" />
-                                </svg>
-
-                                {INPUTS.map((input, i) => {
-                                    const p = pos[`in-${input.id}`] ?? { x: IN_X, y: ROW_Y[i] };
-                                    const Icon = input.icon;
-                                    const on = connected.has(input.id);
-                                    return (
-                                        <div
-                                            key={input.id}
-                                            className={cn(
-                                                "absolute rounded-xl border bg-card shadow-sm",
-                                                on ? "border-positive/50" : "border-border",
-                                            )}
-                                            style={{ left: p.x, top: p.y, width: IN_W, height: ROW_H }}
-                                        >
-                                            <div
-                                                {...dragHandleProps(`in-${input.id}`, `${input.name} input`)}
-                                                className="flex cursor-grab touch-none items-center gap-1.5 px-3 pt-2.5 outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
-                                            >
-                                                <Icon size={14} className="text-primary" aria-hidden />
-                                                <span className="text-[13px] font-semibold text-foreground">{input.name}</span>
-                                                <GripVertical size={13} className="ml-auto text-muted-foreground" aria-hidden />
-                                            </div>
-                                            <p className="mt-0.5 truncate px-3 text-[11px] text-muted-foreground">{input.desc}</p>
-                                            <div className="mt-1.5 flex items-center justify-between px-3 pb-2">
-                                                <Link href={input.href} className="text-[11px] font-medium text-primary hover:underline">
-                                                    {input.linkLabel}
-                                                </Link>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => toggle(input.id)}
-                                                    aria-pressed={on}
-                                                    className={cn(
-                                                        "rounded-full px-2.5 py-1 font-numeric text-[11px] font-semibold transition-colors",
-                                                        on ? "bg-positive/15 text-positive" : "bg-muted text-muted-foreground hover:text-foreground",
+                                                    {on && (
+                                                        <>
+                                                            <path
+                                                                d={edge(p.x + IN_W, p.y + ROW_H / 2, ep.x, epMidY)}
+                                                                stroke={input.dot}
+                                                                strokeWidth={2}
+                                                                strokeLinecap="round"
+                                                                filter="url(#wire-glow)"
+                                                                className="wire-flow"
+                                                            />
+                                                            <path
+                                                                d={edge(p.x + IN_W, p.y + ROW_H / 2, ep.x, epMidY)}
+                                                                stroke={input.dot}
+                                                                strokeWidth={1.5}
+                                                                strokeLinecap="round"
+                                                            />
+                                                        </>
                                                     )}
-                                                >
-                                                    {on ? "● Connected" : "○ Connect"}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-
-                                <div
-                                    className="absolute rounded-xl border border-border bg-card shadow-md"
-                                    style={{ left: ep.x, top: ep.y, width: EP_W, height: EP_H }}
-                                >
-                                    <div
-                                        {...dragHandleProps("endpoint", "Strategy router endpoint")}
-                                        className="flex cursor-grab touch-none items-center gap-1.5 px-3 pt-2.5 outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
-                                    >
-                                        <span className="text-xs font-semibold text-foreground">Endpoint</span>
-                                        <span className="font-numeric text-[11px] text-muted-foreground">strategy-router</span>
-                                        <GripVertical size={13} className="ml-auto text-muted-foreground" aria-hidden />
-                                    </div>
-                                    <ul className="mt-2 space-y-1.5 px-3">
-                                        {INPUTS.map(({ id, name, dot }) => {
-                                            const on = connected.has(id);
-                                            return (
-                                                <li key={id} className="flex items-center gap-2 text-xs">
-                                                    <span
-                                                        className="h-1.5 w-1.5 shrink-0 rounded-full"
-                                                        style={{ backgroundColor: on ? dot : "var(--border-color)" }}
-                                                        aria-hidden
-                                                    />
-                                                    <span className={on ? "text-foreground" : "text-muted-foreground"}>{name}</span>
-                                                    {on && <Check size={12} className="ml-auto text-positive" aria-hidden />}
-                                                </li>
+                                                </g>
                                             );
                                         })}
-                                    </ul>
-                                    <div className="px-3">
-                                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow={done} aria-valuemin={0} aria-valuemax={INPUTS.length} aria-label="Setup progress">
-                                            <div
-                                                className="h-full rounded-full bg-primary transition-[width] duration-300 motion-reduce:transition-none"
-                                                style={{ width: `${(done / INPUTS.length) * 100}%` }}
-                                            />
-                                        </div>
-                                        <div className="mt-2 flex items-center justify-between">
-                                            <p className="text-[11px] text-muted-foreground" aria-live="polite">
-                                                {ready ? "Ready to deploy" : `Awaiting inputs · ${done}/${INPUTS.length}`}
-                                            </p>
-                                            <Link
-                                                href="/account/trading-access"
-                                                className="rounded-full bg-card px-2.5 py-1 text-[11px] font-semibold text-foreground ring-1 ring-border transition-colors hover:border-primary/50 hover:text-primary"
-                                            >
-                                                Deploy
-                                            </Link>
-                                        </div>
-                                    </div>
-                                </div>
+                                        {CONSUMERS.map((c, i) => {
+                                            const p = pos[`out-${i}`] ?? { x: OUT_X, y: ROW_Y[i] };
+                                            return (
+                                                <path
+                                                    key={`out-${i}`}
+                                                    d={edge(ep.x + EP_W, epMidY, p.x, p.y + ROW_H / 2)}
+                                                    stroke={ready ? "var(--info)" : "var(--border-color)"}
+                                                    strokeWidth={ready ? 2 : 1.5}
+                                                    strokeDasharray={ready ? undefined : "4 5"}
+                                                    strokeLinecap="round"
+                                                    opacity={ready ? 0.9 : 0.7}
+                                                />
+                                            );
+                                        })}
+                                    </svg>
 
-                                {CONSUMERS.map(({ name, desc, href }, i) => {
-                                    const p = pos[`out-${i}`] ?? { x: OUT_X, y: ROW_Y[i] };
-                                    return (
-                                        <div
-                                            key={name}
-                                            className={cn(
-                                                "absolute rounded-xl border bg-card shadow-sm transition-opacity duration-300",
-                                                ready ? "border-border opacity-100" : "border-border opacity-60",
-                                            )}
-                                            style={{ left: p.x, top: p.y, width: OUT_W, height: ROW_H }}
-                                        >
+                                    {INPUTS.map((input, i) => {
+                                        const p = pos[`in-${input.id}`] ?? { x: IN_X, y: ROW_Y[i] };
+                                        const Icon = input.icon;
+                                        const on = connected.has(input.id);
+                                        return (
                                             <div
-                                                {...dragHandleProps(`out-${i}`, `${name} consumer`)}
-                                                className="cursor-grab touch-none px-3 pt-2.5 outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
+                                                key={input.id}
+                                                className={cn(
+                                                    "absolute rounded-2xl border bg-card shadow-sm transition-colors",
+                                                    on ? "border-positive/50" : "border-border",
+                                                )}
+                                                style={{ left: p.x, top: p.y, width: IN_W, height: ROW_H }}
                                             >
-                                                <p className="truncate text-[13px] font-semibold text-foreground">
-                                                    {href ? (
-                                                        <Link href={href} className="hover:text-primary hover:underline">
-                                                            {name}
-                                                        </Link>
-                                                    ) : (
-                                                        name
+                                                <div
+                                                    {...dragHandleProps(`in-${input.id}`, `${input.name} input`)}
+                                                    className="flex h-10 cursor-grab touch-none items-center gap-2 rounded-t-2xl px-3 outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
+                                                >
+                                                    <span className="grid size-6 shrink-0 place-items-center rounded-lg bg-muted text-primary">
+                                                        <Icon size={13} aria-hidden />
+                                                    </span>
+                                                    <span className="text-[13px] font-semibold text-foreground">{input.name}</span>
+                                                    <GripVertical size={13} className="ml-auto text-muted-foreground" aria-hidden />
+                                                </div>
+                                                <div className="px-3">
+                                                    <p className="truncate text-[11px] text-muted-foreground">{input.desc}</p>
+                                                    <span className="mt-1.5 inline-flex items-center rounded-md bg-muted px-1.5 py-0.5 font-numeric text-[10px] font-medium text-muted-foreground ring-1 ring-border">
+                                                        {input.tag}
+                                                    </span>
+                                                </div>
+                                                <div className="absolute inset-x-0 bottom-0 flex h-8 items-center justify-between px-3">
+                                                    <Link href={input.href} className="text-[11px] font-medium text-primary hover:underline">
+                                                        {input.linkLabel}
+                                                    </Link>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => toggle(input.id)}
+                                                        aria-pressed={on}
+                                                        className={cn(
+                                                            "rounded-full px-2.5 py-1 font-numeric text-[11px] font-semibold transition-colors",
+                                                            on ? "bg-positive/15 text-positive" : "bg-muted text-muted-foreground hover:text-foreground",
+                                                        )}
+                                                    >
+                                                        {on ? "● Connected" : "○ Connect"}
+                                                    </button>
+                                                </div>
+                                                <span
+                                                    aria-hidden
+                                                    className={cn(
+                                                        "absolute -right-1.5 top-1/2 size-3 -translate-y-1/2 rounded-full ring-[3px] ring-card transition-colors",
+                                                        on ? "border-2" : "bg-card ring-muted",
                                                     )}
+                                                    style={on ? { backgroundColor: input.dot, borderColor: input.dot, boxShadow: `0 0 8px ${input.dot}` } : undefined}
+                                                />
+                                            </div>
+                                        );
+                                    })}
+
+                                    <div
+                                        className="absolute rounded-2xl border border-border bg-card shadow-md"
+                                        style={{ left: ep.x, top: ep.y, width: EP_W, height: EP_H }}
+                                    >
+                                        <div
+                                            {...dragHandleProps("endpoint", "Strategy router endpoint")}
+                                            className="flex h-10 cursor-grab touch-none items-center gap-2 rounded-t-2xl px-3 outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
+                                        >
+                                            <span className="grid size-6 shrink-0 place-items-center rounded-lg bg-primary/12 text-primary">
+                                                <Sparkles size={13} aria-hidden />
+                                            </span>
+                                            <span className="text-[13px] font-semibold text-foreground">Endpoint</span>
+                                            <span className="font-numeric text-[11px] text-muted-foreground">strategy-router</span>
+                                            <GripVertical size={13} className="ml-auto text-muted-foreground" aria-hidden />
+                                        </div>
+                                        <ul className="mt-1 space-y-1 px-3">
+                                            {INPUTS.map(({ id, name, dot }) => {
+                                                const on = connected.has(id);
+                                                return (
+                                                    <li key={id} className="flex items-center gap-2 text-xs">
+                                                        <span
+                                                            className="h-1.5 w-1.5 shrink-0 rounded-full"
+                                                            style={{ backgroundColor: on ? dot : "var(--border-color)" }}
+                                                            aria-hidden
+                                                        />
+                                                        <span className={on ? "text-foreground" : "text-muted-foreground"}>{name}</span>
+                                                        {on && <Check size={12} className="ml-auto text-positive" aria-hidden />}
+                                                    </li>
+                                                );
+                                            })}
+                                        </ul>
+                                        <div className="px-3">
+                                            <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow={done} aria-valuemin={0} aria-valuemax={INPUTS.length} aria-label="Setup progress">
+                                                <div
+                                                    className="h-full rounded-full bg-primary transition-[width] duration-300 motion-reduce:transition-none"
+                                                    style={{ width: `${(done / INPUTS.length) * 100}%` }}
+                                                />
+                                            </div>
+                                            <div className="mt-2 flex items-center justify-between">
+                                                <p className="text-[11px] text-muted-foreground" aria-live="polite">
+                                                    {ready ? "Ready to deploy" : `Awaiting inputs · ${done}/${INPUTS.length}`}
                                                 </p>
-                                                <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{desc}</p>
-                                                <p className={cn("mt-1.5 font-numeric text-[11px] font-semibold", ready ? "text-info" : "text-muted-foreground")}>
-                                                    {ready ? "● Receiving traffic" : "○ Waiting"}
-                                                </p>
+                                                <Link
+                                                    href="/account/trading-access"
+                                                    className="rounded-full bg-card px-2.5 py-1 text-[11px] font-semibold text-foreground ring-1 ring-border transition-colors hover:border-primary/50 hover:text-primary"
+                                                >
+                                                    Deploy
+                                                </Link>
                                             </div>
                                         </div>
-                                    );
-                                })}
+                                        <span
+                                            aria-hidden
+                                            className={cn(
+                                                "absolute -right-1.5 top-1/2 size-3 -translate-y-1/2 rounded-full ring-[3px] ring-card",
+                                                ready ? "bg-info" : "bg-primary",
+                                            )}
+                                        />
+                                        <span
+                                            aria-hidden
+                                            className={cn(
+                                                "absolute -left-1.5 top-1/2 size-3 -translate-y-1/2 rounded-full ring-[3px] ring-card",
+                                                ready ? "bg-info" : "bg-card ring-muted",
+                                            )}
+                                        />
+                                    </div>
+
+                                    {CONSUMERS.map(({ name, desc, href }, i) => {
+                                        const p = pos[`out-${i}`] ?? { x: OUT_X, y: ROW_Y[i] };
+                                        return (
+                                            <div
+                                                key={name}
+                                                className={cn(
+                                                    "absolute rounded-2xl border bg-card shadow-sm transition-opacity duration-300",
+                                                    ready ? "border-border opacity-100" : "border-border opacity-60",
+                                                )}
+                                                style={{ left: p.x, top: p.y, width: OUT_W, height: ROW_H }}
+                                            >
+                                                <div
+                                                    {...dragHandleProps(`out-${i}`, `${name} consumer`)}
+                                                    className="cursor-grab touch-none px-3 pt-2.5 outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
+                                                >
+                                                    <p className="truncate text-[13px] font-semibold text-foreground">
+                                                        {href ? (
+                                                            <Link href={href} className="hover:text-primary hover:underline">
+                                                                {name}
+                                                            </Link>
+                                                        ) : (
+                                                            name
+                                                        )}
+                                                    </p>
+                                                    <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{desc}</p>
+                                                    <p className={cn("mt-1.5 font-numeric text-[11px] font-semibold", ready ? "text-info" : "text-muted-foreground")}>
+                                                        {ready ? "● Receiving traffic" : "○ Waiting for endpoint"}
+                                                    </p>
+                                                </div>
+                                                <span
+                                                    aria-hidden
+                                                    className={cn(
+                                                        "absolute -left-1.5 top-1/2 size-3 -translate-y-1/2 rounded-full ring-[3px] ring-card",
+                                                        ready ? "bg-info" : "bg-card ring-muted",
+                                                    )}
+                                                />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
-                        <p className="mt-2 text-center text-[11px] text-muted-foreground">
-                            Drag any card — arrows move the focused card. Sample walkthrough; toggling updates this canvas only.
-                        </p>
+                        <div className="flex flex-wrap items-center justify-between gap-2 px-4 pb-2.5 pt-3 text-[11px] text-muted-foreground">
+                            <span>Drag from a dot to move a card — arrows move the focused card.</span>
+                            <span className="flex items-center gap-3">
+                                <span className="flex items-center gap-1.5">
+                                    <span className="h-1.5 w-3 rounded-full bg-primary" aria-hidden />
+                                    connected
+                                </span>
+                                <span className="flex items-center gap-1.5">
+                                    <span className="h-px w-3 border-t border-dashed border-muted-foreground" aria-hidden />
+                                    awaiting
+                                </span>
+                                <span className="font-numeric">{done}/{INPUTS.length}</span>
+                            </span>
+                        </div>
                     </div>
                 </Reveal>
 

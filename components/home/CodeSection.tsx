@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Check, Copy } from "lucide-react";
+import { useReducedMotion } from "motion/react";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { HomeData } from "@/lib/home-data";
 import { Button } from "@/components/ui/button";
@@ -64,10 +65,10 @@ const SIGNAL_SAMPLE = `{
 }`;
 
 const TABS = [
-    { id: "pine", label: "Pine import", desc: "Pine Script v6, read directly", file: "vault-breakout.pine · sample", code: PINE_SAMPLE },
-    { id: "mql5", label: "MQL5 export", desc: "Terminal-ready experts", file: "VaultBreakout.mq5 · sample", code: MQL5_SAMPLE },
-    { id: "setfile", label: "Set file", desc: "Parameters that travel", file: "xauusd-m15.set.json · sample", code: SETFILE_SAMPLE },
-    { id: "signal", label: "Signal payload", desc: "Normalized lifecycle JSON", file: "signal.json · sample", code: SIGNAL_SAMPLE },
+    { id: "pine", label: "Pine import", desc: "Pine Script v6, read directly", file: "vault-breakout.pine", code: PINE_SAMPLE },
+    { id: "mql5", label: "MQL5 export", desc: "Terminal-ready experts", file: "VaultBreakout.mq5", code: MQL5_SAMPLE },
+    { id: "setfile", label: "Set file", desc: "Parameters that travel", file: "xauusd-m15.set.json", code: SETFILE_SAMPLE },
+    { id: "signal", label: "Signal payload", desc: "Normalized lifecycle JSON", file: "signal.json", code: SIGNAL_SAMPLE },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -127,6 +128,7 @@ export default function CodeSection({ data }: { data: HomeData }) {
     const { backtestAnalytics } = data;
     const [tab, setTab] = useState<TabId>("pine");
     const [copied, setCopied] = useState(false);
+    const reduceMotion = useReducedMotion();
     const active = TABS.find((t) => t.id === tab) ?? TABS[0];
 
     const copy = async () => {
@@ -172,137 +174,138 @@ export default function CodeSection({ data }: { data: HomeData }) {
                 </Reveal>
 
                 <Reveal delay={100}>
-                    <div role="tablist" aria-label="Code samples" className="-mx-6 mt-12 flex snap-x gap-6 overflow-x-auto px-6 md:mx-0 md:grid md:grid-cols-4 md:overflow-visible md:px-0">
-                        {TABS.map((t) => {
-                            const selected = tab === t.id;
-                            return (
+                    <div className="mt-10 overflow-hidden rounded-xl border border-border bg-card shadow-md">
+                        {/* Sample tabs, inline at the top of the card */}
+                        <div className="flex flex-wrap items-center gap-2 border-b border-border px-2 py-1.5">
+                            <div
+                                role="tablist"
+                                aria-label="Code samples"
+                                className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto"
+                            >
+                                {TABS.map((t) => {
+                                    const selected = tab === t.id;
+                                    return (
+                                        <button
+                                            key={t.id}
+                                            type="button"
+                                            role="tab"
+                                            aria-selected={selected}
+                                            title={t.desc}
+                                            onClick={() => setTab(t.id)}
+                                            className={cn(
+                                                "shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+                                                selected
+                                                    ? "bg-muted text-foreground shadow-xs"
+                                                    : "text-muted-foreground hover:text-foreground",
+                                            )}
+                                        >
+                                            {t.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <span className="flex shrink-0 items-center gap-1.5">
                                 <button
-                                    key={t.id}
                                     type="button"
-                                    role="tab"
-                                    aria-selected={selected}
-                                    onClick={() => setTab(t.id)}
-                                    className="group relative w-52 shrink-0 snap-start py-4 pr-4 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring md:w-auto"
+                                    onClick={copy}
+                                    aria-label={copied ? "Copied" : "Copy sample code"}
+                                    className="grid size-7 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                                 >
-                                    <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-border" />
-                                    <span
-                                        aria-hidden
-                                        className={cn(
-                                            "absolute inset-x-0 top-0 h-px origin-left bg-primary transition-transform duration-300 motion-reduce:transition-none",
-                                            selected ? "scale-x-100" : "scale-x-0",
-                                        )}
-                                    />
-                                    <span className={cn("text-sm font-medium transition-colors", selected ? "text-foreground" : "text-muted-foreground group-hover:text-foreground")}>
-                                        {t.label}
-                                    </span>
-                                    <span className="mt-1 block text-[13px] leading-5 text-muted-foreground/80">{t.desc}</span>
+                                    {copied ? <Check size={14} className="text-positive" aria-hidden /> : <Copy size={14} aria-hidden />}
                                 </button>
-                            );
-                        })}
-                    </div>
-                </Reveal>
-
-                <Reveal delay={160}>
-                    <div className="mt-6 grid gap-4 border-t border-border pt-8 lg:grid-cols-[1.15fr_1fr]">
-                        {/* Editor */}
-                        <div className="flex min-h-85 min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-md">
-                            <div className="flex h-10 shrink-0 items-center justify-between gap-2 px-3">
-                                <span className="flex items-center gap-1.5 font-numeric text-[11px] text-muted-foreground">
-                                    <span className="rounded bg-muted px-1.5 py-0.5 font-semibold">txt</span>
-                                    {active.file}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                    <button
-                                        type="button"
-                                        onClick={copy}
-                                        aria-label={copied ? "Copied" : "Copy sample code"}
-                                        className="grid size-7 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                                    >
-                                        {copied ? <Check size={14} className="text-positive" aria-hidden /> : <Copy size={14} aria-hidden />}
-                                    </button>
-                                    <Link
-                                        href="/strategy-lab"
-                                        className="rounded-md bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-                                    >
-                                        Open in lab
-                                    </Link>
-                                </span>
-                            </div>
-                            <pre className="min-h-0 flex-1 overflow-auto p-4 font-numeric text-xs leading-5" aria-label={`Sample ${active.label}`}>
-                                <code>
-                                    {active.code.split("\n").map((line, i) => (
-                                        <span key={i} className="flex">
-                                            <span aria-hidden className="w-8 shrink-0 select-none pr-3 text-right text-muted-foreground/50">
-                                                {i + 1}
-                                            </span>
-                                            <span className="whitespace-pre text-foreground/90">{tintLine(line || " ", `l${i}`)}</span>
-                                        </span>
-                                    ))}
-                                </code>
-                            </pre>
-                            <div className="flex h-8 shrink-0 items-center justify-between gap-3 px-3 font-numeric text-[11px] text-muted-foreground">
-                                <span>UTF-8 · sample</span>
-                                <span>Ln {active.code.split("\n").length}, Col 1</span>
-                            </div>
+                                <Link
+                                    href="/strategy-lab"
+                                    className="rounded-md bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                                >
+                                    Open in lab
+                                </Link>
+                            </span>
                         </div>
+                        <p className="border-b border-border px-3.5 py-2 text-[13px] leading-5 text-muted-foreground">
+                            {active.desc}
+                        </p>
 
-                        {/* Curve + stats */}
-                        <div className="flex min-h-85 flex-col rounded-xl border border-border bg-card p-4 shadow-md">
-                            <div className="flex items-center justify-between">
-                                <p className="text-sm font-semibold text-foreground">Sample equity</p>
-                                <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
-                                    40 closed trades
-                                </span>
+                        <div className="grid lg:grid-cols-[1.15fr_1fr] lg:divide-x lg:divide-border">
+                            {/* Editor */}
+                            <div className="flex min-h-85 min-w-0 flex-col">
+                                <pre className="min-h-0 flex-1 overflow-auto p-4 font-numeric text-xs leading-5" aria-label={`Sample ${active.label}`}>
+                                    <code>
+                                        {active.code.split("\n").map((line, i) => (
+                                            <span key={i} className="flex">
+                                                <span aria-hidden className="w-8 shrink-0 select-none pr-3 text-right text-muted-foreground/50">
+                                                    {i + 1}
+                                                </span>
+                                                <span className="whitespace-pre text-foreground/90">{tintLine(line || " ", `l${i}`)}</span>
+                                            </span>
+                                        ))}
+                                    </code>
+                                </pre>
+                                <div className="flex h-8 shrink-0 items-center justify-between gap-3 border-t border-border px-4 font-numeric text-[11px] text-muted-foreground">
+                                    <span className="truncate">{active.file} · UTF-8 · sample</span>
+                                    <span>Ln {active.code.split("\n").length}, Col 1</span>
+                                </div>
                             </div>
-                            <div className="mt-2 h-44" role="img" aria-label="Illustrative sample equity curve">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={EQUITY} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-                                        <XAxis dataKey="i" hide />
-                                        <YAxis
-                                            domain={["dataMin - 1", "dataMax + 1"]}
-                                            tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
-                                            axisLine={false}
-                                            tickLine={false}
-                                            width={44}
-                                            tickFormatter={(v: number) => v.toFixed(0)}
-                                        />
-                                        <Tooltip
-                                            cursor={{ stroke: "var(--border-color)", strokeDasharray: "3 3" }}
-                                            contentStyle={{
-                                                background: "var(--card)",
-                                                border: "1px solid var(--border-color)",
-                                                borderRadius: 12,
-                                                color: "var(--foreground)",
-                                                fontSize: 12,
-                                            }}
-                                            formatter={(value) => [`$${Number(value).toFixed(2)}`, "Equity"]}
-                                            labelFormatter={(label) => `Trade ${Number(label) + 1}`}
-                                        />
-                                        <Line
-                                            type="monotone"
-                                            dataKey="v"
-                                            stroke="var(--primary)"
-                                            strokeWidth={2}
-                                            dot={false}
-                                            isAnimationActive={false}
-                                        />
-                                    </LineChart>
-                                </ResponsiveContainer>
+
+                            {/* Curve + stats */}
+                            <div className="flex min-h-85 flex-col p-4">
+                                <div className="flex items-center justify-between">
+                                    <p className="text-sm font-semibold text-foreground">Sample equity</p>
+                                    <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
+                                        40 closed trades
+                                    </span>
+                                </div>
+                                <div className="mt-2 h-44" role="img" aria-label="Illustrative sample equity curve">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart data={EQUITY} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                                            <XAxis dataKey="i" hide />
+                                            <YAxis
+                                                domain={["dataMin - 1", "dataMax + 1"]}
+                                                tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+                                                axisLine={false}
+                                                tickLine={false}
+                                                width={44}
+                                                tickFormatter={(v: number) => v.toFixed(0)}
+                                            />
+                                            <Tooltip
+                                                cursor={{ stroke: "var(--border-color)", strokeDasharray: "3 3" }}
+                                                contentStyle={{
+                                                    background: "var(--card)",
+                                                    border: "1px solid var(--border-color)",
+                                                    borderRadius: 12,
+                                                    color: "var(--foreground)",
+                                                    fontSize: 12,
+                                                }}
+                                                formatter={(value) => [`$${Number(value).toFixed(2)}`, "Equity"]}
+                                                labelFormatter={(label) => `Trade ${Number(label) + 1}`}
+                                            />
+                                            <Line
+                                                type="monotone"
+                                                dataKey="v"
+                                                stroke="var(--primary)"
+                                                strokeWidth={2}
+                                                dot={false}
+                                                isAnimationActive={!reduceMotion}
+                                                animationDuration={1400}
+                                                animationEasing="ease-out"
+                                            />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </div>
+                                <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-border pt-3">
+                                    {tiles.map((t) => (
+                                        <div key={t.label} className="min-w-0">
+                                            <dt className="truncate text-[11px] text-muted-foreground">{t.label}</dt>
+                                            <dd className="mt-0.5 truncate font-numeric text-lg font-semibold tracking-tight text-foreground">
+                                                {t.value}
+                                            </dd>
+                                        </div>
+                                    ))}
+                                </dl>
+                                <p className="mt-auto pt-2 text-[11px] leading-4 text-muted-foreground">
+                                    Curve is a labeled sample; tiles are recorded aggregates.
+                                </p>
                             </div>
-                            <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-border pt-3">
-                                {tiles.map((t) => (
-                                    <div key={t.label} className="min-w-0">
-                                        <dt className="truncate text-[11px] text-muted-foreground">{t.label}</dt>
-                                        <dd className="mt-0.5 truncate font-numeric text-lg font-semibold tracking-tight text-foreground">
-                                            {t.value}
-                                        </dd>
-                                    </div>
-                                ))}
-                            </dl>
-                            <p className="mt-auto pt-2 text-[11px] leading-4 text-muted-foreground">
-                                Curve is a labeled sample; tiles are recorded aggregates.
-                            </p>
                         </div>
                     </div>
                 </Reveal>

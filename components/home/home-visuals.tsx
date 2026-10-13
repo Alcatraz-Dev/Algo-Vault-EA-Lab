@@ -1,6 +1,7 @@
 "use client";
 
 import { Bar, BarChart, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useReducedMotion } from "motion/react";
 import { ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -31,6 +32,7 @@ const ENGINE_SCORES = [
 ] as const;
 
 export function EngineBars() {
+    const reduceMotion = useReducedMotion();
     return (
         <div>
             <div className="h-32" role="img" aria-label="Illustrative sample engine scores">
@@ -53,7 +55,7 @@ export function EngineBars() {
                                 return first?.name ?? "";
                             }}
                         />
-                        <Bar dataKey="score" radius={[3, 3, 0, 0]} maxBarSize={18} isAnimationActive={false}>
+                        <Bar dataKey="score" radius={[3, 3, 0, 0]} maxBarSize={18} isAnimationActive={!reduceMotion} animationDuration={900} animationEasing="ease-out">
                             {ENGINE_SCORES.map((e) => (
                                 <Cell key={e.short} fill="var(--primary)" fillOpacity={0.45 + (e.score / 100) * 0.55} />
                             ))}
@@ -74,6 +76,7 @@ const SAMPLE_RETURNS = [2.4, -1.2, 3.1, 0.8, -0.6, 4.2, -2.1, 1.5, 2.8, -0.9, 1.
 );
 
 export function ReturnsHistogram() {
+    const reduceMotion = useReducedMotion();
     const wins = SAMPLE_RETURNS.filter((t) => t.ret >= 0).length;
     const losses = SAMPLE_RETURNS.length - wins;
     return (
@@ -90,7 +93,7 @@ export function ReturnsHistogram() {
                             labelFormatter={(label) => `Trade ${String(label).slice(1)} of ${SAMPLE_RETURNS.length}`}
                         />
                         <ReferenceLine y={0} stroke="var(--border-color)" strokeWidth={1} />
-                        <Bar dataKey="ret" radius={[2, 2, 2, 2]} maxBarSize={14} isAnimationActive={false}>
+                        <Bar dataKey="ret" radius={[2, 2, 2, 2]} maxBarSize={14} isAnimationActive={!reduceMotion} animationDuration={900} animationEasing="ease-out">
                             {SAMPLE_RETURNS.map((t) => (
                                 <Cell key={t.trade} fill={t.ret >= 0 ? "var(--positive)" : "var(--negative)"} />
                             ))}

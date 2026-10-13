@@ -62,14 +62,14 @@ export default function LoopTabs({ data }: { data: HomeData }) {
                     <div aria-hidden className="relative mt-10 overflow-hidden rounded-2xl border border-border bg-muted/40 sm:mt-14">
                         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border-color)_1px,transparent_1px),linear-gradient(to_bottom,var(--border-color)_1px,transparent_1px)] bg-[size:44px_44px] opacity-60 [mask-image:radial-gradient(ellipse_65%_85%_at_50%_100%,black_25%,transparent_100%)]" />
                         <div className="pointer-events-none absolute left-1/2 top-1/2 h-64 w-[36rem] max-w-full -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl" />
-                        <div className="relative grid place-items-center gap-4 p-6 sm:p-10 lg:grid-cols-[1fr_auto_1fr] lg:gap-8">
-                            <div className="hidden w-full max-w-64 justify-self-end rounded-xl border border-border bg-card p-4 shadow-md lg:block">
-                                <p className="truncate font-numeric text-xs text-muted-foreground">workspace · sample</p>
-                                <p className="mt-1 font-numeric text-2xl font-semibold tracking-tight text-foreground">
-                                    {backtestAnalytics.total}
-                                    <span className="ml-1.5 text-xs font-normal text-muted-foreground">recorded runs</span>
-                                </p>
-                                <p className="mt-1 text-[11px] text-muted-foreground">Every run stored with metrics</p>
+                        <div className="relative grid place-items-center gap-4 p-5 sm:p-8 lg:grid-cols-[1fr_auto_1fr] lg:gap-8">
+                            <div className="hidden w-full max-w-64 justify-self-end lg:block">
+                                <MiniStat
+                                    label="workspace"
+                                    value={String(backtestAnalytics.total)}
+                                    unit="recorded runs"
+                                    note="Every run stored with metrics"
+                                />
                             </div>
                             <div className="w-full max-w-xs rounded-xl border border-border bg-card p-4 shadow-lg">
                                 <div className="flex items-center justify-between gap-3">
@@ -104,13 +104,29 @@ export default function LoopTabs({ data }: { data: HomeData }) {
                                     From scan to fill
                                 </p>
                             </div>
-                            <div className="hidden w-full max-w-64 justify-self-start rounded-xl border border-border bg-card p-4 shadow-md lg:block">
-                                <p className="truncate font-numeric text-xs text-muted-foreground">validator · sample</p>
-                                <p className="mt-1 font-numeric text-2xl font-semibold tracking-tight text-positive">
-                                    {backtestAnalytics.analyzableCount > 0 ? `${backtestAnalytics.positiveCount}/${backtestAnalytics.analyzableCount}` : "—"}
-                                    <span className="ml-1.5 text-xs font-normal text-muted-foreground">positive runs</span>
-                                </p>
-                                <p className="mt-1 text-[11px] text-muted-foreground">Rejected intents carry a code</p>
+                            <div className="hidden w-full max-w-64 justify-self-start lg:block">
+                                <MiniStat
+                                    label="validator"
+                                    value={backtestAnalytics.analyzableCount > 0 ? `${backtestAnalytics.positiveCount}/${backtestAnalytics.analyzableCount}` : "—"}
+                                    unit="positive runs"
+                                    note="Rejected intents carry a code"
+                                    tone="text-positive"
+                                />
+                            </div>
+                            <div className="grid w-full max-w-md grid-cols-2 gap-3 lg:hidden">
+                                <MiniStat
+                                    label="workspace"
+                                    value={String(backtestAnalytics.total)}
+                                    unit="runs"
+                                    note="Stored with metrics"
+                                />
+                                <MiniStat
+                                    label="validator"
+                                    value={backtestAnalytics.analyzableCount > 0 ? `${backtestAnalytics.positiveCount}/${backtestAnalytics.analyzableCount}` : "—"}
+                                    unit="positive"
+                                    note="Rejections carry a code"
+                                    tone="text-positive"
+                                />
                             </div>
                         </div>
                     </div>
@@ -118,7 +134,7 @@ export default function LoopTabs({ data }: { data: HomeData }) {
 
                 <Reveal delay={140}>
                     <Tabs value={tab} onValueChange={setTab} className="mt-10 items-stretch">
-                        <TabsList className="grid h-auto grid-cols-2 gap-x-6 gap-y-1 rounded-none border-0 bg-transparent p-0 md:grid-cols-4">
+                        <TabsList className="flex h-auto w-full gap-6 overflow-x-auto rounded-none border-0 border-b border-border bg-transparent p-0 [scrollbar-width:none] md:grid md:grid-cols-4 md:overflow-visible">
                             {[
                                 { value: "discover", label: "Discover", copy: "Scan the market", icon: ScanSearch },
                                 { value: "validate", label: "Validate", copy: "Prove it first", icon: History },
@@ -130,23 +146,22 @@ export default function LoopTabs({ data }: { data: HomeData }) {
                                     <TabsTrigger
                                         key={value}
                                         value={value}
-                                        className="rounded-none border-0 bg-transparent px-0 py-3 data-active:bg-transparent data-active:shadow-none dark:data-active:bg-transparent"
+                                        className="relative w-44 shrink-0 justify-start rounded-none border-0 bg-transparent px-0 pb-3 pt-1 data-active:bg-transparent data-active:shadow-none dark:data-active:bg-transparent md:w-auto"
                                     >
-                                        <span className="relative flex w-full flex-col items-start gap-0.5 text-left">
-                                            <span aria-hidden className="absolute inset-x-0 -top-3 h-px bg-border" />
-                                            <span
-                                                aria-hidden
-                                                className={cn(
-                                                    "absolute inset-x-0 -top-3 h-px origin-left bg-primary transition-transform duration-300 motion-reduce:transition-none",
-                                                    active ? "scale-x-100" : "scale-x-0",
-                                                )}
-                                            />
+                                        <span className="flex w-full flex-col items-start gap-0.5 text-left">
                                             <span className={cn("flex items-center gap-1.5 text-sm font-medium transition-colors", active ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
                                                 <Icon size={14} aria-hidden />
                                                 {label}
                                             </span>
                                             <span className="block text-xs text-muted-foreground/70">{copy}</span>
                                         </span>
+                                        <span
+                                            aria-hidden
+                                            className={cn(
+                                                "absolute inset-x-0 bottom-0 h-px origin-left bg-primary transition-transform duration-300 motion-reduce:transition-none",
+                                                active ? "scale-x-100" : "scale-x-0",
+                                            )}
+                                        />
                                     </TabsTrigger>
                                 );
                             })}
@@ -259,7 +274,7 @@ function TabPanel({
     return (
         <Card className="mx-auto mt-6 max-w-5xl gap-0 overflow-hidden py-0 shadow-md">
             <div className="grid md:grid-cols-[0.9fr_1.1fr]">
-                <div className="p-6 md:p-8">
+                <div className="p-5 sm:p-6 md:p-8">
                     <h3 className="text-xl font-semibold tracking-tight text-foreground md:text-2xl">{title}</h3>
                     <p className="mt-3 text-sm leading-6 text-muted-foreground">{copy}</p>
                     <ul className="mt-5 space-y-2.5">
@@ -277,9 +292,34 @@ function TabPanel({
                     </Button>
                 </div>
                 <CardSpotlight radius={420} className="rounded-none border-0 border-t md:border-l md:border-t-0">
-                    <div className="relative z-10 bg-muted/40 p-6 md:p-8">{visual}</div>
+                    <div className="relative z-10 bg-muted/40 p-5 sm:p-6 md:p-8">{visual}</div>
                 </CardSpotlight>
             </div>
         </Card>
+    );
+}
+
+function MiniStat({
+    label,
+    value,
+    unit,
+    note,
+    tone,
+}: {
+    label: string;
+    value: string;
+    unit: string;
+    note: string;
+    tone?: string;
+}) {
+    return (
+        <div className="w-full rounded-xl border border-border bg-card p-4 shadow-md">
+            <p className="truncate font-numeric text-xs text-muted-foreground">{label} · sample</p>
+            <p className={cn("mt-1 font-numeric text-2xl font-semibold tracking-tight", tone ?? "text-foreground")}>
+                {value}
+                <span className="ml-1.5 text-xs font-normal text-muted-foreground">{unit}</span>
+            </p>
+            <p className="mt-1 text-[11px] leading-4 text-muted-foreground">{note}</p>
+        </div>
     );
 }
