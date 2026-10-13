@@ -334,8 +334,16 @@ export default function CodeSection({ data }: { data: HomeData }) {
                                                     <AreaChart data={cardData.chartData}><defs><linearGradient id="fill-curve" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={cardData.color} stopOpacity={0.35}/><stop offset="95%" stopColor={cardData.color} stopOpacity={0}/></linearGradient></defs><Area type="monotone" dataKey="v" stroke={cardData.color} strokeWidth={2} fill="url(#fill-curve)" dot={false}/></AreaChart>
                                                 </ResponsiveContainer>
                                             </div>
+                                        ) : tab === "mql5" ? (
+                                            <div className="space-y-3"><StepSlider aria-label="Batch progress" value={72} steps={[0,25,50,72,100]} onValueChange={() => {}} formatLabel={(v:number) => v + "%"} /><StepSlider aria-label="Queue depth" value={28} steps={[0,10,25,28,50]} onValueChange={() => {}} formatLabel={(v:number) => v + "%"} /></div>
+                                        ) : tab === "setfile" ? (
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2 rounded-lg bg-white/[0.04] px-3 py-2"><Check size={14} className="text-emerald-400 shrink-0" /><span className="text-xs"><span className="font-semibold">Symbols loaded</span> <span className="text-muted-foreground">2 active</span></span></div>
+                                                <div className="flex items-center gap-2 rounded-lg bg-white/[0.04] px-3 py-2"><Check size={14} className="text-emerald-400 shrink-0" /><span className="text-xs"><span className="font-semibold">Parameters set</span> <span className="text-muted-foreground">21 verified</span></span></div>
+                                                <div className="flex items-center gap-2 rounded-lg bg-white/[0.04] px-3 py-2"><Check size={14} className="text-amber-400 shrink-0" /><span className="text-xs"><span className="font-semibold">Risk %</span> <span className="text-muted-foreground">1.0 active</span></span></div>
+                                            </div>
                                         ) : (
-                                            <div className="relative space-y-3 rounded-xl bg-[#141414] p-3">{tab === "mql5" ? (<><StepSlider aria-label="Batch progress" value={72} steps={[0,25,50,72,100]} onValueChange={() => {}} formatLabel={(v:number) => v + "%"} /><StepSlider aria-label="Queue depth" value={28} steps={[0,10,25,28,50]} onValueChange={() => {}} formatLabel={(v:number) => v + "%"} /></>) : tab === "setfile" ? (<StepSlider aria-label="Config readiness" value={21} steps={[0,10,21,50,100]} onValueChange={() => {}} formatLabel={(v:number) => v + "%"} />) : (<StepSlider aria-label="Signal score" value={74} steps={[0,25,50,74,100]} onValueChange={() => {}} formatLabel={(v:number) => v + "%"} />)}</div>
+                                            <pre className="rounded-lg bg-black/30 p-3 text-[11px] leading-5 font-mono text-foreground/90 overflow-auto">{JSON.stringify({id:"sig_sample_01",symbol:"XAUUSD",direction:"long",state:"PENDING_ENTRY",engines:{regime:"trend",score:74},risk:{decision:"approve",code:"OK"}},null,2)}</pre>
                                         )}
                                     </div>
                                 </div>
