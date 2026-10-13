@@ -83,12 +83,19 @@ export default function AceternityHero({ data, siteName }: { data: HomeData; sit
                         />
                     </Link>
 
-                    <h1 className="mt-7 w-full text-4xl font-semibold leading-[1.05] tracking-[-0.04em] text-balance sm:text-6xl xl:text-[4.25rem]">
+                    <h1 className="mt-7 w-full text-[2.75rem] font-semibold leading-[1.02] tracking-[-0.045em] text-balance sm:text-7xl xl:text-[5rem]">
                         <TextGenerateEffect
-                            words="Trade with evidence, not opinions."
-                            duration={0.6}
+                            words="Trade with evidence,"
+                            duration={0.45}
                             className="font-semibold"
                         />
+                        <span className="text-primary">
+                            <TextGenerateEffect
+                                words="not opinions."
+                                duration={0.45}
+                                className="font-semibold"
+                            />
+                        </span>
                     </h1>
 
                     {/* div, not p: FlipWords renders a motion.div (invalid inside <p>). */}
