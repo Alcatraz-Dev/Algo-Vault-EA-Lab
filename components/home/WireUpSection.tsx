@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, Database, FlaskConical, GripVertical, Plug, ShieldCheck, Sparkles } from "lucide-react";
+import { Activity, ArrowRight, BarChart3, Check, Gauge, GripVertical, ShieldCheck, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import BrandLogo, { type BrandLogoName } from "./BrandLogos";
 import Reveal from "./Reveal";
 
 /**
@@ -17,6 +18,9 @@ import Reveal from "./Reveal";
  * walkthrough — nothing configures or executes anything real.
  */
 
+/** One accent for every live edge: connected flow is active, so it wears Ember. */
+const FLOW = "var(--primary)";
+
 type Input = {
     id: string;
     name: string;
@@ -24,25 +28,37 @@ type Input = {
     tag: string;
     href: string;
     linkLabel: string;
-    icon: typeof Database;
-    dot: string;
+    /** Real integration mark (TradingView, Pine Script, MetaTrader). */
+    logo?: BrandLogoName;
+    /** Product-side nodes use a glyph instead of a third-party mark. */
+    icon?: LucideIcon;
 };
 
 const INPUTS: Input[] = [
-    { id: "data", name: "Market data", desc: "TradingView quotes", tag: "feed", href: "/account/tradingview", linkLabel: "Connect feed", icon: Database, dot: "#fbbf24" },
-    { id: "strategy", name: "Strategy", desc: "Lab-built system", tag: "logic", href: "/strategy-lab", linkLabel: "Build one", icon: FlaskConical, dot: "#fb923c" },
-    { id: "risk", name: "Risk limits", desc: "Validator armed", tag: "guard", href: "/risk", linkLabel: "Set limits", icon: ShieldCheck, dot: "#34d399" },
-    { id: "mt5", name: "MT5 terminal", desc: "Custom EA bridge", tag: "exec", href: "/account/trading-access", linkLabel: "Connect MT5", icon: Plug, dot: "#60a5fa" },
+    { id: "data", name: "Market data", desc: "TradingView quotes", tag: "feed", href: "/account/tradingview", linkLabel: "Connect feed", logo: "tradingview" },
+    { id: "strategy", name: "Strategy", desc: "Pine Script v6 logic", tag: "logic", href: "/strategy-lab", linkLabel: "Build one", logo: "pine" },
+    { id: "risk", name: "Risk limits", desc: "Validator armed guard", tag: "guard", href: "/risk", linkLabel: "Set limits", icon: ShieldCheck },
+    { id: "mt5", name: "MT5 terminal", desc: "Custom MQL5 EA bridge", tag: "exec", href: "/account/trading-access", linkLabel: "Connect MT5", logo: "mt5" },
 ];
 
-type Consumer = { name: string; desc: string; href?: string };
+type Consumer = {
+    name: string;
+    desc: string;
+    tag: string;
+    href?: string;
+    logo?: BrandLogoName;
+    icon?: LucideIcon;
+};
 
 const CONSUMERS: Consumer[] = [
-    { name: "Signal preview", desc: "Normalized lifecycle states", href: "/signals" },
-    { name: "Backtest run", desc: "Stored with full metrics", href: "/backtests" },
-    { name: "Live monitor", desc: "Fills, guards, heartbeats", href: "/live" },
-    { name: "Telegram alert", desc: "Mirrored to your channels" },
+    { name: "Signal preview", desc: "Normalized lifecycle states", tag: "signal", href: "/signals", icon: Activity },
+    { name: "Backtest run", desc: "Stored with full metrics", tag: "metrics", href: "/backtests", icon: BarChart3 },
+    { name: "Live monitor", desc: "Fills, guards, heartbeats", tag: "telemetry", href: "/live", icon: Gauge },
+    { name: "Telegram alert", desc: "Mirrored to your channels", tag: "alert", logo: "telegram" },
 ];
+
+/** Brand marks the graph can route into — the "all your tools in one place" row. */
+const PLUGINS: BrandLogoName[] = ["tradingview", "pine", "mql5", "mt5", "telegram"];
 
 /* Fixed-stage geometry (1200x560). */
 const STAGE_W = 1200;
@@ -185,8 +201,9 @@ export default function WireUpSection() {
                             Wire up a strategy in a minute
                         </h2>
                         <p className="mt-4 text-sm leading-6 text-pretty text-muted-foreground sm:text-[0.9375rem]">
-                            Connect a feed, a strategy, risk limits, and a terminal. Drag from any
-                            card&apos;s dot — toggling updates this panel only; nothing executes.
+                            Connect TradingView quotes, a Pine Script strategy, risk limits, and your
+                            MetaTrader terminal in one graph. Drag from any card&apos;s dot — toggling
+                            updates this panel only; nothing executes.
                         </p>
                     </div>
                 </Reveal>
@@ -218,28 +235,19 @@ export default function WireUpSection() {
                         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
                             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Inputs</p>
                             <ul className="mt-3 space-y-2">
-                                {INPUTS.map(({ id, name, desc, tag, href, linkLabel, icon: Icon, dot }) => {
+                                {INPUTS.map(({ id, name, desc, tag, href, linkLabel, logo, icon }) => {
                                     const on = connected.has(id);
                                     return (
                                         <li
                                             key={id}
                                             className={cn(
-                                                "flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors",
-                                                on ? "border-positive/40 bg-positive/5" : "border-border bg-background",
+                                                "flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors",
+                                                on ? "border-primary/40 bg-primary/5" : "border-border bg-background",
                                             )}
                                         >
-                                            <span
-                                                className={cn(
-                                                    "flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full border",
-                                                    on ? "border-positive bg-positive text-background" : "border-border text-transparent",
-                                                )}
-                                                aria-hidden
-                                            >
-                                                <Check size={11} strokeWidth={3.5} />
-                                            </span>
+                                            <NodeGlyph logo={logo} icon={icon} size={36} />
                                             <span className="min-w-0 flex-1">
                                                 <span className="flex items-center gap-1.5 text-[13px] font-semibold text-foreground">
-                                                    <Icon size={13} className="shrink-0 text-primary" aria-hidden />
                                                     {name}
                                                     <span className="rounded bg-muted px-1.5 py-0.5 font-numeric text-[10px] font-medium text-muted-foreground">
                                                         {tag}
@@ -252,21 +260,18 @@ export default function WireUpSection() {
                                                     </Link>
                                                 </span>
                                             </span>
-                                            <span
-                                                aria-hidden
-                                                className="h-2 w-2 shrink-0 rounded-full"
-                                                style={{ backgroundColor: on ? dot : "var(--border-color)" }}
-                                            />
-                                            <Button
+                                            <button
                                                 type="button"
-                                                variant={on ? "secondary" : "outline"}
-                                                size="sm"
                                                 onClick={() => toggle(id)}
                                                 aria-pressed={on}
-                                                className="h-7 shrink-0 px-3 text-xs"
+                                                className={cn(
+                                                    "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 font-numeric text-[11px] font-semibold transition-colors",
+                                                    on ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground hover:text-foreground",
+                                                )}
                                             >
-                                                {on ? "On" : "Connect"}
-                                            </Button>
+                                                {on && <Check size={11} strokeWidth={3.5} aria-hidden />}
+                                                {on ? "Connected" : "Connect"}
+                                            </button>
                                         </li>
                                     );
                                 })}
@@ -297,35 +302,48 @@ export default function WireUpSection() {
                                     <svg viewBox={`0 0 ${STAGE_W} ${STAGE_H}`} className="pointer-events-none absolute inset-0 size-full" fill="none" aria-hidden="true">
                                         <defs>
                                             <filter id="wire-glow" x="-20%" y="-20%" width="140%" height="140%">
-                                                <feGaussianBlur stdDeviation="4" />
+                                                <feGaussianBlur stdDeviation="3.5" />
                                             </filter>
+                                            <linearGradient id="wire-fade" x1="0" y1="0" x2="1" y2="0">
+                                                <stop offset="0" stopColor={FLOW} stopOpacity="0.15" />
+                                                <stop offset="0.5" stopColor={FLOW} stopOpacity="1" />
+                                                <stop offset="1" stopColor={FLOW} stopOpacity="0.15" />
+                                            </linearGradient>
                                         </defs>
                                         {INPUTS.map((input, i) => {
                                             const p = pos[`in-${input.id}`] ?? { x: IN_X, y: ROW_Y[i] };
                                             const on = connected.has(input.id);
+                                            const d = edge(p.x + IN_W, p.y + ROW_H / 2, ep.x, epMidY);
                                             return (
                                                 <g key={`in-${input.id}`}>
+                                                    {/* Awaiting track: dashed, fades out once live. */}
                                                     <path
-                                                        d={edge(p.x + IN_W, p.y + ROW_H / 2, ep.x, epMidY)}
+                                                        d={d}
                                                         stroke="var(--border-color)"
-                                                        strokeWidth={on ? 0 : 1.5}
+                                                        strokeWidth={1.5}
+                                                        strokeDasharray="4 5"
+                                                        strokeLinecap="round"
+                                                        opacity={on ? 0 : 0.9}
                                                     />
                                                     {on && (
                                                         <>
+                                                            {/* Bloom under the line. */}
                                                             <path
-                                                                d={edge(p.x + IN_W, p.y + ROW_H / 2, ep.x, epMidY)}
-                                                                stroke={input.dot}
-                                                                strokeWidth={2}
+                                                                d={d}
+                                                                stroke={FLOW}
+                                                                strokeWidth={4}
                                                                 strokeLinecap="round"
+                                                                opacity={0.35}
                                                                 filter="url(#wire-glow)"
-                                                                className="wire-flow"
                                                             />
                                                             <path
-                                                                d={edge(p.x + IN_W, p.y + ROW_H / 2, ep.x, epMidY)}
-                                                                stroke={input.dot}
+                                                                d={d}
+                                                                stroke="url(#wire-fade)"
                                                                 strokeWidth={1.5}
                                                                 strokeLinecap="round"
                                                             />
+                                                            {/* Travelling highlight. */}
+                                                            <path d={d} stroke={FLOW} strokeWidth={1.75} strokeLinecap="round" className="wire-comet" />
                                                         </>
                                                     )}
                                                 </g>
@@ -333,50 +351,52 @@ export default function WireUpSection() {
                                         })}
                                         {CONSUMERS.map((c, i) => {
                                             const p = pos[`out-${i}`] ?? { x: OUT_X, y: ROW_Y[i] };
+                                            const d = edge(ep.x + EP_W, epMidY, p.x, p.y + ROW_H / 2);
                                             return (
-                                                <path
-                                                    key={`out-${i}`}
-                                                    d={edge(ep.x + EP_W, epMidY, p.x, p.y + ROW_H / 2)}
-                                                    stroke={ready ? "var(--info)" : "var(--border-color)"}
-                                                    strokeWidth={ready ? 2 : 1.5}
-                                                    strokeDasharray={ready ? undefined : "4 5"}
-                                                    strokeLinecap="round"
-                                                    opacity={ready ? 0.9 : 0.7}
-                                                />
+                                                <g key={`out-${i}`}>
+                                                    <path
+                                                        d={d}
+                                                        stroke={ready ? "var(--info)" : "var(--border-color)"}
+                                                        strokeWidth={1.5}
+                                                        strokeDasharray={ready ? undefined : "4 5"}
+                                                        strokeLinecap="round"
+                                                        opacity={ready ? 0.6 : 0.7}
+                                                    />
+                                                    {ready && <path d={d} stroke="var(--info)" strokeWidth={1.75} strokeLinecap="round" className="wire-comet" />}
+                                                </g>
                                             );
                                         })}
                                     </svg>
 
                                     {INPUTS.map((input, i) => {
                                         const p = pos[`in-${input.id}`] ?? { x: IN_X, y: ROW_Y[i] };
-                                        const Icon = input.icon;
                                         const on = connected.has(input.id);
                                         return (
                                             <div
                                                 key={input.id}
                                                 className={cn(
-                                                    "absolute rounded-2xl border bg-card shadow-sm transition-colors",
-                                                    on ? "border-positive/50" : "border-border",
+                                                    "absolute rounded-xl border bg-card shadow-sm transition-colors",
+                                                    on ? "border-primary/50" : "border-border",
                                                 )}
                                                 style={{ left: p.x, top: p.y, width: IN_W, height: ROW_H }}
                                             >
                                                 <div
                                                     {...dragHandleProps(`in-${input.id}`, `${input.name} input`)}
-                                                    className="flex h-10 cursor-grab touch-none items-center gap-2 rounded-t-2xl px-3 outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
+                                                    className="flex h-11 cursor-grab touch-none items-center gap-2.5 rounded-t-xl px-3 outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
                                                 >
-                                                    <span className="grid size-6 shrink-0 place-items-center rounded-lg bg-muted text-primary">
-                                                        <Icon size={13} aria-hidden />
+                                                    <NodeGlyph logo={input.logo} icon={input.icon} size={30} />
+                                                    <span className="min-w-0 flex-1">
+                                                        <span className="block truncate text-[13px] font-semibold text-foreground">{input.name}</span>
+                                                        <span className="block truncate text-[10.5px] text-muted-foreground">{input.desc}</span>
                                                     </span>
-                                                    <span className="text-[13px] font-semibold text-foreground">{input.name}</span>
-                                                    <GripVertical size={13} className="ml-auto text-muted-foreground" aria-hidden />
+                                                    <GripVertical size={13} className="shrink-0 text-muted-foreground" aria-hidden />
                                                 </div>
                                                 <div className="px-3">
-                                                    <p className="truncate text-[11px] text-muted-foreground">{input.desc}</p>
-                                                    <span className="mt-1.5 inline-flex items-center rounded-md bg-muted px-1.5 py-0.5 font-numeric text-[10px] font-medium text-muted-foreground ring-1 ring-border">
+                                                    <span className="inline-flex items-center rounded-md bg-muted px-1.5 py-0.5 font-numeric text-[10px] font-medium text-muted-foreground ring-1 ring-border">
                                                         {input.tag}
                                                     </span>
                                                 </div>
-                                                <div className="absolute inset-x-0 bottom-0 flex h-8 items-center justify-between px-3">
+                                                <div className="absolute inset-x-0 bottom-0 flex h-8 items-center justify-between border-t border-border/70 px-3">
                                                     <Link href={input.href} className="text-[11px] font-medium text-primary hover:underline">
                                                         {input.linkLabel}
                                                     </Link>
@@ -385,52 +405,59 @@ export default function WireUpSection() {
                                                         onClick={() => toggle(input.id)}
                                                         aria-pressed={on}
                                                         className={cn(
-                                                            "rounded-full px-2.5 py-1 font-numeric text-[11px] font-semibold transition-colors",
-                                                            on ? "bg-positive/15 text-positive" : "bg-muted text-muted-foreground hover:text-foreground",
+                                                            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-numeric text-[11px] font-semibold transition-colors",
+                                                            on ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground hover:text-foreground",
                                                         )}
                                                     >
-                                                        {on ? "● Connected" : "○ Connect"}
+                                                        <span
+                                                            aria-hidden
+                                                            className={cn("size-1.5 rounded-full", on ? "bg-primary" : "bg-muted-foreground/50")}
+                                                        />
+                                                        {on ? "Connected" : "Connect"}
                                                     </button>
                                                 </div>
                                                 <span
                                                     aria-hidden
                                                     className={cn(
                                                         "absolute -right-1.5 top-1/2 size-3 -translate-y-1/2 rounded-full ring-[3px] ring-card transition-colors",
-                                                        on ? "border-2" : "bg-card ring-muted",
+                                                        on ? "border-2" : "border border-border bg-card",
                                                     )}
-                                                    style={on ? { backgroundColor: input.dot, borderColor: input.dot, boxShadow: `0 0 8px ${input.dot}` } : undefined}
+                                                    style={on ? { backgroundColor: FLOW, borderColor: FLOW, boxShadow: `0 0 10px ${FLOW}` } : undefined}
                                                 />
                                             </div>
                                         );
                                     })}
 
                                     <div
-                                        className="absolute rounded-2xl border border-border bg-card shadow-md"
+                                        className="absolute rounded-xl border border-border bg-card shadow-md"
                                         style={{ left: ep.x, top: ep.y, width: EP_W, height: EP_H }}
                                     >
                                         <div
                                             {...dragHandleProps("endpoint", "Strategy router endpoint")}
-                                            className="flex h-10 cursor-grab touch-none items-center gap-2 rounded-t-2xl px-3 outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
+                                            className="flex h-11 cursor-grab touch-none items-center gap-2.5 rounded-t-xl px-3 outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
                                         >
-                                            <span className="grid size-6 shrink-0 place-items-center rounded-lg bg-primary/12 text-primary">
-                                                <Sparkles size={13} aria-hidden />
+                                            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-muted ring-1 ring-border" aria-hidden>
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img src="/logos/logo.png" alt="" width={18} height={18} loading="lazy" decoding="async" className="size-4.5 rounded object-contain" />
                                             </span>
-                                            <span className="text-[13px] font-semibold text-foreground">Endpoint</span>
-                                            <span className="font-numeric text-[11px] text-muted-foreground">strategy-router</span>
-                                            <GripVertical size={13} className="ml-auto text-muted-foreground" aria-hidden />
+                                            <span className="min-w-0 flex-1">
+                                                <span className="block text-[13px] font-semibold text-foreground">Endpoint</span>
+                                                <span className="block truncate font-numeric text-[10.5px] text-muted-foreground">strategy-router</span>
+                                            </span>
+                                            <GripVertical size={13} className="shrink-0 text-muted-foreground" aria-hidden />
                                         </div>
                                         <ul className="mt-1 space-y-1 px-3">
-                                            {INPUTS.map(({ id, name, dot }) => {
+                                            {INPUTS.map(({ id, name }) => {
                                                 const on = connected.has(id);
                                                 return (
                                                     <li key={id} className="flex items-center gap-2 text-xs">
                                                         <span
                                                             className="h-1.5 w-1.5 shrink-0 rounded-full"
-                                                            style={{ backgroundColor: on ? dot : "var(--border-color)" }}
+                                                            style={{ backgroundColor: on ? FLOW : "var(--border-color)" }}
                                                             aria-hidden
                                                         />
                                                         <span className={on ? "text-foreground" : "text-muted-foreground"}>{name}</span>
-                                                        {on && <Check size={12} className="ml-auto text-positive" aria-hidden />}
+                                                        {on && <Check size={12} className="ml-auto text-primary" aria-hidden />}
                                                     </li>
                                                 );
                                             })}
@@ -457,53 +484,64 @@ export default function WireUpSection() {
                                         <span
                                             aria-hidden
                                             className={cn(
-                                                "absolute -right-1.5 top-1/2 size-3 -translate-y-1/2 rounded-full ring-[3px] ring-card",
-                                                ready ? "bg-info" : "bg-primary",
+                                                "absolute -right-1.5 top-1/2 size-3 -translate-y-1/2 rounded-full ring-[3px] ring-card transition-colors",
+                                                ready ? "border-2" : "border border-border bg-card",
                                             )}
+                                            style={ready ? { backgroundColor: "var(--info)", borderColor: "var(--info)", boxShadow: "0 0 10px var(--info)" } : undefined}
                                         />
                                         <span
                                             aria-hidden
                                             className={cn(
-                                                "absolute -left-1.5 top-1/2 size-3 -translate-y-1/2 rounded-full ring-[3px] ring-card",
-                                                ready ? "bg-info" : "bg-card ring-muted",
+                                                "absolute -left-1.5 top-1/2 size-3 -translate-y-1/2 rounded-full ring-[3px] ring-card transition-colors",
+                                                done > 0 ? "border-2" : "border border-border bg-card",
                                             )}
+                                            style={done > 0 ? { backgroundColor: FLOW, borderColor: FLOW, boxShadow: `0 0 10px ${FLOW}` } : undefined}
                                         />
                                     </div>
 
-                                    {CONSUMERS.map(({ name, desc, href }, i) => {
+                                    {CONSUMERS.map((consumer, i) => {
                                         const p = pos[`out-${i}`] ?? { x: OUT_X, y: ROW_Y[i] };
+                                        const { name, desc, tag, href, logo, icon } = consumer;
                                         return (
                                             <div
                                                 key={name}
                                                 className={cn(
-                                                    "absolute rounded-2xl border bg-card shadow-sm transition-opacity duration-300",
-                                                    ready ? "border-border opacity-100" : "border-border opacity-60",
+                                                    "absolute rounded-xl border border-border bg-card shadow-sm transition-opacity duration-300",
+                                                    ready ? "opacity-100" : "opacity-60",
                                                 )}
                                                 style={{ left: p.x, top: p.y, width: OUT_W, height: ROW_H }}
                                             >
                                                 <div
                                                     {...dragHandleProps(`out-${i}`, `${name} consumer`)}
-                                                    className="cursor-grab touch-none px-3 pt-2.5 outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
+                                                    className="flex cursor-grab touch-none items-center gap-2.5 px-3 pt-2.5 outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
                                                 >
-                                                    <p className="truncate text-[13px] font-semibold text-foreground">
-                                                        {href ? (
-                                                            <Link href={href} className="hover:text-primary hover:underline">
-                                                                {name}
-                                                            </Link>
-                                                        ) : (
-                                                            name
-                                                        )}
-                                                    </p>
-                                                    <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{desc}</p>
-                                                    <p className={cn("mt-1.5 font-numeric text-[11px] font-semibold", ready ? "text-info" : "text-muted-foreground")}>
+                                                    <NodeGlyph logo={logo} icon={icon} size={28} />
+                                                    <span className="min-w-0 flex-1">
+                                                        <span className="block truncate text-[13px] font-semibold text-foreground">
+                                                            {href ? (
+                                                                <Link href={href} className="hover:text-primary hover:underline">
+                                                                    {name}
+                                                                </Link>
+                                                            ) : (
+                                                                name
+                                                            )}
+                                                        </span>
+                                                        <span className="block truncate text-[10.5px] text-muted-foreground">{desc}</span>
+                                                    </span>
+                                                </div>
+                                                <div className="mt-2 flex items-center justify-between gap-2 px-3">
+                                                    <p className={cn("font-numeric text-[11px] font-semibold", ready ? "text-info" : "text-muted-foreground")}>
                                                         {ready ? "● Receiving traffic" : "○ Waiting for endpoint"}
                                                     </p>
+                                                    <span className="shrink-0 rounded-md bg-muted px-1.5 py-0.5 font-numeric text-[10px] font-medium text-muted-foreground ring-1 ring-border">
+                                                        {tag}
+                                                    </span>
                                                 </div>
                                                 <span
                                                     aria-hidden
                                                     className={cn(
-                                                        "absolute -left-1.5 top-1/2 size-3 -translate-y-1/2 rounded-full ring-[3px] ring-card",
-                                                        ready ? "bg-info" : "bg-card ring-muted",
+                                                        "absolute -left-1.5 top-1/2 size-3 -translate-y-1/2 rounded-full ring-[3px] ring-card transition-colors",
+                                                        ready ? "border-2 border-info bg-info" : "border border-border bg-card",
                                                     )}
                                                 />
                                             </div>
@@ -512,19 +550,27 @@ export default function WireUpSection() {
                                 </div>
                             </div>
                         </div>
-                        <div className="flex flex-wrap items-center justify-between gap-2 px-4 pb-2.5 pt-3 text-[11px] text-muted-foreground">
-                            <span>Drag from a dot to move a card — arrows move the focused card.</span>
-                            <span className="flex items-center gap-3">
-                                <span className="flex items-center gap-1.5">
-                                    <span className="h-1.5 w-3 rounded-full bg-primary" aria-hidden />
-                                    connected
+                        <div className="space-y-2 px-4 pb-2.5 pt-3 text-[11px] text-muted-foreground">
+                            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+                                <span className="flex flex-wrap items-center gap-2">
+                                    <span>Plugs into</span>
+                                    {PLUGINS.map((name) => (
+                                        <BrandLogo key={name} name={name} size={18} />
+                                    ))}
                                 </span>
-                                <span className="flex items-center gap-1.5">
-                                    <span className="h-px w-3 border-t border-dashed border-muted-foreground" aria-hidden />
-                                    awaiting
+                                <span className="flex flex-wrap items-center gap-3">
+                                    <span className="flex items-center gap-1.5">
+                                        <span className="h-1.5 w-3 rounded-full bg-primary" aria-hidden />
+                                        connected
+                                    </span>
+                                    <span className="flex items-center gap-1.5">
+                                        <span className="h-px w-3 border-t border-dashed border-muted-foreground" aria-hidden />
+                                        awaiting
+                                    </span>
+                                    <span className="font-numeric">{done}/{INPUTS.length}</span>
                                 </span>
-                                <span className="font-numeric">{done}/{INPUTS.length}</span>
-                            </span>
+                            </div>
+                            <p>Drag from a dot to move a card — arrows move the focused card.</p>
                         </div>
                     </div>
                 </Reveal>
@@ -542,6 +588,19 @@ export default function WireUpSection() {
                 </Reveal>
             </div>
         </section>
+    );
+}
+
+function NodeGlyph({ logo, icon: Icon, size = 30 }: { logo?: BrandLogoName; icon?: LucideIcon; size?: number }) {
+    if (logo) return <BrandLogo name={logo} size={size} className="shrink-0" />;
+    return (
+        <span
+            aria-hidden
+            className="grid shrink-0 place-items-center rounded-lg bg-muted text-primary ring-1 ring-border"
+            style={{ width: size, height: size }}
+        >
+            {Icon ? <Icon size={Math.round(size * 0.5)} /> : null}
+        </span>
     );
 }
 

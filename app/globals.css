@@ -537,15 +537,16 @@ body {
 /* ── Wiring canvas flow (homepage setup graph) ──
    Ember pulse along the active connector. stroke-dashoffset only;
    frozen (not hidden) under reduced motion. */
-.wire-flow {
-  stroke-dasharray: 10 90;
-  animation: wire-dash 1.6s linear infinite;
+.wire-comet {
+  stroke-dasharray: 26 220;
+  animation: wire-comet 2.4s linear infinite;
 }
-@keyframes wire-dash {
-  to { stroke-dashoffset: -100; }
+@keyframes wire-comet {
+  to { stroke-dashoffset: -246; }
 }
+/* Reduced motion keeps the highlight segment, just parked in place. */
 @media (prefers-reduced-motion: reduce) {
-  .wire-flow {
+  .wire-comet {
     animation: none;
     stroke-dashoffset: 0;
   }
