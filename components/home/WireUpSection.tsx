@@ -5,21 +5,26 @@ import Link from "next/link";
 import { Activity, ArrowRight, BarChart3, Check, Gauge, GripVertical, ShieldCheck, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import SiteLogo from "@/components/ui/site-logo";
 import BrandLogo, { type BrandLogoName } from "./BrandLogos";
 import Reveal from "./Reveal";
 
 /**
  * Interactive wiring graph ("Wire up a strategy in a minute").
  *
- * Desktop: a draggable node canvas — every card moves by pointer or arrow
- * keys, and the bezier connectors recompute live. Toggling inputs drives
- * the endpoint checklist, progress, and consumer states. Mobile: the same
- * state in a stacked list. All local UI state, labeled as a sample
- * walkthrough — nothing configures or executes anything real.
+ * Desktop: a draggable node canvas — every card moves by pointer, or by
+ * focusing its move button and using the arrow keys, and the bezier
+ * connectors recompute live. Toggling inputs drives the endpoint checklist,
+ * progress, and consumer states. Mobile/tablet: the same state in a stacked
+ * list. All local UI state, labeled as a sample walkthrough — nothing
+ * configures or executes anything real.
+ *
+ * Chroming mirrors the Aceternity "workflows" reference: quiet rounded-2xl
+ * panels with a hairline white ring + soft drop shadow, small header mark +
+ * dimmed move button, two-line body, right-aligned footer, and edges as a
+ * blur bloom + core line + a travelling dotted highlight (dashoffset) on live
+ * connections.
  */
-
-/** One accent for every live edge: connected flow is active, so it wears Ember. */
-const FLOW = "var(--primary)";
 
 type Input = {
     id: string;
@@ -32,13 +37,15 @@ type Input = {
     logo?: BrandLogoName;
     /** Product-side nodes use a glyph instead of a third-party mark. */
     icon?: LucideIcon;
+    /** Per-node accent: info / positive / warning / primary */
+    tone: "info" | "positive" | "warning" | "primary";
 };
 
 const INPUTS: Input[] = [
-    { id: "data", name: "Market data", desc: "TradingView quotes", tag: "feed", href: "/account/tradingview", linkLabel: "Connect feed", logo: "tradingview" },
-    { id: "strategy", name: "Strategy", desc: "Pine Script v6 logic", tag: "logic", href: "/strategy-lab", linkLabel: "Build one", logo: "pine" },
-    { id: "risk", name: "Risk limits", desc: "Validator armed guard", tag: "guard", href: "/risk", linkLabel: "Set limits", icon: ShieldCheck },
-    { id: "mt5", name: "MT5 terminal", desc: "Custom MQL5 EA bridge", tag: "exec", href: "/account/trading-access", linkLabel: "Connect MT5", logo: "mt5" },
+    { id: "data", name: "Market data", desc: "TradingView quotes", tag: "feed", href: "/account/tradingview", linkLabel: "Connect feed", logo: "tradingview", tone: "info" },
+    { id: "strategy", name: "Strategy", desc: "Pine Script v6 logic", tag: "logic", href: "/strategy-lab", linkLabel: "Build one", logo: "pine", tone: "positive" },
+    { id: "risk", name: "Risk limits", desc: "Validator armed guard", tag: "guard", href: "/risk", linkLabel: "Set limits", icon: ShieldCheck, tone: "warning" },
+    { id: "mt5", name: "MT5 terminal", desc: "Custom MQL5 EA bridge", tag: "exec", href: "/account/trading-access", linkLabel: "Connect MT5", logo: "mt5", tone: "primary" },
 ];
 
 type Consumer = {
@@ -60,30 +67,41 @@ const CONSUMERS: Consumer[] = [
 /** Brand marks the graph can route into — the "all your tools in one place" row. */
 const PLUGINS: BrandLogoName[] = ["tradingview", "pine", "mql5", "mt5", "telegram"];
 
-/* Fixed-stage geometry (1200x560). */
-const STAGE_W = 1200;
+/* Fixed-stage geometry, laid out exactly like the Aceternity reference. */
+const STAGE_W = 1520;
 const STAGE_H = 560;
-const EP_H = 280;
-const IN_X = 40;
-const IN_W = 250;
-const EP_X = 470;
-const EP_W = 260;
-const OUT_X = 910;
-const OUT_W = 250;
-const ROW_H = 110;
-const ROW_Y = [25, 155, 285, 415];
+const NODE_W = 232;
+const NODE_H = 144; // 44 header + 52 body + 36 footer + 12 spacer
+const EP_W = 256;
+const EP_H = 324;
+const EP_X = 632;
+const EP_Y = 110;
+
+const INPUT_POS: Record<string, { x: number; y: number }> = {
+    data: { x: 300, y: 32 },
+    strategy: { x: 40, y: 208 },
+    risk: { x: 340, y: 208 },
+    mt5: { x: 320, y: 384 },
+};
+
+const OUT_POS: { x: number; y: number }[] = [
+    { x: 988, y: 32 },
+    { x: 948, y: 208 },
+    { x: 1248, y: 208 },
+    { x: 968, y: 384 },
+];
 
 type Pos = { x: number; y: number };
 
 const initialPos = (): Record<string, Pos> => {
     const pos: Record<string, Pos> = {
-        endpoint: { x: EP_X, y: 140 },
+        endpoint: { x: EP_X, y: EP_Y },
     };
-    INPUTS.forEach((input, i) => {
-        pos[`in-${input.id}`] = { x: IN_X, y: ROW_Y[i] };
+    INPUTS.forEach((input) => {
+        pos[`in-${input.id}`] = { ...INPUT_POS[input.id] };
     });
-    CONSUMERS.forEach((c, i) => {
-        pos[`out-${i}`] = { x: OUT_X, y: ROW_Y[i] };
+    CONSUMERS.forEach((_, i) => {
+        pos[`out-${i}`] = { ...OUT_POS[i] };
     });
     return pos;
 };
@@ -107,6 +125,8 @@ function useStageScale() {
     }, []);
     return { ref, scale };
 }
+
+const RING = "shadow-[0_0_0_1px_rgba(255,255,255,0.07),0_12px_32px_-12px_rgba(0,0,0,0.7)]";
 
 export default function WireUpSection() {
     const [connected, setConnected] = useState<Set<string>>(() => new Set(["data"]));
@@ -172,11 +192,7 @@ export default function WireUpSection() {
         setDrag(null);
     };
 
-    const dragHandleProps = (id: string, label: string) => ({
-        tabIndex: 0,
-        role: "application" as const,
-        "aria-label": `${label} card. Use arrow keys to move it.`,
-        onKeyDown: onCardKey(id),
+    const cardPointerProps = (id: string) => ({
         onPointerDown: beginDrag(id),
         onPointerMove: moveDrag,
         onPointerUp: endDrag,
@@ -281,296 +297,279 @@ export default function WireUpSection() {
                     </div>
 
                     {/* Desktop: draggable canvas */}
-                    <div
-                        className="relative mx-auto mt-6 hidden max-w-6xl rounded-2xl border border-border bg-card p-1.5 shadow-md lg:block"
-                    >
-                        <div ref={ref} className="relative overflow-hidden rounded-xl bg-muted/40">
-                            <div
-                                aria-hidden
-                                className="pointer-events-none absolute inset-0 opacity-70 [background-image:radial-gradient(var(--border-color)_1px,transparent_1px)] [background-size:20px_20px] [mask-image:radial-gradient(ellipse_75%_85%_at_50%_50%,black_30%,transparent_100%)] motion-reduce:hidden"
-                            />
-                            <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 flex h-6 items-end justify-between px-4">
-                                {Array.from({ length: 25 }, (_, i) => (
-                                    <span key={i} className={cn("w-px bg-border", i % 5 === 0 ? "h-2.5" : "h-1.5")} />
-                                ))}
-                            </div>
-                            <div style={{ height: STAGE_H * scale }} className="relative w-full overflow-hidden pt-3">
+                    <div className="mx-auto mt-6 hidden lg:block">
+                        <div ref={ref} className="relative w-full overflow-hidden">
+                            <div style={{ height: STAGE_H * scale }} className="relative w-full">
                                 <div
-                                    className="absolute left-0 top-3 origin-top-left select-none"
+                                    className="absolute left-0 top-0 origin-top-left select-none"
                                     style={{ width: STAGE_W, height: STAGE_H, transform: `scale(${scale})` }}
                                 >
-                                    <svg viewBox={`0 0 ${STAGE_W} ${STAGE_H}`} className="pointer-events-none absolute inset-0 size-full" fill="none" aria-hidden="true">
+                                    <svg
+                                        viewBox={`0 0 ${STAGE_W} ${STAGE_H}`}
+                                        className="pointer-events-none absolute inset-0 size-full overflow-visible"
+                                        fill="none"
+                                        aria-hidden="true"
+                                    >
                                         <defs>
                                             <filter id="wire-glow" x="-20%" y="-20%" width="140%" height="140%">
-                                                <feGaussianBlur stdDeviation="3.5" />
+                                                <feGaussianBlur stdDeviation="4" />
                                             </filter>
-                                            <linearGradient id="wire-fade" x1="0" y1="0" x2="1" y2="0">
-                                                <stop offset="0" stopColor={FLOW} stopOpacity="0.15" />
-                                                <stop offset="0.5" stopColor={FLOW} stopOpacity="1" />
-                                                <stop offset="1" stopColor={FLOW} stopOpacity="0.15" />
-                                            </linearGradient>
                                         </defs>
-                                        {INPUTS.map((input, i) => {
-                                            const p = pos[`in-${input.id}`] ?? { x: IN_X, y: ROW_Y[i] };
+                                        {INPUTS.map((input) => {
+                                            const p = pos[`in-${input.id}`] ?? INPUT_POS[input.id];
                                             const on = connected.has(input.id);
-                                            const d = edge(p.x + IN_W, p.y + ROW_H / 2, ep.x, epMidY);
+                                            const d = edge(p.x + NODE_W, p.y + NODE_H / 2, ep.x, epMidY);
                                             return (
                                                 <g key={`in-${input.id}`}>
-                                                    {/* Awaiting track: dashed, fades out once live. */}
+                                                    {/* Awaiting track: dim dashed line, fades out once live. */}
                                                     <path
                                                         d={d}
                                                         stroke="var(--border-color)"
                                                         strokeWidth={1.5}
-                                                        strokeDasharray="4 5"
+                                                        strokeDasharray="3 6"
                                                         strokeLinecap="round"
-                                                        opacity={on ? 0 : 0.9}
+                                                        opacity={on ? 0 : 1}
                                                     />
                                                     {on && (
                                                         <>
-                                                            {/* Bloom under the line. */}
+                                                            <path d={d} stroke="var(--primary)" strokeWidth={7} opacity={0.45} filter="url(#wire-glow)" />
+                                                            <path d={d} stroke="var(--primary)" strokeWidth={2.5} strokeLinecap="round" />
                                                             <path
                                                                 d={d}
-                                                                stroke={FLOW}
-                                                                strokeWidth={4}
+                                                                stroke="white"
+                                                                strokeOpacity={0.75}
+                                                                strokeWidth={2}
                                                                 strokeLinecap="round"
-                                                                opacity={0.35}
-                                                                filter="url(#wire-glow)"
+                                                                strokeDasharray="1 14"
+                                                                className="wire-dash"
                                                             />
-                                                            <path
-                                                                d={d}
-                                                                stroke="url(#wire-fade)"
-                                                                strokeWidth={1.5}
-                                                                strokeLinecap="round"
-                                                            />
-                                                            {/* Travelling highlight. */}
-                                                            <path d={d} stroke={FLOW} strokeWidth={1.75} strokeLinecap="round" className="wire-comet" />
                                                         </>
                                                     )}
                                                 </g>
                                             );
                                         })}
-                                        {CONSUMERS.map((c, i) => {
-                                            const p = pos[`out-${i}`] ?? { x: OUT_X, y: ROW_Y[i] };
-                                            const d = edge(ep.x + EP_W, epMidY, p.x, p.y + ROW_H / 2);
+                                        {CONSUMERS.map((consumer, i) => {
+                                            const p = pos[`out-${i}`] ?? OUT_POS[i];
+                                            const d = edge(ep.x + EP_W, epMidY, p.x, p.y + NODE_H / 2);
                                             return (
                                                 <g key={`out-${i}`}>
                                                     <path
                                                         d={d}
-                                                        stroke={ready ? "var(--info)" : "var(--border-color)"}
+                                                        stroke="var(--border-color)"
                                                         strokeWidth={1.5}
-                                                        strokeDasharray={ready ? undefined : "4 5"}
+                                                        strokeDasharray="3 6"
                                                         strokeLinecap="round"
-                                                        opacity={ready ? 0.6 : 0.7}
+                                                        opacity={ready ? 0 : 1}
                                                     />
-                                                    {ready && <path d={d} stroke="var(--info)" strokeWidth={1.75} strokeLinecap="round" className="wire-comet" />}
+                                                    {ready && (
+                                                        <>
+                                                            <path d={d} stroke="var(--primary)" strokeWidth={7} opacity={0.45} filter="url(#wire-glow)" />
+                                                            <path d={d} stroke="var(--primary)" strokeWidth={2.5} strokeLinecap="round" />
+                                                            <path
+                                                                d={d}
+                                                                stroke="white"
+                                                                strokeOpacity={0.75}
+                                                                strokeWidth={2}
+                                                                strokeLinecap="round"
+                                                                strokeDasharray="1 14"
+                                                                className="wire-dash"
+                                                            />
+                                                        </>
+                                                    )}
                                                 </g>
                                             );
                                         })}
                                     </svg>
 
-                                    {INPUTS.map((input, i) => {
-                                        const p = pos[`in-${input.id}`] ?? { x: IN_X, y: ROW_Y[i] };
+                                    {INPUTS.map((input) => {
+                                        const p = pos[`in-${input.id}`] ?? INPUT_POS[input.id];
                                         const on = connected.has(input.id);
                                         return (
                                             <div
                                                 key={input.id}
-                                                className={cn(
-                                                    "absolute rounded-xl border bg-card shadow-sm transition-colors",
-                                                    on ? "border-primary/50" : "border-border",
-                                                )}
-                                                style={{ left: p.x, top: p.y, width: IN_W, height: ROW_H }}
+                                                className={cn("absolute rounded-2xl bg-card transition-colors", RING, on ? "border-2" : "border border-border")}
+                                                style={{ left: p.x, top: p.y, width: NODE_W, height: NODE_H, borderColor: on ? (input.tone === "primary" ? "#f97316" : input.tone === "positive" ? "#34d399" : input.tone === "warning" ? "#fbbf24" : "#60a5fa") : undefined }}
                                             >
                                                 <div
-                                                    {...dragHandleProps(`in-${input.id}`, `${input.name} input`)}
-                                                    className="flex h-11 cursor-grab touch-none items-center gap-2.5 rounded-t-xl px-3 outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
+                                                    {...cardPointerProps(`in-${input.id}`)}
+                                                    className="flex h-11 cursor-grab touch-none items-center gap-2 rounded-t-2xl px-3.5 active:cursor-grabbing"
                                                 >
-                                                    <NodeGlyph logo={input.logo} icon={input.icon} size={30} />
-                                                    <span className="min-w-0 flex-1">
-                                                        <span className="block truncate text-[13px] font-semibold text-foreground">{input.name}</span>
-                                                        <span className="block truncate text-[10.5px] text-muted-foreground">{input.desc}</span>
-                                                    </span>
-                                                    <GripVertical size={13} className="shrink-0 text-muted-foreground" aria-hidden />
+                                                    <NodeGlyph logo={input.logo} icon={input.icon} size={20} />
+                                                    <p className="min-w-0 truncate text-sm font-medium text-foreground">{input.name}</p>
+                                                    <MoveButton
+                                                        ariaLabel={`Move the ${input.name} card with the arrow keys`}
+                                                        onKeyDown={onCardKey(`in-${input.id}`)}
+                                                    />
                                                 </div>
-                                                <div className="px-3">
-                                                    <span className="inline-flex items-center rounded-md bg-muted px-1.5 py-0.5 font-numeric text-[10px] font-medium text-muted-foreground ring-1 ring-border">
-                                                        {input.tag}
-                                                    </span>
+                                                <div className="px-3.5" style={{ height: 52 }}>
+                                                    <p className="truncate text-xs font-medium text-foreground/85">{input.desc}</p>
+                                                    <p className="mt-1 truncate text-xs text-muted-foreground">{input.tag}</p>
                                                 </div>
-                                                <div className="absolute inset-x-0 bottom-0 flex h-8 items-center justify-between border-t border-border/70 px-3">
-                                                    <Link href={input.href} className="text-[11px] font-medium text-primary hover:underline">
+                                                <div className="flex h-9 items-center justify-end gap-3 pr-3.5 text-xs">
+                                                    <Link
+                                                        href={input.href}
+                                                        className="font-medium text-muted-foreground transition-colors hover:text-foreground"
+                                                    >
                                                         {input.linkLabel}
                                                     </Link>
                                                     <button
                                                         type="button"
                                                         onClick={() => toggle(input.id)}
                                                         aria-pressed={on}
-                                                        className={cn(
-                                                            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-numeric text-[11px] font-semibold transition-colors",
-                                                            on ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground hover:text-foreground",
-                                                        )}
+                                                        className={cn("inline-flex items-center gap-1.5 font-semibold transition-colors", on ? "text-foreground" : "text-muted-foreground/60 hover:text-foreground")}
+                                                        style={on ? { color: input.tone === "primary" ? "#f97316" : input.tone === "positive" ? "#34d399" : input.tone === "warning" ? "#fbbf24" : "#60a5fa" } : undefined}
                                                     >
                                                         <span
                                                             aria-hidden
-                                                            className={cn("size-1.5 rounded-full", on ? "bg-primary" : "bg-muted-foreground/50")}
+                                                            className="size-1.5 rounded-full transition-colors"
+                                                            style={on ? { backgroundColor: input.tone === "primary" ? "#f97316" : input.tone === "positive" ? "#34d399" : input.tone === "warning" ? "#fbbf24" : "#60a5fa" } : undefined}
                                                         />
                                                         {on ? "Connected" : "Connect"}
                                                     </button>
                                                 </div>
-                                                <span
-                                                    aria-hidden
-                                                    className={cn(
-                                                        "absolute -right-1.5 top-1/2 size-3 -translate-y-1/2 rounded-full ring-[3px] ring-card transition-colors",
-                                                        on ? "border-2" : "border border-border bg-card",
-                                                    )}
-                                                    style={on ? { backgroundColor: FLOW, borderColor: FLOW, boxShadow: `0 0 10px ${FLOW}` } : undefined}
-                                                />
+                                                <div className="h-3" />
+                                                <Port className="right-0 translate-x-1/2" on={on} />
                                             </div>
                                         );
                                     })}
 
                                     <div
-                                        className="absolute rounded-xl border border-border bg-card shadow-md"
+                                        className={cn("absolute rounded-2xl", RING)}
                                         style={{ left: ep.x, top: ep.y, width: EP_W, height: EP_H }}
                                     >
-                                        <div
-                                            {...dragHandleProps("endpoint", "Strategy router endpoint")}
-                                            className="flex h-11 cursor-grab touch-none items-center gap-2.5 rounded-t-xl px-3 outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
-                                        >
-                                            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-muted ring-1 ring-border" aria-hidden>
-                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img src="/logos/logo.png" alt="" width={18} height={18} loading="lazy" decoding="async" className="size-4.5 rounded object-contain" />
-                                            </span>
-                                            <span className="min-w-0 flex-1">
-                                                <span className="block text-[13px] font-semibold text-foreground">Endpoint</span>
-                                                <span className="block truncate font-numeric text-[10.5px] text-muted-foreground">strategy-router</span>
-                                            </span>
-                                            <GripVertical size={13} className="shrink-0 text-muted-foreground" aria-hidden />
-                                        </div>
-                                        <ul className="mt-1 space-y-1 px-3">
-                                            {INPUTS.map(({ id, name }) => {
-                                                const on = connected.has(id);
-                                                return (
-                                                    <li key={id} className="flex items-center gap-2 text-xs">
-                                                        <span
-                                                            className="h-1.5 w-1.5 shrink-0 rounded-full"
-                                                            style={{ backgroundColor: on ? FLOW : "var(--border-color)" }}
-                                                            aria-hidden
-                                                        />
-                                                        <span className={on ? "text-foreground" : "text-muted-foreground"}>{name}</span>
-                                                        {on && <Check size={12} className="ml-auto text-primary" aria-hidden />}
-                                                    </li>
-                                                );
-                                            })}
-                                        </ul>
-                                        <div className="px-3">
-                                            <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow={done} aria-valuemin={0} aria-valuemax={INPUTS.length} aria-label="Setup progress">
-                                                <div
-                                                    className="h-full rounded-full bg-primary transition-[width] duration-300 motion-reduce:transition-none"
-                                                    style={{ width: `${(done / INPUTS.length) * 100}%` }}
+                                        <div className="relative h-full rounded-2xl bg-card p-1.5">
+                                            <div
+                                                {...cardPointerProps("endpoint")}
+                                                className="flex h-[38px] cursor-grab touch-none items-center gap-2 rounded-xl px-2.5 active:cursor-grabbing"
+                                            >
+                                                <SiteLogo size={18} />
+                                                <p className="truncate text-sm font-medium text-foreground">Endpoint</p>
+                                                <span className="ml-1 truncate font-numeric text-xs text-muted-foreground/70">strategy-router</span>
+                                                <MoveButton
+                                                    ariaLabel="Move the Endpoint card with the arrow keys"
+                                                    onKeyDown={onCardKey("endpoint")}
                                                 />
                                             </div>
-                                            <div className="mt-2 flex items-center justify-between">
-                                                <p className="text-[11px] text-muted-foreground" aria-live="polite">
+                                            <div className="relative mt-1.5 isolate overflow-hidden rounded-xl bg-background shadow-[0_1px_2px_rgba(0,0,0,0.5),0_4px_12px_-2px_rgba(0,0,0,0.45),0_16px_32px_-12px_rgba(0,0,0,0.7)]">
+                                                <ul className="py-3">
+                                                    {INPUTS.map(({ id, name }) => {
+                                                        const on = connected.has(id);
+                                                        return (
+                                                            <li key={id} className="flex items-center gap-2 px-4 text-sm" style={{ height: 52 }}>
+                                                                <span
+                                                                    className={cn(
+                                                                        "min-w-0 truncate transition-colors",
+                                                                        on ? "font-medium text-foreground" : "text-muted-foreground/70",
+                                                                    )}
+                                                                >
+                                                                    {name}
+                                                                </span>
+                                                                <span
+                                                                    aria-hidden
+                                                                    className={cn(
+                                                                        "ml-auto transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none",
+                                                                        on ? "scale-100 opacity-100" : "scale-50 opacity-0",
+                                                                    )}
+                                                                >
+                                                                    <Check size={15} strokeWidth={2.5} className="text-primary" />
+                                                                </span>
+                                                            </li>
+                                                        );
+                                                    })}
+                                                </ul>
+                                            </div>
+                                            <div className="flex h-12 items-center gap-2 px-2.5 text-xs">
+                                                <span
+                                                    aria-hidden
+                                                    className={cn("size-1.5 shrink-0 rounded-full transition-colors", ready ? "bg-primary" : "bg-muted-foreground/30")}
+                                                />
+                                                <p className="truncate text-muted-foreground/80" aria-live="polite">
                                                     {ready ? "Ready to deploy" : `Awaiting inputs · ${done}/${INPUTS.length}`}
                                                 </p>
                                                 <Link
                                                     href="/account/trading-access"
-                                                    className="rounded-full bg-card px-2.5 py-1 text-[11px] font-semibold text-foreground ring-1 ring-border transition-colors hover:border-primary/50 hover:text-primary"
+                                                    className="ml-auto text-[11px] font-semibold text-primary hover:underline"
                                                 >
                                                     Deploy
                                                 </Link>
                                             </div>
+                                            <Port className="left-0 -translate-x-1/2" on={done > 0} />
+                                            <Port className="right-0 translate-x-1/2" on={ready} />
                                         </div>
-                                        <span
-                                            aria-hidden
-                                            className={cn(
-                                                "absolute -right-1.5 top-1/2 size-3 -translate-y-1/2 rounded-full ring-[3px] ring-card transition-colors",
-                                                ready ? "border-2" : "border border-border bg-card",
-                                            )}
-                                            style={ready ? { backgroundColor: "var(--info)", borderColor: "var(--info)", boxShadow: "0 0 10px var(--info)" } : undefined}
-                                        />
-                                        <span
-                                            aria-hidden
-                                            className={cn(
-                                                "absolute -left-1.5 top-1/2 size-3 -translate-y-1/2 rounded-full ring-[3px] ring-card transition-colors",
-                                                done > 0 ? "border-2" : "border border-border bg-card",
-                                            )}
-                                            style={done > 0 ? { backgroundColor: FLOW, borderColor: FLOW, boxShadow: `0 0 10px ${FLOW}` } : undefined}
-                                        />
                                     </div>
 
                                     {CONSUMERS.map((consumer, i) => {
-                                        const p = pos[`out-${i}`] ?? { x: OUT_X, y: ROW_Y[i] };
+                                        const p = pos[`out-${i}`] ?? OUT_POS[i];
                                         const { name, desc, tag, href, logo, icon } = consumer;
                                         return (
                                             <div
                                                 key={name}
                                                 className={cn(
-                                                    "absolute rounded-xl border border-border bg-card shadow-sm transition-opacity duration-300",
-                                                    ready ? "opacity-100" : "opacity-60",
+                                                    "absolute rounded-2xl bg-card transition-opacity duration-300",
+                                                    RING,
+                                                    ready ? "opacity-100" : "opacity-55",
                                                 )}
-                                                style={{ left: p.x, top: p.y, width: OUT_W, height: ROW_H }}
+                                                style={{ left: p.x, top: p.y, width: NODE_W, height: NODE_H }}
                                             >
                                                 <div
-                                                    {...dragHandleProps(`out-${i}`, `${name} consumer`)}
-                                                    className="flex cursor-grab touch-none items-center gap-2.5 px-3 pt-2.5 outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
+                                                    {...cardPointerProps(`out-${i}`)}
+                                                    className="flex h-11 cursor-grab touch-none items-center gap-2 rounded-t-2xl px-3.5 active:cursor-grabbing"
                                                 >
-                                                    <NodeGlyph logo={logo} icon={icon} size={28} />
-                                                    <span className="min-w-0 flex-1">
-                                                        <span className="block truncate text-[13px] font-semibold text-foreground">
-                                                            {href ? (
-                                                                <Link href={href} className="hover:text-primary hover:underline">
-                                                                    {name}
-                                                                </Link>
-                                                            ) : (
-                                                                name
-                                                            )}
-                                                        </span>
-                                                        <span className="block truncate text-[10.5px] text-muted-foreground">{desc}</span>
-                                                    </span>
-                                                </div>
-                                                <div className="mt-2 flex items-center justify-between gap-2 px-3">
-                                                    <p className={cn("font-numeric text-[11px] font-semibold", ready ? "text-info" : "text-muted-foreground")}>
-                                                        {ready ? "● Receiving traffic" : "○ Waiting for endpoint"}
+                                                    <NodeGlyph logo={logo} icon={icon} size={20} />
+                                                    <p className="min-w-0 truncate text-sm font-medium text-foreground">
+                                                        {href ? (
+                                                            <Link href={href} className="transition-colors hover:text-primary">
+                                                                {name}
+                                                            </Link>
+                                                        ) : (
+                                                            name
+                                                        )}
                                                     </p>
-                                                    <span className="shrink-0 rounded-md bg-muted px-1.5 py-0.5 font-numeric text-[10px] font-medium text-muted-foreground ring-1 ring-border">
-                                                        {tag}
-                                                    </span>
+                                                    <MoveButton
+                                                        ariaLabel={`Move the ${name} card with the arrow keys`}
+                                                        onKeyDown={onCardKey(`out-${i}`)}
+                                                    />
                                                 </div>
-                                                <span
-                                                    aria-hidden
-                                                    className={cn(
-                                                        "absolute -left-1.5 top-1/2 size-3 -translate-y-1/2 rounded-full ring-[3px] ring-card transition-colors",
-                                                        ready ? "border-2 border-info bg-info" : "border border-border bg-card",
-                                                    )}
-                                                />
+                                                <div className="px-3.5" style={{ height: 52 }}>
+                                                    <p className="truncate text-xs font-medium text-foreground/85">{desc}</p>
+                                                    <p className="mt-1 truncate text-xs text-muted-foreground">{tag}</p>
+                                                </div>
+                                                <div className="flex h-9 items-center gap-2 pl-3.5 text-xs">
+                                                    <span
+                                                        aria-hidden
+                                                        className={cn("size-1.5 shrink-0 rounded-full transition-colors", ready ? "bg-primary" : "bg-muted-foreground/30")}
+                                                    />
+                                                    <p className={cn("truncate", ready ? "text-foreground/80" : "text-muted-foreground")}>
+                                                        {ready ? "Receiving traffic" : "Waiting for endpoint"}
+                                                    </p>
+                                                </div>
+                                                <div className="h-3" />
+                                                <Port className="left-0 -translate-x-1/2" on={ready} />
                                             </div>
                                         );
                                     })}
                                 </div>
                             </div>
                         </div>
-                        <div className="space-y-2 px-4 pb-2.5 pt-3 text-[11px] text-muted-foreground">
-                            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-                                <span className="flex flex-wrap items-center gap-2">
-                                    <span>Plugs into</span>
-                                    {PLUGINS.map((name) => (
-                                        <BrandLogo key={name} name={name} size={18} />
-                                    ))}
+
+                        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-2 pb-1 pt-3 text-[11px] text-muted-foreground">
+                            <span className="flex flex-wrap items-center gap-2">
+                                <span>Plugs into</span>
+                                {PLUGINS.map((name) => (
+                                    <BrandLogo key={name} name={name} size={18} />
+                                ))}
+                            </span>
+                            <span className="flex flex-wrap items-center gap-3">
+                                <span className="flex items-center gap-1.5">
+                                    <span className="h-1.5 w-3 rounded-full bg-primary" aria-hidden />
+                                    connected
                                 </span>
-                                <span className="flex flex-wrap items-center gap-3">
-                                    <span className="flex items-center gap-1.5">
-                                        <span className="h-1.5 w-3 rounded-full bg-primary" aria-hidden />
-                                        connected
-                                    </span>
-                                    <span className="flex items-center gap-1.5">
-                                        <span className="h-px w-3 border-t border-dashed border-muted-foreground" aria-hidden />
-                                        awaiting
-                                    </span>
-                                    <span className="font-numeric">{done}/{INPUTS.length}</span>
+                                <span className="flex items-center gap-1.5">
+                                    <span className="h-px w-3 border-t border-dashed border-muted-foreground" aria-hidden />
+                                    awaiting
                                 </span>
-                            </div>
-                            <p>Drag from a dot to move a card — arrows move the focused card.</p>
+                                <span className="font-numeric">{done}/{INPUTS.length}</span>
+                            </span>
                         </div>
                     </div>
                 </Reveal>
@@ -591,15 +590,33 @@ export default function WireUpSection() {
     );
 }
 
-function NodeGlyph({ logo, icon: Icon, size = 30 }: { logo?: BrandLogoName; icon?: LucideIcon; size?: number }) {
+function MoveButton({ ariaLabel, onKeyDown }: { ariaLabel: string; onKeyDown: (e: React.KeyboardEvent) => void }) {
+    return (
+        <button
+            type="button"
+            aria-label={ariaLabel}
+            onKeyDown={onKeyDown}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="-mr-1.5 ml-auto grid size-6 shrink-0 place-items-center rounded-md text-muted-foreground/50 transition-colors hover:text-foreground/80 focus-visible:outline-2 focus-visible:outline-ring"
+        >
+            <GripVertical size={14} aria-hidden />
+        </button>
+    );
+}
+
+function NodeGlyph({ logo, icon: Icon, size = 20 }: { logo?: BrandLogoName; icon?: LucideIcon; size?: number }) {
     if (logo) return <BrandLogo name={logo} size={size} className="shrink-0" />;
     return (
-        <span
-            aria-hidden
-            className="grid shrink-0 place-items-center rounded-lg bg-muted text-primary ring-1 ring-border"
-            style={{ width: size, height: size }}
-        >
-            {Icon ? <Icon size={Math.round(size * 0.5)} /> : null}
+        <span aria-hidden className="grid shrink-0 place-items-center" style={{ width: size, height: size }}>
+            {Icon ? <Icon size={Math.round(size * 0.8)} className="text-muted-foreground" /> : null}
+        </span>
+    );
+}
+
+function Port({ className, on }: { className: string; on: boolean }) {
+    return (
+        <span aria-hidden className={cn("pointer-events-none absolute top-1/2 grid size-7 -translate-y-1/2 place-items-center", className)}>
+            <span className={cn("block size-3 rounded-full ring-[3px] ring-background transition-colors", on ? "bg-primary" : "bg-muted-foreground/30")} />
         </span>
     );
 }
