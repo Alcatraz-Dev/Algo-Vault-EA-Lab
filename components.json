@@ -23,6 +23,7 @@
   "menuAccent": "subtle",
   "registries": {
     "@reui": "https://reui.io/r/{style}/{name}.json",
-    "@aceternity": "https://ui.aceternity.com/registry/{name}.json"
+    "@aceternity": "https://ui.aceternity.com/registry/{name}.json",
+    "@notra": "https://ui.usenotra.com/r/{name}.json"
   }
 }

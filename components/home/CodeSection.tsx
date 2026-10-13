@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Check, Copy, Play } from "lucide-react";
-import { StepSlider } from "./step-slider";
+import { StepSlider } from "../step-slider/components/step-slider";
 import { useReducedMotion } from "motion/react";
 import { Area, AreaChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Terminal } from "@/components/ui/terminal";
@@ -327,7 +327,7 @@ export default function CodeSection({ data }: { data: HomeData }) {
                                 </div>
                                 <div className="h-44" role="img" aria-label={cardData.title + " curve"}>
                                     <div className="h-full rounded-xl bg-[#141414] p-2 shadow-md text-[11px]">
-                                        <div className="mb-1 flex justify-between text-xs font-medium"><span>{cardData.tracesTitle}</span><span className="text-muted-foreground">{cardData.tracesSub}</span></div>
+                                        <div className="mb-1 flex justify-between text-xs font-medium"><span className="text-muted-foreground">{cardData.tracesSub}</span></div>
                                         {tab === "pine" ? (
                                             <div className="h-32 w-full rounded-lg overflow-hidden">
                                                 <ResponsiveContainer width="100%" height="100%">
@@ -335,7 +335,7 @@ export default function CodeSection({ data }: { data: HomeData }) {
                                                 </ResponsiveContainer>
                                             </div>
                                         ) : (
-                                            <ul className="space-y-2">{cardData.traces.map((r:any)=> <li key={r.id} className="grid grid-cols-[auto_1fr_2.75rem] gap-2 text-xs"><span className="flex items-center gap-1.5"><span className="size-1.5 rounded-full" style={{backgroundColor:r.color}}/><span className="truncate font-medium">{r.id}</span></span><div className="h-2 rounded-full bg-[#2b2b2b] overflow-hidden"><div className="h-full rounded-full" style={{width:`${r.pct}%`,backgroundColor:r.color}}/></div><span className="text-right tabular-nums">{r.pct}%</span></li>)}</ul>
+                                            <div className="relative space-y-3 overflow-hidden rounded-xl bg-gradient-to-b from-white/[0.03] to-transparent p-3">{tab === "mql5" ? (<><StepSlider aria-label="Batch progress" value={72} steps={[0,25,50,72,100]} onValueChange={() => {}} formatLabel={(v:number) => v + "%"} /><StepSlider aria-label="Queue depth" value={28} steps={[0,10,25,28,50]} onValueChange={() => {}} formatLabel={(v:number) => v + "%"} /></>) : tab === "setfile" ? (<StepSlider aria-label="Config readiness" value={21} steps={[0,10,21,50,100]} onValueChange={() => {}} formatLabel={(v:number) => v + "%"} />) : (<StepSlider aria-label="Signal score" value={74} steps={[0,25,50,74,100]} onValueChange={() => {}} formatLabel={(v:number) => v + "%"} />)}</div>
                                         )}
                                     </div>
                                 </div>
