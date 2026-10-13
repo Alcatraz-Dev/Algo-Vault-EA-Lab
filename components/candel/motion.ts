@@ -50,11 +50,7 @@ export const page: Variants = {
     transition: {
       duration: 0.32,
       ease: EASES.emphasized,
-      children: {
-        opacity: 0,
-        y: 6,
-        transition: { duration: 0.24, ease: EASES.standard, staggerChildren: 0.04 },
-      },
+      staggerChildren: 0.04,
     },
   },
   exit: {
@@ -84,15 +80,7 @@ export const panel: Variants = {
     transition: {
       duration: 0.2,
       ease: EASES.standard,
-      children: {
-        opacity: 0,
-        y: 3,
-        transition: {
-          duration: 0.18,
-          ease: EASES.standard,
-          staggerChildren: 0.025,
-        },
-      },
+      staggerChildren: 0.025,
     },
   },
   exit: {
