@@ -49,7 +49,7 @@
     ],
     "extraResources": [
       {
-        "from": ".next/standalone",
+        "from": "../../.next/standalone",
         "to": ".next/standalone"
       }
     ],
