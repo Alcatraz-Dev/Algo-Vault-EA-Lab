@@ -34,6 +34,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Frame, FrameHeader, FrameFooter } from "@/components/reui/frame";
+import { IconTile } from "@/components/reui/icon-tile";
 import { Badge as ReUIBadge } from "@/components/reui/badge";
 import Reveal from "./Reveal";
 import CountUp from "./CountUp";

@@ -12,19 +12,20 @@
  * timings and physics.
  */
 
-import { motion, type Variants } from "motion/react";
+import { motion, type Easing, type Variants } from "motion/react";
 
 /**
- * Shared Easing tokens exposed by `app/globals.css`. Motion accepts raw
- * cubic-bezier strings, so these are typed as strings and resolved at runtime
- * through the CSS custom properties.
+ * Shared easing constants. Values mirror the CSS tokens `--ease-standard`
+ * (`cubic-bezier(0.2, 0, 0, 1)`) and `--ease-emphasized`
+ * (`cubic-bezier(0.32, 0.72, 0, 1)`) from `app/globals.css` as cubic-bezier
+ * arrays, because motion v14's `Easing` type does not accept `var(...)` strings.
  */
-const EASES = {
+const EASES: { standard: Easing; emphasized: Easing } = {
   /** 150–200ms, ease-based, matches DESIGN.md §14 */
-  standard: "var(--ease-standard)",
+  standard: [0.2, 0, 0, 1],
   /** 150–200ms, slightly more emphasis for overlays and panel stacks */
-  emphasized: "var(--ease-emphasized)",
-} as const;
+  emphasized: [0.32, 0.72, 0, 1],
+};
 
 /**
  * Interstitial page transition (library → studio, tabs, dialogs, panels).
