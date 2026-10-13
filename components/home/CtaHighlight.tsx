@@ -27,7 +27,7 @@ export default function CtaHighlight() {
                             <h2 className="mt-6 text-4xl font-extrabold leading-[1.05] tracking-[-0.04em] text-balance text-foreground md:text-6xl">
                                 Make your next <Highlight>decision legible.</Highlight>
                             </h2>
-                            <p className="mx-auto mt-6 max-w-xl text-base leading-7 text-pretty text-muted-foreground sm:text-lg">
+                            <p className="mx-auto mt-8 max-w-xl text-base leading-7 text-pretty text-muted-foreground sm:text-lg">
                                 Create a workspace, scan your first symbol, and run a
                                 deterministic backtest in minutes — with every number accounted for.
                             </p>
