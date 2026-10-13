@@ -11,6 +11,7 @@ import { Button as MovingButton } from "@/components/ui/moving-border";
 import { Badge as ReUIBadge } from "@/components/reui/badge";
 import { Button } from "@/components/ui/button";
 import BrandLogo, { type BrandLogoName } from "./BrandLogos";
+import HeroConsole from "./HeroConsole";
 
 function formatNumber(value: number): string {
     return new Intl.NumberFormat("en-US").format(value);
@@ -137,7 +138,7 @@ export default function AceternityHero({ data, siteName }: { data: HomeData; sit
                     <p className="mt-12 text-xs font-medium text-muted-foreground">
                         Plugs into the tools you already run
                     </p>
-                    <ul className="mt-4 flex flex-wrap items-center justify-center gap-x-7 gap-y-4" aria-label="Supported tools">
+                    <ul className="mt-6 grid w-full max-w-2xl grid-cols-3 items-center justify-items-center gap-x-6 gap-y-5 sm:grid-cols-6" aria-label="Supported tools">
                         {CLOUD.map(({ name, label }) => (
                             <li
                                 key={name}
@@ -150,6 +151,12 @@ export default function AceternityHero({ data, siteName }: { data: HomeData; sit
                         ))}
                     </ul>
                 </div>
+
+                <HeroConsole data={data} />
+
+                <p className="mx-auto max-w-2xl pb-14 text-center text-[11px] leading-4 text-muted-foreground md:pb-16">
+                    Workspace preview with sample charts — live figures appear inside the product.
+                </p>
             </div>
         </section>
     );

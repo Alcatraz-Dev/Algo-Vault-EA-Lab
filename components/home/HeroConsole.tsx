@@ -1,346 +1,333 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import {
-    ArrowRight,
-    ChartLineUp,
-    CheckCircle,
-    Cpu,
+    Activity,
+    BarChart3,
+    Bell,
+    Brain,
+    ChevronLeft,
+    Copy,
+    FlaskConical,
+    History,
+    LayoutDashboard,
+    ScrollText,
+    Search,
+    Settings,
     ShieldCheck,
-    Target,
-    TerminalWindow,
-    TrendDown,
-    TrendUp,
-} from "@phosphor-icons/react";
-import { Badge } from "@/components/reui/badge";
-import { Button } from "@/components/ui/button";
-import {
-    Card,
-    CardContent,
-    CardFooter,
-    CardHeader,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { HomeBacktestAnalytics } from "@/lib/home-data";
-import HomeAurora from "./HomeAurora";
-import TacticalCard from "./TacticalCard";
-import HeroPriceChart, { type HeroCandleInput } from "./charts/HeroPriceChart";
-
-/* Illustrative XAUUSD M15 series for the console preview. This is sample
-   market data, never a recorded account: the identity bar carries an explicit
-   "Illustrative" badge and the footer echoes it with a "Sample preview" chip,
-   so none of it can be read as a live result (DESIGN.md §17, §21.3). */
-const HERO_TIMES = [
-    "08:00", "08:15", "08:30", "08:45", "09:00", "09:15",
-    "09:30", "09:45", "10:00", "10:15", "10:30", "10:45",
-];
-const HERO_VOLUME = [42, 68, 55, 90, 76, 48, 84, 95, 61, 72, 88, 70];
-const HERO_CANDLES = [
-    [2644.2, 2645.0, 2643.1, 2644.6],
-    [2644.6, 2647.5, 2644.0, 2646.8],
-    [2646.8, 2647.2, 2644.4, 2645.1],
-    [2645.1, 2650.2, 2644.8, 2649.6],
-    [2649.6, 2653.0, 2648.9, 2652.3],
-    [2652.3, 2653.1, 2650.0, 2650.7],
-    [2650.7, 2655.0, 2650.2, 2654.4],
-    [2654.4, 2658.8, 2653.9, 2658.1],
-    [2658.1, 2658.9, 2655.2, 2655.9],
-    [2655.9, 2660.0, 2655.4, 2659.4],
-    [2661.2, 2662.0, 2660.8, 2661.2],
-];
-
-/** The sample series, shaped for the price chart: open/high/low/close + volume. */
-const HERO_SERIES: HeroCandleInput[] = HERO_CANDLES.map(
-    ([open, high, low, close], i) => ({
-        time: HERO_TIMES[i],
-        open,
-        high,
-        low,
-        close,
-        volume: HERO_VOLUME[i],
-        up: close >= open,
-    })
-);
-
-/** Order levels shown beside the sample chart — the shape a signal uses. */
-const ORDER_ROWS = [
-    { label: "Entry", value: "2,650.10", tone: "text-foreground" },
-    { label: "Stop loss", value: "2,642.00", tone: "text-negative" },
-    { label: "Take profit", value: "2,662.00", tone: "text-positive" },
-];
-
-/** The three gateway behaviour rows — what happens once an order is accepted. */
-const GATEWAY = [
-    {
-        icon: CheckCircle,
-        title: "Risk-gated dispatch",
-        copy: "Orders are blocked before they leave if a guard trips.",
-    },
-    {
-        icon: ChartLineUp,
-        title: "Execution analytics",
-        copy: "Slippage and fill quality tracked per trade.",
-    },
-    {
-        icon: ShieldCheck,
-        title: "Drawdown telemetry",
-        copy: "Live equity curve with alert thresholds.",
-    },
-];
-
-function pct(value: number): string {
-    if (!Number.isFinite(value)) return "—";
-    return `${value.toFixed(1)}%`;
-}
+    Wallet,
+    Zap,
+} from "lucide-react";
+import type { HomeData, HomeProduct } from "@/lib/home-data";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import HomeCandleChart from "./HomeCandleChart";
+import { ReturnsHistogram, RiskMini, SignalLifecycle, TelemetryMini } from "./home-visuals";
+import Reveal from "./Reveal";
 
 /**
- * The product console — the hero's media, and the one place the landing page
- * shows the actual tool surface.
- *
- * It reads as the same object system as every other band: a solid `Card`, the
- * Recharts `ChartContainer`, the shared `Reveal` entrance and `HomeAurora`
- * atmosphere. The chart, read-outs and order levels are data a visitor has to
- * read, so the panel stays opaque — no glass or blur over the plot (§21.3).
- *
- * The identity bar is real terminal chrome (no macOS window dots, which a
- * trading audience reads as P&L colours), and the footer states plainly that
- * the whole surface is deterministic sample-preview data.
+ * Hero console — an honest take on the reference's perspective dashboard:
+ * app sidebar with real routes, topbar, workspace banner, view tabs with
+ * genuinely different panels, session rows, featured strategies, and real
+ * aggregate stats. Samples are labeled; everything links somewhere real.
  */
-export default function HeroConsole({ analytics }: { analytics: HomeBacktestAnalytics }) {
-    const [tick, setTick] = useState(0);
 
-    useEffect(() => {
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        // Calm cadence: one quote every 2s. Never per-frame state.
-        const id = setInterval(() => setTick((t) => (t + 1) % 100), 2000);
-        return () => clearInterval(id);
-    }, []);
+const NAV = [
+    { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+    { icon: Brain, label: "Copilot", href: "/ai-copilot" },
+    { icon: Search, label: "Scanner", href: "/scanner" },
+    { icon: FlaskConical, label: "Strategy Lab", href: "/strategy-lab", active: true },
+    { icon: History, label: "Backtests", href: "/backtests" },
+    { icon: Zap, label: "Signals", href: "/signals" },
+    { icon: Activity, label: "Live", href: "/live" },
+    { icon: Copy, label: "Copy Trading", href: "/copy-trading" },
+    { icon: Wallet, label: "Marketplace", href: "/marketplace" },
+] as const;
 
-    const price = (2654.4 + Math.sin(tick / 5) * 1.8).toFixed(2);
-    const up = Math.sin(tick / 5) >= 0;
+const VIEWS = [
+    { id: "overview", label: "Overview" },
+    { id: "signals", label: "Signals" },
+    { id: "backtests", label: "Backtests" },
+] as const;
 
-    /* Real aggregates — no invented numbers. When nothing is recorded the risk
-       tab shows an explicit empty state instead of placeholder figures. */
-    const hasEvidence = analytics.total > 0;
+type ViewId = (typeof VIEWS)[number]["id"];
+
+function formatPrice(value?: number, currency = "USD"): string {
+    if (value === undefined || !Number.isFinite(value)) return "—";
+    return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency,
+        maximumFractionDigits: 0,
+    }).format(value);
+}
+
+function StrategyMini({ product }: { product: HomeProduct }) {
+    return (
+        <Link
+            href={`/marketplace/${product.slug || product.id}`}
+            className="group flex flex-col rounded-xl border border-border bg-card p-3 shadow-sm transition-colors hover:border-primary/40"
+        >
+            <p className="truncate text-xs font-semibold text-foreground">{product.name || "Unnamed strategy"}</p>
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                {[product.symbol, product.timeframe].filter(Boolean).join(" · ") || "Marketplace listing"}
+            </p>
+            <p className="mt-2 flex items-center justify-between border-t border-border pt-2 text-[11px]">
+                <span className="font-numeric font-semibold text-primary">
+                    {formatPrice(product.pricing?.price, product.pricing?.currency)}
+                </span>
+                <span className="font-medium text-muted-foreground transition-colors group-hover:text-primary">Open</span>
+            </p>
+        </Link>
+    );
+}
+
+export default function HeroConsole({ data }: { data: HomeData }) {
+    const { stats, featured, backtestAnalytics } = data;
+    const [view, setView] = useState<ViewId>("overview");
 
     return (
-        <section
-            id="console"
-            aria-label="Product console preview"
-            className="home-section pb-20 pt-2 md:pb-28 md:pt-4"
-        >
-            <HomeAurora
-                className="opacity-50"
-                aClassName="right-[4%] top-[-6rem] h-[28rem] w-[28rem]"
-                bClassName="left-[-6%] bottom-[-8rem] h-[26rem] w-[26rem]"
-            />
-            <div className="page-container relative">
-                <TacticalCard dir={0} spotlight={true} className="mx-auto max-w-5xl rounded-xl">
-                    <Card className="gap-0 p-0 shadow-xl shadow-black/10">
-                        {/* Identity bar. */}
-                        <CardHeader className="flex flex-row flex-wrap items-center gap-x-4 gap-y-2 border-b border-border/80 bg-muted/40 px-4 py-3">
-                            <TerminalWindow
-                                size={16}
-                                className="shrink-0 text-muted-foreground"
-                                aria-hidden
-                            />
-                            <div className="flex min-w-0 items-baseline gap-2">
-                                <span className="font-numeric text-sm font-semibold text-foreground">
-                                    XAUUSD
+        <Reveal delay={150}>
+            <div className="relative mx-auto mt-14 max-w-6xl sm:mt-16" style={{ perspective: "1800px" }}>
+                <div
+                    role="img"
+                    aria-label="AlgoVault workspace preview: strategy lab with sample charts, session rows, featured strategies, and recorded aggregates"
+                    className="overflow-hidden rounded-2xl border border-border bg-card text-[13px] shadow-[0_40px_120px_-20px_rgba(0,0,0,0.75)]"
+                >
+                    <div className="flex">
+                        {/* Sidebar */}
+                        <div className="hidden w-52 shrink-0 flex-col border-r border-border bg-muted/40 p-3 md:flex">
+                            <div className="flex items-center gap-2 px-1">
+                                <span className="grid size-7 place-items-center rounded-lg bg-primary text-primary-foreground font-numeric text-xs font-bold">
+                                    AV
                                 </span>
-                                <span className="truncate text-xs text-muted-foreground">
-                                    Gold Spot · M15
+                                <span>
+                                    <span className="block text-xs font-semibold leading-tight text-foreground">AlgoVault</span>
+                                    <span className="block text-[11px] text-muted-foreground">Workspace</span>
                                 </span>
                             </div>
-                            <span
-                                className={`ml-auto flex items-center gap-1 font-numeric text-sm font-semibold tabular-nums ${
-                                    up ? "text-positive" : "text-negative"
-                                }`}
-                            >
-                                {up ? (
-                                    <TrendUp size={15} aria-hidden />
-                                ) : (
-                                    <TrendDown size={15} aria-hidden />
-                                )}
-                                {price}
-                            </span>
-                            <Badge variant="warning-light" radius="full">
-                                Illustrative
-                            </Badge>
-                        </CardHeader>
+                            <div className="mt-3 flex items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-1.5 text-muted-foreground">
+                                <Search size={13} aria-hidden />
+                                <span className="text-xs">Search</span>
+                                <span className="ml-auto rounded bg-muted px-1 font-numeric text-[10px]">⌘K</span>
+                            </div>
+                            <p className="mt-3 px-2 text-[11px] text-muted-foreground">Main</p>
+                            <ul className="mt-1 space-y-0.5">
+                                {NAV.map(({ icon: Icon, label, href, ...rest }) => (
+                                    <li key={href}>
+                                        <Link
+                                            href={href}
+                                            aria-current={"active" in rest ? "page" : undefined}
+                                            className={cn(
+                                                "flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors",
+                                                "active" in rest
+                                                    ? "bg-primary font-semibold text-primary-foreground"
+                                                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                                            )}
+                                        >
+                                            <Icon size={14} className="shrink-0" aria-hidden />
+                                            {label}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                            <div className="mt-auto border-t border-border pt-2 text-muted-foreground">
+                                <Link href="/account/settings" className="flex items-center gap-2 px-2 py-1.5 text-xs hover:text-foreground">
+                                    <Settings size={14} aria-hidden /> Settings
+                                </Link>
+                            </div>
+                        </div>
 
-                        {/* One Tabs root owns the rail and every panel below it, so the
-                            active trigger and the visible panel can never drift. */}
-                        <CardContent className="p-0">
-                            <Tabs defaultValue="terminal" className="flex-col gap-0">
-                                <div className="border-b border-border/80 px-3 py-2">
-                                    <TabsList className="w-full justify-start sm:w-fit">
-                                        <TabsTrigger value="terminal">Chart</TabsTrigger>
-                                        <TabsTrigger value="risk">Risk guard</TabsTrigger>
-                                        <TabsTrigger value="execution">MT5 gateway</TabsTrigger>
-                                    </TabsList>
+                        {/* Main */}
+                        <div className="flex min-w-0 flex-1 flex-col gap-3 p-3 sm:p-4">
+                            <div className="flex shrink-0 items-center justify-between">
+                                <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                                    <ChevronLeft size={13} aria-hidden /> Strategy Lab
+                                </span>
+                                <div className="flex items-center gap-1.5">
+                                    <Link
+                                        href="/alert-center"
+                                        aria-label="Open alerts"
+                                        className="grid size-7 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
+                                    >
+                                        <Bell size={14} aria-hidden />
+                                    </Link>
+                                    <Link
+                                        href="/register"
+                                        className="rounded-lg bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                                    >
+                                        New backtest
+                                    </Link>
                                 </div>
+                            </div>
 
-                                <TabsContent value="terminal">
-                                    <div className="px-2 pt-3">
-                                        <HeroPriceChart data={HERO_SERIES} />
+                            {/* Banner */}
+                            <div className="relative shrink-0 overflow-hidden rounded-xl border border-border bg-muted/50 p-4 sm:p-5">
+                                <div
+                                    aria-hidden
+                                    className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border-color)_1px,transparent_1px),linear-gradient(to_bottom,var(--border-color)_1px,transparent_1px)] bg-[size:36px_36px] opacity-40 [mask-image:radial-gradient(ellipse_70%_90%_at_80%_20%,black_20%,transparent_100%)] motion-reduce:hidden"
+                                />
+                                <p className="relative text-[11px] font-semibold uppercase tracking-widest text-primary">
+                                    Sample workspace
+                                </p>
+                                <p className="relative mt-1 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+                                    From scan to validated system
+                                </p>
+                                <p className="relative mt-1 max-w-[52ch] text-xs text-muted-foreground">
+                                    Eight engines read the feed, backtests prove the idea, risk gates the order.
+                                </p>
+                                <div className="relative mt-3 flex flex-wrap gap-2">
+                                    <Link
+                                        href="/strategy-lab"
+                                        className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                                    >
+                                        Open Strategy Lab
+                                    </Link>
+                                    <Link
+                                        href="/backtests"
+                                        className="rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-primary/40"
+                                    >
+                                        Browse runs
+                                    </Link>
+                                </div>
+                            </div>
+
+                            {/* View tabs */}
+                            <div className="flex shrink-0 gap-1 rounded-xl bg-muted/60 p-1" role="tablist" aria-label="Console views">
+                                {VIEWS.map((v) => (
+                                    <button
+                                        key={v.id}
+                                        type="button"
+                                        role="tab"
+                                        aria-selected={view === v.id}
+                                        onClick={() => setView(v.id)}
+                                        className={cn(
+                                            "flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+                                            view === v.id
+                                                ? "bg-card text-foreground shadow-xs"
+                                                : "text-muted-foreground hover:text-foreground",
+                                        )}
+                                    >
+                                        {v.label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Panels */}
+                            {view === "overview" && (
+                                <div className="grid min-h-0 gap-3 lg:grid-cols-[1.5fr_1fr]">
+                                    <div className="min-w-0">
+                                        <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                                            <BarChart3 size={13} className="text-primary" aria-hidden /> XAUUSD · H1 sample
+                                        </p>
+                                        <div className="mt-2 overflow-hidden rounded-xl border border-border">
+                                            <HomeCandleChart seed={11} basePrice={2650} precision={2} count={56} stepSeconds={3600} height={190} label="Hero console illustrative sample" />
+                                        </div>
                                     </div>
-
-                                    {/* Order levels only. The old "Signal score 88/100" cell is
-                                        gone: it was an invented number with no source behind it
-                                        (§17 — no fabricated data, even in a labelled sample). */}
-                                    <dl className="grid grid-cols-1 gap-px border-t border-border/80 bg-border/80 sm:grid-cols-3">
-                                        {ORDER_ROWS.map((row) => (
-                                            <div key={row.label} className="bg-card px-4 py-3">
-                                                <dt className="text-xs text-muted-foreground">
-                                                    {row.label}
-                                                </dt>
-                                                <dd
-                                                    className={`mt-0.5 font-numeric text-sm font-semibold tabular-nums ${row.tone}`}
-                                                >
-                                                    {row.value}
-                                                </dd>
+                                    <div className="hidden min-w-0 flex-col gap-3 lg:flex">
+                                        <div>
+                                            <p className="text-xs font-medium text-muted-foreground">Sessions</p>
+                                            <ul className="mt-2 space-y-1.5">
+                                                {[
+                                                    ["Tokyo", "Range structure"],
+                                                    ["London", "Liquidity sweeps"],
+                                                    ["New York", "Trend continuation"],
+                                                ].map(([name, desc]) => (
+                                                    <li key={name} className="flex items-center justify-between rounded-lg border border-border px-2.5 py-1.5 text-xs">
+                                                        <span className="flex items-center gap-1.5 font-medium text-foreground">
+                                                            <span className="h-1.5 w-1.5 rounded-full bg-positive" aria-hidden />
+                                                            {name}
+                                                        </span>
+                                                        <span className="text-[11px] text-muted-foreground">{desc}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-medium text-muted-foreground">Recorded</p>
+                                            <div className="mt-2 grid grid-cols-2 gap-1.5">
+                                                {[
+                                                    [String(stats.strategies), "Strategies"],
+                                                    [String(stats.backtests), "Backtests"],
+                                                ].map(([v, l]) => (
+                                                    <div key={l} className="rounded-lg border border-border px-2.5 py-2">
+                                                        <p className="font-numeric text-base font-semibold text-foreground">{v}</p>
+                                                        <p className="text-[11px] text-muted-foreground">{l}</p>
+                                                    </div>
+                                                ))}
                                             </div>
-                                        ))}
-                                    </dl>
-                                </TabsContent>
-
-                                <TabsContent value="risk">
-                                    <div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-                                        <div className="min-w-0">
-                                            <h3 className="text-sm font-semibold tracking-tight text-foreground">
-                                                Pre-trade validation
-                                            </h3>
-                                            <p className="mt-1 max-w-md text-xs leading-5 text-muted-foreground">
-                                                Every entry is checked against daily loss limits,
-                                                position sizing and drawdown guards before it can
-                                                reach your terminal.
-                                            </p>
                                         </div>
-                                        <Badge
-                                            variant="success-light"
-                                            radius="full"
-                                            className="shrink-0 gap-1"
-                                        >
-                                            <ShieldCheck size={12} aria-hidden /> Guard active
-                                        </Badge>
                                     </div>
+                                </div>
+                            )}
 
-                                    {hasEvidence ? (
-                                        <dl className="grid grid-cols-2 gap-px border-t border-border/80 bg-border/80 sm:grid-cols-4">
-                                            {[
-                                                {
-                                                    label: "Runs measured",
-                                                    value: analytics.total.toLocaleString(),
-                                                },
-                                                {
-                                                    label: "Average win rate",
-                                                    value: pct(analytics.avgWinRate),
-                                                },
-                                                {
-                                                    label: "Average max drawdown",
-                                                    value: pct(analytics.avgMaxDrawdown),
-                                                },
-                                                {
-                                                    label: "Profitable runs",
-                                                    value: `${analytics.positiveCount} of ${analytics.total}`,
-                                                },
-                                            ].map((cell) => (
-                                                <div key={cell.label} className="bg-card px-4 py-4">
-                                                    <dt className="text-xs text-muted-foreground">
-                                                        {cell.label}
-                                                    </dt>
-                                                    <dd className="mt-1 font-numeric text-xl font-semibold tabular-nums text-foreground">
-                                                        {cell.value}
-                                                    </dd>
-                                                </div>
-                                            ))}
-                                        </dl>
-                                    ) : (
-                                        <div className="border-t border-border/80 px-5 py-10 text-center">
-                                            <p className="text-sm font-medium text-foreground">
-                                                No recorded runs yet
-                                            </p>
-                                            <p className="mx-auto mt-1 max-w-sm text-xs leading-5 text-muted-foreground">
-                                                Risk aggregates appear here once backtests are
-                                                recorded. Run one to see real numbers instead of a
-                                                demo.
-                                            </p>
-                                            <Button
-                                                render={<Link href="/backtests" />}
-                                                variant="outline"
-                                                size="sm"
-                                                className="mt-4"
-                                            >
-                                                Run a backtest{" "}
-                                                <ArrowRight data-icon="inline-end" size={14} />
-                                            </Button>
+                            {view === "signals" && (
+                                <div className="grid min-h-0 gap-3 lg:grid-cols-[1.5fr_1fr]">
+                                    <SignalLifecycle />
+                                    <div className="flex flex-col gap-3">
+                                        <RiskMini />
+                                        <Link href="/signals" className="text-xs font-semibold text-primary hover:underline">
+                                            Open Signal Center →
+                                        </Link>
+                                    </div>
+                                </div>
+                            )}
+
+                            {view === "backtests" && (
+                                <div className="grid min-h-0 gap-3 lg:grid-cols-[1.5fr_1fr]">
+                                    <ReturnsHistogram />
+                                    <div className="flex flex-col gap-3">
+                                        <TelemetryMini />
+                                        <div className="grid grid-cols-2 gap-1.5">
+                                            <div className="rounded-lg border border-border px-2.5 py-2">
+                                                <p className="font-numeric text-base font-semibold text-foreground">{backtestAnalytics.total}</p>
+                                                <p className="text-[11px] text-muted-foreground">Recorded runs</p>
+                                            </div>
+                                            <div className="rounded-lg border border-border px-2.5 py-2">
+                                                <p className="font-numeric text-base font-semibold text-foreground">
+                                                    {backtestAnalytics.analyzableCount > 0
+                                                        ? `${backtestAnalytics.avgWinRate.toFixed(1)}%`
+                                                        : "—"}
+                                                </p>
+                                                <p className="text-[11px] text-muted-foreground">Avg win rate</p>
+                                            </div>
                                         </div>
+                                        <Link href="/backtests" className="text-xs font-semibold text-primary hover:underline">
+                                            Open Backtest Studio →
+                                        </Link>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Featured */}
+                            <div className="max-sm:hidden">
+                                <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                                    <ScrollText size={13} className="text-primary" aria-hidden /> Featured strategies
+                                </p>
+                                <div className="mt-2 grid grid-cols-3 gap-2">
+                                    {featured.slice(0, 3).map((p) => (
+                                        <StrategyMini key={p.id} product={p} />
+                                    ))}
+                                    {featured.length === 0 && (
+                                        <p className="col-span-3 rounded-xl border border-dashed border-border px-3 py-5 text-center text-xs text-muted-foreground">
+                                            No marketplace listings yet — new systems appear here when published.
+                                        </p>
                                     )}
-                                </TabsContent>
+                                </div>
+                            </div>
 
-                                <TabsContent value="execution">
-                                    <div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-                                        <div className="min-w-0">
-                                            <h3 className="text-sm font-semibold tracking-tight text-foreground">
-                                                Broker gateway
-                                            </h3>
-                                            <p className="mt-1 max-w-md text-xs leading-5 text-muted-foreground">
-                                                Connect your own terminal to dispatch
-                                                risk-validated orders and stream heartbeats
-                                                back. Credentials never leave your broker.
-                                            </p>
-                                        </div>
-                                        <Badge
-                                            variant="outline"
-                                            radius="full"
-                                            className="shrink-0 gap-1"
-                                        >
-                                            <Target size={12} aria-hidden /> Bring your own MT5
-                                        </Badge>
-                                    </div>
-
-                                    <ul className="grid grid-cols-1 gap-px border-t border-border/80 bg-border/80 sm:grid-cols-3">
-                                        {GATEWAY.map(({ icon: Icon, title, copy }) => (
-                                            <li key={title} className="flex gap-3 bg-card px-4 py-4">
-                                                <Icon
-                                                    size={16}
-                                                    className="mt-0.5 shrink-0 text-positive"
-                                                    aria-hidden
-                                                />
-                                                <div className="min-w-0">
-                                                    <p className="text-xs font-semibold text-foreground">
-                                                        {title}
-                                                    </p>
-                                                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                                                        {copy}
-                                                    </p>
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </TabsContent>
-                            </Tabs>
-                        </CardContent>
-
-                        {/* Footer: the engine statement and the honest sample-preview
-                            label, on the same hairline the other panels use. */}
-                        <CardFooter className="flex-wrap justify-between gap-x-4 gap-y-2 border-border/80 bg-muted/20 px-4 py-2.5">
-                            <span className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                <Cpu size={14} className="text-primary" aria-hidden />
-                                Deterministic market engine
-                                <Badge variant="warning-light" size="xs" radius="full">
+                            {/* Status */}
+                            <div className="flex shrink-0 items-center gap-2 border-t border-border pt-2 text-[11px] text-muted-foreground">
+                                <ShieldCheck size={13} className="shrink-0 text-positive" aria-hidden />
+                                <span className="font-numeric">Deterministic engines · risk-gated gateway · audited runs</span>
+                                <Badge variant="outline" className="ml-auto shrink-0 font-numeric text-[10px] normal-case">
                                     Sample preview
                                 </Badge>
-                            </span>
-                            <span className="font-numeric text-xs tabular-nums text-muted-foreground">
-                                Base · <span className="text-foreground">Lyra</span>
-                            </span>
-                        </CardFooter>
-                    </Card>
-                </TacticalCard>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </section>
+        </Reveal>
     );
 }

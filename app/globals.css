@@ -534,6 +534,23 @@ body {
   animation-play-state: paused;
 }
 
+/* ── Wiring canvas flow (homepage setup graph) ──
+   Ember pulse along the active connector. stroke-dashoffset only;
+   frozen (not hidden) under reduced motion. */
+.wire-flow {
+  stroke-dasharray: 10 90;
+  animation: wire-dash 1.6s linear infinite;
+}
+@keyframes wire-dash {
+  to { stroke-dashoffset: -100; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wire-flow {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
 /* ── Aceternity: infinite moving cards ──
    Registry `animate-scroll` keyframes (upstream ships these as CSS alongside
    the component). One 40s loop, transform-only; the global reduced-motion

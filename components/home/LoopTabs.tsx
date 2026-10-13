@@ -5,6 +5,7 @@ import { ArrowRight, Check, Gauge, History, ScanSearch, Send } from "lucide-reac
 import type { HomeData } from "@/lib/home-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardSpotlight } from "@/components/ui/card-spotlight";
 import HomeCandleChart from "./HomeCandleChart";
@@ -55,6 +56,48 @@ export default function LoopTabs({ data }: { data: HomeData }) {
                 </Reveal>
 
                 <Reveal delay={100}>
+                    <div aria-hidden className="relative mt-10 overflow-hidden rounded-2xl border border-border bg-muted/40">
+                        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--border-color)_1px,transparent_1px),linear-gradient(to_bottom,var(--border-color)_1px,transparent_1px)] bg-[size:44px_44px] opacity-50 [mask-image:radial-gradient(ellipse_60%_80%_at_50%_100%,black_20%,transparent_100%)]" />
+                        <div className="relative grid place-items-center p-6 sm:p-10">
+                            <div className="w-full max-w-xs rounded-xl border border-border bg-card p-4 shadow-lg">
+                                <div className="flex items-center justify-between gap-3">
+                                    <p className="truncate text-xs text-muted-foreground">workspace · sample</p>
+                                    <Badge variant="success" className="h-6 shrink-0 gap-1.5 text-[11px]">
+                                        <span className="relative flex h-1.5 w-1.5">
+                                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive/60 motion-reduce:animate-none" />
+                                            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-positive" />
+                                        </span>
+                                        Live
+                                    </Badge>
+                                </div>
+                                <p className="mt-2 font-numeric text-3xl font-semibold tracking-tight text-foreground">
+                                    {backtestAnalytics.total}
+                                    <span className="ml-1.5 text-sm font-normal text-muted-foreground">recorded runs</span>
+                                </p>
+                                <ul className="mt-3 space-y-1.5">
+                                    {[
+                                        ["Scan the feed", "8 engines"],
+                                        ["Validate the idea", "costs modeled"],
+                                        ["Gate the order", "risk decides"],
+                                    ].map(([step, meta]) => (
+                                        <li key={step} className="flex items-center gap-2 text-xs">
+                                            <span className="grid size-4 place-items-center rounded-full bg-positive text-background">
+                                                <Check size={10} strokeWidth={3.5} aria-hidden />
+                                            </span>
+                                            <span className="font-medium text-foreground">{step}</span>
+                                            <span className="ml-auto font-numeric text-muted-foreground">{meta}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <p className="mt-3 border-t border-border pt-2.5 text-[11px] text-muted-foreground">
+                                    From scan to fill
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </Reveal>
+
+                <Reveal delay={140}>
                     <Tabs defaultValue="discover" className="mt-10 items-center">
                         <TabsList className="h-auto flex-wrap rounded-full border border-border bg-card p-1 shadow-sm">
                             {[

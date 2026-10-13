@@ -1,15 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Reveal from "./Reveal";
 
 /**
- * Code section ("Speak Pine and MQL5. Keep the tools you have."): a
- * read-only sample Pine Script v6 window beside an illustrative engine
- * readout, plus the integration checklist. The snippet is a labeled
- * sample — it opens in Strategy Lab rather than executing anything.
+ * Code section ("Speak Pine and MQL5. Keep the tools you have."): five
+ * switchable sample tabs — Pine import, MQL5 export, set file, signal
+ * payload — each with a read-only snippet and an illustrative readout.
+ * Nothing executes; the panel opens in Strategy Lab instead.
  */
 
 const PINE_SAMPLE = `//@version=6
@@ -28,6 +30,37 @@ if longOk
 if shortOk
     strategy.entry("Short", strategy.short)`;
 
+const MQL5_SAMPLE = `//+----------------------------------------------------+
+//| Vault Breakout — sample skeleton                  |
+//+----------------------------------------------------+
+input double RiskPct = 1.0;
+input int    ATRLen  = 21;
+
+int OnInit() { return(INIT_SUCCEEDED); }
+
+void OnTick() {
+   double atr = iATR(_Symbol, PERIOD_CURRENT, ATRLen, 0);
+   // entries pass the risk gate before send
+}`;
+
+const SETFILE_SAMPLE = `{
+  "symbol": "XAUUSD",
+  "timeframe": "M15",
+  "risk_pct": 1.0,
+  "atr_len": 21,
+  "atr_mult": 1.8,
+  "session": "London"
+}`;
+
+const SIGNAL_SAMPLE = `{
+  "id": "sig_sample_01",
+  "symbol": "XAUUSD",
+  "direction": "long",
+  "state": "PENDING_ENTRY",
+  "engines": { "regime": "trend", "score": 74 },
+  "risk": { "decision": "approve", "code": "OK" }
+}`;
+
 const FEATURES = [
     { title: "Pine Script v6 import", copy: "Strategies are read directly — signals, not screenshots." },
     { title: "MQL5 EA export", copy: "Validated systems leave the lab as terminal-ready experts." },
@@ -36,14 +69,62 @@ const FEATURES = [
     { title: "Docs that match the UI", copy: "Guides describe the routes and controls that exist." },
 ] as const;
 
-const READOUT = [
-    ["Regime", "Trend · Bullish"],
-    ["Market score", "74 / 100"],
-    ["Liquidity", "Sell-side swept"],
-    ["Risk check", "Pass · 1% risk"],
+const TABS = [
+    {
+        id: "pine",
+        label: "Pine import",
+        file: "vault-breakout.pine · sample",
+        code: PINE_SAMPLE,
+        readout: [
+            ["Regime", "Trend · Bullish"],
+            ["Market score", "74 / 100"],
+            ["Liquidity", "Sell-side swept"],
+            ["Risk check", "Pass · 1% risk"],
+        ],
+    },
+    {
+        id: "mql5",
+        label: "MQL5 export",
+        file: "VaultBreakout.mq5 · sample",
+        code: MQL5_SAMPLE,
+        readout: [
+            ["Build", "Clean compile"],
+            ["Risk gate", "Checked pre-trade"],
+            ["Execution", "EA bridge"],
+            ["Logging", "Every fill stored"],
+        ],
+    },
+    {
+        id: "setfile",
+        label: "Set file",
+        file: "xauusd-m15.set.json · sample",
+        code: SETFILE_SAMPLE,
+        readout: [
+            ["Symbol", "XAUUSD · M15"],
+            ["Risk", "1.0% per trade"],
+            ["Session", "London"],
+            ["Portable", "Ships with listing"],
+        ],
+    },
+    {
+        id: "signal",
+        label: "Signal payload",
+        file: "signal.json · sample",
+        code: SIGNAL_SAMPLE,
+        readout: [
+            ["State", "PENDING_ENTRY"],
+            ["Engines", "Regime · 74"],
+            ["Decision", "Approve · OK"],
+            ["Outcome", "Decided by TP/SL"],
+        ],
+    },
 ] as const;
 
+type TabId = (typeof TABS)[number]["id"];
+
 export default function CodeSection() {
+    const [tab, setTab] = useState<TabId>("pine");
+    const active = TABS.find((t) => t.id === tab) ?? TABS[0];
     return (
         <section className="border-b border-border bg-muted/30">
             <div className="page-container grid items-center gap-10 py-14 md:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
@@ -82,26 +163,37 @@ export default function CodeSection() {
 
                 <Reveal delay={120}>
                     <div className="overflow-hidden rounded-xl border border-border bg-card shadow-md">
-                        <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+                        <Tabs value={tab} onValueChange={(v) => setTab(v as TabId)} className="gap-0">
+                            <div className="border-b border-border px-3 pt-2">
+                                <TabsList className="h-8 w-full justify-start gap-1 overflow-x-auto rounded-lg">
+                                    {TABS.map((t) => (
+                                        <TabsTrigger key={t.id} value={t.id} className="flex-1 whitespace-nowrap px-2 text-xs">
+                                            {t.label}
+                                        </TabsTrigger>
+                                    ))}
+                                </TabsList>
+                            </div>
+                        </Tabs>
+                        <div className="flex items-center justify-between border-b border-border px-4 py-2">
                             <span className="flex items-center gap-1.5" aria-hidden>
                                 <span className="h-2.5 w-2.5 rounded-full bg-negative/80" />
                                 <span className="h-2.5 w-2.5 rounded-full bg-warning/80" />
                                 <span className="h-2.5 w-2.5 rounded-full bg-positive/80" />
                             </span>
-                            <span className="font-numeric text-[11px] text-muted-foreground">vault-breakout.pine · sample</span>
+                            <span className="font-numeric text-[11px] text-muted-foreground">{active.file}</span>
                             <Link href="/strategy-lab" className="text-[11px] font-semibold text-primary hover:underline">
                                 Open in lab
                             </Link>
                         </div>
-                        <pre className="overflow-x-auto p-4 font-numeric text-xs leading-5 text-foreground" aria-label="Sample Pine Script strategy">
-                            <code>{PINE_SAMPLE}</code>
+                        <pre className="min-h-56 overflow-x-auto p-4 font-numeric text-xs leading-5 text-foreground" aria-label={`Sample ${active.label}`}>
+                            <code>{active.code}</code>
                         </pre>
                         <div className="border-t border-border px-4 py-3">
                             <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-                                Engine readout · sample
+                                Readout · sample
                             </p>
                             <dl className="mt-2 grid grid-cols-2 gap-2">
-                                {READOUT.map(([k, v]) => (
+                                {active.readout.map(([k, v]) => (
                                     <div key={k} className="rounded-lg bg-muted/60 px-3 py-2">
                                         <dt className="text-[11px] text-muted-foreground">{k}</dt>
                                         <dd className="mt-0.5 font-numeric text-xs font-semibold text-foreground">{v}</dd>
