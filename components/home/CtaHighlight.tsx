@@ -31,7 +31,7 @@ export default function CtaHighlight() {
                                 Create a workspace, scan your first symbol, and run a
                                 deterministic backtest in minutes — with every number accounted for.
                             </p>
-                            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                            <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
                                 <MovingButton
                                     as={Link}
                                     href="/register"
