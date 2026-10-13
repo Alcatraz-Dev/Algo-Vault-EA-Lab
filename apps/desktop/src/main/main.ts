@@ -7,7 +7,7 @@ import { createTray } from './tray';
 import { connection } from './connection';
 import { updater } from './auto-updater';
 import { isOriginAllowlisted } from '../shared/links';
-import pkg from '../package.json';
+import pkg from '../../package.json';
 
 const APP_NAME = (pkg as { name: string }).name;
 const APP_VERSION = (pkg as { version: string }).version;
@@ -17,7 +17,7 @@ let mainWindow: BrowserWindow | null = null;
 /** Thin, single source of truth for window actions. */
 function getWindowActions(): ReturnType<typeof createWindowActions> {
   if (!mainWindow) mainWindow = createWindow();
-  return createWindowActions();
+  return createWindowActions(() => mainWindow);
 }
 
 function wireIpc(): void {
@@ -51,8 +51,9 @@ function wireIpc(): void {
 
 function wireConnection(): void {
   if (mainWindow) {
-    connection.onOnline(() => mainWindow.webContents.send('connection:online'));
-    connection.onOffline(() => mainWindow.webContents.send('connection:offline'));
+    const win = mainWindow;
+    connection.onOnline(() => win.webContents.send('connection:online'));
+    connection.onOffline(() => win.webContents.send('connection:offline'));
   }
   // Reflect the current OS network state on first load.
   if (connection.online) {

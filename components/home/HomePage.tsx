@@ -24,16 +24,6 @@ import {
     Terminal,
     Wallet,
     Zap,
-    Layout,
-    Layers,
-    Rocket,
-    Briefcase,
-    Lightbulb,
-    Globe,
-    Settings,
-    BarChart4,
-    Target,
-    Award,
 } from "lucide-react";
 import { database } from "@/lib/firebase";
 import { onValue, ref } from "firebase/database";
@@ -270,7 +260,9 @@ export default function HomePage({ data }: { data: HomeData }) {
                                 {MODULES.map(({ icon: Icon, title, href, copy }) => (
                                     <Link key={href} href={href} className="group relative bg-card/80 backdrop-blur p-5 shadow-md transition-colors hover:bg-muted/60">
                                         <div className="flex items-center justify-between">
-                                            <Icon size={18} className="text-primary transition-transform duration-300 group-hover:-translate-y-0.5" />
+                                            <IconTile variant="outline" size="sm" className="shrink-0" aria-hidden>
+                                                <Icon size={18} />
+                                            </IconTile>
                                             <ChevronRight size={15} className="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
                                         </div>
                                         <h3 className="mt-8 text-base font-semibold text-foreground">{title}</h3>

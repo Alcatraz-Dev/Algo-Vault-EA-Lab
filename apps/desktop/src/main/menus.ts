@@ -1,5 +1,5 @@
 import { app, BrowserWindow, Menu, globalShortcut, MenuItemConstructorOptions } from 'electron';
-import pkg from '../package.json';
+import pkg from '../../package.json';
 
 const APP_NAME = (pkg as { name: string }).name;
 const APP_VERSION = (pkg as { version: string }).version;
@@ -29,23 +29,31 @@ export interface WindowActions {
  * Build a thin, single source of truth for window actions. The menus and the
  * connection/updater IPC handlers read from this object so every caller looks
  * at the same window and never creates a second BrowserWindow.
+ *
+ * Takes a getter (not the window itself) so the actions always resolve the
+ * *current* window at call time. Capturing a `const ... = null` here would
+ * narrow to `never` under `strict` and leave every action permanently dead.
  */
-export function createWindowActions(): WindowActions {
-  let mainWindow: BrowserWindow | null = null;
-
+export function createWindowActions(
+  getWindow: () => BrowserWindow | null,
+): WindowActions {
   const actions: WindowActions = {
     minimize: () => {
-      if (mainWindow) mainWindow.minimize();
+      getWindow()?.minimize();
     },
     maximize: () => {
-      if (!mainWindow) return;
-      mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize();
+      const win = getWindow();
+      if (!win) return;
+      if (win.isMaximized()) win.unmaximize();
+      else win.maximize();
     },
     close: () => {
-      if (mainWindow) mainWindow.close();
+      getWindow()?.close();
     },
-    isMaximized: () => mainWindow?.isMaximized() ?? false,
+    isMaximized: () => getWindow()?.isMaximized() ?? false,
   };
+
+  return actions;
 }
 
 export function createApplicationMenu(actions: WindowActions): void {

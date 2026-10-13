@@ -7,14 +7,14 @@ import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
  * touch Node or Electron directly. Everything it needs passes through here.
  * The surface is deliberately narrow.
  */
-const window: Record<string, () => unknown> = {
+const window: Record<string, (...args: any[]) => unknown> = {
   minimize: () => ipcRenderer.invoke('window:minimize'),
   maximize: () => ipcRenderer.invoke('window:maximize'),
   close: () => ipcRenderer.invoke('window:close'),
   isMaximized: () => ipcRenderer.invoke('window:isMaximized'),
 };
 
-const app: Record<string, () => unknown> = {
+const app: Record<string, (...args: any[]) => unknown> = {
   getVersion: () => ipcRenderer.invoke('app:getVersion'),
   restart: () => ipcRenderer.invoke('app:restart'),
   quit: () => ipcRenderer.invoke('app:quit'),
@@ -56,10 +56,10 @@ ipcRenderer.on('connection:offline', () => {
   connection.online = false;
 });
 ipcRenderer.on('updater:update-available', () => {
-  (updater as Record<string, unknown>).onUpdate?.();
+  (updater as { onUpdate?: () => void }).onUpdate?.();
 });
 ipcRenderer.on('updater:update-downloaded', () => {
-  (updater as Record<string, unknown>).onUpdate?.();
+  (updater as { onUpdate?: () => void }).onUpdate?.();
 });
 ipcRenderer.on('updater:error', (_event: IpcRendererEvent, message: string) => {
   console.warn('[desktop] updater error:', message);
