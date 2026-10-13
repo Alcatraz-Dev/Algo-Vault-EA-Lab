@@ -461,9 +461,9 @@ export function Terminal({
         className,
       )}
     >
-      <div className="overflow-hidden rounded-lg border border-neutral-800 bg-neutral-50 dark:bg-white dark:bg-neutral-900 shadow-2xl">
+      <div className="overflow-hidden rounded-lg border border-neutral-800 bg-[#f5f5f7] dark:bg-white dark:bg-[#f5f5f7] shadow-2xl">
         {/* Title Bar */}
-        <div className="flex items-center gap-2 bg-neutral-100 dark:bg-neutral-800 px-4 py-3">
+        <div className="flex items-center gap-2 bg-neutral-100 dark:bg-neutral-100 px-4 py-3">
           <div className="flex items-center gap-1.5">
             <div className="h-3 w-3 rounded-full bg-red-500 transition-colors hover:bg-red-600" />
             <div className="h-3 w-3 rounded-full bg-yellow-500 transition-colors hover:bg-yellow-600" />
@@ -483,7 +483,7 @@ export function Terminal({
         {/* Terminal Content */}
         <div
           ref={contentRef}
-          className="no-visible-scrollbar h-80 overflow-y-auto p-4 font-mono bg-neutral-50 dark:bg-[#0a0a0a]"
+          className="no-visible-scrollbar h-80 overflow-y-auto p-4 font-mono bg-[#f5f5f7] dark:bg-[#0a0a0a]"
         >
           {lines.map((line, i) => (
             <div key={i} className="leading-relaxed whitespace-pre-wrap">
@@ -502,7 +502,7 @@ export function Terminal({
             <div className="leading-relaxed whitespace-pre-wrap">
               {prompt}
               <SyntaxHighlightedText text={currentText} />
-              <span className="ml-0.5 inline-block h-4 w-2 bg-neutral-300 dark:bg-neutral-500 dark:bg-neutral-300 align-middle" />
+              <span className="ml-0.5 inline-block h-4 w-2 bg-neutral-300 dark:bg-[#f5f5f7]0 dark:bg-neutral-300 align-middle" />
             </div>
           )}
 
@@ -513,7 +513,7 @@ export function Terminal({
               {prompt}
               <span
                 className={cn(
-                  "inline-block h-4 w-2 bg-neutral-300 dark:bg-neutral-500 dark:bg-neutral-300 align-middle transition-opacity duration-100",
+                  "inline-block h-4 w-2 bg-neutral-300 dark:bg-[#f5f5f7]0 dark:bg-neutral-300 align-middle transition-opacity duration-100",
                   !cursorVisible && "opacity-0",
                 )}
               />
