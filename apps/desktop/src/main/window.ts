@@ -1,7 +1,7 @@
 import { app, BrowserWindow, screen } from 'electron';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { getActiveUrl, waitForServer, log } from './next-server.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -101,7 +101,9 @@ export function createWindow(): BrowserWindow {
     show: false,
     backgroundColor: '#0b0c0e',
     webPreferences: {
-      preload: join(__dirname, '..', 'preload', 'index.js'),
+      preload: existsSync(join(__dirname, '..', 'preload', 'index.cjs'))
+        ? join(__dirname, '..', 'preload', 'index.cjs')
+        : join(__dirname, '..', 'preload', 'index.js'),
       nodeIntegration: false,
       contextIsolation: true,
       devTools: !process.env.ELECTRON_NO_DEV_TOOLS,
